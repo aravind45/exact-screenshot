@@ -1,6 +1,7 @@
 import { StatCard } from "@/components/StatCard";
 import { AssetCard } from "@/components/AssetCard";
 import { FollowUpWidget } from "@/components/FollowUpWidget";
+import { useAuth } from "@/contexts/AuthContext";
 import { 
   Landmark, 
   DollarSign, 
@@ -8,7 +9,8 @@ import {
   CheckCircle2,
   Plus,
   Search,
-  Filter
+  Filter,
+  LogOut
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -123,6 +125,7 @@ const mockFollowUps = [
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const { user, signOut } = useAuth();
   const totalValue = mockAssets.reduce((sum, asset) => sum + asset.value, 0);
   const inProgress = mockAssets.filter(a => !['distributed', 'closed'].includes(a.status)).length;
   const completed = mockAssets.filter(a => ['distributed', 'closed'].includes(a.status)).length;
@@ -130,6 +133,14 @@ export default function Dashboard() {
   const handleAssetClick = (assetId: string) => {
     navigate(`/asset/${assetId}`);
   };
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/');
+  };
+
+  // Get first name from user metadata or email
+  const firstName = user?.user_metadata?.full_name?.split(' ')[0] || user?.email?.split('@')[0] || 'there';
 
   return (
     <div className="min-h-screen bg-background">
@@ -143,10 +154,21 @@ export default function Dashboard() {
               </div>
               <span className="font-bold text-lg text-foreground">ExpectedEstate</span>
             </Link>
-            <Button size="sm" className="gap-2">
-              <Plus className="w-4 h-4" />
-              Add Asset
-            </Button>
+            <div className="flex items-center gap-3">
+              <Button size="sm" className="gap-2">
+                <Plus className="w-4 h-4" />
+                Add Asset
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={handleSignOut}
+                className="gap-2"
+              >
+                <LogOut className="w-4 h-4" />
+                Sign Out
+              </Button>
+            </div>
           </div>
         </div>
       </header>
@@ -160,10 +182,10 @@ export default function Dashboard() {
           className="mb-8"
         >
           <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
-            Good morning, John
+            Welcome back, {firstName}
           </h1>
           <p className="text-muted-foreground">
-            Estate of Jane Doe • 6 assets tracked
+            Demo Estate • {mockAssets.length} assets tracked
           </p>
         </motion.div>
 
