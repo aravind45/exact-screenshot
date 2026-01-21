@@ -14,7 +14,223 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      asset_communications: {
+        Row: {
+          asset_id: string
+          communication_date: string
+          communication_type: string
+          contact_person: string | null
+          content: string | null
+          created_at: string
+          direction: string
+          id: string
+          method: string
+          next_action_date: string | null
+          next_action_type: string | null
+          response: string | null
+          response_date: string | null
+          subject: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          asset_id: string
+          communication_date?: string
+          communication_type: string
+          contact_person?: string | null
+          content?: string | null
+          created_at?: string
+          direction: string
+          id?: string
+          method: string
+          next_action_date?: string | null
+          next_action_type?: string | null
+          response?: string | null
+          response_date?: string | null
+          subject: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          asset_id?: string
+          communication_date?: string
+          communication_type?: string
+          contact_person?: string | null
+          content?: string | null
+          created_at?: string
+          direction?: string
+          id?: string
+          method?: string
+          next_action_date?: string | null
+          next_action_type?: string | null
+          response?: string | null
+          response_date?: string | null
+          subject?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_communications_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assets: {
+        Row: {
+          account_number: string | null
+          asset_type: string
+          category: string
+          contact_person: string | null
+          created_at: string
+          estate_id: string
+          id: string
+          institution: string
+          institution_email: string | null
+          institution_fax: string | null
+          institution_phone: string | null
+          last_contact_date: string | null
+          next_follow_up_date: string | null
+          notes: string | null
+          priority: string | null
+          status: string | null
+          updated_at: string
+          user_id: string
+          value: number | null
+        }
+        Insert: {
+          account_number?: string | null
+          asset_type: string
+          category: string
+          contact_person?: string | null
+          created_at?: string
+          estate_id: string
+          id?: string
+          institution: string
+          institution_email?: string | null
+          institution_fax?: string | null
+          institution_phone?: string | null
+          last_contact_date?: string | null
+          next_follow_up_date?: string | null
+          notes?: string | null
+          priority?: string | null
+          status?: string | null
+          updated_at?: string
+          user_id: string
+          value?: number | null
+        }
+        Update: {
+          account_number?: string | null
+          asset_type?: string
+          category?: string
+          contact_person?: string | null
+          created_at?: string
+          estate_id?: string
+          id?: string
+          institution?: string
+          institution_email?: string | null
+          institution_fax?: string | null
+          institution_phone?: string | null
+          last_contact_date?: string | null
+          next_follow_up_date?: string | null
+          notes?: string | null
+          priority?: string | null
+          status?: string | null
+          updated_at?: string
+          user_id?: string
+          value?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assets_estate_id_fkey"
+            columns: ["estate_id"]
+            isOneToOne: false
+            referencedRelation: "estates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      estates: {
+        Row: {
+          created_at: string
+          deceased_date_of_birth: string | null
+          deceased_date_of_death: string
+          deceased_first_name: string
+          deceased_last_name: string
+          deceased_state: string
+          estate_type: string | null
+          id: string
+          name: string
+          status: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          deceased_date_of_birth?: string | null
+          deceased_date_of_death: string
+          deceased_first_name: string
+          deceased_last_name: string
+          deceased_state: string
+          estate_type?: string | null
+          id?: string
+          name: string
+          status?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          deceased_date_of_birth?: string | null
+          deceased_date_of_death?: string
+          deceased_first_name?: string
+          deceased_last_name?: string
+          deceased_state?: string
+          estate_type?: string | null
+          id?: string
+          name?: string
+          status?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string | null
+          id: string
+          role: string | null
+          state: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          full_name?: string | null
+          id?: string
+          role?: string | null
+          state?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string | null
+          id?: string
+          role?: string | null
+          state?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

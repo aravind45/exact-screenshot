@@ -21,7 +21,7 @@ export function CTASection() {
             Start tracking your estate settlement today. Free to try, 
             no credit card required.
           </p>
-          <Link to="/dashboard">
+          <Link to="/auth">
             <Button size="lg" className="h-12 px-8 text-base gap-2 shadow-soft-lg">
               Start Free
               <ArrowRight className="w-4 h-4" />
