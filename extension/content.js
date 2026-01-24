@@ -19,19 +19,31 @@ const MAPPINGS = {
     }
 };
 
-async function fetchEstateData() {
-    try {
-        const response = await fetch("http://localhost:8080/api/estates/my");
-        if (!response.ok) return null;
-        return await response.json();
-    } catch (e) {
-        console.error("ExpectedEstate: Failed to fetch shared data", e);
-        return null;
-    }
+const IS_APP_DOMAIN = window.location.origin.includes("localhost:8080");
+
+// 1. DATA CAPTURE (On localhost:8080)
+if (IS_APP_DOMAIN) {
+    console.log("ExpectedEstate: Bridge active on App Domain");
+    window.addEventListener("message", (event) => {
+        if (event.data && event.data.type === "EE_SYNC_DATA") {
+            chrome.storage.local.set({ estateData: event.data.payload }, () => {
+                console.log("ExpectedEstate: Data synced to extension storage");
+            });
+        }
+    });
+}
+
+// 2. DATA POPULATION (On Institution Domains)
+async function getStoredData() {
+    return new Promise((resolve) => {
+        chrome.storage.local.get(["estateData"], (result) => {
+            resolve(result.estateData || null);
+        });
+    });
 }
 
 function injectFillButton() {
-    if (document.getElementById("ee-bridge-btn")) return;
+    if (IS_APP_DOMAIN || document.getElementById("ee-bridge-btn")) return;
 
     const currentDomain = window.location.hostname.replace("www.", "");
     let config = null;
@@ -69,29 +81,20 @@ function injectFillButton() {
 
     btn.onclick = async () => {
         btn.innerText = "⏳ Filling...";
-        const data = await fetchEstateData();
+        const data = await getStoredData();
 
         if (!data) {
-            alert("ExpectedEstate: Unable to fetch estate data. Please make sure the app is running at localhost:8080 and you are logged in.");
+            alert("ExpectedEstate: No data found. Please make sure you have the dashboard open in another tab to sync your estate profile.");
             btn.innerText = "✨ Fill with ExpectedEstate";
             return;
         }
-
-        // Map data keys to Config
-        const estateValues = {
-            deceasedFirstName: data.deceasedName?.split(" ")[0],
-            deceasedLastName: data.deceasedName?.split(" ").slice(1).join(" "),
-            deceasedSSN: data.deceasedSsn,
-            deceasedDOB: data.deceasedDob,
-            dateOfDeath: data.dateOfDeath,
-        };
 
         let filledCount = 0;
         for (const fieldKey in config.fields) {
             const selector = config.fields[fieldKey];
             const input = document.querySelector(selector);
-            if (input && estateValues[fieldKey]) {
-                input.value = estateValues[fieldKey];
+            if (input && data[fieldKey]) {
+                input.value = data[fieldKey];
                 input.dispatchEvent(new Event('input', { bubbles: true }));
                 input.dispatchEvent(new Event('change', { bubbles: true }));
                 filledCount++;

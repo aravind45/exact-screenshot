@@ -40,13 +40,19 @@ export function Sidebar() {
         queryFn: api.getMyEstate,
     });
 
-    const bookmarklet = estate ? generateBookmarklet({
-        deceasedFirstName: estate.deceasedName?.split(' ')[0],
-        deceasedLastName: estate.deceasedName?.split(' ').slice(1).join(' '),
-        deceasedSSN: estate.deceasedSsn || "XXX-XX-XXXX",
-        deceasedDOB: estate.deceasedDob || "01/01/1950",
-        dateOfDeath: estate.dateOfDeath || "01/01/2024",
-    }) : "#";
+    // Auto-sync data to the Extension Bridge
+    React.useEffect(() => {
+        if (estate) {
+            const syncData = {
+                deceasedFirstName: estate.deceasedName?.split(' ')[0],
+                deceasedLastName: estate.deceasedName?.split(' ').slice(1).join(' '),
+                deceasedSSN: estate.deceasedSsn || "XXX-XX-XXXX",
+                deceasedDOB: estate.deceasedDob || "01/01/1950",
+                dateOfDeath: estate.dateOfDeath || "01/01/2024",
+            };
+            window.postMessage({ type: "EE_SYNC_DATA", payload: syncData }, "*");
+        }
+    }, [estate]);
 
     const isActive = (path: string) => location.pathname === path;
 
@@ -144,37 +150,51 @@ export function Sidebar() {
                                 </DialogDescription>
                             </DialogHeader>
                             <div className="space-y-6 py-4">
-                                <div className="space-y-3">
-                                    <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                                        <div className="w-5 h-5 rounded-full bg-primary/20 text-primary flex items-center justify-center text-[10px]">1</div>
-                                        Download Extension Files
-                                    </h4>
-                                    <p className="text-xs text-slate-400 pl-7 leading-relaxed">
-                                        The extension files have been created in your project's <code className="bg-slate-800 px-1 rounded text-primary">/extension</code> directory.
+                                <div className="bg-primary/5 border border-primary/20 p-5 rounded-2xl space-y-3">
+                                    <div className="flex items-center gap-3 text-primary">
+                                        <div className="p-2 rounded-lg bg-primary/10">
+                                            <Zap className="w-5 h-5" />
+                                        </div>
+                                        <span className="font-bold">Simple Step: Add the Bridge</span>
+                                    </div>
+                                    <p className="text-xs text-slate-300 leading-relaxed">
+                                        Open <code className="bg-slate-800 px-1.5 py-0.5 rounded text-primary">chrome://extensions</code>, turn on <strong>Developer Mode</strong>, and click <strong>Load Unpacked</strong>. Select the folder named <code className="bg-slate-800 px-1.5 py-0.5 rounded text-primary">extension</code> inside your project.
                                     </p>
+                                    <div className="pt-2">
+                                        <div className="flex items-start gap-3 p-3 bg-slate-800/50 rounded-xl border border-slate-700/50">
+                                            <ShieldCheck className="w-4 h-4 text-emerald-400 mt-1 shrink-0" />
+                                            <p className="text-[10px] text-slate-400">Your data is stored locally and never leaves your browser.</p>
+                                        </div>
+                                    </div>
                                 </div>
 
-                                <div className="space-y-3">
-                                    <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                                        <div className="w-5 h-5 rounded-full bg-primary/20 text-primary flex items-center justify-center text-[10px]">2</div>
-                                        Load into Chrome
-                                    </h4>
-                                    <ul className="text-xs text-slate-400 pl-7 space-y-2 list-disc">
-                                        <li>Open <code className="bg-slate-800 px-1 rounded">chrome://extensions</code> in a new tab</li>
-                                        <li>Enable <strong>Developer mode</strong> (top right)</li>
-                                        <li>Click <strong>Load unpacked</strong></li>
-                                        <li>Select the <code className="bg-slate-800 px-1 rounded">/extension</code> folder</li>
-                                    </ul>
-                                </div>
-
-                                <div className="bg-primary/10 border border-primary/20 p-4 rounded-xl space-y-2">
-                                    <p className="text-xs font-bold text-primary flex items-center gap-2">
-                                        <Zap className="w-4 h-4" />
-                                        Magic Fill Enabled
-                                    </p>
-                                    <p className="text-[10px] text-slate-300 leading-relaxed">
-                                        Once installed, a ✨ <strong>Fill with ExpectedEstate</strong> button will appear automatically when you visit claim forms on Robinhood or Fidelity.
-                                    </p>
+                                <div className="space-y-4">
+                                    <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500">Or use Manual Copy (No Setup)</h4>
+                                    <div className="grid grid-cols-1 gap-2">
+                                        {[
+                                            { label: "First Name", value: estate?.deceasedName?.split(' ')[0] },
+                                            { label: "Last Name", value: estate?.deceasedName?.split(' ').slice(1).join(' ') },
+                                            { label: "SSN", value: estate?.deceasedSsn },
+                                            { label: "DOB", value: estate?.deceasedDob },
+                                        ].map((field) => (
+                                            <div key={field.label} className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/5 hover:border-primary/30 transition-all">
+                                                <div className="flex flex-col">
+                                                    <span className="text-[10px] text-slate-500 font-bold uppercase">{field.label}</span>
+                                                    <span className="text-sm font-medium text-white">{field.value || "Not Set"}</span>
+                                                </div>
+                                                <Button
+                                                    size="sm"
+                                                    variant="ghost"
+                                                    className="h-8 text-[10px] text-primary hover:text-white hover:bg-primary"
+                                                    onClick={() => {
+                                                        navigator.clipboard.writeText(field.value || "");
+                                                    }}
+                                                >
+                                                    Copy
+                                                </Button>
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
                             </div>
                         </DialogContent>
