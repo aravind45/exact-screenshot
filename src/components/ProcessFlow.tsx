@@ -21,7 +21,7 @@ export function ProcessFlow({ stages, currentStageId, completedStageIds = [] }: 
             {validStages.map((stage, index) => {
                 const isCompleted = completedStageIds.includes(stage.id);
                 const isActive = stage.id === currentStageId;
-                const isLast = index === stages.length - 1;
+                const isLast = index === validStages.length - 1;
                 const isFirst = index === 0;
 
                 // Color logic
