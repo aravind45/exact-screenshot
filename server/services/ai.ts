@@ -27,23 +27,30 @@ interface DiscoveryClue {
 }
 
 export async function analyzeDocument(text?: string, imageBase64?: string): Promise<ExtractedAsset | null> {
-    const prompt = `You are an expert "Detective" agent for estate settlement. 
-    Analyze the document (Text or Image) to extract the primary asset or financial clue.
+    const prompt = `You are a forensic "Detective Agent" for the ExpectedEstate platform. 
+    Analyze the provided document (Text or Image) to extract financial assets.
     
-    SPECIAL HANDLING: If the document is a W-2 or Tax Form (1099, 1040):
-    - Set "institution" to the Employer or Payer name.
-    - Set "assetType" to "401k/Retirement" or "Income Source".
-    - Set "value" to the annual income or reported amount.
-    - In "reasoningChain", explain that this is a tax document pointing back to a potential hidden asset.
+    SPECIAL HANDLING BY DOCUMENT TYPE:
+    1. W-2:
+       - institution: [Employer Name] from Box c.
+       - assetType: If Box 13 "Retirement Plan" is checked, use "401k/Pension (Employer-sponsored)". Otherwise "Employment Record".
+       - value: Box 1 "Wages" (Annual).
+    2. 1099-B / 1099-DIV / 1099-INT (Brokerage/Bank):
+       - institution: [Payer Name] (e.g. Robinhood, Fidelity, Charles Schwab, Chase).
+       - assetType: "Brokerage Account", "Cryptocurrency", or "Savings/Checking" based on the form.
+       - value: Total proceeds, dividends, or interest reported.
+    3. Form 1098-T (Education):
+       - institution: [School Name].
+       - assetType: "Education Credit/Expense".
 
-    Standard Fields:
-    - institution: Name of firm or Employer
-    - accountNumber: Last 4 digits (if any)
-    - value: Number only (Balance or Annual Income)
-    - assetType: checking, 401k, brokerage, life_insurance, etc.
+    Standard Fields for JSON:
+    - institution: Name of Bank, Brokerage, or Employer.
+    - accountNumber: Last 4 digits (if found).
+    - value: Numeric dollar amount reported.
+    - assetType: checking, brokerage, 401k, crypto, insurance, property, etc.
     - category: financial, retirement, insurance, employer, etc.
-    - reasoningChain: Explain focus/evidence found.
-    - suggestNextSteps: 2-3 specific actions (e.g. "Draft letters testamentary", "Check for beneficiaries").
+    - reasoningChain: 1-2 sentences on what clues were found.
+    - suggestNextSteps: 2-3 specific actions for an executor.
     
     Return ONLY valid JSON.`;
 
@@ -89,23 +96,25 @@ export async function discoverRelatedAssets(text: string): Promise<DiscoveryClue
     Your mission is to find hidden financial assets by scanning the document text for "clues".
     
     CRITICAL: You are specialized in TAX DOCUMENTS (W-2, 1099-INT, 1099-DIV, 1040).
+    - If you see a 1099-B / Brokerage Statement: Look for "Robinhood", "Public", "Coinbase", or "ETrade". This proves an active trading account.
     - If you see a W-2: Look at the "Employer" section. If "Retirement Plan" (Box 13) is checked, there IS a 401k/403b/Pension.
     - If you see a 1099-INT: It proves an account at the specified bank exists.
     - If you see a 1099-DIV: It proves a brokerage account or specific stock holdings exist.
     
     Also look for:
+    - Cryptocurrency keywords (BTC, ETH, Coinbase).
     - Transfers to/from other banks (Vanguard, Fidelity, etc.)
     - Mentions of "Consolidated" accounts or "Summary of other holdings"
     - Multiple account types listed in one statement (e.g. "Your IRA ending in 4455")
-    - Dividends from specific stocks/firms.
+    - Dividends and Capital Gains reported.
 
     Return JSON list of objects:
     {
       "clues": [
         {
-          "potentialAsset": "401k or Pension",
-          "institution": "Name of Employer or Firm",
-          "sourceClue": "W-2 found; Retirement Plan box is checked for [Employer Name]",
+          "potentialAsset": "Brokerage, 401k, or Crypto",
+          "institution": "Robinhood, Vanguard, or Coinbase",
+          "sourceClue": "Direct evidence found (e.g. 1099-B Payer is Robinhood)",
           "confidence": 0.98
         }
       ]

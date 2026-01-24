@@ -162,7 +162,10 @@ export default function Discovery() {
                             </p>
 
                             <DocumentScanner
-                                onScanStart={() => setIsScanning(true)}
+                                onScanStart={() => {
+                                    setIsScanning(true);
+                                    setClues([]); // Clear previous results to avoid confusion
+                                }}
                                 onScanComplete={handleScanComplete}
                                 className="mt-6"
                             />
