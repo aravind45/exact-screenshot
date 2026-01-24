@@ -21,6 +21,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
+import { ProcessFlow } from "./ProcessFlow";
+import { TRACK_STAGES, SettlementTrack } from "@/config/settlementStages";
 
 export function ProbateHub() {
     const { toast } = useToast();
@@ -90,6 +92,13 @@ export function ProbateHub() {
                     </Button>
                 )}
             </CardHeader>
+            <div className="px-6 py-2 border-b border-border/30 bg-muted/5">
+                <ProcessFlow
+                    stages={TRACK_STAGES[(estate.estateType as SettlementTrack) || "PROBATE"]}
+                    currentStageId={estate.probateStatus === "EXECUTOR_APPOINTED" ? "discovery" : "petition"}
+                    completedStageIds={estate.probateStatus === "EXECUTOR_APPOINTED" ? ["petition", "authority"] : []}
+                />
+            </div>
 
             <CardContent className="space-y-6">
                 <AnimatePresence mode="wait">

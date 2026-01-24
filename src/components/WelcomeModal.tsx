@@ -20,7 +20,9 @@ import {
     AlertCircle,
     Globe
 } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import { ProcessFlow } from "./ProcessFlow";
+import { TRACK_STAGES, SettlementTrack } from "@/config/settlementStages";
 
 const TRACKS = [
     {
@@ -140,6 +142,20 @@ export function WelcomeModal() {
                         </button>
                     ))}
                 </div>
+
+                <AnimatePresence>
+                    {selected && (
+                        <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className="mt-6 p-4 rounded-xl border border-primary/20 bg-primary/5"
+                        >
+                            <h4 className="text-xs font-bold text-primary uppercase tracking-widest mb-2 px-2">Process Preview</h4>
+                            <ProcessFlow stages={TRACK_STAGES[selected as SettlementTrack]} />
+                        </motion.div>
+                    )}
+                </AnimatePresence>
 
                 <div className="flex justify-end pt-4 gap-3">
                     <Button
