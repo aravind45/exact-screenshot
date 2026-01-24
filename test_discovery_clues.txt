@@ -1,0 +1,15 @@
+CITIBANK ESTATE SETTLEMENT STATEMENT
+Deceased: Jane Smith
+Date: December 15, 2025
+
+SUMMARY OF ACCOUNTS:
+- Savings Account (****4455): $25,430.22
+- Checking Account (****1122): $1,200.00
+
+RECENT TRANSFERS:
+12/05/2025: ACH TRANSFER - OUT - $500.00 to VANGUARD RETIREMENT SERVICES
+12/10/2025: WIRE TRANSFER - IN - $15,200.00 from FIDELITY INVESTMENTS (Ref: Estate Settlement)
+12/12/2025: AUTOMATED DEPOSIT - $250.00 from METLIFE INSURANCE DIVIDEND
+
+OTHER HOLDINGS:
+Please refer to your consolidated brokerage holdings at CHARLES SCHWAB for detailed tax information.

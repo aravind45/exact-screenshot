@@ -1,0 +1,155 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  fullName  String?  @map("full_name")
+  role      String?  // 'EXECUTOR', 'ATTORNEY', 'ADMIN'
+  state     String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  estates        Estate[]
+  communications AssetCommunication[]
+  documents      Document[]
+
+  @@map("profiles") // Matching the Supabase 'profiles' table name for consistency
+}
+
+model Estate {
+  id                 String   @id @default(uuid())
+  userId             String   @map("user_id")
+  name               String
+  deceasedFirstName  String   @map("deceased_first_name")
+  deceasedLastName   String   @map("deceased_last_name")
+  deceasedDateOfBirth DateTime? @map("deceased_date_of_birth")
+  deceasedDateOfDeath DateTime  @map("deceased_date_of_death")
+  deceasedState      String   @map("deceased_state")
+  estateType         String?  @map("estate_type")
+  
+  // Probate Tracking
+  probateStatus      String   @default("NOT_STARTED") @map("probate_status") // 'NOT_REQUIRED', 'NOT_STARTED', 'FILED', 'EXECUTOR_APPOINTED', 'CLOSED'
+  courtCaseNumber    String?  @map("court_case_number")
+  probateCounty      String?  @map("probate_county")
+
+  status             String?  // 'INITIATION', 'DISCOVERY', 'SETTLEMENT', etc.
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  assets Asset[]
+
+  @@map("estates")
+}
+
+model Asset {
+  id                String   @id @default(uuid())
+  estateId          String   @map("estate_id")
+  userId            String   @map("user_id") // Redundant but good for RLS/Query ease
+  
+  institution       String
+  assetType         String   @map("asset_type") // 'checking', '401k'
+  category          String   // 'financial', 'retirement'
+  ownershipType     String   @default("INDIVIDUAL") @map("ownership_type") // 'BENEFICIARY', 'JOINT', 'TRUST', 'INDIVIDUAL'
+  accountNumber     String?  @map("account_number")
+  value             Float?
+  
+  status            String?  // 'DISCOVERED', 'CONTACTED'
+  priority          String?  // 'low', 'medium', 'high', 'urgent'
+  
+  lastContactDate   DateTime? @map("last_contact_date")
+  nextFollowUpDate  DateTime? @map("next_follow_up_date")
+  
+  institutionPhone  String?   @map("institution_phone")
+  institutionEmail  String?   @map("institution_email")
+  institutionFax    String?   @map("institution_fax")
+  institutionUrl    String?   @map("institution_url")
+  institutionAddress String?  @map("institution_address")
+  contactPerson     String?   @map("contact_person")
+  notes             String?
+  
+  workflowState     Json?     @map("workflow_state") // Stores { currentStep, completedSteps[], lastUpdated }
+
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  estate         Estate               @relation(fields: [estateId], references: [id], onDelete: Cascade)
+  communications AssetCommunication[]
+  documents      Document[]
+
+  @@map("assets")
+}
+
+model AssetCommunication {
+  id                String   @id @default(uuid())
+  assetId           String   @map("asset_id")
+  userId            String   @map("user_id")
+  
+  communicationDate DateTime @map("communication_date")
+  type              String   @map("communication_type") // 'initial_contact', 'follow_up'
+  method            String   // 'email', 'phone', 'fax'
+  direction         String   // 'inbound', 'outbound'
+  
+  subject           String
+  content           String?
+  
+  response          String?
+  responseDate      DateTime? @map("response_date")
+  
+  nextActionDate    DateTime? @map("next_action_date")
+  nextActionType    String?   @map("next_action_type")
+  contactPerson     String?   @map("contact_person")
+
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  asset Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id])
+
+  @@map("asset_communications")
+}
+
+model Document {
+  id        String   @id @default(uuid())
+  assetId   String   @map("asset_id")
+  userId    String   @map("user_id")
+  
+  name      String
+  type      String   // 'DEATH_CERTIFICATE', 'CLAIM_FORM', 'OTHER'
+  fileUrl   String?  @map("file_url") // Null if not yet uploaded (just a placeholder requirement)
+  status    String   // 'MISSING', 'UPLOADED', 'VERIFIED'
+  isRequired Boolean @default(false) @map("is_required")
+  
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  asset     Asset    @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@map("documents")
+}
+
+model Institution {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  
+  phone     String?
+  email     String?
+  fax       String?
+  website   String?
+  address   String?
+  logoUrl   String?  @map("logo_url")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("institutions")
+}
+

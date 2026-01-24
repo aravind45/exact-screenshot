@@ -1,0 +1,297 @@
+import { useState, useEffect } from "react";
+import { api } from "@/lib/api";
+import { Sparkles } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Phone, Mail, Printer, FileText, ExternalLink, Loader2 } from "lucide-react";
+
+interface CommunicationLogDialogProps {
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+    onSubmit: (data: CommunicationData) => void;
+    isLoading?: boolean;
+    templates?: Record<string, { subject: string; body: string }>;
+    assetId?: string;
+    workflowContext?: {
+        title: string;
+        description: string;
+    };
+}
+
+export interface CommunicationData {
+    method: string;
+    subject: string;
+    content: string;
+    communicationDate: string;
+    type: string;
+    direction: string;
+    contactPerson?: string;
+}
+
+const methodIcons: Record<string, any> = {
+    phone: Phone,
+    email: Mail,
+    fax: Printer,
+    mail: FileText,
+    portal: ExternalLink,
+};
+
+export function CommunicationLogDialog({
+    open,
+    onOpenChange,
+    onSubmit,
+    isLoading = false,
+    templates = {},
+    assetId,
+    workflowContext
+}: CommunicationLogDialogProps) {
+    const [isGenerating, setIsGenerating] = useState(false);
+    const [formData, setFormData] = useState<CommunicationData>({
+        method: "phone",
+        subject: "",
+        content: "",
+        communicationDate: new Date().toISOString().slice(0, 16),
+        type: "follow_up",
+        direction: "outbound",
+        contactPerson: ""
+    });
+
+    useEffect(() => {
+        if (open && assetId && !formData.subject && !formData.content) {
+            handleGenerateDraft();
+        }
+    }, [open, assetId]);
+
+    const handleGenerateDraft = async () => {
+        if (!assetId) return;
+        setIsGenerating(true);
+        try {
+            const draft = await api.generateDraft(assetId, {
+                workflowStepTitle: workflowContext?.title,
+                workflowStepDescription: workflowContext?.description
+            });
+            if (draft) {
+                setFormData(prev => ({
+                    ...prev,
+                    subject: draft.subject || prev.subject,
+                    content: draft.notes || prev.content
+                }));
+            }
+        } catch (error) {
+            console.error("Failed to generate draft:", error);
+        } finally {
+            setIsGenerating(false);
+        }
+    };
+
+    const handleTemplateSelect = (templateKey: string) => {
+        const template = templates[templateKey];
+        if (template) {
+            setFormData(prev => ({
+                ...prev,
+                subject: template.subject,
+                content: template.body
+            }));
+        }
+    };
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        onSubmit(formData);
+    };
+
+    const handleClose = () => {
+        onOpenChange(false);
+        // Reset form after a short delay to avoid visual glitch
+        setTimeout(() => {
+            setFormData({
+                method: "phone",
+                subject: "",
+                content: "",
+                communicationDate: new Date().toISOString().slice(0, 16),
+                type: "follow_up",
+                direction: "outbound",
+                contactPerson: ""
+            });
+        }, 200);
+    };
+
+    return (
+        <Dialog open={open} onOpenChange={handleClose}>
+            <DialogContent className="sm:max-w-[600px]">
+                <DialogHeader>
+                    <div className="flex items-center justify-between pr-8">
+                        <DialogTitle>Log Communication</DialogTitle>
+                        {isGenerating && (
+                            <div className="flex items-center gap-1.5 text-xs font-medium text-primary animate-pulse">
+                                <Sparkles className="w-3.5 h-3.5" />
+                                Smart Drafting...
+                            </div>
+                        )}
+                    </div>
+                </DialogHeader>
+
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    {/* Template Selector (if templates provided) */}
+                    {Object.keys(templates).length > 0 && (
+                        <div className="space-y-2">
+                            <Label>Use Template</Label>
+                            <Select onValueChange={handleTemplateSelect}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select a template (optional)" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {Object.keys(templates).map(key => (
+                                        <SelectItem key={key} value={key}>
+                                            {key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    )}
+
+                    <div className="grid grid-cols-2 gap-4">
+                        {/* Method */}
+                        <div className="space-y-2">
+                            <Label htmlFor="method">Method *</Label>
+                            <Select
+                                value={formData.method}
+                                onValueChange={(value) => setFormData({ ...formData, method: value })}
+                            >
+                                <SelectTrigger id="method">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {Object.keys(methodIcons).map(method => {
+                                        const Icon = methodIcons[method];
+                                        return (
+                                            <SelectItem key={method} value={method}>
+                                                <div className="flex items-center gap-2">
+                                                    <Icon className="w-4 h-4" />
+                                                    <span className="capitalize">{method}</span>
+                                                </div>
+                                            </SelectItem>
+                                        );
+                                    })}
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        {/* Direction */}
+                        <div className="space-y-2">
+                            <Label htmlFor="direction">Direction *</Label>
+                            <Select
+                                value={formData.direction}
+                                onValueChange={(value) => setFormData({ ...formData, direction: value })}
+                            >
+                                <SelectTrigger id="direction">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="outbound">Outbound (I contacted them)</SelectItem>
+                                    <SelectItem value="inbound">Inbound (They contacted me)</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        {/* Type */}
+                        <div className="space-y-2">
+                            <Label htmlFor="type">Type</Label>
+                            <Select
+                                value={formData.type}
+                                onValueChange={(value) => setFormData({ ...formData, type: value })}
+                            >
+                                <SelectTrigger id="type">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="initial_contact">Initial Contact</SelectItem>
+                                    <SelectItem value="follow_up">Follow-up</SelectItem>
+                                    <SelectItem value="document_submission">Document Submission</SelectItem>
+                                    <SelectItem value="status_check">Status Check</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        {/* Date/Time */}
+                        <div className="space-y-2">
+                            <Label htmlFor="date">Date & Time *</Label>
+                            <Input
+                                id="date"
+                                type="datetime-local"
+                                value={formData.communicationDate}
+                                onChange={(e) => setFormData({ ...formData, communicationDate: e.target.value })}
+                                required
+                            />
+                        </div>
+                    </div>
+
+                    {/* Contact Person */}
+                    <div className="space-y-2">
+                        <Label htmlFor="contactPerson">Contact Person (optional)</Label>
+                        <Input
+                            id="contactPerson"
+                            placeholder="e.g., John Doe, Rep #12345"
+                            value={formData.contactPerson}
+                            onChange={(e) => setFormData({ ...formData, contactPerson: e.target.value })}
+                        />
+                    </div>
+
+                    {/* Subject */}
+                    <div className="space-y-2">
+                        <Label htmlFor="subject">Subject *</Label>
+                        <Input
+                            id="subject"
+                            placeholder="Brief summary of communication"
+                            value={formData.subject}
+                            onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                            required
+                        />
+                    </div>
+
+                    {/* Content/Notes */}
+                    <div className="space-y-2">
+                        <Label htmlFor="content">Notes</Label>
+                        <Textarea
+                            id="content"
+                            placeholder="Detailed notes about the conversation..."
+                            value={formData.content}
+                            onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                            rows={4}
+                            className="resize-none"
+                        />
+                    </div>
+
+                    <DialogFooter>
+                        <Button type="button" variant="outline" onClick={handleClose} disabled={isLoading || isGenerating}>
+                            Cancel
+                        </Button>
+                        {assetId && (
+                            <Button
+                                type="button"
+                                variant="secondary"
+                                onClick={handleGenerateDraft}
+                                disabled={isLoading || isGenerating}
+                                className="gap-2"
+                            >
+                                {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                                Regenerate
+                            </Button>
+                        )}
+                        <Button type="submit" disabled={isLoading || isGenerating}>
+                            {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                            Log Communication
+                        </Button>
+                    </DialogFooter>
+                </form>
+            </DialogContent>
+        </Dialog>
+    );
+}

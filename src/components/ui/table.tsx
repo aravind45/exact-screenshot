@@ -2,12 +2,69 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
-const Table = React.forwardRef<HTMLTableElement, React.HTMLAttributes<HTMLTableElement>>(
-  ({ className, ...props }, ref) => (
-    <div className="relative w-full overflow-auto">
-      <table ref={ref} className={cn("w-full caption-bottom text-sm", className)} {...props} />
-    </div>
-  ),
+/**
+ * Extended props for the Table component to enforce accessibility attributes.
+ */
+interface TableProps extends React.HTMLAttributes<HTMLTableElement> {
+  /**
+   * Accessible label for the table. Required for screen readers.
+   * Use this when the table doesn't have a visible caption.
+   */
+  'aria-label'?: string;
+  /**
+   * ID of an element that labels the table. Alternative to aria-label.
+   * Use this when there's a visible heading that describes the table.
+   */
+  'aria-labelledby'?: string;
+}
+
+/**
+ * Table component wrapper with accessibility support.
+ * 
+ * @example
+ * ```tsx
+ * <Table aria-label="User data">
+ *   <TableHeader>
+ *     <TableRow>
+ *       <TableHead>Name</TableHead>
+ *       <TableHead>Email</TableHead>
+ *     </TableRow>
+ *   </TableHeader>
+ *   <TableBody>
+ *     <TableRow>
+ *       <TableCell>John Doe</TableCell>
+ *       <TableCell>john@example.com</TableCell>
+ *     </TableRow>
+ *   </TableBody>
+ * </Table>
+ * ```
+ * 
+ * @accessibility 
+ * - Always include either `aria-label` or `aria-labelledby` for screen readers
+ * - Always use `TableHeader` with proper `TableHead` elements
+ * - Use `TableCaption` for complex tables to provide additional context
+ */
+const Table = React.forwardRef<HTMLTableElement, TableProps>(
+  ({ className, ...props }, ref) => {
+    // Warn in development if no aria-label or aria-labelledby is provided
+    if (process.env.NODE_ENV === 'development' && !props['aria-label'] && !props['aria-labelledby']) {
+      console.warn(
+        'Table component should have either aria-label or aria-labelledby for accessibility. ' +
+        'This helps screen reader users understand the purpose of the table.'
+      );
+    }
+
+    return (
+      <div className="relative w-full overflow-auto">
+        <table
+          ref={ref}
+          className={cn("w-full caption-bottom text-sm", className)}
+          role="table"
+          {...props}
+        />
+      </div>
+    );
+  },
 );
 Table.displayName = "Table";
 

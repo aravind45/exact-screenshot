@@ -2,133 +2,53 @@ import { StatCard } from "@/components/StatCard";
 import { AssetCard } from "@/components/AssetCard";
 import { FollowUpWidget } from "@/components/FollowUpWidget";
 import { useAuth } from "@/contexts/AuthContext";
-import { 
-  Landmark, 
-  DollarSign, 
-  Clock, 
+import {
+  Landmark,
+  DollarSign,
+  Clock,
   CheckCircle2,
   Plus,
   Search,
   Filter,
-  LogOut
+  LogOut,
+  User
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { ProbateHub } from "@/components/ProbateHub";
+import { AgentInsights } from "@/components/AgentInsights";
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { api } from "@/lib/api";
 import type { AssetCategory } from "@/components/CategoryBadge";
 import type { AssetStatus } from "@/components/StatusBadge";
 import type { Priority } from "@/components/PriorityBadge";
 
-// Mock data for demonstration
-const mockAssets = [
-  {
-    id: '1',
-    institution: 'Fidelity Investments',
-    type: '401k',
-    value: 425000,
-    category: 'retirement' as AssetCategory,
-    status: 'contacted' as AssetStatus,
-    priority: 'high' as Priority,
-    lastContactDate: '2026-01-07',
-    nextFollowUpDate: '2026-01-21',
-    daysSinceContact: 14,
-  },
-  {
-    id: '2',
-    institution: 'Chase Bank',
-    type: 'checking_account',
-    value: 15420,
-    category: 'financial' as AssetCategory,
-    status: 'documents_submitted' as AssetStatus,
-    priority: 'medium' as Priority,
-    lastContactDate: '2026-01-14',
-    nextFollowUpDate: '2026-01-28',
-    daysSinceContact: 7,
-  },
-  {
-    id: '3',
-    institution: 'MetLife',
-    type: 'life_insurance',
-    value: 250000,
-    category: 'insurance' as AssetCategory,
-    status: 'in_review' as AssetStatus,
-    priority: 'low' as Priority,
-    lastContactDate: '2026-01-18',
-    nextFollowUpDate: null,
-    daysSinceContact: 3,
-  },
-  {
-    id: '4',
-    institution: 'Vanguard',
-    type: 'ira',
-    value: 185000,
-    category: 'retirement' as AssetCategory,
-    status: 'discovered' as AssetStatus,
-    priority: 'medium' as Priority,
-    lastContactDate: null,
-    nextFollowUpDate: null,
-    daysSinceContact: null,
-  },
-  {
-    id: '5',
-    institution: 'Bank of America',
-    type: 'savings_account',
-    value: 32500,
-    category: 'financial' as AssetCategory,
-    status: 'approved' as AssetStatus,
-    priority: 'low' as Priority,
-    lastContactDate: '2026-01-10',
-    nextFollowUpDate: null,
-    daysSinceContact: 11,
-  },
-  {
-    id: '6',
-    institution: 'Former Employer Inc.',
-    type: 'stock_options',
-    value: 45000,
-    category: 'employer' as AssetCategory,
-    status: 'contacted' as AssetStatus,
-    priority: 'urgent' as Priority,
-    lastContactDate: '2025-12-20',
-    nextFollowUpDate: '2026-01-20',
-    daysSinceContact: 32,
-  },
-];
-
-const mockFollowUps = [
-  {
-    assetId: '6',
-    institution: 'Former Employer Inc.',
-    assetType: 'stock_options',
-    daysSinceContact: 32,
-    priority: 'urgent' as Priority,
-    action: 'Urgent: Consider filing complaint - No response in 30+ days',
-  },
-  {
-    assetId: '1',
-    institution: 'Fidelity Investments',
-    assetType: '401k',
-    daysSinceContact: 14,
-    priority: 'high' as Priority,
-    action: 'Escalation recommended - Request supervisor',
-  },
-  {
-    assetId: '2',
-    institution: 'Chase Bank',
-    assetType: 'checking_account',
-    daysSinceContact: 7,
-    priority: 'medium' as Priority,
-    action: 'Gentle reminder - Follow up on document status',
-  },
-];
+// Helper to normalize status/priority from DB (often uppercase) to frontend (lowercase)
+const normalize = (str: string | null) => str?.toLowerCase() || '';
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
-  const totalValue = mockAssets.reduce((sum, asset) => sum + asset.value, 0);
-  const inProgress = mockAssets.filter(a => !['distributed', 'closed'].includes(a.status)).length;
-  const completed = mockAssets.filter(a => ['distributed', 'closed'].includes(a.status)).length;
+
+  // Fetch real assets from Neon DB
+  const { data: assets = [], isLoading, error } = useQuery({
+    queryKey: ['assets'],
+    queryFn: api.getAssets,
+  });
+
+  const totalValue = assets.reduce((sum: number, asset: any) => sum + (asset.value || 0), 0);
+  // Status check: !distributed AND !closed
+  const inProgress = assets.filter((a: any) => {
+    const s = normalize(a.status);
+    return s !== 'distributed' && s !== 'closed';
+  }).length;
+
+  const completed = assets.filter((a: any) => {
+    const s = normalize(a.status);
+    return s === 'distributed' || s === 'closed';
+  }).length;
 
   const handleAssetClick = (assetId: string) => {
     navigate(`/asset/${assetId}`);
@@ -141,6 +61,27 @@ export default function Dashboard() {
 
   // Get first name from user metadata or email
   const firstName = user?.user_metadata?.full_name?.split(' ')[0] || user?.email?.split('@')[0] || 'there';
+
+  // Basic client-side derivation of follow-ups from real assets
+  // Valid logic: IF (priority is high/urgent OR daysSinceContact > 14) -> Add to list
+  const derivedFollowUps = assets
+    .filter((asset: any) => {
+      const p = normalize(asset.priority);
+      return p === 'high' || p === 'urgent';
+    })
+    .map((asset: any) => ({
+      assetId: asset.id,
+      institution: asset.institution,
+      assetType: normalize(asset.assetType),
+      daysSinceContact: 0, // TODO: Calculate real days from lastContactDate
+      priority: normalize(asset.priority) as Priority,
+      action: 'Review required'
+    }))
+    .slice(0, 5); // Limit to 5
+
+  if (error) {
+    return <div className="p-8 text-red-500">Error loading dashboard: {(error as Error).message}. Verify backend is likely running (npm run api).</div>
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -155,13 +96,22 @@ export default function Dashboard() {
               <span className="font-bold text-lg text-foreground">ExpectedEstate</span>
             </Link>
             <div className="flex items-center gap-3">
-              <Button size="sm" className="gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="gap-2"
+                onClick={() => navigate('/profile')}
+              >
+                <User className="w-4 h-4" />
+                Profile
+              </Button>
+              <Button size="sm" className="gap-2" onClick={() => navigate('/add-asset')}>
                 <Plus className="w-4 h-4" />
                 Add Asset
               </Button>
-              <Button 
-                variant="ghost" 
-                size="sm" 
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={handleSignOut}
                 className="gap-2"
               >
@@ -185,7 +135,7 @@ export default function Dashboard() {
             Welcome back, {firstName}
           </h1>
           <p className="text-muted-foreground">
-            Demo Estate • {mockAssets.length} assets tracked
+            {assets.length === 0 ? "No assets tracked yet." : `Demo Estate • ${assets.length} assets tracked`}
           </p>
         </motion.div>
 
@@ -193,40 +143,46 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <StatCard
             title="Total Assets"
-            value={mockAssets.length}
+            value={isLoading ? "-" : assets.length}
             icon={Landmark}
             variant="primary"
           />
           <StatCard
             title="Total Value"
-            value={`$${(totalValue / 1000).toFixed(0)}K`}
+            value={isLoading ? "-" : `$${(totalValue / 1000).toFixed(0)}K`}
             icon={DollarSign}
             variant="success"
           />
           <StatCard
             title="In Progress"
-            value={inProgress}
+            value={isLoading ? "-" : inProgress}
             icon={Clock}
             variant="warning"
           />
           <StatCard
             title="Completed"
-            value={completed}
+            value={isLoading ? "-" : completed}
             icon={CheckCircle2}
             variant="default"
           />
         </div>
 
+        {/* Proactive Agent Insights */}
+        <AgentInsights />
+
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Assets List */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Search & Filter */}
-            <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex flex-col gap-8 pb-12">
+            {/* Probate Command Center */}
+            <ProbateHub />
+
+            {/* Stats & Search Row */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input 
-                  placeholder="Search assets..." 
+                <Input
+                  placeholder="Search assets..."
                   className="pl-10"
                 />
               </div>
@@ -239,15 +195,33 @@ export default function Dashboard() {
             {/* Assets */}
             <div className="space-y-3">
               <h2 className="text-lg font-semibold text-foreground">All Assets</h2>
-              {mockAssets.map((asset, index) => (
+              {isLoading && <p>Loading assets...</p>}
+              {!isLoading && assets.length === 0 && (
+                <div className="p-8 border rounded-lg text-center text-muted-foreground bg-muted/20">
+                  <p>No assets found. Click "Add Asset" to start.</p>
+                </div>
+              )}
+              {assets.map((asset: any, index: number) => (
                 <motion.div
                   key={asset.id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3, delay: index * 0.05 }}
                 >
-                  <AssetCard 
-                    asset={asset} 
+                  <AssetCard
+                    asset={{
+                      ...asset,
+                      // Helper to match AssetCard expectations if needed
+                      type: normalize(asset.assetType),
+                      category: normalize(asset.category) as AssetCategory,
+                      status: normalize(asset.status) as AssetStatus,
+                      priority: normalize(asset.priority) as Priority,
+                      // Use raw dates or formatted strings depending on what AssetCard expects. 
+                      // Prisma returns strings for JSON.
+                      lastContactDate: asset.lastContactDate ? String(asset.lastContactDate).split('T')[0] : null,
+                      nextFollowUpDate: asset.nextFollowUpDate ? String(asset.nextFollowUpDate).split('T')[0] : null,
+                      daysSinceContact: 0 // Placeholder
+                    }}
                     onClick={() => handleAssetClick(asset.id)}
                   />
                 </motion.div>
@@ -257,8 +231,8 @@ export default function Dashboard() {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            <FollowUpWidget 
-              followUps={mockFollowUps}
+            <FollowUpWidget
+              followUps={derivedFollowUps}
               onFollowUpClick={handleAssetClick}
             />
 
@@ -271,13 +245,17 @@ export default function Dashboard() {
             >
               <h3 className="font-semibold text-foreground mb-4">Quick Actions</h3>
               <div className="space-y-2">
-                <Button variant="outline" className="w-full justify-start gap-2">
+                <Button variant="outline" className="w-full justify-start gap-2" onClick={() => navigate('/add-asset')}>
                   <Plus className="w-4 h-4" />
                   Add New Asset
                 </Button>
-                <Button variant="outline" className="w-full justify-start gap-2">
+                <Button variant="outline" className="w-full justify-start gap-2" onClick={() => navigate('/upload')}>
                   <Landmark className="w-4 h-4" />
                   Upload Document
+                </Button>
+                <Button variant="outline" className="w-full justify-start gap-2 text-primary border-primary/20 bg-primary/5 hover:bg-primary/10" onClick={() => navigate('/discovery')}>
+                  <Search className="w-4 h-4" />
+                  Asset Detective
                 </Button>
               </div>
             </motion.div>
