@@ -9,6 +9,7 @@ import {
     CheckCircle2,
     Clock,
     Edit3,
+    Edit2,
     Save,
     X,
     ChevronRight,
