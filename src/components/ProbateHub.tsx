@@ -83,22 +83,27 @@ export function ProbateHub() {
             <div className="absolute top-0 right-0 p-3 opacity-10">
                 <Scale className="w-16 h-16" />
             </div>
-            <CardHeader className="pb-3 flex flex-row items-center justify-between">
-                <div>
-                    <CardTitle className="text-xl font-bold flex items-center gap-2">
-                        <Gavel className="w-5 h-5 text-primary" />
-                        Probate Command Center
-                    </CardTitle>
-                    <CardDescription>
-                        Manage legal filings and court authority
-                    </CardDescription>
-                </div>
-                {!isEditing && (
-                    <Button variant="ghost" size="sm" onClick={() => setIsEditing(true)}>
-                        <Edit3 className="w-4 h-4 mr-2" />
-                        Update Status
+            <CardHeader className="pb-4">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 bg-primary/10 rounded-lg">
+                            <Scale className="w-5 h-5 text-primary" />
+                        </div>
+                        <div>
+                            <CardTitle className="text-lg">Probate Command Center</CardTitle>
+                            <CardDescription className="text-xs mt-0.5">Legal filings & court authority</CardDescription>
+                        </div>
+                    </div>
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setIsEditing(!isEditing)}
+                        className="h-8 text-xs"
+                    >
+                        <Edit2 className="w-3.5 h-3.5 mr-1.5" />
+                        {isEditing ? "Done" : "Edit"}
                     </Button>
-                )}
+                </div>
             </CardHeader>
 
             <CardContent className="space-y-6">
@@ -205,31 +210,21 @@ export function ProbateHub() {
                             key="viewing"
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
-                            className="grid grid-cols-1 md:grid-cols-2 gap-6"
+                            className="grid grid-cols-3 gap-4 p-4 bg-slate-50 rounded-lg border border-slate-200"
                         >
-                            <div className="space-y-4">
-                                <div className="space-y-1">
-                                    <p className="text-xs font-bold text-muted-foreground uppercase">Settlement Track</p>
-                                    <p className="text-sm font-bold text-slate-900">
-                                        {estate.estateType?.replace(/_/g, " ") || "Probate (Full)"}
-                                    </p>
-                                </div>
-                                <div className="space-y-1">
-                                    <p className="text-xs font-bold text-muted-foreground uppercase">Current State</p>
-                                    <Badge className={getStatusColor(estate.probateStatus)}>
-                                        {statusMap[estate.probateStatus] || estate.probateStatus}
-                                    </Badge>
-                                </div>
+                            <div>
+                                <div className="text-xs font-semibold text-slate-600 mb-1.5">Status</div>
+                                <Badge className={getStatusColor(estate.probateStatus)}>
+                                    {statusMap[estate.probateStatus] || estate.probateStatus}
+                                </Badge>
                             </div>
-                            <div className="space-y-4">
-                                <div className="space-y-1">
-                                    <p className="text-xs font-bold text-muted-foreground uppercase">Case Number</p>
-                                    <p className="text-sm font-semibold">{estate.courtCaseNumber || "Unassigned"}</p>
-                                </div>
-                                <div className="space-y-1">
-                                    <p className="text-xs font-bold text-muted-foreground uppercase">Jurisdiction</p>
-                                    <p className="text-sm font-semibold">{estate.deceasedState || "N/A"}</p>
-                                </div>
+                            <div>
+                                <div className="text-xs font-semibold text-slate-600 mb-1.5">Jurisdiction</div>
+                                <div className="text-sm font-medium">{estate.deceasedState || "CA"}</div>
+                            </div>
+                            <div>
+                                <div className="text-xs font-semibold text-slate-600 mb-1.5">Case Number</div>
+                                <div className="text-sm font-medium">{estate.courtCaseNumber || "Unassigned"}</div>
                             </div>
                         </motion.div>
                     )}
@@ -270,53 +265,53 @@ export function ProbateHub() {
                                 )}
 
                                 <div className={cn(
-                                    "flex items-start gap-4 p-4 rounded-xl border",
-                                    rec.type === "SMALL_ESTATE" ? "bg-green-50 border-green-100" : "bg-amber-50 border-amber-100"
+                                    "p-4 rounded-lg border-l-4",
+                                    rec.type === "SMALL_ESTATE" ? "bg-green-50 border-l-green-500" : "bg-amber-50 border-l-amber-500"
                                 )}>
-                                    {rec.type === "SMALL_ESTATE" ? (
-                                        <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5" />
-                                    ) : (
-                                        <AlertCircle className="w-5 h-5 text-amber-600 mt-0.5" />
-                                    )}
-                                    <div>
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <p className={cn("text-sm font-bold", rec.type === "SMALL_ESTATE" ? "text-green-900" : "text-amber-900")}>
-                                                Authority Optimizer: {rec.type === "SMALL_ESTATE" ? "Small Estate Eligible" : "Full Probate Required"}
-                                            </p>
-                                            <Badge variant="outline" className="text-[10px] uppercase font-black tracking-tighter">
-                                                {estate.deceasedState || "CA"} Threshold
-                                            </Badge>
+                                    <div className="flex items-start justify-between mb-2">
+                                        <div className="flex items-center gap-2">
+                                            {rec.type === "SMALL_ESTATE" ? (
+                                                <CheckCircle2 className="w-4 h-4 text-green-700" />
+                                            ) : (
+                                                <Info className="w-4 h-4 text-amber-700" />
+                                            )}
+                                            <h4 className={cn("font-bold text-sm", rec.type === "SMALL_ESTATE" ? "text-green-900" : "text-amber-900")}>
+                                                {rec.type === "SMALL_ESTATE" ? "Small Estate Eligible" : "Full Probate Required"}
+                                            </h4>
                                         </div>
-                                        <p className="text-xs text-slate-600 leading-relaxed font-medium">
-                                            {rec.reason}
-                                        </p>
-
-                                        {!isGranted && (
-                                            <div className="mt-4 p-4 bg-white/60 rounded-xl border border-border/20 backdrop-blur-sm">
-                                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Legal Process Roadmap</p>
-                                                <div className="space-y-3">
-                                                    {(rec.type === "SMALL_ESTATE" ? [
-                                                        "Verify asset eligibility",
-                                                        "Wait the 40-day mandatory period",
-                                                        "Prepare & Notarize Affidavit",
-                                                        "Submit directly to Bank/Brokerage"
-                                                    ] : [
-                                                        "File Probate Petition with Court",
-                                                        "Provide Legal Notice to all Heirs",
-                                                        "Attend Court Inquiry / Hearing",
-                                                        "Receive Court-Sealed Letters"
-                                                    ]).map((step, i) => (
-                                                        <div key={i} className="flex items-center gap-3">
-                                                            <div className="w-5 h-5 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-400">
-                                                                {i + 1}
-                                                            </div>
-                                                            <span className="text-xs font-semibold text-slate-700">{step}</span>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        )}
+                                        <div className="px-2 py-0.5 bg-white rounded text-xs font-semibold">
+                                            {estate.deceasedState || "CA"}
+                                        </div>
                                     </div>
+                                    <p className="text-xs leading-relaxed mb-3" style={{ color: rec.type === "SMALL_ESTATE" ? "rgb(21 128 61)" : "rgb(146 64 14)" }}>
+                                        {rec.reason}
+                                    </p>
+
+                                    {!isGranted && (
+                                        <div className="bg-white rounded-lg p-3 border" style={{ borderColor: rec.type === "SMALL_ESTATE" ? "rgb(187 247 208)" : "rgb(254 215 170)" }}>
+                                            <div className="text-xs font-bold text-slate-700 mb-2 uppercase tracking-wide">Next Steps</div>
+                                            <div className="space-y-2">
+                                                {(rec.type === "SMALL_ESTATE" ? [
+                                                    "Verify asset eligibility",
+                                                    "Wait the 40-day mandatory period",
+                                                    "Prepare & Notarize Affidavit",
+                                                    "Submit directly to Bank/Brokerage"
+                                                ] : [
+                                                    "File Probate Petition with Court",
+                                                    "Provide Legal Notice to all Heirs",
+                                                    "Attend Court Inquiry / Hearing",
+                                                    "Receive Court-Sealed Letters"
+                                                ]).map((step, i) => (
+                                                    <div key={i} className="flex items-start gap-2">
+                                                        <div className="flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold mt-0.5" style={{ backgroundColor: rec.type === "SMALL_ESTATE" ? "rgb(187 247 208)" : "rgb(254 215 170)", color: rec.type === "SMALL_ESTATE" ? "rgb(21 128 61)" : "rgb(146 64 14)" }}>
+                                                            {i + 1}
+                                                        </div>
+                                                        <div className="text-xs text-slate-700 leading-relaxed">{step}</div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         );
