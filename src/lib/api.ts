@@ -11,6 +11,12 @@ const getHeaders = () => {
 
 const parseResponse = async (response: Response) => {
     const text = await response.text();
+
+    // Handle 401 Unauthorized specifically
+    if (response.status === 401) {
+        throw new Error(`Authentication required (401): ${text.substring(0, 100)}`);
+    }
+
     try {
         return JSON.parse(text);
     } catch (e) {

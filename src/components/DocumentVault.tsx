@@ -80,11 +80,19 @@ export function DocumentVault() {
     const loadDocuments = async () => {
         try {
             const data = await api.getEstateDocuments();
-            setDocuments(data || []);
-        } catch (error) {
+            // Ensure data is always an array
+            setDocuments(Array.isArray(data) ? data : []);
+        } catch (error: any) {
             console.error("Failed to load documents:", error);
-            // Gracefully handle error - set empty array instead of crashing
-            setDocuments([]);
+
+            // Handle 401 Unauthorized - user not logged in
+            if (error?.message?.includes('401') || error?.status === 401) {
+                console.warn("User not authenticated. Skipping document vault.");
+                setDocuments([]);
+            } else {
+                // For other errors, still set empty array to prevent crashes
+                setDocuments([]);
+            }
         } finally {
             setLoading(false);
         }
