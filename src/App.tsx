@@ -15,6 +15,8 @@ import UploadDocument from "./pages/UploadDocument";
 import ProfileSettings from "./pages/ProfileSettings";
 import AdminDashboard from "./pages/AdminDashboard";
 import Discovery from "./pages/Discovery";
+import Probate from "./pages/Probate";
+import Documents from "./pages/Documents";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -67,6 +69,22 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <Discovery />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/probate"
+                element={
+                  <ProtectedRoute>
+                    <Probate />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/documents"
+                element={
+                  <ProtectedRoute>
+                    <Documents />
                   </ProtectedRoute>
                 }
               />
