@@ -1,0 +1,33 @@
+{
+    "manifest_version": 3,
+    "name": "ExpectedEstate Bridge",
+    "version": "1.0",
+    "description": "Seamlessly fill institution forms with estate data from ExpectedEstate.",
+    "permissions": [
+        "storage"
+    ],
+    "host_permissions": [
+        "http://localhost:8080/*",
+        "https://*.robinhood.com/*",
+        "https://*.fidelity.com/*",
+        "https://*.vanguard.com/*",
+        "https://*.schwab.com/*"
+    ],
+    "content_scripts": [
+        {
+            "matches": [
+                "https://*.robinhood.com/*",
+                "https://*.fidelity.com/*",
+                "https://*.vanguard.com/*",
+                "https://*.schwab.com/*"
+            ],
+            "js": [
+                "content.js"
+            ],
+            "run_at": "document_idle"
+        }
+    ],
+    "action": {
+        "default_title": "ExpectedEstate Bridge"
+    }
+}

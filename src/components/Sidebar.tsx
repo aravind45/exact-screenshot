@@ -20,6 +20,15 @@ import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { generateBookmarklet } from "@/lib/autofill";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+    DialogDescription
+} from "@/components/ui/dialog";
+import { Download, ExternalLink } from "lucide-react";
 
 export function Sidebar() {
     const navigate = useNavigate();
@@ -114,23 +123,62 @@ export function Sidebar() {
                         <span className="text-[10px] font-bold uppercase tracking-wider">Fill Assistant</span>
                     </div>
                     <p className="text-[10px] text-slate-400 leading-relaxed mb-3">
-                        Autofill institution forms on Robinhood, Fidelity, etc.
+                        Seamlessly autofill forms on Robinhood, Fidelity, etc.
                     </p>
-                    <a
-                        href={bookmarklet}
-                        onClick={(e) => {
-                            if (bookmarklet === "#") {
-                                e.preventDefault();
-                                alert("Loading estate data... Please try again in a moment.");
-                            } else {
-                                alert("DRAG THIS TO YOUR BOOKMARKS BAR:\n\nThen click it while on Robinhood or Fidelity to autofill the form!");
-                            }
-                        }}
-                        className="inline-flex items-center justify-center w-full h-9 text-[10px] font-bold bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20"
-                    >
-                        <MousePointerClick className="w-3 h-3 mr-2" />
-                        Drag to Bookmarks
-                    </a>
+
+                    <Dialog>
+                        <DialogTrigger asChild>
+                            <Button className="w-full h-9 text-[10px] font-bold bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20">
+                                <Zap className="w-3 h-3 mr-2" />
+                                Install Bridge
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-[500px] bg-slate-900 border-slate-800 text-white">
+                            <DialogHeader>
+                                <DialogTitle className="flex items-center gap-2 text-xl font-bold">
+                                    <ShieldCheck className="w-6 h-6 text-primary" />
+                                    ExpectedEstate Bridge
+                                </DialogTitle>
+                                <DialogDescription className="text-slate-400">
+                                    Install our browser extension to automate form filling.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <div className="space-y-6 py-4">
+                                <div className="space-y-3">
+                                    <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                                        <div className="w-5 h-5 rounded-full bg-primary/20 text-primary flex items-center justify-center text-[10px]">1</div>
+                                        Download Extension Files
+                                    </h4>
+                                    <p className="text-xs text-slate-400 pl-7 leading-relaxed">
+                                        The extension files have been created in your project's <code className="bg-slate-800 px-1 rounded text-primary">/extension</code> directory.
+                                    </p>
+                                </div>
+
+                                <div className="space-y-3">
+                                    <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                                        <div className="w-5 h-5 rounded-full bg-primary/20 text-primary flex items-center justify-center text-[10px]">2</div>
+                                        Load into Chrome
+                                    </h4>
+                                    <ul className="text-xs text-slate-400 pl-7 space-y-2 list-disc">
+                                        <li>Open <code className="bg-slate-800 px-1 rounded">chrome://extensions</code> in a new tab</li>
+                                        <li>Enable <strong>Developer mode</strong> (top right)</li>
+                                        <li>Click <strong>Load unpacked</strong></li>
+                                        <li>Select the <code className="bg-slate-800 px-1 rounded">/extension</code> folder</li>
+                                    </ul>
+                                </div>
+
+                                <div className="bg-primary/10 border border-primary/20 p-4 rounded-xl space-y-2">
+                                    <p className="text-xs font-bold text-primary flex items-center gap-2">
+                                        <Zap className="w-4 h-4" />
+                                        Magic Fill Enabled
+                                    </p>
+                                    <p className="text-[10px] text-slate-300 leading-relaxed">
+                                        Once installed, a ✨ <strong>Fill with ExpectedEstate</strong> button will appear automatically when you visit claim forms on Robinhood or Fidelity.
+                                    </p>
+                                </div>
+                            </div>
+                        </DialogContent>
+                    </Dialog>
                 </div>
             </div>
 
