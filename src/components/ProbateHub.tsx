@@ -317,33 +317,21 @@ export function ProbateHub() {
                                 </div>
                             </div>
                         );
-                    })()}
+                    })())}
                 </div>
 
-                {/* Document Vault - TEMPORARILY DISABLED FOR DEBUGGING */}
-                {/* <div className="mt-6">
-                    <DocumentVault />
-                </div> */}
-
-                {/* Key Documents */}
-                <div className="space-y-3">
-                    <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Critical Authorization</h4>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div className="flex items-center justify-between p-3 rounded-lg border border-border/50 bg-white shadow-sm">
-                            <div className="flex items-center gap-2">
-                                <FileText className="w-4 h-4 text-primary" />
-                                <span className="text-sm font-medium">Letters Testamentary</span>
-                            </div>
-                            {estate.probateStatus === "EXECUTOR_APPOINTED" ? <CheckCircle2 className="w-4 h-4 text-green-600" /> : <Clock className="w-4 h-4 text-muted-foreground/30" />}
-                        </div>
-                        <div className="flex items-center justify-between p-3 rounded-lg border border-border/50 bg-white shadow-sm">
-                            <div className="flex items-center gap-2">
-                                <FileText className="w-4 h-4 text-primary" />
-                                <span className="text-sm font-medium">Certified Death Cert</span>
-                            </div>
-                            <CheckCircle2 className="w-4 h-4 text-green-600" />
-                        </div>
+                {/* Document Vault - Estate-Level Documents */}
+                <div className="mt-8">
+                    <div className="mb-4">
+                        <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                            <FileText className="w-5 h-5 text-blue-600" />
+                            Document Vault
+                        </h3>
+                        <p className="text-sm text-gray-600 mt-1">
+                            Common documents used across <strong>all assets</strong> (upload once, use everywhere)
+                        </p>
                     </div>
+                    <DocumentVault />
                 </div>
             </CardContent>
         </Card >
