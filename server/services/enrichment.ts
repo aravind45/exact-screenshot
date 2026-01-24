@@ -1,6 +1,6 @@
 
 import FirecrawlApp from "@mendable/firecrawl-js";
-import { extractContactInfo } from "./ai";
+import { extractContactInfo } from "./ai.js";
 
 let app: any = null;
 
