@@ -211,21 +211,28 @@ export function ProbateHub() {
                             key="viewing"
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
-                            className="grid grid-cols-3 gap-4 p-4 bg-slate-50 rounded-lg border border-slate-200"
+                            className="space-y-3"
                         >
-                            <div>
-                                <div className="text-xs font-semibold text-slate-600 mb-1.5">Status</div>
-                                <Badge className={getStatusColor(estate.probateStatus)}>
-                                    {statusMap[estate.probateStatus] || estate.probateStatus}
-                                </Badge>
-                            </div>
-                            <div>
-                                <div className="text-xs font-semibold text-slate-600 mb-1.5">Jurisdiction</div>
-                                <div className="text-sm font-medium">{estate.deceasedState || "CA"}</div>
-                            </div>
-                            <div>
-                                <div className="text-xs font-semibold text-slate-600 mb-1.5">Case Number</div>
-                                <div className="text-sm font-medium">{estate.courtCaseNumber || "Unassigned"}</div>
+                            <div className="grid grid-cols-1 gap-3">
+                                <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200">
+                                    <div className="flex items-center gap-2">
+                                        <div className="text-xs font-semibold text-slate-600">Status:</div>
+                                        <Badge className={getStatusColor(estate.probateStatus)}>
+                                            {statusMap[estate.probateStatus] || estate.probateStatus}
+                                        </Badge>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
+                                        <div className="text-xs font-semibold text-slate-600 mb-1">Jurisdiction</div>
+                                        <div className="text-sm font-medium text-slate-900">{estate.deceasedState || "CA"}</div>
+                                    </div>
+                                    <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
+                                        <div className="text-xs font-semibold text-slate-600 mb-1">Case Number</div>
+                                        <div className="text-sm font-medium text-slate-900">{estate.courtCaseNumber || "Unassigned"}</div>
+                                    </div>
+                                </div>
                             </div>
                         </motion.div>
                     )}
