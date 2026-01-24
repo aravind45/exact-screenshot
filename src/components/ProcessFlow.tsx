@@ -11,11 +11,14 @@ interface ProcessFlowProps {
 }
 
 export function ProcessFlow({ stages, currentStageId, completedStageIds = [] }: ProcessFlowProps) {
-    if (!stages || stages.length === 0) return null;
+    // Ensure stages is always an array
+    const validStages = Array.isArray(stages) ? stages : [];
+
+    if (validStages.length === 0) return null;
 
     return (
         <div className="w-full flex h-14 md:h-16 gap-0 overflow-hidden rounded-xl border border-border shadow-sm bg-slate-50">
-            {stages.map((stage, index) => {
+            {validStages.map((stage, index) => {
                 const isCompleted = completedStageIds.includes(stage.id);
                 const isActive = stage.id === currentStageId;
                 const isLast = index === stages.length - 1;
