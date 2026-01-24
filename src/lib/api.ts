@@ -9,6 +9,18 @@ const getHeaders = () => {
     };
 };
 
+const parseResponse = async (response: Response) => {
+    const text = await response.text();
+    try {
+        return JSON.parse(text);
+    } catch (e) {
+        if (!response.ok) {
+            throw new Error(`Server Error (${response.status}): ${text.substring(0, 100)}...`);
+        }
+        throw new Error(`Invalid response from server: ${text.substring(0, 100)}...`);
+    }
+};
+
 export const api = {
     /**
      * Auth Methods
@@ -19,11 +31,12 @@ export const api = {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email, password }),
         });
+
+        const data = await parseResponse(response);
         if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || "Login failed");
+            throw new Error(data.error || "Login failed");
         }
-        const data = await response.json();
+
         localStorage.setItem("auth_token", data.token);
         return data;
     },
@@ -34,11 +47,12 @@ export const api = {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(data),
         });
+
+        const result = await parseResponse(response);
         if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || "Registration failed");
+            throw new Error(result.error || "Registration failed");
         }
-        const result = await response.json();
+
         localStorage.setItem("auth_token", result.token);
         return result;
     },
@@ -47,8 +61,7 @@ export const api = {
         const response = await fetch(`${API_URL}/auth/me`, {
             headers: getHeaders(),
         });
-        if (!response.ok) throw new Error("Failed to fetch current user");
-        return response.json();
+        return parseResponse(response);
     },
 
     logout: () => {
@@ -86,8 +99,7 @@ export const api = {
         const response = await fetch(`${API_URL}/assets`, {
             headers: getHeaders(),
         });
-        if (!response.ok) throw new Error("Failed to fetch assets");
-        return response.json();
+        return parseResponse(response);
     },
 
     /**
@@ -97,8 +109,7 @@ export const api = {
         const response = await fetch(`${API_URL}/assets/${id}`, {
             headers: getHeaders(),
         });
-        if (!response.ok) throw new Error("Failed to fetch asset");
-        return response.json();
+        return parseResponse(response);
     },
 
     /**
@@ -110,8 +121,7 @@ export const api = {
             headers: getHeaders(),
             body: JSON.stringify(assetData),
         });
-        if (!response.ok) throw new Error("Failed to create asset");
-        return response.json();
+        return parseResponse(response);
     },
 
     updateAsset: async (id: string, updates: any) => {
@@ -120,8 +130,7 @@ export const api = {
             headers: getHeaders(),
             body: JSON.stringify(updates),
         });
-        if (!response.ok) throw new Error("Failed to update asset");
-        return response.json();
+        return parseResponse(response);
     },
 
     deleteAsset: async (id: string) => {
@@ -129,16 +138,14 @@ export const api = {
             method: "DELETE",
             headers: getHeaders(),
         });
-        if (!response.ok) throw new Error("Failed to delete asset");
-        return response.json();
+        return parseResponse(response);
     },
 
     getAssetDocuments: async (assetId: string) => {
         const response = await fetch(`${API_URL}/assets/${assetId}/documents`, {
             headers: getHeaders(),
         });
-        if (!response.ok) throw new Error("Failed to fetch documents");
-        return response.json();
+        return parseResponse(response);
     },
 
     uploadAssetDocument: async (assetId: string, file: File, type: string) => {
@@ -154,8 +161,7 @@ export const api = {
             },
             body: formData,
         });
-        if (!response.ok) throw new Error("Failed to upload document");
-        return response.json();
+        return parseResponse(response);
     },
 
     enrichAsset: async (id: string) => {
@@ -163,8 +169,7 @@ export const api = {
             method: "POST",
             headers: getHeaders(),
         });
-        if (!response.ok) throw new Error("Failed to enrich asset");
-        return response.json();
+        return parseResponse(response);
     },
 
     searchInstitutions: async (query: string) => {
@@ -195,8 +200,7 @@ export const api = {
             headers: getHeaders(),
             body: JSON.stringify(data)
         });
-        if (!response.ok) throw new Error("Failed to create communication");
-        return response.json();
+        return parseResponse(response);
     },
 
     /**
@@ -211,8 +215,7 @@ export const api = {
             headers: getHeaders(),
             body: JSON.stringify(context)
         });
-        if (!response.ok) throw new Error("Failed to generate draft");
-        return response.json();
+        return parseResponse(response);
     },
 
     /**
@@ -222,8 +225,7 @@ export const api = {
         const response = await fetch(`${API_URL}/profile`, {
             headers: getHeaders(),
         });
-        if (!response.ok) throw new Error("Failed to fetch profile");
-        return response.json();
+        return parseResponse(response);
     },
 
     updateProfile: async (data: { fullName?: string; state?: string; role?: string }) => {
@@ -232,8 +234,7 @@ export const api = {
             headers: getHeaders(),
             body: JSON.stringify(data)
         });
-        if (!response.ok) throw new Error("Failed to update profile");
-        return response.json();
+        return parseResponse(response);
     },
 
     /**
@@ -243,24 +244,21 @@ export const api = {
         const response = await fetch(`${API_URL}/admin/stats`, {
             headers: getHeaders(),
         });
-        if (!response.ok) throw new Error("Failed to fetch admin stats");
-        return response.json();
+        return parseResponse(response);
     },
 
     getAdminUsers: async () => {
         const response = await fetch(`${API_URL}/admin/users`, {
             headers: getHeaders(),
         });
-        if (!response.ok) throw new Error("Failed to fetch users");
-        return response.json();
+        return parseResponse(response);
     },
 
     getAdminInstitutions: async () => {
         const response = await fetch(`${API_URL}/admin/institutions`, {
             headers: getHeaders(),
         });
-        if (!response.ok) throw new Error("Failed to fetch institutions");
-        return response.json();
+        return parseResponse(response);
     },
 
     updateAdminInstitution: async (id: string, data: any) => {
@@ -269,16 +267,14 @@ export const api = {
             headers: getHeaders(),
             body: JSON.stringify(data)
         });
-        if (!response.ok) throw new Error("Failed to update institution");
-        return response.json();
+        return parseResponse(response);
     },
 
     getMyEstate: async () => {
         const response = await fetch(`${API_URL}/estates/my`, {
             headers: getHeaders(),
         });
-        if (!response.ok) throw new Error("Failed to fetch estate");
-        return response.json();
+        return parseResponse(response);
     },
 
     updateMyEstate: async (data: any) => {
@@ -287,16 +283,14 @@ export const api = {
             headers: getHeaders(),
             body: JSON.stringify(data)
         });
-        if (!response.ok) throw new Error("Failed to update estate");
-        return response.json();
+        return parseResponse(response);
     },
 
     getAgentInsights: async () => {
         const response = await fetch(`${API_URL}/agent/insights`, {
             headers: getHeaders(),
         });
-        if (!response.ok) throw new Error("Failed to fetch agent insights");
-        return response.json();
+        return parseResponse(response);
     },
 
     /**
@@ -315,10 +309,6 @@ export const api = {
             body: formData,
         });
 
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.error || "Failed to process document");
-        }
-        return response.json();
+        return parseResponse(response);
     },
 };
