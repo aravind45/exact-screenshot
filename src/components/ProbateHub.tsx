@@ -320,10 +320,10 @@ export function ProbateHub() {
                     })()}
                 </div>
 
-                {/* Document Vault */}
-                <div className="mt-6">
+                {/* Document Vault - TEMPORARILY DISABLED FOR DEBUGGING */}
+                {/* <div className="mt-6">
                     <DocumentVault />
-                </div>
+                </div> */}
 
                 {/* Key Documents */}
                 <div className="space-y-3">
