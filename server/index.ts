@@ -868,7 +868,203 @@ app.put("/api/estates/my", authenticate, async (req: any, res: Response) => {
     }
 });
 
+// ===== ESTATE DOCUMENTS (DOCUMENT VAULT) =====
+
+// GET all estate documents for the user's estate
+app.get("/api/estates/my/documents", authenticate, async (req: Request | any, res) => {
+    try {
+        const userId = req.user?.userId;
+        if (!userId) return res.status(401).json({ error: "Unauthorized" });
+
+        const estate = await prisma.estate.findFirst({
+            where: { userId },
+            include: { estateDocuments: true }
+        });
+
+        if (!estate) {
+            return res.status(404).json({ error: "Estate not found" });
+        }
+
+        res.json(estate.estateDocuments);
+    } catch (error) {
+        console.error("Get estate documents error:", error);
+        res.status(500).json({ error: "Failed to fetch estate documents" });
+    }
+});
+
+// POST create a new estate document
+app.post("/api/estates/my/documents", authenticate, async (req: Request | any, res) => {
+    try {
+        const userId = req.user?.userId;
+        if (!userId) return res.status(401).json({ error: "Unauthorized" });
+
+        const estate = await prisma.estate.findFirst({
+            where: { userId }
+        });
+
+        if (!estate) {
+            return res.status(404).json({ error: "Estate not found" });
+        }
+
+        const {
+            documentType,
+            name,
+            totalCopies,
+            status,
+            obtainedDate,
+            issuingAuthority,
+            referenceNumber,
+            notes
+        } = req.body;
+
+        const document = await prisma.estateDocument.create({
+            data: {
+                estateId: estate.id,
+                userId,
+                documentType,
+                name,
+                totalCopies: totalCopies || 0,
+                copiesRemaining: totalCopies || 0,
+                status: status || "NOT_STARTED",
+                obtainedDate: obtainedDate ? new Date(obtainedDate) : undefined,
+                issuingAuthority,
+                referenceNumber,
+                notes
+            }
+        });
+
+        res.json(document);
+    } catch (error) {
+        console.error("Create estate document error:", error);
+        res.status(500).json({ error: "Failed to create estate document" });
+    }
+});
+
+// PUT update an estate document
+app.put("/api/estates/my/documents/:id", authenticate, async (req: Request | any, res) => {
+    try {
+        const userId = req.user?.userId;
+        if (!userId) return res.status(401).json({ error: "Unauthorized" });
+
+        const { id } = req.params;
+        const {
+            name,
+            totalCopies,
+            copiesUsed,
+            status,
+            obtainedDate,
+            expirationDate,
+            issuingAuthority,
+            referenceNumber,
+            notes
+        } = req.body;
+
+        // Verify ownership
+        const existing = await prisma.estateDocument.findFirst({
+            where: { id, userId }
+        });
+
+        if (!existing) {
+            return res.status(404).json({ error: "Document not found" });
+        }
+
+        // Calculate copiesRemaining
+        const newTotalCopies = totalCopies !== undefined ? totalCopies : existing.totalCopies;
+        const newCopiesUsed = copiesUsed !== undefined ? copiesUsed : existing.copiesUsed;
+        const copiesRemaining = newTotalCopies - newCopiesUsed;
+
+        const updated = await prisma.estateDocument.update({
+            where: { id },
+            data: {
+                name: name || undefined,
+                totalCopies: totalCopies !== undefined ? totalCopies : undefined,
+                copiesUsed: copiesUsed !== undefined ? copiesUsed : undefined,
+                copiesRemaining,
+                status: status || undefined,
+                obtainedDate: obtainedDate ? new Date(obtainedDate) : undefined,
+                expirationDate: expirationDate ? new Date(expirationDate) : undefined,
+                issuingAuthority: issuingAuthority !== undefined ? issuingAuthority : undefined,
+                referenceNumber: referenceNumber !== undefined ? referenceNumber : undefined,
+                notes: notes !== undefined ? notes : undefined
+            }
+        });
+
+        res.json(updated);
+    } catch (error) {
+        console.error("Update estate document error:", error);
+        res.status(500).json({ error: "Failed to update estate document" });
+    }
+});
+
+// DELETE an estate document
+app.delete("/api/estates/my/documents/:id", authenticate, async (req: Request | any, res) => {
+    try {
+        const userId = req.user?.userId;
+        if (!userId) return res.status(401).json({ error: "Unauthorized" });
+
+        const { id } = req.params;
+
+        // Verify ownership
+        const existing = await prisma.estateDocument.findFirst({
+            where: { id, userId }
+        });
+
+        if (!existing) {
+            return res.status(404).json({ error: "Document not found" });
+        }
+
+        await prisma.estateDocument.delete({
+            where: { id }
+        });
+
+        res.json({ success: true });
+    } catch (error) {
+        console.error("Delete estate document error:", error);
+        res.status(500).json({ error: "Failed to delete estate document" });
+    }
+});
+
+// POST upload file for an estate document
+app.post("/api/estates/my/documents/:id/upload", authenticate, upload.single("file"), async (req: Request | any, res) => {
+    try {
+        const userId = req.user?.userId;
+        if (!userId) return res.status(401).json({ error: "Unauthorized" });
+
+        const { id } = req.params;
+
+        // Verify ownership
+        const existing = await prisma.estateDocument.findFirst({
+            where: { id, userId }
+        });
+
+        if (!existing) {
+            return res.status(404).json({ error: "Document not found" });
+        }
+
+        if (!req.file) {
+            return res.status(400).json({ error: "No file uploaded" });
+        }
+
+        const fileUrl = `/uploads/${req.file.filename}`;
+
+        const updated = await prisma.estateDocument.update({
+            where: { id },
+            data: {
+                fileUrl,
+                status: "OBTAINED" // Auto-update status when file is uploaded
+            }
+        });
+
+        res.json(updated);
+    } catch (error) {
+        console.error("Upload estate document error:", error);
+        res.status(500).json({ error: "Failed to upload file" });
+    }
+});
+
+
 app.use("/uploads", express.static(path.join(process.cwd(), "server/uploads")));
+
 
 // --- Background Watchdog Worker ---
 // In a production app, this would be a separate worker (e.g., BullMQ or Cron)

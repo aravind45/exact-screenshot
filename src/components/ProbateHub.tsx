@@ -26,6 +26,7 @@ import { ProcessFlow } from "./ProcessFlow";
 import { TRACK_STAGES, SettlementTrack } from "@/config/settlementStages";
 import { calculateAuthorityRecommendation, getInstitutionAuthorityRequirement } from "@/lib/authorityEngine";
 import { cn } from "@/lib/utils";
+import { DocumentVault } from "./DocumentVault";
 
 export function ProbateHub() {
     const { toast } = useToast();
@@ -316,6 +317,11 @@ export function ProbateHub() {
                             </div>
                         );
                     })()}
+                </div>
+
+                {/* Document Vault */}
+                <div className="mt-6">
+                    <DocumentVault />
                 </div>
 
                 {/* Key Documents */}
