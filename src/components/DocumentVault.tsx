@@ -80,9 +80,11 @@ export function DocumentVault() {
     const loadDocuments = async () => {
         try {
             const data = await api.getEstateDocuments();
-            setDocuments(data);
+            setDocuments(data || []);
         } catch (error) {
             console.error("Failed to load documents:", error);
+            // Gracefully handle error - set empty array instead of crashing
+            setDocuments([]);
         } finally {
             setLoading(false);
         }

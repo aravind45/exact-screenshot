@@ -56,6 +56,7 @@ export function ProbateHub() {
     const probateRequiredCount = individualAssets.length;
 
     if (isLoading) return <div className="h-40 flex items-center justify-center">Loading legal status...</div>;
+    if (!estate) return <div className="h-40 flex items-center justify-center text-gray-500">No estate found. Please create an estate first.</div>;
 
     const getStatusColor = (status: string) => {
         switch (status) {
