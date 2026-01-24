@@ -38,10 +38,13 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
 
-  const { data: assets = [], isLoading, error } = useQuery({
+  const { data: assetsData, isLoading, error } = useQuery({
     queryKey: ['assets'],
     queryFn: api.getAssets,
   });
+
+  // Ensure assets is always an array
+  const assets = Array.isArray(assetsData) ? assetsData : [];
 
   const { data: estate } = useQuery({
     queryKey: ["estate"],
@@ -86,7 +89,7 @@ export default function Dashboard() {
     .slice(0, 5);
 
   if (error) {
-    return <div className="p-8 text-red-500">Error loading dashboard: {(error as Error).message}.</div>
+    return <div className="p-8 text-red-500">Error loading dashboard: {(error as Error).message}.</div>;
   }
 
   return (
