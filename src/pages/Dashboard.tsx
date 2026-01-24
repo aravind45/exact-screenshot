@@ -18,7 +18,6 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ProbateHub } from "@/components/ProbateHub";
 import { AgentInsights } from "@/components/AgentInsights";
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
@@ -197,8 +196,6 @@ export default function Dashboard() {
 
             {/* Sidebar (Right) */}
             <div className="lg:col-span-4 space-y-8">
-              <ProbateHub />
-
               <div className="p-5 rounded-2xl bg-amber-50 border border-amber-100/50">
                 <div className="flex items-center gap-2 mb-2 text-amber-700">
                   <Lightbulb className="w-4 h-4" />
