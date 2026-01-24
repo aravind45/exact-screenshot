@@ -312,6 +312,44 @@ app.post("/api/assets/:id/communications", authenticate, async (req: any, res): 
     }
 });
 
+// POST /api/fax/send
+app.post("/api/fax/send", authenticate, async (req: any, res: Response) => {
+    try {
+        const { assetId, content, subject } = req.body;
+        if (!assetId) return res.status(400).json({ error: "Missing assetId" });
+
+        const asset = await prisma.asset.findFirst({ where: { id: assetId, userId: req.user.id } });
+        if (!asset) return res.status(404).json({ error: "Asset not found" });
+
+        console.log(`[FAX] Simulating fax transmission to ${asset.institution} (Fax: ${asset.institutionFax || 'N/A'})`);
+
+        // Log the communication automatically
+        const communication = await prisma.assetCommunication.create({
+            data: {
+                assetId,
+                userId: req.user.id,
+                method: "fax",
+                subject: subject || "Fax Transmission",
+                content: content || "Sent document via automated fax system.",
+                communicationDate: new Date(),
+                type: 'initial_contact',
+                direction: 'outbound'
+            }
+        });
+
+        // Update asset's lastContactDate
+        await prisma.asset.update({
+            where: { id: assetId },
+            data: { lastContactDate: new Date() }
+        });
+
+        res.json({ success: true, communicationId: communication.id });
+    } catch (error) {
+        console.error("Fax Error:", error);
+        res.status(500).json({ error: "Fax transmission failed" });
+    }
+});
+
 // POST /api/assets/:id/generate-draft
 app.post("/api/assets/:id/generate-draft", authenticate, async (req: any, res): Promise<any> => {
     try {
@@ -551,13 +589,13 @@ app.post("/api/assets/:id/enrich", authenticate, async (req: any, res: Response)
 
         const enriched = await enrichInstitutionData(asset.institution);
 
-        if (enriched && enriched.extracted) {
+        if (enriched) {
             // Auto-update the asset if we found info
             const updates: any = {};
-            if (enriched.extracted.institutionPhone) updates.institutionPhone = enriched.extracted.institutionPhone;
-            if (enriched.extracted.institutionEmail) updates.institutionEmail = enriched.extracted.institutionEmail;
-            if (enriched.extracted.institutionFax) updates.institutionFax = enriched.extracted.institutionFax;
-            if (enriched.extracted.mailingAddress) updates.institutionAddress = enriched.extracted.mailingAddress;
+            if (enriched.extracted?.institutionPhone) updates.institutionPhone = enriched.extracted.institutionPhone;
+            if (enriched.extracted?.institutionEmail) updates.institutionEmail = enriched.extracted.institutionEmail;
+            if (enriched.extracted?.institutionFax) updates.institutionFax = enriched.extracted.institutionFax;
+            if (enriched.extracted?.mailingAddress) updates.institutionAddress = enriched.extracted.mailingAddress;
             if (enriched.sourceUrl) updates.institutionUrl = enriched.sourceUrl;
 
             if (Object.keys(updates).length > 0) {
@@ -721,8 +759,34 @@ app.get("/api/estates/my", authenticate, async (req: any, res: Response) => {
     try {
         const estate = await prisma.estate.findFirst({
             where: { userId: req.user.id },
-            include: { _count: { select: { assets: true } } }
-        });
+            include: {
+                _count: { select: { assets: true } },
+                assets: {
+                    select: { value: true, ownershipType: true }
+                }
+            }
+        }) as any;
+
+        if (estate) {
+            // Small Estate Threshold Logic
+            const probateAssetsValue = estate.assets
+                .filter((a: any) => a.ownershipType === "INDIVIDUAL")
+                .reduce((sum: number, a: any) => sum + (a.value || 0), 0);
+
+            let probateRequired = false;
+            let threshold = 0;
+            if (estate.deceasedState === "CA") {
+                threshold = 184500;
+                if (probateAssetsValue >= threshold) {
+                    probateRequired = true;
+                }
+            }
+
+            estate.probateAssetsValue = probateAssetsValue;
+            estate.probateRequired = probateRequired;
+            estate.probateThreshold = threshold;
+        }
+
         res.json(estate);
     } catch (error) {
         console.error("Estate fetch error:", error);
@@ -736,13 +800,14 @@ app.put("/api/estates/my", authenticate, async (req: any, res: Response) => {
         const estate = await prisma.estate.findFirst({ where: { userId: req.user.id } });
         if (!estate) return res.status(404).json({ error: "Estate not found" });
 
-        const { probateStatus, courtCaseNumber, probateCounty } = req.body;
+        const { probateStatus, courtCaseNumber, probateCounty, estateType } = req.body;
         const updated = await prisma.estate.update({
             where: { id: estate.id },
             data: {
                 probateStatus: probateStatus || undefined,
                 courtCaseNumber: courtCaseNumber !== undefined ? courtCaseNumber : undefined,
-                probateCounty: probateCounty !== undefined ? probateCounty : undefined
+                probateCounty: probateCounty !== undefined ? probateCounty : undefined,
+                estateType: estateType !== undefined ? estateType : undefined
             }
         });
         res.json(updated);
@@ -753,6 +818,27 @@ app.put("/api/estates/my", authenticate, async (req: any, res: Response) => {
 });
 
 app.use("/uploads", express.static(path.join(process.cwd(), "server/uploads")));
+
+// --- Background Watchdog Worker ---
+// In a production app, this would be a separate worker (e.g., BullMQ or Cron)
+if (process.env.NODE_ENV !== "test") {
+    setInterval(async () => {
+        console.log("[WATCHDOG] Running background scan for stale assets...");
+        try {
+            // Find all estates
+            const estates = await prisma.estate.findMany({ select: { id: true } });
+            for (const estate of estates) {
+                const insights = await AgentService.runWatchdogScan(estate.id);
+                if (insights.length > 0) {
+                    console.log(`[WATCHDOG] Found ${insights.length} stale assets for estate ${estate.id}`);
+                    // In a real app, we'd send push notifications or emails here
+                }
+            }
+        } catch (error) {
+            console.error("[WATCHDOG] Scan failed:", error);
+        }
+    }, 1000 * 60 * 60); // Run every hour
+}
 
 // --- Start Server ---
 // Only listen if NOT on Vercel

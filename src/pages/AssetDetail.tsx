@@ -629,6 +629,19 @@ export default function AssetDetail() {
                           <Landmark className="w-4 h-4 text-muted-foreground mt-0.5" />
                           <span>{uiAsset.institutionAddress || 'N/A'}</span>
                         </div>
+                        {uiAsset.institutionUrl && uiAsset.institutionUrl !== 'N/A' && (
+                          <div className="flex items-center gap-3">
+                            <ExternalLink className="w-4 h-4 text-muted-foreground" />
+                            <a
+                              href={uiAsset.institutionUrl.startsWith('http') ? uiAsset.institutionUrl : `https://${uiAsset.institutionUrl}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-primary hover:underline truncate max-w-[200px]"
+                            >
+                              {uiAsset.institutionUrl.replace(/^https?:\/\//, '')}
+                            </a>
+                          </div>
+                        )}
                       </div>
                       <EnrichDataButton assetId={id!} onEnrichComplete={() => queryClient.invalidateQueries({ queryKey: ["asset", id] })} />
                     </div>

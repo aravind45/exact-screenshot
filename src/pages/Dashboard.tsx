@@ -13,7 +13,8 @@ import {
   Filter,
   LogOut,
   User,
-  Lightbulb
+  Lightbulb,
+  Bell
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,6 +24,7 @@ import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
+import { WelcomeModal } from "@/components/WelcomeModal";
 import type { AssetCategory } from "@/components/CategoryBadge";
 import type { AssetStatus } from "@/components/StatusBadge";
 import type { Priority } from "@/components/PriorityBadge";
@@ -134,11 +136,17 @@ export default function Dashboard() {
             <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-2 tracking-tight">
               Welcome back, {firstName}
             </h1>
-            <p className="text-slate-500 text-base leading-relaxed">
-              {assets.length === 0
-                ? "Start by adding your first asset to track your estate settlement."
-                : `${assets.length} total assets identified across your estate portfolio.`}
-            </p>
+            <div className="flex flex-wrap gap-2 mt-2">
+              <Button size="sm" variant="outline" className="h-8 text-xs gap-1.5 border-slate-200" onClick={() => navigate('/add-asset')}>
+                <Plus className="w-3 h-3" /> Add Asset
+              </Button>
+              <Button size="sm" variant="outline" className="h-8 text-xs gap-1.5 border-slate-200" onClick={() => navigate('/upload')}>
+                <Landmark className="w-3 h-3" /> Upload Statement
+              </Button>
+              <Button size="sm" variant="outline" className="h-8 text-xs gap-1.5 border-slate-200 bg-primary/5 text-primary border-primary/20" onClick={() => navigate('/discovery')}>
+                <Search className="w-3 h-3" /> Detective Scan
+              </Button>
+            </div>
           </motion.div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 lg:gap-4">
@@ -176,6 +184,19 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* Main Content (Left) */}
           <div className="lg:col-span-8 space-y-8">
+            {derivedFollowUps.length > 0 && (
+              <section className="space-y-4">
+                <div className="flex items-center gap-2 px-1">
+                  <Bell className="w-5 h-5 text-amber-500" />
+                  <h2 className="text-xl font-bold text-slate-900 tracking-tight">Pending Actions</h2>
+                </div>
+                <FollowUpWidget
+                  followUps={derivedFollowUps}
+                  onFollowUpClick={handleAssetClick}
+                />
+              </section>
+            )}
+
             <AgentInsights />
 
             <section className="space-y-6">
@@ -246,16 +267,9 @@ export default function Dashboard() {
 
           {/* Sidebar (Right) */}
           <div className="lg:col-span-4 space-y-6">
-            <ProbateHub />
-
-            <FollowUpWidget
-              followUps={derivedFollowUps}
-              onFollowUpClick={handleAssetClick}
-            />
-
             <div className="rounded-2xl p-6 bg-slate-900 text-white shadow-xl">
               <h3 className="text-sm font-bold uppercase tracking-widest text-slate-400 mb-4">Command Actions</h3>
-              <div className="space-y-2">
+              <div className="grid grid-cols-1 gap-2">
                 <Button className="w-full justify-start h-11 bg-white/10 hover:bg-white/20 border-none text-white font-semibold" onClick={() => navigate('/add-asset')}>
                   <Plus className="w-4 h-4 mr-3" />
                   Add New Asset
@@ -271,6 +285,8 @@ export default function Dashboard() {
               </div>
             </div>
 
+            <ProbateHub />
+
             <div className="p-5 rounded-2xl bg-amber-50 border border-amber-100/50">
               <div className="flex items-center gap-2 mb-2 text-amber-700">
                 <Lightbulb className="w-4 h-4" />
@@ -283,6 +299,7 @@ export default function Dashboard() {
           </div>
         </div>
       </main>
+      <WelcomeModal />
     </div>
   );
 }

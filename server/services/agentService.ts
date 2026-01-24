@@ -44,6 +44,8 @@ export class AgentService {
                     institutionPhone: enriched.extracted.institutionPhone || asset.institutionPhone,
                     institutionFax: enriched.extracted.institutionFax || asset.institutionFax,
                     institutionEmail: enriched.extracted.institutionEmail || asset.institutionEmail,
+                    institutionUrl: enriched.sourceUrl || asset.institutionUrl,
+                    institutionAddress: enriched.extracted.mailingAddress || asset.institutionAddress,
                 }
             });
 

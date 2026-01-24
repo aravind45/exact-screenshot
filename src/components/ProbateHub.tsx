@@ -103,6 +103,27 @@ export function ProbateHub() {
                         >
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
+                                    <label className="text-xs font-bold uppercase text-muted-foreground">Estate Type / Track</label>
+                                    <Select
+                                        defaultValue={estate.estateType || "PROBATE"}
+                                        onValueChange={(val) => updateMutation.mutate({ estateType: val })}
+                                    >
+                                        <SelectTrigger className="bg-white">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="PROBATE">Probate (Full Administration)</SelectItem>
+                                            <SelectItem value="SMALL_ESTATE">Small Estate (Affidavit)</SelectItem>
+                                            <SelectItem value="TRUST_BASED">Trust-Based Settlement</SelectItem>
+                                            <SelectItem value="NON_PROBATE">Non-Probate / Beneficiary-Only</SelectItem>
+                                            <SelectItem value="INTESTATE">Intestate (No Will)</SelectItem>
+                                            <SelectItem value="ANCILLARY">Ancillary (Multi-State)</SelectItem>
+                                            <SelectItem value="INSOLVENT">Insolvent (Debt-Heavy)</SelectItem>
+                                            <SelectItem value="SPECIAL">Special / Conditional</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="space-y-2">
                                     <label className="text-xs font-bold uppercase text-muted-foreground">Probate Status</label>
                                     <Select
                                         defaultValue={estate.probateStatus}
@@ -141,21 +162,31 @@ export function ProbateHub() {
                             key="viewing"
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
-                            className="grid grid-cols-1 md:grid-cols-3 gap-6"
+                            className="grid grid-cols-1 md:grid-cols-2 gap-6"
                         >
-                            <div className="space-y-1">
-                                <p className="text-xs font-bold text-muted-foreground uppercase">Current State</p>
-                                <Badge className={getStatusColor(estate.probateStatus)}>
-                                    {statusMap[estate.probateStatus] || estate.probateStatus}
-                                </Badge>
+                            <div className="space-y-4">
+                                <div className="space-y-1">
+                                    <p className="text-xs font-bold text-muted-foreground uppercase">Settlement Track</p>
+                                    <p className="text-sm font-bold text-slate-900">
+                                        {estate.estateType?.replace(/_/g, " ") || "Probate (Full)"}
+                                    </p>
+                                </div>
+                                <div className="space-y-1">
+                                    <p className="text-xs font-bold text-muted-foreground uppercase">Current State</p>
+                                    <Badge className={getStatusColor(estate.probateStatus)}>
+                                        {statusMap[estate.probateStatus] || estate.probateStatus}
+                                    </Badge>
+                                </div>
                             </div>
-                            <div className="space-y-1">
-                                <p className="text-xs font-bold text-muted-foreground uppercase">Case Number</p>
-                                <p className="text-sm font-semibold">{estate.courtCaseNumber || "Unassigned"}</p>
-                            </div>
-                            <div className="space-y-1">
-                                <p className="text-xs font-bold text-muted-foreground uppercase">Jurisdiction</p>
-                                <p className="text-sm font-semibold">{estate.deceasedState || "N/A"}</p>
+                            <div className="space-y-4">
+                                <div className="space-y-1">
+                                    <p className="text-xs font-bold text-muted-foreground uppercase">Case Number</p>
+                                    <p className="text-sm font-semibold">{estate.courtCaseNumber || "Unassigned"}</p>
+                                </div>
+                                <div className="space-y-1">
+                                    <p className="text-xs font-bold text-muted-foreground uppercase">Jurisdiction</p>
+                                    <p className="text-sm font-semibold">{estate.deceasedState || "N/A"}</p>
+                                </div>
                             </div>
                         </motion.div>
                     )}
