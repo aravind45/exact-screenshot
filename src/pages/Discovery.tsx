@@ -36,26 +36,49 @@ export default function Discovery() {
     const [isScanning, setIsScanning] = useState(false);
     const [lastScannedDoc, setLastScannedDoc] = useState<string | null>(null);
 
+
     const handleScanComplete = (data: any) => {
+        setIsScanning(false);
+        const newClues: DiscoveredClue[] = [];
+
+        // 1. Convert Agent Insights (Forensic Clues)
         if (data.agentInsights && data.agentInsights.length > 0) {
-            const newClues: DiscoveredClue[] = data.agentInsights.map((insight: any, index: number) => ({
-                id: `clue-${Date.now()}-${index}`,
-                title: insight.title,
-                message: insight.message,
-                institution: insight.data?.institution || "Unknown",
-                type: insight.data?.type || "account",
-                confidence: insight.data?.confidence || 0.8,
+            data.agentInsights.forEach((insight: any, index: number) => {
+                newClues.push({
+                    id: `clue-forensic-${Date.now()}-${index}`,
+                    title: insight.title,
+                    message: insight.message,
+                    institution: insight.data?.institution || "Unknown",
+                    type: insight.data?.type || "account",
+                    confidence: insight.data?.confidence || 0.85,
+                    added: false
+                });
+            });
+        }
+
+        // 2. Capture the Primary Extraction as a clue if it's meaningful
+        if (data.institution && data.institution !== "Unknown") {
+            newClues.push({
+                id: `clue-primary-${Date.now()}`,
+                title: "Primary Asset/Lead Identified",
+                message: data.reasoningChain || `I've identified a record for ${data.institution}.`,
+                institution: data.institution,
+                type: data.assetType || "account",
+                confidence: 0.95,
                 added: false
-            }));
+            });
+        }
+
+        if (newClues.length > 0) {
             setClues(prev => [...newClues, ...prev]);
             toast({
                 title: "Detective Success!",
-                description: `Found ${newClues.length} potential new assets in the document.`,
+                description: `Identified ${newClues.length} potential leads in the document.`,
             });
         } else {
             toast({
                 title: "Analysis Complete",
-                description: "No new hidden assets were found in this specific document.",
+                description: "No hidden assets or leads were found in this specific document.",
             });
         }
     };
@@ -139,6 +162,7 @@ export default function Discovery() {
                             </p>
 
                             <DocumentScanner
+                                onScanStart={() => setIsScanning(true)}
                                 onScanComplete={handleScanComplete}
                                 className="mt-6"
                             />
@@ -167,10 +191,29 @@ export default function Discovery() {
                             </span>
                         </div>
 
+
                         <div className="space-y-4">
                             <AnimatePresence mode="popLayout">
-                                {clues.length === 0 ? (
+                                {isScanning ? (
                                     <motion.div
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        className="flex flex-col items-center justify-center py-20 bg-primary/5 border-2 border-dashed border-primary/20 rounded-xl text-center"
+                                    >
+                                        <div className="relative">
+                                            <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+                                            <div className="absolute inset-0 flex items-center justify-center">
+                                                <Search className="w-6 h-6 text-primary animate-pulse" />
+                                            </div>
+                                        </div>
+                                        <h3 className="font-bold text-lg text-primary mt-6">Detective is investigating...</h3>
+                                        <p className="text-sm text-slate-500 max-w-xs mt-2 font-medium">
+                                            Running forensic scan on your document to find hidden clues and assets.
+                                        </p>
+                                    </motion.div>
+                                ) : clues.length === 0 ? (
+                                    <motion.div
+                                        key="empty"
                                         initial={{ opacity: 0 }}
                                         animate={{ opacity: 1 }}
                                         className="flex flex-col items-center justify-center py-20 bg-muted/10 border-2 border-dashed border-border rounded-xl text-center"
@@ -192,8 +235,8 @@ export default function Discovery() {
                                             animate={{ opacity: 1, x: 0 }}
                                             exit={{ opacity: 0, scale: 0.95 }}
                                             className={`relative overflow-hidden group border-2 border-l-4 rounded-xl p-5 shadow-sm transition-all ${clue.added
-                                                    ? 'bg-muted/50 border-muted opacity-80'
-                                                    : 'bg-card border-border hover:border-primary/50 border-l-primary'
+                                                ? 'bg-muted/50 border-muted opacity-80'
+                                                : 'bg-card border-border hover:border-primary/50 border-l-primary'
                                                 }`}
                                         >
                                             <div className="flex justify-between items-start gap-4">

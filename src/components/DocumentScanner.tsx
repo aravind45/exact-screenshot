@@ -8,11 +8,12 @@ import { api } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 
 interface DocumentScannerProps {
+    onScanStart?: () => void;
     onScanComplete: (data: any) => void;
     className?: string;
 }
 
-export function DocumentScanner({ onScanComplete, className }: DocumentScannerProps) {
+export function DocumentScanner({ onScanStart, onScanComplete, className }: DocumentScannerProps) {
     const { toast } = useToast();
     const [file, setFile] = useState<File | null>(null);
     const [isScanning, setIsScanning] = useState(false);
@@ -29,6 +30,7 @@ export function DocumentScanner({ onScanComplete, className }: DocumentScannerPr
         if (!file) return;
         setIsScanning(true);
         setError(null);
+        if (onScanStart) onScanStart();
 
         try {
             const data = await api.processDocument(file);

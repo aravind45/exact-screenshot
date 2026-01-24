@@ -62,7 +62,7 @@ export class AgentService {
     static async runDetectiveDiscovery(text: string, estateId: string) {
         const clues = await discoverRelatedAssets(text);
 
-        const findings = clues.filter(c => c.confidence > 0.8).map(clue => ({
+        const findings = clues.filter(c => c.confidence >= 0.7).map(clue => ({
             type: "HIDDEN_ASSET_DISCOVERED",
             title: `Potential Asset Found`,
             message: `While scanning your document, I found a clue pointing to a ${clue.potentialAsset} at ${clue.institution}. Evidence: "${clue.sourceClue}"`,

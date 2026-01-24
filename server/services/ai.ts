@@ -28,13 +28,18 @@ interface DiscoveryClue {
 
 export async function analyzeDocument(text?: string, imageBase64?: string): Promise<ExtractedAsset | null> {
     const prompt = `You are an expert "Detective" agent for estate settlement. 
-    Analyze the document to extract the primary asset.
-    Also provide a "reasoningChain" explaining why you identified this asset and "suggestNextSteps" to help the executor.
+    Analyze the document (Text or Image) to extract the primary asset or financial clue.
     
-    Fields:
-    - institution: Name of firm
-    - accountNumber: Last 4 digits
-    - value: Number only
+    SPECIAL HANDLING: If the document is a W-2 or Tax Form (1099, 1040):
+    - Set "institution" to the Employer or Payer name.
+    - Set "assetType" to "401k/Retirement" or "Income Source".
+    - Set "value" to the annual income or reported amount.
+    - In "reasoningChain", explain that this is a tax document pointing back to a potential hidden asset.
+
+    Standard Fields:
+    - institution: Name of firm or Employer
+    - accountNumber: Last 4 digits (if any)
+    - value: Number only (Balance or Annual Income)
     - assetType: checking, 401k, brokerage, life_insurance, etc.
     - category: financial, retirement, insurance, employer, etc.
     - reasoningChain: Explain focus/evidence found.
@@ -80,23 +85,31 @@ export async function analyzeDocument(text?: string, imageBase64?: string): Prom
  * The "Detective Agent": Scans documents for clues pointing to OTHER related assets.
  */
 export async function discoverRelatedAssets(text: string): Promise<DiscoveryClue[]> {
-    const prompt = `You are a forensic "Detective Agent". 
-    Scan the document text for clues of OTHER assets NOT mentioned as the primary subject.
-    Look for:
+    const prompt = `You are a forensic "Detective Agent" for the ExpectedEstate platform. 
+    Your mission is to find hidden financial assets by scanning the document text for "clues".
+    
+    CRITICAL: You are specialized in TAX DOCUMENTS (W-2, 1099-INT, 1099-DIV, 1040).
+    - If you see a W-2: Look at the "Employer" section. If "Retirement Plan" (Box 13) is checked, there IS a 401k/403b/Pension.
+    - If you see a 1099-INT: It proves an account at the specified bank exists.
+    - If you see a 1099-DIV: It proves a brokerage account or specific stock holdings exist.
+    
+    Also look for:
     - Transfers to/from other banks (Vanguard, Fidelity, etc.)
     - Mentions of "Consolidated" accounts or "Summary of other holdings"
     - Multiple account types listed in one statement (e.g. "Your IRA ending in 4455")
     - Dividends from specific stocks/firms.
 
     Return JSON list of objects:
-    [
-      {
-        "potentialAsset": "401k",
-        "institution": "Vanguard",
-        "sourceClue": "ACH Transfer of $5,000 to Vanguard on Dec 12",
-        "confidence": 0.95
-      }
-    ]
+    {
+      "clues": [
+        {
+          "potentialAsset": "401k or Pension",
+          "institution": "Name of Employer or Firm",
+          "sourceClue": "W-2 found; Retirement Plan box is checked for [Employer Name]",
+          "confidence": 0.98
+        }
+      ]
+    }
     
     Return empty list if no clear clues found.
     Only return VERY high confidence clues (0.7+).`;
