@@ -394,15 +394,25 @@ app.post("/api/documents/scan", authenticate, upload.single("file"), async (req:
             agentInsights = await AgentService.runDetectiveDiscovery(textToAnalyze, ""); // EstateId could be linked here
         }
 
-        console.log("Analyze Result:", JSON.stringify(extractedData));
-        console.log("Agent Insights:", JSON.stringify(agentInsights));
 
-        if (!extractedData) {
-            throw new Error("AI Analysis returned null (Failed to extract data)");
+        console.log("Analyze Result:", extractedData ? "Success" : "NULL");
+        console.log("Agent Insights Found:", agentInsights.length);
+
+        if (!extractedData && agentInsights.length === 0) {
+            return res.status(422).json({
+                error: "Deeper analysis failed",
+                details: "Our AI agents couldn't identify any clear assets or clues in this document. Try a clearer scan or different document type."
+            });
         }
 
+        // Return whatever we have. If primary failed, use a placeholder
         res.json({
-            ...extractedData,
+            ...(extractedData || {
+                institution: "Unknown",
+                assetType: "Account",
+                value: 0,
+                reasoningChain: "Primary extraction failed, but forensic clues were found."
+            }),
             agentInsights
         });
 

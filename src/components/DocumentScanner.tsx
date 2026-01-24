@@ -10,10 +10,11 @@ import { useToast } from "@/hooks/use-toast";
 interface DocumentScannerProps {
     onScanStart?: () => void;
     onScanComplete: (data: any) => void;
+    onScanError?: (error: string) => void;
     className?: string;
 }
 
-export function DocumentScanner({ onScanStart, onScanComplete, className }: DocumentScannerProps) {
+export function DocumentScanner({ onScanStart, onScanComplete, onScanError, className }: DocumentScannerProps) {
     const { toast } = useToast();
     const [file, setFile] = useState<File | null>(null);
     const [isScanning, setIsScanning] = useState(false);
@@ -43,6 +44,7 @@ export function DocumentScanner({ onScanStart, onScanComplete, className }: Docu
             console.error(err);
             const errorMessage = err.message || "Failed to scan document.";
             setError(errorMessage);
+            if (onScanError) onScanError(errorMessage);
             toast({
                 title: "Scan Failed",
                 description: errorMessage,

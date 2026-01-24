@@ -36,7 +36,7 @@ export async function analyzeDocument(text?: string, imageBase64?: string): Prom
        - assetType: If Box 13 "Retirement Plan" is checked, use "401k/Pension (Employer-sponsored)". Otherwise "Employment Record".
        - value: Box 1 "Wages" (Annual).
     2. 1099-B / 1099-DIV / 1099-INT (Brokerage/Bank):
-       - institution: [Payer Name] (e.g. Robinhood, Fidelity, Charles Schwab, Chase).
+       - institution: [Payer Name] (e.g. Robinhood, Fidelity, Charles Schwab, Chase). LOOK AT THE TOP HEADER OR "PAYER" SECTION.
        - assetType: "Brokerage Account", "Cryptocurrency", or "Savings/Checking" based on the form.
        - value: Total proceeds, dividends, or interest reported.
     3. Form 1098-T (Education):
@@ -130,7 +130,8 @@ export async function discoverRelatedAssets(text: string): Promise<DiscoveryClue
                 { role: "user", content: `Detect clues in this text:\n\n${text.substring(0, 10000)}` }
             ],
             model: "llama-3.3-70b-versatile",
-            response_format: { type: "json_object" }
+            response_format: { type: "json_object" },
+            temperature: 0,
         });
 
         const content = completion.choices[0]?.message?.content;
@@ -161,7 +162,8 @@ export async function extractContactInfo(text: string) {
         const completion = await groq.chat.completions.create({
             messages: [{ role: "user", content: prompt }],
             model: "llama-3.3-70b-versatile",
-            response_format: { type: "json_object" }
+            response_format: { type: "json_object" },
+            temperature: 0,
         });
 
         const content = completion.choices[0]?.message?.content;

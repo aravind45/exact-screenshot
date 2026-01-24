@@ -167,6 +167,7 @@ export default function Discovery() {
                                     setClues([]); // Clear previous results to avoid confusion
                                 }}
                                 onScanComplete={handleScanComplete}
+                                onScanError={() => setIsScanning(false)}
                                 className="mt-6"
                             />
 
