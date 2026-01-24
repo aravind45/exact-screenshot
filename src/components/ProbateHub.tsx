@@ -38,10 +38,13 @@ export function ProbateHub() {
         queryFn: api.getMyEstate,
     });
 
-    const { data: assets = [] } = useQuery({
+    const { data: assetsData } = useQuery({
         queryKey: ["assets"],
         queryFn: api.getAssets,
     });
+
+    // Ensure assets is always an array
+    const assets = Array.isArray(assetsData) ? assetsData : [];
 
     const updateMutation = useMutation({
         mutationFn: (data: any) => api.updateMyEstate(data),
