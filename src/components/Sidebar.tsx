@@ -8,6 +8,7 @@ import {
     LogOut,
     LayoutDashboard,
     FileText,
+    Scale,
     ShieldCheck,
     Zap,
     ChevronRight,
