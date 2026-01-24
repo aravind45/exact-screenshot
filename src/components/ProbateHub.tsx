@@ -12,7 +12,8 @@ import {
     Save,
     X,
     ChevronRight,
-    Scale
+    Scale,
+    Info
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,7 +24,7 @@ import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { ProcessFlow } from "./ProcessFlow";
 import { TRACK_STAGES, SettlementTrack } from "@/config/settlementStages";
-import { calculateAuthorityRecommendation } from "@/lib/authorityEngine";
+import { calculateAuthorityRecommendation, getInstitutionAuthorityRequirement } from "@/lib/authorityEngine";
 import { cn } from "@/lib/utils";
 
 export function ProbateHub() {
@@ -236,8 +237,33 @@ export function ProbateHub() {
                         const status = estate.authorityStatus || "NOT_STARTED";
                         const isGranted = status === "GRANTED" || estate.probateStatus === "EXECUTOR_APPOINTED";
 
+                        // Analyze mixed authority requirements
+                        const authRequirements = assets.map((a: any) =>
+                            getInstitutionAuthorityRequirement(a.assetType, a.category, a.value || 0, a.ownershipType)
+                        );
+                        const needsLetters = authRequirements.some(r => r.requirement === "LETTERS_REQUIRED" || r.requirement === "LETTERS_PREFERRED");
+                        const canUseAffidavit = authRequirements.some(r => r.requirement === "AFFIDAVIT_ACCEPTED");
+                        const hasBeneficiaryOnly = authRequirements.some(r => r.requirement === "BENEFICIARY_ONLY");
+                        const isMixedAuthority = (needsLetters && canUseAffidavit) || (needsLetters && hasBeneficiaryOnly) || (canUseAffidavit && hasBeneficiaryOnly);
+
                         return (
                             <div className="space-y-4">
+                                {isMixedAuthority && (
+                                    <div className="p-4 rounded-xl bg-blue-50 border border-blue-100 flex items-start gap-3">
+                                        <Info className="w-5 h-5 text-blue-600 mt-0.5" />
+                                        <div>
+                                            <p className="text-sm font-bold text-blue-900 leading-none mb-1">Mixed Authority Estate Detected</p>
+                                            <p className="text-xs text-blue-800 font-medium leading-relaxed">
+                                                Your estate requires multiple authority paths:
+                                                {needsLetters && " Letters Testamentary for some assets,"}
+                                                {canUseAffidavit && " Small Estate Affidavit for others,"}
+                                                {hasBeneficiaryOnly && " Direct beneficiary claims for designated accounts."}
+                                                {" "}This is common and expected.
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
+
                                 <div className={cn(
                                     "flex items-start gap-4 p-4 rounded-xl border",
                                     rec.type === "SMALL_ESTATE" ? "bg-green-50 border-green-100" : "bg-amber-50 border-amber-100"

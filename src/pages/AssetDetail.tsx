@@ -42,7 +42,7 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { TRACK_STAGES, SettlementTrack } from "@/config/settlementStages";
-import { calculateAuthorityRecommendation } from "@/lib/authorityEngine";
+import { calculateAuthorityRecommendation, getInstitutionAuthorityRequirement } from "@/lib/authorityEngine";
 import { cn } from "@/lib/utils";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
@@ -677,6 +677,69 @@ export default function AssetDetail() {
               </div>
 
               <div className="space-y-6">
+                {/* Authority Requirement */}
+                {(() => {
+                  const authReq = getInstitutionAuthorityRequirement(
+                    uiAsset.assetType,
+                    uiAsset.category,
+                    uiAsset.value,
+                    uiAsset.ownershipType
+                  );
+
+                  const getReqColor = (req: string) => {
+                    switch (req) {
+                      case "AFFIDAVIT_ACCEPTED": return "bg-green-50 border-green-100 text-green-900";
+                      case "LETTERS_PREFERRED": return "bg-amber-50 border-amber-100 text-amber-900";
+                      case "LETTERS_REQUIRED": return "bg-red-50 border-red-100 text-red-900";
+                      case "BENEFICIARY_ONLY": return "bg-blue-50 border-blue-100 text-blue-900";
+                      default: return "bg-slate-50 border-slate-100 text-slate-900";
+                    }
+                  };
+
+                  const getReqLabel = (req: string) => {
+                    switch (req) {
+                      case "AFFIDAVIT_ACCEPTED": return "Small Estate Affidavit Accepted";
+                      case "LETTERS_PREFERRED": return "Letters Testamentary Preferred";
+                      case "LETTERS_REQUIRED": return "Letters Testamentary Required";
+                      case "BENEFICIARY_ONLY": return "Direct Beneficiary Claim";
+                      default: return "Varies by Institution";
+                    }
+                  };
+
+                  return (
+                    <div className="card-elevated p-5 space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h3 className="font-bold text-slate-900">Authority Required</h3>
+                        <Badge className={cn("text-[10px] font-black tracking-tighter", getReqColor(authReq.requirement))}>
+                          {getReqLabel(authReq.requirement)}
+                        </Badge>
+                      </div>
+
+                      {authReq.warning && (
+                        <div className="p-3 rounded-xl bg-amber-50 border border-amber-100">
+                          <p className="text-xs text-amber-900 font-medium leading-relaxed">
+                            ⚠️ {authReq.warning}
+                          </p>
+                        </div>
+                      )}
+
+                      {authReq.conditions && authReq.conditions.length > 0 && (
+                        <div className="space-y-2">
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Conditions</p>
+                          <div className="space-y-1.5">
+                            {authReq.conditions.map((cond, i) => (
+                              <div key={i} className="flex items-start gap-2">
+                                <div className="w-1 h-1 rounded-full bg-slate-400 mt-1.5 shrink-0" />
+                                <span className="text-xs text-slate-600 font-medium leading-tight">{cond}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+
                 <div className="card-elevated p-5 space-y-6">
                   <div className="flex items-center justify-between">
                     <h3 className="font-bold text-slate-900">Institutional Contact</h3>
