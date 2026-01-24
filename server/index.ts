@@ -1,7 +1,11 @@
 import "dotenv/config";
-import express from "express";
+import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
-import { prisma } from "./db";
+import { prisma } from "./db.js";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+
+const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-this";
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -20,9 +24,95 @@ app.get("/api/health", (req, res) => {
     res.json({ status: "ok" });
 });
 
-app.get("/api/agent/insights", async (req, res) => {
+// --- Auth Middleware ---
+const authenticate = async (req: Request | any, res: Response, next: NextFunction) => {
     try {
-        const estate = await prisma.estate.findFirst();
+        const token = req.headers.authorization?.split(" ")[1];
+        if (!token) return res.status(401).json({ error: "Unauthorized" });
+
+        const decoded: any = jwt.verify(token, JWT_SECRET);
+        const user = await prisma.user.findUnique({ where: { id: decoded.userId } });
+
+        if (!user) return res.status(401).json({ error: "User not found" });
+
+        req.user = user;
+        next();
+    } catch (error) {
+        return res.status(401).json({ error: "Invalid token" });
+    }
+};
+
+// --- Auth Routes ---
+
+app.post("/api/auth/register", async (req: Request, res: Response): Promise<any> => {
+    try {
+        const { email, password, fullName, state } = req.body;
+
+        const existingUser = await prisma.user.findUnique({ where: { email } });
+        if (existingUser) return res.status(400).json({ error: "Email already registered" });
+
+        const passwordHash = await bcrypt.hash(password, 10);
+
+        const user = await prisma.user.create({
+            data: {
+                email,
+                passwordHash,
+                fullName,
+                state,
+                role: 'EXECUTOR'
+            }
+        });
+
+        // Create an initial estate for the user
+        await prisma.estate.create({
+            data: {
+                userId: user.id,
+                name: `${fullName || 'My'}'s Estate`,
+                deceasedFirstName: "TBD",
+                deceasedLastName: "TBD",
+                deceasedDateOfDeath: new Date(),
+                deceasedState: state || "CA",
+                probateStatus: "NOT_STARTED"
+            }
+        });
+
+        const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: "30d" });
+        res.json({ user, token });
+    } catch (error) {
+        console.error("Register Error:", error);
+        res.status(500).json({ error: "Registration failed" });
+    }
+});
+
+app.post("/api/auth/login", async (req: Request, res: Response): Promise<any> => {
+    try {
+        const { email, password } = req.body;
+
+        const user = await prisma.user.findUnique({ where: { email } }) as any;
+        if (!user || !user.passwordHash) {
+            return res.status(401).json({ error: "Invalid email or password" });
+        }
+
+        const valid = await bcrypt.compare(password, user.passwordHash);
+        if (!valid) return res.status(401).json({ error: "Invalid email or password" });
+
+        const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: "30d" });
+        res.json({ user, token });
+    } catch (error) {
+        console.error("Login Error:", error);
+        res.status(500).json({ error: "Login failed" });
+    }
+});
+
+app.get("/api/auth/me", authenticate, async (req: Request | any, res: Response) => {
+    res.json(req.user);
+});
+
+app.get("/api/agent/insights", authenticate, async (req: any, res) => {
+    try {
+        const estate = await prisma.estate.findFirst({
+            where: { userId: req.user.id }
+        });
         if (!estate) return res.json([]);
 
         const insights = await AgentService.runWatchdogScan(estate.id);
@@ -36,9 +126,11 @@ app.get("/api/agent/insights", async (req, res) => {
 // --- Assets Routes ---
 
 // GET /api/assets
-app.get("/api/assets", async (req, res) => {
+app.get("/api/assets", authenticate, async (req: any, res) => {
     try {
-        const assets = await prisma.asset.findMany();
+        const assets = await prisma.asset.findMany({
+            where: { userId: req.user.id }
+        });
         res.json(assets);
     } catch (error) {
         console.error("Error fetching assets:", error);
@@ -47,11 +139,11 @@ app.get("/api/assets", async (req, res) => {
 });
 
 // GET /api/assets/:id
-app.get("/api/assets/:id", async (req, res) => {
+app.get("/api/assets/:id", authenticate, async (req: any, res) => {
     try {
         const { id } = req.params;
-        const asset = await prisma.asset.findUnique({
-            where: { id },
+        const asset = await prisma.asset.findFirst({
+            where: { id, userId: req.user.id },
             include: { communications: true }
         });
         if (!asset) return res.status(404).json({ error: "Asset not found" });
@@ -63,21 +155,16 @@ app.get("/api/assets/:id", async (req, res) => {
 });
 
 // POST /api/assets
-app.post("/api/assets", async (req, res) => {
+app.post("/api/assets", authenticate, async (req: any, res) => {
     try {
-        // TODO: In production, extract user from Auth token (JWT)
-        // For now, use the seed user
-        const user = await prisma.user.findFirst();
-        if (!user) return res.status(400).json({ error: "No user found in DB. Run seed." });
-
-        const estate = await prisma.estate.findFirst({ where: { userId: user.id } });
+        const estate = await prisma.estate.findFirst({ where: { userId: req.user.id } });
         if (!estate) return res.status(400).json({ error: "No estate found for user." });
 
         const { institution, assetType, category, ownershipType, value, priority, status } = req.body;
 
         const asset = await prisma.asset.create({
             data: {
-                userId: user.id,
+                userId: req.user.id,
                 estateId: estate.id, // Link to the user's estate
                 institution,
                 assetType,
@@ -108,9 +195,13 @@ app.post("/api/assets", async (req, res) => {
 });
 
 // PUT /api/assets/:id
-app.put("/api/assets/:id", async (req, res) => {
+app.put("/api/assets/:id", authenticate, async (req: any, res) => {
     try {
         const { id } = req.params;
+        // ... rest stays same but ensure it belongs to user
+        const existing = await prisma.asset.findFirst({ where: { id, userId: req.user.id } });
+        if (!existing) return res.status(403).json({ error: "Access denied" });
+
         const {
             institution,
             assetType,
@@ -157,9 +248,12 @@ app.put("/api/assets/:id", async (req, res) => {
 });
 
 // DELETE /api/assets/:id
-app.delete("/api/assets/:id", async (req, res) => {
+app.delete("/api/assets/:id", authenticate, async (req: any, res) => {
     try {
         const { id } = req.params;
+        const existing = await prisma.asset.findFirst({ where: { id, userId: req.user.id } });
+        if (!existing) return res.status(403).json({ error: "Access denied" });
+
         await prisma.asset.delete({
             where: { id }
         });
@@ -171,7 +265,7 @@ app.delete("/api/assets/:id", async (req, res) => {
 });
 
 // POST /api/assets/:id/communications
-app.post("/api/assets/:id/communications", async (req, res): Promise<any> => {
+app.post("/api/assets/:id/communications", authenticate, async (req: any, res): Promise<any> => {
     try {
         const { id } = req.params;
         const { method, subject, content, communicationDate, type, direction, contactPerson, nextActionDate, nextActionType } = req.body;
@@ -181,18 +275,14 @@ app.post("/api/assets/:id/communications", async (req, res): Promise<any> => {
             return res.status(400).json({ error: "Missing required fields: method, subject, communicationDate" });
         }
 
-        // Get user (in production, extract from JWT)
-        const user = await prisma.user.findFirst();
-        if (!user) return res.status(400).json({ error: "No user found" });
-
-        // Verify asset exists
-        const asset = await prisma.asset.findUnique({ where: { id } });
-        if (!asset) return res.status(404).json({ error: "Asset not found" });
+        // Verify asset exists and belongs to user
+        const asset = await prisma.asset.findFirst({ where: { id, userId: req.user.id } });
+        if (!asset) return res.status(404).json({ error: "Asset not found or access denied" });
 
         const communication = await prisma.assetCommunication.create({
             data: {
                 assetId: id,
-                userId: user.id,
+                userId: req.user.id,
                 method: method.toLowerCase(),
                 subject,
                 content: content || null,
@@ -223,13 +313,13 @@ app.post("/api/assets/:id/communications", async (req, res): Promise<any> => {
 });
 
 // POST /api/assets/:id/generate-draft
-app.post("/api/assets/:id/generate-draft", async (req, res): Promise<any> => {
+app.post("/api/assets/:id/generate-draft", authenticate, async (req: any, res): Promise<any> => {
     try {
         const { id } = req.params;
         const { workflowStepTitle, workflowStepDescription } = req.body;
 
-        const asset = await prisma.asset.findUnique({ where: { id } });
-        if (!asset) return res.status(404).json({ error: "Asset not found" });
+        const asset = await prisma.asset.findFirst({ where: { id, userId: req.user.id } });
+        if (!asset) return res.status(404).json({ error: "Asset not found or access denied" });
 
         const draft = await generateCommunicationDraft({
             institutionName: asset.institution,
@@ -248,8 +338,8 @@ app.post("/api/assets/:id/generate-draft", async (req, res): Promise<any> => {
 
 // --- Document Processing ---
 import multer from "multer";
-import { analyzeDocument, generateCommunicationDraft, discoverRelatedAssets } from "./services/ai";
-import { AgentService } from "./services/agentService";
+import { analyzeDocument, generateCommunicationDraft, discoverRelatedAssets } from "./services/ai.js";
+import { AgentService } from "./services/agentService.js";
 import { createRequire } from "module";
 const require = createRequire(import.meta.url);
 const pdf = require("pdf-parse");
@@ -262,7 +352,7 @@ const upload = multer({
 
 // POST /api/documents/scan
 // expects "file" field in multipart/form-data
-app.post("/api/documents/scan", upload.single("file"), async (req, res): Promise<any> => {
+app.post("/api/documents/scan", authenticate, upload.single("file"), async (req: any, res: Response): Promise<any> => {
     try {
         if (!req.file) return res.status(400).json({ error: "No file provided" });
 
@@ -354,9 +444,12 @@ const storage = multer.diskStorage({
 const uploadRepo = multer({ storage: storage });
 
 // GET /api/assets/:id/documents
-app.get("/api/assets/:id/documents", async (req, res) => {
+app.get("/api/assets/:id/documents", authenticate, async (req: any, res: Response) => {
     try {
         const { id } = req.params;
+        const asset = await prisma.asset.findFirst({ where: { id, userId: req.user.id } });
+        if (!asset) return res.status(403).json({ error: "Access denied" });
+
         const documents = await prisma.document.findMany({
             where: { assetId: id },
             orderBy: { createdAt: "desc" }
@@ -369,13 +462,16 @@ app.get("/api/assets/:id/documents", async (req, res) => {
 });
 
 // POST /api/assets/:id/documents
-app.post("/api/assets/:id/documents", uploadRepo.single("file"), async (req, res): Promise<any> => {
+app.post("/api/assets/:id/documents", authenticate, uploadRepo.single("file"), async (req: any, res: Response): Promise<any> => {
     try {
-        console.log("Upload Request Received for Asset:", req.params.id);
+        const { id } = req.params;
+        const asset = await prisma.asset.findFirst({ where: { id, userId: req.user.id } });
+        if (!asset) return res.status(403).json({ error: "Access denied" });
+
+        console.log("Upload Request Received for Asset:", id);
         console.log("File:", req.file ? "Present" : "Missing");
         console.log("Body:", req.body);
 
-        const { id } = req.params;
         const bodyType = req.body.type;
         const typeStr = (typeof bodyType === 'string' ? bodyType : (Array.isArray(bodyType) ? bodyType[0] : String(bodyType))) || "OTHER";
 
@@ -384,16 +480,10 @@ app.post("/api/assets/:id/documents", uploadRepo.single("file"), async (req, res
             return res.status(400).json({ error: "No file provided" });
         }
 
-        const user = await prisma.user.findFirst();
-        if (!user) {
-            console.error("Upload failed: No user found");
-            return res.status(400).json({ error: "User not found" });
-        }
-
         const doc = await prisma.document.create({
             data: {
                 assetId: id,
-                userId: user.id,
+                userId: req.user.id,
                 name: req.file.originalname,
                 type: typeStr,
                 fileUrl: `/uploads/${req.file.filename}`,
@@ -413,10 +503,10 @@ app.post("/api/assets/:id/documents", uploadRepo.single("file"), async (req, res
 });
 
 // --- Enrichment ---
-import { enrichInstitutionData } from "./services/enrichment";
+import { enrichInstitutionData } from "./services/enrichment.js";
 
 // GET /api/institutions
-app.get("/api/institutions", async (req, res) => {
+app.get("/api/institutions", authenticate, async (req, res) => {
     try {
         const { query } = req.query;
         if (!query || typeof query !== 'string' || query.length < 2) {
@@ -440,13 +530,13 @@ app.get("/api/institutions", async (req, res) => {
 });
 
 // POST /api/assets/:id/enrich
-app.post("/api/assets/:id/enrich", async (req, res) => {
+app.post("/api/assets/:id/enrich", authenticate, async (req: any, res: Response) => {
     try {
         const { id } = req.params;
-        const asset = await prisma.asset.findUnique({ where: { id } });
+        const asset = await prisma.asset.findFirst({ where: { id, userId: req.user.id } });
 
         if (!asset || !asset.institution) {
-            return res.status(400).json({ error: "Asset has no institution name" });
+            return res.status(400).json({ error: "Asset has no institution name or access denied" });
         }
 
         const enriched = await enrichInstitutionData(asset.institution);
@@ -514,11 +604,9 @@ app.post("/api/assets/:id/enrich", async (req, res) => {
 // --- Profile Routes ---
 
 // GET /api/profile
-app.get("/api/profile", async (req, res) => {
+app.get("/api/profile", authenticate, async (req: any, res: Response) => {
     try {
-        const user = await prisma.user.findFirst();
-        if (!user) return res.status(404).json({ error: "User not found" });
-        res.json(user);
+        res.json(req.user);
     } catch (error) {
         console.error("Profile fetch error:", error);
         res.status(500).json({ error: "Failed to fetch profile" });
@@ -526,21 +614,14 @@ app.get("/api/profile", async (req, res) => {
 });
 
 // PUT /api/profile
-app.put("/api/profile", async (req, res) => {
+app.put("/api/profile", authenticate, async (req: any, res: Response) => {
     try {
-        const user = await prisma.user.findFirst();
-        if (!user) return res.status(404).json({ error: "User not found" });
-
         const { fullName, state, role } = req.body;
-        const updatedUser = await prisma.user.update({
-            where: { id: user.id },
-            data: {
-                fullName: fullName || undefined,
-                state: state || undefined,
-                role: role || undefined
-            }
+        const user = await prisma.user.update({
+            where: { id: req.user.id },
+            data: { fullName, state, role }
         });
-        res.json(updatedUser);
+        res.json(user);
     } catch (error) {
         console.error("Profile update error:", error);
         res.status(500).json({ error: "Failed to update profile" });
@@ -548,9 +629,15 @@ app.put("/api/profile", async (req, res) => {
 });
 
 // --- Admin Routes ---
+const isAdmin = (req: any, res: Response, next: NextFunction) => {
+    if (req.user?.role !== 'ADMIN') {
+        return res.status(403).json({ error: "Admin access required" });
+    }
+    next();
+};
 
 // GET /api/admin/stats
-app.get("/api/admin/stats", async (req, res) => {
+app.get("/api/admin/stats", authenticate, isAdmin, async (req: any, res: Response) => {
     try {
         const userCount = await prisma.user.count();
         const assetCount = await prisma.asset.count();
@@ -572,7 +659,7 @@ app.get("/api/admin/stats", async (req, res) => {
 });
 
 // GET /api/admin/users
-app.get("/api/admin/users", async (req, res) => {
+app.get("/api/admin/users", authenticate, isAdmin, async (req: any, res: Response) => {
     try {
         const users = await prisma.user.findMany({
             include: {
@@ -589,7 +676,7 @@ app.get("/api/admin/users", async (req, res) => {
 });
 
 // GET /api/admin/institutions
-app.get("/api/admin/institutions", async (req, res) => {
+app.get("/api/admin/institutions", authenticate, isAdmin, async (req: any, res: Response) => {
     try {
         const institutions = await prisma.institution.findMany({
             orderBy: { name: "asc" }
@@ -602,7 +689,7 @@ app.get("/api/admin/institutions", async (req, res) => {
 });
 
 // PUT /api/admin/institutions/:id
-app.put("/api/admin/institutions/:id", async (req, res) => {
+app.put("/api/admin/institutions/:id", authenticate, isAdmin, async (req: any, res: Response) => {
     try {
         const { id } = req.params;
         const { phone, email, fax, website, address } = req.body;
@@ -620,13 +707,10 @@ app.put("/api/admin/institutions/:id", async (req, res) => {
 // --- Estate/Probate Routes ---
 
 // GET /api/estates/my
-app.get("/api/estates/my", async (req, res) => {
+app.get("/api/estates/my", authenticate, async (req: any, res: Response) => {
     try {
-        const user = await prisma.user.findFirst();
-        if (!user) return res.status(404).json({ error: "User not found" });
-
         const estate = await prisma.estate.findFirst({
-            where: { userId: user.id },
+            where: { userId: req.user.id },
             include: { _count: { select: { assets: true } } }
         });
         res.json(estate);
@@ -637,12 +721,9 @@ app.get("/api/estates/my", async (req, res) => {
 });
 
 // PUT /api/estates/my
-app.put("/api/estates/my", async (req, res) => {
+app.put("/api/estates/my", authenticate, async (req: any, res: Response) => {
     try {
-        const user = await prisma.user.findFirst();
-        if (!user) return res.status(404).json({ error: "User not found" });
-
-        const estate = await prisma.estate.findFirst({ where: { userId: user.id } });
+        const estate = await prisma.estate.findFirst({ where: { userId: req.user.id } });
         if (!estate) return res.status(404).json({ error: "Estate not found" });
 
         const { probateStatus, courtCaseNumber, probateCounty } = req.body;

@@ -1,7 +1,60 @@
 
 const API_URL = import.meta.env.VITE_API_URL || "/api";
 
+const getHeaders = () => {
+    const token = localStorage.getItem("auth_token");
+    return {
+        "Content-Type": "application/json",
+        ...(token ? { "Authorization": `Bearer ${token}` } : {}),
+    };
+};
+
 export const api = {
+    /**
+     * Auth Methods
+     */
+    login: async (email: string, password: string) => {
+        const response = await fetch(`${API_URL}/auth/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password }),
+        });
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || "Login failed");
+        }
+        const data = await response.json();
+        localStorage.setItem("auth_token", data.token);
+        return data;
+    },
+
+    register: async (data: { email: string, password: string, fullName: string, state?: string }) => {
+        const response = await fetch(`${API_URL}/auth/register`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+        });
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || "Registration failed");
+        }
+        const result = await response.json();
+        localStorage.setItem("auth_token", result.token);
+        return result;
+    },
+
+    getMe: async () => {
+        const response = await fetch(`${API_URL}/auth/me`, {
+            headers: getHeaders(),
+        });
+        if (!response.ok) throw new Error("Failed to fetch current user");
+        return response.json();
+    },
+
+    logout: () => {
+        localStorage.removeItem("auth_token");
+    },
+
     /**
      * Triggers the automated follow-up check.
      */
@@ -27,29 +80,12 @@ export const api = {
     },
 
     /**
-     * Processes a document using AI to extract estate information and discover hidden assets.
-     */
-    processDocument: async (file: File) => {
-        const formData = new FormData();
-        formData.append("file", file);
-
-        const response = await fetch(`${API_URL}/documents/scan`, {
-            method: "POST",
-            body: formData,
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.error || "Failed to process document");
-        }
-        return response.json();
-    },
-
-    /**
      * Get all assets from Neon DB
      */
     getAssets: async () => {
-        const response = await fetch(`${API_URL}/assets`);
+        const response = await fetch(`${API_URL}/assets`, {
+            headers: getHeaders(),
+        });
         if (!response.ok) throw new Error("Failed to fetch assets");
         return response.json();
     },
@@ -58,7 +94,9 @@ export const api = {
      * Get single asset by ID
      */
     getAsset: async (id: string) => {
-        const response = await fetch(`${API_URL}/assets/${id}`);
+        const response = await fetch(`${API_URL}/assets/${id}`, {
+            headers: getHeaders(),
+        });
         if (!response.ok) throw new Error("Failed to fetch asset");
         return response.json();
     },
@@ -69,9 +107,7 @@ export const api = {
     createAsset: async (assetData: any) => {
         const response = await fetch(`${API_URL}/assets`, {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
+            headers: getHeaders(),
             body: JSON.stringify(assetData),
         });
         if (!response.ok) throw new Error("Failed to create asset");
@@ -81,7 +117,7 @@ export const api = {
     updateAsset: async (id: string, updates: any) => {
         const response = await fetch(`${API_URL}/assets/${id}`, {
             method: "PUT",
-            headers: { "Content-Type": "application/json" },
+            headers: getHeaders(),
             body: JSON.stringify(updates),
         });
         if (!response.ok) throw new Error("Failed to update asset");
@@ -91,13 +127,16 @@ export const api = {
     deleteAsset: async (id: string) => {
         const response = await fetch(`${API_URL}/assets/${id}`, {
             method: "DELETE",
+            headers: getHeaders(),
         });
         if (!response.ok) throw new Error("Failed to delete asset");
         return response.json();
     },
 
     getAssetDocuments: async (assetId: string) => {
-        const response = await fetch(`${API_URL}/assets/${assetId}/documents`);
+        const response = await fetch(`${API_URL}/assets/${assetId}/documents`, {
+            headers: getHeaders(),
+        });
         if (!response.ok) throw new Error("Failed to fetch documents");
         return response.json();
     },
@@ -107,8 +146,12 @@ export const api = {
         formData.append("file", file);
         formData.append("type", type);
 
+        const token = localStorage.getItem("auth_token");
         const response = await fetch(`${API_URL}/assets/${assetId}/documents`, {
             method: "POST",
+            headers: {
+                ...(token ? { "Authorization": `Bearer ${token}` } : {}),
+            },
             body: formData,
         });
         if (!response.ok) throw new Error("Failed to upload document");
@@ -117,7 +160,8 @@ export const api = {
 
     enrichAsset: async (id: string) => {
         const response = await fetch(`${API_URL}/assets/${id}/enrich`, {
-            method: "POST"
+            method: "POST",
+            headers: getHeaders(),
         });
         if (!response.ok) throw new Error("Failed to enrich asset");
         return response.json();
@@ -125,7 +169,9 @@ export const api = {
 
     searchInstitutions: async (query: string) => {
         if (!query || query.length < 2) return [];
-        const response = await fetch(`${API_URL}/institutions?query=${encodeURIComponent(query)}`);
+        const response = await fetch(`${API_URL}/institutions?query=${encodeURIComponent(query)}`, {
+            headers: getHeaders(),
+        });
         if (!response.ok) return [];
         return response.json();
     },
@@ -146,7 +192,7 @@ export const api = {
     }) => {
         const response = await fetch(`${API_URL}/assets/${assetId}/communications`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: getHeaders(),
             body: JSON.stringify(data)
         });
         if (!response.ok) throw new Error("Failed to create communication");
@@ -162,7 +208,7 @@ export const api = {
     }) => {
         const response = await fetch(`${API_URL}/assets/${assetId}/generate-draft`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: getHeaders(),
             body: JSON.stringify(context)
         });
         if (!response.ok) throw new Error("Failed to generate draft");
@@ -173,7 +219,9 @@ export const api = {
      * User Profiles
      */
     getProfile: async () => {
-        const response = await fetch(`${API_URL}/profile`);
+        const response = await fetch(`${API_URL}/profile`, {
+            headers: getHeaders(),
+        });
         if (!response.ok) throw new Error("Failed to fetch profile");
         return response.json();
     },
@@ -181,7 +229,7 @@ export const api = {
     updateProfile: async (data: { fullName?: string; state?: string; role?: string }) => {
         const response = await fetch(`${API_URL}/profile`, {
             method: "PUT",
-            headers: { "Content-Type": "application/json" },
+            headers: getHeaders(),
             body: JSON.stringify(data)
         });
         if (!response.ok) throw new Error("Failed to update profile");
@@ -192,19 +240,25 @@ export const api = {
      * Admin Functions
      */
     getAdminStats: async () => {
-        const response = await fetch(`${API_URL}/admin/stats`);
+        const response = await fetch(`${API_URL}/admin/stats`, {
+            headers: getHeaders(),
+        });
         if (!response.ok) throw new Error("Failed to fetch admin stats");
         return response.json();
     },
 
     getAdminUsers: async () => {
-        const response = await fetch(`${API_URL}/admin/users`);
+        const response = await fetch(`${API_URL}/admin/users`, {
+            headers: getHeaders(),
+        });
         if (!response.ok) throw new Error("Failed to fetch users");
         return response.json();
     },
 
     getAdminInstitutions: async () => {
-        const response = await fetch(`${API_URL}/admin/institutions`);
+        const response = await fetch(`${API_URL}/admin/institutions`, {
+            headers: getHeaders(),
+        });
         if (!response.ok) throw new Error("Failed to fetch institutions");
         return response.json();
     },
@@ -212,7 +266,7 @@ export const api = {
     updateAdminInstitution: async (id: string, data: any) => {
         const response = await fetch(`${API_URL}/admin/institutions/${id}`, {
             method: "PUT",
-            headers: { "Content-Type": "application/json" },
+            headers: getHeaders(),
             body: JSON.stringify(data)
         });
         if (!response.ok) throw new Error("Failed to update institution");
@@ -220,7 +274,9 @@ export const api = {
     },
 
     getMyEstate: async () => {
-        const response = await fetch(`${API_URL}/estates/my`);
+        const response = await fetch(`${API_URL}/estates/my`, {
+            headers: getHeaders(),
+        });
         if (!response.ok) throw new Error("Failed to fetch estate");
         return response.json();
     },
@@ -228,7 +284,7 @@ export const api = {
     updateMyEstate: async (data: any) => {
         const response = await fetch(`${API_URL}/estates/my`, {
             method: "PUT",
-            headers: { "Content-Type": "application/json" },
+            headers: getHeaders(),
             body: JSON.stringify(data)
         });
         if (!response.ok) throw new Error("Failed to update estate");
@@ -236,8 +292,33 @@ export const api = {
     },
 
     getAgentInsights: async () => {
-        const response = await fetch(`${API_URL}/agent/insights`);
+        const response = await fetch(`${API_URL}/agent/insights`, {
+            headers: getHeaders(),
+        });
         if (!response.ok) throw new Error("Failed to fetch agent insights");
         return response.json();
-    }
+    },
+
+    /**
+     * Processes a document using AI to extract estate information and discover hidden assets.
+     */
+    processDocument: async (file: File) => {
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const token = localStorage.getItem("auth_token");
+        const response = await fetch(`${API_URL}/documents/scan`, {
+            method: "POST",
+            headers: {
+                ...(token ? { "Authorization": `Bearer ${token}` } : {}),
+            },
+            body: formData,
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.error || "Failed to process document");
+        }
+        return response.json();
+    },
 };
