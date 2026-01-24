@@ -152,6 +152,30 @@ export function ProbateHub() {
                                         onBlur={(e) => updateMutation.mutate({ courtCaseNumber: e.target.value })}
                                     />
                                 </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold uppercase text-muted-foreground">Deceased First Name</label>
+                                    <Input
+                                        defaultValue={estate.deceasedFirstName}
+                                        className="bg-white"
+                                        onBlur={(e) => updateMutation.mutate({ deceasedFirstName: e.target.value })}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold uppercase text-muted-foreground">Deceased Last Name</label>
+                                    <Input
+                                        defaultValue={estate.deceasedLastName}
+                                        className="bg-white"
+                                        onBlur={(e) => updateMutation.mutate({ deceasedLastName: e.target.value })}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold uppercase text-muted-foreground">SSN (last 4 or full)</label>
+                                    <Input
+                                        defaultValue={estate.deceasedSsn}
+                                        className="bg-white"
+                                        onBlur={(e) => updateMutation.mutate({ deceasedSsn: e.target.value })}
+                                    />
+                                </div>
                             </div>
                             <div className="flex justify-end">
                                 <Button size="sm" variant="outline" onClick={() => setIsEditing(false)}>

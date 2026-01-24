@@ -350,27 +350,63 @@ app.post("/api/fax/send", authenticate, async (req: any, res: Response) => {
     }
 });
 
-// POST /api/assets/:id/generate-draft
-app.post("/api/assets/:id/generate-draft", authenticate, async (req: any, res): Promise<any> => {
+// POST /api/assets/:id/generate-letter
+import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
+
+app.post("/api/assets/:id/generate-letter", authenticate, async (req: any, res: Response) => {
     try {
         const { id } = req.params;
-        const { workflowStepTitle, workflowStepDescription } = req.body;
-
         const asset = await prisma.asset.findFirst({ where: { id, userId: req.user.id } });
-        if (!asset) return res.status(404).json({ error: "Asset not found or access denied" });
+        const estate = await prisma.estate.findFirst({ where: { userId: req.user.id } });
+        if (!asset || !estate) return res.status(404).json({ error: "Context not found" });
 
-        const draft = await generateCommunicationDraft({
-            institutionName: asset.institution,
-            assetType: asset.assetType,
-            workflowStepTitle: workflowStepTitle || "General Inquiry",
-            workflowStepDescription: workflowStepDescription || "Checking status of the account",
-            deceasedName: "the account holder" // Could be fetched from estate if needed
-        });
+        const pdfDoc = await PDFDocument.create();
+        const page = pdfDoc.addPage([600, 800]);
+        const { width, height } = page.getSize();
+        const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+        const fontRegular = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
-        res.json(draft);
-    } catch (error: any) {
-        console.error("Draft Generation Error:", error);
-        res.status(500).json({ error: "Failed to generate draft" });
+        // Header
+        page.drawText("ESTATE SETTLEMENT NOTICE", { x: 50, y: height - 60, size: 18, font: fontBold, color: rgb(0, 0, 0.5) });
+        page.drawText(`RE: ${asset.institution} - Account: ${asset.accountNumber || 'Pending'}`, { x: 50, y: height - 90, size: 12, font: fontBold });
+
+        // Date
+        page.drawText(`Date: ${new Date().toLocaleDateString()}`, { x: 50, y: height - 120, size: 10, font: fontRegular });
+
+        // Body
+        let y = height - 160;
+        const write = (text: string, size = 11, font = fontRegular) => {
+            page.drawText(text, { x: 50, y, size, font });
+            y -= size + 8;
+        };
+
+        write("To the Estates Department,", 11, fontBold);
+        y -= 10;
+        write(`Please be advised that ${estate.deceasedFirstName} ${estate.deceasedLastName} has passed away.`);
+        write(`Date of Birth: ${estate.deceasedDateOfBirth?.toLocaleDateString() || 'N/A'}`);
+        write(`Date of Death: ${estate.deceasedDateOfDeath?.toLocaleDateString() || 'N/A'}`);
+        write(`Last 4 of SSN: ${estate.deceasedSsn ? estate.deceasedSsn.slice(-4) : 'N/A'}`);
+        y -= 15;
+        write("As the court-appointed personal representative/executor, I am requesting information", 11);
+        write("regarding the current status, valuation, and required steps to transfer or close the", 11);
+        write(`referenced account (${asset.institution}).`, 11);
+        y -= 15;
+        write("Please respond to this request via:", 11, fontBold);
+        write(`Email: ${req.user.email}`);
+        write(`Phone: ${req.user.fullName} at [Phone Number]`);
+
+        y -= 30;
+        write("Respectfully submitted,", 11);
+        y -= 20;
+        write(`${req.user.fullName}`, 12, fontBold);
+        write("Court-Appointed Personal Representative", 10);
+
+        const pdfBytes = await pdfDoc.save();
+        res.contentType("application/pdf");
+        res.send(Buffer.from(pdfBytes));
+    } catch (error) {
+        console.error("PDF Gen Error:", error);
+        res.status(500).json({ error: "Failed to generate PDF" });
     }
 });
 
@@ -800,14 +836,24 @@ app.put("/api/estates/my", authenticate, async (req: any, res: Response) => {
         const estate = await prisma.estate.findFirst({ where: { userId: req.user.id } });
         if (!estate) return res.status(404).json({ error: "Estate not found" });
 
-        const { probateStatus, courtCaseNumber, probateCounty, estateType } = req.body;
+        const {
+            probateStatus, courtCaseNumber, probateCounty, estateType,
+            deceasedFirstName, deceasedLastName, deceasedSsn,
+            deceasedDateOfBirth, deceasedDateOfDeath, deceasedState
+        } = req.body;
         const updated = await prisma.estate.update({
             where: { id: estate.id },
             data: {
                 probateStatus: probateStatus || undefined,
                 courtCaseNumber: courtCaseNumber !== undefined ? courtCaseNumber : undefined,
                 probateCounty: probateCounty !== undefined ? probateCounty : undefined,
-                estateType: estateType !== undefined ? estateType : undefined
+                estateType: estateType !== undefined ? estateType : undefined,
+                deceasedFirstName: deceasedFirstName || undefined,
+                deceasedLastName: deceasedLastName || undefined,
+                deceasedSsn: deceasedSsn !== undefined ? deceasedSsn : undefined,
+                deceasedDateOfBirth: deceasedDateOfBirth ? new Date(deceasedDateOfBirth) : undefined,
+                deceasedDateOfDeath: deceasedDateOfDeath ? new Date(deceasedDateOfDeath) : undefined,
+                deceasedState: deceasedState || undefined
             }
         });
         res.json(updated);

@@ -633,7 +633,23 @@ export default function AssetDetail() {
                           <div className="flex items-center gap-3">
                             <ExternalLink className="w-4 h-4 text-muted-foreground" />
                             <a
-                              href={uiAsset.institutionUrl.startsWith('http') ? uiAsset.institutionUrl : `https://${uiAsset.institutionUrl}`}
+                              href={(() => {
+                                const url = uiAsset.institutionUrl.startsWith('http') ? uiAsset.institutionUrl : `https://${uiAsset.institutionUrl}`;
+                                if (!estate) return url;
+                                const syncData = {
+                                  deceasedFirstName: estate.deceasedFirstName,
+                                  deceasedLastName: estate.deceasedLastName,
+                                  deceasedSSN: estate.deceasedSsn,
+                                  deceasedDOB: estate.deceasedDateOfBirth?.split('T')[0],
+                                  dateOfDeath: estate.deceasedDateOfDeath?.split('T')[0],
+                                };
+                                try {
+                                  const base64 = btoa(JSON.stringify(syncData));
+                                  return `${url}#ee_data=${base64}`;
+                                } catch (e) {
+                                  return url;
+                                }
+                              })()}
                               target="_blank"
                               rel="noreferrer"
                               className="text-primary hover:underline truncate max-w-[200px]"
@@ -644,6 +660,27 @@ export default function AssetDetail() {
                         )}
                       </div>
                       <EnrichDataButton assetId={id!} onEnrichComplete={() => queryClient.invalidateQueries({ queryKey: ["asset", id] })} />
+                      <Button
+                        variant="default"
+                        size="sm"
+                        className="w-full gap-2 shadow-lg shadow-primary/20"
+                        onClick={async () => {
+                          try {
+                            const blob = await api.generateLetter(id!);
+                            const url = window.URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `Settlement_Notice_${uiAsset.institution}.pdf`;
+                            a.click();
+                            toast({ title: "Letter Generated", description: "Your settlement notice is ready to send." });
+                          } catch (e: any) {
+                            toast({ variant: "destructive", title: "PDF Failed", description: e.message });
+                          }
+                        }}
+                      >
+                        <FileText className="w-4 h-4" />
+                        Generate Settlement Notice
+                      </Button>
                     </div>
                   )}
                 </div>

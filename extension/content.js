@@ -19,33 +19,42 @@ const MAPPINGS = {
     }
 };
 
-const IS_APP_DOMAIN = window.location.origin.includes("localhost:8080");
-
-// 1. DATA CAPTURE (On localhost:8080)
-if (IS_APP_DOMAIN) {
-    console.log("ExpectedEstate: Bridge active on App Domain");
-    window.addEventListener("message", (event) => {
-        if (event.data && event.data.type === "EE_SYNC_DATA") {
-            chrome.storage.local.set({ estateData: event.data.payload }, () => {
-                console.log("ExpectedEstate: Data synced to extension storage");
-            });
+/**
+ * THE MAGIC PIPE:
+ * Reads data from window.location.hash if present.
+ * Format: #ee_data=BASE64_JSON
+ */
+function getIncomingData() {
+    const hash = window.location.hash;
+    if (hash.includes("ee_data=")) {
+        try {
+            const base64 = hash.split("ee_data=")[1];
+            const json = atob(base64);
+            return JSON.parse(json);
+        } catch (e) {
+            console.error("ExpectedEstate: Failed to parse magic pipe data", e);
         }
-    });
+    }
+    return null;
 }
 
-// 2. DATA POPULATION (On Institution Domains)
-async function getStoredData() {
-    return new Promise((resolve) => {
-        chrome.storage.local.get(["estateData"], (result) => {
-            resolve(result.estateData || null);
+async function handleAutoFill() {
+    const data = getIncomingData();
+    if (!data) {
+        // Fallback to storage if no pipe data
+        return new Promise((resolve) => {
+            chrome.storage.local.get(["estateData"], (result) => {
+                resolve(result.estateData || null);
+            });
         });
-    });
+    }
+    return data;
 }
 
 function injectFillButton() {
-    if (IS_APP_DOMAIN || document.getElementById("ee-bridge-btn")) return;
-
     const currentDomain = window.location.hostname.replace("www.", "");
+    if (currentDomain.includes("localhost")) return;
+
     let config = null;
     for (const domain in MAPPINGS) {
         if (currentDomain.includes(domain)) {
@@ -56,61 +65,81 @@ function injectFillButton() {
 
     if (!config) return;
 
+    // Auto-trigger if data came through the pipe
+    const pipeData = getIncomingData();
+    if (pipeData) {
+        console.log("ExpectedEstate: Pipe data detected, auto-filling...");
+        setTimeout(() => performFill(pipeData, config), 1000); // Wait for page load
+    }
+
+    if (document.getElementById("ee-bridge-btn")) return;
+
     const btn = document.createElement("button");
     btn.id = "ee-bridge-btn";
     btn.innerText = "✨ Fill with ExpectedEstate";
     btn.style.cssText = `
         position: fixed;
-        top: 20px;
-        right: 20px;
+        bottom: 24px;
+        right: 24px;
         z-index: 10000;
         background: #00D1FF;
         color: white;
         border: none;
-        padding: 12px 24px;
+        padding: 14px 28px;
         border-radius: 99px;
         font-weight: bold;
         cursor: pointer;
-        box-shadow: 0 4px 20px rgba(0, 209, 255, 0.4);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
         font-family: sans-serif;
-        transition: transform 0.2s;
+        transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     `;
 
-    btn.onmouseover = () => btn.style.transform = "scale(1.05)";
-    btn.onmouseout = () => btn.style.transform = "scale(1)";
+    btn.onmouseover = () => {
+        btn.style.transform = "scale(1.05) translateY(-2px)";
+        btn.style.boxShadow = "0 12px 40px rgba(0, 209, 255, 0.5)";
+    };
+    btn.onmouseout = () => {
+        btn.style.transform = "scale(1)";
+        btn.style.boxShadow = "0 8px 30px rgba(0, 0, 0, 0.2)";
+    };
 
     btn.onclick = async () => {
-        btn.innerText = "⏳ Filling...";
-        const data = await getStoredData();
-
+        const data = await handleAutoFill();
         if (!data) {
-            alert("ExpectedEstate: No data found. Please make sure you have the dashboard open in another tab to sync your estate profile.");
-            btn.innerText = "✨ Fill with ExpectedEstate";
+            alert("ExpectedEstate: No data synced. Open the link from your ExpectedEstate dashboard to enable auto-fill.");
             return;
         }
-
-        let filledCount = 0;
-        for (const fieldKey in config.fields) {
-            const selector = config.fields[fieldKey];
-            const input = document.querySelector(selector);
-            if (input && data[fieldKey]) {
-                input.value = data[fieldKey];
-                input.dispatchEvent(new Event('input', { bubbles: true }));
-                input.dispatchEvent(new Event('change', { bubbles: true }));
-                filledCount++;
-            }
-        }
-
-        btn.innerText = `✅ Filled ${filledCount} fields`;
-        setTimeout(() => btn.innerText = "✨ Fill with ExpectedEstate", 3000);
+        performFill(data, config);
     };
 
     document.body.appendChild(btn);
 }
 
-// Initial injection
-injectFillButton();
+function performFill(data, config) {
+    let filledCount = 0;
+    for (const fieldKey in config.fields) {
+        const selector = config.fields[fieldKey];
+        const input = document.querySelector(selector);
+        if (input && data[fieldKey]) {
+            input.value = data[fieldKey];
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+            input.dispatchEvent(new Event('change', { bubbles: true }));
+            filledCount++;
 
-// Support SPA navigation
+            // Visual feedback for filled fields
+            input.style.backgroundColor = "rgba(0, 209, 255, 0.1)";
+            input.style.transition = "background-color 0.5s";
+            setTimeout(() => input.style.backgroundColor = "", 2000);
+        }
+    }
+
+    const btn = document.getElementById("ee-bridge-btn");
+    if (btn) {
+        btn.innerText = `✅ Filled ${filledCount} fields`;
+        setTimeout(() => btn.innerText = "✨ Fill with ExpectedEstate", 3000);
+    }
+}
+
+injectFillButton();
 const observer = new MutationObserver(injectFillButton);
 observer.observe(document.body, { childList: true, subtree: true });

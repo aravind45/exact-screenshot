@@ -141,6 +141,15 @@ export const api = {
         return parseResponse(response);
     },
 
+    generateLetter: async (id: string) => {
+        const response = await fetch(`${API_URL}/assets/${id}/generate-letter`, {
+            method: "POST",
+            headers: getHeaders(),
+        });
+        if (!response.ok) throw new Error("Failed to generate letter");
+        return await response.blob();
+    },
+
     getAssetDocuments: async (assetId: string) => {
         const response = await fetch(`${API_URL}/assets/${assetId}/documents`, {
             headers: getHeaders(),

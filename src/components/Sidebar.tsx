@@ -44,11 +44,11 @@ export function Sidebar() {
     React.useEffect(() => {
         if (estate) {
             const syncData = {
-                deceasedFirstName: estate.deceasedName?.split(' ')[0],
-                deceasedLastName: estate.deceasedName?.split(' ').slice(1).join(' '),
-                deceasedSSN: estate.deceasedSsn || "XXX-XX-XXXX",
-                deceasedDOB: estate.deceasedDob || "01/01/1950",
-                dateOfDeath: estate.dateOfDeath || "01/01/2024",
+                deceasedFirstName: estate.deceasedFirstName,
+                deceasedLastName: estate.deceasedLastName,
+                deceasedSSN: estate.deceasedSsn,
+                deceasedDOB: estate.deceasedDateOfBirth?.split('T')[0],
+                dateOfDeath: estate.deceasedDateOfDeath?.split('T')[0],
             };
             window.postMessage({ type: "EE_SYNC_DATA", payload: syncData }, "*");
         }
@@ -155,10 +155,10 @@ export function Sidebar() {
                                         <div className="p-2 rounded-lg bg-primary/10">
                                             <Zap className="w-5 h-5" />
                                         </div>
-                                        <span className="font-bold">Simple Step: Add the Bridge</span>
+                                        <span className="font-bold">Magic Bridge Enabled</span>
                                     </div>
                                     <p className="text-xs text-slate-300 leading-relaxed">
-                                        Open <code className="bg-slate-800 px-1.5 py-0.5 rounded text-primary">chrome://extensions</code>, turn on <strong>Developer Mode</strong>, and click <strong>Load Unpacked</strong>. Select the folder named <code className="bg-slate-800 px-1.5 py-0.5 rounded text-primary">extension</code> inside your project.
+                                        Whenever you click a website link in this app, we "beam" your data through the link. The extension picks it up and fills the form instantly.
                                     </p>
                                     <div className="pt-2">
                                         <div className="flex items-start gap-3 p-3 bg-slate-800/50 rounded-xl border border-slate-700/50">
