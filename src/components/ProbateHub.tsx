@@ -317,7 +317,7 @@ export function ProbateHub() {
                                 </div>
                             </div>
                         );
-                    })())}
+                    })()}
                 </div>
 
                 {/* Document Vault - Estate-Level Documents */}
