@@ -37,7 +37,8 @@ import {
   AlertCircle,
   FileSearch,
   CheckSquare,
-  LayoutGrid
+  LayoutGrid,
+  ArrowRight
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -285,6 +286,26 @@ export default function AssetDetail() {
     uploadMutation.mutate();
   };
 
+  const handleGenerateLetter = async () => {
+    try {
+      const blob = await api.generateLetter(id!);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Settlement_Notice_${uiAsset.institution}.pdf`;
+      a.click();
+      toast({ title: "Letter Generated", description: "Your settlement notice is ready to send." });
+    } catch (e: any) {
+      toast({ variant: "destructive", title: "PDF Failed", description: e.message });
+    }
+  };
+
+  useEffect(() => {
+    if (asset && normalize(asset.status) === 'discovered') {
+      setActiveTab("workflow");
+    }
+  }, [asset]);
+
   if (isLoading) return <div className="p-8">Loading asset details...</div>;
   if (error || !asset) return <div className="p-8 text-red-500">Error loading asset: {(error as Error)?.message || "Not found"}</div>;
 
@@ -366,13 +387,41 @@ export default function AssetDetail() {
         </div>
       </header>
 
-      <main className="section-container py-8">
+      <main className="section-container py-8 space-y-6">
+        {/* RECOMMENDED NEXT STEP HERO */}
+        {!isEditing && uiAsset.status === 'discovered' && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-primary/10 border-2 border-primary/20 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl shadow-primary/5"
+          >
+            <div className="flex items-center gap-5 text-left">
+              <div className="p-4 bg-primary text-white rounded-2xl shadow-lg shadow-primary/40">
+                <ArrowRight className="w-8 h-8" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-slate-900 tracking-tight">Recommended Next Step</h2>
+                <p className="text-slate-600 font-medium">Formally notify <strong>{uiAsset.institution}</strong> of the death to secure the account.</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 w-full md:w-auto">
+              <Button
+                onClick={() => setActiveTab("workflow")}
+                size="lg"
+                className="flex-1 md:flex-none h-14 px-8 font-bold bg-slate-900 hover:bg-slate-800"
+              >
+                Start Legal Process
+              </Button>
+            </div>
+          </motion.div>
+        )}
+
         {/* Asset Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="card-elevated p-6 mb-6"
+          className="card-elevated p-6"
         >
           {isEditing ? (
             <div className="space-y-4">
@@ -555,6 +604,7 @@ export default function AssetDetail() {
               onStepComplete={handleStepComplete}
               onLogCommunication={() => setShowCommDialog(true)}
               onSendFax={() => toast({ title: "Coming Soon", description: "Faxing will be available in the next update." })}
+              onGenerateLetter={handleGenerateLetter}
             />
           </TabsContent>
 
@@ -608,30 +658,42 @@ export default function AssetDetail() {
               </div>
 
               <div className="space-y-6">
-                <div className="card-elevated p-5">
-                  <h3 className="font-semibold mb-4">Contact Info</h3>
+                <div className="card-elevated p-5 space-y-6">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-bold text-slate-900">Institutional Contact</h3>
+                    <Badge variant="outline" className="text-[10px] uppercase font-bold tracking-wider">{uiAsset.institution}</Badge>
+                  </div>
+
                   {!isEditing && (
-                    <div className="space-y-4">
-                      <div className="space-y-3 text-sm">
-                        <div className="flex items-center gap-3">
-                          <Phone className="w-4 h-4 text-muted-foreground" />
-                          <span>{uiAsset.institutionPhone}</span>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <Mail className="w-4 h-4 text-muted-foreground" />
-                          <span>{uiAsset.institutionEmail}</span>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <Printer className="w-4 h-4 text-muted-foreground" />
-                          <span>{uiAsset.institutionFax || 'N/A'}</span>
-                        </div>
-                        <div className="flex items-start gap-3">
-                          <Landmark className="w-4 h-4 text-muted-foreground mt-0.5" />
-                          <span>{uiAsset.institutionAddress || 'N/A'}</span>
-                        </div>
+                    <div className="space-y-6">
+                      <div className="space-y-2">
+                        {[
+                          { icon: Phone, label: "Phone", value: uiAsset.institutionPhone },
+                          { icon: Mail, label: "Email", value: uiAsset.institutionEmail },
+                          { icon: Printer, label: "Fax", value: uiAsset.institutionFax },
+                          { icon: Landmark, label: "Address", value: uiAsset.institutionAddress },
+                        ].map(({ icon: Icon, label, value }) => (
+                          <div key={label} className="flex items-center justify-between p-3 rounded-xl border border-transparent hover:border-border hover:bg-slate-50 transition-all group">
+                            <div className="flex items-center gap-3">
+                              <div className="p-2 rounded-lg bg-slate-100 group-hover:bg-white text-slate-400 group-hover:text-primary transition-colors">
+                                <Icon className="w-3.5 h-3.5" />
+                              </div>
+                              <div>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter leading-none mb-1">{label}</p>
+                                <p className="text-sm font-semibold text-slate-700 truncate max-w-[140px]">{value}</p>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="space-y-2 pt-4 border-t border-border/50">
                         {uiAsset.institutionUrl && uiAsset.institutionUrl !== 'N/A' && (
-                          <div className="flex items-center gap-3">
-                            <ExternalLink className="w-4 h-4 text-muted-foreground" />
+                          <Button
+                            variant="outline"
+                            className="w-full justify-start gap-3 h-12 border-slate-200 hover:border-primary/30 transition-all rounded-xl shadow-sm text-slate-600 mb-2"
+                            asChild
+                          >
                             <a
                               href={(() => {
                                 const url = uiAsset.institutionUrl.startsWith('http') ? uiAsset.institutionUrl : `https://${uiAsset.institutionUrl}`;
@@ -652,35 +714,23 @@ export default function AssetDetail() {
                               })()}
                               target="_blank"
                               rel="noreferrer"
-                              className="text-primary hover:underline truncate max-w-[200px]"
                             >
-                              {uiAsset.institutionUrl.replace(/^https?:\/\//, '')}
+                              <ExternalLink className="w-4 h-4" />
+                              <span className="font-bold text-xs uppercase tracking-wider">Visit {uiAsset.institution} Portal</span>
                             </a>
-                          </div>
+                          </Button>
                         )}
+                        <EnrichDataButton assetId={id!} onEnrichComplete={() => queryClient.invalidateQueries({ queryKey: ["asset", id] })} />
+                        <Button
+                          variant="default"
+                          size="lg"
+                          className="w-full gap-3 h-14 bg-gradient-to-r from-primary to-blue-600 hover:shadow-lg hover:shadow-primary/20 transition-all font-bold rounded-2xl border-none"
+                          onClick={handleGenerateLetter}
+                        >
+                          <FileText className="w-5 h-5" />
+                          Generate Settlement Notice
+                        </Button>
                       </div>
-                      <EnrichDataButton assetId={id!} onEnrichComplete={() => queryClient.invalidateQueries({ queryKey: ["asset", id] })} />
-                      <Button
-                        variant="default"
-                        size="sm"
-                        className="w-full gap-2 shadow-lg shadow-primary/20"
-                        onClick={async () => {
-                          try {
-                            const blob = await api.generateLetter(id!);
-                            const url = window.URL.createObjectURL(blob);
-                            const a = document.createElement('a');
-                            a.href = url;
-                            a.download = `Settlement_Notice_${uiAsset.institution}.pdf`;
-                            a.click();
-                            toast({ title: "Letter Generated", description: "Your settlement notice is ready to send." });
-                          } catch (e: any) {
-                            toast({ variant: "destructive", title: "PDF Failed", description: e.message });
-                          }
-                        }}
-                      >
-                        <FileText className="w-4 h-4" />
-                        Generate Settlement Notice
-                      </Button>
                     </div>
                   )}
                 </div>

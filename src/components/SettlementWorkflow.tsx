@@ -19,7 +19,8 @@ import {
     ChevronRight,
     MessageCircle,
     Printer,
-    ArrowRight
+    ArrowRight,
+    FileText
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { WorkflowConfig } from "@/config/workflows/fidelity";
@@ -34,6 +35,7 @@ interface SettlementWorkflowProps {
     onStepComplete: (stepId: string) => void;
     onLogCommunication: () => void;
     onSendFax: () => void;
+    onGenerateLetter: () => void;
 }
 
 export function SettlementWorkflow({
@@ -44,7 +46,8 @@ export function SettlementWorkflow({
     onStepSelect,
     onStepComplete,
     onLogCommunication,
-    onSendFax
+    onSendFax,
+    onGenerateLetter
 }: SettlementWorkflowProps) {
     const { data: estate } = useQuery({
         queryKey: ["estate"],
@@ -216,6 +219,22 @@ export function SettlementWorkflow({
                                                 <div className="space-y-3">
                                                     <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400">Essential Tools</h4>
                                                     <div className="flex flex-col gap-2">
+                                                        {step.id === "initial_notification" && (
+                                                            <Button
+                                                                variant="default"
+                                                                className="w-full justify-start gap-4 h-16 bg-primary hover:bg-primary/90 text-white transition-all rounded-xl shadow-lg shadow-primary/20 border-none"
+                                                                onClick={onGenerateLetter}
+                                                            >
+                                                                <div className="p-2 rounded-lg bg-white/20 text-white">
+                                                                    <FileText className="w-5 h-5" />
+                                                                </div>
+                                                                <div className="text-left">
+                                                                    <p className="text-[10px] text-white/70 font-bold uppercase tracking-tighter leading-none mb-1">Priority Action</p>
+                                                                    <p className="font-bold text-sm">Generate Settlement Notice</p>
+                                                                </div>
+                                                            </Button>
+                                                        )}
+
                                                         {step.phone && (
                                                             <Button
                                                                 variant="outline"

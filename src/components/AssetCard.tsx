@@ -82,6 +82,12 @@ export function AssetCard({ asset, onClick, className }: AssetCardProps) {
               </p>
             </div>
             <div className="text-right shrink-0">
+              {asset.status === 'discovered' && (
+                <div className="flex items-center gap-1 text-[10px] font-bold text-primary uppercase bg-primary/10 px-2 py-1 rounded-lg mb-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                  Action Required
+                </div>
+              )}
               <p className="font-semibold text-foreground">
                 {formatCurrency(asset.value)}
               </p>
