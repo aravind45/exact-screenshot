@@ -92,13 +92,6 @@ export function ProbateHub() {
                     </Button>
                 )}
             </CardHeader>
-            <div className="px-6 py-2 border-b border-border/30 bg-muted/5">
-                <ProcessFlow
-                    stages={TRACK_STAGES[(estate.estateType as SettlementTrack) || "PROBATE"]}
-                    currentStageId={estate.probateStatus === "EXECUTOR_APPOINTED" ? "discovery" : "petition"}
-                    completedStageIds={estate.probateStatus === "EXECUTOR_APPOINTED" ? ["petition", "authority"] : []}
-                />
-            </div>
 
             <CardContent className="space-y-6">
                 <AnimatePresence mode="wait">
@@ -246,6 +239,6 @@ export function ProbateHub() {
                     </div>
                 </div>
             </CardContent>
-        </Card>
+        </Card >
     );
 }

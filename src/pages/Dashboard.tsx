@@ -28,6 +28,8 @@ import { WelcomeModal } from "@/components/WelcomeModal";
 import type { AssetCategory } from "@/components/CategoryBadge";
 import type { AssetStatus } from "@/components/StatusBadge";
 import type { Priority } from "@/components/PriorityBadge";
+import { ProcessFlow } from "@/components/ProcessFlow";
+import { TRACK_STAGES, type SettlementTrack } from "@/config/settlementStages";
 
 const normalize = (str: string | null) => str?.toLowerCase() || '';
 
@@ -38,6 +40,11 @@ export default function Dashboard() {
   const { data: assets = [], isLoading, error } = useQuery({
     queryKey: ['assets'],
     queryFn: api.getAssets,
+  });
+
+  const { data: estate } = useQuery({
+    queryKey: ["estate"],
+    queryFn: api.getMyEstate,
   });
 
   const totalValue = assets.reduce((sum: number, asset: any) => sum + (asset.value || 0), 0);
@@ -184,6 +191,14 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* Main Content (Left) */}
           <div className="lg:col-span-8 space-y-8">
+            <div className="mb-2">
+              <ProcessFlow
+                stages={TRACK_STAGES[(estate?.estateType as SettlementTrack) || "PROBATE"]}
+                currentStageId={estate?.probateStatus === "EXECUTOR_APPOINTED" ? "discovery" : "petition"}
+                completedStageIds={estate?.probateStatus === "EXECUTOR_APPOINTED" ? ["petition", "authority"] : []}
+              />
+            </div>
+
             {derivedFollowUps.length > 0 && (
               <section className="space-y-4">
                 <div className="flex items-center gap-2 px-1">
