@@ -24,22 +24,22 @@ export interface WorkflowConfig {
 }
 
 export const fidelityWorkflow: WorkflowConfig = {
-    institution: "Fidelity",
+    institution: "{{institution}}",
     category: "financial",
     steps: [
         {
             id: "initial_notification",
-            title: "Notify Fidelity",
-            description: "Inform Fidelity Estate Services of the death to lock accounts and begin the formal review.",
-            phone: "1-800-544-0003",
-            script: "I'm calling to notify Fidelity of the death of {{deceasedName}}. I am the {{userRole}} and need to start the estate settlement process.",
-            guidance: "Fidelity will 'flag' the accounts. This prevents unauthorized trades but allows dividends to accrue.",
+            title: "Notify {{institution}}",
+            description: "Inform {{institution}} Estate Services of the death to lock accounts and begin the formal review.",
+            phone: "{{institutionPhone}}",
+            script: "I'm calling to notify {{institution}} of the death of {{deceasedName}}. I am the {{userRole}} and need to start the estate settlement process.",
+            guidance: "{{institution}} will 'flag' the accounts. This prevents unauthorized trades but allows dividends to accrue.",
             estimatedTime: "20 minutes"
         },
         {
             id: "account_classification",
             title: "Determine Titling",
-            description: "Fidelity determines how each account is held, which dictates the distribution path.",
+            description: "{{institution}} determines how each account is held, which dictates the distribution path.",
             alerts: [
                 {
                     type: "info",
@@ -61,7 +61,7 @@ export const fidelityWorkflow: WorkflowConfig = {
             alerts: [
                 {
                     type: "important",
-                    message: "Fidelity will NOT release Individual/Sole-owner assets without court appointment documents."
+                    message: "{{institution}} will NOT release Individual/Sole-owner assets without court appointment documents."
                 }
             ],
             guidance: "This step is skipped for Trust or Beneficiary accounts.",
@@ -120,7 +120,7 @@ export const fidelityWorkflow: WorkflowConfig = {
         email: {
             status_update: {
                 subject: "Status Update Request - Estate Settlement - Account #{{accountNumber}}",
-                body: "Dear Fidelity Estate Services,\n\nI am writing to request a status update on the settlement of account #{{accountNumber}} for the estate of {{deceasedName}}.\n\nPlease let me know if any further documentation is required.\n\nThank you,\n[Your Name]"
+                body: "Dear {{institution}} Estate Services,\n\nI am writing to request a status update on the settlement of account #{{accountNumber}} for the estate of {{deceasedName}}.\n\nPlease let me know if any further documentation is required.\n\nThank you,\n[Your Name]"
             }
         }
     }

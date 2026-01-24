@@ -149,6 +149,11 @@ export default function AssetDetail() {
     enabled: !!id
   });
 
+  const { data: estate } = useQuery({
+    queryKey: ['estate'],
+    queryFn: api.getMyEstate,
+  });
+
   useEffect(() => {
     if (asset?.workflowState) {
       const state = asset.workflowState as any;
@@ -729,7 +734,23 @@ export default function AssetDetail() {
         onSubmit={(data) => createCommMutation.mutate(data)}
         isLoading={createCommMutation.isPending}
         assetId={id}
-        workflowContext={fidelityWorkflow.steps.find(s => s.id === currentStepId)}
+        workflowContext={(() => {
+          const step = fidelityWorkflow.steps.find(s => s.id === currentStepId);
+          if (!step) return undefined;
+
+          const renderText = (text: string) => {
+            if (!text) return "";
+            return text
+              .replace(/{{institution}}/g, asset.institution || "Institution")
+              .replace(/{{deceasedName}}/g, estate ? `${estate.deceasedFirstName} ${estate.deceasedLastName}` : "the deceased")
+              .replace(/{{accountNumber}}/g, asset.accountNumber || "account");
+          };
+
+          return {
+            title: renderText(step.title),
+            description: renderText(step.description)
+          };
+        })()}
       />
     </div>
   );

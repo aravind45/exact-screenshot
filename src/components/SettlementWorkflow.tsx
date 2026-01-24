@@ -41,11 +41,31 @@ export function SettlementWorkflow({
     onLogCommunication,
     onSendFax
 }: SettlementWorkflowProps) {
+
     // Get Estate Context (proactive check for probate status)
     const { data: estate } = useQuery({
         queryKey: ["estate"],
         queryFn: api.getMyEstate,
     });
+
+    const renderText = (text: string | undefined): string => {
+        if (!text) return "";
+        let rendered = text;
+        const replacements: Record<string, string> = {
+            "{{institution}}": asset.institution || "Institution",
+            "{{institutionPhone}}": asset.institutionPhone || "N/A",
+            "{{deceasedName}}": estate ? `${estate.deceasedFirstName} ${estate.deceasedLastName}` : "the deceased",
+            "{{userRole}}": "Executor",
+            "{{ownershipType}}": asset.ownershipType || "Individual",
+            "{{accountNumber}}": asset.accountNumber || "account",
+        };
+
+        Object.entries(replacements).forEach(([key, value]) => {
+            rendered = rendered.replace(new RegExp(key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), value);
+        });
+
+        return rendered;
+    };
 
     // Filter steps based on asset context and conditions
     const visibleSteps = workflow.steps.filter(step => {
@@ -121,7 +141,7 @@ export function SettlementWorkflow({
                                     )}
                                 </div>
                                 <div className="overflow-hidden">
-                                    <p className="font-medium text-sm truncate">{step.title}</p>
+                                    <p className="font-medium text-sm truncate">{renderText(step.title)}</p>
                                 </div>
                             </button>
                         );
@@ -145,7 +165,7 @@ export function SettlementWorkflow({
                                 <div className="flex flex-wrap items-center justify-between gap-4">
                                     <div className="space-y-1">
                                         <CardTitle className="text-2xl font-bold flex items-center gap-2">
-                                            {currentStep.title}
+                                            {renderText(currentStep.title)}
                                             {completedStepIds.includes(currentStep.id) && (
                                                 <Badge variant="secondary" className="bg-green-100 text-green-700 hover:bg-green-100 border-none">
                                                     Completed
@@ -153,7 +173,7 @@ export function SettlementWorkflow({
                                             )}
                                         </CardTitle>
                                         <CardDescription className="text-base">
-                                            {currentStep.description}
+                                            {renderText(currentStep.description)}
                                         </CardDescription>
                                     </div>
                                     {currentStep.estimatedTime && (
@@ -175,7 +195,7 @@ export function SettlementWorkflow({
                                                     {getAlertIcon(alert.type)}
                                                 </div>
                                                 <p className="text-sm font-medium leading-relaxed">
-                                                    {alert.message}
+                                                    {renderText(alert.message)}
                                                 </p>
                                             </div>
                                         ))}
@@ -190,7 +210,7 @@ export function SettlementWorkflow({
                                             Pro Guidance
                                         </h4>
                                         <p className="text-sm text-muted-foreground leading-relaxed">
-                                            {currentStep.guidance}
+                                            {renderText(currentStep.guidance)}
                                         </p>
                                     </div>
                                 )}
@@ -230,7 +250,7 @@ export function SettlementWorkflow({
                                                     <Phone className="w-5 h-5 text-primary" />
                                                     <div className="text-left">
                                                         <p className="text-xs text-muted-foreground">Call Institution</p>
-                                                        <p className="font-semibold">{currentStep.phone}</p>
+                                                        <p className="font-semibold">{renderText(currentStep.phone)}</p>
                                                     </div>
                                                 </Button>
                                             )}
@@ -266,7 +286,7 @@ export function SettlementWorkflow({
                                             <div className="p-4 bg-primary/5 rounded-xl border border-primary/10 mt-4">
                                                 <h5 className="text-xs font-bold text-primary uppercase mb-2">Talking Script</h5>
                                                 <p className="text-sm italic text-muted-foreground leading-relaxed">
-                                                    "{currentStep.script}"
+                                                    "{renderText(currentStep.script)}"
                                                 </p>
                                             </div>
                                         )}
@@ -310,7 +330,7 @@ export function SettlementWorkflow({
                                                 className="px-8 gap-2 group shadow-sm"
                                                 onClick={() => onStepSelect(visibleSteps[currentStepIndex + 1].id)}
                                             >
-                                                <span>Next Step: {visibleSteps[currentStepIndex + 1].title}</span>
+                                                <span>Next Step: {renderText(visibleSteps[currentStepIndex + 1].title)}</span>
                                                 <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                                             </Button>
                                         )}
