@@ -839,7 +839,8 @@ app.put("/api/estates/my", authenticate, async (req: any, res: Response) => {
         const {
             probateStatus, courtCaseNumber, probateCounty, estateType,
             deceasedFirstName, deceasedLastName, deceasedSsn,
-            deceasedDateOfBirth, deceasedDateOfDeath, deceasedState
+            deceasedDateOfBirth, deceasedDateOfDeath, deceasedState,
+            authorityType, authorityStatus, certifiedCopies, authorityEffectiveDate
         } = req.body;
         const updated = await prisma.estate.update({
             where: { id: estate.id },
@@ -853,7 +854,11 @@ app.put("/api/estates/my", authenticate, async (req: any, res: Response) => {
                 deceasedSsn: deceasedSsn !== undefined ? deceasedSsn : undefined,
                 deceasedDateOfBirth: deceasedDateOfBirth ? new Date(deceasedDateOfBirth) : undefined,
                 deceasedDateOfDeath: deceasedDateOfDeath ? new Date(deceasedDateOfDeath) : undefined,
-                deceasedState: deceasedState || undefined
+                deceasedState: deceasedState || undefined,
+                authorityType: authorityType || undefined,
+                authorityStatus: authorityStatus || undefined,
+                certifiedCopies: certifiedCopies !== undefined ? Number(certifiedCopies) : undefined,
+                authorityEffectiveDate: authorityEffectiveDate ? new Date(authorityEffectiveDate) : undefined
             }
         });
         res.json(updated);

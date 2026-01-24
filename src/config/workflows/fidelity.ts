@@ -51,69 +51,56 @@ export const fidelityWorkflow: WorkflowConfig = {
         },
         {
             id: "probate_filing",
-            title: "Obtain Court Authority",
-            description: "For Individual accounts, you must file with the court to be appointed as Executor.",
+            title: "Phase 1: Legal Authority (Letters Testamentary)",
+            description: "For Individual accounts, you must be court-appointed as the Executor.",
             condition: (asset) => asset.ownershipType === "INDIVIDUAL",
             requiredDocs: [
-                "Letters Testamentary (Executor Appointment)",
-                "Small Estate Affidavit (if applicable)"
+                "Original Will (if any)",
+                "Certified Death Certificate",
+                "Probate Petition Form",
+                "Letters Testamentary (Outcome)"
             ],
             alerts: [
                 {
                     type: "important",
-                    message: "{{institution}} will NOT release Individual/Sole-owner assets without court appointment documents."
+                    message: "Real-World Rule: {{institution}} will NOT release assets without court appointment documents."
                 }
             ],
-            guidance: "This step is skipped for Trust or Beneficiary accounts.",
-            estimatedTime: "4-12 weeks (Court dependent)"
+            guidance: "Process: 1. File Petition with County Court. 2. Notify all Heirs/Beneficiaries. 3. Attend hearing (if required). 4. Request 10+ certified copies of the Letters.",
+            estimatedTime: "4-12 weeks"
+        },
+        {
+            id: "small_estate_path",
+            title: "Phase 1: Small Estate Affidavit",
+            description: "A sworn affidavit to collect assets without full court probate.",
+            condition: (asset) => asset.ownershipType === "SMALL_ESTATE_ELIGIBLE", // We'll need to pass this flag in asset detail
+            requiredDocs: [
+                "Notarized Small Estate Affidavit",
+                "Certified Death Certificate",
+                "Valid ID for all heirs"
+            ],
+            guidance: "Process: 1. Verify total probate assets are below state limit. 2. Wait the required period (e.g., 40 days in CA). 3. Sign before a Notary. 4. Submit directly to {{institution}}.",
+            estimatedTime: "2-6 weeks"
         },
         {
             id: "beneficiary_claim",
-            title: "Submit Beneficiary Claim",
-            description: "Beneficiaries must submit a claim form to retitle or distribute the assets.",
-            condition: (asset) => asset.ownershipType === "BENEFICIARY",
-            requiredDocs: [
-                "Beneficiary Claim Form",
-                "Certified copy of Death Certificate"
+            title: "Phase 2: Submit Distribution Claim",
+            description: "Finalize the transfer of assets to the estate account or beneficiaries.",
+            alerts: [
+                {
+                    type: "caution",
+                    message: "Locked: You must complete 'Phase 1' and obtain legal authority before {{institution}} will process this claim."
+                }
             ],
-            guidance: "Distribution usually happens in 2-4 weeks for named beneficiaries.",
+            guidance: "Once authorized, submit the claim form along with your certified authority document.",
             estimatedTime: "2-4 weeks"
         },
         {
-            id: "trust_transition",
-            title: "Trustee Control",
-            description: "The successor trustee takes control of accounts held within the trust.",
-            condition: (asset) => asset.ownershipType === "TRUST",
-            requiredDocs: [
-                "Certificate of Trust",
-                "Successor Trustee ID verification"
-            ],
-            guidance: "Trust assets bypass probate and can be managed immediately by the trustee.",
-            estimatedTime: "1-2 weeks"
-        },
-        {
-            id: "joint_survivorship",
-            title: "Retitle Joint Account",
-            description: "Assets pass automatically to the surviving owner upon submission of the death certificate.",
-            condition: (asset) => asset.ownershipType === "JOINT",
-            requiredDocs: [
-                "Certified copy of Death Certificate",
-                "New Account Application for survivor"
-            ],
-            estimatedTime: "1-2 weeks"
-        },
-        {
             id: "final_distribution",
-            title: "Distribution & Basis Update",
-            description: "Assets are retitled, rolled over, or liquidated.",
-            alerts: [
-                {
-                    type: "info",
-                    message: "Tip: Most brokerage assets receive a 'Step-up' in cost basis to the date of death value."
-                }
-            ],
-            guidance: "Coordinate with a CPA regarding the final 1099-R and 1099-DIV forms in January.",
-            estimatedTime: "1-2 weeks"
+            title: "Phase 3: Basis Update & Close",
+            description: "Ensure assets receive a 'Step-up' in cost basis and accounts are closed.",
+            guidance: "Confirm with your tax advisor that the 'cost basis' has been updated to the date of death value to minimize future taxes.",
+            estimatedTime: "1 week"
         }
     ],
     templates: {

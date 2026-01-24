@@ -23,6 +23,8 @@ import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { ProcessFlow } from "./ProcessFlow";
 import { TRACK_STAGES, SettlementTrack } from "@/config/settlementStages";
+import { calculateAuthorityRecommendation } from "@/lib/authorityEngine";
+import { cn } from "@/lib/utils";
 
 export function ProbateHub() {
     const { toast } = useToast();
@@ -176,6 +178,15 @@ export function ProbateHub() {
                                         onBlur={(e) => updateMutation.mutate({ deceasedSsn: e.target.value })}
                                     />
                                 </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold uppercase text-muted-foreground">Certified Copies on Hand</label>
+                                    <Input
+                                        type="number"
+                                        defaultValue={estate.certifiedCopies}
+                                        className="bg-white"
+                                        onBlur={(e) => updateMutation.mutate({ certifiedCopies: e.target.value })}
+                                    />
+                                </div>
                             </div>
                             <div className="flex justify-end">
                                 <Button size="sm" variant="outline" onClick={() => setIsEditing(false)}>
@@ -218,28 +229,67 @@ export function ProbateHub() {
                     )}
                 </AnimatePresence>
 
-                {/* Requirements logic */}
+                {/* Authority Eligibility Logic */}
                 <div className="pt-4 border-t border-border/50">
-                    <div className="flex items-start gap-4 p-4 rounded-xl bg-amber-50 border border-amber-100">
-                        <AlertCircle className="w-5 h-5 text-amber-600 mt-0.5" />
-                        <div>
-                            <p className="text-sm font-bold text-amber-900">
-                                {probateRequiredCount > 0
-                                    ? `Probate Action Required: ${probateRequiredCount} Assets Identified`
-                                    : "No probate-mandatory assets identified yet."}
-                            </p>
-                            <p className="text-sm text-amber-800/80">
-                                {probateRequiredCount > 0
-                                    ? `Because ${individualAssets.slice(0, 2).map(a => a.institution).join(", ")} assets are individually owned, you must obtain Letters Testamentary to transfer them.`
-                                    : "All added assets appear to bypass probate based on their titling."}
-                            </p>
-                            {probateRequiredCount > 0 && estate.probateStatus !== "EXECUTOR_APPOINTED" && (
-                                <Button size="sm" variant="link" className="p-0 h-auto text-amber-900 font-bold underline mt-2">
-                                    Learn how to file in {estate.deceasedState} <ChevronRight className="w-4 h-4 ml-1" />
-                                </Button>
-                            )}
-                        </div>
-                    </div>
+                    {(() => {
+                        const rec = calculateAuthorityRecommendation(assets, estate.deceasedState || "CA");
+                        const status = estate.authorityStatus || "NOT_STARTED";
+                        const isGranted = status === "GRANTED" || estate.probateStatus === "EXECUTOR_APPOINTED";
+
+                        return (
+                            <div className="space-y-4">
+                                <div className={cn(
+                                    "flex items-start gap-4 p-4 rounded-xl border",
+                                    rec.type === "SMALL_ESTATE" ? "bg-green-50 border-green-100" : "bg-amber-50 border-amber-100"
+                                )}>
+                                    {rec.type === "SMALL_ESTATE" ? (
+                                        <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5" />
+                                    ) : (
+                                        <AlertCircle className="w-5 h-5 text-amber-600 mt-0.5" />
+                                    )}
+                                    <div>
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <p className={cn("text-sm font-bold", rec.type === "SMALL_ESTATE" ? "text-green-900" : "text-amber-900")}>
+                                                Authority Optimizer: {rec.type === "SMALL_ESTATE" ? "Small Estate Eligible" : "Full Probate Required"}
+                                            </p>
+                                            <Badge variant="outline" className="text-[10px] uppercase font-black tracking-tighter">
+                                                {estate.deceasedState || "CA"} Threshold
+                                            </Badge>
+                                        </div>
+                                        <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                                            {rec.reason}
+                                        </p>
+
+                                        {!isGranted && (
+                                            <div className="mt-4 p-4 bg-white/60 rounded-xl border border-border/20 backdrop-blur-sm">
+                                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Legal Process Roadmap</p>
+                                                <div className="space-y-3">
+                                                    {(rec.type === "SMALL_ESTATE" ? [
+                                                        "Verify asset eligibility",
+                                                        "Wait the 40-day mandatory period",
+                                                        "Prepare & Notarize Affidavit",
+                                                        "Submit directly to Bank/Brokerage"
+                                                    ] : [
+                                                        "File Probate Petition with Court",
+                                                        "Provide Legal Notice to all Heirs",
+                                                        "Attend Court Inquiry / Hearing",
+                                                        "Receive Court-Sealed Letters"
+                                                    ]).map((step, i) => (
+                                                        <div key={i} className="flex items-center gap-3">
+                                                            <div className="w-5 h-5 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-400">
+                                                                {i + 1}
+                                                            </div>
+                                                            <span className="text-xs font-semibold text-slate-700">{step}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })()}
                 </div>
 
                 {/* Key Documents */}

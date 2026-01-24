@@ -191,6 +191,22 @@ export function SettlementWorkflow({
                                                     </div>
                                                 )}
 
+                                                {/* AUTHORITY PREREQUISITE ALERT */}
+                                                {(step.id === "beneficiary_claim" || step.id === "trust_transition" || step.id === "final_distribution") &&
+                                                    estate?.authorityStatus !== "GRANTED" && estate?.probateStatus !== "EXECUTOR_APPOINTED" && (
+                                                        <div className="bg-red-50 border border-red-100 p-4 rounded-xl mb-6 flex items-start gap-4">
+                                                            <AlertCircle className="w-5 h-5 text-red-600 mt-0.5" />
+                                                            <div>
+                                                                <p className="text-sm font-bold text-red-900 leading-none mb-1">Legal Prerequisite Error</p>
+                                                                <p className="text-xs text-red-800 font-medium">
+                                                                    {asset.ownershipType === "INDIVIDUAL"
+                                                                        ? "Institutional access is locked until you upload your Letters Testamentary."
+                                                                        : "Institutional access is locked until you submit the Small Estate Affidavit."}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    )}
+
                                                 <div className="bg-slate-50/50 p-5 rounded-2xl border border-slate-100 shadow-inner">
                                                     <h4 className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-400 mb-3">
                                                         <Info className="w-3.5 h-3.5" />
@@ -312,6 +328,7 @@ export function SettlementWorkflow({
                                                         size="lg"
                                                         className="flex-1 sm:px-10 gap-2 bg-green-600 hover:bg-green-700 font-bold shadow-lg shadow-green-600/20"
                                                         onClick={() => onStepComplete(step.id)}
+                                                        disabled={(step.id === "beneficiary_claim" || step.id === "trust_transition" || step.id === "final_distribution") && estate?.authorityStatus !== "GRANTED" && estate?.probateStatus !== "EXECUTOR_APPOINTED"}
                                                     >
                                                         <CheckCircle2 className="w-5 h-5" />
                                                         Mark Step Done

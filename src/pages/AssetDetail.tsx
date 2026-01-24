@@ -41,6 +41,8 @@ import {
   ArrowRight
 } from "lucide-react";
 import { motion } from "framer-motion";
+import { TRACK_STAGES, SettlementTrack } from "@/config/settlementStages";
+import { calculateAuthorityRecommendation } from "@/lib/authorityEngine";
 import { cn } from "@/lib/utils";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
@@ -153,6 +155,11 @@ export default function AssetDetail() {
   const { data: estate } = useQuery({
     queryKey: ['estate'],
     queryFn: api.getMyEstate,
+  });
+
+  const { data: assets = [] } = useQuery({
+    queryKey: ['assets'],
+    queryFn: api.getAssets,
   });
 
   useEffect(() => {
@@ -595,17 +602,29 @@ export default function AssetDetail() {
           </TabsList>
 
           <TabsContent value="workflow" className="mt-0">
-            <SettlementWorkflow
-              asset={asset}
-              workflow={fidelityWorkflow}
-              currentStepId={currentStepId}
-              completedStepIds={completedStepIds}
-              onStepSelect={handleStepSelect}
-              onStepComplete={handleStepComplete}
-              onLogCommunication={() => setShowCommDialog(true)}
-              onSendFax={() => toast({ title: "Coming Soon", description: "Faxing will be available in the next update." })}
-              onGenerateLetter={handleGenerateLetter}
-            />
+            {(() => {
+              const rec = calculateAuthorityRecommendation(assets, estate?.deceasedState || "CA");
+              const enhancedAsset = {
+                ...asset,
+                ownershipType: asset.ownershipType, // explicit
+                isSmallEstateEligible: rec.isEligibleForSmallEstate,
+                authorityType: rec.type
+              };
+
+              return (
+                <SettlementWorkflow
+                  asset={enhancedAsset}
+                  workflow={fidelityWorkflow}
+                  currentStepId={currentStepId}
+                  completedStepIds={completedStepIds}
+                  onStepSelect={handleStepSelect}
+                  onStepComplete={handleStepComplete}
+                  onLogCommunication={() => setShowCommDialog(true)}
+                  onSendFax={() => toast({ title: "Coming Soon", description: "Faxing will be available in the next update." })}
+                  onGenerateLetter={handleGenerateLetter}
+                />
+              );
+            })()}
           </TabsContent>
 
           <TabsContent value="details">

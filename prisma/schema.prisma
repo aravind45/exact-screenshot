@@ -36,6 +36,12 @@ model Estate {
   deceasedState      String   @map("deceased_state")
   estateType         String?  @map("estate_type")
   
+  // Authority Tracking
+  authorityType      String   @default("UNSET") @map("authority_type") // 'PROBATE', 'SMALL_ESTATE', 'TRUST', 'UNSET'
+  authorityStatus    String   @default("NOT_STARTED") @map("authority_status") // 'NOT_STARTED', 'IN_PROGRESS', 'GRANTED', 'EXPIRED'
+  certifiedCopies    Int      @default(0) @map("certified_copies")
+  authorityEffectiveDate DateTime? @map("authority_effective_date")
+  
   // Probate Tracking
   probateStatus      String   @default("NOT_STARTED") @map("probate_status") // 'NOT_REQUIRED', 'NOT_STARTED', 'FILED', 'EXECUTOR_APPOINTED', 'CLOSED'
   courtCaseNumber    String?  @map("court_case_number")
