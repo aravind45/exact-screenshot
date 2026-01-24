@@ -7,13 +7,16 @@ import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 
 export function AgentInsights() {
-    const { data: insights, isLoading } = useQuery({
+    const { data: insightsData, isLoading } = useQuery({
         queryKey: ["agent-insights"],
         queryFn: api.getAgentInsights,
         refetchInterval: 30000, // Poll every 30s for proactive feel
     });
 
-    if (isLoading || !insights || insights.length === 0) return null;
+    // Ensure insights is always an array
+    const insights = Array.isArray(insightsData) ? insightsData : [];
+
+    if (isLoading || insights.length === 0) return null;
 
     return (
         <section className="space-y-4 mb-8">
