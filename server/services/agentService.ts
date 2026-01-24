@@ -1,6 +1,6 @@
-import { prisma } from "../db.js";
-import { discoverRelatedAssets, analyzeDocument, generateCommunicationDraft } from "./ai.js";
-import { enrichInstitutionData } from "./enrichment.js";
+import { prisma } from "../db";
+import { discoverRelatedAssets, analyzeDocument, generateCommunicationDraft } from "./ai";
+import { enrichInstitutionData } from "./enrichment";
 
 export class AgentService {
     /**

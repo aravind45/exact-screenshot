@@ -8,10 +8,8 @@
         "noEmit": true,
         "outDir": "dist"
     },
-    "ts-node": {
-        "esm": true
-    },
     "include": [
+        "api/**/*",
         "server/**/*"
     ]
 }

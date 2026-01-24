@@ -1,7 +1,7 @@
 import "dotenv/config";
 import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
-import { prisma } from "./db.js";
+import { prisma } from "./db";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
@@ -338,8 +338,8 @@ app.post("/api/assets/:id/generate-draft", authenticate, async (req: any, res): 
 
 // --- Document Processing ---
 import multer from "multer";
-import { analyzeDocument, generateCommunicationDraft, discoverRelatedAssets } from "./services/ai.js";
-import { AgentService } from "./services/agentService.js";
+import { analyzeDocument, generateCommunicationDraft, discoverRelatedAssets } from "./services/ai";
+import { AgentService } from "./services/agentService";
 import { createRequire } from "module";
 const require = createRequire(import.meta.url);
 const pdf = require("pdf-parse");
@@ -503,7 +503,7 @@ app.post("/api/assets/:id/documents", authenticate, uploadRepo.single("file"), a
 });
 
 // --- Enrichment ---
-import { enrichInstitutionData } from "./services/enrichment.js";
+import { enrichInstitutionData } from "./services/enrichment";
 
 // GET /api/institutions
 app.get("/api/institutions", authenticate, async (req, res) => {
