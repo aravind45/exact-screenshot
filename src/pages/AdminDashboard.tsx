@@ -55,8 +55,6 @@ export default function AdminDashboard() {
         queryFn: () => api.getAdminInstitutions(),
     });
 
-    if (statsLoading || usersLoading || institutionsLoading) return <div className="p-8">Loading administration dashboard...</div>;
-
     const filteredUsers = users?.filter((u: any) =>
         u.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         u.email.toLowerCase().includes(searchTerm.toLowerCase())
@@ -90,7 +88,9 @@ export default function AdminDashboard() {
                             <CardDescription className="flex items-center gap-2">
                                 <Users className="w-4 h-4" /> Total Users
                             </CardDescription>
-                            <CardTitle className="text-3xl font-bold">{stats?.users}</CardTitle>
+                            <CardTitle className="text-3xl font-bold">
+                                {statsLoading ? "..." : stats?.users || 0}
+                            </CardTitle>
                         </CardHeader>
                     </Card>
                     <Card className="card-elevated border-none">
@@ -98,7 +98,9 @@ export default function AdminDashboard() {
                             <CardDescription className="flex items-center gap-2">
                                 <Database className="w-4 h-4" /> Managed Assets
                             </CardDescription>
-                            <CardTitle className="text-3xl font-bold">{stats?.assets}</CardTitle>
+                            <CardTitle className="text-3xl font-bold">
+                                {statsLoading ? "..." : stats?.assets || 0}
+                            </CardTitle>
                         </CardHeader>
                     </Card>
                     <Card className="card-elevated border-none">
@@ -106,7 +108,9 @@ export default function AdminDashboard() {
                             <CardDescription className="flex items-center gap-2">
                                 <DollarSign className="w-4 h-4" /> Platform Value
                             </CardDescription>
-                            <CardTitle className="text-3xl font-bold">{formatCurrency(stats?.totalValue)}</CardTitle>
+                            <CardTitle className="text-3xl font-bold">
+                                {statsLoading ? "..." : formatCurrency(stats?.totalValue || 0)}
+                            </CardTitle>
                         </CardHeader>
                     </Card>
                     <Card className="card-elevated border-none">
@@ -114,7 +118,9 @@ export default function AdminDashboard() {
                             <CardDescription className="flex items-center gap-2">
                                 <Building2 className="w-4 h-4" /> Institutions
                             </CardDescription>
-                            <CardTitle className="text-3xl font-bold">{stats?.institutions}</CardTitle>
+                            <CardTitle className="text-3xl font-bold">
+                                {statsLoading ? "..." : stats?.institutions || 0}
+                            </CardTitle>
                         </CardHeader>
                     </Card>
                 </div>
