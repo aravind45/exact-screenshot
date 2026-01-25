@@ -8,13 +8,16 @@ import {
     AlertCircle,
     CheckCircle2,
     Clock,
-    Edit3,
     Edit2,
-    Save,
-    X,
     ChevronRight,
     Scale,
-    Info
+    Info,
+    Download,
+    Upload,
+    ExternalLink,
+    MapPin,
+    Hash,
+    Calendar
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,12 +28,20 @@ import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { calculateAuthorityRecommendation, getInstitutionAuthorityRequirement } from "@/lib/authorityEngine";
 import { cn } from "@/lib/utils";
-import { ProbateFormsTracker } from "./ProbateFormsTracker";
+
+const REQUIRED_FORMS = [
+    { code: "DE-111", name: "Petition for Probate", url: "https://www.courts.ca.gov/documents/de111.pdf", required: true },
+    { code: "DE-121", name: "Notice of Hearing", url: "https://www.courts.ca.gov/documents/de121.pdf", required: true },
+    { code: "DE-150", name: "Letters Testamentary", url: "https://www.courts.ca.gov/documents/de150.pdf", required: true },
+    { code: "DE-160", name: "Inventory and Appraisal", url: "https://www.courts.ca.gov/documents/de160.pdf", required: false },
+    { code: "DE-165", name: "Notice of Proposed Action", url: "https://www.courts.ca.gov/documents/de165.pdf", required: false }
+];
 
 export function ProbateHub() {
     const { toast } = useToast();
     const queryClient = useQueryClient();
     const [isEditing, setIsEditing] = useState(false);
+    const [uploadingForm, setUploadingForm] = useState<string | null>(null);
 
     const { data: estate, isLoading } = useQuery({
         queryKey: ["estate"],
@@ -42,399 +53,294 @@ export function ProbateHub() {
         queryFn: api.getAssets,
     });
 
-    // Ensure assets is always an array
-    const assets = Array.isArray(assetsData) ? assetsData : [];
+    const { data: documents } = useQuery({
+        queryKey: ["estate", "documents"],
+        queryFn: api.getEstateDocuments
+    });
 
+    const assets = Array.isArray(assetsData) ? assetsData : [];
     const updateMutation = useMutation({
         mutationFn: (data: any) => api.updateMyEstate(data),
         onSuccess: () => {
-            toast({ title: "Legal Status Updated", description: "The estate's probate tracking has been updated." });
+            toast({ title: "Updated", description: "Legal status updated." });
             queryClient.invalidateQueries({ queryKey: ["estate"] });
             setIsEditing(false);
         }
     });
 
-    const individualAssets = assets.filter((a: any) => a.ownershipType === "INDIVIDUAL");
-    const probateRequiredCount = individualAssets.length;
-
-    if (isLoading) return <div className="h-40 flex items-center justify-center">Loading legal status...</div>;
-    if (!estate) return <div className="h-40 flex items-center justify-center text-gray-500">No estate found. Please create an estate first.</div>;
-
-    const getStatusColor = (status: string) => {
-        switch (status) {
-            case "EXECUTOR_APPOINTED": return "bg-green-100 text-green-700";
-            case "FILED": return "bg-blue-100 text-blue-700";
-            case "CLOSED": return "bg-gray-100 text-gray-700";
-            default: return "bg-amber-100 text-amber-700";
+    const handleUpload = async (formCode: string, file: File) => {
+        setUploadingForm(formCode);
+        try {
+            await api.uploadEstateDocument(formCode, `${formCode} - Completed`, file);
+            toast({ title: "Form Uploaded", description: `${formCode} saved successfully.` });
+            queryClient.invalidateQueries({ queryKey: ["estate", "documents"] });
+        } catch (error) {
+            toast({ variant: "destructive", title: "Upload Failed" });
+        } finally {
+            setUploadingForm(null);
         }
     };
 
-    const statusMap: Record<string, string> = {
-        NOT_STARTED: "Not Started",
-        FILED: "Case Filed",
-        EXECUTOR_APPOINTED: "Executor Appointed",
-        CLOSED: "Probate Closed",
-        NOT_REQUIRED: "Not Required"
+    if (isLoading) return <div className="h-40 flex items-center justify-center">Loading...</div>;
+    if (!estate) return null;
+
+    const getFormStatus = (formCode: string) => documents?.find((d: any) => d.documentType === formCode)?.status || "NOT_STARTED";
+
+    // Phase Logic
+    const de111Completed = getFormStatus("DE-111") === "OBTAINED";
+    const de121Completed = getFormStatus("DE-121") === "OBTAINED";
+    const formsReady = de111Completed && de121Completed;
+
+    let currentPhase = 1; // Preparation
+    if (estate.probateStatus === "EXECUTOR_APPOINTED" || estate.probateStatus === "CLOSED") currentPhase = 4;
+    else if (estate.probateStatus === "FILED") currentPhase = 3;
+    else if (formsReady) currentPhase = 2;
+
+    const phases = [
+        { id: 1, name: "Preparation", icon: FileText },
+        { id: 2, name: "Filing & Notice", icon: MapPin },
+        { id: 3, name: "Court Hearing", icon: Gavel },
+        { id: 4, name: "Authorization", icon: Scale }
+    ];
+
+    const individualAssets = assets.filter((a: any) => a.ownershipType === "INDIVIDUAL");
+    const probateRequiredCount = individualAssets.length;
+
+    const getStatusColor = (status: string) => {
+        switch (status) {
+            case "EXECUTOR_APPOINTED": return "bg-green-100 text-green-700 border-green-200";
+            case "FILED": return "bg-blue-100 text-blue-700 border-blue-200";
+            case "CLOSED": return "bg-gray-100 text-gray-700 border-gray-200";
+            default: return "bg-amber-100 text-amber-700 border-amber-200";
+        }
     };
 
     return (
-        <Card className="card-elevated border-none overflow-hidden relative">
-            <div className="absolute top-0 right-0 p-3 opacity-10">
-                <Scale className="w-16 h-16" />
-            </div>
-            <CardHeader className="pb-4">
+        <Card className="card-elevated border-none overflow-hidden pb-0">
+            <CardHeader className="pb-3 border-b bg-slate-50/50">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <div className="p-2.5 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl shadow-lg shadow-amber-500/20">
-                            <Gavel className="w-6 h-6 text-white" />
+                        <div className="p-2 bg-amber-600 rounded-lg shadow-sm">
+                            <Gavel className="w-5 h-5 text-white" />
                         </div>
                         <div>
-                            <div className="flex items-center gap-2">
-                                <CardTitle className="text-lg font-bold">Estate-Level Probate Process</CardTitle>
-                                <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 text-[10px] font-bold">
-                                    REQUIRED FIRST
-                                </Badge>
-                            </div>
-                            <CardDescription className="text-xs mt-1 font-medium">
-                                Court authority required before settling individual assets
+                            <CardTitle className="text-base font-bold">Estate Probate Command Center</CardTitle>
+                            <CardDescription className="text-[10px] uppercase font-bold tracking-tight text-slate-500">
+                                {estate.deceasedFirstName} {estate.deceasedLastName} • {estate.deceasedState || "CA"}
                             </CardDescription>
                         </div>
                     </div>
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setIsEditing(!isEditing)}
-                        className="h-8 text-xs"
-                    >
-                        <Edit2 className="w-3.5 h-3.5 mr-1.5" />
-                        {isEditing ? "Done" : "Edit"}
-                    </Button>
+                    <div className="flex items-center gap-2">
+                        <Button variant="outline" size="sm" onClick={() => setIsEditing(!isEditing)} className="h-7 text-[10px] font-bold">
+                            <Edit2 className="w-3 h-3 mr-1" /> {isEditing ? "SAVE" : "EDIT INFO"}
+                        </Button>
+                    </div>
                 </div>
 
-                {/* Blocked Assets Counter */}
-                {probateRequiredCount > 0 && estate.authorityStatus !== "GRANTED" && estate.probateStatus !== "EXECUTOR_APPOINTED" && (
-                    <Link to="/assets" className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-center gap-3 hover:bg-amber-100 transition-colors group">
-                        <AlertCircle className="w-5 h-5 text-amber-600" />
-                        <div className="flex-1">
-                            <div className="flex items-center gap-2">
-                                <p className="text-sm font-bold text-amber-900 group-hover:underline">
-                                    {probateRequiredCount} {probateRequiredCount === 1 ? 'Asset' : 'Assets'} Waiting for Authority
-                                </p>
-                                <ChevronRight className="w-3 h-3 text-amber-900 opacity-0 group-hover:opacity-100 transition-opacity" />
+                {/* Compact Phase Stepper */}
+                <div className="mt-4 flex items-center justify-between gap-1 p-1 bg-white rounded-lg border border-slate-200 shadow-sm overflow-x-auto scrollbar-none">
+                    {phases.map((phase) => {
+                        const Icon = phase.icon;
+                        const isCurrent = currentPhase === phase.id;
+                        const isPast = currentPhase > phase.id;
+                        return (
+                            <div key={phase.id} className={cn(
+                                "flex-1 flex items-center justify-center gap-2 py-1.5 px-3 rounded-md transition-all whitespace-nowrap",
+                                isCurrent ? "bg-amber-600 text-white shadow-md shadow-amber-200" : isPast ? "bg-green-50 text-green-700" : "bg-transparent text-slate-400"
+                            )}>
+                                {isPast ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Icon className="w-3.5 h-3.5" />}
+                                <span className="text-[10px] font-bold uppercase tracking-tight">{phase.name}</span>
                             </div>
-                            <p className="text-xs text-amber-700 mt-0.5">
-                                Complete this probate process to unlock settlement workflows
-                            </p>
-                        </div>
-                    </Link>
-                )}
+                        );
+                    })}
+                </div>
             </CardHeader>
 
-            <CardContent className="space-y-6">
-                <AnimatePresence mode="wait">
-                    {isEditing ? (
-                        <motion.div
-                            key="editing"
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -10 }}
-                            className="bg-muted/30 p-4 rounded-xl border border-border/50 space-y-4"
-                        >
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <label className="text-xs font-bold uppercase text-muted-foreground">Estate Type / Track</label>
-                                    <Select
-                                        defaultValue={estate.estateType || "PROBATE"}
-                                        onValueChange={(val) => updateMutation.mutate({ estateType: val })}
-                                    >
-                                        <SelectTrigger className="bg-white">
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="PROBATE">Probate (Full Administration)</SelectItem>
-                                            <SelectItem value="SMALL_ESTATE">Small Estate (Affidavit)</SelectItem>
-                                            <SelectItem value="TRUST_BASED">Trust-Based Settlement</SelectItem>
-                                            <SelectItem value="NON_PROBATE">Non-Probate / Beneficiary-Only</SelectItem>
-                                            <SelectItem value="INTESTATE">Intestate (No Will)</SelectItem>
-                                            <SelectItem value="ANCILLARY">Ancillary (Multi-State)</SelectItem>
-                                            <SelectItem value="INSOLVENT">Insolvent (Debt-Heavy)</SelectItem>
-                                            <SelectItem value="SPECIAL">Special / Conditional</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-xs font-bold uppercase text-muted-foreground">Probate Status</label>
-                                    <Select
-                                        defaultValue={estate.probateStatus}
-                                        onValueChange={(val) => updateMutation.mutate({ probateStatus: val })}
-                                    >
-                                        <SelectTrigger className="bg-white">
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="NOT_STARTED">Not Started</SelectItem>
-                                            <SelectItem value="FILED">Case Filed in Court</SelectItem>
-                                            <SelectItem value="EXECUTOR_APPOINTED">Letters Testamentary Issued</SelectItem>
-                                            <SelectItem value="CLOSED">Probate Closed</SelectItem>
-                                            <SelectItem value="NOT_REQUIRED">Not Required for this Estate</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-xs font-bold uppercase text-muted-foreground">Court Case Number</label>
-                                    <Input
-                                        placeholder="EX: 2024-PR-12345"
-                                        defaultValue={estate.courtCaseNumber}
-                                        className="bg-white"
-                                        onBlur={(e) => updateMutation.mutate({ courtCaseNumber: e.target.value })}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-xs font-bold uppercase text-muted-foreground">Deceased First Name</label>
-                                    <Input
-                                        defaultValue={estate.deceasedFirstName}
-                                        className="bg-white"
-                                        onBlur={(e) => updateMutation.mutate({ deceasedFirstName: e.target.value })}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-xs font-bold uppercase text-muted-foreground">Deceased Last Name</label>
-                                    <Input
-                                        defaultValue={estate.deceasedLastName}
-                                        className="bg-white"
-                                        onBlur={(e) => updateMutation.mutate({ deceasedLastName: e.target.value })}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-xs font-bold uppercase text-muted-foreground">SSN (last 4 or full)</label>
-                                    <Input
-                                        defaultValue={estate.deceasedSsn}
-                                        className="bg-white"
-                                        onBlur={(e) => updateMutation.mutate({ deceasedSsn: e.target.value })}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-xs font-bold uppercase text-muted-foreground">Certified Copies on Hand</label>
-                                    <Input
-                                        type="number"
-                                        defaultValue={estate.certifiedCopies}
-                                        className="bg-white"
-                                        onBlur={(e) => updateMutation.mutate({ certifiedCopies: e.target.value })}
-                                    />
-                                </div>
-                            </div>
-                            <div className="flex justify-end">
-                                <Button size="sm" variant="outline" onClick={() => setIsEditing(false)}>
-                                    Done
-                                </Button>
-                            </div>
-                        </motion.div>
-                    ) : (
-                        <motion.div
-                            key="viewing"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            className="space-y-3"
-                        >
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                                <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 flex flex-col justify-center">
-                                    <div className="text-[10px] font-bold uppercase text-slate-500 mb-1">Status</div>
-                                    <div>
-                                        <Badge className={cn("px-2 py-0 text-[10px]", getStatusColor(estate.probateStatus))}>
-                                            {statusMap[estate.probateStatus] || estate.probateStatus}
-                                        </Badge>
-                                    </div>
-                                </div>
-
-                                <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
-                                    <div className="text-[10px] font-bold uppercase text-slate-500 mb-1">Jurisdiction</div>
-                                    <div className="text-sm font-bold text-slate-900">{estate.deceasedState || "CA"}</div>
-                                </div>
-
-                                <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
-                                    <div className="text-[10px] font-bold uppercase text-slate-500 mb-1">Case Number</div>
-                                    <div className="text-sm font-bold text-slate-900 truncate">{estate.courtCaseNumber || "Unassigned"}</div>
-                                </div>
-                            </div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-
-                {/* Authority Eligibility Logic */}
-                <div className="pt-4 border-t border-border/50 pb-4">
-                    {(() => {
-                        const rec = calculateAuthorityRecommendation(assets, estate.deceasedState || "CA");
-                        const status = estate.authorityStatus || "NOT_STARTED";
-                        const isGranted = status === "GRANTED" || estate.probateStatus === "EXECUTOR_APPOINTED";
-
-                        // Analyze mixed authority requirements
-                        const authRequirements = assets.map((a: any) =>
-                            getInstitutionAuthorityRequirement(a.assetType, a.category, a.value || 0, a.ownershipType)
-                        );
-                        const needsLetters = authRequirements.some(r => r.requirement === "LETTERS_REQUIRED" || r.requirement === "LETTERS_PREFERRED");
-                        const canUseAffidavit = authRequirements.some(r => r.requirement === "AFFIDAVIT_ACCEPTED");
-                        const hasBeneficiaryOnly = authRequirements.some(r => r.requirement === "BENEFICIARY_ONLY");
-                        const isMixedAuthority = (needsLetters && canUseAffidavit) || (needsLetters && hasBeneficiaryOnly) || (canUseAffidavit && hasBeneficiaryOnly);
-
-                        return (
-                            <div className="space-y-4">
-                                {isMixedAuthority && (
-                                    <div className="p-4 rounded-xl bg-blue-50 border border-blue-100 flex items-start gap-3">
-                                        <Info className="w-5 h-5 text-blue-600 mt-0.5" />
-                                        <div>
-                                            <p className="text-sm font-bold text-blue-900 leading-none mb-1">Mixed Authority Estate Detected</p>
-                                            <p className="text-xs text-blue-800 font-medium leading-relaxed">
-                                                Your estate requires multiple authority paths:
-                                                {needsLetters && " Letters Testamentary for some assets,"}
-                                                {canUseAffidavit && " Small Estate Affidavit for others,"}
-                                                {hasBeneficiaryOnly && " Direct beneficiary claims for designated accounts."}
-                                                {" "}This is common and expected.
-                                            </p>
+            <CardContent className="p-0">
+                <div className="grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-slate-100">
+                    {/* Left Panel: Info & Phase Actions (5 cols) */}
+                    <div className="lg:col-span-5 p-4 space-y-4 bg-slate-50/30">
+                        <AnimatePresence mode="wait">
+                            {isEditing ? (
+                                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3 bg-white p-3 rounded-lg border shadow-sm">
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <div className="space-y-1">
+                                            <label className="text-[9px] font-bold text-slate-400 uppercase">Case #</label>
+                                            <Input size={1} className="h-7 text-xs" defaultValue={estate.courtCaseNumber} onBlur={(e) => updateMutation.mutate({ courtCaseNumber: e.target.value })} />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-[9px] font-bold text-slate-400 uppercase">Status</label>
+                                            <Select defaultValue={estate.probateStatus} onValueChange={(val) => updateMutation.mutate({ probateStatus: val })}>
+                                                <SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="NOT_STARTED">Not Started</SelectItem>
+                                                    <SelectItem value="FILED">Case Filed</SelectItem>
+                                                    <SelectItem value="EXECUTOR_APPOINTED">Authorized (Letters)</SelectItem>
+                                                    <SelectItem value="CLOSED">Closed</SelectItem>
+                                                </SelectContent>
+                                            </Select>
                                         </div>
                                     </div>
-                                )}
-
-                                <div className={cn(
-                                    "p-4 rounded-lg border-l-4",
-                                    rec.type === "SMALL_ESTATE" ? "bg-green-50 border-l-green-500" : "bg-amber-50 border-l-amber-500"
-                                )}>
-                                    <div className="flex items-start justify-between mb-2">
-                                        <div className="flex items-center gap-2">
-                                            {rec.type === "SMALL_ESTATE" ? (
-                                                <CheckCircle2 className="w-4 h-4 text-green-700" />
-                                            ) : (
-                                                <Info className="w-4 h-4 text-amber-700" />
-                                            )}
-                                            <h4 className={cn("font-bold text-sm", rec.type === "SMALL_ESTATE" ? "text-green-900" : "text-amber-900")}>
-                                                {rec.type === "SMALL_ESTATE" ? "Small Estate Eligible" : "Full Probate Required"}
-                                            </h4>
+                                    <div className="space-y-1">
+                                        <label className="text-[9px] font-bold text-slate-400 uppercase">Estate Type</label>
+                                        <Select defaultValue={estate.estateType} onValueChange={(val) => updateMutation.mutate({ estateType: val })}>
+                                            <SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="PROBATE">Full Probate</SelectItem>
+                                                <SelectItem value="SMALL_ESTATE">Small Estate</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                </motion.div>
+                            ) : (
+                                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
+                                    <div className="grid grid-cols-3 gap-2">
+                                        <div className="p-2 bg-white rounded-lg border border-slate-200">
+                                            <div className="text-[8px] font-bold text-slate-400 uppercase">Status</div>
+                                            <Badge variant="outline" className={cn("mt-1 px-1.5 py-0 text-[10px] border", getStatusColor(estate.probateStatus))}>
+                                                {estate.probateStatus.replace('_', ' ')}
+                                            </Badge>
                                         </div>
-                                        <div className="px-2 py-0.5 bg-white rounded text-xs font-semibold">
-                                            {estate.deceasedState || "CA"}
+                                        <div className="p-2 bg-white rounded-lg border border-slate-200">
+                                            <div className="text-[8px] font-bold text-slate-400 uppercase">Case Number</div>
+                                            <div className="text-[11px] font-bold text-slate-700 truncate mt-1">{estate.courtCaseNumber || "N/A"}</div>
+                                        </div>
+                                        <div className="p-2 bg-white rounded-lg border border-slate-200">
+                                            <div className="text-[8px] font-bold text-slate-400 uppercase">Copies</div>
+                                            <div className="text-[11px] font-bold text-slate-700 mt-1">{estate.certifiedCopies || 0} Cert.</div>
                                         </div>
                                     </div>
-                                    <p className="text-xs leading-relaxed mb-3" style={{ color: rec.type === "SMALL_ESTATE" ? "rgb(21 128 61)" : "rgb(146 64 14)" }}>
-                                        {rec.reason}
-                                    </p>
 
-                                    {!isGranted && (
-                                        <div className="bg-white rounded-lg p-3 border" style={{ borderColor: rec.type === "SMALL_ESTATE" ? "rgb(187 247 208)" : "rgb(254 215 170)" }}>
-                                            <div className="text-[10px] font-bold uppercase tracking-wide text-slate-500 mb-3">Next Steps</div>
+                                    {/* Smart Phase Instructions */}
+                                    <div className="p-3 rounded-lg bg-white border border-amber-100 shadow-sm relative overflow-hidden group">
+                                        <div className="absolute top-0 right-0 p-2 opacity-5">
+                                            <IconMap phase={currentPhase} className="w-12 h-12" />
+                                        </div>
+                                        <h4 className="text-xs font-bold text-amber-900 flex items-center gap-1.5 mb-1">
+                                            {currentPhase === 1 && "Phase 1: Complete Paperwork"}
+                                            {currentPhase === 2 && "Phase 2: Filing & Notice"}
+                                            {currentPhase === 3 && "Phase 3: Court Hearing"}
+                                            {currentPhase === 4 && "Phase 4: Authorities Granted"}
+                                        </h4>
+                                        <p className="text-[11px] text-amber-800/80 leading-relaxed font-medium">
+                                            {currentPhase === 1 && "Upload DE-111 and DE-121 to continue. Your forms are listed on the right."}
+                                            {currentPhase === 2 && "Paperwork is ready! Take forms to the Superior Court of " + (estate.deceasedState || "CA") + ". Don't forget to Mail Notice to all heirs."}
+                                            {currentPhase === 3 && "Wait for your hearing date. Bring the physical 'Order' and 'Letters' for the judge to sign."}
+                                            {currentPhase === 4 && "You are officially authorized! You can now access individual banking and property accounts."}
+                                        </p>
 
-                                            <div className="flex items-stretch gap-0 overflow-x-auto pb-2 scrollbar-none">
-                                                {(rec.type === "SMALL_ESTATE" ? [
-                                                    {
-                                                        label: "Verify eligibility",
-                                                        desc: "Estate under $184,500",
-                                                        action: null
-                                                    },
-                                                    {
-                                                        label: "Wait 40 days",
-                                                        desc: "Period after death",
-                                                        action: null
-                                                    },
-                                                    {
-                                                        label: "Prepare Affidavit",
-                                                        desc: "Download & notarize",
-                                                        action: { label: "Get Form", url: "https://saclaw.org/wp-content/uploads/form-affidavit-for-collection-of-personal-property.pdf" }
-                                                    },
-                                                    {
-                                                        label: "Collect Assets",
-                                                        desc: "Present to holders",
-                                                        action: null
-                                                    }
-                                                ] : [
-                                                    {
-                                                        label: "File Petition",
-                                                        desc: "Submit DE-111",
-                                                        action: null,
-                                                        statusUpdate: { label: "Mark Filed", value: "FILED", current: estate.probateStatus === "NOT_STARTED" }
-                                                    },
-                                                    {
-                                                        label: "Notice Heirs",
-                                                        desc: "Mail DE-121",
-                                                        action: { label: "Download", url: "https://www.courts.ca.gov/documents/de121.pdf" }
-                                                    },
-                                                    {
-                                                        label: "Attend Hearing",
-                                                        desc: "Court appointment",
-                                                        action: null
-                                                    },
-                                                    {
-                                                        label: "Receive Letters",
-                                                        desc: "Get DE-150",
-                                                        action: { label: "Download", url: "https://www.courts.ca.gov/documents/de150.pdf" },
-                                                        statusUpdate: { label: "I Have Letters", value: "EXECUTOR_APPOINTED", current: estate.probateStatus === "FILED" }
-                                                    }
-                                                ]).map((step: any, i, arr) => (
-                                                    <div key={i} className="relative flex-shrink-0" style={{ width: i === arr.length - 1 ? 'auto' : '180px' }}>
-                                                        <div
-                                                            className="relative h-full px-4 py-3 flex flex-col justify-between transition-all hover:brightness-95"
-                                                            style={{
-                                                                backgroundColor: rec.type === "SMALL_ESTATE" ? "rgb(240 253 244)" : "rgb(255 251 235)",
-                                                                clipPath: i === arr.length - 1
-                                                                    ? 'polygon(0 0, 100% 0, 100% 100%, 0 100%, 10px 50%)'
-                                                                    : 'polygon(0 0, calc(100% - 10px) 0, 100% 50%, calc(100% - 10px) 100%, 0 100%, 10px 50%)',
-                                                                marginLeft: i === 0 ? '0' : '-10px',
-                                                                paddingLeft: i === 0 ? '1rem' : '1.5rem',
-                                                                zIndex: arr.length - i
-                                                            }}
-                                                        >
-                                                            <div className="flex items-start gap-2 mb-2 min-w-0">
-                                                                <div
-                                                                    className="flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold"
-                                                                    style={{
-                                                                        backgroundColor: rec.type === "SMALL_ESTATE" ? "rgb(187 247 208)" : "rgb(254 215 170)",
-                                                                        color: rec.type === "SMALL_ESTATE" ? "rgb(21 128 61)" : "rgb(146 64 14)"
-                                                                    }}
-                                                                >
-                                                                    {i + 1}
-                                                                </div>
-                                                                <div className="flex-1 min-w-0">
-                                                                    <div className="text-[11px] font-bold text-slate-800 truncate leading-tight">{step.label}</div>
-                                                                    <div className="text-[9px] text-slate-500 mt-0.5 leading-tight truncate">{step.desc}</div>
-                                                                </div>
-                                                            </div>
+                                        {currentPhase === 2 && estate.probateStatus === "NOT_STARTED" && (
+                                            <Button
+                                                size="sm"
+                                                onClick={() => updateMutation.mutate({ probateStatus: 'FILED' })}
+                                                className="mt-3 w-full h-8 bg-amber-600 hover:bg-amber-700 text-white text-[10px] font-bold tracking-wide"
+                                            >
+                                                I HAVE FILED THE PETITION
+                                            </Button>
+                                        )}
+                                        {currentPhase === 3 && (
+                                            <Button
+                                                size="sm"
+                                                onClick={() => updateMutation.mutate({ probateStatus: 'EXECUTOR_APPOINTED' })}
+                                                className="mt-3 w-full h-8 bg-green-600 hover:bg-green-700 text-white text-[10px] font-bold tracking-wide"
+                                            >
+                                                I HAVE RECEIVED LETTERS
+                                            </Button>
+                                        )}
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
 
-                                                            <div className="flex flex-col gap-1 mt-1">
-                                                                {step.action && (
-                                                                    <a
-                                                                        href={step.action.url}
-                                                                        target="_blank"
-                                                                        rel="noopener noreferrer"
-                                                                        className="inline-flex items-center justify-center gap-1 px-1.5 py-0.5 rounded bg-white border border-slate-300 text-[9px] font-bold text-primary hover:bg-slate-50 transition-colors"
-                                                                    >
-                                                                        <FileText className="w-2.5 h-2.5" />
-                                                                        {step.action.label}
-                                                                    </a>
-                                                                )}
-                                                                {step.statusUpdate && step.statusUpdate.current && (
-                                                                    <button
-                                                                        onClick={() => updateMutation.mutate({ probateStatus: step.statusUpdate.value })}
-                                                                        className="inline-flex items-center justify-center gap-1 px-1.5 py-0.5 rounded bg-green-50 border border-green-300 text-[9px] font-bold text-green-700 hover:bg-green-100 transition-colors"
-                                                                    >
-                                                                        <CheckCircle2 className="w-2.5 h-2.5" />
-                                                                        {step.statusUpdate.label}
-                                                                    </button>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                ))}
+                        {probateRequiredCount > 0 && currentPhase < 4 && (
+                            <Link to="/assets" className="flex items-center justify-between p-2 bg-slate-900 text-white rounded-lg group hover:bg-slate-800 transition-all">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-6 h-6 rounded bg-amber-500 flex items-center justify-center">
+                                        <AlertCircle className="w-3.5 h-3.5 text-slate-900" />
+                                    </div>
+                                    <span className="text-[10px] font-bold uppercase tracking-tight">{probateRequiredCount} Assets Locked</span>
+                                </div>
+                                <ChevronRight className="w-3.5 h-3.5 opacity-50 group-hover:translate-x-0.5 transition-transform" />
+                            </Link>
+                        )}
+                    </div>
+
+                    {/* Right Panel: Required Forms List (7 cols) */}
+                    <div className="lg:col-span-7 p-0 bg-white">
+                        <div className="px-4 py-2 border-b bg-slate-50/20">
+                            <h4 className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-2">
+                                <FileText className="w-3 h-3" /> Required Probate Documents
+                            </h4>
+                        </div>
+                        <div className="divide-y divide-slate-100">
+                            {REQUIRED_FORMS.map((form) => {
+                                const status = getFormStatus(form.code);
+                                const isCompleted = status === "OBTAINED";
+                                return (
+                                    <div key={form.code} className="px-4 py-2 flex items-center justify-between hover:bg-slate-50/50 transition-colors group">
+                                        <div className="flex flex-col min-w-0">
+                                            <div className="flex items-center gap-2">
+                                                <span className="font-mono text-[10px] font-bold text-amber-700">{form.code}</span>
+                                                {isCompleted ? (
+                                                    <CheckCircle2 className="w-3 h-3 text-green-500" />
+                                                ) : form.required ? (
+                                                    <div className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                                                ) : null}
                                             </div>
+                                            <span className="text-[11px] font-medium text-slate-700 truncate">{form.name}</span>
                                         </div>
-                                    )}
-                                </div>
-                            </div>
-                        );
-                    })()}
-                </div>
 
-                {/* Probate Forms Tracker */}
-                <div className="mt-6">
-                    <ProbateFormsTracker />
+                                        <div className="flex items-center gap-1.5 opacity-100 lg:opacity-60 group-hover:opacity-100 transition-opacity">
+                                            <Button variant="ghost" size="sm" asChild className="h-7 w-7 p-0 hover:bg-slate-100 text-slate-500">
+                                                <a href={form.url} target="_blank" rel="noopener noreferrer" title="Download Blank">
+                                                    <Download className="w-3.5 h-3.5" />
+                                                </a>
+                                            </Button>
+
+                                            {isCompleted && (
+                                                <Button variant="ghost" size="sm" asChild className="h-7 w-7 p-0 hover:bg-green-50 text-green-600">
+                                                    <a href={api.getEstateDocumentDownloadUrl(form.code)} target="_blank" rel="noopener noreferrer" title="View Uploaded">
+                                                        <ExternalLink className="w-3.5 h-3.5" />
+                                                    </a>
+                                                </Button>
+                                            )}
+
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                className={cn("h-7 px-2 text-[9px] font-bold uppercase tracking-tight", isCompleted ? "border-green-100 text-green-600" : "border-slate-200")}
+                                                disabled={uploadingForm === form.code}
+                                                onClick={() => {
+                                                    const input = document.createElement('input');
+                                                    input.type = 'file';
+                                                    input.accept = '.pdf';
+                                                    input.onchange = (e: any) => {
+                                                        const file = e.target.files?.[0];
+                                                        if (file) handleUpload(form.code, file);
+                                                    };
+                                                    input.click();
+                                                }}
+                                            >
+                                                {uploadingForm === form.code ? "..." : isCompleted ? "Re-Upload" : "Upload"}
+                                            </Button>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
                 </div>
             </CardContent>
         </Card>
     );
+}
+
+function IconMap({ phase, className }: { phase: number, className?: string }) {
+    switch (phase) {
+        case 1: return <FileText className={className} />;
+        case 2: return <MapPin className={className} />;
+        case 3: return <Gavel className={className} />;
+        case 4: return <Scale className={className} />;
+        default: return <Info className={className} />;
+    }
 }
