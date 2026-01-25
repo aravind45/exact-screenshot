@@ -417,57 +417,12 @@ export default function AssetDetail() {
       </header>
 
       <main className="section-container py-8 space-y-6">
-        {/* RECOMMENDED NEXT STEP HERO (The Action Center) */}
-        {!isEditing && uiAsset.status === 'discovered' && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.98 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-primary/5 border-2 border-primary/20 rounded-3xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl shadow-primary/5"
-          >
-            <div className="flex items-center gap-5 text-left">
-              <div className="p-4 bg-primary text-white rounded-2xl shadow-lg shadow-primary/40">
-                <FileCheck className="w-8 h-8" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <Badge className="bg-primary/20 text-primary border-none text-[10px] font-black uppercase">Critical Action</Badge>
-                  <h2 className="text-xl font-bold text-slate-900 tracking-tight">Notification Phase</h2>
-                </div>
-                <p className="text-slate-600 font-medium">Formally notify <strong>{uiAsset.institution}</strong> of the death to secure the account and begin settlement.</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 w-full md:w-auto">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setActiveTab("workflow");
-                  setShowCommDialog(true);
-                }}
-                className="flex-1 md:flex-none h-12 px-6 font-bold border-slate-200"
-              >
-                Log Call/Email
-              </Button>
-              <Button
-                onClick={() => {
-                  setActiveTab("workflow");
-                  handleGenerateLetter();
-                }}
-                size="lg"
-                className="flex-1 md:flex-none h-12 px-8 font-bold bg-slate-900 hover:bg-slate-800 text-white gap-2 shadow-lg shadow-slate-200"
-              >
-                <FileText className="w-4 h-4" />
-                Generate Official Notice
-              </Button>
-            </div>
-          </motion.div>
-        )}
 
-        {/* Asset Header */}
+        {/* Compact Asset Header */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="card-elevated p-6"
+          className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm"
         >
           {isEditing ? (
             <div className="space-y-4">
@@ -512,102 +467,36 @@ export default function AssetDetail() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div>
-                  <label className="text-sm font-medium">Status</label>
-                  <Select
-                    value={formData.status}
-                    onValueChange={(val) => setFormData({ ...formData, status: val })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select Status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="discovered">Discovered</SelectItem>
-                      <SelectItem value="contacted">Contacted</SelectItem>
-                      <SelectItem value="in_review">In Review</SelectItem>
-                      <SelectItem value="closed">Closed</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="space-y-4 pt-4 border-t border-border/50">
-                <h3 className="font-semibold text-sm">Contact Information</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm font-medium">Phone</label>
-                    <Input
-                      value={formData.institutionPhone}
-                      onChange={(e) => setFormData({ ...formData, institutionPhone: e.target.value })}
-                      placeholder="e.g. 1-800-..."
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium">Email</label>
-                    <Input
-                      value={formData.institutionEmail}
-                      onChange={(e) => setFormData({ ...formData, institutionEmail: e.target.value })}
-                      placeholder="contact@bank.com"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium">Fax</label>
-                    <Input
-                      value={formData.institutionFax}
-                      onChange={(e) => setFormData({ ...formData, institutionFax: e.target.value })}
-                      placeholder="Fax number"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium">Address</label>
-                    <Input
-                      value={formData.institutionAddress}
-                      onChange={(e) => setFormData({ ...formData, institutionAddress: e.target.value })}
-                      placeholder="Mailing Address"
-                    />
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className="text-sm font-medium">Source URL</label>
-                    <Input
-                      value={formData.institutionUrl}
-                      onChange={(e) => setFormData({ ...formData, institutionUrl: e.target.value })}
-                      placeholder="https://..."
-                    />
-                  </div>
-                </div>
               </div>
             </div>
           ) : (
-            <div className="flex flex-col md:flex-row md:items-start gap-6">
-              <div className="flex items-start gap-4 flex-1">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
                 <div className={cn(
-                  'p-4 rounded-xl shrink-0',
-                  uiAsset.category === 'retirement' && 'bg-violet-500/10 text-violet-600',
-                  uiAsset.category === 'financial' && 'bg-primary/10 text-primary',
-                  uiAsset.category === 'insurance' && 'bg-success/10 text-success',
-                  uiAsset.category === 'employer' && 'bg-warning/10 text-warning',
-                  uiAsset.category === 'property' && 'bg-orange-500/10 text-orange-600',
+                  'p-3 rounded-xl',
+                  uiAsset.category === 'retirement' && 'bg-violet-100 text-violet-600',
+                  uiAsset.category === 'financial' && 'bg-blue-100 text-blue-600',
+                  uiAsset.category === 'insurance' && 'bg-emerald-100 text-emerald-600',
+                  uiAsset.category === 'property' && 'bg-orange-100 text-orange-600',
                 )}>
-                  <CategoryIcon className="w-8 h-8" />
+                  <CategoryIcon className="w-6 h-6" />
                 </div>
                 <div>
-                  <h1 className="text-2xl font-bold text-foreground mb-1">
-                    {uiAsset.institution}
-                  </h1>
-                  <p className="text-muted-foreground capitalize mb-3">
+                  <div className="flex items-center gap-3">
+                    <h1 className="text-xl font-bold text-slate-900">{uiAsset.institution}</h1>
+                    <div className="flex items-center gap-1.5">
+                      <StatusBadge status={uiAsset.status} />
+                      <PriorityBadge priority={uiAsset.priority} />
+                    </div>
+                  </div>
+                  <p className="text-xs text-slate-500 font-medium">
                     {uiAsset.type.replace(/_/g, ' ')} • Account {uiAsset.accountNumber}
                   </p>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <StatusBadge status={uiAsset.status} />
-                    <PriorityBadge priority={uiAsset.priority} />
-                    <CategoryBadge category={uiAsset.category} />
-                  </div>
                 </div>
               </div>
-
-              <div className="text-right">
-                <p className="text-sm text-muted-foreground mb-1">Estimated Value</p>
-                <p className="text-3xl font-bold text-foreground">
+              <div className="flex flex-col items-end">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Total Value</p>
+                <p className="text-2xl font-black text-slate-900 tracking-tight">
                   {formatCurrency(uiAsset.value)}
                 </p>
               </div>
@@ -709,21 +598,6 @@ export default function AssetDetail() {
 
               return (
                 <div className="space-y-6">
-                  {justUnlocked && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      className="bg-emerald-50 border border-emerald-100 rounded-2xl p-4 flex items-center gap-4 text-emerald-800"
-                    >
-                      <div className="p-2 bg-emerald-500 text-white rounded-full">
-                        <CheckCircle2 className="w-5 h-5" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm font-bold">Authority Granted!</p>
-                        <p className="text-xs opacity-80">Your Letters are verified. You can now begin the official settlement with {uiAsset.institution}.</p>
-                      </div>
-                    </motion.div>
-                  )}
                   <SettlementWorkflow
                     asset={enhancedAsset}
                     workflow={workflow}

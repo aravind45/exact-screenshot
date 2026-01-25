@@ -22,7 +22,8 @@ import {
     Printer,
     ArrowRight,
     FileText,
-    Gavel
+    Gavel,
+    CheckSquare
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { WorkflowConfig } from "@/config/workflows/fidelity";
@@ -101,23 +102,29 @@ export function SettlementWorkflow({
     };
 
     return (
-        <div className="max-w-4xl mx-auto">
-            <div className="flex items-center justify-between mb-8">
-                <div>
-                    <div className="flex items-center gap-2 mb-2">
-                        <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Institution Settlement Guide</h2>
-                        <Badge variant="secondary" className="bg-blue-100 text-blue-700 border-blue-200 text-[10px] font-bold">
-                            ASSET-SPECIFIC
-                        </Badge>
+        <div className="space-y-6">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 py-2 border-b border-slate-100">
+                <div className="flex items-center gap-4">
+                    <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl">
+                        <CheckSquare className="w-5 h-5" />
                     </div>
-                    <p className="text-slate-500 text-sm">
-                        Step-by-step workflow for closing {asset.institution} account
-                    </p>
+                    <div>
+                        <h2 className="text-lg font-bold text-slate-900 tracking-tight">Settlement Action Plan</h2>
+                        <div className="flex items-center gap-2">
+                            <p className="text-slate-500 text-xs font-medium">Step-by-step track for {asset.institution}</p>
+                            {estate?.probateStatus === 'EXECUTOR_APPOINTED' && asset.ownershipType === 'INDIVIDUAL' && (
+                                <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-none text-[10px] h-5 py-0">
+                                    <CheckCircle2 className="w-3 h-3 mr-1" />
+                                    Authority Verified
+                                </Badge>
+                            )}
+                        </div>
+                    </div>
                 </div>
-                <div className="flex items-center gap-2 bg-slate-100 px-4 py-2 rounded-full border border-slate-200">
-                    <CheckCircle2 className="w-4 h-4 text-green-600" />
-                    <span className="text-sm font-bold text-slate-700">
-                        {completedStepIds.length} / {visibleSteps.length} Steps Complete
+                <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200/60 shadow-sm shrink-0">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-green-600" />
+                    <span className="text-[11px] font-black text-slate-600 uppercase tracking-tighter">
+                        {completedStepIds.length} / {visibleSteps.length} Completed
                     </span>
                 </div>
             </div>
@@ -132,7 +139,6 @@ export function SettlementWorkflow({
                 {visibleSteps.map((step, index) => {
                     const isCompleted = completedStepIds.includes(step.id);
                     const isActive = step.id === currentStepId;
-                    const isNext = index === currentStepIndex + 1;
 
                     return (
                         <AccordionItem
@@ -140,192 +146,145 @@ export function SettlementWorkflow({
                             value={step.id}
                             className={cn(
                                 "border rounded-2xl transition-all duration-300 overflow-hidden",
-                                isActive ? "border-primary shadow-xl ring-4 ring-primary/5 bg-white" : "border-slate-200 bg-white/50",
-                                isCompleted ? "bg-green-50/30 border-green-100" : ""
+                                isActive ? "border-slate-300 shadow-md bg-white ring-1 ring-slate-200" : "border-slate-200 bg-slate-50/30",
+                                isCompleted ? "bg-green-50/20 border-green-100" : ""
                             )}
                         >
-                            <AccordionTrigger className="hover:no-underline px-6 py-5 group [&[data-state=open]>svg]:hidden">
+                            <AccordionTrigger className="hover:no-underline px-5 py-4 group [&[data-state=open]>svg]:hidden">
                                 <div className="flex items-center gap-4 text-left">
                                     <div className={cn(
-                                        "w-10 h-10 rounded-full flex items-center justify-center font-bold transition-colors",
+                                        "w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs transition-colors",
                                         isCompleted ? "bg-green-600 text-white" :
-                                            isActive ? "bg-primary text-white" : "bg-slate-100 text-slate-400 group-hover:bg-slate-200"
+                                            isActive ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-400 group-hover:bg-slate-200"
                                     )}>
-                                        {isCompleted ? <CheckCircle2 className="w-6 h-6" /> : index + 1}
+                                        {isCompleted ? <CheckCircle2 className="w-5 h-5" /> : index + 1}
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-2">
                                             <h3 className={cn(
-                                                "font-bold text-lg tracking-tight",
+                                                "font-bold text-base tracking-tight",
                                                 isActive ? "text-slate-900" : "text-slate-500"
                                             )}>
                                                 {renderText(step.title)}
                                             </h3>
                                             {isCompleted && (
-                                                <Badge variant="secondary" className="bg-green-100 text-green-700 hover:bg-green-100 border-none text-[10px] h-5">
+                                                <Badge variant="secondary" className="bg-green-100 text-green-700 hover:bg-green-100 border-none text-[10px] h-4 leading-none py-0">
                                                     Done
                                                 </Badge>
                                             )}
                                         </div>
-                                        <p className="text-sm text-slate-500 line-clamp-1 font-medium">
-                                            {renderText(step.description)}
-                                        </p>
                                     </div>
                                 </div>
                             </AccordionTrigger>
 
-                            <AccordionContent className="px-6 pb-6 pt-2">
+                            <AccordionContent className="px-5 pb-5 pt-0">
                                 <AnimatePresence mode="wait">
                                     <motion.div
-                                        initial={{ opacity: 0, y: 10 }}
+                                        initial={{ opacity: 0, y: 5 }}
                                         animate={{ opacity: 1, y: 0 }}
-                                        className="space-y-8"
+                                        className="space-y-6"
                                     >
-                                        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
-                                            {/* Details & Help */}
-                                            <div className="md:col-span-7 space-y-6">
+                                        {/* Horizontal Layout for Details & Tools */}
+                                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 pt-4 border-t border-slate-100">
+                                            <div className="lg:col-span-12 space-y-4">
+                                                {/* Description Summary */}
+                                                <p className="text-sm text-slate-600 font-semibold leading-relaxed">
+                                                    {renderText(step.description)}
+                                                </p>
+
                                                 {/* Alerts */}
                                                 {step.alerts && step.alerts.length > 0 && (
-                                                    <div className="space-y-3">
+                                                    <div className="grid grid-cols-1 gap-3">
                                                         {step.alerts.map((alert, i) => (
-                                                            <div key={i} className={cn("flex items-start gap-3 p-4 rounded-xl border", getAlertBg(alert.type))}>
+                                                            <div key={i} className={cn("flex items-start gap-2.5 p-3 rounded-xl border", getAlertBg(alert.type))}>
                                                                 <div className="mt-0.5">{getAlertIcon(alert.type)}</div>
-                                                                <p className="text-sm font-semibold leading-relaxed">
+                                                                <p className="text-xs font-bold leading-normal italic">
                                                                     {renderText(alert.message)}
                                                                 </p>
                                                             </div>
                                                         ))}
                                                     </div>
                                                 )}
+                                            </div>
 
-                                                {/* AUTHORITY PREREQUISITE ALERT */}
-                                                {(step.id === "beneficiary_claim" || step.id === "trust_transition" || step.id === "final_distribution") &&
-                                                    estate?.authorityStatus !== "GRANTED" && estate?.probateStatus !== "EXECUTOR_APPOINTED" && (
-                                                        <div className="bg-gradient-to-r from-red-50 to-orange-50 border-2 border-red-200 p-5 rounded-xl mb-6 shadow-lg">
-                                                            <div className="flex items-start gap-4">
-                                                                <div className="p-2 bg-red-100 rounded-lg">
-                                                                    <AlertCircle className="w-6 h-6 text-red-600" />
-                                                                </div>
-                                                                <div className="flex-1">
-                                                                    <p className="text-sm font-bold text-red-900 leading-tight mb-2">⚠️ Estate-Level Authority Required</p>
-                                                                    <p className="text-xs text-red-800 font-medium leading-relaxed mb-3">
-                                                                        {asset.ownershipType === "INDIVIDUAL"
-                                                                            ? "This institution requires Letters Testamentary from the probate court before releasing funds."
-                                                                            : "This institution requires a Small Estate Affidavit before processing your claim."}
-                                                                    </p>
-                                                                    <Link to="/probate" className="flex items-center gap-2 text-xs group hover:opacity-80 transition-opacity">
-                                                                        <Gavel className="w-3.5 h-3.5 text-red-700" />
-                                                                        <span className="text-red-700 font-semibold underline decoration-red-700/30 group-hover:decoration-red-700">Complete the Estate-Level Probate Process first</span>
-                                                                        <ArrowRight className="w-3 h-3 text-red-700" />
-                                                                    </Link>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    )}
-
-                                                <div className="bg-slate-50/50 p-5 rounded-2xl border border-slate-100 shadow-inner">
-                                                    <h4 className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-400 mb-3">
-                                                        <Info className="w-3.5 h-3.5" />
+                                            {/* Sub-grid for Content vs Actions */}
+                                            <div className="lg:col-span-7 space-y-5">
+                                                <div className="bg-slate-50/80 p-4 rounded-xl border border-slate-100/50">
+                                                    <h4 className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">
+                                                        <Info className="w-3 h-3" />
                                                         Instructional Guidance
                                                     </h4>
-                                                    <p className="text-sm text-slate-600 font-medium leading-relaxed">
+                                                    <p className="text-xs text-slate-600 font-medium leading-relaxed">
                                                         {renderText(step.guidance)}
                                                     </p>
                                                 </div>
 
                                                 {step.script && (
-                                                    <div className="bg-primary/5 p-5 rounded-2xl border border-primary/10 relative overflow-hidden group">
-                                                        <div className="absolute top-0 right-0 p-2 opacity-5">
-                                                            <MessageCircle className="w-12 h-12" />
-                                                        </div>
-                                                        <h4 className="text-xs font-bold text-primary uppercase tracking-widest mb-3">Professional Script</h4>
-                                                        <p className="text-sm font-semibold text-slate-700 italic leading-relaxed">
+                                                    <div className="bg-blue-50/30 p-4 rounded-xl border border-blue-100/50 relative overflow-hidden group">
+                                                        <h4 className="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-2">Professional Script</h4>
+                                                        <p className="text-xs font-bold text-slate-800 italic leading-relaxed">
                                                             "{renderText(step.script)}"
                                                         </p>
                                                     </div>
                                                 )}
                                             </div>
 
-                                            {/* Action Tools */}
-                                            <div className="md:col-span-5 space-y-6">
-                                                <div className="space-y-3">
-                                                    <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400">Essential Tools</h4>
-                                                    <div className="flex flex-col gap-2">
+                                            <div className="lg:col-span-5 space-y-5">
+                                                <div className="space-y-2">
+                                                    <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Action Tools</h4>
+                                                    <div className="grid grid-cols-1 gap-2">
                                                         {step.id === "initial_notification" && (
                                                             <Button
                                                                 variant="default"
-                                                                className="w-full justify-start gap-4 h-16 bg-primary hover:bg-primary/90 text-white transition-all rounded-xl shadow-lg shadow-primary/20 border-none"
+                                                                className="w-full justify-start gap-3 h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-sm border-none"
                                                                 onClick={onGenerateLetter}
                                                             >
-                                                                <div className="p-2 rounded-lg bg-white/20 text-white">
-                                                                    <FileText className="w-5 h-5" />
-                                                                </div>
-                                                                <div className="text-left">
-                                                                    <p className="text-[10px] text-white/70 font-bold uppercase tracking-tighter leading-none mb-1">Priority Action</p>
-                                                                    <p className="font-bold text-sm">Generate Settlement Notice</p>
-                                                                </div>
+                                                                <FileText className="w-4 h-4" />
+                                                                <span className="font-bold text-xs uppercase tracking-tight">Generate Notice</span>
                                                             </Button>
                                                         )}
 
                                                         {step.phone && (
                                                             <Button
                                                                 variant="outline"
-                                                                className="w-full justify-start gap-4 h-14 border-slate-200 hover:border-primary/50 transition-all rounded-xl shadow-sm"
+                                                                className="w-full justify-start gap-3 h-10 border-slate-200 hover:bg-slate-50 rounded-xl"
                                                                 onClick={() => window.location.href = `tel:${renderText(step.phone)}`}
                                                             >
-                                                                <div className="p-2 rounded-lg bg-primary/10 text-primary">
-                                                                    <Phone className="w-4 h-4" />
-                                                                </div>
-                                                                <div className="text-left min-w-0">
-                                                                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter leading-none mb-1">Direct Line</p>
-                                                                    <p className="font-bold text-sm text-slate-700 truncate">{renderText(step.phone)}</p>
-                                                                </div>
+                                                                <Phone className="w-3.5 h-3.5 text-blue-600" />
+                                                                <span className="font-bold text-xs">{renderText(step.phone)}</span>
                                                             </Button>
                                                         )}
 
                                                         <Button
                                                             variant="outline"
-                                                            className="w-full justify-start gap-4 h-14 border-slate-200 hover:border-primary/50 transition-all rounded-xl shadow-sm"
+                                                            className="w-full justify-start gap-3 h-10 border-slate-200 hover:bg-slate-50 rounded-xl"
                                                             onClick={onLogCommunication}
                                                         >
-                                                            <div className="p-2 rounded-lg bg-slate-100 text-slate-600">
-                                                                <MessageCircle className="w-4 h-4" />
-                                                            </div>
-                                                            <div className="text-left">
-                                                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter leading-none mb-1">Compliance Log</p>
-                                                                <p className="font-bold text-sm text-slate-700">Record Progress</p>
-                                                            </div>
+                                                            <MessageCircle className="w-3.5 h-3.5 text-slate-600" />
+                                                            <span className="font-bold text-xs">Record Progress</span>
                                                         </Button>
 
-                                                        {step.id === "submit_documents" && (
+                                                        {step.id === "submit_docs" && (
                                                             <Button
                                                                 variant="outline"
-                                                                className="w-full justify-start gap-4 h-14 border-slate-200 hover:border-primary/50 transition-all rounded-xl shadow-sm"
+                                                                className="w-full justify-start gap-3 h-10 border-slate-200 hover:bg-slate-50 rounded-xl"
                                                                 onClick={onSendFax}
                                                             >
-                                                                <div className="p-2 rounded-lg bg-indigo-50 text-indigo-600">
-                                                                    <Printer className="w-4 h-4" />
-                                                                </div>
-                                                                <div className="text-left">
-                                                                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter leading-none mb-1">Secure Send</p>
-                                                                    <p className="font-bold text-sm text-slate-700">Transmit via Fax</p>
-                                                                </div>
+                                                                <Printer className="w-3.5 h-3.5 text-blue-600" />
+                                                                <span className="font-bold text-xs uppercase tracking-tight">Fax Documents</span>
                                                             </Button>
                                                         )}
                                                     </div>
                                                 </div>
 
                                                 {step.requiredDocs && step.requiredDocs.length > 0 && (
-                                                    <div className="space-y-3">
-                                                        <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400">Required Records</h4>
-                                                        <div className="bg-white rounded-2xl border border-slate-100 p-4 space-y-2">
+                                                    <div className="space-y-2">
+                                                        <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Required Items</h4>
+                                                        <div className="bg-slate-50/50 rounded-xl border border-slate-100 p-3 flex flex-wrap gap-2">
                                                             {step.requiredDocs.map((doc, i) => (
-                                                                <div key={i} className="flex items-center gap-3">
-                                                                    <div className="w-5 h-5 rounded-full border-2 border-slate-200 flex items-center justify-center shrink-0">
-                                                                        <div className="w-2 h-2 rounded-full bg-slate-200" />
-                                                                    </div>
-                                                                    <span className="text-xs font-semibold text-slate-600 leading-tight">{renderText(doc)}</span>
-                                                                </div>
+                                                                <Badge key={i} variant="outline" className="bg-white border-slate-200 text-[10px] font-bold text-slate-600 py-0.5">
+                                                                    {renderText(doc)}
+                                                                </Badge>
                                                             ))}
                                                         </div>
                                                     </div>
@@ -333,43 +292,43 @@ export function SettlementWorkflow({
                                             </div>
                                         </div>
 
-                                        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-8 border-t border-slate-100">
+                                        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-5 border-t border-slate-100">
                                             <div className="flex items-center gap-2 text-slate-400">
-                                                <Clock className="w-4 h-4" />
-                                                <span className="text-xs font-bold uppercase tracking-widest">{step.estimatedTime || "15 minutes"} est.</span>
+                                                <Clock className="w-3.5 h-3.5" />
+                                                <span className="text-[10px] font-bold uppercase tracking-widest">{step.estimatedTime || "15m"} est.</span>
                                             </div>
-                                            <div className="flex gap-3 w-full sm:w-auto">
+                                            <div className="flex gap-2 w-full sm:w-auto">
                                                 {!isCompleted ? (
                                                     <Button
-                                                        size="lg"
-                                                        className="flex-1 sm:px-10 gap-2 bg-green-600 hover:bg-green-700 font-bold shadow-lg shadow-green-600/20"
+                                                        size="sm"
+                                                        className="flex-1 sm:px-8 h-10 bg-green-600 hover:bg-green-700 font-bold text-xs"
                                                         onClick={() => onStepComplete(step.id)}
                                                         disabled={(step.id === "beneficiary_claim" || step.id === "trust_transition" || step.id === "final_distribution") && estate?.authorityStatus !== "GRANTED" && estate?.probateStatus !== "EXECUTOR_APPOINTED"}
                                                     >
-                                                        <CheckCircle2 className="w-5 h-5" />
-                                                        Mark Step Done
+                                                        <CheckCircle2 className="w-4 h-4 mr-2" />
+                                                        Mark Done
                                                     </Button>
                                                 ) : (
                                                     <Button
-                                                        size="lg"
+                                                        size="sm"
                                                         variant="outline"
-                                                        className="flex-1 sm:px-10 gap-2 text-green-600 border-green-200 bg-green-50"
+                                                        className="flex-1 sm:px-8 h-10 text-green-600 border-green-200 bg-green-50 text-xs"
                                                         disabled
                                                     >
-                                                        <CheckCircle2 className="w-5 h-5" />
-                                                        Step Completed
+                                                        <CheckCircle2 className="w-4 h-4 mr-2" />
+                                                        Completed
                                                     </Button>
                                                 )}
 
                                                 {currentStepIndex < visibleSteps.length - 1 && (
                                                     <Button
-                                                        size="lg"
-                                                        variant="secondary"
-                                                        className="flex-1 sm:px-10 gap-2 font-bold bg-slate-900 text-white hover:bg-slate-800 transition-all border-none"
+                                                        size="sm"
+                                                        variant="ghost"
+                                                        className="flex-1 sm:px-6 h-10 font-bold text-slate-900 border border-slate-200 text-xs"
                                                         onClick={() => onStepSelect(visibleSteps[currentStepIndex + 1].id)}
                                                     >
-                                                        Proceed
-                                                        <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+                                                        Next Step
+                                                        <ArrowRight className="w-4 h-4 ml-2" />
                                                     </Button>
                                                 )}
                                             </div>
