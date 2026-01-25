@@ -121,13 +121,16 @@ export const api = {
     sendFax: async (payload: {
         assetId: string;
         faxNumber: string;
-        pdfUrl?: string;
-        pdfBase64?: string;
+        documentType?: string;
         subject?: string;
     }) => {
-        // TODO: Move fax logic to Express
-        console.warn("sendFax not yet implemented in Express backend");
-        return { message: "Not implemented" };
+        const { assetId, ...data } = payload;
+        const response = await fetch(`${API_URL}/assets/${assetId}/fax`, {
+            method: "POST",
+            headers: getHeaders(),
+            body: JSON.stringify(data),
+        });
+        return parseResponse(response);
     },
 
     /**
@@ -185,6 +188,16 @@ export const api = {
             headers: getHeaders(),
         });
         if (!response.ok) throw new Error("Failed to generate letter");
+        return await response.blob();
+    },
+
+    batchGenerateLetters: async (assetIds: string[]) => {
+        const response = await fetch(`${API_URL}/assets/batch-generate-letters`, {
+            method: "POST",
+            headers: getHeaders(),
+            body: JSON.stringify({ assetIds })
+        });
+        if (!response.ok) throw new Error("Failed to generate batch letters");
         return await response.blob();
     },
 

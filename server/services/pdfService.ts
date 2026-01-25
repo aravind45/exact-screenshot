@@ -15,7 +15,7 @@ export const PdfService = {
         const dbTemplate = await prisma.formTemplate.findUnique({ where: { name: "DE-111" } });
 
         if (dbTemplate) {
-            pdfBytes = dbTemplate.data;
+            pdfBytes = dbTemplate.data as any;
         } else {
             // 2. Try Local File (Dev fallback)
             const templatePath = path.join(process.cwd(), 'server', 'templates', 'DE-111.pdf');
@@ -94,6 +94,73 @@ export const PdfService = {
 
         // Return bytes
         return await pdfDoc.save();
+    },
+
+    /**
+     * Generates a formal "Notification of Death" letter for a specific asset.
+     */
+    async generateLetter(asset: any, estate: any) {
+        const doc = await PDFDocument.create();
+        const page = doc.addPage([612, 792]); // Standard US Letter
+        const { width, height } = page.getSize();
+
+        const fontSize = 11;
+        const fontBoldSize = 12;
+        const margin = 50;
+        let cursorY = height - margin;
+
+        const drawText = (text: string, size = fontSize) => {
+            page.drawText(text, {
+                x: margin,
+                y: cursorY,
+                size
+            });
+            cursorY -= (size + 5);
+        };
+
+        // Header
+        drawText("NOTIFICATION OF DEATH AND ESTATE OPENING", fontBoldSize);
+        cursorY -= 15;
+
+        // Date
+        drawText(`Date: ${new Date().toLocaleDateString()}`);
+        cursorY -= 10;
+
+        // Institution Address
+        drawText("TO:");
+        drawText(asset.institution);
+        if (asset.institutionAddress) {
+            asset.institutionAddress.split(',').forEach((line: string) => drawText(line.trim()));
+        }
+        cursorY -= 15;
+
+        // Subject
+        drawText(`RE: Estate of ${estate.deceasedFirstName} ${estate.deceasedLastName}`);
+        drawText(`Account Number: ${asset.accountNumber || "Unknown"}`);
+        drawText(`Asset Type: ${asset.assetType}`);
+        cursorY -= 20;
+
+        // Body
+        drawText("To whom it may concern,");
+        cursorY -= 10;
+        drawText(`Please be advised that ${estate.deceasedFirstName} ${estate.deceasedLastName} passed away on ${new Date(estate.deceasedDateOfDeath).toLocaleDateString()}.`);
+        drawText("I have been appointed as the Executor/Administrator of the estate.");
+        cursorY -= 10;
+        drawText("We are currently in the process of identifying and securing all estate assets.");
+        drawText("Please place a 'Death Alert' or 'Estate Freeze' on the account referenced above");
+        drawText("to prevent unauthorized transactions until formal distribution is authorized.");
+        cursorY -= 10;
+        drawText("Kindly provide a date-of-death balance statement and a list of any required");
+        drawText("documentation needed for the eventual transfer of these funds.");
+        cursorY -= 20;
+
+        // Closing
+        drawText("Sincerely,");
+        cursorY -= 20;
+        drawText(estate.user?.fullName || "The Executor");
+        drawText("Executor / Administrator");
+
+        return await doc.save();
     },
 
     async debugFields() {

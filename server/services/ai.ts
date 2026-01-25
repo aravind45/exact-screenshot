@@ -147,12 +147,12 @@ export async function discoverRelatedAssets(text: string): Promise<DiscoveryClue
 
 export async function extractContactInfo(text: string) {
     const prompt = `
-    Extract contact information for an institution's "Death Notification" or "Estate Settlement" department from the text below.
+    Extract contact information for an institution's "Death Notification", "Estate Services", or "Trust Settlement" department.
     Return JSON only with these keys (use null if not found):
-    - institutionPhone
-    - institutionEmail
-    - institutionFax (Look for "Fax", "Facsimile", or numbers near "to fax")
-    - mailingAddress
+    - institutionPhone: The direct line for estate/death notifications.
+    - institutionEmail: The email for submitting documents.
+    - institutionFax: Look for fax numbers specifically for "Estate Documents" or "Letters".
+    - mailingAddress: The physical address where executors should mail original court certified documents.
 
     Text:
     ${text.substring(0, 4000)}

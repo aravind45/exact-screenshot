@@ -24,8 +24,8 @@ export async function enrichInstitutionData(institutionName: string): Promise<En
         console.log(`Enriching data for: ${institutionName}`);
 
         // Search for "Death Notification Number" or "Estate Resolution Fax"
-        // Updated query to be broad enough to catch multiple relevant pages
-        const query = `${institutionName} estate unit death notification fax number`;
+        // Target specific keywords that often appear in institutional estate guides
+        const query = `${institutionName} "Estate Services" death notification contact fax number mailing address for letters`;
 
         // @ts-ignore 
         const searchResults = await app.search(query, {

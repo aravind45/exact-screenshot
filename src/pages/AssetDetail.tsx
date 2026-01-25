@@ -51,7 +51,9 @@ import { api } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { CommunicationLog } from "@/components/communications/CommunicationLog";
 import { CommunicationLogDialog, CommunicationData } from "@/components/CommunicationLogDialog";
-import { fidelityWorkflow } from "@/config/workflows/fidelity";
+import { fidelityWorkflow, WorkflowConfig } from "@/config/workflows/fidelity";
+import { bankWorkflow } from "@/config/workflows/bank";
+import { propertyWorkflow } from "@/config/workflows/property";
 import { SettlementWorkflow } from "@/components/SettlementWorkflow";
 import { ProbateProgressMini } from "@/components/ProbateProgressMini";
 
@@ -144,6 +146,12 @@ export default function AssetDetail() {
   const [currentStepId, setCurrentStepId] = useState("initial_contact");
   const [completedStepIds, setCompletedStepIds] = useState<string[]>([]);
 
+  const getWorkflow = (category: string) => {
+    if (category === 'financial' || category === 'retirement') return bankWorkflow;
+    if (category === 'property') return propertyWorkflow;
+    return fidelityWorkflow; // Default
+  };
+
   const { data: asset, isLoading, error } = useQuery({
     queryKey: ['asset', id],
     queryFn: () => api.getAsset(id!),
@@ -159,6 +167,12 @@ export default function AssetDetail() {
   const { data: estate } = useQuery({
     queryKey: ['estate'],
     queryFn: api.getMyEstate,
+  });
+
+  const { data: estateDocuments = [] } = useQuery({
+    queryKey: ["estate", "documents"],
+    queryFn: api.getEstateDocuments,
+    enabled: !!estate
   });
 
   const { data: assets = [] } = useQuery({
@@ -259,8 +273,9 @@ export default function AssetDetail() {
       setCompletedStepIds(newCompleted);
 
       // Auto-advance to next step if possible
-      const currentIndex = fidelityWorkflow.steps.findIndex(s => s.id === stepId);
-      const nextStep = fidelityWorkflow.steps[currentIndex + 1];
+      const workflow = getWorkflow(asset?.category || '');
+      const currentIndex = workflow.steps.findIndex(s => s.id === stepId);
+      const nextStep = workflow.steps[currentIndex + 1];
       const nextId = nextStep ? nextStep.id : stepId;
 
       if (nextStep) setCurrentStepId(nextId);
@@ -592,7 +607,7 @@ export default function AssetDetail() {
               Settlement Guide
               {completedStepIds.length > 0 && (
                 <Badge variant="secondary" className="ml-1 h-5 px-1 bg-primary/10 text-primary border-none text-[10px]">
-                  {completedStepIds.length}/{fidelityWorkflow.steps.length}
+                  {completedStepIds.length}/{getWorkflow(uiAsset.category).steps.length}
                 </Badge>
               )}
             </TabsTrigger>
@@ -617,6 +632,7 @@ export default function AssetDetail() {
 
               // BLOCKED Check: If asset is individual and probate isn't granted
               const isLocked = asset.ownershipType === 'INDIVIDUAL' && estate?.probateStatus !== 'EXECUTOR_APPOINTED';
+              const workflow: WorkflowConfig = getWorkflow(asset.category);
 
               if (isLocked) {
                 return (
@@ -668,18 +684,71 @@ export default function AssetDetail() {
                 );
               }
 
+              // CELEBRATORY BANNER: If it was locked but now we have authority
+              const justUnlocked = asset.ownershipType === 'INDIVIDUAL' && estate?.probateStatus === 'EXECUTOR_APPOINTED' && completedStepIds.length === 0;
+
               return (
-                <SettlementWorkflow
-                  asset={enhancedAsset}
-                  workflow={fidelityWorkflow}
-                  currentStepId={currentStepId}
-                  completedStepIds={completedStepIds}
-                  onStepSelect={handleStepSelect}
-                  onStepComplete={handleStepComplete}
-                  onLogCommunication={() => setShowCommDialog(true)}
-                  onSendFax={() => toast({ title: "Coming Soon", description: "Faxing will be available in the next update." })}
-                  onGenerateLetter={handleGenerateLetter}
-                />
+                <div className="space-y-6">
+                  {justUnlocked && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      className="bg-emerald-50 border border-emerald-100 rounded-2xl p-4 flex items-center gap-4 text-emerald-800"
+                    >
+                      <div className="p-2 bg-emerald-500 text-white rounded-full">
+                        <CheckCircle2 className="w-5 h-5" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-bold">Authority Granted!</p>
+                        <p className="text-xs opacity-80">Your Letters are verified. You can now begin the official settlement with {uiAsset.institution}.</p>
+                      </div>
+                    </motion.div>
+                  )}
+                  <SettlementWorkflow
+                    asset={enhancedAsset}
+                    workflow={workflow}
+                    currentStepId={currentStepId}
+                    completedStepIds={completedStepIds}
+                    onStepSelect={handleStepSelect}
+                    onStepComplete={handleStepComplete}
+                    onLogCommunication={() => setShowCommDialog(true)}
+                    onSendFax={async () => {
+                      if (!asset.institutionFax) {
+                        toast({
+                          title: "Fax Number Missing",
+                          description: "Please update the institution fax number in the details section first.",
+                          variant: "destructive"
+                        });
+                        return;
+                      }
+
+                      try {
+                        const res = await api.sendFax({
+                          assetId: id!,
+                          faxNumber: asset.institutionFax,
+                          subject: `Estate Settlement: ${asset.institution} - ${asset.assetType}`,
+                          documentType: currentStepId
+                        });
+
+                        toast({
+                          title: "Fax Sent",
+                          description: res.message || "Your document has been queued for transmission.",
+                        });
+
+                        // Refetch asset/comms since status might have changed
+                        queryClient.invalidateQueries({ queryKey: ['asset', id] });
+                        queryClient.invalidateQueries({ queryKey: ['communications', id] });
+                      } catch (err: any) {
+                        toast({
+                          title: "Fax Failed",
+                          description: err.message,
+                          variant: "destructive"
+                        });
+                      }
+                    }}
+                    onGenerateLetter={handleGenerateLetter}
+                  />
+                </div>
               );
             })()}
           </TabsContent>
@@ -900,6 +969,38 @@ export default function AssetDetail() {
                 </div>
 
                 <div className="space-y-3">
+                  {/* Probate Authority Documents (The Golden Bridge) */}
+                  {(() => {
+                    const letters = estateDocuments.find(d => d.documentType === 'DE-150');
+                    const order = estateDocuments.find(d => d.documentType === 'DE-140');
+                    const authorityDocs = [letters, order].filter(Boolean);
+
+                    if (authorityDocs.length === 0) return null;
+
+                    return authorityDocs.map((doc) => (
+                      <div key={doc.id} className="card-elevated p-4 flex items-center justify-between border-violet-100 bg-violet-50/20">
+                        <div className="flex items-center gap-4">
+                          <div className="p-2 bg-violet-100 text-violet-600 rounded-lg">
+                            <Scale className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <p className="font-bold text-violet-900">{doc.name}</p>
+                              <Badge className="bg-violet-600 text-[8px] uppercase font-black tracking-tighter h-4">Probate Authority</Badge>
+                            </div>
+                            <p className="text-[10px] text-violet-600 font-medium">{doc.documentType} • Court Certified Document</p>
+                          </div>
+                        </div>
+                        <a href={api.getEstateDocumentDownloadUrl(doc.documentType)} target="_blank" rel="noreferrer">
+                          <Button variant="ghost" size="sm" className="hover:bg-violet-100 text-violet-600">
+                            <Download className="w-4 h-4" />
+                          </Button>
+                        </a>
+                      </div>
+                    ));
+                  })()}
+
+                  {/* Asset-Specific Documents */}
                   {documents?.map((doc: any) => (
                     <div key={doc.id} className="card-elevated p-4 flex items-center justify-between">
                       <div className="flex items-center gap-4">
@@ -918,7 +1019,7 @@ export default function AssetDetail() {
                       </a>
                     </div>
                   ))}
-                  {documents?.length === 0 && (
+                  {documents?.length === 0 && (!estateDocuments.find(d => d.documentType === 'DE-150')) && (
                     <div className="text-center py-8 text-muted-foreground border-2 border-dashed rounded-xl">
                       No documents uploaded yet.
                     </div>
@@ -938,7 +1039,8 @@ export default function AssetDetail() {
         isLoading={createCommMutation.isPending}
         assetId={id}
         workflowContext={(() => {
-          const step = fidelityWorkflow.steps.find(s => s.id === currentStepId);
+          const workflow = getWorkflow(asset.category);
+          const step = workflow.steps.find(s => s.id === currentStepId);
           if (!step) return undefined;
 
           const renderText = (text: string) => {

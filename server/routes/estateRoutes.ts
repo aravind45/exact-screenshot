@@ -23,6 +23,13 @@ router.put("/my", async (req: any, res: Response) => {
             where: { id: estate.id },
             data: req.body
         });
+
+        // If status changed to EXECUTOR_APPOINTED, auto-sync assets
+        if (req.body.probateStatus === 'EXECUTOR_APPOINTED' && estate.probateStatus !== 'EXECUTOR_APPOINTED') {
+            const { AssetService } = await import("../services/assetService.js");
+            await AssetService.autoSyncAssetsForEstate(estate.id);
+        }
+
         res.json(updated);
     } catch (error) {
         res.status(500).json({ error: "Failed to update estate" });

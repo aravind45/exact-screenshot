@@ -113,5 +113,22 @@ export const AssetService = {
             where: { id }
         });
         return { success: true };
+    },
+
+    async autoSyncAssetsForEstate(estateId: string) {
+        // Find all assets for this estate that are in 'discovered' status
+        // and advance them to 'contacted' (In Progress) because authority is now granted
+        const updated = await prisma.asset.updateMany({
+            where: {
+                estateId,
+                status: 'discovered'
+            },
+            data: {
+                status: 'contacted'
+            }
+        });
+
+        console.log(`Auto-synced ${updated.count} assets for estate ${estateId} to 'contacted' status.`);
+        return updated;
     }
 };
