@@ -26,6 +26,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/lib/api";
 import { InstitutionSelect, Institution } from "@/components/InstitutionSelect";
+import { Sidebar } from "@/components/Sidebar";
 
 const formSchema = z.object({
     institution: z.string().min(2, "Institution name is required"),
@@ -89,8 +90,10 @@ export default function AddAsset() {
     }
 
     return (
-        <div className="min-h-screen bg-background">
-            <header className="sticky top-0 z-40 glass border-b border-border/50">
+        <div className="flex">
+            <Sidebar />
+            <div className="flex-1 ml-64 min-h-screen bg-background">
+                <header className="sticky top-0 z-40 glass border-b border-border/50">
                 <div className="section-container">
                     <div className="flex items-center h-16">
                         <Button
@@ -303,6 +306,7 @@ export default function AddAsset() {
                     </Form>
                 </div>
             </main>
+            </div>
         </div>
     );
 }

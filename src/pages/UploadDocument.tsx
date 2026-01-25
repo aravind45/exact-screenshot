@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { api } from "@/lib/api";
 import { motion } from "framer-motion";
 import { DocumentScanner } from "@/components/DocumentScanner";
+import { Sidebar } from "@/components/Sidebar";
 
 export default function UploadDocument() {
     const navigate = useNavigate();
@@ -44,8 +45,10 @@ export default function UploadDocument() {
     };
 
     return (
-        <div className="min-h-screen bg-background">
-            <header className="sticky top-0 z-40 glass border-b border-border/50">
+        <div className="flex">
+            <Sidebar />
+            <div className="flex-1 ml-64 min-h-screen bg-background">
+                <header className="sticky top-0 z-40 glass border-b border-border/50">
                 <div className="section-container">
                     <div className="flex items-center h-16">
                         <Button
@@ -170,6 +173,7 @@ export default function UploadDocument() {
 
                 </div>
             </main>
+            </div>
         </div>
     );
 }
