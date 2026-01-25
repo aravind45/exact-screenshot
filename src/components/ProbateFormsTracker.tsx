@@ -152,9 +152,28 @@ export function ProbateFormsTracker() {
                                                 >
                                                     <a href={form.url} target="_blank" rel="noopener noreferrer">
                                                         <Download className="w-3 h-3 mr-1" />
-                                                        Download
+                                                        Blank
                                                     </a>
                                                 </Button>
+
+                                                {isCompleted && (
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        asChild
+                                                        className="h-7 text-xs px-2 bg-green-50 hover:bg-green-100 border-green-200 text-green-700"
+                                                    >
+                                                        <a
+                                                            href={api.getEstateDocumentDownloadUrl(form.code)}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                        >
+                                                            <ExternalLink className="w-3 h-3 mr-1" />
+                                                            View
+                                                        </a>
+                                                    </Button>
+                                                )}
+
                                                 <Button
                                                     variant="outline"
                                                     size="sm"
@@ -172,7 +191,7 @@ export function ProbateFormsTracker() {
                                                     }}
                                                 >
                                                     <Upload className="w-3 h-3 mr-1" />
-                                                    {uploadingForm === form.code ? "Uploading..." : "Upload"}
+                                                    {uploadingForm === form.code ? "..." : "Upload"}
                                                 </Button>
                                             </div>
                                         </td>

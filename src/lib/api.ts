@@ -188,53 +188,6 @@ export const api = {
         return await response.blob();
     },
 
-    // Estate Documents (Document Vault)
-    getEstateDocuments: async () => {
-        const response = await fetch(`${API_URL}/estates/my/documents`, {
-            headers: getHeaders(),
-        });
-        return parseResponse(response);
-    },
-
-    createEstateDocument: async (data: any) => {
-        const response = await fetch(`${API_URL}/estates/my/documents`, {
-            method: "POST",
-            headers: getHeaders(),
-            body: JSON.stringify(data),
-        });
-        return parseResponse(response);
-    },
-
-    updateEstateDocument: async (id: string, updates: any) => {
-        const response = await fetch(`${API_URL}/estates/my/documents/${id}`, {
-            method: "PUT",
-            headers: getHeaders(),
-            body: JSON.stringify(updates),
-        });
-        return parseResponse(response);
-    },
-
-    deleteEstateDocument: async (id: string) => {
-        const response = await fetch(`${API_URL}/estates/my/documents/${id}`, {
-            method: "DELETE",
-            headers: getHeaders(),
-        });
-        return parseResponse(response);
-    },
-
-    uploadEstateDocument: async (id: string, file: File) => {
-        const formData = new FormData();
-        formData.append("file", file);
-
-        const response = await fetch(`${API_URL}/estates/my/documents/${id}/upload`, {
-            method: "POST",
-            headers: {
-                Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
-            },
-            body: formData,
-        });
-        return parseResponse(response);
-    },
 
     getAssetDocuments: async (assetId: string) => {
         const response = await fetch(`${API_URL}/assets/${assetId}/documents`, {
@@ -521,4 +474,8 @@ export const api = {
         );
         return parseResponse(response);
     },
+
+    getEstateDocumentDownloadUrl: (formCode: string) => {
+        return `${API_URL}/estates/my/documents/${formCode}/download?token=${localStorage.getItem("auth_token")}`;
+    }
 };

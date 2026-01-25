@@ -256,6 +256,7 @@ model EstateDocument {
   // File Storage
   name        String
   fileUrl     String?  @map("file_url")
+  content     Bytes?   @map("content")
   
   // Quantity Tracking (for physical documents)
   totalCopies     Int   @default(0) @map("total_copies")      // Total certified copies obtained

@@ -118,8 +118,6 @@ router.post("/:estateId/documents", async (req: any, res: Response) => {
             return res.status(400).json({ error: "Binary PDF body required" });
         }
 
-        // In production, you'd upload to S3/cloud storage
-        // For now, we'll store a placeholder URL
         const fileUrl = `uploads/${estateId}/${documentType}.pdf`;
 
         const document = await prisma.estateDocument.upsert({
@@ -131,6 +129,7 @@ router.post("/:estateId/documents", async (req: any, res: Response) => {
             },
             update: {
                 fileUrl,
+                content: req.body, // Store binary data
                 status: "OBTAINED",
                 obtainedDate: new Date()
             },
@@ -140,15 +139,43 @@ router.post("/:estateId/documents", async (req: any, res: Response) => {
                 documentType: documentType as string,
                 name: name as string,
                 fileUrl,
+                content: req.body, // Store binary data
                 status: "OBTAINED",
                 obtainedDate: new Date()
             }
         });
 
-        res.json({ success: true, document });
+        res.json({ success: true, document: { ...document, content: undefined } }); // Hide content in JSON response
     } catch (e: any) {
         console.error("Document upload error:", e);
         res.status(500).json({ error: "Failed to upload document" });
+    }
+});
+
+// Download uploaded probate form
+router.get("/my/documents/:formCode/download", async (req: any, res: Response) => {
+    try {
+        const estate = await prisma.estate.findFirst({ where: { userId: req.user.id } });
+        if (!estate) return res.status(404).json({ error: "Estate not found" });
+
+        const document = await prisma.estateDocument.findUnique({
+            where: {
+                estateId_documentType: {
+                    estateId: estate.id,
+                    documentType: req.params.formCode
+                }
+            }
+        });
+
+        if (!document || !document.content) {
+            return res.status(404).json({ error: "Document content not found" });
+        }
+
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `inline; filename=${document.documentType}_Completed.pdf`);
+        res.send(document.content);
+    } catch (e: any) {
+        res.status(500).json({ error: "Failed to download document" });
     }
 });
 
@@ -159,7 +186,19 @@ router.get("/:estateId/documents", async (req: any, res: Response) => {
 
         const documents = await prisma.estateDocument.findMany({
             where: { estateId },
-            orderBy: { createdAt: 'desc' }
+            orderBy: { createdAt: 'desc' },
+            select: { // Exclude large content blob from list
+                id: true,
+                estateId: true,
+                userId: true,
+                documentType: true,
+                name: true,
+                fileUrl: true,
+                status: true,
+                obtainedDate: true,
+                createdAt: true,
+                updatedAt: true
+            }
         });
 
         res.json(documents);
