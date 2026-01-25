@@ -16,6 +16,7 @@ import { api } from "@/lib/api";
 import { ArrowLeft, Save, User, UserCircle, Briefcase, MapPin, Mail, Loader2, ShieldCheck } from "lucide-react";
 import { motion } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Sidebar } from "@/components/Sidebar";
 
 const US_STATES = [
     "Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware", "Florida", "Georgia",
@@ -68,8 +69,10 @@ export default function ProfileSettings() {
     if (isLoading) return <div className="p-8">Loading profile...</div>;
 
     return (
-        <div className="min-h-screen bg-background">
-            <header className="sticky top-0 z-40 glass border-b border-border/50">
+        <div className="flex">
+            <Sidebar />
+            <div className="flex-1 ml-64 min-h-screen bg-background">
+                <header className="sticky top-0 z-40 glass border-b border-border/50">
                 <div className="section-container">
                     <div className="flex items-center justify-between h-16">
                         <div className="flex items-center gap-4">
@@ -247,6 +250,7 @@ export default function ProfileSettings() {
                     </div>
                 </div>
             </main>
+            </div>
         </div>
     );
 }
