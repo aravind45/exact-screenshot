@@ -77,7 +77,7 @@ async function main() {
     const email = 'aravind.77479@gmail.com'
     const passwordHash = '$2a$10$XmP1v43fWl/g8vJ.O2r8V.y1l6N.L3I9j9V.l/v.P/v.P/v.P/v.P' // bcrypt for 'password'
 
-    await prisma.user.upsert({
+    const user = await prisma.user.upsert({
         where: { email },
         update: {},
         create: {
@@ -89,6 +89,28 @@ async function main() {
         }
     })
     console.log('Seed: Primary user ensured!')
+
+    console.log('Seed: Checking for primary estate...')
+    const existingEstate = await prisma.estate.findFirst({
+        where: { userId: user.id }
+    })
+
+    if (!existingEstate) {
+        await prisma.estate.create({
+            data: {
+                userId: user.id,
+                name: "Aravind's Estate",
+                deceasedFirstName: "TBD",
+                deceasedLastName: "TBD",
+                deceasedDateOfDeath: new Date(),
+                deceasedState: "CA",
+                probateStatus: "NOT_STARTED"
+            }
+        })
+        console.log('Seed: Primary estate created!')
+    } else {
+        console.log('Seed: Primary estate already exists.')
+    }
 }
 
 main()
