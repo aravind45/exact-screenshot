@@ -422,6 +422,11 @@ export function ProbateHub() {
                         );
                     })()}
                 </div>
+
+                {/* Probate Forms Tracker */}
+                <div className="mt-6">
+                    <ProbateFormsTracker />
+                </div>
             </CardContent>
         </Card >
     );
