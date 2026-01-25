@@ -30,11 +30,12 @@ import { calculateAuthorityRecommendation, getInstitutionAuthorityRequirement } 
 import { cn } from "@/lib/utils";
 
 const REQUIRED_FORMS = [
-    { code: "DE-111", name: "Petition for Probate", url: "https://www.courts.ca.gov/documents/de111.pdf", required: true },
-    { code: "DE-121", name: "Notice of Hearing", url: "https://www.courts.ca.gov/documents/de121.pdf", required: true },
-    { code: "DE-150", name: "Letters Testamentary", url: "https://www.courts.ca.gov/documents/de150.pdf", required: true },
-    { code: "DE-160", name: "Inventory and Appraisal", url: "https://www.courts.ca.gov/documents/de160.pdf", required: false },
-    { code: "DE-165", name: "Notice of Proposed Action", url: "https://www.courts.ca.gov/documents/de165.pdf", required: false }
+    { code: "DE-111", name: "Petition for Probate", url: "https://www.courts.ca.gov/documents/de111.pdf", required: true, source: "PREP" },
+    { code: "DE-121", name: "Notice of Hearing", url: "https://www.courts.ca.gov/documents/de121.pdf", required: true, source: "PREP" },
+    { code: "DE-140", name: "Order for Probate", url: "https://www.courts.ca.gov/documents/de140.pdf", required: true, source: "COURT" },
+    { code: "DE-150", name: "Letters Testamentary", url: "https://www.courts.ca.gov/documents/de150.pdf", required: true, source: "COURT" },
+    { code: "DE-160", name: "Inventory and Appraisal", url: "https://www.courts.ca.gov/documents/de160.pdf", required: false, source: "PREP" },
+    { code: "DE-165", name: "Notice of Proposed Action", url: "https://www.courts.ca.gov/documents/de165.pdf", required: false, source: "PREP" }
 ];
 
 export function ProbateHub() {
@@ -91,8 +92,11 @@ export function ProbateHub() {
     const de121Completed = getFormStatus("DE-121") === "OBTAINED";
     const formsReady = de111Completed && de121Completed;
 
+    const orderReceived = getFormStatus("DE-140") === "OBTAINED";
+    const lettersReceived = getFormStatus("DE-150") === "OBTAINED";
+
     let currentPhase = 1; // Preparation
-    if (estate.probateStatus === "EXECUTOR_APPOINTED" || estate.probateStatus === "CLOSED") currentPhase = 4;
+    if (lettersReceived && estate.probateStatus === "EXECUTOR_APPOINTED") currentPhase = 4;
     else if (estate.probateStatus === "FILED") currentPhase = 3;
     else if (formsReady) currentPhase = 2;
 
@@ -159,7 +163,7 @@ export function ProbateHub() {
             <CardContent className="p-0">
                 <div className="grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-slate-100">
                     {/* Left Panel: Info & Phase Actions (5 cols) */}
-                    <div className="lg:col-span-5 p-4 space-y-4 bg-slate-50/30">
+                    <div className="lg:col-span-12 xl:col-span-5 p-4 space-y-4 bg-slate-50/30">
                         <AnimatePresence mode="wait">
                             {isEditing ? (
                                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3 bg-white p-3 rounded-lg border shadow-sm">
@@ -169,7 +173,7 @@ export function ProbateHub() {
                                             <Input size={1} className="h-7 text-xs" defaultValue={estate.courtCaseNumber} onBlur={(e) => updateMutation.mutate({ courtCaseNumber: e.target.value })} />
                                         </div>
                                         <div className="space-y-1">
-                                            <label className="text-[9px] font-bold text-slate-400 uppercase">Status</label>
+                                            <label className="text-[9px) font-bold text-slate-400 uppercase">Status</label>
                                             <Select defaultValue={estate.probateStatus} onValueChange={(val) => updateMutation.mutate({ probateStatus: val })}>
                                                 <SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
                                                 <SelectContent>
@@ -222,12 +226,21 @@ export function ProbateHub() {
                                             {currentPhase === 3 && "Phase 3: Court Hearing"}
                                             {currentPhase === 4 && "Phase 4: Authorities Granted"}
                                         </h4>
-                                        <p className="text-[11px] text-amber-800/80 leading-relaxed font-medium">
+                                        <div className="text-[11px] text-amber-800/80 leading-relaxed font-medium">
                                             {currentPhase === 1 && "Upload DE-111 and DE-121 to continue. Your forms are listed on the right."}
-                                            {currentPhase === 2 && "Paperwork is ready! Take forms to the Superior Court of " + (estate.deceasedState || "CA") + ". Don't forget to Mail Notice to all heirs."}
-                                            {currentPhase === 3 && "Wait for your hearing date. Bring the physical 'Order' and 'Letters' for the judge to sign."}
-                                            {currentPhase === 4 && "You are officially authorized! You can now access individual banking and property accounts."}
-                                        </p>
+                                            {currentPhase === 2 && "Paperwork is ready! Take forms to the Superior Court. Don't forget to Mail Notice to all heirs."}
+                                            {currentPhase === 3 && (
+                                                <div className="space-y-2">
+                                                    <p>Wait for your hearing. Once the judge approves, the court will issue two final documents:</p>
+                                                    <ul className="list-disc ml-4 space-y-1">
+                                                        <li><strong>Order for Probate (DE-140)</strong> - The judge's decision.</li>
+                                                        <li><strong>Letters (DE-150)</strong> - Your proof of power.</li>
+                                                    </ul>
+                                                    <p className="mt-2 text-amber-900 font-bold">You MUST upload the signed/sealed copies of these once you receive them.</p>
+                                                </div>
+                                            )}
+                                            {currentPhase === 4 && "You are officially authorized! You can now use your court-sealed Letters (DE-150) to settle individual accounts."}
+                                        </div>
 
                                         {currentPhase === 2 && estate.probateStatus === "NOT_STARTED" && (
                                             <Button
@@ -238,13 +251,13 @@ export function ProbateHub() {
                                                 I HAVE FILED THE PETITION
                                             </Button>
                                         )}
-                                        {currentPhase === 3 && (
+                                        {currentPhase === 3 && orderReceived && lettersReceived && (
                                             <Button
                                                 size="sm"
                                                 onClick={() => updateMutation.mutate({ probateStatus: 'EXECUTOR_APPOINTED' })}
                                                 className="mt-3 w-full h-8 bg-green-600 hover:bg-green-700 text-white text-[10px] font-bold tracking-wide"
                                             >
-                                                I HAVE RECEIVED LETTERS
+                                                ALL DOCUMENTS UPLOADED - ACTIVATE ESTATE
                                             </Button>
                                         )}
                                     </div>
@@ -266,11 +279,21 @@ export function ProbateHub() {
                     </div>
 
                     {/* Right Panel: Required Forms List (7 cols) */}
-                    <div className="lg:col-span-7 p-0 bg-white">
-                        <div className="px-4 py-2 border-b bg-slate-50/20">
+                    <div className="lg:col-span-12 xl:col-span-7 p-0 bg-white min-h-[300px]">
+                        <div className="px-4 py-2 border-b bg-slate-50/20 flex items-center justify-between">
                             <h4 className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-2">
-                                <FileText className="w-3 h-3" /> Required Probate Documents
+                                <FileText className="w-3 h-3" /> Probate Documents
                             </h4>
+                            <div className="flex gap-2">
+                                <div className="flex items-center gap-1">
+                                    <div className="w-2 h-2 rounded bg-amber-100 border border-amber-200" />
+                                    <span className="text-[8px] font-bold text-slate-400 uppercase">Prepare</span>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                    <div className="w-2 h-2 rounded bg-blue-100 border border-blue-200" />
+                                    <span className="text-[8px] font-bold text-slate-400 uppercase">Court Issued</span>
+                                </div>
+                            </div>
                         </div>
                         <div className="divide-y divide-slate-100">
                             {REQUIRED_FORMS.map((form) => {
@@ -280,12 +303,14 @@ export function ProbateHub() {
                                     <div key={form.code} className="px-4 py-2 flex items-center justify-between hover:bg-slate-50/50 transition-colors group">
                                         <div className="flex flex-col min-w-0">
                                             <div className="flex items-center gap-2">
-                                                <span className="font-mono text-[10px] font-bold text-amber-700">{form.code}</span>
-                                                {isCompleted ? (
-                                                    <CheckCircle2 className="w-3 h-3 text-green-500" />
-                                                ) : form.required ? (
-                                                    <div className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-                                                ) : null}
+                                                <Badge variant="outline" className={cn(
+                                                    "px-1 py-0 text-[8px] font-bold border-none",
+                                                    form.source === "PREP" ? "bg-amber-100 text-amber-700" : "bg-blue-100 text-blue-700"
+                                                )}>
+                                                    {form.source === "PREP" ? "FOR FILING" : "COURT SEAL"}
+                                                </Badge>
+                                                <span className="font-mono text-[10px] font-bold text-slate-500">{form.code}</span>
+                                                {isCompleted && <CheckCircle2 className="w-3 h-3 text-green-500" />}
                                             </div>
                                             <span className="text-[11px] font-medium text-slate-700 truncate">{form.name}</span>
                                         </div>
@@ -308,7 +333,10 @@ export function ProbateHub() {
                                             <Button
                                                 variant="outline"
                                                 size="sm"
-                                                className={cn("h-7 px-2 text-[9px] font-bold uppercase tracking-tight", isCompleted ? "border-green-100 text-green-600" : "border-slate-200")}
+                                                className={cn(
+                                                    "h-7 px-2 text-[9px] font-bold uppercase tracking-tight",
+                                                    isCompleted ? "border-green-100 text-green-600" : "border-slate-200"
+                                                )}
                                                 disabled={uploadingForm === form.code}
                                                 onClick={() => {
                                                     const input = document.createElement('input');
@@ -321,7 +349,7 @@ export function ProbateHub() {
                                                     input.click();
                                                 }}
                                             >
-                                                {uploadingForm === form.code ? "..." : isCompleted ? "Re-Upload" : "Upload"}
+                                                {uploadingForm === form.code ? "..." : isCompleted ? (form.source === "COURT" ? "UPDATE" : "RE-FILE") : "UPLOAD"}
                                             </Button>
                                         </div>
                                     </div>
