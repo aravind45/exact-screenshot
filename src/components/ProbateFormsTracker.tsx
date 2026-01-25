@@ -79,104 +79,118 @@ export function ProbateFormsTracker() {
     return (
         <Card className="card-elevated border-none">
             <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                    <FileText className="w-5 h-5" />
+                <CardTitle className="flex items-center gap-2 text-base">
+                    <FileText className="w-4 h-4" />
                     Required Probate Forms
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="text-xs">
                     Download blank forms, complete them, and upload the finished documents
                 </CardDescription>
             </CardHeader>
             <CardContent>
-                <div className="space-y-3">
-                    {REQUIRED_FORMS.map((form) => {
-                        const status = getFormStatus(form.code);
-                        const isCompleted = status === "OBTAINED";
-                        const isPending = status === "PENDING";
+                <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                        <thead className="bg-muted/50 text-muted-foreground font-medium uppercase tracking-wider text-[10px]">
+                            <tr>
+                                <th className="px-4 py-3 text-left">Form</th>
+                                <th className="px-4 py-3 text-left">Description</th>
+                                <th className="px-4 py-3 text-center">Required</th>
+                                <th className="px-4 py-3 text-center">Status</th>
+                                <th className="px-4 py-3 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-border/50">
+                            {REQUIRED_FORMS.map((form) => {
+                                const status = getFormStatus(form.code);
+                                const isCompleted = status === "OBTAINED";
+                                const isPending = status === "PENDING";
 
-                        return (
-                            <div
-                                key={form.code}
-                                className="flex items-center justify-between p-4 rounded-lg border border-border/50 hover:bg-muted/30 transition-colors"
-                            >
-                                <div className="flex-1">
-                                    <div className="flex items-center gap-2">
-                                        <span className="font-mono text-sm font-bold text-primary">{form.code}</span>
-                                        {form.required && (
-                                            <Badge variant="outline" className="text-xs">Required</Badge>
-                                        )}
-                                    </div>
-                                    <p className="text-sm text-muted-foreground mt-1">{form.name}</p>
-                                </div>
-
-                                <div className="flex items-center gap-2">
-                                    {/* Status Badge */}
-                                    {isCompleted && (
-                                        <Badge className="bg-green-500/10 text-green-600 border-green-500/20">
-                                            <CheckCircle2 className="w-3 h-3 mr-1" />
-                                            Completed
-                                        </Badge>
-                                    )}
-                                    {isPending && (
-                                        <Badge className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20">
-                                            <Clock className="w-3 h-3 mr-1" />
-                                            Pending
-                                        </Badge>
-                                    )}
-                                    {!isCompleted && !isPending && (
-                                        <Badge variant="outline" className="text-muted-foreground">
-                                            <AlertCircle className="w-3 h-3 mr-1" />
-                                            Not Started
-                                        </Badge>
-                                    )}
-
-                                    {/* Download Blank Form */}
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        asChild
-                                        className="gap-2"
-                                    >
-                                        <a href={form.url} target="_blank" rel="noopener noreferrer">
-                                            <Download className="w-4 h-4" />
-                                            Download
-                                        </a>
-                                    </Button>
-
-                                    {/* Upload Completed Form */}
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        className="gap-2"
-                                        disabled={uploadingForm === form.code}
-                                        onClick={() => {
-                                            const input = document.createElement('input');
-                                            input.type = 'file';
-                                            input.accept = '.pdf';
-                                            input.onchange = (e: any) => {
-                                                const file = e.target.files?.[0];
-                                                if (file) handleUpload(form.code, file);
-                                            };
-                                            input.click();
-                                        }}
-                                    >
-                                        <Upload className="w-4 h-4" />
-                                        {uploadingForm === form.code ? "Uploading..." : "Upload"}
-                                    </Button>
-                                </div>
-                            </div>
-                        );
-                    })}
+                                return (
+                                    <tr key={form.code} className="hover:bg-muted/30 transition-colors">
+                                        <td className="px-4 py-3">
+                                            <span className="font-mono text-xs font-bold text-primary">{form.code}</span>
+                                        </td>
+                                        <td className="px-4 py-3 text-xs text-muted-foreground">
+                                            {form.name}
+                                        </td>
+                                        <td className="px-4 py-3 text-center">
+                                            {form.required ? (
+                                                <Badge variant="outline" className="text-[10px] px-1.5 py-0">Required</Badge>
+                                            ) : (
+                                                <span className="text-xs text-muted-foreground">Optional</span>
+                                            )}
+                                        </td>
+                                        <td className="px-4 py-3">
+                                            <div className="flex justify-center">
+                                                {isCompleted && (
+                                                    <Badge className="bg-green-500/10 text-green-600 border-green-500/20 text-[10px] px-2 py-0">
+                                                        <CheckCircle2 className="w-3 h-3 mr-1" />
+                                                        Completed
+                                                    </Badge>
+                                                )}
+                                                {isPending && (
+                                                    <Badge className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20 text-[10px] px-2 py-0">
+                                                        <Clock className="w-3 h-3 mr-1" />
+                                                        Pending
+                                                    </Badge>
+                                                )}
+                                                {!isCompleted && !isPending && (
+                                                    <Badge variant="outline" className="text-muted-foreground text-[10px] px-2 py-0">
+                                                        <AlertCircle className="w-3 h-3 mr-1" />
+                                                        Not Started
+                                                    </Badge>
+                                                )}
+                                            </div>
+                                        </td>
+                                        <td className="px-4 py-3">
+                                            <div className="flex justify-end gap-2">
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    asChild
+                                                    className="h-7 text-xs px-2"
+                                                >
+                                                    <a href={form.url} target="_blank" rel="noopener noreferrer">
+                                                        <Download className="w-3 h-3 mr-1" />
+                                                        Download
+                                                    </a>
+                                                </Button>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="h-7 text-xs px-2"
+                                                    disabled={uploadingForm === form.code}
+                                                    onClick={() => {
+                                                        const input = document.createElement('input');
+                                                        input.type = 'file';
+                                                        input.accept = '.pdf';
+                                                        input.onchange = (e: any) => {
+                                                            const file = e.target.files?.[0];
+                                                            if (file) handleUpload(form.code, file);
+                                                        };
+                                                        input.click();
+                                                    }}
+                                                >
+                                                    <Upload className="w-3 h-3 mr-1" />
+                                                    {uploadingForm === form.code ? "Uploading..." : "Upload"}
+                                                </Button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                );
+                            })}
+                        </tbody>
+                    </table>
                 </div>
 
-                <div className="mt-6 p-4 rounded-lg bg-blue-500/5 border border-blue-500/20">
-                    <div className="flex gap-3">
-                        <ExternalLink className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                <div className="mt-4 p-3 rounded-lg bg-blue-500/5 border border-blue-500/20">
+                    <div className="flex gap-2 items-start">
+                        <ExternalLink className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
                         <div>
-                            <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                            <p className="text-xs font-medium text-blue-900 dark:text-blue-100">
                                 Need help filling out forms?
                             </p>
-                            <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
+                            <p className="text-[11px] text-blue-700 dark:text-blue-300 mt-0.5">
                                 Visit the{" "}
                                 <a
                                     href="https://www.courts.ca.gov/selfhelp-probate.htm"
@@ -186,7 +200,6 @@ export function ProbateFormsTracker() {
                                 >
                                     California Courts Self-Help Guide
                                 </a>
-                                {" "}for instructions
                             </p>
                         </div>
                     </div>
