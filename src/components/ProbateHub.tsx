@@ -32,10 +32,10 @@ import { cn } from "@/lib/utils";
 const REQUIRED_FORMS = [
     { code: "DE-111", name: "Petition for Probate", url: "https://www.courts.ca.gov/documents/de111.pdf", required: true, source: "PREP" },
     { code: "DE-121", name: "Notice of Hearing", url: "https://www.courts.ca.gov/documents/de121.pdf", required: true, source: "PREP" },
-    { code: "DE-140", name: "Order for Probate", url: "https://www.courts.ca.gov/documents/de140.pdf", required: true, source: "COURT" },
-    { code: "DE-150", name: "Letters Testamentary", url: "https://www.courts.ca.gov/documents/de150.pdf", required: true, source: "COURT" },
     { code: "DE-160", name: "Inventory and Appraisal", url: "https://www.courts.ca.gov/documents/de160.pdf", required: false, source: "PREP" },
-    { code: "DE-165", name: "Notice of Proposed Action", url: "https://www.courts.ca.gov/documents/de165.pdf", required: false, source: "PREP" }
+    { code: "DE-165", name: "Notice of Proposed Action", url: "https://www.courts.ca.gov/documents/de165.pdf", required: false, source: "PREP" },
+    { code: "DE-140", name: "Order for Probate", url: "https://www.courts.ca.gov/documents/de140.pdf", required: true, source: "COURT" },
+    { code: "DE-150", name: "Letters Testamentary", url: "https://www.courts.ca.gov/documents/de150.pdf", required: true, source: "COURT" }
 ];
 
 export function ProbateHub() {
@@ -290,7 +290,7 @@ export function ProbateHub() {
                                     <span className="text-[8px] font-bold text-slate-400 uppercase">Prepare</span>
                                 </div>
                                 <div className="flex items-center gap-1">
-                                    <div className="w-2 h-2 rounded bg-blue-100 border border-blue-200" />
+                                    <div className="w-2 h-2 rounded bg-violet-100 border border-violet-200" />
                                     <span className="text-[8px] font-bold text-slate-400 uppercase">Court Issued</span>
                                 </div>
                             </div>
@@ -305,7 +305,7 @@ export function ProbateHub() {
                                             <div className="flex items-center gap-2">
                                                 <Badge variant="outline" className={cn(
                                                     "px-1 py-0 text-[8px] font-bold border-none",
-                                                    form.source === "PREP" ? "bg-amber-100 text-amber-700" : "bg-blue-100 text-blue-700"
+                                                    form.source === "PREP" ? "bg-amber-100 text-amber-700" : "bg-violet-100 text-violet-700"
                                                 )}>
                                                     {form.source === "PREP" ? "FOR FILING" : "COURT SEAL"}
                                                 </Badge>
