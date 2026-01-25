@@ -99,10 +99,7 @@ describe("Workflow Clarity Improvements", () => {
         );
 
         // Verify Header Change
-        expect(screen.getByText("Institution Settlement Guide")).toBeInTheDocument();
-
-        // Verify Badge
-        expect(screen.getByText("ASSET-SPECIFIC")).toBeInTheDocument();
+        expect(screen.getByText("Settlement Action Plan")).toBeInTheDocument();
     });
 
     it("Dependency Indicator: Shows Alert when Probate is not done", async () => {

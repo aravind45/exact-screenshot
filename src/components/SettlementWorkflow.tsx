@@ -230,18 +230,29 @@ export function SettlementWorkflow({
                                             </div>
 
                                             <div className="lg:col-span-5 space-y-5">
-                                                <div className="space-y-2">
-                                                    <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Action Tools</h4>
-                                                    <div className="grid grid-cols-1 gap-2">
+                                                <div className="space-y-3">
+                                                    <div className="flex items-center justify-between ml-1">
+                                                        <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Action Tools</h4>
+                                                        <span className="text-[9px] font-bold text-blue-500 uppercase tracking-tighter">Required for Compliance</span>
+                                                    </div>
+                                                    <div className="grid grid-cols-1 gap-3">
                                                         {step.id === "initial_notification" && (
-                                                            <Button
-                                                                variant="default"
-                                                                className="w-full justify-start gap-3 h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-sm border-none"
-                                                                onClick={onGenerateLetter}
-                                                            >
-                                                                <FileText className="w-4 h-4" />
-                                                                <span className="font-bold text-xs uppercase tracking-tight">Generate Notice</span>
-                                                            </Button>
+                                                            <div className="space-y-2">
+                                                                <Button
+                                                                    variant="default"
+                                                                    className="w-full justify-start gap-3 h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-sm border-none"
+                                                                    onClick={onGenerateLetter}
+                                                                >
+                                                                    <FileText className="w-4 h-4" />
+                                                                    <div className="text-left">
+                                                                        <p className="font-bold text-xs uppercase tracking-tight">Create Notification Letter</p>
+                                                                        <p className="text-[9px] opacity-70 font-medium">Download formal PDF for their records</p>
+                                                                    </div>
+                                                                </Button>
+                                                                <p className="px-1 text-[10px] text-slate-500 leading-tight italic">
+                                                                    <strong>Purpose:</strong> Most institutions require a written notice to trigger formal estate protocols and freeze the account.
+                                                                </p>
+                                                            </div>
                                                         )}
 
                                                         {step.phone && (
@@ -251,18 +262,26 @@ export function SettlementWorkflow({
                                                                 onClick={() => window.location.href = `tel:${renderText(step.phone)}`}
                                                             >
                                                                 <Phone className="w-3.5 h-3.5 text-blue-600" />
-                                                                <span className="font-bold text-xs">{renderText(step.phone)}</span>
+                                                                <span className="font-bold text-xs">Call {renderText(step.phone)}</span>
                                                             </Button>
                                                         )}
 
-                                                        <Button
-                                                            variant="outline"
-                                                            className="w-full justify-start gap-3 h-10 border-slate-200 hover:bg-slate-50 rounded-xl"
-                                                            onClick={onLogCommunication}
-                                                        >
-                                                            <MessageCircle className="w-3.5 h-3.5 text-slate-600" />
-                                                            <span className="font-bold text-xs">Record Progress</span>
-                                                        </Button>
+                                                        <div className="space-y-2">
+                                                            <Button
+                                                                variant="outline"
+                                                                className="w-full justify-start gap-3 h-12 border-slate-200 hover:bg-slate-50 rounded-xl"
+                                                                onClick={onLogCommunication}
+                                                            >
+                                                                <MessageCircle className="w-3.5 h-3.5 text-slate-600" />
+                                                                <div className="text-left">
+                                                                    <p className="font-bold text-xs uppercase tracking-tight">Log Call or Email</p>
+                                                                    <p className="text-[9px] text-slate-500 font-medium">Record who you spoke with and when</p>
+                                                                </div>
+                                                            </Button>
+                                                            <p className="px-1 text-[10px] text-slate-500 leading-tight italic">
+                                                                <strong>Purpose:</strong> This creates a "Chain of Evidence" for the court, proving you are actively securing estate assets.
+                                                            </p>
+                                                        </div>
 
                                                         {step.id === "submit_docs" && (
                                                             <Button
@@ -271,7 +290,7 @@ export function SettlementWorkflow({
                                                                 onClick={onSendFax}
                                                             >
                                                                 <Printer className="w-3.5 h-3.5 text-blue-600" />
-                                                                <span className="font-bold text-xs uppercase tracking-tight">Fax Documents</span>
+                                                                <span className="font-bold text-xs uppercase tracking-tight">Transmit via Fax</span>
                                                             </Button>
                                                         )}
                                                     </div>

@@ -125,7 +125,12 @@ export function CommunicationLogDialog({
             <DialogContent className="sm:max-w-[600px]">
                 <DialogHeader>
                     <div className="flex items-center justify-between pr-8">
-                        <DialogTitle>Log Communication</DialogTitle>
+                        <div>
+                            <DialogTitle>Log Activity & Communication</DialogTitle>
+                            <p className="text-[10px] text-slate-500 font-medium mt-1">
+                                <strong>Legal Purpose:</strong> Maintaining a detailed history of your interactions with {workflowContext?.title || 'the institution'} serves as "Due Diligence" evidence for the court and heirs.
+                            </p>
+                        </div>
                         {isGenerating && (
                             <div className="flex items-center gap-1.5 text-xs font-medium text-primary animate-pulse">
                                 <Sparkles className="w-3.5 h-3.5" />
