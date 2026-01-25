@@ -28,44 +28,44 @@ export const bankWorkflow: WorkflowConfig = {
     steps: [
         {
             id: 'initial_notification',
-            title: 'Phase 1: Notification & Account Security',
-            description: 'Formally notify the bank of the death to "freeze" the account and prevent unauthorized transfers.',
-            script: "I am calling to formally notify {{institution}} of the death of {{deceasedName}}. I am the court-appointed {{userRole}} and need to place a 'Death Alert' or 'Estate Freeze' on account #{{accountNumber}} immediately.",
+            title: 'Phase 1: Freeze & Protect',
+            description: 'Immediate account security. Notify the bank to "lock" the account, stopping unauthorized access and automatic bills.',
+            script: "I am calling to formally notify {{institution}} of the death of {{deceasedName}}. Please place an immediate 'Estate Freeze' on account #{{accountNumber}} for heir protection.",
             alerts: [
                 {
                     type: "important",
-                    message: "Freezing the account protects heirs but also stops auto-pays. Ensure mortgage or utility payments are handled separately."
+                    message: "Why we do this: Freezing prevents identity theft and 'leaky' withdrawals that drain the estate before you take control."
                 }
             ],
-            guidance: 'Use the "Generate Settlement Notice" tool below to create a formal document for their records.',
+            guidance: 'Action: Use the "Smart Email Draft" to send a formal legal notice. This starts your official audit trail.',
             estimatedTime: '30 minutes'
         },
         {
             id: 'obtain_balance',
-            title: 'Phase 2: Formal Inventory Request',
-            description: 'Request a formal "Date-of-Death" balance statement. This is a legal requirement for court inventory and tax filings.',
+            title: 'Phase 2: Discovery (DOD Valuation)',
+            description: 'Request the official "Date-of-Death" balance. You cannot report the estate value to the Court without this verified snapshot.',
             requiredDocs: ['Death Certificate'],
-            guidance: "This statement must reflect the exact value at the moment of death, not the current market value.",
+            guidance: "Why we do this: The Judge requires a 'Snapshot' of wealth at the exact second of death for the official Inventory & Appraisal.",
             estimatedTime: '1 week'
         },
         {
             id: 'submit_docs',
-            title: 'Phase 3: Present Authority (Letters)',
-            description: 'Submit your certified Letters Testamentary (DE-150) and identification to the Estate/Trust department.',
+            title: 'Phase 3: Unlock (Present Authority)',
+            description: 'Submit your certified Court Letters (DE-150). This proves to the bank that you are the only one legally allowed to move this money.',
             requiredDocs: ['Letters (DE-150)', 'Executor ID Card'],
             alerts: [
                 {
                     type: "info",
-                    message: "Banks often require a 'Fresh' certified copy of your Letters (usually issued within the last 60 days)."
+                    message: "Why we do this: Banks are legally prohibited from releasing assets until they verify your court-appointed power (the 'Letters')."
                 }
             ],
             estimatedTime: '1-3 days'
         },
         {
             id: 'final_distribution',
-            title: 'Phase 4: Closure & Estate Transfer',
-            description: 'Finalize the transfer of all remaining funds to the formal Estate Account or directly to beneficiaries.',
-            guidance: 'Instruct the bank to issue a check to the "Estate of [Deceased Name]" if you do not have an estate account yet.',
+            title: 'Phase 4: Move & Distribute',
+            description: 'Clean up the account. Transfer the final balance to your Estate Account or directly to the heirs named in the Will.',
+            guidance: 'Why we do this: This is the finish line. We are moving the assets from the deceased’s name into the hands of the living.',
             estimatedTime: '1-2 weeks'
         }
     ],

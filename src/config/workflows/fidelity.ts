@@ -29,30 +29,30 @@ export const fidelityWorkflow: WorkflowConfig = {
     steps: [
         {
             id: "initial_notification",
-            title: "Phase 1: Death Alert & Account Freeze",
-            description: "Inform {{institution}} Estate Services of the death to secure the account and begin the forensic review.",
+            title: "Phase 1: Freeze & Secure",
+            description: "Inform {{institution}} of the death to lock the account. This prevents market volatility or unauthorized access while the estate is settled.",
             phone: "{{institutionPhone}}",
-            script: "I'm calling to formally notify {{institution}} of the death of {{deceasedName}} on behalf of the estate. Please lock all accounts for account holder account #{{accountNumber}} and identify any TOD or beneficiary designations.",
-            guidance: "This action protects the holdings from unauthorized trades or transfers. You should follow up immediately with a formal letter.",
+            script: "I'm calling to notify {{institution}} of the death of {{deceasedName}}. Please place an immediate 'Estate Freeze' on account #{{accountNumber}} and identify any TOD designations.",
+            guidance: "Why we do this: Freezing stops 'The Clock'. It protects the volatility of stocks and prevents automatic sales or transfers that would happen without your consent.",
             estimatedTime: "20 minutes"
         },
         {
             id: "account_classification",
-            title: "Phase 2: Distribution Classification",
-            description: "{{institution}} determines if assets bypass probate (TOD) or require court authority (Individual).",
+            title: "Phase 2: Distribution Discovery",
+            description: "Verify if these assets bypass probate (TOD/Beneficiary) or are part of the formal court estate.",
             alerts: [
                 {
                     type: "info",
-                    message: "Current asset classification: {{ownershipType}}."
+                    message: "Why we do this: Unlike cash in a bank, brokerage accounts often have 'Secret Exit Paths' (TODs) that save you months of probate if identified early."
                 }
             ],
-            guidance: "If classified as INDIVIDUAL, you MUST provide Letters Testamentary (Phase 3) before any money can move.",
+            guidance: "Action: If identified as INDIVIDUAL, the court must now supervise the transfer (Phase 3).",
             estimatedTime: "Instant"
         },
         {
             id: "submit_docs",
-            title: "Phase 3: Formal Authority Submission",
-            description: "Provide the court-certified documents that prove you have the right to move this money.",
+            title: "Phase 3: Unlock (Authority)",
+            description: "Provide the Court-certified Letters (DE-150) and identification. This is the legal 'Key' to the investment vault.",
             condition: (asset) => asset.ownershipType === "INDIVIDUAL",
             requiredDocs: [
                 "Letters Testamentary (DE-150)",
@@ -62,10 +62,10 @@ export const fidelityWorkflow: WorkflowConfig = {
             alerts: [
                 {
                     type: "important",
-                    message: "A 'Letter of Instruction' is often required alongside your court documents to specify where the funds go."
+                    message: "Why we do this: Institutions are strictly liabile for 'Wrongful Distribution'. They won't move until they see the Judge's seal on your Letters."
                 }
             ],
-            guidance: "Use the 'Fax Integration' tool below once you've uploaded your documents to speed up processing.",
+            guidance: "Pro-Tip: Use our Fax Tool to send your DE-150 directly to the Estate department to bypass the snail mail delay.",
             estimatedTime: "1-2 days"
         },
         {
@@ -83,15 +83,15 @@ export const fidelityWorkflow: WorkflowConfig = {
         },
         {
             id: "final_distribution",
-            title: "Phase 4: Asset Distribution & Step-Up",
-            description: "Ensure assets receive a 'Step-up' in cost basis and are transferred to heirs.",
+            title: "Phase 4: Cost Basis & Transfer",
+            description: "The 'Finish Line'. Ensure the taxable value is reset (Step-Up) and the stocks move to the final beneficiaries.",
             alerts: [
                 {
                     type: "caution",
-                    message: "Confirm the 'Cost Basis' is updated to the Date of Death value to minimize future capital gains taxes."
+                    message: "Why we do this: This is the most important financial tax-saver in probate. We verify the 'Cost Basis' is reset to DOD value, potentially saving heirs thousands in taxes."
                 }
             ],
-            guidance: "Final step: Once accounts are zeroed out, request a final closing statement for your records.",
+            guidance: "Action: Instruct {{institution}} to move the positions to the target brokerage accounts.",
             estimatedTime: "2-4 weeks"
         }
     ],

@@ -28,38 +28,39 @@ export const propertyWorkflow: WorkflowConfig = {
     steps: [
         {
             id: 'initial_notification',
-            title: 'Phase 1: Appraisal & Value Lock',
-            description: 'Hire a professional appraiser to determine the fair market value (FMV) at the date of death.',
+            title: 'Phase 1: Valuation & Base Lock',
+            description: 'Determine the professional Fair Market Value (FMV) as of the exact date of death.',
             requiredDocs: ['Formal Appraisal Report'],
             alerts: [
                 {
                     type: "important",
-                    message: "The FMV at the date of death is used to establish the 'Step-up in Basis', which can save thousands in capital gains taxes later."
+                    message: "Why we do this: This establishes the 'Step-up in Basis'. It wipes out decades of capital gains tax liability for the heirs in one legal snapshot."
                 }
             ],
-            guidance: 'Ensure the appraiser is familiar with "Date of Death" valuations, which may differ from current listing prices.',
+            guidance: 'Action: Hire a probate-certified appraiser. This value is the foundation of your court accounting.',
             estimatedTime: '1-2 weeks'
         },
         {
             id: 'notify_insurance',
-            title: 'Phase 2: Property Security & Insurance',
-            description: 'Notify the homeowners insurance carrier to ensure continuous coverage, especially if the property is now vacant.',
-            guidance: 'Warning: Vacant properties often require a "Vacancy Rider" or specialized insurance. Failure to notify may void the policy.',
+            title: 'Phase 2: Risk Management',
+            description: 'Secure the property. Notify the insurance carrier of the vacancy and confirm the estate’s liability coverage.',
+            guidance: 'Why we do this: Unoccupied probate homes are high-risk. Failure to notify insurance can lead to a total loss if a pipe bursts or a fire occurs.',
             estimatedTime: '1 day'
         },
         {
             id: 'submit_docs',
-            title: 'Phase 3: Title & Ownership Recordation',
-            description: 'Record the Affidavit of Death or Certified Order for Distribution with the County Recorder to update the public title.',
+            title: 'Phase 3: Public Authority (Title)',
+            description: 'Record your Court Letters (DE-150) and the Affidavit of Death with the County. This takes the house out of the deceased’s name.',
             requiredDocs: ['Death Certificate', 'Affidavit of Death', 'Letters (DE-150)'],
-            guidance: 'This step formally moves the property out of the deceased\'s name in the public records.',
+            guidance: 'Why we do this: You cannot sell or refinance a house that legally still belongs to a deceased person. This step updates the public record to show YOU have the power to sign deeds.',
             estimatedTime: '1-3 weeks'
         },
         {
             id: 'final_distribution',
-            title: 'Phase 4: Deed Transfer or Sale',
-            description: 'Execute and record a new Grant Deed transferring the property to the final heirs or a third-party buyer.',
+            title: 'Phase 4: Transfer & Distribution',
+            description: 'The final move. Record the new Grant Deed transferring ownership to the heirs or a buyer.',
             requiredDocs: ['Certified Order for Distribution', 'Grant Deed'],
+            guidance: 'Why we do this: The legal finish line. This is the moment when the heirs finally become the official, legal owners of the home.',
             estimatedTime: '2-4 weeks'
         }
     ],
