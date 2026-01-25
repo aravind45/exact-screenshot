@@ -27,7 +27,6 @@ import { ProcessFlow } from "./ProcessFlow";
 import { TRACK_STAGES, SettlementTrack } from "@/config/settlementStages";
 import { calculateAuthorityRecommendation, getInstitutionAuthorityRequirement } from "@/lib/authorityEngine";
 import { cn } from "@/lib/utils";
-import { DocumentVault } from "./DocumentVault";
 
 export function ProbateHub() {
     const { toast } = useToast();
@@ -239,7 +238,7 @@ export function ProbateHub() {
                 </AnimatePresence>
 
                 {/* Authority Eligibility Logic */}
-                <div className="pt-4 border-t border-border/50">
+                <div className="pt-4 border-t border-border/50 pb-4">
                     {(() => {
                         const rec = calculateAuthorityRecommendation(assets, estate.deceasedState || "CA");
                         const status = estate.authorityStatus || "NOT_STARTED";
@@ -324,20 +323,6 @@ export function ProbateHub() {
                             </div>
                         );
                     })()}
-                </div>
-
-                {/* Document Vault - Estate-Level Documents */}
-                <div className="mt-8">
-                    <div className="mb-4">
-                        <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                            <FileText className="w-5 h-5 text-blue-600" />
-                            Document Vault
-                        </h3>
-                        <p className="text-sm text-gray-600 mt-1">
-                            Common documents used across <strong>all assets</strong> (upload once, use everywhere)
-                        </p>
-                    </div>
-                    <DocumentVault />
                 </div>
             </CardContent>
         </Card >
