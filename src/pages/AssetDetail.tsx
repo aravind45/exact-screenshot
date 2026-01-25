@@ -57,6 +57,7 @@ import { bankWorkflow } from "@/config/workflows/bank";
 import { propertyWorkflow } from "@/config/workflows/property";
 import { SettlementWorkflow } from "@/components/SettlementWorkflow";
 import { ProbateProgressMini } from "@/components/ProbateProgressMini";
+import { SmartEmailDraft } from "@/components/SmartEmailDraft";
 
 // Helper to normalize status/priority from DB
 const normalize = (str: string | null) => str?.toLowerCase() || '';
@@ -146,6 +147,8 @@ export default function AssetDetail() {
   const [showCommDialog, setShowCommDialog] = useState(false);
   const [currentStepId, setCurrentStepId] = useState("initial_contact");
   const [completedStepIds, setCompletedStepIds] = useState<string[]>([]);
+  const [hasSetInitialTab, setHasSetInitialTab] = useState(false);
+  const [showDraftModal, setShowDraftModal] = useState(false);
 
   const getWorkflow = (category: string, type?: string) => {
     const isBrokerage = type?.toLowerCase().includes('brokerage') || type?.toLowerCase().includes('401k') || type?.toLowerCase().includes('retirement');
@@ -331,10 +334,13 @@ export default function AssetDetail() {
   };
 
   useEffect(() => {
-    if (asset && normalize(asset.status) === 'discovered') {
-      setActiveTab("workflow");
+    if (asset && !hasSetInitialTab) {
+      if (normalize(asset.status) === 'discovered') {
+        setActiveTab("workflow");
+      }
+      setHasSetInitialTab(true);
     }
-  }, [asset]);
+  }, [asset, hasSetInitialTab]);
 
   if (isLoading) return <div className="p-8">Loading asset details...</div>;
   if (error || !asset) return <div className="p-8 text-red-500">Error loading asset: {(error as Error)?.message || "Not found"}</div>;
@@ -656,6 +662,30 @@ export default function AssetDetail() {
                     <CommunicationLog assetId={id!} />
                   </div>
                 )}
+
+                {/* Value Proposition: Why Use Pilar? */}
+                <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl p-8 text-white shadow-xl relative overflow-hidden">
+                  <div className="absolute top-0 right-0 p-4 opacity-10">
+                    <Scale className="w-24 h-24" />
+                  </div>
+                  <div className="relative z-10 space-y-4">
+                    <Badge className="bg-blue-500 text-white border-none px-3 py-1 font-black uppercase text-[10px] tracking-widest">Executor Protection</Badge>
+                    <h3 className="text-xl font-bold tracking-tight">Why log every email here?</h3>
+                    <p className="text-slate-300 text-sm leading-relaxed">
+                      Gmail is for chatting; **Pilar is for Probate.** Every interaction you log here is converted into a **Court-Admissible Audit Trail**.
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                      <div className="p-4 bg-white/5 rounded-2xl border border-white/10">
+                        <p className="text-xs font-bold text-blue-400 uppercase mb-1">Legal Liability</p>
+                        <p className="text-[11px] text-slate-400">Proves to the judge and heirs that you acted with maximum "Due Diligence."</p>
+                      </div>
+                      <div className="p-4 bg-white/5 rounded-2xl border border-white/10">
+                        <p className="text-xs font-bold text-emerald-400 uppercase mb-1">One-Click Report</p>
+                        <p className="text-[11px] text-slate-400">Export your entire verified history as a PDF for the final accounting.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <div className="space-y-6">
@@ -755,15 +785,9 @@ export default function AssetDetail() {
                                 variant="ghost"
                                 size="sm"
                                 className="h-8 text-[10px] font-bold text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                                onClick={() => {
-                                  window.location.href = `mailto:${value}`;
-                                  toast({
-                                    title: "Opening Email Client",
-                                    description: "After you send your email, remember to log it here for your official records!",
-                                  });
-                                }}
+                                onClick={() => setShowDraftModal(true)}
                               >
-                                Send via Gmail
+                                Send Professional Draft
                               </Button>
                             )}
                           </div>
@@ -974,6 +998,23 @@ export default function AssetDetail() {
             description: renderText(step.description)
           };
         })()}
+      />
+
+      <SmartEmailDraft
+        open={showDraftModal}
+        onOpenChange={setShowDraftModal}
+        asset={uiAsset}
+        estate={estate}
+        onLogSent={(subject, content) => {
+          createCommMutation.mutate({
+            method: "email",
+            direction: "outbound",
+            subject,
+            content,
+            type: "initial_contact",
+            occurredAt: new Date().toISOString().slice(0, 16)
+          } as any);
+        }}
       />
     </div>
   );

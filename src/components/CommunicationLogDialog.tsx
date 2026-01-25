@@ -28,7 +28,7 @@ export interface CommunicationData {
     method: string;
     subject: string;
     content: string;
-    communicationDate: string;
+    occurredAt: string;
     type: string;
     direction: string;
     contactPerson?: string;
@@ -58,7 +58,7 @@ export function CommunicationLogDialog({
         method: "phone",
         subject: "",
         content: "",
-        communicationDate: new Date().toISOString().slice(0, 16),
+        occurredAt: new Date().toISOString().slice(0, 16),
         type: "follow_up",
         direction: "outbound",
         contactPerson: ""
@@ -130,7 +130,7 @@ export function CommunicationLogDialog({
                 method: "phone",
                 subject: "",
                 content: "",
-                communicationDate: new Date().toISOString().slice(0, 16),
+                occurredAt: new Date().toISOString().slice(0, 16),
                 type: "follow_up",
                 direction: "outbound",
                 contactPerson: ""
@@ -261,8 +261,8 @@ export function CommunicationLogDialog({
                             <Input
                                 id="date"
                                 type="datetime-local"
-                                value={formData.communicationDate}
-                                onChange={(e) => setFormData({ ...formData, communicationDate: e.target.value })}
+                                value={formData.occurredAt}
+                                onChange={(e) => setFormData({ ...formData, occurredAt: e.target.value })}
                                 required
                             />
                         </div>
