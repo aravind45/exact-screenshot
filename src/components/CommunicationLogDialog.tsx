@@ -63,7 +63,7 @@ export function CommunicationLogDialog({
         type: "follow_up",
         direction: "outbound",
         contactPerson: "",
-        statusChange: ""
+        statusChange: "none"
     });
 
     useEffect(() => {
@@ -136,7 +136,7 @@ export function CommunicationLogDialog({
                 type: "follow_up",
                 direction: "outbound",
                 contactPerson: "",
-                statusChange: ""
+                statusChange: "none"
             });
         }, 200);
     };
@@ -285,7 +285,7 @@ export function CommunicationLogDialog({
                                 <SelectValue placeholder="Did this move the process forward?" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="">No status change</SelectItem>
+                                <SelectItem value="none">No status change</SelectItem>
                                 <SelectItem value="contacted">Institution Contacted</SelectItem>
                                 <SelectItem value="documents_submitted">Documents Sent/Received</SelectItem>
                                 <SelectItem value="in_review">Awaiting Their Decision (In Review)</SelectItem>

@@ -262,7 +262,7 @@ export default function AssetDetail() {
       setShowCommDialog(false);
 
       // If the communication included a status change, update the asset
-      if (newComm.statusChange) {
+      if (newComm.statusChange && newComm.statusChange !== 'none') {
         updateMutation.mutate({ status: newComm.statusChange });
       }
     },
@@ -1015,9 +1015,10 @@ export default function AssetDetail() {
             method: "email",
             direction: "outbound",
             subject,
-            content,
+            notes: content,
             type: "initial_contact",
-            occurredAt: new Date().toISOString().slice(0, 16)
+            occurredAt: new Date().toISOString().slice(0, 16),
+            statusChange: "none"
           } as any);
         }}
       />
