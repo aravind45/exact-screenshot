@@ -17,7 +17,8 @@ import {
     ExternalLink,
     MapPin,
     Hash,
-    Calendar
+    Calendar,
+    HelpCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -42,6 +43,7 @@ export function ProbateHub() {
     const { toast } = useToast();
     const queryClient = useQueryClient();
     const [isEditing, setIsEditing] = useState(false);
+    const [showHelp, setShowHelp] = useState(false);
     const [uploadingForm, setUploadingForm] = useState<string | null>(null);
 
     const { data: estate, isLoading } = useQuery({
@@ -135,6 +137,14 @@ export function ProbateHub() {
                         </div>
                     </div>
                     <div className="flex items-center gap-2">
+                        <Button
+                            variant={showHelp ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => setShowHelp(!showHelp)}
+                            className={cn("h-7 text-[10px] font-bold", showHelp ? "bg-blue-600 hover:bg-blue-700" : "")}
+                        >
+                            <HelpCircle className="w-3 h-3 mr-1" /> {showHelp ? "HIDE GUIDE" : "HELP"}
+                        </Button>
                         <Button variant="outline" size="sm" onClick={() => setIsEditing(!isEditing)} className="h-7 text-[10px] font-bold">
                             <Edit2 className="w-3 h-3 mr-1" /> {isEditing ? "SAVE" : "EDIT INFO"}
                         </Button>
@@ -389,6 +399,58 @@ export function ProbateHub() {
                         </div>
                     </div>
                 </div>
+
+                {/* Help Section */}
+                <AnimatePresence>
+                    {showHelp && (
+                        <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            className="bg-blue-50/50 border-t border-blue-100 overflow-hidden"
+                        >
+                            <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <div className="flex items-center gap-2 text-blue-900 font-bold text-xs uppercase tracking-tight">
+                                        <div className="w-5 h-5 rounded bg-blue-100 flex items-center justify-center">
+                                            <Hash className="w-3 h-3" />
+                                        </div>
+                                        1. Court Case Number
+                                    </div>
+                                    <p className="text-[11px] text-slate-700 leading-relaxed">
+                                        When you file your petition at the Superior Court, the clerk will assign your estate a unique <span className="font-bold text-blue-900">Case Number</span> (e.g., 24PR00123).
+                                    </p>
+                                    <div className="bg-white/60 p-2 rounded border border-blue-100 space-y-1">
+                                        <div className="text-[9px] font-bold text-blue-800 uppercase tracking-tighter">Why it matters</div>
+                                        <p className="text-[10px] text-slate-600 italic">You must write this number on every single form you file from that point forward. It is how the court tracks your specific estate.</p>
+                                    </div>
+                                    <div className="text-[10px] font-medium text-slate-500">
+                                        In the Hub: You can enter this by clicking <span className="font-bold text-slate-700">"EDIT INFO"</span> at the top right.
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <div className="flex items-center gap-2 text-violet-900 font-bold text-xs uppercase tracking-tight">
+                                        <div className="w-5 h-5 rounded bg-violet-100 flex items-center justify-center">
+                                            <Scale className="w-3 h-3 text-violet-700" />
+                                        </div>
+                                        2. Certified Copies
+                                    </div>
+                                    <p className="text-[11px] text-slate-700 leading-relaxed">
+                                        Once the judge signs your "Letters" (DE-150), you usually need to buy <span className="font-bold text-violet-900">Certified Copies</span> from the court clerk ($\approx$\$25–\$40 each).
+                                    </p>
+                                    <div className="bg-white/60 p-2 rounded border border-violet-100 space-y-1">
+                                        <div className="text-[9px] font-bold text-violet-800 uppercase tracking-tighter">Why it matters</div>
+                                        <p className="text-[10px] text-slate-600 italic">Banks and financial institutions demand a fresh, physical certified copy of your Letters to let you move money. They rarely give them back.</p>
+                                    </div>
+                                    <div className="text-[10px] font-medium text-slate-500">
+                                        In the Hub: The "Copies" counter helps you track your unspent physical copies.
+                                    </div>
+                                </div>
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </CardContent>
         </Card>
     );
