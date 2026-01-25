@@ -18,6 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import { api } from "@/lib/api";
 import { motion, AnimatePresence } from "framer-motion";
 import { DocumentScanner } from "@/components/DocumentScanner";
+import { Sidebar } from "@/components/Sidebar";
 
 interface DiscoveredClue {
     id: string;
@@ -114,9 +115,11 @@ export default function Discovery() {
     };
 
     return (
-        <div className="min-h-screen bg-background text-foreground">
-            {/* Header */}
-            <header className="sticky top-0 z-40 glass border-b border-border/50">
+        <div className="flex">
+            <Sidebar />
+            <div className="flex-1 ml-64 min-h-screen bg-background text-foreground">
+                {/* Header */}
+                <header className="sticky top-0 z-40 glass border-b border-border/50">
                 <div className="section-container">
                     <div className="flex items-center justify-between h-16">
                         <div className="flex items-center gap-4">
@@ -315,6 +318,7 @@ export default function Discovery() {
                     </div>
                 </div>
             </main>
+            </div>
         </div>
     );
 }
