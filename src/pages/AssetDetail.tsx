@@ -36,6 +36,7 @@ import {
   CheckCircle2,
   AlertCircle,
   FileSearch,
+  FileCheck,
   CheckSquare,
   LayoutGrid,
   ArrowRight,
@@ -146,8 +147,10 @@ export default function AssetDetail() {
   const [currentStepId, setCurrentStepId] = useState("initial_contact");
   const [completedStepIds, setCompletedStepIds] = useState<string[]>([]);
 
-  const getWorkflow = (category: string) => {
-    if (category === 'financial' || category === 'retirement') return bankWorkflow;
+  const getWorkflow = (category: string, type?: string) => {
+    const isBrokerage = type?.toLowerCase().includes('brokerage') || type?.toLowerCase().includes('401k') || type?.toLowerCase().includes('retirement');
+    if (isBrokerage) return fidelityWorkflow;
+    if (category === 'financial') return bankWorkflow;
     if (category === 'property') return propertyWorkflow;
     return fidelityWorkflow; // Default
   };
@@ -414,29 +417,46 @@ export default function AssetDetail() {
       </header>
 
       <main className="section-container py-8 space-y-6">
-        {/* RECOMMENDED NEXT STEP HERO */}
+        {/* RECOMMENDED NEXT STEP HERO (The Action Center) */}
         {!isEditing && uiAsset.status === 'discovered' && (
           <motion.div
             initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-primary/10 border-2 border-primary/20 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl shadow-primary/5"
+            className="bg-primary/5 border-2 border-primary/20 rounded-3xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl shadow-primary/5"
           >
             <div className="flex items-center gap-5 text-left">
               <div className="p-4 bg-primary text-white rounded-2xl shadow-lg shadow-primary/40">
-                <ArrowRight className="w-8 h-8" />
+                <FileCheck className="w-8 h-8" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-slate-900 tracking-tight">Recommended Next Step</h2>
-                <p className="text-slate-600 font-medium">Formally notify <strong>{uiAsset.institution}</strong> of the death to secure the account.</p>
+                <div className="flex items-center gap-2 mb-1">
+                  <Badge className="bg-primary/20 text-primary border-none text-[10px] font-black uppercase">Critical Action</Badge>
+                  <h2 className="text-xl font-bold text-slate-900 tracking-tight">Notification Phase</h2>
+                </div>
+                <p className="text-slate-600 font-medium">Formally notify <strong>{uiAsset.institution}</strong> of the death to secure the account and begin settlement.</p>
               </div>
             </div>
             <div className="flex items-center gap-3 w-full md:w-auto">
               <Button
-                onClick={() => setActiveTab("workflow")}
-                size="lg"
-                className="flex-1 md:flex-none h-14 px-8 font-bold bg-slate-900 hover:bg-slate-800"
+                variant="outline"
+                onClick={() => {
+                  setActiveTab("workflow");
+                  setShowCommDialog(true);
+                }}
+                className="flex-1 md:flex-none h-12 px-6 font-bold border-slate-200"
               >
-                Start Legal Process
+                Log Call/Email
+              </Button>
+              <Button
+                onClick={() => {
+                  setActiveTab("workflow");
+                  handleGenerateLetter();
+                }}
+                size="lg"
+                className="flex-1 md:flex-none h-12 px-8 font-bold bg-slate-900 hover:bg-slate-800 text-white gap-2 shadow-lg shadow-slate-200"
+              >
+                <FileText className="w-4 h-4" />
+                Generate Official Notice
               </Button>
             </div>
           </motion.div>

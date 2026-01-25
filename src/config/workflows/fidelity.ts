@@ -29,78 +29,70 @@ export const fidelityWorkflow: WorkflowConfig = {
     steps: [
         {
             id: "initial_notification",
-            title: "Notify {{institution}}",
-            description: "Inform {{institution}} Estate Services of the death to lock accounts and begin the formal review.",
+            title: "Phase 1: Death Alert & Account Freeze",
+            description: "Inform {{institution}} Estate Services of the death to secure the account and begin the forensic review.",
             phone: "{{institutionPhone}}",
-            script: "I'm calling to notify {{institution}} of the death of {{deceasedName}}. I am the {{userRole}} and need to start the estate settlement process.",
-            guidance: "{{institution}} will 'flag' the accounts. This prevents unauthorized trades but allows dividends to accrue.",
+            script: "I'm calling to formally notify {{institution}} of the death of {{deceasedName}} on behalf of the estate. Please lock all accounts for account holder account #{{accountNumber}} and identify any TOD or beneficiary designations.",
+            guidance: "This action protects the holdings from unauthorized trades or transfers. You should follow up immediately with a formal letter.",
             estimatedTime: "20 minutes"
         },
         {
             id: "account_classification",
-            title: "Determine Titling",
-            description: "{{institution}} determines how each account is held, which dictates the distribution path.",
+            title: "Phase 2: Distribution Classification",
+            description: "{{institution}} determines if assets bypass probate (TOD) or require court authority (Individual).",
             alerts: [
                 {
                     type: "info",
-                    message: "Current asset is classified as: {{ownershipType}}."
+                    message: "Current asset classification: {{ownershipType}}."
                 }
             ],
-            guidance: "If the account has beneficiaries (TOD/IRA), it bypasses probate. Individual accounts (no TOD) require court authority.",
+            guidance: "If classified as INDIVIDUAL, you MUST provide Letters Testamentary (Phase 3) before any money can move.",
             estimatedTime: "Instant"
         },
         {
-            id: "probate_filing",
-            title: "Phase 1: Legal Authority (Letters Testamentary)",
-            description: "For Individual accounts, you must be court-appointed as the Executor.",
+            id: "submit_docs",
+            title: "Phase 3: Formal Authority Submission",
+            description: "Provide the court-certified documents that prove you have the right to move this money.",
             condition: (asset) => asset.ownershipType === "INDIVIDUAL",
             requiredDocs: [
-                "Original Will (if any)",
-                "Certified Death Certificate",
-                "Probate Petition Form",
-                "Letters Testamentary (Outcome)"
+                "Letters Testamentary (DE-150)",
+                "Order for Probate (DE-140)",
+                "Certified Death Certificate"
             ],
             alerts: [
                 {
                     type: "important",
-                    message: "Real-World Rule: {{institution}} will NOT release assets without court appointment documents."
+                    message: "A 'Letter of Instruction' is often required alongside your court documents to specify where the funds go."
                 }
             ],
-            guidance: "Process: 1. File Petition with County Court. 2. Notify all Heirs/Beneficiaries. 3. Attend hearing (if required). 4. Request 10+ certified copies of the Letters.",
-            estimatedTime: "4-12 weeks"
+            guidance: "Use the 'Fax Integration' tool below once you've uploaded your documents to speed up processing.",
+            estimatedTime: "1-2 days"
         },
         {
             id: "small_estate_path",
-            title: "Phase 1: Small Estate Affidavit",
-            description: "A sworn affidavit to collect assets without full court probate.",
-            condition: (asset) => asset.ownershipType === "SMALL_ESTATE_ELIGIBLE", // We'll need to pass this flag in asset detail
+            title: "Phase 3: Small Estate Processing",
+            description: "Submit a sworn affidavit to collect assets for estates under the state probate limit.",
+            condition: (asset) => asset.ownershipType === "SMALL_ESTATE_ELIGIBLE",
             requiredDocs: [
                 "Notarized Small Estate Affidavit",
                 "Certified Death Certificate",
-                "Valid ID for all heirs"
+                "Valid ID"
             ],
-            guidance: "Process: 1. Verify total probate assets are below state limit. 2. Wait the required period (e.g., 40 days in CA). 3. Sign before a Notary. 4. Submit directly to {{institution}}.",
+            guidance: "This bypasses full probate but requires specific state-level paperwork.",
             estimatedTime: "2-6 weeks"
         },
         {
-            id: "beneficiary_claim",
-            title: "Phase 2: Submit Distribution Claim",
-            description: "Finalize the transfer of assets to the estate account or beneficiaries.",
+            id: "final_distribution",
+            title: "Phase 4: Asset Distribution & Step-Up",
+            description: "Ensure assets receive a 'Step-up' in cost basis and are transferred to heirs.",
             alerts: [
                 {
                     type: "caution",
-                    message: "Locked: You must complete 'Phase 1' and obtain legal authority before {{institution}} will process this claim."
+                    message: "Confirm the 'Cost Basis' is updated to the Date of Death value to minimize future capital gains taxes."
                 }
             ],
-            guidance: "Once authorized, submit the claim form along with your certified authority document.",
+            guidance: "Final step: Once accounts are zeroed out, request a final closing statement for your records.",
             estimatedTime: "2-4 weeks"
-        },
-        {
-            id: "final_distribution",
-            title: "Phase 3: Basis Update & Close",
-            description: "Ensure assets receive a 'Step-up' in cost basis and accounts are closed.",
-            guidance: "Confirm with your tax advisor that the 'cost basis' has been updated to the date of death value to minimize future taxes.",
-            estimatedTime: "1 week"
         }
     ],
     templates: {
