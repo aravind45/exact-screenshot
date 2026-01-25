@@ -51,6 +51,7 @@ import { CommunicationLog } from "@/components/communications/CommunicationLog";
 import { CommunicationLogDialog, CommunicationData } from "@/components/CommunicationLogDialog";
 import { fidelityWorkflow } from "@/config/workflows/fidelity";
 import { SettlementWorkflow } from "@/components/SettlementWorkflow";
+import { ProbateProgressMini } from "@/components/ProbateProgressMini";
 
 // Helper to normalize status/priority from DB
 const normalize = (str: string | null) => str?.toLowerCase() || '';
@@ -639,6 +640,9 @@ export default function AssetDetail() {
               </div>
 
               <div className="space-y-6">
+                {/* Probate Progress Mini */}
+                <ProbateProgressMini />
+
                 {/* Authority Requirement */}
                 {(() => {
                   const authReq = getInstitutionAuthorityRequirement(

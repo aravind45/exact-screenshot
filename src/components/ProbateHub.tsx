@@ -1,5 +1,6 @@
 
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import {
@@ -86,12 +87,19 @@ export function ProbateHub() {
             <CardHeader className="pb-4">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-primary/10 rounded-lg">
-                            <Scale className="w-5 h-5 text-primary" />
+                        <div className="p-2.5 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl shadow-lg shadow-amber-500/20">
+                            <Gavel className="w-6 h-6 text-white" />
                         </div>
                         <div>
-                            <CardTitle className="text-lg">Probate Command Center</CardTitle>
-                            <CardDescription className="text-xs mt-0.5">Legal filings & court authority</CardDescription>
+                            <div className="flex items-center gap-2">
+                                <CardTitle className="text-lg font-bold">Estate-Level Probate Process</CardTitle>
+                                <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 text-[10px] font-bold">
+                                    REQUIRED FIRST
+                                </Badge>
+                            </div>
+                            <CardDescription className="text-xs mt-1 font-medium">
+                                Court authority required before settling individual assets
+                            </CardDescription>
                         </div>
                     </div>
                     <Button
@@ -104,6 +112,24 @@ export function ProbateHub() {
                         {isEditing ? "Done" : "Edit"}
                     </Button>
                 </div>
+
+                {/* Blocked Assets Counter */}
+                {probateRequiredCount > 0 && estate.authorityStatus !== "GRANTED" && estate.probateStatus !== "EXECUTOR_APPOINTED" && (
+                    <Link to="/assets" className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-center gap-3 hover:bg-amber-100 transition-colors group">
+                        <AlertCircle className="w-5 h-5 text-amber-600" />
+                        <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                                <p className="text-sm font-bold text-amber-900 group-hover:underline">
+                                    {probateRequiredCount} {probateRequiredCount === 1 ? 'Asset' : 'Assets'} Waiting for Authority
+                                </p>
+                                <ChevronRight className="w-3 h-3 text-amber-900 opacity-0 group-hover:opacity-100 transition-opacity" />
+                            </div>
+                            <p className="text-xs text-amber-700 mt-0.5">
+                                Complete this probate process to unlock settlement workflows
+                            </p>
+                        </div>
+                    </Link>
+                )}
             </CardHeader>
 
             <CardContent className="space-y-6">

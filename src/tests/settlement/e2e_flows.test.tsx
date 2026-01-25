@@ -51,15 +51,17 @@ describe("Estate Settlement E2E - Onboarding and Authority", () => {
         ]);
 
         render(
-            <QueryClientProvider client={queryClient}>
-                <ProbateHub />
-            </QueryClientProvider>
+            <MemoryRouter>
+                <QueryClientProvider client={queryClient}>
+                    <ProbateHub />
+                </QueryClientProvider>
+            </MemoryRouter>
         );
 
         // Verify E2E-01: Intake Complete status and recommendations
-        expect(await screen.findByText(/Probate Command Center/i)).toBeInTheDocument();
+        expect(await screen.findByText(/Estate-Level Probate Process/i)).toBeInTheDocument();
         expect(screen.getByText(/Not Started/i)).toBeInTheDocument();
-        expect(screen.getByText(/Probate Action Required: 1 Assets Identified/i)).toBeInTheDocument();
+        expect(screen.getByText(/1 Asset Waiting for Authority/i)).toBeInTheDocument();
 
         // Start E2E-02: Authority Acquisition
         const updateButton = screen.getByRole("button", { name: /Update Status/i });
@@ -157,23 +159,26 @@ describe("Estate Settlement E2E - Onboarding and Authority", () => {
         const onStepComplete = vi.fn();
 
         render(
-            <QueryClientProvider client={queryClient}>
-                <SettlementWorkflow
-                    asset={mockAsset}
-                    workflow={mockWorkflow as any}
-                    currentStepId="notify"
-                    completedStepIds={[]}
-                    onStepSelect={vi.fn()}
-                    onStepComplete={onStepComplete}
-                    onLogCommunication={vi.fn()}
-                    onSendFax={vi.fn()}
-                />
-            </QueryClientProvider>
+            <MemoryRouter>
+                <QueryClientProvider client={queryClient}>
+                    <SettlementWorkflow
+                        asset={mockAsset}
+                        workflow={mockWorkflow as any}
+                        currentStepId="notify"
+                        completedStepIds={[]}
+                        onStepSelect={vi.fn()}
+                        onStepComplete={onStepComplete}
+                        onLogCommunication={vi.fn()}
+                        onSendFax={vi.fn()}
+                        onGenerateLetter={vi.fn()}
+                    />
+                </QueryClientProvider>
+            </MemoryRouter>
         );
 
         // Verify E2E-04: Workflow starts correctly
-        expect(screen.getByText(/Process Navigator/i)).toBeInTheDocument();
-        expect(screen.getByText(/Step-by-step settlement workflow for Chase/i)).toBeInTheDocument();
+        expect(screen.getByText(/Institution Settlement Guide/i)).toBeInTheDocument();
+        expect(screen.getByText(/Step-by-step workflow for closing Chase/i)).toBeInTheDocument();
 
         // Complete first step
         const doneButton = screen.getByRole("button", { name: /Mark Step Done/i });
@@ -194,18 +199,21 @@ describe("Estate Settlement E2E - Onboarding and Authority", () => {
 
         for (const asset of mockAssets) {
             const { unmount } = render(
-                <QueryClientProvider client={queryClient}>
-                    <SettlementWorkflow
-                        asset={asset}
-                        workflow={{ steps: [{ id: "step-1", title: `Claim ${asset.institution} Asset`, description: "Start the claim." }] } as any}
-                        currentStepId="step-1"
-                        completedStepIds={[]}
-                        onStepSelect={vi.fn()}
-                        onStepComplete={vi.fn()}
-                        onLogCommunication={vi.fn()}
-                        onSendFax={vi.fn()}
-                    />
-                </QueryClientProvider>
+                <MemoryRouter>
+                    <QueryClientProvider client={queryClient}>
+                        <SettlementWorkflow
+                            asset={asset}
+                            workflow={{ steps: [{ id: "step-1", title: `Claim ${asset.institution} Asset`, description: "Start the claim." }] } as any}
+                            currentStepId="step-1"
+                            completedStepIds={[]}
+                            onStepSelect={vi.fn()}
+                            onStepComplete={vi.fn()}
+                            onLogCommunication={vi.fn()}
+                            onSendFax={vi.fn()}
+                            onGenerateLetter={vi.fn()}
+                        />
+                    </QueryClientProvider>
+                </MemoryRouter>
             );
 
             expect(screen.getByText(new RegExp(`Claim ${asset.institution} Asset`, "i"))).toBeInTheDocument();
@@ -220,9 +228,11 @@ describe("Estate Settlement E2E - Onboarding and Authority", () => {
         (api.getMyEstate as any).mockResolvedValue(mockEstate);
 
         render(
-            <QueryClientProvider client={queryClient}>
-                <ProbateHub />
-            </QueryClientProvider>
+            <MemoryRouter>
+                <QueryClientProvider client={queryClient}>
+                    <ProbateHub />
+                </QueryClientProvider>
+            </MemoryRouter>
         );
 
         // Verify "Critical Authorization" section (E2E-09 prerequisites)

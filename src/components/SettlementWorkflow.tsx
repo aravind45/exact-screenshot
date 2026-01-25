@@ -1,5 +1,6 @@
 
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import {
@@ -20,7 +21,8 @@ import {
     MessageCircle,
     Printer,
     ArrowRight,
-    FileText
+    FileText,
+    Gavel
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { WorkflowConfig } from "@/config/workflows/fidelity";
@@ -102,9 +104,14 @@ export function SettlementWorkflow({
         <div className="max-w-4xl mx-auto">
             <div className="flex items-center justify-between mb-8">
                 <div>
-                    <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Process Navigator</h2>
-                    <p className="text-slate-500 text-sm mt-1">
-                        Step-by-step settlement workflow for {asset.institution}
+                    <div className="flex items-center gap-2 mb-2">
+                        <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Institution Settlement Guide</h2>
+                        <Badge variant="secondary" className="bg-blue-100 text-blue-700 border-blue-200 text-[10px] font-bold">
+                            ASSET-SPECIFIC
+                        </Badge>
+                    </div>
+                    <p className="text-slate-500 text-sm">
+                        Step-by-step workflow for closing {asset.institution} account
                     </p>
                 </div>
                 <div className="flex items-center gap-2 bg-slate-100 px-4 py-2 rounded-full border border-slate-200">
@@ -194,15 +201,24 @@ export function SettlementWorkflow({
                                                 {/* AUTHORITY PREREQUISITE ALERT */}
                                                 {(step.id === "beneficiary_claim" || step.id === "trust_transition" || step.id === "final_distribution") &&
                                                     estate?.authorityStatus !== "GRANTED" && estate?.probateStatus !== "EXECUTOR_APPOINTED" && (
-                                                        <div className="bg-red-50 border border-red-100 p-4 rounded-xl mb-6 flex items-start gap-4">
-                                                            <AlertCircle className="w-5 h-5 text-red-600 mt-0.5" />
-                                                            <div>
-                                                                <p className="text-sm font-bold text-red-900 leading-none mb-1">Legal Prerequisite Error</p>
-                                                                <p className="text-xs text-red-800 font-medium">
-                                                                    {asset.ownershipType === "INDIVIDUAL"
-                                                                        ? "Institutional access is locked until you upload your Letters Testamentary."
-                                                                        : "Institutional access is locked until you submit the Small Estate Affidavit."}
-                                                                </p>
+                                                        <div className="bg-gradient-to-r from-red-50 to-orange-50 border-2 border-red-200 p-5 rounded-xl mb-6 shadow-lg">
+                                                            <div className="flex items-start gap-4">
+                                                                <div className="p-2 bg-red-100 rounded-lg">
+                                                                    <AlertCircle className="w-6 h-6 text-red-600" />
+                                                                </div>
+                                                                <div className="flex-1">
+                                                                    <p className="text-sm font-bold text-red-900 leading-tight mb-2">⚠️ Estate-Level Authority Required</p>
+                                                                    <p className="text-xs text-red-800 font-medium leading-relaxed mb-3">
+                                                                        {asset.ownershipType === "INDIVIDUAL"
+                                                                            ? "This institution requires Letters Testamentary from the probate court before releasing funds."
+                                                                            : "This institution requires a Small Estate Affidavit before processing your claim."}
+                                                                    </p>
+                                                                    <Link to="/probate" className="flex items-center gap-2 text-xs group hover:opacity-80 transition-opacity">
+                                                                        <Gavel className="w-3.5 h-3.5 text-red-700" />
+                                                                        <span className="text-red-700 font-semibold underline decoration-red-700/30 group-hover:decoration-red-700">Complete the Estate-Level Probate Process first</span>
+                                                                        <ArrowRight className="w-3 h-3 text-red-700" />
+                                                                    </Link>
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     )}
