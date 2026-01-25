@@ -932,6 +932,7 @@ export default function AssetDetail() {
         onSubmit={(data) => createCommMutation.mutate(data)}
         isLoading={createCommMutation.isPending}
         assetId={id}
+        availableDocuments={[...(estateDocuments || []), ...(documents || [])]}
         workflowContext={(() => {
           const workflow = getWorkflow(asset.category);
           const step = workflow.steps.find(s => s.id === currentStepId);

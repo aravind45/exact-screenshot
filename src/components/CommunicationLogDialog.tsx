@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Phone, Mail, Printer, FileText, ExternalLink, Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface CommunicationLogDialogProps {
     open: boolean;
@@ -20,6 +21,7 @@ interface CommunicationLogDialogProps {
         title: string;
         description: string;
     };
+    availableDocuments?: any[];
 }
 
 export interface CommunicationData {
@@ -47,9 +49,11 @@ export function CommunicationLogDialog({
     isLoading = false,
     templates = {},
     assetId,
-    workflowContext
+    workflowContext,
+    availableDocuments = [],
 }: CommunicationLogDialogProps) {
     const [isGenerating, setIsGenerating] = useState(false);
+    const [selectedDocIds, setSelectedDocIds] = useState<string[]>([]);
     const [formData, setFormData] = useState<CommunicationData>({
         method: "phone",
         subject: "",
@@ -101,7 +105,21 @@ export function CommunicationLogDialog({
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        onSubmit(formData);
+
+        // Enrich content with attachment info if any selected
+        let finalContent = formData.content;
+        if (selectedDocIds.length > 0) {
+            const docNames = availableDocuments
+                .filter(d => selectedDocIds.includes(d.id))
+                .map(d => d.name)
+                .join(", ");
+            const attachmentNote = `\n\n[Attachments: ${docNames}]`;
+            if (!finalContent.includes("[Attachments:")) {
+                finalContent += attachmentNote;
+            }
+        }
+
+        onSubmit({ ...formData, content: finalContent });
     };
 
     const handleClose = () => {
@@ -248,6 +266,45 @@ export function CommunicationLogDialog({
                             onChange={(e) => setFormData({ ...formData, contactPerson: e.target.value })}
                         />
                     </div>
+
+                    {/* Attachments Section */}
+                    {(formData.method === "email" || formData.method === "fax" || formData.method === "mail") && availableDocuments.length > 0 && (
+                        <div className="space-y-3 p-4 bg-slate-50 border border-slate-200 rounded-xl">
+                            <div className="flex items-center justify-between">
+                                <Label className="text-xs font-black uppercase tracking-widest text-slate-500">Attach Verified Documents</Label>
+                                <span className="text-[10px] text-blue-600 font-bold">Include in Evidence Chain</span>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                {availableDocuments.map((doc) => (
+                                    <div
+                                        key={doc.id}
+                                        onClick={() => {
+                                            setSelectedDocIds(prev =>
+                                                prev.includes(doc.id) ? prev.filter(id => id !== doc.id) : [...prev, doc.id]
+                                            );
+                                        }}
+                                        className={cn(
+                                            "flex items-center gap-3 p-2 rounded-lg border cursor-pointer transition-all",
+                                            selectedDocIds.includes(doc.id)
+                                                ? "bg-blue-50 border-blue-200 ring-1 ring-blue-200"
+                                                : "bg-white border-slate-200 hover:border-slate-300"
+                                        )}
+                                    >
+                                        <div className={cn(
+                                            "w-4 h-4 rounded border flex items-center justify-center transition-colors",
+                                            selectedDocIds.includes(doc.id) ? "bg-blue-600 border-blue-600" : "bg-white border-slate-300"
+                                        )}>
+                                            {selectedDocIds.includes(doc.id) && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
+                                        </div>
+                                        <div className="min-w-0">
+                                            <p className="text-[11px] font-bold text-slate-700 truncate">{doc.name}</p>
+                                            <p className="text-[9px] text-slate-400 font-medium">{doc.documentType || doc.type || "Document"}</p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
 
                     {/* Subject */}
                     <div className="space-y-2">
