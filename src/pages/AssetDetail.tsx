@@ -141,7 +141,7 @@ export default function AssetDetail() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
-  const [activeTab, setActiveTab] = useState("details");
+  const [activeTab, setActiveTab] = useState("workflow");
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploadType, setUploadType] = useState("OTHER");
   const [showCommDialog, setShowCommDialog] = useState(false);
@@ -519,10 +519,6 @@ export default function AssetDetail() {
         {/* Tabs for Details vs Guide vs Documents */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="mb-6">
-            <TabsTrigger value="details" className="gap-2">
-              <LayoutGrid className="w-4 h-4" />
-              Details & Logs
-            </TabsTrigger>
             <TabsTrigger value="workflow" className="gap-2">
               <CheckSquare className="w-4 h-4 text-primary" />
               Settlement Guide
@@ -531,6 +527,10 @@ export default function AssetDetail() {
                   {completedStepIds.length}/{getWorkflow(uiAsset.category).steps.length}
                 </Badge>
               )}
+            </TabsTrigger>
+            <TabsTrigger value="details" className="gap-2">
+              <LayoutGrid className="w-4 h-4" />
+              Details & Logs
             </TabsTrigger>
             <TabsTrigger value="documents" className="gap-2">
               <FileSearch className="w-4 h-4" />
@@ -839,15 +839,17 @@ export default function AssetDetail() {
                           </Button>
                         )}
                         <EnrichDataButton assetId={id!} onEnrichComplete={() => queryClient.invalidateQueries({ queryKey: ["asset", id] })} />
-                        <Button
-                          variant="default"
-                          size="lg"
-                          className="w-full gap-3 h-14 bg-gradient-to-r from-primary to-blue-600 hover:shadow-lg hover:shadow-primary/20 transition-all font-bold rounded-2xl border-none"
-                          onClick={handleGenerateLetter}
-                        >
-                          <FileText className="w-5 h-5" />
-                          Generate Settlement Notice
-                        </Button>
+                        {activeTab === 'workflow' && (
+                          <Button
+                            variant="default"
+                            size="lg"
+                            className="w-full gap-3 h-14 bg-gradient-to-r from-primary to-blue-600 hover:shadow-lg hover:shadow-primary/20 transition-all font-bold rounded-2xl border-none"
+                            onClick={handleGenerateLetter}
+                          >
+                            <FileText className="w-5 h-5" />
+                            Generate Settlement Notice
+                          </Button>
+                        )}
                       </div>
                     </div>
                   )}
