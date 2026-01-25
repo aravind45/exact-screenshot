@@ -359,6 +359,40 @@ export const api = {
         return parseResponse(response);
     },
 
+    getPetitionPdf: async () => {
+        const response = await fetch(`${API_URL}/estates/my/petition/pdf`, {
+            headers: getHeaders(),
+        });
+        if (!response.ok) throw new Error("Failed to generate PDF");
+        return await response.blob();
+    },
+
+    createHeir: async (data: any) => {
+        const response = await fetch(`${API_URL}/estates/my/heirs`, {
+            method: "POST",
+            headers: getHeaders(),
+            body: JSON.stringify(data)
+        });
+        return parseResponse(response);
+    },
+
+    updateHeir: async (id: string, data: any) => {
+        const response = await fetch(`${API_URL}/estates/my/heirs/${id}`, {
+            method: "PUT",
+            headers: getHeaders(),
+            body: JSON.stringify(data)
+        });
+        return parseResponse(response);
+    },
+
+    deleteHeir: async (id: string) => {
+        const response = await fetch(`${API_URL}/estates/my/heirs/${id}`, {
+            method: "DELETE",
+            headers: getHeaders(),
+        });
+        return parseResponse(response);
+    },
+
     getAgentInsights: async () => {
         const response = await fetch(`${API_URL}/agent/insights`, {
             headers: getHeaders(),

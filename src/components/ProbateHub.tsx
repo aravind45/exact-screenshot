@@ -351,8 +351,9 @@ export function ProbateHub() {
                                                             label: "File Probate Petition",
                                                             desc: "Submit Form DE-111 to start the case.",
                                                             action: {
-                                                                label: "Download DE-111",
-                                                                url: "https://www.courts.ca.gov/documents/de111.pdf"
+                                                                label: "Start Wizard",
+                                                                url: "/probate/petition",
+                                                                internal: true
                                                             },
                                                             statusUpdate: { label: "Mark Filed", value: "FILED", current: estate.probateStatus === "NOT_STARTED" }
                                                         },
@@ -382,15 +383,25 @@ export function ProbateHub() {
                                                                 <div className="text-xs text-slate-500 mb-2">{step.desc}</div>
                                                                 <div className="flex items-center gap-2">
                                                                     {step.action && (
-                                                                        <a
-                                                                            href={step.action.url}
-                                                                            target="_blank"
-                                                                            rel="noopener noreferrer"
-                                                                            className="inline-flex items-center gap-1 px-2 py-1 rounded bg-white border border-slate-200 text-[10px] font-bold text-primary hover:bg-slate-50 hover:text-primary/80 transition-colors"
-                                                                        >
-                                                                            <FileText className="w-3 h-3" />
-                                                                            {step.action.label}
-                                                                        </a>
+                                                                        step.action.internal ? (
+                                                                            <Link
+                                                                                to={step.action.url}
+                                                                                className="inline-flex items-center gap-1 px-2 py-1 rounded bg-white border border-slate-200 text-[10px] font-bold text-primary hover:bg-slate-50 hover:text-primary/80 transition-colors"
+                                                                            >
+                                                                                <FileText className="w-3 h-3" />
+                                                                                {step.action.label}
+                                                                            </Link>
+                                                                        ) : (
+                                                                            <a
+                                                                                href={step.action.url}
+                                                                                target="_blank"
+                                                                                rel="noopener noreferrer"
+                                                                                className="inline-flex items-center gap-1 px-2 py-1 rounded bg-white border border-slate-200 text-[10px] font-bold text-primary hover:bg-slate-50 hover:text-primary/80 transition-colors"
+                                                                            >
+                                                                                <FileText className="w-3 h-3" />
+                                                                                {step.action.label}
+                                                                            </a>
+                                                                        )
                                                                     )}
                                                                     {step.statusUpdate && step.statusUpdate.current && (
                                                                         <button

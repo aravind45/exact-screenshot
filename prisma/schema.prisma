@@ -57,6 +57,25 @@ model Estate {
   createdAt          DateTime @default(now()) @map("created_at")
   updatedAt          DateTime @updatedAt @map("updated_at")
 
+  // Petitioner Info
+  petitionerPhone       String?  @map("petitioner_phone")
+  petitionerIsAttorney  Boolean  @default(false) @map("petitioner_is_attorney")
+  
+  // Will Info
+  hasWill               Boolean  @default(false) @map("has_will")
+  willDate              DateTime? @map("will_date")
+  codicilDates          String[]  @map("codicil_dates")
+
+  // Financials
+  estimatedPersonalProperty Decimal? @map("est_personal_property") @db.Decimal(12,2)
+  estimatedRealProperty     Decimal? @map("est_real_property") @db.Decimal(12,2)
+  estimatedAnnualIncome     Decimal? @map("est_annual_income") @db.Decimal(12,2)
+  
+  bondAmount            Decimal? @map("bond_amount") @db.Decimal(12,2)
+  bondWaived            Boolean  @default(false) @map("bond_waived")
+
+  heirs                 Heir[]
+
   user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   assets          Asset[]
   estateDocuments EstateDocument[]
@@ -260,4 +279,22 @@ model EstateDocument {
   user   User   @relation(fields: [userId], references: [id])
 
   @@map("estate_documents")
+}
+
+model Heir {
+  id           String   @id @default(uuid())
+  estateId     String   @map("estate_id")
+  name         String
+  relationship String
+  isAdult      Boolean  @default(true) @map("is_adult")
+  address      String?
+  email        String?
+  phone        String?
+  
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  estate       Estate   @relation(fields: [estateId], references: [id], onDelete: Cascade)
+
+  @@map("heirs")
 }
