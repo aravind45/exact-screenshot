@@ -95,9 +95,16 @@ export default function Dashboard() {
               animate={{ opacity: 1, x: 0 }}
               className="flex-1"
             >
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-wider mb-4">
-                <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                Estate Active
+              <div className="flex items-center gap-3 mb-4">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-wider">
+                  <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                  Estate Active
+                </div>
+                {estate?.estateType && (
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-[10px] font-bold uppercase tracking-wider border border-slate-200">
+                    {estate.estateType.replace(/_/g, " ")} TRACK
+                  </div>
+                )}
               </div>
               <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-2 tracking-tight">
                 Welcome back, {firstName}

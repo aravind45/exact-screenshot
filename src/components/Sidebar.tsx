@@ -56,11 +56,23 @@ export function Sidebar() {
     return (
         <div className="w-64 h-screen bg-slate-900 text-slate-300 flex flex-col fixed left-0 top-0 z-50 border-r border-slate-800">
             {/* Brand */}
-            <div className="p-6 flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-primary text-primary-foreground shadow-[0_0_20px_rgba(var(--primary-rgb),0.3)]">
-                    <Landmark className="w-6 h-6" />
+            <div className="p-6">
+                <div className="flex items-center gap-3 mb-2">
+                    <div className="p-2 rounded-xl bg-primary text-primary-foreground shadow-[0_0_20px_rgba(var(--primary-rgb),0.3)]">
+                        <Landmark className="w-6 h-6" />
+                    </div>
+                    <span className="font-bold text-xl tracking-tight text-white">ExpectedEstate</span>
                 </div>
-                <span className="font-bold text-xl tracking-tight text-white">ExpectedEstate</span>
+                {estate?.estateType && (
+                    <div className="pl-1">
+                        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-800/80 border border-slate-700">
+                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                                {estate.estateType.replace(/_/g, " ")}
+                            </span>
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* Primary Actions */}

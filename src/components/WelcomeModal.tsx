@@ -110,7 +110,7 @@ export function WelcomeModal() {
     if (isLoading || !estate || estate.estateType) return null;
 
     return (
-        <Dialog open={true}>
+        <Dialog open={true} onOpenChange={() => { }}>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader className="text-center pb-4">
                     <DialogTitle className="text-2xl font-bold">Welcome to ExpectedEstate</DialogTitle>
