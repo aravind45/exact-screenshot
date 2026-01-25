@@ -1,10 +1,14 @@
 import { ProbateHub } from "@/components/ProbateHub";
+import { Sidebar } from "@/components/Sidebar";
 
 export default function ProbatePage() {
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50 p-8">
-            <div className="max-w-4xl mx-auto">
-                <ProbateHub />
+        <div className="flex">
+            <Sidebar />
+            <div className="flex-1 ml-64 min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50 p-8">
+                <div className="max-w-4xl mx-auto">
+                    <ProbateHub />
+                </div>
             </div>
         </div>
     );
