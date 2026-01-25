@@ -9,10 +9,7 @@ import {
     LayoutDashboard,
     FileText,
     Scale,
-    ShieldCheck,
     Zap,
-    ChevronRight,
-    MousePointerClick
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -20,16 +17,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import { generateBookmarklet } from "@/lib/autofill";
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-    DialogDescription
-} from "@/components/ui/dialog";
-import { Download, ExternalLink } from "lucide-react";
 
 export function Sidebar() {
     const navigate = useNavigate();
@@ -61,7 +48,7 @@ export function Sidebar() {
         { label: "Overview", icon: LayoutDashboard, path: "/dashboard" },
         { label: "Assets", icon: Landmark, path: "/dashboard" },
         { label: "Probate", icon: Scale, path: "/probate" },
-        { label: "Documents", icon: FileText, path: "/documents" },
+        { label: "Vault", icon: FileText, path: "/documents" },
         { label: "Discovery", icon: Search, path: "/discovery" },
         { label: "Profile", icon: User, path: "/profile" },
     ];
@@ -122,88 +109,6 @@ export function Sidebar() {
                     </button>
                 ))}
             </nav>
-
-            {/* Utilities: Fill Bridge */}
-            <div className="px-4 mb-4">
-                <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-4 rounded-2xl border border-slate-700 shadow-xl overflow-hidden relative group">
-                    <div className="absolute -right-4 -top-4 w-16 h-16 bg-primary/10 rounded-full blur-xl group-hover:bg-primary/20 transition-all" />
-                    <div className="flex items-center gap-2 mb-2 text-primary">
-                        <ShieldCheck className="w-4 h-4" />
-                        <span className="text-[10px] font-bold uppercase tracking-wider">Fill Assistant</span>
-                    </div>
-                    <p className="text-[10px] text-slate-400 leading-relaxed mb-3">
-                        Seamlessly autofill forms on Robinhood, Fidelity, etc.
-                    </p>
-
-                    <Dialog>
-                        <DialogTrigger asChild>
-                            <Button className="w-full h-9 text-[10px] font-bold bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20">
-                                <Zap className="w-3 h-3 mr-2" />
-                                Install Bridge
-                            </Button>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-[500px] bg-slate-900 border-slate-800 text-white">
-                            <DialogHeader>
-                                <DialogTitle className="flex items-center gap-2 text-xl font-bold">
-                                    <ShieldCheck className="w-6 h-6 text-primary" />
-                                    ExpectedEstate Bridge
-                                </DialogTitle>
-                                <DialogDescription className="text-slate-400">
-                                    Install our browser extension to automate form filling.
-                                </DialogDescription>
-                            </DialogHeader>
-                            <div className="space-y-6 py-4">
-                                <div className="bg-primary/5 border border-primary/20 p-5 rounded-2xl space-y-3">
-                                    <div className="flex items-center gap-3 text-primary">
-                                        <div className="p-2 rounded-lg bg-primary/10">
-                                            <Zap className="w-5 h-5" />
-                                        </div>
-                                        <span className="font-bold">Magic Bridge Enabled</span>
-                                    </div>
-                                    <p className="text-xs text-slate-300 leading-relaxed">
-                                        Whenever you click a website link in this app, we "beam" your data through the link. The extension picks it up and fills the form instantly.
-                                    </p>
-                                    <div className="pt-2">
-                                        <div className="flex items-start gap-3 p-3 bg-slate-800/50 rounded-xl border border-slate-700/50">
-                                            <ShieldCheck className="w-4 h-4 text-emerald-400 mt-1 shrink-0" />
-                                            <p className="text-[10px] text-slate-400">Your data is stored locally and never leaves your browser.</p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="space-y-4">
-                                    <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500">Or use Manual Copy (No Setup)</h4>
-                                    <div className="grid grid-cols-1 gap-2">
-                                        {[
-                                            { label: "First Name", value: estate?.deceasedName?.split(' ')[0] },
-                                            { label: "Last Name", value: estate?.deceasedName?.split(' ').slice(1).join(' ') },
-                                            { label: "SSN", value: estate?.deceasedSsn },
-                                            { label: "DOB", value: estate?.deceasedDob },
-                                        ].map((field) => (
-                                            <div key={field.label} className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/5 hover:border-primary/30 transition-all">
-                                                <div className="flex flex-col">
-                                                    <span className="text-[10px] text-slate-500 font-bold uppercase">{field.label}</span>
-                                                    <span className="text-sm font-medium text-white">{field.value || "Not Set"}</span>
-                                                </div>
-                                                <Button
-                                                    size="sm"
-                                                    variant="ghost"
-                                                    className="h-8 text-[10px] text-primary hover:text-white hover:bg-primary"
-                                                    onClick={() => {
-                                                        navigator.clipboard.writeText(field.value || "");
-                                                    }}
-                                                >
-                                                    Copy
-                                                </Button>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-                        </DialogContent>
-                    </Dialog>
-                </div>
-            </div>
 
             {/* User Footer */}
             <div className="p-4 border-t border-slate-800">
