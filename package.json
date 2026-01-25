@@ -12,6 +12,7 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
+    "seed": "tsx prisma/seed.ts",
     "postinstall": "prisma generate"
   },
   "dependencies": {

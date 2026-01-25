@@ -72,6 +72,23 @@ async function main() {
     }
 
     console.log('Seed: Successfully populated institutions!')
+
+    console.log('Seed: Checking for primary user...')
+    const email = 'aravind.77479@gmail.com'
+    const passwordHash = '$2a$10$XmP1v43fWl/g8vJ.O2r8V.y1l6N.L3I9j9V.l/v.P/v.P/v.P/v.P' // bcrypt for 'password'
+
+    await prisma.user.upsert({
+        where: { email },
+        update: {},
+        create: {
+            email,
+            passwordHash,
+            fullName: 'Aravind',
+            state: 'CA',
+            role: 'EXECUTOR'
+        }
+    })
+    console.log('Seed: Primary user ensured!')
 }
 
 main()
