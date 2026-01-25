@@ -73,6 +73,8 @@ model Estate {
   
   bondAmount            Decimal? @map("bond_amount") @db.Decimal(12,2)
   bondWaived            Boolean  @default(false) @map("bond_waived")
+  
+  probateNotes          String?  @map("probate_notes")
 
   heirs                 Heir[]
 

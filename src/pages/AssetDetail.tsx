@@ -38,7 +38,9 @@ import {
   FileSearch,
   CheckSquare,
   LayoutGrid,
-  ArrowRight
+  ArrowRight,
+  Gavel,
+  Scale
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { TRACK_STAGES, SettlementTrack } from "@/config/settlementStages";
@@ -608,10 +610,63 @@ export default function AssetDetail() {
               const rec = calculateAuthorityRecommendation(assets, estate?.deceasedState || "CA");
               const enhancedAsset = {
                 ...asset,
-                ownershipType: asset.ownershipType, // explicit
+                ownershipType: asset.ownershipType,
                 isSmallEstateEligible: rec.isEligibleForSmallEstate,
                 authorityType: rec.type
               };
+
+              // BLOCKED Check: If asset is individual and probate isn't granted
+              const isLocked = asset.ownershipType === 'INDIVIDUAL' && estate?.probateStatus !== 'EXECUTOR_APPOINTED';
+
+              if (isLocked) {
+                return (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="flex flex-col items-center justify-center p-12 bg-slate-50 border-2 border-dashed border-slate-200 rounded-3xl text-center space-y-6"
+                  >
+                    <div className="p-5 bg-amber-100 rounded-2xl">
+                      <Gavel className="w-10 h-10 text-amber-600" />
+                    </div>
+                    <div className="max-w-md space-y-2">
+                      <h2 className="text-2xl font-bold text-slate-900">Court Authority Required</h2>
+                      <p className="text-slate-600 font-medium leading-relaxed">
+                        This account was owned <span className="text-slate-900 font-bold">Individually</span>. {uiAsset.institution} will not allow you to settle this asset until the court issues your <strong>Letters (DE-150)</strong>.
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-lg pt-4">
+                      <div className="p-4 bg-white rounded-2xl border border-slate-200 shadow-sm text-left">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Scale className="w-4 h-4 text-violet-600" />
+                          <span className="text-[10px] font-bold uppercase text-slate-500">Legal Step</span>
+                        </div>
+                        <p className="text-xs font-bold text-slate-700">Obtain Letters Testamentary</p>
+                        <p className="text-[10px] text-slate-500 mt-1">Proof of your legal power to move this asset.</p>
+                      </div>
+                      <div className="p-4 bg-white rounded-2xl border border-slate-200 shadow-sm text-left">
+                        <div className="flex items-center gap-2 mb-2">
+                          <FileText className="w-4 h-4 text-blue-600" />
+                          <span className="text-[10px] font-bold uppercase text-slate-500">Document Needed</span>
+                        </div>
+                        <p className="text-xs font-bold text-slate-700">Form DE-150</p>
+                        <p className="text-[10px] text-slate-500 mt-1">Must be sealed/certified by the clerk.</p>
+                      </div>
+                    </div>
+
+                    <Button
+                      size="lg"
+                      className="px-8 bg-slate-900 hover:bg-slate-800 text-white font-bold h-14 rounded-2xl gap-2 shadow-xl shadow-slate-200"
+                      asChild
+                    >
+                      <Link to="/probate">
+                        Go to Probate Hub
+                        <ArrowRight className="w-4 h-4" />
+                      </Link>
+                    </Button>
+                  </motion.div>
+                );
+              }
 
               return (
                 <SettlementWorkflow

@@ -24,6 +24,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
@@ -220,16 +221,26 @@ export function ProbateHub() {
                             ) : (
                                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
                                     <div className="grid grid-cols-3 gap-2">
-                                        <div className="p-2 bg-white rounded-lg border border-slate-200">
-                                            <div className="text-[8px] font-bold text-slate-600 uppercase">Status</div>
+                                        <div
+                                            onClick={() => setIsEditing(true)}
+                                            className="p-2 bg-white rounded-lg border border-slate-200 cursor-pointer hover:border-amber-300 hover:bg-amber-50/10 transition-all group/card relative"
+                                        >
+                                            <div className="flex items-center justify-between">
+                                                <div className="text-[8px] font-bold text-slate-600 uppercase">Status</div>
+                                                <Edit2 className="w-2 h-2 text-slate-300 opacity-0 group-hover/card:opacity-100 transition-opacity" />
+                                            </div>
                                             <Badge variant="outline" className={cn("mt-1 px-1.5 py-0 text-[10px] border", getStatusColor(estate.probateStatus))}>
                                                 {estate.probateStatus.replace('_', ' ')}
                                             </Badge>
                                         </div>
-                                        <div className="p-2 bg-white rounded-lg border border-slate-200 group relative">
+                                        <div
+                                            onClick={() => setIsEditing(true)}
+                                            className="p-2 bg-white rounded-lg border border-slate-200 group relative cursor-pointer hover:border-blue-300 hover:bg-blue-50/10 transition-all group/card"
+                                        >
                                             <div className="flex items-center justify-between">
                                                 <div className="text-[8px] font-bold text-slate-600 uppercase">Case Number</div>
-                                                <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <div className="flex items-center gap-1">
+                                                    <Edit2 className="w-2 h-2 text-slate-300 opacity-0 group-hover/card:opacity-100 transition-opacity" />
                                                     <Info className="w-2.5 h-2.5 text-slate-400" />
                                                 </div>
                                             </div>
@@ -240,10 +251,14 @@ export function ProbateHub() {
                                                 </div>
                                             </div>
                                         </div>
-                                        <div className="p-2 bg-white rounded-lg border border-slate-200 group relative">
+                                        <div
+                                            onClick={() => setIsEditing(true)}
+                                            className="p-2 bg-white rounded-lg border border-slate-200 group relative cursor-pointer hover:border-violet-300 hover:bg-violet-50/10 transition-all group/card"
+                                        >
                                             <div className="flex items-center justify-between">
                                                 <div className="text-[8px] font-bold text-slate-600 uppercase">Copies</div>
-                                                <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <div className="flex items-center gap-1">
+                                                    <Edit2 className="w-2 h-2 text-slate-300 opacity-0 group-hover/card:opacity-100 transition-opacity" />
                                                     <Info className="w-2.5 h-2.5 text-slate-400" />
                                                 </div>
                                             </div>
@@ -307,15 +322,42 @@ export function ProbateHub() {
                         </AnimatePresence>
 
                         {probateRequiredCount > 0 && currentPhase < 4 && (
-                            <Link to="/assets" className="flex items-center justify-between p-2 bg-slate-900 text-white rounded-lg group hover:bg-slate-800 transition-all">
-                                <div className="flex items-center gap-2">
-                                    <div className="w-6 h-6 rounded bg-amber-500 flex items-center justify-center">
-                                        <AlertCircle className="w-3.5 h-3.5 text-slate-900" />
-                                    </div>
-                                    <span className="text-[10px] font-bold uppercase tracking-tight">{probateRequiredCount} Assets Locked</span>
+                            <div className="space-y-2">
+                                <div className="flex items-center justify-between px-1">
+                                    <span className="text-[10px] font-bold uppercase tracking-tight text-slate-500">Locked Assets ({probateRequiredCount})</span>
+                                    <Link to="/assets" className="text-[10px] font-bold text-blue-600 hover:underline">VIEW ALL</Link>
                                 </div>
-                                <ChevronRight className="w-3.5 h-3.5 opacity-50 group-hover:translate-x-0.5 transition-transform" />
-                            </Link>
+                                <div className="space-y-1">
+                                    {individualAssets.slice(0, 3).map((asset: any) => (
+                                        <Link
+                                            key={asset.id}
+                                            to={`/assets/${asset.id}`}
+                                            className="flex items-center justify-between p-2 bg-white border border-slate-200 rounded-lg group hover:border-amber-300 hover:bg-amber-50/10 transition-all shadow-sm"
+                                        >
+                                            <div className="flex items-center gap-2 min-w-0">
+                                                <div className="w-5 h-5 rounded bg-amber-100 flex items-center justify-center shrink-0">
+                                                    <AlertCircle className="w-3 h-3 text-amber-600" />
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <div className="text-[10px] font-bold text-slate-700 truncate">{asset.institution}</div>
+                                                    <div className="text-[8px] text-slate-500 uppercase font-medium">{asset.assetType?.replace('_', ' ')}</div>
+                                                </div>
+                                            </div>
+                                            <ChevronRight className="w-3 h-3 text-slate-300 group-hover:text-amber-500 group-hover:translate-x-0.5 transition-all" />
+                                        </Link>
+                                    ))}
+                                    {probateRequiredCount > 3 && (
+                                        <p className="text-center text-[9px] text-slate-400 font-medium italic pt-1">
+                                            + {probateRequiredCount - 3} more accounts awaiting authority
+                                        </p>
+                                    )}
+                                </div>
+                                <div className="p-2 rounded-lg bg-slate-900/5 border border-slate-200/50">
+                                    <p className="text-[9px] text-slate-600 leading-tight">
+                                        These assets are <span className="font-bold text-slate-900">Locked</span> because they were owned individually. Institutions require <strong>Letters (DE-150)</strong> to proceed.
+                                    </p>
+                                </div>
+                            </div>
                         )}
                     </div>
 
@@ -351,6 +393,11 @@ export function ProbateHub() {
                                                     {form.source === "PREP" ? "FOR FILING" : "COURT SEAL"}
                                                 </Badge>
                                                 <span className="font-mono text-[10px] font-bold text-slate-500">{form.code}</span>
+                                                {form.code === 'DE-150' && probateRequiredCount > 0 && (
+                                                    <Badge variant="secondary" className="px-1 py-0 text-[8px] bg-slate-900 text-white border-none animate-pulse">
+                                                        REQUIRED FOR {probateRequiredCount} ASSETS
+                                                    </Badge>
+                                                )}
                                                 {isCompleted && <CheckCircle2 className="w-3 h-3 text-green-500" />}
                                             </div>
                                             <span className="text-[11px] font-medium text-slate-700 truncate">{form.name}</span>
@@ -446,6 +493,24 @@ export function ProbateHub() {
                                     <div className="text-[10px] font-medium text-slate-500">
                                         In the Hub: The "Copies" counter helps you track your unspent physical copies.
                                     </div>
+                                </div>
+                            </div>
+
+                            {/* Personal Notes Section */}
+                            <div className="px-4 pb-4">
+                                <div className="p-3 bg-white rounded-lg border border-blue-100 shadow-sm">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <div className="text-[10px] font-bold text-slate-700 uppercase tracking-tight flex items-center gap-1.5">
+                                            <Edit2 className="w-3 h-3 text-blue-600" /> Personal Probate Notes & Reminders
+                                        </div>
+                                        <span className="text-[9px] text-slate-400 italic">Auto-saves on blur</span>
+                                    </div>
+                                    <Textarea
+                                        placeholder="Add your own notes, local court quirks, or reminders here..."
+                                        className="text-xs min-h-[60px] border-slate-100 focus:border-blue-300 focus:ring-blue-100"
+                                        defaultValue={estate.probateNotes || ""}
+                                        onBlur={(e) => updateMutation.mutate({ probateNotes: e.target.value })}
+                                    />
                                 </div>
                             </div>
                         </motion.div>
