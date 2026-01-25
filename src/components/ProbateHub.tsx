@@ -129,7 +129,7 @@ export function ProbateHub() {
                         </div>
                         <div>
                             <CardTitle className="text-base font-bold">Estate Probate Command Center</CardTitle>
-                            <CardDescription className="text-[10px] uppercase font-bold tracking-tight text-slate-500">
+                            <CardDescription className="text-[10px] uppercase font-bold tracking-tight text-slate-600">
                                 {estate.deceasedFirstName} {estate.deceasedLastName} • {estate.deceasedState || "CA"}
                             </CardDescription>
                         </div>
@@ -150,7 +150,7 @@ export function ProbateHub() {
                         return (
                             <div key={phase.id} className={cn(
                                 "flex-1 flex items-center justify-center gap-2 py-1.5 px-3 rounded-md transition-all whitespace-nowrap",
-                                isCurrent ? "bg-amber-600 text-white shadow-md shadow-amber-200" : isPast ? "bg-green-50 text-green-700" : "bg-transparent text-slate-400"
+                                isCurrent ? "bg-amber-600 text-white shadow-md shadow-amber-200" : isPast ? "bg-green-50 text-green-700" : "bg-transparent text-slate-600"
                             )}>
                                 {isPast ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Icon className="w-3.5 h-3.5" />}
                                 <span className="text-[10px] font-bold uppercase tracking-tight">{phase.name}</span>
@@ -169,11 +169,11 @@ export function ProbateHub() {
                                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3 bg-white p-3 rounded-lg border shadow-sm">
                                     <div className="grid grid-cols-2 gap-2">
                                         <div className="space-y-1">
-                                            <label className="text-[9px] font-bold text-slate-400 uppercase">Case #</label>
+                                            <label className="text-[9px] font-bold text-slate-700 uppercase">Case #</label>
                                             <Input size={1} className="h-7 text-xs" defaultValue={estate.courtCaseNumber} onBlur={(e) => updateMutation.mutate({ courtCaseNumber: e.target.value })} />
                                         </div>
                                         <div className="space-y-1">
-                                            <label className="text-[9px) font-bold text-slate-400 uppercase">Status</label>
+                                            <label className="text-[9px] font-bold text-slate-700 uppercase">Status</label>
                                             <Select defaultValue={estate.probateStatus} onValueChange={(val) => updateMutation.mutate({ probateStatus: val })}>
                                                 <SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
                                                 <SelectContent>
@@ -186,7 +186,7 @@ export function ProbateHub() {
                                         </div>
                                     </div>
                                     <div className="space-y-1">
-                                        <label className="text-[9px] font-bold text-slate-400 uppercase">Estate Type</label>
+                                        <label className="text-[9px] font-bold text-slate-600 uppercase">Estate Type</label>
                                         <Select defaultValue={estate.estateType} onValueChange={(val) => updateMutation.mutate({ estateType: val })}>
                                             <SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
                                             <SelectContent>
@@ -200,17 +200,17 @@ export function ProbateHub() {
                                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
                                     <div className="grid grid-cols-3 gap-2">
                                         <div className="p-2 bg-white rounded-lg border border-slate-200">
-                                            <div className="text-[8px] font-bold text-slate-400 uppercase">Status</div>
+                                            <div className="text-[8px] font-bold text-slate-600 uppercase">Status</div>
                                             <Badge variant="outline" className={cn("mt-1 px-1.5 py-0 text-[10px] border", getStatusColor(estate.probateStatus))}>
                                                 {estate.probateStatus.replace('_', ' ')}
                                             </Badge>
                                         </div>
                                         <div className="p-2 bg-white rounded-lg border border-slate-200">
-                                            <div className="text-[8px] font-bold text-slate-400 uppercase">Case Number</div>
+                                            <div className="text-[8px] font-bold text-slate-600 uppercase">Case Number</div>
                                             <div className="text-[11px] font-bold text-slate-700 truncate mt-1">{estate.courtCaseNumber || "N/A"}</div>
                                         </div>
                                         <div className="p-2 bg-white rounded-lg border border-slate-200">
-                                            <div className="text-[8px] font-bold text-slate-400 uppercase">Copies</div>
+                                            <div className="text-[8px] font-bold text-slate-600 uppercase">Copies</div>
                                             <div className="text-[11px] font-bold text-slate-700 mt-1">{estate.certifiedCopies || 0} Cert.</div>
                                         </div>
                                     </div>
@@ -281,17 +281,17 @@ export function ProbateHub() {
                     {/* Right Panel: Required Forms List (7 cols) */}
                     <div className="lg:col-span-12 xl:col-span-7 p-0 bg-white min-h-[300px]">
                         <div className="px-4 py-2 border-b bg-slate-50/20 flex items-center justify-between">
-                            <h4 className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-2">
+                            <h4 className="text-[10px] font-bold text-slate-600 uppercase flex items-center gap-2">
                                 <FileText className="w-3 h-3" /> Probate Documents
                             </h4>
                             <div className="flex gap-2">
                                 <div className="flex items-center gap-1">
                                     <div className="w-2 h-2 rounded bg-amber-100 border border-amber-200" />
-                                    <span className="text-[8px] font-bold text-slate-400 uppercase">Prepare</span>
+                                    <span className="text-[8px] font-bold text-slate-600 uppercase">Prepare</span>
                                 </div>
                                 <div className="flex items-center gap-1">
                                     <div className="w-2 h-2 rounded bg-violet-100 border border-violet-200" />
-                                    <span className="text-[8px] font-bold text-slate-400 uppercase">Court Issued</span>
+                                    <span className="text-[8px] font-bold text-slate-600 uppercase">Court Issued</span>
                                 </div>
                             </div>
                         </div>
