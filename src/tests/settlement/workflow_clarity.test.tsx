@@ -148,4 +148,35 @@ describe("Workflow Clarity Improvements", () => {
         // Verify the link text
         expect(screen.getByText("Complete the Estate-Level Probate Process first")).toBeInTheDocument();
     });
+
+    it("Probate Hub: Shows Interactive Steps with Resources", async () => {
+        const mockEstate = {
+            probateStatus: "NOT_STARTED",
+            authorityStatus: "NOT_STARTED",
+            deceasedFirstName: "John",
+            deceasedState: "CA"
+        };
+        (api.getMyEstate as any).mockResolvedValue(mockEstate);
+        (api.getAssets as any).mockResolvedValue([
+            { id: "1", institution: "Chase", ownershipType: "INDIVIDUAL", value: 200000 } // > 184k triggers Full Probate
+        ]);
+
+        render(
+            <MemoryRouter>
+                <QueryClientProvider client={queryClient}>
+                    <ProbateHub />
+                </QueryClientProvider>
+            </MemoryRouter>
+        );
+
+        // Verify Step Title
+        expect(await screen.findByText("File Probate Petition")).toBeInTheDocument();
+
+        // Verify Download Action
+        const link = screen.getByText("Download DE-111").closest('a');
+        expect(link).toHaveAttribute("href", "https://www.courts.ca.gov/documents/de111.pdf");
+
+        // Verify Status Update Button
+        expect(screen.getByText("Mark Filed")).toBeInTheDocument();
+    });
 });
