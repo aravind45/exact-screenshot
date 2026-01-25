@@ -274,8 +274,8 @@ export function SettlementWorkflow({
                                                             >
                                                                 <MessageCircle className="w-3.5 h-3.5 text-slate-600" />
                                                                 <div className="text-left">
-                                                                    <p className="font-bold text-xs uppercase tracking-tight">Log Call or Email</p>
-                                                                    <p className="text-[9px] text-slate-500 font-medium">Record who you spoke with and when</p>
+                                                                    <p className="font-bold text-xs uppercase tracking-tight">Log History & Evidence</p>
+                                                                    <p className="text-[9px] text-slate-500 font-medium">Record what you sent via Gmail/Outlook/Call</p>
                                                                 </div>
                                                             </Button>
                                                             <p className="px-1 text-[10px] text-slate-500 leading-tight italic">

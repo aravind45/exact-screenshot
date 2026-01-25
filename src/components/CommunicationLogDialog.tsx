@@ -158,6 +158,18 @@ export function CommunicationLogDialog({
                     </div>
                 </DialogHeader>
 
+                <div className="bg-blue-50/50 border border-blue-100/50 p-3 rounded-xl mb-2 flex items-start gap-3">
+                    <div className="p-1.5 bg-white rounded-lg border border-blue-100 text-blue-600 shadow-sm">
+                        <Loader2 className="w-3.5 h-3.5" />
+                    </div>
+                    <div>
+                        <p className="text-[11px] font-bold text-blue-900 leading-tight">📤 Personal Email Usage</p>
+                        <p className="text-[10px] text-blue-700 font-medium leading-relaxed">
+                            Send messages using your own email (e.g. Gmail/Outlook). <strong>Log the activity here afterwards</strong> so it's included in your Verified Settlement History.
+                        </p>
+                    </div>
+                </div>
+
                 <form onSubmit={handleSubmit} className="space-y-4">
                     {/* Template Selector (if templates provided) */}
                     {Object.keys(templates).length > 0 && (

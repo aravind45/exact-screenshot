@@ -254,6 +254,7 @@ export default function AssetDetail() {
     mutationFn: (data: CommunicationData) => api.createCommunication({ ...data, assetId: id! } as any),
     onSuccess: () => {
       toast({ title: "Communication Logged", description: "Successfully logged communication." });
+      queryClient.invalidateQueries({ queryKey: ['communications', id] });
       queryClient.invalidateQueries({ queryKey: ['asset', id] });
       setShowCommDialog(false);
     },
@@ -749,8 +750,30 @@ export default function AssetDetail() {
                                 <p className="text-sm font-semibold text-slate-700 truncate max-w-[140px]">{value}</p>
                               </div>
                             </div>
+                            {label === "Email" && value !== "N/A" && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 text-[10px] font-bold text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                onClick={() => {
+                                  window.location.href = `mailto:${value}`;
+                                  toast({
+                                    title: "Opening Email Client",
+                                    description: "After you send your email, remember to log it here for your official records!",
+                                  });
+                                }}
+                              >
+                                Send via Gmail
+                              </Button>
+                            )}
                           </div>
                         ))}
+                      </div>
+
+                      <div className="p-3 bg-blue-50/50 rounded-xl border border-blue-100/50">
+                        <p className="text-[10px] text-blue-700 font-medium leading-relaxed">
+                          <strong>How to Send:</strong> Use your personal email (Gmail/Outlook) to send documents. Then, use the <strong>Log History</strong> tool to create your legal audit trail.
+                        </p>
                       </div>
 
                       <div className="space-y-2 pt-4 border-t border-border/50">
