@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -24,8 +23,6 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
-import { ProcessFlow } from "./ProcessFlow";
-import { TRACK_STAGES, SettlementTrack } from "@/config/settlementStages";
 import { calculateAuthorityRecommendation, getInstitutionAuthorityRequirement } from "@/lib/authorityEngine";
 import { cn } from "@/lib/utils";
 import { ProbateFormsTracker } from "./ProbateFormsTracker";
@@ -323,97 +320,108 @@ export function ProbateHub() {
 
                                     {!isGranted && (
                                         <div className="bg-white rounded-lg p-3 border" style={{ borderColor: rec.type === "SMALL_ESTATE" ? "rgb(187 247 208)" : "rgb(254 215 170)" }}>
-                                            <div className="text-xs font-bold text-slate-700 mb-2 uppercase tracking-wide">Next Steps</div>
-                                            <div className="space-y-2">
-                                                <div className="space-y-3">
-                                                    {(rec.type === "SMALL_ESTATE" ? [
-                                                        {
-                                                            label: "Verify asset eligibility",
-                                                            desc: "Ensure total estate value is under $184,500.",
-                                                            action: null
-                                                        },
-                                                        {
-                                                            label: "Wait 40 days",
-                                                            desc: "Mandatory waiting period after death.",
-                                                            action: null
-                                                        },
-                                                        {
-                                                            label: "Prepare Affidavit",
-                                                            desc: "Download and notarize Small Estate Affidavit.",
-                                                            action: { label: "Get Form", url: "https://saclaw.org/wp-content/uploads/form-affidavit-for-collection-of-personal-property.pdf" }
-                                                        },
-                                                        {
-                                                            label: "Collect Assets",
-                                                            desc: "Present affidavit to banks/holders.",
-                                                            action: null
-                                                        }
-                                                    ] : [
-                                                        {
-                                                            label: "File Probate Petition",
-                                                            desc: "Submit Form DE-111 to start the case.",
-                                                            action: null,
-                                                            statusUpdate: { label: "Mark Filed", value: "FILED", current: estate.probateStatus === "NOT_STARTED" }
-                                                        },
-                                                        {
-                                                            label: "Notice to Heirs",
-                                                            desc: "Mail Form DE-121 to all beneficiaries.",
-                                                            action: { label: "Download DE-121", url: "https://www.courts.ca.gov/documents/de121.pdf" }
-                                                        },
-                                                        {
-                                                            label: "Atttend Hearing",
-                                                            desc: "Judge reviews petition and appoints executor.",
-                                                            action: null
-                                                        },
-                                                        {
-                                                            label: "Receive Letters",
-                                                            desc: "Get certified Letters Testamentary (DE-150).",
-                                                            action: { label: "Download DE-150", url: "https://www.courts.ca.gov/documents/de150.pdf" },
-                                                            statusUpdate: { label: "I Have Letters", value: "EXECUTOR_APPOINTED", current: estate.probateStatus === "FILED" }
-                                                        }
-                                                    ]).map((step: any, i) => (
-                                                        <div key={i} className="flex items-start gap-3 p-2 rounded-lg hover:bg-slate-50 transition-colors">
-                                                            <div className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold mt-0.5" style={{ backgroundColor: rec.type === "SMALL_ESTATE" ? "rgb(187 247 208)" : "rgb(254 215 170)", color: rec.type === "SMALL_ESTATE" ? "rgb(21 128 61)" : "rgb(146 64 14)" }}>
-                                                                {i + 1}
-                                                            </div>
-                                                            <div className="flex-1">
-                                                                <div className="text-sm font-medium text-slate-800">{step.label}</div>
-                                                                <div className="text-xs text-slate-500 mb-2">{step.desc}</div>
-                                                                <div className="flex items-center gap-2">
-                                                                    {step.action && (
-                                                                        step.action.internal ? (
-                                                                            <Link
-                                                                                to={step.action.url}
-                                                                                className="inline-flex items-center gap-1 px-2 py-1 rounded bg-white border border-slate-200 text-[10px] font-bold text-primary hover:bg-slate-50 hover:text-primary/80 transition-colors"
-                                                                            >
-                                                                                <FileText className="w-3 h-3" />
-                                                                                {step.action.label}
-                                                                            </Link>
-                                                                        ) : (
-                                                                            <a
-                                                                                href={step.action.url}
-                                                                                target="_blank"
-                                                                                rel="noopener noreferrer"
-                                                                                className="inline-flex items-center gap-1 px-2 py-1 rounded bg-white border border-slate-200 text-[10px] font-bold text-primary hover:bg-slate-50 hover:text-primary/80 transition-colors"
-                                                                            >
-                                                                                <FileText className="w-3 h-3" />
-                                                                                {step.action.label}
-                                                                            </a>
-                                                                        )
-                                                                    )}
-                                                                    {step.statusUpdate && step.statusUpdate.current && (
-                                                                        <button
-                                                                            onClick={() => updateMutation.mutate({ probateStatus: step.statusUpdate.value })}
-                                                                            className="inline-flex items-center gap-1 px-2 py-1 rounded bg-green-50 border border-green-200 text-[10px] font-bold text-green-700 hover:bg-green-100 transition-colors"
-                                                                        >
-                                                                            <CheckCircle2 className="w-3 h-3" />
-                                                                            {step.statusUpdate.label}
-                                                                        </button>
-                                                                    )}
+                                            <div className="text-[10px] font-bold uppercase tracking-wide text-slate-500 mb-3">Next Steps</div>
+
+                                            <div className="flex items-stretch gap-0 overflow-x-auto pb-2 scrollbar-none">
+                                                {(rec.type === "SMALL_ESTATE" ? [
+                                                    {
+                                                        label: "Verify eligibility",
+                                                        desc: "Estate under $184,500",
+                                                        action: null
+                                                    },
+                                                    {
+                                                        label: "Wait 40 days",
+                                                        desc: "Period after death",
+                                                        action: null
+                                                    },
+                                                    {
+                                                        label: "Prepare Affidavit",
+                                                        desc: "Download & notarize",
+                                                        action: { label: "Get Form", url: "https://saclaw.org/wp-content/uploads/form-affidavit-for-collection-of-personal-property.pdf" }
+                                                    },
+                                                    {
+                                                        label: "Collect Assets",
+                                                        desc: "Present to holders",
+                                                        action: null
+                                                    }
+                                                ] : [
+                                                    {
+                                                        label: "File Petition",
+                                                        desc: "Submit DE-111",
+                                                        action: null,
+                                                        statusUpdate: { label: "Mark Filed", value: "FILED", current: estate.probateStatus === "NOT_STARTED" }
+                                                    },
+                                                    {
+                                                        label: "Notice Heirs",
+                                                        desc: "Mail DE-121",
+                                                        action: { label: "Download", url: "https://www.courts.ca.gov/documents/de121.pdf" }
+                                                    },
+                                                    {
+                                                        label: "Attend Hearing",
+                                                        desc: "Court appointment",
+                                                        action: null
+                                                    },
+                                                    {
+                                                        label: "Receive Letters",
+                                                        desc: "Get DE-150",
+                                                        action: { label: "Download", url: "https://www.courts.ca.gov/documents/de150.pdf" },
+                                                        statusUpdate: { label: "I Have Letters", value: "EXECUTOR_APPOINTED", current: estate.probateStatus === "FILED" }
+                                                    }
+                                                ]).map((step: any, i, arr) => (
+                                                    <div key={i} className="relative flex-shrink-0" style={{ width: i === arr.length - 1 ? 'auto' : '180px' }}>
+                                                        <div
+                                                            className="relative h-full px-4 py-3 flex flex-col justify-between transition-all hover:brightness-95"
+                                                            style={{
+                                                                backgroundColor: rec.type === "SMALL_ESTATE" ? "rgb(240 253 244)" : "rgb(255 251 235)",
+                                                                clipPath: i === arr.length - 1
+                                                                    ? 'polygon(0 0, 100% 0, 100% 100%, 0 100%, 10px 50%)'
+                                                                    : 'polygon(0 0, calc(100% - 10px) 0, 100% 50%, calc(100% - 10px) 100%, 0 100%, 10px 50%)',
+                                                                marginLeft: i === 0 ? '0' : '-10px',
+                                                                paddingLeft: i === 0 ? '1rem' : '1.5rem',
+                                                                zIndex: arr.length - i
+                                                            }}
+                                                        >
+                                                            <div className="flex items-start gap-2 mb-2 min-w-0">
+                                                                <div
+                                                                    className="flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold"
+                                                                    style={{
+                                                                        backgroundColor: rec.type === "SMALL_ESTATE" ? "rgb(187 247 208)" : "rgb(254 215 170)",
+                                                                        color: rec.type === "SMALL_ESTATE" ? "rgb(21 128 61)" : "rgb(146 64 14)"
+                                                                    }}
+                                                                >
+                                                                    {i + 1}
+                                                                </div>
+                                                                <div className="flex-1 min-w-0">
+                                                                    <div className="text-[11px] font-bold text-slate-800 truncate leading-tight">{step.label}</div>
+                                                                    <div className="text-[9px] text-slate-500 mt-0.5 leading-tight truncate">{step.desc}</div>
                                                                 </div>
                                                             </div>
+
+                                                            <div className="flex flex-col gap-1 mt-1">
+                                                                {step.action && (
+                                                                    <a
+                                                                        href={step.action.url}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        className="inline-flex items-center justify-center gap-1 px-1.5 py-0.5 rounded bg-white border border-slate-300 text-[9px] font-bold text-primary hover:bg-slate-50 transition-colors"
+                                                                    >
+                                                                        <FileText className="w-2.5 h-2.5" />
+                                                                        {step.action.label}
+                                                                    </a>
+                                                                )}
+                                                                {step.statusUpdate && step.statusUpdate.current && (
+                                                                    <button
+                                                                        onClick={() => updateMutation.mutate({ probateStatus: step.statusUpdate.value })}
+                                                                        className="inline-flex items-center justify-center gap-1 px-1.5 py-0.5 rounded bg-green-50 border border-green-300 text-[9px] font-bold text-green-700 hover:bg-green-100 transition-colors"
+                                                                    >
+                                                                        <CheckCircle2 className="w-2.5 h-2.5" />
+                                                                        {step.statusUpdate.label}
+                                                                    </button>
+                                                                )}
+                                                            </div>
                                                         </div>
-                                                    ))}
-                                                </div>
+                                                    </div>
+                                                ))}
                                             </div>
                                         </div>
                                     )}
@@ -428,6 +436,6 @@ export function ProbateHub() {
                     <ProbateFormsTracker />
                 </div>
             </CardContent>
-        </Card >
+        </Card>
     );
 }
