@@ -1,4 +1,36 @@
 
+export type CommunicationType = 'call' | 'email' | 'letter' | 'fax' | 'in-person';
+export type CommunicationDirection = 'inbound' | 'outbound';
+
+export interface CommunicationAttachment {
+    id: string;
+    fileName: string;
+    mimeType: string;
+    sizeBytes: number;
+    createdAt: string;
+}
+
+export interface Communication {
+    id: string;
+    assetId: string;
+    type: CommunicationType;
+    direction: CommunicationDirection;
+    occurredAt: string;
+    institutionName?: string;
+    contactName?: string;
+    contactChannel?: string;
+    subject?: string;
+    notes: string;
+    followUpDueAt?: string;
+    followUpCompletedAt?: string;
+    statusChange?: string;
+    attachments?: CommunicationAttachment[];
+    asset?: {
+        name: string;
+        institution: string;
+    };
+}
+
 const API_URL = import.meta.env.VITE_API_URL || "/api";
 
 const getHeaders = () => {
@@ -245,28 +277,6 @@ export const api = {
     },
 
     /**
-     * Create a communication log entry for an asset
-     */
-    createCommunication: async (assetId: string, data: {
-        method: string;
-        subject: string;
-        content?: string;
-        communicationDate: string;
-        type?: string;
-        direction?: string;
-        contactPerson?: string;
-        nextActionDate?: string;
-        nextActionType?: string;
-    }) => {
-        const response = await fetch(`${API_URL}/assets/${assetId}/communications`, {
-            method: "POST",
-            headers: getHeaders(),
-            body: JSON.stringify(data)
-        });
-        return parseResponse(response);
-    },
-
-    /**
      * Generate a smart draft for a communication log
      */
     generateDraft: async (assetId: string, context: {
@@ -372,6 +382,61 @@ export const api = {
             body: formData,
         });
 
+        return parseResponse(response);
+    },
+    /**
+     * Communication Log Methods
+     */
+    getCommunications: async (assetId: string): Promise<Communication[]> => {
+        const response = await fetch(`${API_URL}/communications/asset/${assetId}`, {
+            headers: getHeaders(),
+        });
+        return parseResponse(response);
+    },
+
+    createCommunication: async (data: Partial<Communication>): Promise<Communication> => {
+        const response = await fetch(`${API_URL}/communications`, {
+            method: "POST",
+            headers: getHeaders(),
+            body: JSON.stringify(data),
+        });
+        return parseResponse(response);
+    },
+
+    deleteCommunication: async (id: string): Promise<{ success: boolean }> => {
+        const response = await fetch(`${API_URL}/communications/${id}`, {
+            method: "DELETE",
+            headers: getHeaders(),
+        });
+        return parseResponse(response);
+    },
+
+    uploadCommunicationAttachment: async (communicationId: string, file: File) => {
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const token = localStorage.getItem("auth_token");
+        const response = await fetch(`${API_URL}/communications/${communicationId}/attachments`, {
+            method: "POST",
+            headers: {
+                ...(token ? { "Authorization": `Bearer ${token}` } : {}),
+            },
+            body: formData,
+        });
+        return parseResponse(response);
+    },
+
+    getFollowUps: async (): Promise<Communication[]> => {
+        const response = await fetch(`${API_URL}/communications/follow-ups`, {
+            headers: getHeaders(),
+        });
+        return parseResponse(response);
+    },
+
+    searchCommunications: async (query: string): Promise<Communication[]> => {
+        const response = await fetch(`${API_URL}/communications/search?query=${encodeURIComponent(query)}`, {
+            headers: getHeaders(),
+        });
         return parseResponse(response);
     },
 };

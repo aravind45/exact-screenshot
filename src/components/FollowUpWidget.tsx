@@ -1,16 +1,17 @@
 import { cn } from "@/lib/utils";
-import { PriorityBadge, Priority } from "./PriorityBadge";
 import { Clock, ChevronRight, Bell } from "lucide-react";
 import { motion } from "framer-motion";
+import { Communication } from "@/lib/api";
+import { format } from "date-fns";
+import { Badge } from "@/components/ui/badge";
 
-interface FollowUp {
-  assetId: string;
-  institution: string;
-  assetType: string;
-  daysSinceContact: number;
-  priority: Priority;
-  action: string;
-}
+type FollowUp = Communication & {
+  asset?: {
+    id: string;
+    institution: string;
+    assetType: string;
+  }
+};
 
 interface FollowUpWidgetProps {
   followUps: FollowUp[];
@@ -19,9 +20,6 @@ interface FollowUpWidgetProps {
 }
 
 export function FollowUpWidget({ followUps, onFollowUpClick, className }: FollowUpWidgetProps) {
-  const urgentCount = followUps.filter(f => f.priority === 'urgent').length;
-  const highCount = followUps.filter(f => f.priority === 'high').length;
-
   if (followUps.length === 0) {
     return (
       <motion.div
@@ -29,17 +27,17 @@ export function FollowUpWidget({ followUps, onFollowUpClick, className }: Follow
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
         className={cn(
-          'card-elevated p-6 bg-success/5',
+          'card-elevated p-6 bg-green-50/50 border-green-100',
           className
         )}
       >
-        <div className="flex items-center gap-3 text-success">
-          <div className="p-2 bg-success/10 rounded-lg">
+        <div className="flex items-center gap-3 text-green-600">
+          <div className="p-2 bg-green-100 rounded-lg">
             <Clock className="w-5 h-5" />
           </div>
           <div>
             <h3 className="font-semibold">All caught up!</h3>
-            <p className="text-sm text-muted-foreground">No pending follow-ups right now</p>
+            <p className="text-sm text-slate-500">No pending follow-ups right now</p>
           </div>
         </div>
       </motion.div>
@@ -51,69 +49,55 @@ export function FollowUpWidget({ followUps, onFollowUpClick, className }: Follow
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
-      className={cn('card-elevated overflow-hidden', className)}
+      className={cn('card-elevated overflow-hidden bg-white border-slate-200 shadow-sm', className)}
     >
       {/* Header */}
-      <div className="p-5 border-b border-border/50 bg-gradient-to-r from-orange-50 to-amber-50">
+      <div className="p-5 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-warning/10 rounded-lg">
-              <Bell className="w-5 h-5 text-warning" />
+            <div className="p-2 bg-amber-100 rounded-lg">
+              <Bell className="w-5 h-5 text-amber-600" />
             </div>
             <div>
-              <h3 className="font-semibold text-foreground">Follow-ups Needed</h3>
-              <p className="text-sm text-muted-foreground">
-                {followUps.length} asset{followUps.length !== 1 ? 's' : ''} need attention
+              <h3 className="font-semibold text-slate-900">Follow-ups Needed</h3>
+              <p className="text-sm text-slate-500">
+                {followUps.length} interaction{followUps.length !== 1 ? 's' : ''} need attention
               </p>
             </div>
           </div>
-          {(urgentCount > 0 || highCount > 0) && (
-            <div className="flex gap-2">
-              {urgentCount > 0 && (
-                <span className="status-badge bg-destructive/10 text-destructive">
-                  {urgentCount} urgent
-                </span>
-              )}
-              {highCount > 0 && (
-                <span className="status-badge bg-orange-500/10 text-orange-600">
-                  {highCount} high
-                </span>
-              )}
-            </div>
-          )}
         </div>
       </div>
 
       {/* List */}
-      <div className="divide-y divide-border/50">
+      <div className="divide-y divide-slate-100">
         {followUps.slice(0, 5).map((followUp, index) => (
           <motion.button
-            key={followUp.assetId}
+            key={followUp.id}
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.3, delay: index * 0.05 }}
             onClick={() => onFollowUpClick?.(followUp.assetId)}
-            className="w-full text-left p-4 hover:bg-muted/50 transition-colors focus:outline-none focus:bg-muted/50 group"
+            className="w-full text-left p-4 hover:bg-slate-50 transition-colors focus:outline-none focus:bg-slate-50 group"
           >
             <div className="flex items-center gap-3">
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="font-medium text-foreground truncate">
-                    {followUp.institution}
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="font-bold text-slate-900 truncate">
+                    {followUp.asset?.institution || followUp.institutionName}
                   </span>
-                  <PriorityBadge priority={followUp.priority} />
+                  <Badge className="bg-amber-100 text-amber-700 border-none text-[10px] h-5 font-black">FOLLOW-UP</Badge>
                 </div>
-                <div className="flex items-center gap-2 mt-1">
-                  <Clock className="w-3.5 h-3.5 text-muted-foreground" />
-                  <span className="text-sm text-muted-foreground">
-                    {followUp.daysSinceContact} days since last contact
+                <div className="flex items-center gap-2 mb-2">
+                  <Clock className="w-3.5 h-3.5 text-slate-400" />
+                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-tighter">
+                    Due: {followUp.followUpDueAt ? format(new Date(followUp.followUpDueAt), 'MMM d, yyyy') : 'Pending'}
                   </span>
                 </div>
-                <p className="text-sm text-foreground/80 mt-1 truncate">
-                  {followUp.action}
+                <p className="text-sm text-slate-600 line-clamp-1 leading-relaxed">
+                  {followUp.subject || followUp.notes}
                 </p>
               </div>
-              <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0 group-hover:text-foreground transition-colors" />
+              <ChevronRight className="w-5 h-5 text-slate-300 shrink-0 group-hover:text-primary transition-colors" />
             </div>
           </motion.button>
         ))}
@@ -121,8 +105,8 @@ export function FollowUpWidget({ followUps, onFollowUpClick, className }: Follow
 
       {/* View All */}
       {followUps.length > 5 && (
-        <div className="p-4 border-t border-border/50 bg-muted/30">
-          <button className="w-full text-center text-sm font-medium text-primary hover:underline">
+        <div className="p-4 border-t border-slate-100 bg-slate-50/50">
+          <button className="w-full text-center text-sm font-bold text-primary hover:underline">
             View all {followUps.length} follow-ups
           </button>
         </div>

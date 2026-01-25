@@ -47,6 +47,7 @@ import { cn } from "@/lib/utils";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
+import { CommunicationLog } from "@/components/communications/CommunicationLog";
 import { CommunicationLogDialog, CommunicationData } from "@/components/CommunicationLogDialog";
 import { fidelityWorkflow } from "@/config/workflows/fidelity";
 import { SettlementWorkflow } from "@/components/SettlementWorkflow";
@@ -230,7 +231,7 @@ export default function AssetDetail() {
   });
 
   const createCommMutation = useMutation({
-    mutationFn: (data: CommunicationData) => api.createCommunication(id!, data),
+    mutationFn: (data: CommunicationData) => api.createCommunication({ ...data, assetId: id! } as any),
     onSuccess: () => {
       toast({ title: "Communication Logged", description: "Successfully logged communication." });
       queryClient.invalidateQueries({ queryKey: ['asset', id] });
@@ -631,48 +632,9 @@ export default function AssetDetail() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2 space-y-6">
                 {!isEditing && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="card-elevated"
-                  >
-                    <div className="p-5 border-b border-border/50 flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <MessageSquare className="w-5 h-5 text-primary" />
-                        <h2 className="font-semibold text-foreground">Communication Log</h2>
-                      </div>
-                      <Button size="sm" className="gap-2" onClick={() => setShowCommDialog(true)}>
-                        <Plus className="w-4 h-4" />
-                        Log Communication
-                      </Button>
-                    </div>
-                    <div className="divide-y divide-border/50">
-                      {uiAsset.communications.length === 0 && (
-                        <div className="p-5 text-center text-muted-foreground">
-                          No communications logged yet.
-                        </div>
-                      )}
-                      {uiAsset.communications.map((comm: any) => {
-                        const MethodIcon = methodIcons[comm.method] || MessageSquare;
-                        return (
-                          <div key={comm.id} className="p-5">
-                            <div className="flex items-start gap-4">
-                              <div className="p-2 rounded-lg bg-muted text-muted-foreground shrink-0">
-                                <MethodIcon className="w-4 h-4" />
-                              </div>
-                              <div className="flex-1">
-                                <div className="flex items-center justify-between mb-1">
-                                  <h3 className="font-medium text-sm">{comm.subject}</h3>
-                                  <span className="text-[10px] text-muted-foreground">{formatDate(comm.communicationDate)}</span>
-                                </div>
-                                <p className="text-sm text-muted-foreground line-clamp-2">{comm.content}</p>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </motion.div>
+                  <div className="bg-white rounded-3xl border border-slate-200 p-8 shadow-sm">
+                    <CommunicationLog assetId={id!} />
+                  </div>
                 )}
               </div>
 

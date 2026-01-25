@@ -72,20 +72,11 @@ export default function Dashboard() {
 
   const firstName = user?.fullName?.split(' ')[0] || user?.email?.split('@')[0] || 'there';
 
-  const derivedFollowUps = assets
-    .filter((asset: any) => {
-      const p = normalize(asset.priority);
-      return p === 'high' || p === 'urgent';
-    })
-    .map((asset: any) => ({
-      assetId: asset.id,
-      institution: asset.institution,
-      assetType: normalize(asset.assetType),
-      daysSinceContact: 0,
-      priority: normalize(asset.priority) as Priority,
-      action: 'Review required'
-    }))
-    .slice(0, 5);
+  const { data: realFollowUps = [] } = useQuery({
+    queryKey: ['follow-ups'],
+    queryFn: api.getFollowUps,
+  });
+
 
   if (error) {
     return <div className="p-8 text-red-500">Error loading dashboard: {(error as Error).message}.</div>;
@@ -134,13 +125,13 @@ export default function Dashboard() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             {/* Main Content (Left) */}
             <div className="lg:col-span-8 space-y-10">
-              {derivedFollowUps.length > 0 && (
+              {realFollowUps.length > 0 && (
                 <section className="space-y-4">
                   <div className="flex items-center gap-2 px-1">
                     <Bell className="w-5 h-5 text-amber-500" />
                     <h2 className="text-xl font-bold text-slate-900 tracking-tight">Pending Actions</h2>
                   </div>
-                  <FollowUpWidget followUps={derivedFollowUps} onFollowUpClick={handleAssetClick} />
+                  <FollowUpWidget followUps={realFollowUps as any} onFollowUpClick={handleAssetClick} />
                 </section>
               )}
 
