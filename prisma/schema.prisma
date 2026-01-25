@@ -298,3 +298,13 @@ model Heir {
 
   @@map("heirs")
 }
+
+model FormTemplate {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  data      Bytes
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("form_templates")
+}

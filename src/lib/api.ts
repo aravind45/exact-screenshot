@@ -343,6 +343,25 @@ export const api = {
         return parseResponse(response);
     },
 
+    getTemplates: async () => {
+        const response = await fetch(`${API_URL}/admin/templates`, {
+            headers: getHeaders(),
+        });
+        return parseResponse(response);
+    },
+
+    uploadTemplate: async (name: string, file: File) => {
+        const headers = getHeaders();
+        headers["Content-Type"] = "application/pdf";
+
+        const response = await fetch(`${API_URL}/admin/templates?name=${encodeURIComponent(name)}`, {
+            method: "POST",
+            headers,
+            body: file
+        });
+        return parseResponse(response);
+    },
+
     getMyEstate: async () => {
         const response = await fetch(`${API_URL}/estates/my`, {
             headers: getHeaders(),

@@ -17,6 +17,7 @@ const port = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
+app.use(express.raw({ type: 'application/pdf', limit: '10mb' }));
 
 // Logger
 app.use((req, res, next) => {

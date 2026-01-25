@@ -40,4 +40,38 @@ router.get("/users", isAdmin, async (req: any, res: Response) => {
     }
 });
 
+// Template Management
+router.get("/templates", isAdmin, async (req: any, res: Response) => {
+    try {
+        const templates = await prisma.formTemplate.findMany({
+            select: { id: true, name: true, updatedAt: true }
+        });
+        res.json(templates);
+    } catch (e) {
+        res.status(500).json({ error: "Failed to list templates" });
+    }
+});
+
+router.post("/templates", isAdmin, async (req: any, res: Response) => {
+    try {
+        const name = req.query.name as string;
+        if (!name) return res.status(400).json({ error: "Name query param required" });
+
+        // req.body is Buffer because of express.raw
+        if (!req.body || !Buffer.isBuffer(req.body)) {
+            return res.status(400).json({ error: "Binary PDF body required" });
+        }
+
+        const template = await prisma.formTemplate.upsert({
+            where: { name },
+            update: { data: req.body },
+            create: { name, data: req.body }
+        });
+        res.json({ success: true, id: template.id });
+    } catch (e) {
+        console.error("Upload error:", e);
+        res.status(500).json({ error: "Failed to upload template" });
+    }
+});
+
 export default router;

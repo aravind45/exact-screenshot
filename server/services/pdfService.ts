@@ -2,29 +2,37 @@ import { PDFDocument } from 'pdf-lib';
 import fs from 'fs';
 import path from 'path';
 
+import { prisma } from '../db.js';
+
 export const PdfService = {
     /**
      * Generates a filled DE-111 Petition for Probate
      */
     async generateDE111(estate: any) {
-        // Load template
-        const templatePath = path.join(process.cwd(), 'server', 'templates', 'DE-111.pdf');
-
         let pdfBytes: Buffer;
 
-        if (!fs.existsSync(templatePath)) {
-            console.warn("Template DE-111.pdf not found. Creating a blank form for testing purposes.");
-            // Create a dummy PDF with fields if missing (for dev environment)
-            const doc = await PDFDocument.create();
-            const page = doc.addPage();
-            const form = doc.getForm();
-            form.createTextField('PetitionerName').setText('Petitioner Name');
-            form.createTextField('DecedentName').setText('Decedent Name');
-            form.createTextField('ValuePersonalProperty').setText('0.00');
-            page.drawText('DE-111 PLACESHOST (Real form not found)', { x: 50, y: 700 });
-            pdfBytes = Buffer.from(await doc.save());
+        // 1. Try Database (Vercel Persistence)
+        const dbTemplate = await prisma.formTemplate.findUnique({ where: { name: "DE-111" } });
+
+        if (dbTemplate) {
+            pdfBytes = dbTemplate.data;
         } else {
-            pdfBytes = fs.readFileSync(templatePath);
+            // 2. Try Local File (Dev fallback)
+            const templatePath = path.join(process.cwd(), 'server', 'templates', 'DE-111.pdf');
+            if (fs.existsSync(templatePath)) {
+                pdfBytes = fs.readFileSync(templatePath);
+            } else {
+                console.warn("Template DE-111.pdf not found. Creating a blank form for testing purposes.");
+                // Create a dummy PDF with fields if missing (for dev environment)
+                const doc = await PDFDocument.create();
+                const page = doc.addPage();
+                const form = doc.getForm();
+                form.createTextField('PetitionerName').setText('Petitioner Name');
+                form.createTextField('DecedentName').setText('Decedent Name');
+                form.createTextField('ValuePersonalProperty').setText('0.00');
+                page.drawText('DE-111 PLACESHOST (Real form not found)', { x: 50, y: 700 });
+                pdfBytes = Buffer.from(await doc.save());
+            }
         }
 
         const pdfDoc = await PDFDocument.load(pdfBytes);

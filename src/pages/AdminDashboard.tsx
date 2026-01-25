@@ -123,6 +123,7 @@ export default function AdminDashboard() {
                     <TabsList className="mb-6">
                         <TabsTrigger value="overview">System Users</TabsTrigger>
                         <TabsTrigger value="institutions">Institution Master</TabsTrigger>
+                        <TabsTrigger value="templates">Form Templates</TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="overview" className="mt-0 space-y-4">
@@ -219,9 +220,13 @@ export default function AdminDashboard() {
                             </div>
                         </div>
                     </TabsContent>
+
+                    <TabsContent value="templates" className="mt-0">
+                        <TemplateManager />
+                    </TabsContent>
                 </Tabs>
             </main>
-        </div>
+        </div >
     );
 }
 
@@ -312,5 +317,84 @@ function InstitutionRow({ institution }: { institution: any }) {
                 <Button variant="ghost" size="sm" onClick={() => setIsEditing(true)}>Edit</Button>
             </td>
         </tr>
+    );
+}
+
+function TemplateManager() {
+    const { toast } = useToast();
+    const queryClient = useQueryClient();
+    const [uploading, setUploading] = useState(false);
+
+    const { data: templates } = useQuery({
+        queryKey: ["admin", "templates"],
+        queryFn: api.getTemplates
+    });
+
+    const handleUpload = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        const formData = new FormData(e.currentTarget);
+        const name = formData.get("name") as string;
+        const file = formData.get("file") as File;
+
+        if (!name || !file) return;
+
+        setUploading(true);
+        try {
+            await api.uploadTemplate(name, file);
+            toast({ title: "Template Uploaded", description: `Updated ${name} successfully.` });
+            queryClient.invalidateQueries({ queryKey: ["admin", "templates"] });
+            (e.target as HTMLFormElement).reset();
+        } catch (error) {
+            toast({ variant: "destructive", title: "Upload Failed" });
+        } finally {
+            setUploading(false);
+        }
+    };
+
+    return (
+        <div className="space-y-6">
+            <Card className="card-elevated border-none">
+                <CardHeader>
+                    <CardTitle>Upload PDF Template</CardTitle>
+                    <CardDescription>Upload official court forms (e.g. DE-111.pdf) to be used by the generator.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <form onSubmit={handleUpload} className="flex gap-4 items-end">
+                        <div className="space-y-2 flex-1">
+                            <label className="text-sm font-medium">Template Code</label>
+                            <Input name="name" placeholder="e.g. DE-111" defaultValue="DE-111" required />
+                        </div>
+                        <div className="space-y-2 flex-1">
+                            <label className="text-sm font-medium">PDF File</label>
+                            <Input name="file" type="file" accept=".pdf" required />
+                        </div>
+                        <Button type="submit" disabled={uploading}>
+                            {uploading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+                            Upload
+                        </Button>
+                    </form>
+                </CardContent>
+            </Card>
+
+            <Card className="card-elevated border-none">
+                <CardHeader><CardTitle>Existing Templates</CardTitle></CardHeader>
+                <CardContent>
+                    <div className="border rounded-lg divide-y">
+                        {templates?.map((t: any) => (
+                            <div key={t.id} className="p-4 flex justify-between items-center">
+                                <div>
+                                    <div className="font-bold">{t.name}</div>
+                                    <div className="text-xs text-muted-foreground">Last updated: {new Date(t.updatedAt).toLocaleDateString()}</div>
+                                </div>
+                                <div className="text-sm text-green-600 flex items-center gap-1">
+                                    <CheckCircle2 className="w-4 h-4" /> Active
+                                </div>
+                            </div>
+                        ))}
+                        {templates?.length === 0 && <div className="p-4 text-muted-foreground text-center">No templates found.</div>}
+                    </div>
+                </CardContent>
+            </Card>
+        </div>
     );
 }
