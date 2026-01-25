@@ -351,11 +351,7 @@ export function ProbateHub() {
                                                         {
                                                             label: "File Probate Petition",
                                                             desc: "Submit Form DE-111 to start the case.",
-                                                            action: {
-                                                                label: "Start Wizard",
-                                                                url: "/probate/petition",
-                                                                internal: true
-                                                            },
+                                                            action: null,
                                                             statusUpdate: { label: "Mark Filed", value: "FILED", current: estate.probateStatus === "NOT_STARTED" }
                                                         },
                                                         {
