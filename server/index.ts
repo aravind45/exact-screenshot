@@ -51,6 +51,14 @@ app.use("/api/communications", authenticate, communicationRoutes);
 
 // Profile (simple, keep here or move if grows)
 app.get("/api/auth/me", authenticate, (req: any, res) => res.json(req.user));
+app.put("/api/auth/me", authenticate, async (req: any, res) => {
+    try {
+        const updatedUser = await AuthService.updateProfile(req.user.id, req.body);
+        res.json(updatedUser);
+    } catch (e: any) {
+        res.status(400).json({ error: e.message });
+    }
+});
 
 // Only listen if this file is run directly (local dev)
 if (process.env.NODE_ENV !== "production" || process.env.VITE_API_URL === undefined) {

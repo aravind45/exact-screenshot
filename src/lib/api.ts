@@ -295,14 +295,14 @@ export const api = {
      * User Profiles
      */
     getProfile: async () => {
-        const response = await fetch(`${API_URL}/profile`, {
+        const response = await fetch(`${API_URL}/auth/me`, {
             headers: getHeaders(),
         });
         return parseResponse(response);
     },
 
     updateProfile: async (data: { fullName?: string; state?: string; role?: string }) => {
-        const response = await fetch(`${API_URL}/profile`, {
+        const response = await fetch(`${API_URL}/auth/me`, {
             method: "PUT",
             headers: getHeaders(),
             body: JSON.stringify(data)

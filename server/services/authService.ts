@@ -60,5 +60,12 @@ export const AuthService = {
         } catch (error) {
             return null;
         }
+    },
+
+    async updateProfile(userId: string, data: { fullName?: string, state?: string, role?: string }) {
+        return await prisma.user.update({
+            where: { id: userId },
+            data
+        });
     }
 };
