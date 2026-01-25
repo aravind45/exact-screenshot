@@ -28,6 +28,7 @@ import { ProcessFlow } from "./ProcessFlow";
 import { TRACK_STAGES, SettlementTrack } from "@/config/settlementStages";
 import { calculateAuthorityRecommendation, getInstitutionAuthorityRequirement } from "@/lib/authorityEngine";
 import { cn } from "@/lib/utils";
+import { ProbateFormsTracker } from "./ProbateFormsTracker";
 
 export function ProbateHub() {
     const { toast } = useToast();
