@@ -27,11 +27,12 @@ interface CommunicationLogDialogProps {
 export interface CommunicationData {
     method: string;
     subject: string;
-    content: string;
+    notes: string;
     occurredAt: string;
     type: string;
     direction: string;
     contactPerson?: string;
+    statusChange?: string;
 }
 
 const methodIcons: Record<string, any> = {
@@ -57,15 +58,16 @@ export function CommunicationLogDialog({
     const [formData, setFormData] = useState<CommunicationData>({
         method: "phone",
         subject: "",
-        content: "",
+        notes: "",
         occurredAt: new Date().toISOString().slice(0, 16),
         type: "follow_up",
         direction: "outbound",
-        contactPerson: ""
+        contactPerson: "",
+        statusChange: ""
     });
 
     useEffect(() => {
-        if (open && assetId && !formData.subject && !formData.content) {
+        if (open && assetId && !formData.subject && !formData.notes) {
             handleGenerateDraft();
         }
     }, [open, assetId]);
@@ -82,7 +84,7 @@ export function CommunicationLogDialog({
                 setFormData(prev => ({
                     ...prev,
                     subject: draft.subject || prev.subject,
-                    content: draft.notes || prev.content
+                    notes: draft.notes || prev.notes
                 }));
             }
         } catch (error) {
@@ -98,7 +100,7 @@ export function CommunicationLogDialog({
             setFormData(prev => ({
                 ...prev,
                 subject: template.subject,
-                content: template.body
+                notes: template.body
             }));
         }
     };
@@ -106,20 +108,20 @@ export function CommunicationLogDialog({
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        // Enrich content with attachment info if any selected
-        let finalContent = formData.content;
+        // Enrich notes with attachment info if any selected
+        let finalNotes = formData.notes;
         if (selectedDocIds.length > 0) {
             const docNames = availableDocuments
                 .filter(d => selectedDocIds.includes(d.id))
                 .map(d => d.name)
                 .join(", ");
             const attachmentNote = `\n\n[Attachments: ${docNames}]`;
-            if (!finalContent.includes("[Attachments:")) {
-                finalContent += attachmentNote;
+            if (!finalNotes.includes("[Attachments:")) {
+                finalNotes += attachmentNote;
             }
         }
 
-        onSubmit({ ...formData, content: finalContent });
+        onSubmit({ ...formData, notes: finalNotes });
     };
 
     const handleClose = () => {
@@ -129,11 +131,12 @@ export function CommunicationLogDialog({
             setFormData({
                 method: "phone",
                 subject: "",
-                content: "",
+                notes: "",
                 occurredAt: new Date().toISOString().slice(0, 16),
                 type: "follow_up",
                 direction: "outbound",
-                contactPerson: ""
+                contactPerson: "",
+                statusChange: ""
             });
         }, 200);
     };
@@ -268,6 +271,29 @@ export function CommunicationLogDialog({
                         </div>
                     </div>
 
+                    {/* Outcome & Status Progress */}
+                    <div className="space-y-3 p-4 bg-violet-50 border border-violet-100 rounded-xl">
+                        <div className="flex items-center justify-between">
+                            <Label className="text-[10px] font-black uppercase tracking-widest text-violet-500">Outcome & Status Progress</Label>
+                            <span className="text-[9px] text-violet-600 font-bold italic">Updates Asset Progress</span>
+                        </div>
+                        <Select
+                            value={formData.statusChange}
+                            onValueChange={(value) => setFormData({ ...formData, statusChange: value })}
+                        >
+                            <SelectTrigger className="bg-white border-violet-200">
+                                <SelectValue placeholder="Did this move the process forward?" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="">No status change</SelectItem>
+                                <SelectItem value="contacted">Institution Contacted</SelectItem>
+                                <SelectItem value="documents_submitted">Documents Sent/Received</SelectItem>
+                                <SelectItem value="in_review">Awaiting Their Decision (In Review)</SelectItem>
+                                <SelectItem value="approved">Asset Released (Approved)</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+
                     {/* Contact Person */}
                     <div className="space-y-2">
                         <Label htmlFor="contactPerson">Contact Person (optional)</Label>
@@ -330,14 +356,14 @@ export function CommunicationLogDialog({
                         />
                     </div>
 
-                    {/* Content/Notes */}
+                    {/* Notes */}
                     <div className="space-y-2">
-                        <Label htmlFor="content">Notes</Label>
+                        <Label htmlFor="notes">Notes</Label>
                         <Textarea
-                            id="content"
+                            id="notes"
                             placeholder="Detailed notes about the conversation..."
-                            value={formData.content}
-                            onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                            value={formData.notes}
+                            onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                             rows={4}
                             className="resize-none"
                         />

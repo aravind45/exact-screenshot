@@ -255,11 +255,16 @@ export default function AssetDetail() {
 
   const createCommMutation = useMutation({
     mutationFn: (data: CommunicationData) => api.createCommunication({ ...data, assetId: id! } as any),
-    onSuccess: () => {
+    onSuccess: (newComm: any) => {
       toast({ title: "Communication Logged", description: "Successfully logged communication." });
       queryClient.invalidateQueries({ queryKey: ['communications', id] });
       queryClient.invalidateQueries({ queryKey: ['asset', id] });
       setShowCommDialog(false);
+
+      // If the communication included a status change, update the asset
+      if (newComm.statusChange) {
+        updateMutation.mutate({ status: newComm.statusChange });
+      }
     },
     onError: (err: any) => {
       toast({ variant: "destructive", title: "Failed to Log", description: err.message });
