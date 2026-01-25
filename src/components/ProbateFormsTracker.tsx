@@ -66,7 +66,7 @@ export function ProbateFormsTracker() {
     const handleUpload = async (formCode: string, file: File) => {
         setUploadingForm(formCode);
         try {
-            // Upload logic here
+            await api.uploadEstateDocument(formCode, `${formCode} - Completed`, file);
             toast({ title: "Form Uploaded", description: `${formCode} has been uploaded successfully.` });
             queryClient.invalidateQueries({ queryKey: ["estate", "documents"] });
         } catch (error) {

@@ -103,4 +103,69 @@ router.get("/my/petition/pdf", async (req: any, res: Response) => {
     }
 });
 
+// Upload completed probate form
+router.post("/:estateId/documents", async (req: any, res: Response) => {
+    try {
+        const { estateId } = req.params;
+        const { documentType, name } = req.query;
+
+        if (!documentType || !name) {
+            return res.status(400).json({ error: "documentType and name query params required" });
+        }
+
+        // req.body is Buffer because of express.raw for application/pdf
+        if (!req.body || !Buffer.isBuffer(req.body)) {
+            return res.status(400).json({ error: "Binary PDF body required" });
+        }
+
+        // In production, you'd upload to S3/cloud storage
+        // For now, we'll store a placeholder URL
+        const fileUrl = `uploads/${estateId}/${documentType}.pdf`;
+
+        const document = await prisma.estateDocument.upsert({
+            where: {
+                estateId_documentType: {
+                    estateId,
+                    documentType: documentType as string
+                }
+            },
+            update: {
+                fileUrl,
+                status: "OBTAINED",
+                obtainedDate: new Date()
+            },
+            create: {
+                estateId,
+                userId: req.user.id,
+                documentType: documentType as string,
+                name: name as string,
+                fileUrl,
+                status: "OBTAINED",
+                obtainedDate: new Date()
+            }
+        });
+
+        res.json({ success: true, document });
+    } catch (e: any) {
+        console.error("Document upload error:", e);
+        res.status(500).json({ error: "Failed to upload document" });
+    }
+});
+
+// Get estate documents
+router.get("/:estateId/documents", async (req: any, res: Response) => {
+    try {
+        const { estateId } = req.params;
+
+        const documents = await prisma.estateDocument.findMany({
+            where: { estateId },
+            orderBy: { createdAt: 'desc' }
+        });
+
+        res.json(documents);
+    } catch (e: any) {
+        res.status(500).json({ error: "Failed to fetch documents" });
+    }
+});
+
 export default router;

@@ -492,4 +492,33 @@ export const api = {
         });
         return parseResponse(response);
     },
+
+    // Estate Documents
+    getEstateDocuments: async () => {
+        const estate = await api.getMyEstate();
+        if (!estate) throw new Error("No estate found");
+
+        const response = await fetch(`${API_URL}/estates/${estate.id}/documents`, {
+            headers: getHeaders(),
+        });
+        return parseResponse(response);
+    },
+
+    uploadEstateDocument: async (documentType: string, name: string, file: File) => {
+        const estate = await api.getMyEstate();
+        if (!estate) throw new Error("No estate found");
+
+        const headers = getHeaders();
+        headers["Content-Type"] = "application/pdf";
+
+        const response = await fetch(
+            `${API_URL}/estates/${estate.id}/documents?documentType=${encodeURIComponent(documentType)}&name=${encodeURIComponent(name)}`,
+            {
+                method: "POST",
+                headers,
+                body: file
+            }
+        );
+        return parseResponse(response);
+    },
 };
