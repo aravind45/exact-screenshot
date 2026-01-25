@@ -46,29 +46,47 @@ export default function Discovery() {
         // 1. Convert Agent Insights (Forensic Clues)
         if (data.agentInsights && data.agentInsights.length > 0) {
             data.agentInsights.forEach((insight: any, index: number) => {
-                newClues.push({
-                    id: `clue-forensic-${Date.now()}-${index}`,
-                    title: insight.title,
-                    message: insight.message,
-                    institution: insight.data?.institution || "Unknown",
-                    type: insight.data?.type || "account",
-                    confidence: insight.data?.confidence || 0.85,
-                    added: false
-                });
+                const institution = insight.data?.institution || "Unknown";
+                const type = insight.data?.type || "account";
+
+                // Avoid visual duplicates in the findings list
+                const isDuplicate = newClues.some(c =>
+                    c.institution.toLowerCase() === institution.toLowerCase() &&
+                    c.type.toLowerCase() === type.toLowerCase()
+                );
+
+                if (!isDuplicate) {
+                    newClues.push({
+                        id: `clue-forensic-${Date.now()}-${index}`,
+                        title: insight.title,
+                        message: insight.message,
+                        institution,
+                        type,
+                        confidence: insight.data?.confidence || 0.85,
+                        added: false
+                    });
+                }
             });
         }
 
-        // 2. Capture the Primary Extraction as a clue if it's meaningful
+        // 2. Capture the Primary Extraction as a clue if it's meaningful AND not duplicate
         if (data.institution && data.institution !== "Unknown") {
-            newClues.push({
-                id: `clue-primary-${Date.now()}`,
-                title: "Primary Asset/Lead Identified",
-                message: data.reasoningChain || `I've identified a record for ${data.institution}.`,
-                institution: data.institution,
-                type: data.assetType || "account",
-                confidence: 0.95,
-                added: false
-            });
+            const isDuplicate = newClues.some(c =>
+                c.institution.toLowerCase() === data.institution.toLowerCase() &&
+                c.type.toLowerCase() === (data.assetType || "account").toLowerCase()
+            );
+
+            if (!isDuplicate) {
+                newClues.push({
+                    id: `clue-primary-${Date.now()}`,
+                    title: "Primary Asset/Lead Identified",
+                    message: data.reasoningChain || `I've identified a record for ${data.institution}.`,
+                    institution: data.institution,
+                    type: data.assetType || "account",
+                    confidence: 0.95,
+                    added: false
+                });
+            }
         }
 
         if (newClues.length > 0) {

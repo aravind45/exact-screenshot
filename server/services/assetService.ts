@@ -21,6 +21,20 @@ export const AssetService = {
 
         const { institution, assetType, category, ownershipType, value, priority, status } = data;
 
+        // Idempotency check: don't create duplicate assets for the same estate
+        const existingAsset = await prisma.asset.findFirst({
+            where: {
+                estateId: estate.id,
+                institution: { equals: institution, mode: 'insensitive' },
+                assetType: { equals: assetType, mode: 'insensitive' }
+            }
+        });
+
+        if (existingAsset) {
+            console.log(`Asset already exists: ${institution} (${assetType})`);
+            return existingAsset;
+        }
+
         const asset = await prisma.asset.create({
             data: {
                 userId,
