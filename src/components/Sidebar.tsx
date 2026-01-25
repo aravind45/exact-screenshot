@@ -10,6 +10,7 @@ import {
     FileText,
     Scale,
     Zap,
+    ShieldCheck,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -52,6 +53,10 @@ export function Sidebar() {
         { label: "Discovery", icon: Search, path: "/discovery" },
         { label: "Profile", icon: User, path: "/profile" },
     ];
+
+    if (user?.role === 'ADMIN') {
+        navItems.push({ label: "Admin Console", icon: ShieldCheck, path: "/admin" }); // ShieldCheck from lucide-react
+    }
 
     return (
         <div className="w-64 h-screen bg-slate-900 text-slate-300 flex flex-col fixed left-0 top-0 z-50 border-r border-slate-800">
