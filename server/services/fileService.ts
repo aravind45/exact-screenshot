@@ -3,9 +3,17 @@ import path from "path";
 import fs from "fs";
 import { prisma } from "../db.js";
 
-const uploadDir = path.join(process.cwd(), "server/uploads/attachments");
+const isVercel = process.env.VERCEL === "1";
+const uploadDir = isVercel
+    ? path.join("/tmp", "attachments")
+    : path.join(process.cwd(), "server/uploads/attachments");
+
 if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
+    try {
+        fs.mkdirSync(uploadDir, { recursive: true });
+    } catch (e) {
+        console.warn("Could not create upload directory, likely read-only filesystem:", e);
+    }
 }
 
 const storage = multer.diskStorage({

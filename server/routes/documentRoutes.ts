@@ -12,13 +12,22 @@ const pdf = require("pdf-parse");
 
 const router = Router();
 
+const isVercel = process.env.VERCEL === "1";
+const uploadDir = isVercel
+    ? path.join("/tmp", "uploads")
+    : path.join(process.cwd(), "server/uploads");
+
+if (!fs.existsSync(uploadDir)) {
+    try {
+        fs.mkdirSync(uploadDir, { recursive: true });
+    } catch (e) {
+        console.warn("Could not create upload directory:", e);
+    }
+}
+
 // Configuration for Document Repository (Persistence)
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        const uploadDir = path.join(process.cwd(), "server/uploads");
-        if (!fs.existsSync(uploadDir)) {
-            fs.mkdirSync(uploadDir, { recursive: true });
-        }
         cb(null, uploadDir);
     },
     filename: function (req, file, cb) {

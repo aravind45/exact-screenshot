@@ -52,6 +52,11 @@ app.use("/api/communications", authenticate, communicationRoutes);
 // Profile (simple, keep here or move if grows)
 app.get("/api/auth/me", authenticate, (req: any, res) => res.json(req.user));
 
-app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
-});
+// Only listen if this file is run directly (local dev)
+if (process.env.NODE_ENV !== "production" || process.env.VITE_API_URL === undefined) {
+    app.listen(port, () => {
+        console.log(`Server running on http://localhost:${port}`);
+    });
+}
+
+export default app;
