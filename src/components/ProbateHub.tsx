@@ -185,15 +185,26 @@ export function ProbateHub() {
                                             </Select>
                                         </div>
                                     </div>
-                                    <div className="space-y-1">
-                                        <label className="text-[9px] font-bold text-slate-600 uppercase">Estate Type</label>
-                                        <Select defaultValue={estate.estateType} onValueChange={(val) => updateMutation.mutate({ estateType: val })}>
-                                            <SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="PROBATE">Full Probate</SelectItem>
-                                                <SelectItem value="SMALL_ESTATE">Small Estate</SelectItem>
-                                            </SelectContent>
-                                        </Select>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <div className="space-y-1">
+                                            <label className="text-[9px] font-bold text-slate-600 uppercase">Estate Type</label>
+                                            <Select defaultValue={estate.estateType} onValueChange={(val) => updateMutation.mutate({ estateType: val })}>
+                                                <SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="PROBATE">Full Probate</SelectItem>
+                                                    <SelectItem value="SMALL_ESTATE">Small Estate</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-[9px] font-bold text-slate-600 uppercase">Cert. Copies</label>
+                                            <Input
+                                                type="number"
+                                                className="h-7 text-xs"
+                                                defaultValue={estate.certifiedCopies || 0}
+                                                onBlur={(e) => updateMutation.mutate({ certifiedCopies: parseInt(e.target.value) || 0 })}
+                                            />
+                                        </div>
                                     </div>
                                 </motion.div>
                             ) : (
@@ -205,13 +216,33 @@ export function ProbateHub() {
                                                 {estate.probateStatus.replace('_', ' ')}
                                             </Badge>
                                         </div>
-                                        <div className="p-2 bg-white rounded-lg border border-slate-200">
-                                            <div className="text-[8px] font-bold text-slate-600 uppercase">Case Number</div>
+                                        <div className="p-2 bg-white rounded-lg border border-slate-200 group relative">
+                                            <div className="flex items-center justify-between">
+                                                <div className="text-[8px] font-bold text-slate-600 uppercase">Case Number</div>
+                                                <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <Info className="w-2.5 h-2.5 text-slate-400" />
+                                                </div>
+                                            </div>
                                             <div className="text-[11px] font-bold text-slate-700 truncate mt-1">{estate.courtCaseNumber || "N/A"}</div>
+                                            <div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden rounded-lg">
+                                                <div className="absolute top-10 left-0 w-max bg-slate-900 text-white text-[8px] p-2 rounded-md shadow-xl opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all z-50 max-w-[150px] leading-tight origin-top-left">
+                                                    Assigned by the court clerk when you first file your petition.
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div className="p-2 bg-white rounded-lg border border-slate-200">
-                                            <div className="text-[8px] font-bold text-slate-600 uppercase">Copies</div>
+                                        <div className="p-2 bg-white rounded-lg border border-slate-200 group relative">
+                                            <div className="flex items-center justify-between">
+                                                <div className="text-[8px] font-bold text-slate-600 uppercase">Copies</div>
+                                                <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <Info className="w-2.5 h-2.5 text-slate-400" />
+                                                </div>
+                                            </div>
                                             <div className="text-[11px] font-bold text-slate-700 mt-1">{estate.certifiedCopies || 0} Cert.</div>
+                                            <div className="absolute top-0 right-0 w-full h-full pointer-events-none overflow-hidden rounded-lg">
+                                                <div className="absolute top-10 right-0 w-max bg-slate-900 text-white text-[8px] p-2 rounded-md shadow-xl opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all z-50 max-w-[150px] leading-tight origin-top-right text-right">
+                                                    Fresh court-sealed copies of your Letters (DE-150) needed for banks.
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
 
