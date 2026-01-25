@@ -226,7 +226,7 @@ export const api = {
     },
 
     enrichAsset: async (id: string) => {
-        const response = await fetch(`${API_URL}/assets/${id}/enrich`, {
+        const response = await fetch(`${API_URL}/enrichment/asset/${id}`, {
             method: "POST",
             headers: getHeaders(),
         });
