@@ -55,9 +55,14 @@ export const AuthService = {
 
     async verifyToken(token: string) {
         try {
+            console.log("🔑 Verifying token...");
             const decoded: any = jwt.verify(token, JWT_SECRET);
-            return await prisma.user.findUnique({ where: { id: decoded.userId } });
-        } catch (error) {
+            console.log(`👤 Token decoded for user: ${decoded.userId}`);
+            const user = await prisma.user.findUnique({ where: { id: decoded.userId } });
+            if (!user) console.log("👤 User not found in database");
+            return user;
+        } catch (error: any) {
+            console.error("🔑 JWT Verification Error:", error.message);
             return null;
         }
     },

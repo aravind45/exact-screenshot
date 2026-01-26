@@ -41,12 +41,22 @@ app.use((req, res, next) => {
 
 // Auth Middleware
 const authenticate = async (req: Request | any, res: Response, next: NextFunction) => {
-    const token = req.headers.authorization?.split(" ")[1] || req.query.token;
-    if (!token) return res.status(401).json({ error: "Unauthorized" });
+    const authHeader = req.headers.authorization;
+    const token = authHeader?.split(" ")[1] || req.query.token;
+
+    console.log(`🔒 Auth attempt: ${req.method} ${req.url}`);
+    if (!token) {
+        console.log("❌ No token provided");
+        return res.status(401).json({ error: "Unauthorized" });
+    }
 
     const user = await AuthService.verifyToken(token as string);
-    if (!user) return res.status(401).json({ error: "Invalid token" });
+    if (!user) {
+        console.log("❌ Token verification failed or user not found");
+        return res.status(401).json({ error: "Invalid token" });
+    }
 
+    console.log(`✅ Auth success: user ${user.id}`);
     req.user = user;
     next();
 };
