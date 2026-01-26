@@ -45,7 +45,7 @@ steps:
       - '--max-instances'
       - '10'
       - '--set-env-vars'
-      - 'NODE_ENV=production,PORT=8080'
+      - 'NODE_ENV=production'
       - '--set-secrets'
       - 'DATABASE_URL=DATABASE_URL:latest,JWT_SECRET=JWT_SECRET:latest'
 
