@@ -57,6 +57,7 @@ EXPOSE 8080
 
 # Set environment variables
 ENV NODE_ENV=production
+ENV PORT=8080
 
-# Start the application using tsx
+# Start the application - migrations run separately in Cloud Run job or init container
 CMD ["npx", "tsx", "server/index.ts"]
