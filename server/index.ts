@@ -17,7 +17,7 @@ import communicationRoutes from "./routes/communicationRoutes.js";
 import webhookRoutes from "./routes/webhookRoutes.js";
 
 const app = express();
-const port = process.env.PORT || 3000;
+const port = Number(process.env.PORT) || 3000;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -85,7 +85,7 @@ console.log("📂 Setting up static file serving...");
 app.use(express.static(distPath));
 
 // Catch-all to serve index.html for React Router
-app.get("/*", (req, res) => {
+app.get(/(.*)/, (req, res) => {
     if (req.path.startsWith("/api/")) {
         return res.status(404).json({ error: "API route not found" });
     }
