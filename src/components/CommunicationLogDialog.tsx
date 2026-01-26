@@ -58,11 +58,11 @@ export function CommunicationLogDialog({
     const [isGenerating, setIsGenerating] = useState(false);
     const [selectedDocIds, setSelectedDocIds] = useState<string[]>([]);
     const [formData, setFormData] = useState<CommunicationData>({
-        method: "phone",
+        method: "email",
         subject: "",
         notes: "",
         occurredAt: new Date().toISOString().slice(0, 16),
-        type: "follow_up",
+        type: "initial_contact",
         direction: "outbound",
         contactPerson: "",
         statusChange: "none"
@@ -72,18 +72,20 @@ export function CommunicationLogDialog({
         if (open) {
             if (initialData) {
                 setFormData({
-                    method: initialData.method || "phone",
+                    method: initialData.method || "email",
                     subject: initialData.subject || "",
                     notes: initialData.notes || "",
                     occurredAt: initialData.occurredAt ? new Date(initialData.occurredAt).toISOString().slice(0, 16) : new Date().toISOString().slice(0, 16),
-                    type: initialData.type || "follow_up",
+                    type: initialData.type || "initial_contact",
                     direction: initialData.direction || "outbound",
                     contactPerson: initialData.contactPerson || "",
                     statusChange: initialData.statusChange || "none"
                 });
-            } else if (assetId && !formData.subject && !formData.notes) {
-                // Only generate draft if NOT editing (no initialData)
-                handleGenerateDraft();
+            } else {
+                // Always generate draft when opening (not editing)
+                if (assetId) {
+                    handleGenerateDraft();
+                }
             }
         }
     }, [open, assetId, initialData]);
@@ -146,11 +148,11 @@ export function CommunicationLogDialog({
         setTimeout(() => {
             if (!initialData) {
                 setFormData({
-                    method: "phone",
+                    method: "email",
                     subject: "",
                     notes: "",
                     occurredAt: new Date().toISOString().slice(0, 16),
-                    type: "follow_up",
+                    type: "initial_contact",
                     direction: "outbound",
                     contactPerson: "",
                     statusChange: "none"
@@ -161,8 +163,8 @@ export function CommunicationLogDialog({
 
     return (
         <Dialog open={open} onOpenChange={handleClose}>
-            <DialogContent className="sm:max-w-[720px] p-0 flex flex-col max-h-[95vh] overflow-hidden">
-                <DialogHeader className="px-6 pt-6 pb-2">
+            <DialogContent className="sm:max-w-[720px] p-0 flex flex-col max-h-[90vh] overflow-hidden">
+                <DialogHeader className="px-6 pt-6 pb-3 shrink-0">
                     <div className="flex items-center justify-between">
                         <div>
                             <DialogTitle className="text-xl">Log Activity & Communication</DialogTitle>
@@ -179,7 +181,7 @@ export function CommunicationLogDialog({
                     </div>
                 </DialogHeader>
 
-                <div className="flex-1 overflow-y-auto px-6 py-4 space-y-6">
+                <div className="flex-1 overflow-y-auto px-6 py-2 space-y-4 min-h-0">
                     <div className="bg-blue-50/50 border border-blue-100/50 p-3 rounded-xl flex items-start gap-3">
                         <div className="p-1.5 bg-white rounded-lg border border-blue-100 text-blue-600 shadow-sm shrink-0">
                             <Loader2 className="w-3.5 h-3.5" />
@@ -192,7 +194,7 @@ export function CommunicationLogDialog({
                         </div>
                     </div>
 
-                    <form id="comm-log-form" onSubmit={handleSubmit} className="space-y-6">
+                    <form id="comm-log-form" onSubmit={handleSubmit} className="space-y-4">
                         {/* Template Selector (if templates provided) */}
                         {Object.keys(templates).length > 0 && (
                             <div className="space-y-2">
@@ -397,34 +399,34 @@ export function CommunicationLogDialog({
                     </form>
                 </div>
 
-                <DialogFooter className="px-6 py-4 border-t bg-slate-50 flex items-center justify-between gap-4">
+                <DialogFooter className="px-6 py-3 border-t bg-slate-50 flex items-center justify-between gap-4 shrink-0">
                     <div className="flex gap-2">
-                        <Button type="button" variant="ghost" onClick={handleClose} disabled={isLoading || isGenerating} className="font-bold text-slate-500">
+                        <Button type="button" variant="ghost" onClick={handleClose} disabled={isLoading || isGenerating} className="font-bold text-slate-500 h-9">
                             Cancel
                         </Button>
                     </div>
 
-                    <div className="flex gap-3">
+                    <div className="flex gap-2">
                         {assetId && (
                             <Button
                                 type="button"
                                 variant="outline"
                                 onClick={handleGenerateDraft}
                                 disabled={isLoading || isGenerating}
-                                className="gap-2 border-slate-200"
+                                className="gap-2 border-slate-200 h-9"
                             >
                                 {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4 text-primary" />}
-                                <span className="font-bold text-xs uppercase tracking-tight">AI Redraft</span>
+                                <span className="font-bold text-xs">Regenerate</span>
                             </Button>
                         )}
                         <Button
                             form="comm-log-form"
                             type="submit"
                             disabled={isLoading || isGenerating}
-                            className="bg-primary hover:bg-primary/90 text-white font-bold h-10 px-6 shadow-sm"
+                            className="bg-primary hover:bg-primary/90 text-white font-bold h-9 px-6 shadow-sm"
                         >
                             {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                            Log Performance
+                            Log Communication
                         </Button>
                     </div>
                 </DialogFooter>
