@@ -57,7 +57,6 @@ EXPOSE 8080
 
 # Set environment variables
 ENV NODE_ENV=production
-ENV PORT=8080
 
 # Start the application using tsx
 CMD ["npx", "tsx", "server/index.ts"]
