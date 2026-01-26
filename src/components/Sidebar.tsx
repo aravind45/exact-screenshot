@@ -11,6 +11,7 @@ import {
     Scale,
     Zap,
     ShieldCheck,
+    Mail,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -47,6 +48,7 @@ export function Sidebar() {
 
     const navItems = [
         { label: "Overview", icon: LayoutDashboard, path: "/dashboard" },
+        { label: "Inbox", icon: Mail, path: "/inbox" },
         { label: "Probate", icon: Scale, path: "/probate" },
         { label: "Assets", icon: Landmark, path: "/dashboard" },
         { label: "Vault", icon: FileText, path: "/documents" },

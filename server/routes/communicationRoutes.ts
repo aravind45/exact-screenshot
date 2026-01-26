@@ -72,6 +72,32 @@ router.get("/asset/:assetId", async (req: any, res: Response) => {
     }
 });
 
+// GET /inbox - All inbound messages for the user's estate
+router.get("/inbox", async (req: any, res: Response) => {
+    try {
+        const estate = await prisma.estate.findFirst({ where: { userId: req.user.id } });
+        if (!estate) return res.json([]);
+
+        const inbox = await CommunicationService.getInbox(estate.id);
+        res.json(inbox);
+    } catch (error: any) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// GET /outbox - All outbound messages for the user's estate
+router.get("/outbox", async (req: any, res: Response) => {
+    try {
+        const estate = await prisma.estate.findFirst({ where: { userId: req.user.id } });
+        if (!estate) return res.json([]);
+
+        const outbox = await CommunicationService.getOutbox(estate.id);
+        res.json(outbox);
+    } catch (error: any) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // Get recent follow-ups across all assets
 router.get("/follow-ups", async (req: any, res: Response) => {
     try {

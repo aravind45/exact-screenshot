@@ -85,7 +85,32 @@ export const CommunicationService = {
                     { contactName: { contains: query, mode: 'insensitive' } }
                 ]
             },
-            orderBy: { occurredAt: 'desc' }
+            orderBy: { occurredAt: 'desc' },
+            include: { asset: true }
+        });
+    },
+
+    async getInbox(estateId: string) {
+        return await prisma.communication.findMany({
+            where: {
+                estateId,
+                direction: 'inbound',
+                type: 'email'
+            },
+            orderBy: { occurredAt: 'desc' },
+            include: { asset: true, attachments: true }
+        });
+    },
+
+    async getOutbox(estateId: string) {
+        return await prisma.communication.findMany({
+            where: {
+                estateId,
+                direction: 'outbound',
+                type: 'email'
+            },
+            orderBy: { occurredAt: 'desc' },
+            include: { asset: true, attachments: true }
         });
     }
 };

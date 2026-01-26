@@ -21,6 +21,7 @@ import Probate from "./pages/Probate";
 import Documents from "./pages/Documents";
 import NotFound from "./pages/NotFound";
 import PetitionWizard from "./pages/probate/PetitionWizard";
+import Inbox from "./pages/Inbox";
 
 const queryClient = new QueryClient();
 
@@ -89,6 +90,14 @@ const App = () => (
                   element={
                     <ProtectedRoute>
                       <PetitionWizard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/inbox"
+                  element={
+                    <ProtectedRoute>
+                      <Inbox />
                     </ProtectedRoute>
                   }
                 />

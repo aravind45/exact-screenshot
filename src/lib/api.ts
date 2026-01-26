@@ -482,6 +482,20 @@ export const api = {
         return parseResponse(response);
     },
 
+    getInbox: async (): Promise<Communication[]> => {
+        const response = await fetch(`${API_URL}/communications/inbox`, {
+            headers: getHeaders(),
+        });
+        return parseResponse(response);
+    },
+
+    getOutbox: async (): Promise<Communication[]> => {
+        const response = await fetch(`${API_URL}/communications/outbox`, {
+            headers: getHeaders(),
+        });
+        return parseResponse(response);
+    },
+
     uploadCommunicationAttachment: async (communicationId: string, file: File) => {
         const formData = new FormData();
         formData.append("file", file);
