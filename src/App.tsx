@@ -15,6 +15,7 @@ import AddAsset from "./pages/AddAsset";
 import UploadDocument from "./pages/UploadDocument";
 import ProfileSettings from "./pages/ProfileSettings";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminInstitutions from "./pages/admin/AdminInstitutions";
 import Discovery from "./pages/Discovery";
 import Probate from "./pages/Probate";
 import Documents from "./pages/Documents";
@@ -112,6 +113,14 @@ const App = () => (
                   element={
                     <ProtectedRoute>
                       <AdminDashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/institutions"
+                  element={
+                    <ProtectedRoute>
+                      <AdminInstitutions />
                     </ProtectedRoute>
                   }
                 />

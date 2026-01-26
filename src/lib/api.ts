@@ -120,6 +120,44 @@ export const api = {
         localStorage.removeItem("auth_token");
     },
 
+    admin: {
+        getStats: async () => {
+            const response = await fetch(`${API_URL}/admin/stats`, { headers: getHeaders() });
+            return parseResponse(response);
+        },
+        getUsers: async () => {
+            const response = await fetch(`${API_URL}/admin/users`, { headers: getHeaders() });
+            return parseResponse(response);
+        },
+        getInstitutions: async () => {
+            const response = await fetch(`${API_URL}/admin/institutions`, { headers: getHeaders() });
+            return parseResponse(response);
+        },
+        createInstitution: async (data: any) => {
+            const response = await fetch(`${API_URL}/admin/institutions`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify(data)
+            });
+            return parseResponse(response);
+        },
+        updateInstitution: async (id: string, data: any) => {
+            const response = await fetch(`${API_URL}/admin/institutions/${id}`, {
+                method: 'PUT',
+                headers: getHeaders(),
+                body: JSON.stringify(data)
+            });
+            return parseResponse(response);
+        },
+        deleteInstitution: async (id: string) => {
+            const response = await fetch(`${API_URL}/admin/institutions/${id}`, {
+                method: 'DELETE',
+                headers: getHeaders()
+            });
+            return parseResponse(response);
+        }
+    },
+
     /**
      * Triggers the automated follow-up check.
      */

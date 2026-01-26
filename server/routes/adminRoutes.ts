@@ -74,4 +74,55 @@ router.post("/templates", isAdmin, async (req: any, res: Response) => {
     }
 });
 
+// Institution Directory Management
+router.get("/institutions", isAdmin, async (req: any, res: Response) => {
+    try {
+        const institutions = await prisma.institution.findMany({
+            orderBy: { name: 'asc' }
+        });
+        res.json(institutions);
+    } catch (error) {
+        res.status(500).json({ error: "Failed to fetch institutions" });
+    }
+});
+
+router.post("/institutions", isAdmin, async (req: any, res: Response) => {
+    try {
+        const { name, phone, email, fax, website, address, logoUrl } = req.body;
+        if (!name) return res.status(400).json({ error: "Institution name required" });
+
+        const institution = await prisma.institution.create({
+            data: { name, phone, email, fax, website, address, logoUrl }
+        });
+        res.status(201).json(institution);
+    } catch (error: any) {
+        if (error.code === 'P2002') {
+            return res.status(409).json({ error: "Institution already exists" });
+        }
+        res.status(500).json({ error: "Failed to create institution" });
+    }
+});
+
+router.put("/institutions/:id", isAdmin, async (req: any, res: Response) => {
+    try {
+        const { name, phone, email, fax, website, address, logoUrl } = req.body;
+        const institution = await prisma.institution.update({
+            where: { id: req.params.id },
+            data: { name, phone, email, fax, website, address, logoUrl }
+        });
+        res.json(institution);
+    } catch (error) {
+        res.status(500).json({ error: "Failed to update institution" });
+    }
+});
+
+router.delete("/institutions/:id", isAdmin, async (req: any, res: Response) => {
+    try {
+        await prisma.institution.delete({ where: { id: req.params.id } });
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: "Failed to delete institution" });
+    }
+});
+
 export default router;
