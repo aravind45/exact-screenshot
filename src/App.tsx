@@ -22,6 +22,7 @@ import Documents from "./pages/Documents";
 import NotFound from "./pages/NotFound";
 import PetitionWizard from "./pages/probate/PetitionWizard";
 import Inbox from "./pages/Inbox";
+import OnboardingWizard from "./pages/OnboardingWizard";
 
 const queryClient = new QueryClient();
 
@@ -37,6 +38,14 @@ const App = () => (
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/auth" element={<Auth />} />
+                <Route
+                  path="/onboarding"
+                  element={
+                    <ProtectedRoute>
+                      <OnboardingWizard />
+                    </ProtectedRoute>
+                  }
+                />
                 <Route
                   path="/dashboard"
                   element={
