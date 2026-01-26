@@ -161,17 +161,17 @@ export function CommunicationLogDialog({
 
     return (
         <Dialog open={open} onOpenChange={handleClose}>
-            <DialogContent className="sm:max-w-[600px]">
-                <DialogHeader>
-                    <div className="flex items-center justify-between pr-8">
+            <DialogContent className="sm:max-w-[720px] p-0 flex flex-col max-h-[95vh] overflow-hidden">
+                <DialogHeader className="px-6 pt-6 pb-2">
+                    <div className="flex items-center justify-between">
                         <div>
-                            <DialogTitle>Log Activity & Communication</DialogTitle>
-                            <p className="text-[10px] text-slate-500 font-medium mt-1">
+                            <DialogTitle className="text-xl">Log Activity & Communication</DialogTitle>
+                            <p className="text-[11px] text-slate-500 font-medium mt-1 leading-tight max-w-[500px]">
                                 <strong>Legal Purpose:</strong> Maintaining a detailed history of your interactions with {workflowContext?.title || 'the institution'} serves as "Due Diligence" evidence for the court and heirs.
                             </p>
                         </div>
                         {isGenerating && (
-                            <div className="flex items-center gap-1.5 text-xs font-medium text-primary animate-pulse">
+                            <div className="flex items-center gap-1.5 text-xs font-medium text-blue-600 animate-pulse bg-blue-50 px-3 py-1.5 rounded-full border border-blue-100">
                                 <Sparkles className="w-3.5 h-3.5" />
                                 Smart Drafting...
                             </div>
@@ -179,236 +179,255 @@ export function CommunicationLogDialog({
                     </div>
                 </DialogHeader>
 
-                <div className="bg-blue-50/50 border border-blue-100/50 p-3 rounded-xl mb-2 flex items-start gap-3">
-                    <div className="p-1.5 bg-white rounded-lg border border-blue-100 text-blue-600 shadow-sm">
-                        <Loader2 className="w-3.5 h-3.5" />
+                <div className="flex-1 overflow-y-auto px-6 py-4 space-y-6">
+                    <div className="bg-blue-50/50 border border-blue-100/50 p-3 rounded-xl flex items-start gap-3">
+                        <div className="p-1.5 bg-white rounded-lg border border-blue-100 text-blue-600 shadow-sm shrink-0">
+                            <Loader2 className="w-3.5 h-3.5" />
+                        </div>
+                        <div>
+                            <p className="text-[11px] font-bold text-blue-900 leading-tight">📤 Personal Email Usage</p>
+                            <p className="text-[10px] text-blue-700 font-medium leading-relaxed">
+                                Send messages using your own email (e.g. Gmail/Outlook). <strong>Log the activity here afterwards</strong> so it's included in your Verified Settlement History.
+                            </p>
+                        </div>
                     </div>
-                    <div>
-                        <p className="text-[11px] font-bold text-blue-900 leading-tight">📤 Personal Email Usage</p>
-                        <p className="text-[10px] text-blue-700 font-medium leading-relaxed">
-                            Send messages using your own email (e.g. Gmail/Outlook). <strong>Log the activity here afterwards</strong> so it's included in your Verified Settlement History.
-                        </p>
-                    </div>
+
+                    <form id="comm-log-form" onSubmit={handleSubmit} className="space-y-6">
+                        {/* Template Selector (if templates provided) */}
+                        {Object.keys(templates).length > 0 && (
+                            <div className="space-y-2">
+                                <Label>Use Template</Label>
+                                <Select onValueChange={handleTemplateSelect}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select a template (optional)" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {Object.keys(templates).map(key => (
+                                            <SelectItem key={key} value={key}>
+                                                {key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        )}
+
+                        <div className="grid grid-cols-2 gap-4">
+                            {/* Method */}
+                            <div className="space-y-2">
+                                <Label htmlFor="method" className="text-[11px] font-bold text-slate-500">Method *</Label>
+                                <Select
+                                    value={formData.method}
+                                    onValueChange={(value) => setFormData({ ...formData, method: value })}
+                                >
+                                    <SelectTrigger id="method">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {Object.keys(methodIcons).map(method => {
+                                            const Icon = methodIcons[method];
+                                            return (
+                                                <SelectItem key={method} value={method}>
+                                                    <div className="flex items-center gap-2">
+                                                        <Icon className="w-4 h-4" />
+                                                        <span className="capitalize">{method}</span>
+                                                    </div>
+                                                </SelectItem>
+                                            );
+                                        })}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            {/* Direction */}
+                            <div className="space-y-2">
+                                <Label htmlFor="direction" className="text-[11px] font-bold text-slate-500">Direction *</Label>
+                                <Select
+                                    value={formData.direction}
+                                    onValueChange={(value) => setFormData({ ...formData, direction: value })}
+                                >
+                                    <SelectTrigger id="direction">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="outbound">Outbound (I contacted them)</SelectItem>
+                                        <SelectItem value="inbound">Inbound (They contacted me)</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            {/* Type */}
+                            <div className="space-y-2">
+                                <Label htmlFor="type" className="text-[11px] font-bold text-slate-500">Type</Label>
+                                <Select
+                                    value={formData.type}
+                                    onValueChange={(value) => setFormData({ ...formData, type: value })}
+                                >
+                                    <SelectTrigger id="type">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="initial_contact">Initial Contact</SelectItem>
+                                        <SelectItem value="follow_up">Follow-up</SelectItem>
+                                        <SelectItem value="document_submission">Document Submission</SelectItem>
+                                        <SelectItem value="status_check">Status Check</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            {/* Date/Time */}
+                            <div className="space-y-2">
+                                <Label htmlFor="date" className="text-[11px] font-bold text-slate-500">Date & Time *</Label>
+                                <Input
+                                    id="date"
+                                    type="datetime-local"
+                                    value={formData.occurredAt}
+                                    onChange={(e) => setFormData({ ...formData, occurredAt: e.target.value })}
+                                    required
+                                    className="h-10"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            {/* Outcome & Status Progress */}
+                            <div className="space-y-2 px-4 py-3 bg-violet-50/50 border border-violet-100 rounded-xl">
+                                <div className="flex items-center justify-between mb-2">
+                                    <Label className="text-[10px] font-black uppercase tracking-widest text-violet-500">Process Progress</Label>
+                                    <span className="text-[8px] text-violet-600 font-bold italic">Updates Status</span>
+                                </div>
+                                <Select
+                                    value={formData.statusChange}
+                                    onValueChange={(value) => setFormData({ ...formData, statusChange: value })}
+                                >
+                                    <SelectTrigger className="bg-white border-violet-200 h-9 text-xs">
+                                        <SelectValue placeholder="Status change?" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="none">No status change</SelectItem>
+                                        <SelectItem value="contacted">Institution Contacted</SelectItem>
+                                        <SelectItem value="documents_submitted">Documents Sent/Received</SelectItem>
+                                        <SelectItem value="in_review">Awaiting Their Decision</SelectItem>
+                                        <SelectItem value="approved">Asset Released</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            {/* Contact Person */}
+                            <div className="space-y-2">
+                                <Label htmlFor="contactPerson" className="text-[11px] font-bold text-slate-500">Contact Person (optional)</Label>
+                                <Input
+                                    id="contactPerson"
+                                    placeholder="e.g., John Doe, Rep #12345"
+                                    value={formData.contactPerson}
+                                    onChange={(e) => setFormData({ ...formData, contactPerson: e.target.value })}
+                                    className="h-10"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Attachments Section */}
+                        {(formData.method === "email" || formData.method === "fax" || formData.method === "mail") && availableDocuments.length > 0 && (
+                            <div className="space-y-3 p-4 bg-slate-50/50 border border-slate-200 rounded-xl">
+                                <div className="flex items-center justify-between">
+                                    <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Evidence Chain Documents</Label>
+                                    <span className="text-[9px] text-blue-600 font-bold">Link Selected Items</span>
+                                </div>
+                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                    {availableDocuments.map((doc) => (
+                                        <div
+                                            key={doc.id}
+                                            onClick={() => {
+                                                setSelectedDocIds(prev =>
+                                                    prev.includes(doc.id) ? prev.filter(id => id !== doc.id) : [...prev, doc.id]
+                                                );
+                                            }}
+                                            className={cn(
+                                                "flex items-center gap-2 p-2 rounded-lg border cursor-pointer transition-all",
+                                                selectedDocIds.includes(doc.id)
+                                                    ? "bg-blue-50 border-blue-200 ring-1 ring-blue-200"
+                                                    : "bg-white border-slate-200 hover:border-slate-300"
+                                            )}
+                                        >
+                                            <div className={cn(
+                                                "w-3.5 h-3.5 rounded border flex items-center justify-center transition-colors shrink-0",
+                                                selectedDocIds.includes(doc.id) ? "bg-blue-600 border-blue-600" : "bg-white border-slate-300"
+                                            )}>
+                                                {selectedDocIds.includes(doc.id) && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
+                                            </div>
+                                            <div className="min-w-0">
+                                                <p className="text-[10px] font-bold text-slate-700 truncate">{doc.name}</p>
+                                                <p className="text-[8px] text-slate-400 font-medium uppercase">{doc.documentType || doc.type || "Doc"}</p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="grid grid-cols-1 gap-4">
+                            {/* Subject */}
+                            <div className="space-y-2">
+                                <Label htmlFor="subject" className="text-[11px] font-bold text-slate-500">Subject *</Label>
+                                <Input
+                                    id="subject"
+                                    placeholder="Brief summary of communication"
+                                    value={formData.subject}
+                                    onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                                    required
+                                    className="h-10"
+                                />
+                            </div>
+
+                            {/* Notes */}
+                            <div className="space-y-2">
+                                <Label htmlFor="notes" className="text-[11px] font-bold text-slate-500">Detailed Notes</Label>
+                                <Textarea
+                                    id="notes"
+                                    placeholder="Detailed notes about the conversation..."
+                                    value={formData.notes}
+                                    onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                                    rows={4}
+                                    className="resize-none min-h-[100px]"
+                                />
+                            </div>
+                        </div>
+                    </form>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    {/* Template Selector (if templates provided) */}
-                    {Object.keys(templates).length > 0 && (
-                        <div className="space-y-2">
-                            <Label>Use Template</Label>
-                            <Select onValueChange={handleTemplateSelect}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select a template (optional)" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {Object.keys(templates).map(key => (
-                                        <SelectItem key={key} value={key}>
-                                            {key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    )}
-
-                    <div className="grid grid-cols-2 gap-4">
-                        {/* Method */}
-                        <div className="space-y-2">
-                            <Label htmlFor="method">Method *</Label>
-                            <Select
-                                value={formData.method}
-                                onValueChange={(value) => setFormData({ ...formData, method: value })}
-                            >
-                                <SelectTrigger id="method">
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {Object.keys(methodIcons).map(method => {
-                                        const Icon = methodIcons[method];
-                                        return (
-                                            <SelectItem key={method} value={method}>
-                                                <div className="flex items-center gap-2">
-                                                    <Icon className="w-4 h-4" />
-                                                    <span className="capitalize">{method}</span>
-                                                </div>
-                                            </SelectItem>
-                                        );
-                                    })}
-                                </SelectContent>
-                            </Select>
-                        </div>
-
-                        {/* Direction */}
-                        <div className="space-y-2">
-                            <Label htmlFor="direction">Direction *</Label>
-                            <Select
-                                value={formData.direction}
-                                onValueChange={(value) => setFormData({ ...formData, direction: value })}
-                            >
-                                <SelectTrigger id="direction">
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="outbound">Outbound (I contacted them)</SelectItem>
-                                    <SelectItem value="inbound">Inbound (They contacted me)</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                        {/* Type */}
-                        <div className="space-y-2">
-                            <Label htmlFor="type">Type</Label>
-                            <Select
-                                value={formData.type}
-                                onValueChange={(value) => setFormData({ ...formData, type: value })}
-                            >
-                                <SelectTrigger id="type">
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="initial_contact">Initial Contact</SelectItem>
-                                    <SelectItem value="follow_up">Follow-up</SelectItem>
-                                    <SelectItem value="document_submission">Document Submission</SelectItem>
-                                    <SelectItem value="status_check">Status Check</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-
-                        {/* Date/Time */}
-                        <div className="space-y-2">
-                            <Label htmlFor="date">Date & Time *</Label>
-                            <Input
-                                id="date"
-                                type="datetime-local"
-                                value={formData.occurredAt}
-                                onChange={(e) => setFormData({ ...formData, occurredAt: e.target.value })}
-                                required
-                            />
-                        </div>
-                    </div>
-
-                    {/* Outcome & Status Progress */}
-                    <div className="space-y-3 p-4 bg-violet-50 border border-violet-100 rounded-xl">
-                        <div className="flex items-center justify-between">
-                            <Label className="text-[10px] font-black uppercase tracking-widest text-violet-500">Outcome & Status Progress</Label>
-                            <span className="text-[9px] text-violet-600 font-bold italic">Updates Asset Progress</span>
-                        </div>
-                        <Select
-                            value={formData.statusChange}
-                            onValueChange={(value) => setFormData({ ...formData, statusChange: value })}
-                        >
-                            <SelectTrigger className="bg-white border-violet-200">
-                                <SelectValue placeholder="Did this move the process forward?" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="none">No status change</SelectItem>
-                                <SelectItem value="contacted">Institution Contacted</SelectItem>
-                                <SelectItem value="documents_submitted">Documents Sent/Received</SelectItem>
-                                <SelectItem value="in_review">Awaiting Their Decision (In Review)</SelectItem>
-                                <SelectItem value="approved">Asset Released (Approved)</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    {/* Contact Person */}
-                    <div className="space-y-2">
-                        <Label htmlFor="contactPerson">Contact Person (optional)</Label>
-                        <Input
-                            id="contactPerson"
-                            placeholder="e.g., John Doe, Rep #12345"
-                            value={formData.contactPerson}
-                            onChange={(e) => setFormData({ ...formData, contactPerson: e.target.value })}
-                        />
-                    </div>
-
-                    {/* Attachments Section */}
-                    {(formData.method === "email" || formData.method === "fax" || formData.method === "mail") && availableDocuments.length > 0 && (
-                        <div className="space-y-3 p-4 bg-slate-50 border border-slate-200 rounded-xl">
-                            <div className="flex items-center justify-between">
-                                <Label className="text-xs font-black uppercase tracking-widest text-slate-500">Attach Verified Documents</Label>
-                                <span className="text-[10px] text-blue-600 font-bold">Include in Evidence Chain</span>
-                            </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                {availableDocuments.map((doc) => (
-                                    <div
-                                        key={doc.id}
-                                        onClick={() => {
-                                            setSelectedDocIds(prev =>
-                                                prev.includes(doc.id) ? prev.filter(id => id !== doc.id) : [...prev, doc.id]
-                                            );
-                                        }}
-                                        className={cn(
-                                            "flex items-center gap-3 p-2 rounded-lg border cursor-pointer transition-all",
-                                            selectedDocIds.includes(doc.id)
-                                                ? "bg-blue-50 border-blue-200 ring-1 ring-blue-200"
-                                                : "bg-white border-slate-200 hover:border-slate-300"
-                                        )}
-                                    >
-                                        <div className={cn(
-                                            "w-4 h-4 rounded border flex items-center justify-center transition-colors",
-                                            selectedDocIds.includes(doc.id) ? "bg-blue-600 border-blue-600" : "bg-white border-slate-300"
-                                        )}>
-                                            {selectedDocIds.includes(doc.id) && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
-                                        </div>
-                                        <div className="min-w-0">
-                                            <p className="text-[11px] font-bold text-slate-700 truncate">{doc.name}</p>
-                                            <p className="text-[9px] text-slate-400 font-medium">{doc.documentType || doc.type || "Document"}</p>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Subject */}
-                    <div className="space-y-2">
-                        <Label htmlFor="subject">Subject *</Label>
-                        <Input
-                            id="subject"
-                            placeholder="Brief summary of communication"
-                            value={formData.subject}
-                            onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                            required
-                        />
-                    </div>
-
-                    {/* Notes */}
-                    <div className="space-y-2">
-                        <Label htmlFor="notes">Notes</Label>
-                        <Textarea
-                            id="notes"
-                            placeholder="Detailed notes about the conversation..."
-                            value={formData.notes}
-                            onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                            rows={4}
-                            className="resize-none"
-                        />
-                    </div>
-
-                    <DialogFooter>
-                        <Button type="button" variant="outline" onClick={handleClose} disabled={isLoading || isGenerating}>
+                <DialogFooter className="px-6 py-4 border-t bg-slate-50 flex items-center justify-between gap-4">
+                    <div className="flex gap-2">
+                        <Button type="button" variant="ghost" onClick={handleClose} disabled={isLoading || isGenerating} className="font-bold text-slate-500">
                             Cancel
                         </Button>
+                    </div>
+
+                    <div className="flex gap-3">
                         {assetId && (
                             <Button
                                 type="button"
-                                variant="secondary"
+                                variant="outline"
                                 onClick={handleGenerateDraft}
                                 disabled={isLoading || isGenerating}
-                                className="gap-2"
+                                className="gap-2 border-slate-200"
                             >
-                                {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-                                Regenerate
+                                {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4 text-primary" />}
+                                <span className="font-bold text-xs uppercase tracking-tight">AI Redraft</span>
                             </Button>
                         )}
-                        <Button type="submit" disabled={isLoading || isGenerating}>
+                        <Button
+                            form="comm-log-form"
+                            type="submit"
+                            disabled={isLoading || isGenerating}
+                            className="bg-primary hover:bg-primary/90 text-white font-bold h-10 px-6 shadow-sm"
+                        >
                             {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                            Log Communication
+                            Log Performance
                         </Button>
-                    </DialogFooter>
-                </form>
+                    </div>
+                </DialogFooter>
             </DialogContent>
         </Dialog>
     );
