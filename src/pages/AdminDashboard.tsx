@@ -25,6 +25,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
+import { Sidebar } from "@/components/Sidebar";
 
 function formatCurrency(value: number): string {
     return new Intl.NumberFormat('en-US', {
@@ -61,164 +62,167 @@ export default function AdminDashboard() {
     );
 
     return (
-        <div className="min-h-screen bg-background">
-            <header className="sticky top-0 z-40 glass border-b border-border/50">
-                <div className="section-container">
-                    <div className="flex items-center justify-between h-16">
-                        <div className="flex items-center gap-4">
-                            <Button variant="ghost" size="sm" onClick={() => navigate("/dashboard")} className="gap-2">
-                                <ArrowLeft className="w-4 h-4" />
-                                Exit Admin
-                            </Button>
-                            <div className="h-6 w-px bg-border mx-2" />
-                            <div className="flex items-center gap-2">
-                                <ShieldCheck className="w-5 h-5 text-amber-600" />
-                                <h1 className="font-bold text-lg tracking-tight">Admin Console</h1>
+        <div className="flex min-h-screen bg-[#F8FAFC]">
+            <Sidebar />
+            <div className="flex-1 ml-64 flex flex-col">
+                <header className="sticky top-0 z-40 glass border-b border-border/50">
+                    <div className="section-container">
+                        <div className="flex items-center justify-between h-16">
+                            <div className="flex items-center gap-4">
+                                <Button variant="ghost" size="sm" onClick={() => navigate("/dashboard")} className="gap-2">
+                                    <ArrowLeft className="w-4 h-4" />
+                                    Exit Admin
+                                </Button>
+                                <div className="h-6 w-px bg-border mx-2" />
+                                <div className="flex items-center gap-2">
+                                    <ShieldCheck className="w-5 h-5 text-amber-600" />
+                                    <h1 className="font-bold text-lg tracking-tight">Admin Console</h1>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </header>
+                </header>
 
-            <main className="section-container py-8 space-y-8">
-                {/* KPI Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <Card className="card-elevated border-none bg-primary/5">
-                        <CardHeader className="pb-2">
-                            <CardDescription className="flex items-center gap-2">
-                                <Users className="w-4 h-4" /> Total Users
-                            </CardDescription>
-                            <CardTitle className="text-3xl font-bold">
-                                {statsLoading ? "..." : stats?.users || 0}
-                            </CardTitle>
-                        </CardHeader>
-                    </Card>
-                    <Card className="card-elevated border-none">
-                        <CardHeader className="pb-2">
-                            <CardDescription className="flex items-center gap-2">
-                                <Database className="w-4 h-4" /> Managed Assets
-                            </CardDescription>
-                            <CardTitle className="text-3xl font-bold">
-                                {statsLoading ? "..." : stats?.assets || 0}
-                            </CardTitle>
-                        </CardHeader>
-                    </Card>
-                    <Card className="card-elevated border-none">
-                        <CardHeader className="pb-2">
-                            <CardDescription className="flex items-center gap-2">
-                                <DollarSign className="w-4 h-4" /> Platform Value
-                            </CardDescription>
-                            <CardTitle className="text-3xl font-bold">
-                                {statsLoading ? "..." : formatCurrency(stats?.totalValue || 0)}
-                            </CardTitle>
-                        </CardHeader>
-                    </Card>
-                    <Card className="card-elevated border-none">
-                        <CardHeader className="pb-2">
-                            <CardDescription className="flex items-center gap-2">
-                                <Building2 className="w-4 h-4" /> Institutions
-                            </CardDescription>
-                            <CardTitle className="text-3xl font-bold">
-                                {statsLoading ? "..." : stats?.institutions || 0}
-                            </CardTitle>
-                        </CardHeader>
-                    </Card>
-                </div>
+                <main className="section-container py-8 space-y-8">
+                    {/* KPI Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <Card className="card-elevated border-none bg-primary/5">
+                            <CardHeader className="pb-2">
+                                <CardDescription className="flex items-center gap-2">
+                                    <Users className="w-4 h-4" /> Total Users
+                                </CardDescription>
+                                <CardTitle className="text-3xl font-bold">
+                                    {statsLoading ? "..." : stats?.users || 0}
+                                </CardTitle>
+                            </CardHeader>
+                        </Card>
+                        <Card className="card-elevated border-none">
+                            <CardHeader className="pb-2">
+                                <CardDescription className="flex items-center gap-2">
+                                    <Database className="w-4 h-4" /> Managed Assets
+                                </CardDescription>
+                                <CardTitle className="text-3xl font-bold">
+                                    {statsLoading ? "..." : stats?.assets || 0}
+                                </CardTitle>
+                            </CardHeader>
+                        </Card>
+                        <Card className="card-elevated border-none">
+                            <CardHeader className="pb-2">
+                                <CardDescription className="flex items-center gap-2">
+                                    <DollarSign className="w-4 h-4" /> Platform Value
+                                </CardDescription>
+                                <CardTitle className="text-3xl font-bold">
+                                    {statsLoading ? "..." : formatCurrency(stats?.totalValue || 0)}
+                                </CardTitle>
+                            </CardHeader>
+                        </Card>
+                        <Card className="card-elevated border-none">
+                            <CardHeader className="pb-2">
+                                <CardDescription className="flex items-center gap-2">
+                                    <Building2 className="w-4 h-4" /> Institutions
+                                </CardDescription>
+                                <CardTitle className="text-3xl font-bold">
+                                    {statsLoading ? "..." : stats?.institutions || 0}
+                                </CardTitle>
+                            </CardHeader>
+                        </Card>
+                    </div>
 
-                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                    <TabsList className="mb-6">
-                        <TabsTrigger value="overview">System Users</TabsTrigger>
-                        <TabsTrigger value="institutions">Institution Master</TabsTrigger>
-                        <TabsTrigger value="templates">Form Templates</TabsTrigger>
-                    </TabsList>
+                    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                        <TabsList className="mb-6">
+                            <TabsTrigger value="overview">System Users</TabsTrigger>
+                            <TabsTrigger value="institutions">Institution Master</TabsTrigger>
+                            <TabsTrigger value="templates">Form Templates</TabsTrigger>
+                        </TabsList>
 
-                    <TabsContent value="overview" className="mt-0 space-y-4">
-                        <div className="card-elevated overflow-hidden border-none">
-                            <div className="p-6 border-b border-border/50 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                                <div className="relative flex-1 max-w-md">
-                                    <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                                    <Input
-                                        placeholder="Search users..."
-                                        className="pl-9 bg-muted/30"
-                                        value={searchTerm}
-                                        onChange={(e) => setSearchTerm(e.target.value)}
-                                    />
+                        <TabsContent value="overview" className="mt-0 space-y-4">
+                            <div className="card-elevated overflow-hidden border-none">
+                                <div className="p-6 border-b border-border/50 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                    <div className="relative flex-1 max-w-md">
+                                        <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                                        <Input
+                                            placeholder="Search users..."
+                                            className="pl-9 bg-muted/30"
+                                            value={searchTerm}
+                                            onChange={(e) => setSearchTerm(e.target.value)}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-left text-sm">
+                                        <thead className="bg-muted/50 text-muted-foreground font-medium uppercase tracking-wider text-[10px]">
+                                            <tr>
+                                                <th className="px-6 py-4">User</th>
+                                                <th className="px-6 py-4">Role</th>
+                                                <th className="px-6 py-4">Location</th>
+                                                <th className="px-6 py-4">Estates</th>
+                                                <th className="px-6 py-4">Logs</th>
+                                                <th className="px-6 py-4">Status</th>
+                                                <th className="px-6 py-4 text-right">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-border/50">
+                                            {filteredUsers?.map((user: any) => (
+                                                <tr key={user.id} className="hover:bg-muted/30 transition-colors">
+                                                    <td className="px-6 py-4">
+                                                        <div className="flex flex-col">
+                                                            <span className="font-semibold">{user.fullName}</span>
+                                                            <span className="text-xs text-muted-foreground">{user.email}</span>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4 text-xs font-mono uppercase font-bold text-primary">
+                                                        {user.role}
+                                                    </td>
+                                                    <td className="px-6 py-4 text-muted-foreground">
+                                                        {user.state || "Not set"}
+                                                    </td>
+                                                    <td className="px-6 py-4 font-medium">
+                                                        {user._count.estates}
+                                                    </td>
+                                                    <td className="px-6 py-4 text-xs text-muted-foreground">
+                                                        {user._count.communications}
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <div className="flex items-center gap-1.5 text-green-600">
+                                                            <CheckCircle2 className="w-3.5 h-3.5" />
+                                                            <span className="text-[11px] font-medium">Active</span>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4 text-right">
+                                                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                            <MoreVertical className="w-4 h-4" />
+                                                        </Button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
+                        </TabsContent>
 
-                            <div className="overflow-x-auto">
-                                <table className="w-full text-left text-sm">
-                                    <thead className="bg-muted/50 text-muted-foreground font-medium uppercase tracking-wider text-[10px]">
-                                        <tr>
-                                            <th className="px-6 py-4">User</th>
-                                            <th className="px-6 py-4">Role</th>
-                                            <th className="px-6 py-4">Location</th>
-                                            <th className="px-6 py-4">Estates</th>
-                                            <th className="px-6 py-4">Logs</th>
-                                            <th className="px-6 py-4">Status</th>
-                                            <th className="px-6 py-4 text-right">Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-border/50">
-                                        {filteredUsers?.map((user: any) => (
-                                            <tr key={user.id} className="hover:bg-muted/30 transition-colors">
-                                                <td className="px-6 py-4">
-                                                    <div className="flex flex-col">
-                                                        <span className="font-semibold">{user.fullName}</span>
-                                                        <span className="text-xs text-muted-foreground">{user.email}</span>
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4 text-xs font-mono uppercase font-bold text-primary">
-                                                    {user.role}
-                                                </td>
-                                                <td className="px-6 py-4 text-muted-foreground">
-                                                    {user.state || "Not set"}
-                                                </td>
-                                                <td className="px-6 py-4 font-medium">
-                                                    {user._count.estates}
-                                                </td>
-                                                <td className="px-6 py-4 text-xs text-muted-foreground">
-                                                    {user._count.communications}
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <div className="flex items-center gap-1.5 text-green-600">
-                                                        <CheckCircle2 className="w-3.5 h-3.5" />
-                                                        <span className="text-[11px] font-medium">Active</span>
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4 text-right">
-                                                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                                                        <MoreVertical className="w-4 h-4" />
-                                                    </Button>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                        <TabsContent value="institutions" className="mt-0">
+                            <div className="card-elevated border-none overflow-hidden p-8 flex flex-col items-center text-center space-y-4">
+                                <div className="p-4 bg-amber-100 rounded-full text-amber-600">
+                                    <Building2 className="w-8 h-8" />
+                                </div>
+                                <div>
+                                    <h3 className="text-xl font-bold">Institution Directory</h3>
+                                    <p className="text-slate-500 max-w-md mx-auto">Access the centralized database of contact details (emails, phone numbers) for banks and brokerages.</p>
+                                </div>
+                                <Button onClick={() => navigate("/admin/institutions")} className="bg-slate-900 text-white hover:bg-slate-800 gap-2">
+                                    Manage Directory <ExternalLink className="w-4 h-4" />
+                                </Button>
                             </div>
-                        </div>
-                    </TabsContent>
+                        </TabsContent>
 
-                    <TabsContent value="institutions" className="mt-0">
-                        <div className="card-elevated border-none overflow-hidden p-8 flex flex-col items-center text-center space-y-4">
-                            <div className="p-4 bg-amber-100 rounded-full text-amber-600">
-                                <Building2 className="w-8 h-8" />
-                            </div>
-                            <div>
-                                <h3 className="text-xl font-bold">Institution Directory</h3>
-                                <p className="text-slate-500 max-w-md mx-auto">Access the centralized database of contact details (emails, phone numbers) for banks and brokerages.</p>
-                            </div>
-                            <Button onClick={() => navigate("/admin/institutions")} className="bg-slate-900 text-white hover:bg-slate-800 gap-2">
-                                Manage Directory <ExternalLink className="w-4 h-4" />
-                            </Button>
-                        </div>
-                    </TabsContent>
-
-                    <TabsContent value="templates" className="mt-0">
-                        <TemplateManager />
-                    </TabsContent>
-                </Tabs>
-            </main>
+                        <TabsContent value="templates" className="mt-0">
+                            <TemplateManager />
+                        </TabsContent>
+                    </Tabs>
+                </main>
+            </div>
         </div >
     );
 }
