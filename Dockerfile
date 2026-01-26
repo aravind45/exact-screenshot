@@ -59,5 +59,5 @@ EXPOSE 8080
 ENV NODE_ENV=production
 ENV PORT=8080
 
-# Start the application - migrations run separately in Cloud Run job or init container
-CMD ["npx", "tsx", "server/index.ts"]
+# Start the application using startup script
+CMD ["sh", "./server/startup.sh"]
