@@ -200,30 +200,17 @@ export default function AdminDashboard() {
                     </TabsContent>
 
                     <TabsContent value="institutions" className="mt-0">
-                        <div className="card-elevated border-none overflow-hidden">
-                            <div className="p-6 border-b border-border/50">
-                                <h3 className="font-bold text-lg mb-1">Global Institution Registry</h3>
-                                <p className="text-sm text-muted-foreground">Manage verified contact protocols for all platform users.</p>
+                        <div className="card-elevated border-none overflow-hidden p-8 flex flex-col items-center text-center space-y-4">
+                            <div className="p-4 bg-amber-100 rounded-full text-amber-600">
+                                <Building2 className="w-8 h-8" />
                             </div>
-                            <div className="overflow-x-auto">
-                                <table className="w-full text-left text-sm">
-                                    <thead className="bg-muted text-muted-foreground font-medium uppercase tracking-wider text-[10px]">
-                                        <tr>
-                                            <th className="px-6 py-4">Institution</th>
-                                            <th className="px-6 py-4">Phone</th>
-                                            <th className="px-6 py-4">Email</th>
-                                            <th className="px-6 py-4">Fax</th>
-                                            <th className="px-6 py-4">Website</th>
-                                            <th className="px-6 py-4 text-right">Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-border/50">
-                                        {institutions?.map((inst: any) => (
-                                            <InstitutionRow key={inst.id} institution={inst} />
-                                        ))}
-                                    </tbody>
-                                </table>
+                            <div>
+                                <h3 className="text-xl font-bold">Institution Directory</h3>
+                                <p className="text-slate-500 max-w-md mx-auto">Access the centralized database of contact details (emails, phone numbers) for banks and brokerages.</p>
                             </div>
+                            <Button onClick={() => navigate("/admin/institutions")} className="bg-slate-900 text-white hover:bg-slate-800 gap-2">
+                                Manage Directory <ExternalLink className="w-4 h-4" />
+                            </Button>
                         </div>
                     </TabsContent>
 
