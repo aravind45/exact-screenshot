@@ -63,8 +63,10 @@ app.put("/api/auth/me", authenticate, async (req: any, res) => {
     }
 });
 
-// Only listen if this file is run directly (local dev)
-if (process.env.NODE_ENV !== "production" || process.env.VITE_API_URL === undefined) {
+// Only listen if this file is run directly (local dev) and NOT on Netlify
+const isNetlify = process.env.NETLIFY === "true" || process.env.LAMBDA_TASK_ROOT !== undefined;
+
+if (!isNetlify && (process.env.NODE_ENV !== "production" || process.env.VITE_API_URL === undefined)) {
     app.listen(port, () => {
         console.log(`Server running on http://localhost:${port}`);
     });
