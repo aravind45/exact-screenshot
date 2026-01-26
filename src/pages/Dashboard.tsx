@@ -70,8 +70,6 @@ export default function Dashboard() {
     }
   }, [estate, isLoading, navigate]);
 
-  // Correction:
-
   const totalValue = assets.reduce((sum: number, asset: any) => sum + (asset.value || 0), 0);
   const inProgress = assets.filter((a: any) => {
     const s = normalize(a.status);
@@ -212,98 +210,130 @@ export default function Dashboard() {
 
               <AgentInsights />
 
-            </section>
+              <section className="space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div>
+                    <h2 className="text-xl font-bold text-slate-900 tracking-tight">Asset Ledger</h2>
+                    <p className="text-xs text-slate-500 uppercase font-bold tracking-widest mt-1">Verified Financial Records</p>
+                  </div>
 
-            <div className="grid grid-cols-1 gap-3">
-              {!isLoading && assets.length === 0 && (
-                <div className="py-16 border-2 border-dashed border-slate-200 rounded-2xl text-center bg-white/50">
-                  <p className="font-semibold text-slate-700 mb-1">No data identified</p>
-                  <Button size="sm" variant="link" onClick={() => navigate('/add-asset')}>Add Your First Asset</Button>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant={isSelectionMode ? "secondary" : "outline"}
+                      size="sm"
+                      className="h-10 px-3 border-slate-200"
+                      onClick={toggleSelectionMode}
+                    >
+                      {isSelectionMode ? "Cancel" : "Select"}
+                    </Button>
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                      <Input placeholder="Search..." className="pl-9 h-10 w-[180px] md:w-[200px] bg-white border-slate-200 rounded-lg text-sm" />
+                    </div>
+                    <Button variant="outline" size="sm" className="h-10 px-3 border-slate-200 text-slate-600">
+                      <Filter className="w-4 h-4 mr-2" /> Filter
+                    </Button>
+                  </div>
                 </div>
-              )}
 
-              {assets.map((asset: any, index: number) => (
-                <motion.div key={asset.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: index * 0.05 }}>
-                  <AssetCard
-                    asset={{
-                      ...asset,
-                      type: normalize(asset.assetType),
-                      category: normalize(asset.category) as AssetCategory,
-                      status: normalize(asset.status) as AssetStatus,
-                      priority: normalize(asset.priority) as Priority,
-                      lastContactDate: asset.lastContactDate ? String(asset.lastContactDate).split('T')[0] : null,
-                      nextFollowUpDate: asset.nextFollowUpDate ? String(asset.nextFollowUpDate).split('T')[0] : null,
-                      daysSinceContact: 0
-                    }}
-                    onClick={() => !isSelectionMode && handleAssetClick(asset.id)}
-                    onSelect={(sel) => handleSelectAsset(asset.id, sel)}
-                    selected={selectedAssetIds.includes(asset.id)}
-                    selectable={isSelectionMode}
-                    className={cn(
-                      "bg-white border-slate-200 hover:border-primary/30 transition-all rounded-xl shadow-sm",
-                      selectedAssetIds.includes(asset.id) && "border-primary"
-                    )}
-                  />
-                </motion.div>
-              ))}
+                <div className="grid grid-cols-1 gap-3">
+                  {!isLoading && assets.length === 0 && (
+                    <div className="py-16 border-2 border-dashed border-slate-200 rounded-2xl text-center bg-white/50">
+                      <p className="font-semibold text-slate-700 mb-1">No data identified</p>
+                      <Button size="sm" variant="link" onClick={() => navigate('/add-asset')}>Add Your First Asset</Button>
+                    </div>
+                  )}
+
+                  {assets.map((asset: any, index: number) => (
+                    <motion.div key={asset.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: index * 0.05 }}>
+                      <AssetCard
+                        asset={{
+                          ...asset,
+                          type: normalize(asset.assetType),
+                          category: normalize(asset.category) as AssetCategory,
+                          status: normalize(asset.status) as AssetStatus,
+                          priority: normalize(asset.priority) as Priority,
+                          lastContactDate: asset.lastContactDate ? String(asset.lastContactDate).split('T')[0] : null,
+                          nextFollowUpDate: asset.nextFollowUpDate ? String(asset.nextFollowUpDate).split('T')[0] : null,
+                          daysSinceContact: 0
+                        }}
+                        onClick={() => !isSelectionMode && handleAssetClick(asset.id)}
+                        onSelect={(sel) => handleSelectAsset(asset.id, sel)}
+                        selected={selectedAssetIds.includes(asset.id)}
+                        selectable={isSelectionMode}
+                        className={cn(
+                          "bg-white border-slate-200 hover:border-primary/30 transition-all rounded-xl shadow-sm",
+                          selectedAssetIds.includes(asset.id) && "border-primary"
+                        )}
+                      />
+                    </motion.div>
+                  ))}
+                </div>
+              </section>
             </div>
-          </section>
-      </div>
 
-      {/* Sidebar (Right) */}
-      <div className="lg:col-span-4 space-y-6">
-        {estate?.id && <DeadlineTracker estateId={estate.id} />}
+            {/* Sidebar (Right) */}
+            <div className="lg:col-span-4 space-y-6">
+              {estate?.id && <DeadlineTracker estateId={estate.id} />}
 
-        <SafetyNetWidget
-          assets={assets}
-          onNavigate={(id) => navigate(`/asset/${id}`)}
-        />
+              <SafetyNetWidget
+                assets={assets}
+                onNavigate={(id) => navigate(`/asset/${id}`)}
+              />
 
-        <div className="p-5 rounded-2xl bg-indigo-50 border border-indigo-100/50">
-          <div className="flex items-center gap-2 mb-2 text-indigo-700">
-            <Lightbulb className="w-4 h-4" />
-            <span className="font-bold text-[10px] uppercase tracking-wider">Pro Tip</span>
+              <div className="p-5 rounded-2xl bg-indigo-50 border border-indigo-100/50">
+                <div className="flex items-center gap-2 mb-2 text-indigo-700">
+                  <Lightbulb className="w-4 h-4" />
+                  <span className="font-bold text-[10px] uppercase tracking-wider">Pro Tip</span>
+                </div>
+                <p className="text-xs text-indigo-800 leading-relaxed">
+                  Use the <strong>Safety Net</strong> to catch stalled assets. If a bank hasn't replied in 2 weeks, send a follow-up immediately.
+                </p>
+              </div>
+            </div>
           </div>
-          <p className="text-xs text-indigo-800 leading-relaxed">
-            Use the <strong>Safety Net</strong> to catch stalled assets. If a bank hasn't replied in 2 weeks, send a follow-up immediately.
-          </p>
-        </div>
+        </main>
       </div>
+      <WelcomeModal />
+
+      {/* Batch Action Bar */}
+      {selectedAssetIds.length > 0 && (
+        <motion.div
+          initial={{ y: 100, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: 100, opacity: 0 }}
+          className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 w-full max-w-lg px-4"
+        >
+          <div className="bg-slate-900 text-white rounded-2xl p-4 shadow-2xl flex items-center justify-between border border-slate-800">
+            <div className="flex items-center gap-4">
+              <div className="bg-primary/20 text-primary p-2 rounded-xl">
+                <CheckCircle2 className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-sm font-bold">{selectedAssetIds.length} Assets Selected</p>
+                <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Batch Operations Active</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={handleBatchNotify}
+                className="bg-primary hover:bg-primary/90 text-white font-bold rounded-xl h-11 px-6 gap-2"
+              >
+                <Mail className="w-4 h-4" />
+                Notify All
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setSelectedAssetIds([])}
+                className="text-slate-400 hover:text-white hover:bg-white/10 rounded-xl"
+              >
+                <X className="w-5 h-5" />
+              </Button>
+            </div>
+          </div>
+        </motion.div>
+      )}
     </div>
-        </div >
-        </div >
-      </main >
-    </div >
-    <WelcomeModal />
-
-  {/* Batch Action Bar */ }
-  {
-    selectedAssetIds.length > 0 && (
-      <motion.div
-        initial={{ y: 100, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        exit={{ y: 100, opacity: 0 }}
-        className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 w-full max-w-lg px-4"
-      >
-        <div className="bg-slate-900 text-white rounded-2xl p-4 shadow-2xl flex items-center justify-between border border-slate-800">
-          <div className="flex items-center gap-4">
-            <div className="bg-primary/20 text-primary p-2 rounded-xl">
-              <CheckCircle2 className="w-5 h-5" />
-            </div>
-            <div>
-              <p className="text-sm font-bold">{selectedAssetIds.length} Assets Selected</p>
-              <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Batch Operations Active</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              onClick={handleBatchNotify}
-              className="bg-primary hover:bg-primary/90 text-white font-bold rounded-xl h-11 px-6 gap-2"
-            >
-              <Mail className="w-4 h-4" />
-              Notify All
-            </Button>
-            <Button
-              variant="ghost"
-);
+  );
 }
