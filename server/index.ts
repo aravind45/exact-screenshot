@@ -83,8 +83,18 @@ app.get("/*", (req, res) => {
 
 // Always listen when in production or no specific VITE_API_URL is set
 // Cloud Run expects the server to listen on the PORT environment variable
-app.listen(port, () => {
-    console.log(`Server running on http://localhost:${port}`);
+const server = app.listen(port, '0.0.0.0', () => {
+    console.log(`✅ Server running on http://0.0.0.0:${port}`);
+    console.log(`✅ Environment: ${process.env.NODE_ENV}`);
+    console.log(`✅ Database: ${process.env.DATABASE_URL ? 'Connected' : 'NOT CONFIGURED'}`);
+});
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+    console.log('SIGTERM signal received: closing HTTP server');
+    server.close(() => {
+        console.log('HTTP server closed');
+    });
 });
 
 export default app;

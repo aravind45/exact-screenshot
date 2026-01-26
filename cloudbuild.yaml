@@ -1,11 +1,56 @@
+# Cloud Build configuration for GCP Cloud Run
 steps:
   # Build the container image
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/my-repo/exact-screenshot:latest', '.']
+    args:
+      - 'build'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/expectedestate:$COMMIT_SHA'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/expectedestate:latest'
+      - '.'
+    timeout: 1200s
 
-  # Push the container image to Artifact Registry
+  # Push the container image to Container Registry
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/my-repo/exact-screenshot:latest']
+    args:
+      - 'push'
+      - 'gcr.io/$PROJECT_ID/expectedestate:$COMMIT_SHA'
 
-images:
-  - 'us-central1-docker.pkg.dev/$PROJECT_ID/my-repo/exact-screenshot:latest'
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'gcr.io/$PROJECT_ID/expectedestate:latest'
+
+  # Deploy container image to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'expectedestate'
+      - '--image'
+      - 'gcr.io/$PROJECT_ID/expectedestate:$COMMIT_SHA'
+      - '--region'
+      - 'us-central1'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--port'
+      - '8080'
+      - '--memory'
+      - '512Mi'
+      - '--timeout'
+      - '300'
+      - '--max-instances'
+      - '10'
+      - '--set-env-vars'
+      - 'NODE_ENV=production,PORT=8080'
+      - '--set-secrets'
+      - 'DATABASE_URL=DATABASE_URL:latest,JWT_SECRET=JWT_SECRET:latest'
+
+timeout: 1800s
+
+options:
+  machineType: 'N1_HIGHCPU_8'
+  logging: CLOUD_LOGGING_ONLY
