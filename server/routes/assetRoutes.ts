@@ -163,4 +163,46 @@ router.post("/batch-generate-letters", async (req: any, res: Response) => {
     }
 });
 
+router.get("/:id/documents", async (req: any, res: Response) => {
+    try {
+        const { prisma } = await import("../db.js");
+        const documents = await prisma.document.findMany({
+            where: { assetId: req.params.id, userId: req.user.id }
+        });
+        res.json(documents);
+    } catch (error: any) {
+        console.error("Error fetching asset documents:", error);
+        res.status(500).json({ error: "Failed to fetch documents" });
+    }
+});
+
+router.post("/:id/documents", async (req: any, res: Response) => {
+    try {
+        const { prisma } = await import("../db.js");
+        const { type, name } = req.query as any;
+        const file = req.body;
+
+        if (!file) return res.status(400).json({ error: "No file provided" });
+
+        // In a real app, we'd upload to S3/Cloud Storage here.
+        // For now, we simulate success and save a reference.
+        const document = await prisma.document.create({
+            data: {
+                assetId: req.params.id,
+                userId: req.user.id,
+                name: name || "Document",
+                type: type || "OTHER",
+                status: "UPLOADED",
+                fileUrl: "/api/placeholder-url", // Stub
+                isRequired: false
+            }
+        });
+
+        res.json(document);
+    } catch (error: any) {
+        console.error("Error uploading asset document:", error);
+        res.status(500).json({ error: "Failed to upload document" });
+    }
+});
+
 export default router;

@@ -57,20 +57,25 @@ const getHeaders = () => {
 
 const parseResponse = async (response: Response) => {
     const text = await response.text();
-
-    // Handle 401 Unauthorized specifically
-    if (response.status === 401) {
-        throw new Error(`Authentication required (401): ${text.substring(0, 100)}`);
-    }
-
+    let data;
     try {
-        return JSON.parse(text);
+        data = text ? JSON.parse(text) : null;
     } catch (e) {
         if (!response.ok) {
             throw new Error(`Server Error (${response.status}): ${text.substring(0, 100)}...`);
         }
         throw new Error(`Invalid response from server: ${text.substring(0, 100)}...`);
     }
+
+    if (!response.ok) {
+        // Handle 401 Unauthorized specifically
+        if (response.status === 401) {
+            throw new Error(`Authentication required (401): ${text.substring(0, 100)}`);
+        }
+        throw new Error(data.error || data.message || `Request failed with status ${response.status}`);
+    }
+
+    return data;
 };
 
 export const api = {

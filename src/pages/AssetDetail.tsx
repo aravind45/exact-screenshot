@@ -57,7 +57,6 @@ import { bankWorkflow } from "@/config/workflows/bank";
 import { propertyWorkflow } from "@/config/workflows/property";
 import { SettlementWorkflow } from "@/components/SettlementWorkflow";
 import { ProbateProgressMini } from "@/components/ProbateProgressMini";
-import { ProbateProgressMini } from "@/components/ProbateProgressMini";
 import { SmartEmailDraft } from "@/components/SmartEmailDraft";
 import { AssetValueTracker } from "@/components/financials/AssetValueTracker";
 
@@ -878,8 +877,8 @@ export default function AssetDetail() {
                   Based on this asset being a <strong>{uiAsset.category}</strong> asset.
                 </p>
                 <div className="space-y-2">
-                  {requiredDocs.map(docName => {
-                    const isUploaded = documents?.some((d: any) => d.type === docName || d.name.includes(docName));
+                  {Array.isArray(requiredDocs) && requiredDocs.map(docName => {
+                    const isUploaded = Array.isArray(documents) && documents.some((d: any) => d && (d.type === docName || d.name?.includes(docName)));
                     return (
                       <div key={docName} className="flex items-center p-3 card-elevated">
                         {isUploaded ? (
@@ -931,13 +930,16 @@ export default function AssetDetail() {
                 <div className="space-y-3">
                   {/* Probate Authority Documents (The Golden Bridge) */}
                   {(() => {
-                    const letters = estateDocuments.find(d => d.documentType === 'DE-150');
-                    const order = estateDocuments.find(d => d.documentType === 'DE-140');
-                    const authorityDocs = [letters, order].filter(Boolean);
+                    const authorityDocs = Array.isArray(estateDocuments)
+                      ? [
+                        estateDocuments.find(d => d.documentType === 'DE-150'),
+                        estateDocuments.find(d => d.documentType === 'DE-140')
+                      ].filter(Boolean)
+                      : [];
 
                     if (authorityDocs.length === 0) return null;
 
-                    return authorityDocs.map((doc) => (
+                    return authorityDocs.map((doc: any) => (
                       <div key={doc.id} className="card-elevated p-4 flex items-center justify-between border-violet-100 bg-violet-50/20">
                         <div className="flex items-center gap-4">
                           <div className="p-2 bg-violet-100 text-violet-600 rounded-lg">
@@ -961,7 +963,7 @@ export default function AssetDetail() {
                   })()}
 
                   {/* Asset-Specific Documents */}
-                  {documents?.map((doc: any) => (
+                  {Array.isArray(documents) && documents.map((doc: any) => (
                     <div key={doc.id} className="card-elevated p-4 flex items-center justify-between">
                       <div className="flex items-center gap-4">
                         <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
@@ -998,7 +1000,7 @@ export default function AssetDetail() {
         onSubmit={(data) => createCommMutation.mutate(data)}
         isLoading={createCommMutation.isPending}
         assetId={id}
-        availableDocuments={[...(estateDocuments || []), ...(documents || [])]}
+        availableDocuments={[...(Array.isArray(estateDocuments) ? estateDocuments : []), ...(Array.isArray(documents) ? documents : [])]}
         workflowContext={(() => {
           const workflow = getWorkflow(asset.category);
           const step = workflow.steps.find(s => s.id === currentStepId);

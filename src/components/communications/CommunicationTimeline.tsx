@@ -24,7 +24,7 @@ interface CommunicationTimelineProps {
 }
 
 export function CommunicationTimeline({ communications, onDelete, onEdit }: CommunicationTimelineProps) {
-    if (communications.length === 0) {
+    if (!Array.isArray(communications) || communications.length === 0) {
         return (
             <div className="text-center py-12 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
                 <Clock className="w-12 h-12 text-slate-300 mx-auto mb-3" />

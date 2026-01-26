@@ -74,7 +74,7 @@ export function DeadlineTracker({ estateId }: { estateId: string }) {
                     <CardTitle className="text-sm font-bold text-slate-700 uppercase tracking-wider">Critical Dates</CardTitle>
                 </div>
                 <div className="flex items-center gap-1">
-                    {deadlines.length === 0 && (
+                    {Array.isArray(deadlines) && deadlines.length === 0 && (
                         <Button
                             variant="ghost"
                             size="sm"
@@ -122,7 +122,7 @@ export function DeadlineTracker({ estateId }: { estateId: string }) {
                 </div>
             </CardHeader>
             <CardContent className="flex-1 overflow-y-auto pr-1">
-                {deadlines.length === 0 ? (
+                {!Array.isArray(deadlines) || deadlines.length === 0 ? (
                     <div className="h-32 flex flex-col items-center justify-center text-center p-4 border-2 border-dashed border-slate-100 rounded-xl">
                         <Clock className="w-8 h-8 text-slate-300 mb-2" />
                         <p className="text-sm text-slate-500 font-medium">No deadlines tracked</p>

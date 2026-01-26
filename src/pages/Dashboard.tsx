@@ -198,7 +198,7 @@ export default function Dashboard() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             {/* Main Content (Left) */}
             <div className="lg:col-span-8 space-y-10">
-              {realFollowUps.length > 0 && (
+              {Array.isArray(realFollowUps) && realFollowUps.length > 0 && (
                 <section className="space-y-4">
                   <div className="flex items-center gap-2 px-1">
                     <Bell className="w-5 h-5 text-amber-500" />
