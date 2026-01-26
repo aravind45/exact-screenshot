@@ -205,25 +205,40 @@ export default function OnboardingWizard() {
                                             <p className="text-slate-500">Every bank will ask for this. Upload it once here.</p>
                                         </div>
 
-                                        <div className="border-2 border-dashed border-slate-300 rounded-3xl p-8 flex flex-col items-center justify-center bg-slate-50 text-center hover:bg-slate-100 transition-colors cursor-pointer relative">
-                                            <Input
+                                        <div
+                                            className="border-2 border-dashed border-slate-300 rounded-3xl p-8 flex flex-col items-center justify-center bg-slate-50 text-center hover:bg-slate-100 transition-colors cursor-pointer relative"
+                                            onDragOver={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                            }}
+                                            onDrop={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                const file = e.dataTransfer.files?.[0];
+                                                if (file) setUploadedFile(file);
+                                            }}
+                                        >
+                                            <input
                                                 type="file"
-                                                className="absolute inset-0 opacity-0 cursor-pointer"
+                                                accept=".pdf,image/*"
+                                                className="absolute inset-0 opacity-0 cursor-pointer z-10 w-full h-full"
                                                 onChange={e => setUploadedFile(e.target.files?.[0] || null)}
                                             />
-                                            {uploadedFile ? (
-                                                <>
-                                                    <CheckCircle2 className="w-10 h-10 text-emerald-500 mb-4" />
-                                                    <p className="font-bold text-slate-900">{uploadedFile.name}</p>
-                                                    <p className="text-xs text-slate-500 mt-1">Ready to upload</p>
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <Upload className="w-8 h-8 text-slate-400 mb-4" />
-                                                    <p className="font-bold text-slate-700">Click to upload PDF or Image</p>
-                                                    <p className="text-xs text-slate-400 mt-2">or drag and drop here</p>
-                                                </>
-                                            )}
+                                            <div className="relative z-0 pointer-events-none flex flex-col items-center">
+                                                {uploadedFile ? (
+                                                    <>
+                                                        <CheckCircle2 className="w-10 h-10 text-emerald-500 mb-4" />
+                                                        <p className="font-bold text-slate-900">{uploadedFile.name}</p>
+                                                        <p className="text-xs text-slate-500 mt-1">Ready to upload</p>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Upload className="w-8 h-8 text-slate-400 mb-4" />
+                                                        <p className="font-bold text-slate-700">Click to upload PDF or Image</p>
+                                                        <p className="text-xs text-slate-400 mt-2">or drag and drop here</p>
+                                                    </>
+                                                )}
+                                            </div>
                                         </div>
 
                                         <div className="flex flex-col gap-3">

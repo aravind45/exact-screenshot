@@ -31,11 +31,19 @@ console.log(`💾 Database URL: ${process.env.DATABASE_URL ? '✅ Set' : '❌ NO
 
 app.use(cors());
 app.use(express.json());
-app.use(express.raw({ type: 'application/pdf', limit: '10mb' }));
+app.use(express.raw({
+    type: ['application/pdf', 'image/jpeg', 'image/png'],
+    limit: '10mb'
+}));
 
 // Logger
 app.use((req, res, next) => {
     console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+    if (req.headers.authorization) {
+        console.log(`🔑 Auth Header present: ${req.headers.authorization.substring(0, 15)}...`);
+    } else {
+        console.log("🔑 No Auth Header present");
+    }
     next();
 });
 

@@ -559,7 +559,8 @@ export const api = {
         if (!estate) throw new Error("No estate found");
 
         const headers = getHeaders();
-        headers["Content-Type"] = "application/pdf";
+        // Set content type based on file type
+        headers["Content-Type"] = file.type || "application/octet-stream";
 
         const response = await fetch(
             `${API_URL}/estates/${estate.id}/documents?documentType=${encodeURIComponent(documentType)}&name=${encodeURIComponent(name)}`,
