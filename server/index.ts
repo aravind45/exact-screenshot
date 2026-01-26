@@ -11,6 +11,7 @@ import enrichmentRoutes from "./routes/enrichmentRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import agentRoutes from "./routes/agentRoutes.js";
 import communicationRoutes from "./routes/communicationRoutes.js";
+import webhookRoutes from "./routes/webhookRoutes.js";
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -49,6 +50,7 @@ app.use("/api/enrichment", authenticate, enrichmentRoutes);
 app.use("/api/admin", authenticate, adminRoutes);
 app.use("/api/agent", authenticate, agentRoutes);
 app.use("/api/communications", authenticate, communicationRoutes);
+app.use("/api/webhooks", webhookRoutes); // Auth handled via Mailgun signatures
 
 // Profile (simple, keep here or move if grows)
 app.get("/api/auth/me", authenticate, (req: any, res) => res.json(req.user));

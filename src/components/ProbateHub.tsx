@@ -18,7 +18,10 @@ import {
     MapPin,
     Hash,
     Calendar,
-    HelpCircle
+    HelpCircle,
+    Mail,
+    Copy,
+    Share2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -320,6 +323,48 @@ export function ProbateHub() {
                                 </motion.div>
                             )}
                         </AnimatePresence>
+
+                        {/* Digital Estate Inbox (Communications Command Center) */}
+                        <div className="p-3 rounded-lg bg-slate-900 text-white shadow-xl relative overflow-hidden group border border-slate-700">
+                            <div className="absolute -right-4 -bottom-4 opacity-10">
+                                <Mail className="w-24 h-24" />
+                            </div>
+                            <div className="flex items-center gap-2 mb-2">
+                                <div className="p-1 bg-amber-500 rounded-md">
+                                    <Share2 className="w-3 h-3 text-slate-900" />
+                                </div>
+                                <h4 className="text-[10px] font-bold uppercase tracking-wider text-amber-400">Digital Estate Inbox</h4>
+                            </div>
+                            <p className="text-[11px] text-slate-300 leading-snug mb-3">
+                                Forward bank emails or legal notices here. Our AI will automatically triage and log them to the correct asset timeline.
+                            </p>
+                            <div className="flex items-center gap-2 bg-slate-800 p-2 rounded border border-slate-700">
+                                <code className="text-[10px] font-mono text-amber-200 flex-1 truncate">
+                                    {(estate as any).inboundEmail || "Generating email..."}
+                                </code>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-6 px-2 hover:bg-slate-700 text-slate-400 hover:text-white"
+                                    onClick={() => {
+                                        if ((estate as any).inboundEmail) {
+                                            navigator.clipboard.writeText((estate as any).inboundEmail);
+                                            toast({ title: "Copied", description: "Email address copied to clipboard." });
+                                        }
+                                    }}
+                                >
+                                    <Copy className="w-3 h-3" />
+                                </Button>
+                            </div>
+                            <div className="mt-3 flex items-center gap-2">
+                                <Badge variant="outline" className="text-[8px] border-slate-700 text-slate-400 py-0 h-4 uppercase">
+                                    AI Triage Active
+                                </Badge>
+                                <Badge variant="outline" className="text-[8px] border-slate-700 text-slate-400 py-0 h-4 uppercase">
+                                    Legal Audit Ready
+                                </Badge>
+                            </div>
+                        </div>
 
                         {probateRequiredCount > 0 && currentPhase < 4 && (
                             <div className="space-y-2">

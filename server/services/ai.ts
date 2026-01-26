@@ -208,7 +208,6 @@ export async function generateCommunicationDraft(params: {
             response_format: { type: "json_object" },
             temperature: 0.7
         });
-
         const content = completion.choices[0]?.message?.content;
         return content ? JSON.parse(content) : null;
     } catch (error) {
@@ -216,3 +215,33 @@ export async function generateCommunicationDraft(params: {
         return null;
     }
 }
+
+/**
+ * Generic text generation helper.
+ */
+export async function generateText(prompt: string, profile: "fast" | "medium" | "heavy" = "medium"): Promise<string> {
+    try {
+        const model = profile === "fast" ? "llama-3.2-3b-preview" :
+            profile === "heavy" ? "llama-3.3-70b-versatile" :
+                "llama-3.1-8b-instant";
+
+        const completion = await groq.chat.completions.create({
+            messages: [{ role: "user", content: prompt }],
+            model,
+            temperature: 0,
+        });
+
+        return completion.choices[0]?.message?.content || "";
+    } catch (error) {
+        console.error("AI Text Generation Error:", error);
+        return "";
+    }
+}
+
+export const ai = {
+    analyzeDocument,
+    discoverRelatedAssets,
+    extractContactInfo,
+    generateCommunicationDraft,
+    generateText
+};

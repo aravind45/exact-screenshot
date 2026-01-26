@@ -54,6 +54,10 @@ model Estate {
   probateCounty      String?  @map("probate_county")
 
   status             String?  // 'INITIATION', 'DISCOVERY', 'SETTLEMENT', etc.
+  
+  inboundEmail       String?  @unique @map("inbound_email")
+  handle             String?  @unique @map("handle") // short unique id for cleaner emails
+  
   createdAt          DateTime @default(now()) @map("created_at")
   updatedAt          DateTime @updatedAt @map("updated_at")
 

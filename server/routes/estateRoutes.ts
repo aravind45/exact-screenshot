@@ -1,5 +1,6 @@
 import { Router, Request, Response } from "express";
 import { prisma } from "../db.js";
+import { EmailService } from "../services/emailService.js";
 
 const router = Router();
 
@@ -8,6 +9,12 @@ router.get("/my", async (req: any, res: Response) => {
         const estate = await prisma.estate.findFirst({
             where: { userId: req.user.id }
         });
+        if (estate) {
+            await EmailService.ensureEstateHandle(estate.id);
+            // Re-fetch to get the new handle/email if it was just created
+            const updatedEstate = await prisma.estate.findUnique({ where: { id: estate.id } });
+            return res.json(updatedEstate);
+        }
         res.json(estate);
     } catch (error) {
         res.status(500).json({ error: "Failed to fetch estate" });

@@ -10,6 +10,20 @@ export interface CommunicationAttachment {
     createdAt: string;
 }
 
+export interface Estate {
+    id: string;
+    name: string;
+    deceasedFirstName: string;
+    deceasedLastName: string;
+    deceasedState: string;
+    probateStatus: string;
+    courtCaseNumber?: string;
+    estateType?: string;
+    certifiedCopies?: number;
+    inboundEmail?: string;
+    handle?: string;
+}
+
 export interface Communication {
     id: string;
     assetId: string;
