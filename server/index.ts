@@ -1,6 +1,8 @@
 import "dotenv/config";
 import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
+import path from "path";
+import { fileURLToPath } from "url";
 import { AuthService } from "./services/authService.js";
 
 import authRoutes from "./routes/authRoutes.js";
@@ -15,6 +17,10 @@ import webhookRoutes from "./routes/webhookRoutes.js";
 
 const app = express();
 const port = process.env.PORT || 3000;
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const distPath = path.resolve(__dirname, "../dist");
 
 app.use(cors());
 app.use(express.json());
@@ -63,13 +69,21 @@ app.put("/api/auth/me", authenticate, async (req: any, res) => {
     }
 });
 
-// Only listen if this file is run directly (local dev) and NOT on Netlify
-const isNetlify = process.env.NETLIFY === "true" || process.env.LAMBDA_TASK_ROOT !== undefined;
+// Serve Static Files
+app.use(express.static(distPath));
 
-if (!isNetlify && (process.env.NODE_ENV !== "production" || process.env.VITE_API_URL === undefined)) {
-    app.listen(port, () => {
-        console.log(`Server running on http://localhost:${port}`);
-    });
-}
+// Catch-all to serve index.html for React Router
+app.get("*", (req, res) => {
+    if (req.path.startsWith("/api/")) {
+        return res.status(404).json({ error: "API route not found" });
+    }
+    res.sendFile(path.join(distPath, "index.html"));
+});
+
+// Always listen when in production or no specific VITE_API_URL is set
+// Cloud Run expects the server to listen on the PORT environment variable
+app.listen(port, () => {
+    console.log(`Server running on http://localhost:${port}`);
+});
 
 export default app;
