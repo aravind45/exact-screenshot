@@ -473,6 +473,15 @@ export const api = {
         return parseResponse(response);
     },
 
+    sendEmail: async (data: { assetId: string, to: string, subject: string, body: string }) => {
+        const response = await fetch(`${API_URL}/communications/send-email`, {
+            method: "POST",
+            headers: getHeaders(),
+            body: JSON.stringify(data),
+        });
+        return parseResponse(response);
+    },
+
     // Estate Documents
     getEstateDocuments: async () => {
         const estate = await api.getMyEstate();

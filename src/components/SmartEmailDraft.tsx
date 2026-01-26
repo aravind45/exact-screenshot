@@ -5,6 +5,7 @@ import { Copy, CheckCircle2, Scale } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { api } from "@/lib/api";
 
 interface SmartEmailDraftProps {
     open: boolean;
@@ -17,6 +18,7 @@ interface SmartEmailDraftProps {
 export function SmartEmailDraft({ open, onOpenChange, asset, estate, onLogSent }: SmartEmailDraftProps) {
     const { toast } = useToast();
     const [selectedTemplate, setSelectedTemplate] = useState("notification");
+    const [isSending, setIsSending] = useState(false);
 
     const templates = {
         notification: {
@@ -39,6 +41,29 @@ export function SmartEmailDraft({ open, onOpenChange, asset, estate, onLogSent }
 
         const mailtoUrl = `mailto:${asset?.institutionEmail || ""}?subject=${encodeURIComponent(currentTemplate.subject)}&body=${encodeURIComponent(currentTemplate.body)}`;
         window.location.href = mailtoUrl;
+    };
+
+    const handleSendDirectly = async () => {
+        if (!asset?.institutionEmail) {
+            toast({ variant: "destructive", title: "Email Missing", description: "Please add an email address for this institution first." });
+            return;
+        }
+
+        setIsSending(true);
+        try {
+            await api.sendEmail({
+                assetId: asset.id,
+                to: asset.institutionEmail,
+                subject: currentTemplate.subject,
+                body: currentTemplate.body
+            });
+            toast({ title: "Email Sent", description: `Notification sent to ${asset.institution} directly from Pilar.` });
+            onOpenChange(false);
+        } catch (error: any) {
+            toast({ variant: "destructive", title: "Send Failed", description: error.message });
+        } finally {
+            setIsSending(false);
+        }
     };
 
     return (
@@ -89,18 +114,18 @@ export function SmartEmailDraft({ open, onOpenChange, asset, estate, onLogSent }
 
                     <div className="pt-4 border-t border-slate-100 grid grid-cols-2 gap-4">
                         <Button
-                            variant="outline"
-                            className="h-14 rounded-2xl border-2 border-slate-200 hover:border-blue-500 hover:bg-blue-50 transition-all gap-3 font-bold text-slate-600 hover:text-blue-700"
-                            onClick={handleCopyAndOpen}
+                            className="h-14 rounded-2xl bg-slate-900 border-2 border-slate-900 hover:bg-slate-800 transition-all gap-3 font-bold shadow-lg shadow-amber-500/10 col-span-2 sm:col-span-1"
+                            disabled={isSending}
+                            onClick={handleSendDirectly}
                         >
-                            <Copy className="w-5 h-5" />
+                            <Scale className="w-5 h-5 text-amber-400" />
                             <div className="text-left flex flex-col">
-                                <span className="leading-tight">Copy & Open</span>
-                                <span className="text-[9px] opacity-70 font-medium">Use Gmail/Outlook</span>
+                                <span className="leading-tight">{isSending ? "Sending..." : "Send via Digital Inbox"}</span>
+                                <span className="text-[9px] opacity-70 font-medium text-amber-200">Official Estate Record</span>
                             </div>
                         </Button>
                         <Button
-                            className="h-14 rounded-2xl bg-blue-600 hover:bg-blue-700 transition-all gap-3 font-bold shadow-lg shadow-blue-500/20"
+                            className="h-14 rounded-2xl bg-blue-600 hover:bg-blue-700 transition-all gap-3 font-bold shadow-lg shadow-blue-500/20 col-span-2 sm:col-span-1"
                             onClick={() => {
                                 onLogSent(currentTemplate.subject, currentTemplate.body);
                                 onOpenChange(false);
@@ -108,9 +133,17 @@ export function SmartEmailDraft({ open, onOpenChange, asset, estate, onLogSent }
                         >
                             <CheckCircle2 className="w-5 h-5" />
                             <div className="text-left flex flex-col">
-                                <span className="leading-tight">Log as Sent</span>
+                                <span className="leading-tight">Log as Sent Manual</span>
                                 <span className="text-[9px] opacity-70 font-medium">Record in Evidence History</span>
                             </div>
+                        </Button>
+                        <Button
+                            variant="outline"
+                            className="h-10 rounded-xl border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-all gap-2 font-bold text-slate-500 col-span-2"
+                            onClick={handleCopyAndOpen}
+                        >
+                            <Copy className="w-4 h-4" />
+                            <span className="text-xs">Copy & Open in my own Email Client</span>
                         </Button>
                     </div>
                 </div>

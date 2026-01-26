@@ -2,6 +2,7 @@ import { prisma } from "../db.js";
 import crypto from "crypto";
 import { CommunicationService } from "./communicationService.js";
 import { ai } from "./ai.js";
+import "dotenv/config";
 
 export class EmailService {
     /**
@@ -108,5 +109,64 @@ Which asset ID does this email most likely belong to? Return ONLY the ID. If non
         }
 
         return { status: "ignored", reason: "no assets found to attach to" };
+    }
+
+    /**
+     * Sends an outbound email via Mailgun.
+     */
+    static async sendEmail(params: {
+        estateId: string;
+        to: string;
+        subject: string;
+        body: string;
+        assetId: string;
+    }) {
+        const estate = await prisma.estate.findUnique({ where: { id: params.estateId } });
+        if (!estate) throw new Error("Estate not found");
+
+        const handle = await this.ensureEstateHandle(params.estateId);
+        const domain = process.env.MAILGUN_DOMAIN || "mg.pilar.ai";
+        const sender = `ExpectedEstate <settle-${handle}@${domain}>`;
+
+        const apiKey = process.env.MAILGUN_API_KEY || "";
+        const encodedKey = Buffer.from(`api:${apiKey}`).toString("base64");
+
+        const formData = new URLSearchParams();
+        formData.append("from", sender);
+        formData.append("to", params.to);
+        formData.append("subject", params.subject);
+        formData.append("text", params.body);
+        formData.append("h:Reply-To", estate.inboundEmail || sender);
+
+        console.log(`[EmailService] Sending email to ${params.to} from ${sender}`);
+
+        const response = await fetch(`https://api.mailgun.net/v3/${domain}/messages`, {
+            method: "POST",
+            headers: {
+                "Authorization": `Basic ${encodedKey}`
+            },
+            body: formData
+        });
+
+        if (!response.ok) {
+            const error = await response.text();
+            console.error("[EmailService] Mailgun Error:", error);
+            throw new Error(`Failed to send email: ${error}`);
+        }
+
+        // Auto-log the outbound communication
+        await CommunicationService.create(estate.userId, {
+            estateId: params.estateId,
+            assetId: params.assetId,
+            type: "email",
+            direction: "outbound",
+            subject: params.subject,
+            notes: params.body,
+            occurredAt: new Date().toISOString(),
+            institutionName: params.to.split("@")[1] || "Institution",
+            contactName: params.to,
+        });
+
+        return { status: "sent" };
     }
 }

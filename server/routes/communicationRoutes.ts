@@ -1,5 +1,6 @@
 import { Router, Request, Response } from "express";
 import { CommunicationService } from "../services/communicationService.js";
+import { EmailService } from "../services/emailService.js";
 import { prisma } from "../db.js";
 import { fileUpload, FileService } from "../services/fileService.js";
 
@@ -116,6 +117,32 @@ router.delete("/:id", async (req: any, res: Response) => {
         res.json(result);
     } catch (error: any) {
         res.status(403).json({ error: error.message });
+    }
+});
+
+// Send an outbound email via Mailgun
+router.post("/send-email", async (req: any, res: Response) => {
+    try {
+        const { assetId, to, subject, body } = req.body;
+
+        // Security check
+        const asset = await prisma.asset.findFirst({
+            where: { id: assetId, userId: req.user.id }
+        });
+        if (!asset) return res.status(403).json({ error: "Access denied or asset not found" });
+
+        const result = await EmailService.sendEmail({
+            estateId: asset.estateId,
+            assetId,
+            to,
+            subject,
+            body
+        });
+
+        res.json(result);
+    } catch (error: any) {
+        console.error("Send Email Error:", error);
+        res.status(500).json({ error: error.message });
     }
 });
 
