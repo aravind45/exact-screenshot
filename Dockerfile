@@ -33,14 +33,18 @@ RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists
 # Copy package files
 COPY --from=builder /app/package*.json ./
 
-# Copy Prisma schema BEFORE installing dependencies
+# Copy Prisma schema
 COPY --from=builder /app/prisma ./prisma/
 
-# Install production dependencies AND prisma
-RUN npm ci --only=production && npm install prisma tsx
+# Install production dependencies (this includes @prisma/client)
+RUN npm ci --only=production
 
-# Generate Prisma client in production stage
-RUN npx prisma generate
+# Install prisma CLI and tsx for running the server
+RUN npm install prisma tsx
+
+# Copy the generated Prisma client from builder
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 
 # Copy built frontend
 COPY --from=builder /app/dist ./dist
