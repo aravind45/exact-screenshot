@@ -19,7 +19,7 @@ export const AssetService = {
         const estate = await prisma.estate.findFirst({ where: { userId } });
         if (!estate) throw new Error("No estate found for user.");
 
-        const { institution, assetType, category, ownershipType, value, priority, status } = data;
+        const { institution, assetType, category, ownershipType, value, dateOfDeathValue, priority, status } = data;
 
         // Idempotency check: don't create duplicate assets for the same estate
         const existingAsset = await prisma.asset.findFirst({
@@ -44,6 +44,7 @@ export const AssetService = {
                 category,
                 ownershipType: ownershipType || "INDIVIDUAL",
                 value: value ? parseFloat(value) : 0,
+                dateOfDeathValue: dateOfDeathValue ? parseFloat(dateOfDeathValue) : undefined,
                 priority: priority || 'medium',
                 status: status || 'discovered',
                 accountNumber: data.accountNumber,
@@ -71,6 +72,7 @@ export const AssetService = {
             category,
             ownershipType,
             value,
+            dateOfDeathValue,
             priority,
             status,
             accountNumber,
@@ -91,6 +93,7 @@ export const AssetService = {
                 category,
                 ownershipType,
                 value: value ? parseFloat(value) : undefined,
+                dateOfDeathValue: dateOfDeathValue ? parseFloat(dateOfDeathValue) : undefined,
                 priority,
                 status,
                 accountNumber,

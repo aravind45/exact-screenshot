@@ -221,4 +221,62 @@ router.get("/:estateId/documents", async (req: any, res: Response) => {
     }
 });
 
+// Deadline Management
+router.get("/:estateId/deadlines", async (req: any, res: Response) => {
+    try {
+        const { DeadlineService } = await import("../services/deadlineService.js");
+        const deadlines = await DeadlineService.getDeadlines(req.params.estateId);
+        res.json(deadlines);
+    } catch (error) {
+        res.status(500).json({ error: "Failed to fetch deadlines" });
+    }
+});
+
+router.post("/:estateId/deadlines", async (req: any, res: Response) => {
+    try {
+        const { DeadlineService } = await import("../services/deadlineService.js");
+        const deadline = await DeadlineService.createDeadline(req.params.estateId, {
+            ...req.body,
+            dueDate: new Date(req.body.dueDate)
+        });
+        res.json(deadline);
+    } catch (error) {
+        res.status(500).json({ error: "Failed to create deadline" });
+    }
+});
+
+router.put("/:estateId/deadlines/:id", async (req: any, res: Response) => {
+    try {
+        const { DeadlineService } = await import("../services/deadlineService.js");
+        const deadline = await DeadlineService.updateDeadline(
+            req.params.id,
+            req.params.estateId,
+            req.body.dueDate ? { ...req.body, dueDate: new Date(req.body.dueDate) } : req.body
+        );
+        res.json(deadline);
+    } catch (error) {
+        res.status(500).json({ error: "Failed to update deadline" });
+    }
+});
+
+router.delete("/:estateId/deadlines/:id", async (req: any, res: Response) => {
+    try {
+        const { DeadlineService } = await import("../services/deadlineService.js");
+        await DeadlineService.deleteDeadline(req.params.id, req.params.estateId);
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: "Failed to delete deadline" });
+    }
+});
+
+router.post("/:estateId/deadlines/generate", async (req: any, res: Response) => {
+    try {
+        const { DeadlineService } = await import("../services/deadlineService.js");
+        const deadlines = await DeadlineService.generateStatutoryDeadlines(req.params.estateId);
+        res.json(deadlines);
+    } catch (error) {
+        res.status(500).json({ error: "Failed to generate deadlines" });
+    }
+});
+
 export default router;

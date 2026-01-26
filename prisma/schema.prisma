@@ -86,8 +86,25 @@ model Estate {
   assets          Asset[]
   estateDocuments EstateDocument[]
   communications  Communication[]
+  deadlines       Deadline[]
 
   @@map("estates")
+}
+
+model Deadline {
+  id          String   @id @default(uuid())
+  estateId    String   @map("estate_id")
+  title       String
+  dueDate     DateTime @map("due_date")
+  status      String   @default("PENDING") // PENDING, COMPLETED, OVERDUE
+  isStatutory Boolean  @default(false) @map("is_statutory")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  estate      Estate   @relation(fields: [estateId], references: [id], onDelete: Cascade)
+
+  @@index([estateId])
+  @@map("deadlines")
 }
 
 model Asset {
@@ -101,6 +118,7 @@ model Asset {
   ownershipType     String   @default("INDIVIDUAL") @map("ownership_type") // 'BENEFICIARY', 'JOINT', 'TRUST', 'INDIVIDUAL'
   accountNumber     String?  @map("account_number")
   value             Float?
+  dateOfDeathValue  Float?   @map("date_of_death_value")
   
   status            String?  // 'DISCOVERED', 'CONTACTED'
   priority          String?  // 'low', 'medium', 'high', 'urgent'

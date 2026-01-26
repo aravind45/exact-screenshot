@@ -57,7 +57,9 @@ import { bankWorkflow } from "@/config/workflows/bank";
 import { propertyWorkflow } from "@/config/workflows/property";
 import { SettlementWorkflow } from "@/components/SettlementWorkflow";
 import { ProbateProgressMini } from "@/components/ProbateProgressMini";
+import { ProbateProgressMini } from "@/components/ProbateProgressMini";
 import { SmartEmailDraft } from "@/components/SmartEmailDraft";
+import { AssetValueTracker } from "@/components/financials/AssetValueTracker";
 
 // Helper to normalize status/priority from DB
 const normalize = (str: string | null) => str?.toLowerCase() || '';
@@ -515,6 +517,16 @@ export default function AssetDetail() {
             </div>
           )}
         </motion.div>
+
+        {!isEditing && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <AssetValueTracker
+              assetId={uiAsset.id}
+              currentValue={uiAsset.value || 0}
+              dateOfDeathValue={uiAsset.dateOfDeathValue || 0}
+            />
+          </div>
+        )}
 
         {/* Tabs for Details vs Guide vs Documents */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">

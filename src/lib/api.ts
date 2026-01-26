@@ -574,5 +574,49 @@ export const api = {
 
     getEstateDocumentDownloadUrl: (formCode: string) => {
         return `${API_URL}/estates/my/documents/${formCode}/download?token=${localStorage.getItem("auth_token")}`;
+    },
+
+    /**
+     * Deadline Methods
+     */
+    getDeadlines: async (estateId: string) => {
+        const response = await fetch(`${API_URL}/estates/${estateId}/deadlines`, {
+            headers: getHeaders(),
+        });
+        return parseResponse(response);
+    },
+
+    createDeadline: async (estateId: string, data: any) => {
+        const response = await fetch(`${API_URL}/estates/${estateId}/deadlines`, {
+            method: "POST",
+            headers: getHeaders(),
+            body: JSON.stringify(data)
+        });
+        return parseResponse(response);
+    },
+
+    updateDeadline: async (estateId: string, id: string, data: any) => {
+        const response = await fetch(`${API_URL}/estates/${estateId}/deadlines/${id}`, {
+            method: "PUT",
+            headers: getHeaders(),
+            body: JSON.stringify(data)
+        });
+        return parseResponse(response);
+    },
+
+    deleteDeadline: async (estateId: string, id: string) => {
+        const response = await fetch(`${API_URL}/estates/${estateId}/deadlines/${id}`, {
+            method: "DELETE",
+            headers: getHeaders(),
+        });
+        return parseResponse(response);
+    },
+
+    generateDeadlines: async (estateId: string) => {
+        const response = await fetch(`${API_URL}/estates/${estateId}/deadlines/generate`, {
+            method: "POST",
+            headers: getHeaders(),
+        });
+        return parseResponse(response);
     }
 };
