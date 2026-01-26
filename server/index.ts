@@ -73,7 +73,7 @@ app.put("/api/auth/me", authenticate, async (req: any, res) => {
 app.use(express.static(distPath));
 
 // Catch-all to serve index.html for React Router
-app.get("*", (req, res) => {
+app.get("/*", (req, res) => {
     if (req.path.startsWith("/api/")) {
         return res.status(404).json({ error: "API route not found" });
     }
