@@ -22,6 +22,7 @@ interface CommunicationLogDialogProps {
         description: string;
     };
     availableDocuments?: any[];
+    initialData?: Partial<CommunicationData>;
 }
 
 export interface CommunicationData {
@@ -52,6 +53,7 @@ export function CommunicationLogDialog({
     assetId,
     workflowContext,
     availableDocuments = [],
+    initialData
 }: CommunicationLogDialogProps) {
     const [isGenerating, setIsGenerating] = useState(false);
     const [selectedDocIds, setSelectedDocIds] = useState<string[]>([]);
@@ -67,10 +69,24 @@ export function CommunicationLogDialog({
     });
 
     useEffect(() => {
-        if (open && assetId && !formData.subject && !formData.notes) {
-            handleGenerateDraft();
+        if (open) {
+            if (initialData) {
+                setFormData({
+                    method: initialData.method || "phone",
+                    subject: initialData.subject || "",
+                    notes: initialData.notes || "",
+                    occurredAt: initialData.occurredAt ? new Date(initialData.occurredAt).toISOString().slice(0, 16) : new Date().toISOString().slice(0, 16),
+                    type: initialData.type || "follow_up",
+                    direction: initialData.direction || "outbound",
+                    contactPerson: initialData.contactPerson || "",
+                    statusChange: initialData.statusChange || "none"
+                });
+            } else if (assetId && !formData.subject && !formData.notes) {
+                // Only generate draft if NOT editing (no initialData)
+                handleGenerateDraft();
+            }
         }
-    }, [open, assetId]);
+    }, [open, assetId, initialData]);
 
     const handleGenerateDraft = async () => {
         if (!assetId) return;
@@ -128,16 +144,18 @@ export function CommunicationLogDialog({
         onOpenChange(false);
         // Reset form after a short delay to avoid visual glitch
         setTimeout(() => {
-            setFormData({
-                method: "phone",
-                subject: "",
-                notes: "",
-                occurredAt: new Date().toISOString().slice(0, 16),
-                type: "follow_up",
-                direction: "outbound",
-                contactPerson: "",
-                statusChange: "none"
-            });
+            if (!initialData) {
+                setFormData({
+                    method: "phone",
+                    subject: "",
+                    notes: "",
+                    occurredAt: new Date().toISOString().slice(0, 16),
+                    type: "follow_up",
+                    direction: "outbound",
+                    contactPerson: "",
+                    statusChange: "none"
+                });
+            }
         }, 200);
     };
 

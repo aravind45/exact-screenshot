@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, Communication } from "@/lib/api";
 import { CommunicationTimeline } from "./CommunicationTimeline";
-import { CommunicationForm } from "./CommunicationForm";
+import { CommunicationLogDialog, CommunicationData } from "../CommunicationLogDialog";
 import { Button } from "@/components/ui/button";
 import { Plus, Search, MessageSquare } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -45,13 +45,26 @@ export function CommunicationLog({ assetId }: CommunicationLogProps) {
         }
     });
 
+
+    const updateMutation = useMutation({
+        mutationFn: (params: { id: string, data: any }) => api.updateCommunication(params.id, params.data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["communications", assetId] });
+            setEditingComm(null);
+            setIsAdding(false);
+            toast({ title: "Updated", description: "Log entry updated." });
+        }
+    });
+
     const deleteMutation = useMutation({
         mutationFn: api.deleteCommunication,
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["communications", assetId] });
-            toast({ title: "Log Deleted", description: "The entry has been removed." });
+            toast({ title: "Deleted", description: "Log entry removed." });
         }
     });
+
+    const [editingComm, setEditingComm] = useState<any>(null);
 
     const filteredComms = communications.filter(comm =>
         comm.notes.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -69,63 +82,51 @@ export function CommunicationLog({ assetId }: CommunicationLogProps) {
                     </CardTitle>
                     <CardDescription>Keep track of every interaction with this institution.</CardDescription>
                 </div>
-                {!isAdding && (
-                    <Button onClick={() => setIsAdding(true)} className="rounded-full gap-2 font-bold shadow-md">
-                        <Plus className="w-4 h-4" />
-                        Log Contact
-                    </Button>
-                )}
+                <Button onClick={() => { setEditingComm(null); setIsAdding(true); }} className="rounded-full gap-2 font-bold shadow-md">
+                    <Plus className="w-4 h-4" />
+                    Log Contact
+                </Button>
             </CardHeader>
 
             <CardContent className="px-0">
-                <AnimatePresence mode="wait">
-                    {isAdding ? (
-                        <motion.div
-                            key="form"
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.95 }}
-                            className="bg-slate-50/50 p-6 rounded-3xl border border-slate-200"
-                        >
-                            <div className="flex items-center justify-between mb-8">
-                                <h3 className="font-bold text-slate-900">New Log Entry</h3>
-                                <Button variant="ghost" size="sm" onClick={() => setIsAdding(false)} className="rounded-full h-8 w-8 p-0">
-                                    <X className="w-4 h-4" />
-                                </Button>
-                            </div>
-                            <CommunicationForm
-                                onSubmit={(vals) => createMutation.mutate(vals)}
-                                onCancel={() => setIsAdding(false)}
-                                isLoading={createMutation.isPending}
+                <div className="space-y-6">
+                    {communications.length > 0 && (
+                        <div className="relative mb-8">
+                            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                            <Input
+                                placeholder="Search notes, contacts, or subjects..."
+                                className="pl-10 h-11 bg-slate-100/50 border-transparent focus:bg-white focus:border-primary/20 rounded-xl transition-all"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
                             />
-                        </motion.div>
-                    ) : (
-                        <motion.div
-                            key="timeline"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            className="space-y-6"
-                        >
-                            {communications.length > 0 && (
-                                <div className="relative mb-8">
-                                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                                    <Input
-                                        placeholder="Search notes, contacts, or subjects..."
-                                        className="pl-10 h-11 bg-slate-100/50 border-transparent focus:bg-white focus:border-primary/20 rounded-xl transition-all"
-                                        value={searchQuery}
-                                        onChange={(e) => setSearchQuery(e.target.value)}
-                                    />
-                                </div>
-                            )}
-
-                            <CommunicationTimeline
-                                communications={filteredComms}
-                                onDelete={(id) => deleteMutation.mutate(id)}
-                            />
-                        </motion.div>
+                        </div>
                     )}
-                </AnimatePresence>
+
+                    <CommunicationTimeline
+                        communications={filteredComms}
+                        onDelete={(id) => deleteMutation.mutate(id)}
+                        onEdit={(comm) => { setEditingComm(comm); setIsAdding(true); }}
+                    />
+                </div>
             </CardContent>
+
+            <CommunicationLogDialog
+                open={isAdding}
+                onOpenChange={(open) => {
+                    setIsAdding(open);
+                    if (!open) setEditingComm(null);
+                }}
+                assetId={assetId}
+                initialData={editingComm}
+                onSubmit={(data) => {
+                    if (editingComm) {
+                        updateMutation.mutate({ id: editingComm.id, data });
+                    } else {
+                        createMutation.mutate(data);
+                    }
+                }}
+                isLoading={createMutation.isPending || updateMutation.isPending}
+            />
         </Card>
     );
 }

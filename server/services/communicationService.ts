@@ -112,5 +112,29 @@ export const CommunicationService = {
             orderBy: { occurredAt: 'desc' },
             include: { asset: true, attachments: true }
         });
+    },
+
+    async update(id: string, userId: string, data: any) {
+        return await prisma.$transaction(async (tx) => {
+            const comm = await tx.communication.findUnique({ where: { id } });
+            if (!comm || comm.createdBy !== userId) throw new Error("Not found or unauthorized");
+
+            const updated = await tx.communication.update({
+                where: { id },
+                data: {
+                    type: data.type,
+                    direction: data.direction,
+                    occurredAt: data.occurredAt ? new Date(data.occurredAt) : undefined,
+                    institutionName: data.institutionName,
+                    contactName: data.contactName,
+                    contactChannel: data.contactChannel,
+                    subject: data.subject,
+                    notes: data.notes,
+                    followUpDueAt: data.followUpDueAt ? new Date(data.followUpDueAt) : null,
+                    statusChange: data.statusChange,
+                }
+            });
+            return updated;
+        });
     }
 };

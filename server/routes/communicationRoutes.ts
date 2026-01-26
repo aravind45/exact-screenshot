@@ -133,6 +133,16 @@ router.get("/search", async (req: any, res: Response) => {
     }
 });
 
+// Update a communication
+router.patch("/:id", async (req: any, res: Response) => {
+    try {
+        const result = await CommunicationService.update(req.params.id, req.user.id, req.body);
+        res.json(result);
+    } catch (error: any) {
+        res.status(403).json({ error: error.message });
+    }
+});
+
 // Delete a communication
 router.delete("/:id", async (req: any, res: Response) => {
     try {

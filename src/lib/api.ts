@@ -474,6 +474,15 @@ export const api = {
         return parseResponse(response);
     },
 
+    updateCommunication: async (id: string, data: Partial<Communication>): Promise<Communication> => {
+        const response = await fetch(`${API_URL}/communications/${id}`, {
+            method: "PATCH",
+            headers: getHeaders(),
+            body: JSON.stringify(data),
+        });
+        return parseResponse(response);
+    },
+
     deleteCommunication: async (id: string): Promise<{ success: boolean }> => {
         const response = await fetch(`${API_URL}/communications/${id}`, {
             method: "DELETE",

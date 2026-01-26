@@ -10,7 +10,8 @@ import {
     ArrowDownLeft,
     Clock,
     Paperclip,
-    Trash2
+    Trash2,
+    Pencil
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -19,9 +20,10 @@ import { cn } from "@/lib/utils";
 interface CommunicationTimelineProps {
     communications: Communication[];
     onDelete?: (id: string) => void;
+    onEdit?: (comm: Communication) => void;
 }
 
-export function CommunicationTimeline({ communications, onDelete }: CommunicationTimelineProps) {
+export function CommunicationTimeline({ communications, onDelete, onEdit }: CommunicationTimelineProps) {
     if (communications.length === 0) {
         return (
             <div className="text-center py-12 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
@@ -108,16 +110,28 @@ export function CommunicationTimeline({ communications, onDelete }: Communicatio
                                 ))}
                             </div>
 
-                            {onDelete && (
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => onDelete(comm.id)}
-                                    className="h-8 w-8 p-0 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-full"
-                                >
-                                    <Trash2 className="w-4 h-4" />
-                                </Button>
-                            )}
+                            <div className="flex items-center gap-1">
+                                {onEdit && (
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => onEdit(comm)}
+                                        className="h-8 w-8 p-0 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-full"
+                                    >
+                                        <Pencil className="w-4 h-4" />
+                                    </Button>
+                                )}
+                                {onDelete && (
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => onDelete(comm.id)}
+                                        className="h-8 w-8 p-0 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-full"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                    </Button>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
