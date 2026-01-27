@@ -27,6 +27,7 @@ model User {
   createdCommunications   Communication[] @relation("CommunicationCreator")
   completedCommunications Communication[] @relation("CommunicationCompletedBy")
   uploadedAttachments     CommunicationAttachment[]
+  settlementActivities    SettlementActivity[]
 
   @@map("profiles") // Matching the Supabase 'profiles' table name for consistency
 }
@@ -83,11 +84,14 @@ model Estate {
 
   heirs                 Heir[]
 
+  roadmapProgress    Json? @map("roadmap_progress") // { completedTaskIds: string[], completedPhases: string[] }
+  
   user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   assets          Asset[]
   estateDocuments EstateDocument[]
   communications  Communication[]
   deadlines       Deadline[]
+  activities      SettlementActivity[]
 
   @@map("estates")
 }
@@ -334,4 +338,19 @@ model FormTemplate {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("form_templates")
+}
+model SettlementActivity {
+  id          String   @id @default(uuid())
+  estateId    String   @map("estate_id")
+  taskId      String   @map("task_id")
+  phase       String?
+  action      String   // 'COMPLETED', 'UNCOMPLETED', 'PHASE_COMPLETED'
+  notes       String?
+  occurredAt  DateTime @default(now()) @map("occurred_at")
+  userId      String   @map("user_id")
+
+  estate      Estate   @relation(fields: [estateId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id])
+
+  @@map("settlement_activities")
 }

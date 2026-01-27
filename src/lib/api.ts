@@ -22,6 +22,10 @@ export interface Estate {
     certifiedCopies?: number;
     inboundEmail?: string;
     handle?: string;
+    roadmapProgress?: {
+        completedTaskIds: string[];
+        completedPhases: string[];
+    };
 }
 
 export interface Communication {
@@ -641,5 +645,21 @@ export const api = {
         });
         const data = await parseResponse(response);
         return { data };
+    },
+
+    getActivities: async () => {
+        const response = await fetch(`${API_URL}/estates/my/activities`, {
+            headers: getHeaders(),
+        });
+        return parseResponse(response);
+    },
+
+    updateRoadmap: async (data: { completedTaskIds: string[], completedPhases: string[], taskId?: string, action?: 'COMPLETED' | 'UNCOMPLETED' | 'PHASE_COMPLETED', phase?: string }) => {
+        const response = await fetch(`${API_URL}/estates/my/roadmap`, {
+            method: "PUT",
+            headers: getHeaders(),
+            body: JSON.stringify(data),
+        });
+        return parseResponse(response);
     }
 };

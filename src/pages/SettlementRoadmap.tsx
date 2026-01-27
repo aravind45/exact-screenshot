@@ -8,30 +8,87 @@ import { Button } from "@/components/ui/button";
 import { Clock, CheckCircle2, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { api } from "@/lib/api";
+import { useEffect } from "react";
+
 export default function SettlementRoadmap() {
+  const queryClient = useQueryClient();
   const [currentPhase, setCurrentPhase] = useState<SettlementPhase>("immediate_actions");
+
+  const { data: estate } = useQuery({
+    queryKey: ['estate'],
+    queryFn: api.getMyEstate,
+  });
+
   const [completedPhases, setCompletedPhases] = useState<SettlementPhase[]>([]);
   const [completedTaskIds, setCompletedTaskIds] = useState<string[]>([]);
 
+  useEffect(() => {
+    if (estate?.roadmapProgress) {
+      setCompletedTaskIds(estate.roadmapProgress.completedTaskIds || []);
+      setCompletedPhases(estate.roadmapProgress.completedPhases || []);
+    }
+  }, [estate]);
+
+  useEffect(() => {
+    if (estate?.status) {
+      const statusLower = estate.status.toLowerCase() as SettlementPhase;
+      // Basic validation that it matches one of our phases
+      const validPhases: SettlementPhase[] = [
+        "immediate_actions", "court_filing", "asset_discovery",
+        "creditor_claims", "asset_liquidation", "final_distribution"
+      ];
+      if (validPhases.includes(statusLower)) {
+        setCurrentPhase(statusLower);
+      }
+    }
+  }, [estate?.status]);
+
+  const roadmapMutation = useMutation({
+    mutationFn: api.updateRoadmap,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['estate'] });
+    }
+  });
+
   const handleTaskToggle = (taskId: string, completed: boolean) => {
-    setCompletedTaskIds(prev => 
-      completed 
-        ? [...prev, taskId]
-        : prev.filter(id => id !== taskId)
-    );
+    const newCompletedIds = completed
+      ? [...new Set([...completedTaskIds, taskId])]
+      : completedTaskIds.filter(id => id !== taskId);
+
+    setCompletedTaskIds(newCompletedIds);
+
+    roadmapMutation.mutate({
+      completedTaskIds: newCompletedIds,
+      completedPhases,
+      taskId,
+      action: completed ? 'COMPLETED' : 'UNCOMPLETED'
+    });
   };
 
   const handlePhaseComplete = (phase: SettlementPhase) => {
     // Mark all tasks in this phase as complete
     const phaseTasks = SETTLEMENT_PHASE_TASKS.find(p => p.phase === phase);
+    let newCompletedIds = [...completedTaskIds];
     if (phaseTasks) {
       const taskIds = phaseTasks.tasks.map(t => t.id);
-      setCompletedTaskIds(prev => [...new Set([...prev, ...taskIds])]);
+      newCompletedIds = [...new Set([...newCompletedIds, ...taskIds])];
+      setCompletedTaskIds(newCompletedIds);
     }
-    
+
     // Mark phase as complete
-    setCompletedPhases(prev => [...prev, phase]);
-    
+    const newCompletedPhases = [...new Set([...completedPhases, phase])];
+    setCompletedPhases(newCompletedPhases);
+
+    roadmapMutation.mutate({
+      completedTaskIds: newCompletedIds,
+      completedPhases: newCompletedPhases,
+      taskId: phase,
+      action: 'PHASE_COMPLETED',
+      phase
+    });
+
     // Move to next phase
     const phases: SettlementPhase[] = [
       "immediate_actions",
@@ -53,8 +110,8 @@ export default function SettlementRoadmap() {
 
   const phaseData = getCurrentPhaseData();
   const totalTasks = SETTLEMENT_PHASE_TASKS.reduce((sum, p) => sum + p.tasks.length, 0);
-  const overallProgress = totalTasks > 0 
-    ? Math.round((completedTaskIds.length / totalTasks) * 100) 
+  const overallProgress = totalTasks > 0
+    ? Math.round((completedTaskIds.length / totalTasks) * 100)
     : 0;
 
   return (
@@ -232,7 +289,7 @@ export default function SettlementRoadmap() {
                         )}
                         <div className="flex items-center gap-2">
                           <div className="w-32 h-2 bg-slate-100 rounded-full overflow-hidden">
-                            <div 
+                            <div
                               className={cn(
                                 "h-full transition-all duration-500",
                                 isComplete ? "bg-green-600" : "bg-indigo-600"

@@ -43,6 +43,66 @@ router.put("/my", async (req: any, res: Response) => {
     }
 });
 
+// Roadmap Persistence
+router.put("/my/roadmap", async (req: any, res: Response) => {
+    try {
+        const estate = await prisma.estate.findFirst({ where: { userId: req.user.id } });
+        if (!estate) return res.status(404).json({ error: "Estate not found" });
+
+        const { completedTaskIds, completedPhases, taskId, action, phase } = req.body;
+
+        const updateData: any = {
+            roadmapProgress: {
+                completedTaskIds,
+                completedPhases
+            }
+        };
+
+        // Sync high-level status if it's a phase completion
+        if (action === 'PHASE_COMPLETED' && phase) {
+            updateData.status = phase.toUpperCase();
+        }
+
+        const updated = await prisma.estate.update({
+            where: { id: estate.id },
+            data: updateData
+        });
+
+        // Log activity
+        if (taskId) {
+            await prisma.settlementActivity.create({
+                data: {
+                    estateId: estate.id,
+                    userId: req.user.id,
+                    taskId,
+                    phase,
+                    action, // 'COMPLETED' or 'UNCOMPLETED' or 'PHASE_COMPLETED'
+                }
+            });
+        }
+
+        res.json(updated);
+    } catch (e: any) {
+        console.error("Roadmap update error:", e);
+        res.status(500).json({ error: "Failed to update roadmap" });
+    }
+});
+
+router.get("/my/activities", async (req: any, res: Response) => {
+    try {
+        const estate = await prisma.estate.findFirst({ where: { userId: req.user.id } });
+        if (!estate) return res.json([]);
+
+        const activities = await prisma.settlementActivity.findMany({
+            where: { estateId: estate.id },
+            orderBy: { occurredAt: 'desc' }
+        });
+        res.json(activities);
+    } catch (e: any) {
+        res.status(500).json({ error: "Failed to fetch activities" });
+    }
+});
+
 // Heir Management
 router.post("/my/heirs", async (req: any, res: Response) => {
     try {

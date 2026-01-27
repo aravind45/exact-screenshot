@@ -28,7 +28,7 @@ import { DeadlineTracker } from "@/components/dashboard/DeadlineTracker";
 import { SafetyNetWidget } from "@/components/dashboard/SafetyNetWidget";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { WelcomeModal } from "@/components/WelcomeModal";
 import { useToast } from "@/hooks/use-toast";
@@ -124,6 +124,58 @@ export default function Dashboard() {
     : 0;
 
 
+  const [completedTaskIds, setCompletedTaskIds] = useState<string[]>([]);
+  const [completedPhases, setCompletedPhases] = useState<SettlementPhase[]>([]);
+
+  useEffect(() => {
+    if (estate?.roadmapProgress) {
+      setCompletedTaskIds(estate.roadmapProgress.completedTaskIds || []);
+      setCompletedPhases(estate.roadmapProgress.completedPhases || []);
+    }
+  }, [estate]);
+
+  const { data: activitiesData = [] } = useQuery({
+    queryKey: ['activities'],
+    queryFn: api.getActivities,
+  });
+
+  // Merge communications and roadmap activities for a unified audit trail
+  const unifiedTimeline = [
+    ...(recentActivity || []).map((a: any) => ({ ...a, uiType: 'communication' })),
+    ...(activitiesData || []).map((a: any) => ({
+      id: a.id,
+      occurredAt: a.occurredAt,
+      subject: a.action === 'PHASE_COMPLETED' ? `Phase Completed: ${a.taskId.split('_').map((s: any) => s.charAt(0).toUpperCase() + s.slice(1)).join(' ')}` : `Task: ${a.taskId.split('_').map((s: any) => s.charAt(0).toUpperCase() + s.slice(1)).join(' ')}`,
+      notes: a.action === 'PHASE_COMPLETED' ? `Advanced to next roadmap stage` : `Status changed to ${a.action.toLowerCase()}`,
+      direction: 'system',
+      type: 'roadmap',
+      uiType: 'activity'
+    }))
+  ].sort((a, b) => new Date(b.occurredAt).getTime() - new Date(a.occurredAt).getTime()).slice(0, 10);
+
+  const queryClient = useQueryClient();
+  const roadmapMutation = useMutation({
+    mutationFn: api.updateRoadmap,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['estate'] });
+    }
+  });
+
+  const handleTaskToggle = (taskId: string, completed: boolean) => {
+    const newCompletedIds = completed
+      ? [...new Set([...completedTaskIds, taskId])]
+      : completedTaskIds.filter(id => id !== taskId);
+
+    setCompletedTaskIds(newCompletedIds);
+
+    roadmapMutation.mutate({
+      completedTaskIds: newCompletedIds,
+      completedPhases,
+      taskId,
+      action: completed ? 'COMPLETED' : 'UNCOMPLETED'
+    });
+  };
+
   if (error) {
     return <div className="p-8 text-red-500">Error loading dashboard: {(error as Error).message}.</div>;
   }
@@ -154,7 +206,7 @@ export default function Dashboard() {
               </div>
               <div className="h-6 w-px bg-slate-200 hidden sm:block" />
               <p className="text-xs font-medium text-slate-500 uppercase tracking-widest hidden sm:block">
-                Managing: <span className="text-slate-900 font-black">{estate?.deceasedName || "..."}</span>
+                Managing: <span className="text-slate-900 font-black">{estate?.deceasedFirstName} {estate?.deceasedLastName}</span>
               </p>
             </motion.div>
           </div>
@@ -232,18 +284,15 @@ export default function Dashboard() {
             </div>
             <SettlementPhaseChevron
               currentPhase="immediate_actions"
-              completedPhases={[]}
+              completedPhases={completedPhases}
             />
-            
+
             {/* Current Phase Task List */}
             <div className="mt-6">
               <PhaseTaskList
                 phase="immediate_actions"
-                completedTaskIds={[]}
-                onTaskToggle={(taskId, completed) => {
-                  console.log(`Task ${taskId} ${completed ? 'completed' : 'uncompleted'}`);
-                  // TODO: Persist to backend
-                }}
+                completedTaskIds={completedTaskIds}
+                onTaskToggle={handleTaskToggle}
               />
             </div>
           </section>
@@ -305,11 +354,11 @@ export default function Dashboard() {
                       </div>
                     )}
                     <div className="divide-y divide-slate-100">
-                      {recentActivity.map((act: any) => (
-                        <div key={act.id} className="p-4 hover:bg-slate-50 transition-colors cursor-pointer group" onClick={() => navigate(`/inbox?selected=${act.id}`)}>
+                      {unifiedTimeline.map((act: any) => (
+                        <div key={act.id} className="p-4 hover:bg-slate-50 transition-colors cursor-pointer group" onClick={() => act.uiType === 'communication' ? navigate(`/inbox?selected=${act.id}`) : navigate('/roadmap')}>
                           <div className="flex justify-between items-start mb-1">
                             <span className="text-[10px] font-black uppercase text-slate-400 group-hover:text-indigo-600 transition-colors">
-                              {act.institutionName || 'General'}
+                              {act.uiType === 'activity' ? 'Roadmap' : (act.institutionName || 'General')}
                             </span>
                             <span className="text-[9px] font-bold text-slate-400 uppercase">{new Date(act.occurredAt).toLocaleDateString()}</span>
                           </div>
@@ -317,7 +366,7 @@ export default function Dashboard() {
                           <div className="flex items-center gap-2 mt-2">
                             <div className={cn(
                               "px-1.5 py-0.5 rounded text-[8px] font-black uppercase",
-                              act.direction === 'inbound' ? "bg-emerald-100 text-emerald-700" : "bg-indigo-100 text-indigo-700"
+                              act.uiType === 'activity' ? "bg-amber-100 text-amber-700" : (act.direction === 'inbound' ? "bg-emerald-100 text-emerald-700" : "bg-indigo-100 text-indigo-700")
                             )}>
                               {act.type}
                             </div>
