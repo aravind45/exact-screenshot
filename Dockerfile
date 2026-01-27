@@ -11,7 +11,7 @@ COPY package*.json ./
 COPY prisma ./prisma/
 
 # Install ALL dependencies (including devDependencies for build)
-RUN npm install
+RUN npm install --legacy-peer-deps
 
 # Generate Prisma client
 RUN npx prisma generate
@@ -37,10 +37,10 @@ COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/prisma ./prisma/
 
 # Install production dependencies (this includes @prisma/client)
-RUN npm ci --only=production
+RUN npm install --omit=dev --legacy-peer-deps
 
 # Install prisma CLI and tsx for running the server
-RUN npm install prisma tsx
+RUN npm install prisma tsx --legacy-peer-deps
 
 # Copy the generated Prisma client from builder
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
