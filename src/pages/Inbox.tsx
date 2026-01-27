@@ -11,11 +11,18 @@ import { Card } from "@/components/ui/card";
 import { Mail, Search, Inbox as InboxIcon, Send, Archive, RefreshCw, Paperclip, ChevronRight, MessageSquare, Phone, Printer, History, Landmark, AlertCircle, CheckCircle2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
+import { CommunicationLogDialog, CommunicationData } from "@/components/CommunicationLogDialog";
 
 export default function Inbox() {
+    const { toast } = useToast();
+    const navigate = useNavigate();
     const [selectedId, setSelectedId] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState("");
     const [activeTab, setActiveTab] = useState("timeline");
+    const [isLogDialogOpen, setIsLogDialogOpen] = useState(false);
+    const [isUpdating, setIsUpdating] = useState(false);
 
     const { data: timelineMessages, isLoading: timelineLoading, refetch: refetchTimeline } = useQuery({
         queryKey: ["communications", "timeline"],
@@ -53,6 +60,62 @@ export default function Inbox() {
         refetchTimeline();
         refetchInbox();
         refetchOutbox();
+    };
+
+    const handleFileAway = async () => {
+        if (!selectedId) return;
+        setIsUpdating(true);
+        try {
+            await api.updateCommunication(selectedId, {
+                followUpCompletedAt: new Date().toISOString()
+            });
+            toast({
+                title: "Interaction Filed",
+                description: "This communication has been marked as handled."
+            });
+            handleRefresh();
+        } catch (error: any) {
+            toast({
+                title: "Error",
+                description: error.message || "Failed to update record.",
+                variant: "destructive"
+            });
+        } finally {
+            setIsUpdating(false);
+        }
+    };
+
+    const handleUpdateLog = async (data: CommunicationData) => {
+        if (!selectedId) return;
+        setIsUpdating(true);
+        try {
+            // Map CommunicationData back to Prisma fields if needed
+            // But api.updateCommunication takes Partial<Communication>
+            await api.updateCommunication(selectedId, {
+                type: data.method as any,
+                direction: data.direction as any,
+                occurredAt: data.occurredAt,
+                subject: data.subject,
+                notes: data.notes,
+                statusChange: data.statusChange,
+                contactName: data.contactPerson,
+                contactChannel: data.recipientEmail
+            });
+            toast({
+                title: "Log Updated",
+                description: "The interaction record has been successfully updated."
+            });
+            setIsLogDialogOpen(false);
+            handleRefresh();
+        } catch (error: any) {
+            toast({
+                title: "Error",
+                description: error.message || "Failed to update log.",
+                variant: "destructive"
+            });
+        } finally {
+            setIsUpdating(false);
+        }
     };
 
     const getCommIcon = (type: string) => {
@@ -217,19 +280,31 @@ export default function Inbox() {
                                             </div>
                                         </div>
                                         <div className="flex gap-2">
-                                            <Button variant="outline" className="rounded-xl font-bold gap-2">
+                                            <Button
+                                                variant="outline"
+                                                className="rounded-xl font-bold gap-2"
+                                                onClick={handleFileAway}
+                                                disabled={isUpdating || !!(selectedMessage.followUpDueAt && selectedMessage.followUpCompletedAt)}
+                                            >
                                                 <Archive className="w-4 h-4" />
-                                                File Away
+                                                {selectedMessage.followUpCompletedAt ? "Archived" : "File Away"}
                                             </Button>
-                                            <Button className="rounded-xl font-black gap-2 shadow-lg shadow-indigo-100">
-                                                <RefreshCw className="w-4 h-4" />
+                                            <Button
+                                                className="rounded-xl font-black gap-2 shadow-lg shadow-indigo-100"
+                                                onClick={() => setIsLogDialogOpen(true)}
+                                                disabled={isUpdating}
+                                            >
+                                                <RefreshCw className={cn("w-4 h-4", isUpdating && "animate-spin")} />
                                                 Update Log
                                             </Button>
                                         </div>
                                     </div>
 
                                     {selectedMessage.asset && (
-                                        <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-200 w-fit group cursor-pointer hover:bg-slate-100 transition-colors">
+                                        <div
+                                            onClick={() => navigate(`/assets/${selectedMessage.assetId}`)}
+                                            className="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-200 w-fit group cursor-pointer hover:bg-slate-100 transition-colors"
+                                        >
                                             <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center border border-slate-200 shadow-sm">
                                                 <LayoutGrid className="w-4 h-4 text-indigo-600" />
                                             </div>
@@ -302,6 +377,26 @@ export default function Inbox() {
                     </div>
                 </div>
             </div>
+
+            {selectedMessage && (
+                <CommunicationLogDialog
+                    open={isLogDialogOpen}
+                    onOpenChange={setIsLogDialogOpen}
+                    onSubmit={handleUpdateLog}
+                    isLoading={isUpdating}
+                    assetId={selectedMessage.assetId}
+                    initialData={{
+                        method: selectedMessage.type,
+                        subject: selectedMessage.subject || "",
+                        notes: selectedMessage.notes,
+                        occurredAt: selectedMessage.occurredAt,
+                        direction: selectedMessage.direction,
+                        contactPerson: selectedMessage.contactName,
+                        recipientEmail: selectedMessage.contactChannel,
+                        statusChange: selectedMessage.statusChange || "none"
+                    }}
+                />
+            )}
         </div>
     );
 }
