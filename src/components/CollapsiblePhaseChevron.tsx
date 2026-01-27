@@ -95,20 +95,20 @@ export function CollapsiblePhaseChevron({ onTaskToggle }: CollapsiblePhaseChevro
             {/* Phase Header */}
             <button
               onClick={() => !lockStatus.isLocked && togglePhase(phase)}
-              className="w-full p-4 flex items-center justify-between hover:bg-black/5 transition-colors"
+              className="w-full p-2.5 flex items-center justify-between hover:bg-black/5 transition-colors"
               disabled={lockStatus.isLocked}
             >
               <div className="flex items-center gap-3 flex-1">
                 {/* Status Icon */}
                 <div className="flex-shrink-0">
                   {isCompleted ? (
-                    <CheckCircle className="w-6 h-6 text-green-600" />
+                    <CheckCircle className="w-5 h-5 text-green-600" />
                   ) : lockStatus.isLocked ? (
-                    <Lock className="w-6 h-6 text-slate-400" />
+                    <Lock className="w-5 h-5 text-slate-400" />
                   ) : isCurrent ? (
-                    <Circle className="w-6 h-6 text-primary fill-primary" />
+                    <Circle className="w-5 h-5 text-primary fill-primary" />
                   ) : (
-                    <Circle className="w-6 h-6 text-slate-300" />
+                    <Circle className="w-5 h-5 text-slate-300" />
                   )}
                 </div>
 
@@ -116,7 +116,7 @@ export function CollapsiblePhaseChevron({ onTaskToggle }: CollapsiblePhaseChevro
                 <div className="flex-1 text-left">
                   <div className="flex items-center gap-2 mb-1">
                     <h3 className={cn(
-                      "font-bold text-base",
+                      "font-bold text-sm",
                       isCompleted && "text-green-900",
                       isCurrent && !isCompleted && "text-primary",
                       lockStatus.isLocked && "text-slate-500"
@@ -130,7 +130,7 @@ export function CollapsiblePhaseChevron({ onTaskToggle }: CollapsiblePhaseChevro
 
                   {/* Progress Bar */}
                   <div className="flex items-center gap-2">
-                    <div className="flex-1 h-1.5 bg-slate-200 rounded-full overflow-hidden max-w-[200px]">
+                    <div className="flex-1 h-1 bg-slate-200 rounded-full overflow-hidden max-w-[150px]">
                       <div
                         className={cn(
                           "h-full transition-all",
@@ -139,7 +139,7 @@ export function CollapsiblePhaseChevron({ onTaskToggle }: CollapsiblePhaseChevro
                         style={{ width: `${progress.percentage}%` }}
                       />
                     </div>
-                    <span className="text-xs font-medium text-slate-600">
+                    <span className="text-[10px] font-medium text-slate-600">
                       {progress.completed}/{progress.total}
                     </span>
                     {assetCount > 0 && (
@@ -154,9 +154,9 @@ export function CollapsiblePhaseChevron({ onTaskToggle }: CollapsiblePhaseChevro
                 {!lockStatus.isLocked && (
                   <div className="flex-shrink-0">
                     {isExpanded ? (
-                      <ChevronDown className="w-5 h-5 text-slate-600" />
+                      <ChevronDown className="w-4 h-4 text-slate-600" />
                     ) : (
-                      <ChevronRight className="w-5 h-5 text-slate-600" />
+                      <ChevronRight className="w-4 h-4 text-slate-600" />
                     )}
                   </div>
                 )}
@@ -205,7 +205,7 @@ export function CollapsiblePhaseChevron({ onTaskToggle }: CollapsiblePhaseChevro
                         <div
                           key={task.id}
                           className={cn(
-                            "flex items-start gap-3 p-3 rounded-lg border transition-all",
+                            "flex items-start gap-2.5 p-2.5 rounded-lg border transition-all",
                             isTaskCompleted ? "bg-green-50 border-green-200" : "bg-white border-slate-200 hover:border-primary/30",
                             isNext && "ring-2 ring-primary/20 border-primary shadow-sm"
                           )}
