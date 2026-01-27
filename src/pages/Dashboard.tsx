@@ -44,6 +44,9 @@ import { TRACK_STAGES, type SettlementTrack } from "@/config/settlementStages";
 import { Sidebar } from "@/components/Sidebar";
 import { SettlementPhaseChevron, type SettlementPhase } from "@/components/SettlementPhaseChevron";
 import { PhaseTaskList } from "@/components/PhaseTaskList";
+import { CollapsiblePhaseChevron } from "@/components/CollapsiblePhaseChevron";
+import { ProbateBlockerAlert } from "@/components/ProbateBlockerAlert";
+import { useWorkflow } from "@/contexts/WorkflowContext";
 import { CurrentMilestone } from "@/components/dashboard/CurrentMilestone";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { SETTLEMENT_PHASE_TASKS } from "@/config/settlementPhases";
@@ -130,15 +133,15 @@ export default function Dashboard() {
     : 0;
 
 
-  const [completedTaskIds, setCompletedTaskIds] = useState<string[]>([]);
-  const [completedPhases, setCompletedPhases] = useState<SettlementPhase[]>([]);
+  const { probateBlockers, completedTaskIds, completedPhases } = useWorkflow();
+  
+  const [localCompletedTaskIds, setLocalCompletedTaskIds] = useState<string[]>([]);
+  const [localCompletedPhases, setLocalCompletedPhases] = useState<SettlementPhase[]>([]);
 
   useEffect(() => {
-    if (estate?.roadmapProgress) {
-      setCompletedTaskIds(estate.roadmapProgress.completedTaskIds || []);
-      setCompletedPhases(estate.roadmapProgress.completedPhases || []);
-    }
-  }, [estate]);
+    setLocalCompletedTaskIds(completedTaskIds);
+    setLocalCompletedPhases(completedPhases);
+  }, [completedTaskIds, completedPhases]);
 
   const { data: activitiesData = [] } = useQuery({
     queryKey: ['activities'],
@@ -176,14 +179,14 @@ export default function Dashboard() {
 
   const handleTaskToggle = (taskId: string, completed: boolean) => {
     const newCompletedIds = completed
-      ? [...new Set([...completedTaskIds, taskId])]
-      : completedTaskIds.filter(id => id !== taskId);
+      ? [...new Set([...localCompletedTaskIds, taskId])]
+      : localCompletedTaskIds.filter(id => id !== taskId);
 
-    setCompletedTaskIds(newCompletedIds);
+    setLocalCompletedTaskIds(newCompletedIds);
 
     roadmapMutation.mutate({
       completedTaskIds: newCompletedIds,
-      completedPhases,
+      completedPhases: localCompletedPhases,
       taskId,
       action: completed ? 'COMPLETED' : 'UNCOMPLETED'
     });
