@@ -37,7 +37,7 @@ COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/prisma ./prisma/
 
 # Install production dependencies (this includes @prisma/client)
-RUN npm install --omit=dev --legacy-peer-deps
+RUN npm install --omit=dev --legacy-peer-deps --ignore-scripts
 
 # Install prisma CLI and tsx for running the server
 RUN npm install prisma tsx --legacy-peer-deps
