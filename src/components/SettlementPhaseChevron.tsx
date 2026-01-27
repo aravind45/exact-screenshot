@@ -98,12 +98,12 @@ export function SettlementPhaseChevron({
                 {/* Main Chevron Body */}
                 <div
                   className={cn(
-                    "relative h-20 w-48 flex items-center justify-center transition-all duration-300",
+                    "relative h-14 w-44 flex items-center justify-center transition-all duration-300",
                     "clip-chevron",
                     isCompleted && "bg-green-600",
                     isCurrent && phase.color,
                     isUpcoming && "bg-slate-200",
-                    isCurrent && "scale-110 z-20 shadow-2xl ring-4 ring-white/30"
+                    isCurrent && "scale-105 z-20 shadow-xl ring-2 ring-white/30"
                   )}
                   style={{
                     clipPath: index === 0
@@ -114,34 +114,34 @@ export function SettlementPhaseChevron({
                   <div className="flex items-center gap-3 px-6">
                     {/* Status Icon */}
                     <div className={cn(
-                      "flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center",
+                      "flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center",
                       isCompleted && "bg-white/20",
                       isCurrent && "bg-white/20",
                       isUpcoming && "bg-slate-300"
                     )}>
-                      {isCompleted && <Check className="w-5 h-5 text-white" />}
-                      {isCurrent && <Clock className="w-5 h-5 text-white" />}
-                      {isUpcoming && <Lock className="w-4 h-4 text-slate-500" />}
+                      {isCompleted && <Check className="w-4 h-4 text-white" />}
+                      {isCurrent && <Clock className="w-4 h-4 text-white" />}
+                      {isUpcoming && <Lock className="w-3 h-3 text-slate-500" />}
                     </div>
 
                     {/* Phase Info */}
                     <div className="flex flex-col">
                       <span className={cn(
-                        "text-sm font-bold leading-tight",
+                        "text-xs font-bold leading-tight",
                         (isCompleted || isCurrent) && "text-white",
                         isUpcoming && "text-slate-600"
                       )}>
                         {phase.title}
                       </span>
                       <span className={cn(
-                        "text-xs leading-tight",
+                        "text-[10px] leading-tight",
                         (isCompleted || isCurrent) && "text-white/80",
                         isUpcoming && "text-slate-500"
                       )}>
                         {phase.subtitle}
                       </span>
                       <span className={cn(
-                        "text-[10px] leading-tight mt-0.5",
+                        "text-[9px] leading-tight mt-0.5 opacity-80",
                         (isCompleted || isCurrent) && "text-white/60",
                         isUpcoming && "text-slate-400"
                       )}>

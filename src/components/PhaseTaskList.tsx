@@ -81,11 +81,11 @@ export function PhaseTaskList({
       {/* Header */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full p-4 flex items-center justify-between hover:bg-slate-50 transition-colors"
+        className="w-full p-2.5 flex items-center justify-between hover:bg-slate-50 transition-colors"
       >
         <div className="flex items-center gap-3">
           <div className={cn(
-            "w-10 h-10 rounded-full flex items-center justify-center",
+            "w-8 h-8 rounded-full flex items-center justify-center",
             completedCount === totalCount ? "bg-green-100" : "bg-slate-100"
           )}>
             {completedCount === totalCount ? (
@@ -95,14 +95,14 @@ export function PhaseTaskList({
             )}
           </div>
           <div className="text-left">
-            <h3 className="text-sm font-bold text-slate-900">{phaseData.title}</h3>
-            <p className="text-xs text-slate-500">{phaseData.subtitle} • {phaseData.duration}</p>
+            <h3 className="text-xs font-bold text-slate-900">{phaseData.title}</h3>
+            <p className="text-[10px] text-slate-500">{phaseData.subtitle} • {phaseData.duration}</p>
           </div>
         </div>
 
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
-            <div className="w-24 h-2 bg-slate-100 rounded-full overflow-hidden">
+            <div className="w-20 h-1.5 bg-slate-100 rounded-full overflow-hidden">
               <div
                 className={cn(
                   "h-full transition-all duration-500",
@@ -111,7 +111,7 @@ export function PhaseTaskList({
                 style={{ width: `${progressPercent}%` }}
               />
             </div>
-            <span className="text-xs font-bold text-slate-600">{progressPercent}%</span>
+            <span className="text-[10px] font-bold text-slate-600">{progressPercent}%</span>
           </div>
           {isExpanded ? (
             <ChevronUp className="w-5 h-5 text-slate-400" />
@@ -125,8 +125,8 @@ export function PhaseTaskList({
       {isExpanded && (
         <div className="border-t border-slate-200">
           {/* Phase Description */}
-          <div className="p-4 bg-slate-50 border-b border-slate-200">
-            <p className="text-xs text-slate-700">{phaseData.description}</p>
+          <div className="p-3 bg-slate-50 border-b border-slate-200">
+            <p className="text-[11px] text-slate-700 leading-relaxed">{phaseData.description}</p>
           </div>
 
           {/* Task List */}
@@ -171,7 +171,7 @@ function TaskItem({ task, isCompleted, onToggle, getAlertIcon, getAlertColor, do
 
   return (
     <div className={cn(
-      "p-4 transition-colors",
+      "p-3.5 transition-colors",
       isCompleted && "bg-green-50/30"
     )}>
       {/* Task Header */}
