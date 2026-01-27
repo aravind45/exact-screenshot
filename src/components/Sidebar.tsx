@@ -52,7 +52,7 @@ export function Sidebar() {
     const navItems = [
         { label: "Overview", icon: LayoutDashboard, path: "/dashboard" },
         { label: "Probate", icon: Scale, path: "/probate" },
-        { label: "Assets", icon: Landmark, path: "/dashboard" },
+        { label: "Assets", icon: Landmark, path: "/assets" },
         { label: "Follow-Ups", icon: Bell, path: "/follow-ups" },
         { label: "Settlement Trail", icon: History, path: "/inbox" },
         { label: "Discovery", icon: Search, path: "/discovery" },

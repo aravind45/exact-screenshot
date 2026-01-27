@@ -8,16 +8,15 @@ import {
   DollarSign,
   Clock,
   CheckCircle2,
-  Plus,
-  Search,
-  Filter,
   LogOut,
   User,
   Lightbulb,
   Bell,
-  Mail,
-  X,
-  History as HistoryIcon
+  ArrowRight,
+  TrendingUp,
+  LayoutGrid,
+  History as HistoryIcon,
+  X
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -53,17 +52,13 @@ export default function Dashboard() {
     queryFn: api.getAssets,
   });
 
-  const [selectedAssetIds, setSelectedAssetIds] = useState<string[]>([]);
-  const [isSelectionMode, setIsSelectionMode] = useState(false);
-
-  // Ensure assets is always an array
-  const assets = Array.isArray(assetsData) ? assetsData : [];
-
   const { data: estate } = useQuery({
     queryKey: ['estate'],
     queryFn: api.getMyEstate,
   });
 
+  // Ensure assets is always an array
+  const assets = Array.isArray(assetsData) ? assetsData : [];
 
   // Redirect to Onboarding if estate hasn't been set up
   useEffect(() => {
@@ -73,6 +68,7 @@ export default function Dashboard() {
   }, [estate, isLoading, navigate]);
 
   const totalValue = assets.reduce((sum: number, asset: any) => sum + (asset.value || 0), 0);
+
   const inProgress = assets.filter((a: any) => {
     const s = normalize(a.status);
     return s !== 'distributed' && s !== 'closed';
@@ -90,52 +86,6 @@ export default function Dashboard() {
   const handleSignOut = async () => {
     await signOut();
     navigate('/');
-  };
-
-  const handleSelectAsset = (id: string, selected: boolean) => {
-    if (selected) {
-      setSelectedAssetIds(prev => [...prev, id]);
-    } else {
-      setSelectedAssetIds(prev => prev.filter(i => i !== id));
-    }
-  };
-
-  const handleBatchNotify = async () => {
-    try {
-      toast({
-        title: "Generating Letters...",
-        description: `Preparing notification documents for ${selectedAssetIds.length} institutions.`,
-      });
-
-      const blob = await api.batchGenerateLetters(selectedAssetIds);
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `Notification_Letters_${new Date().toISOString().split('T')[0]}.pdf`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
-
-      toast({
-        title: "Ready to Print",
-        description: "Your combined notification letters have been generated.",
-      });
-
-      setSelectedAssetIds([]);
-      setIsSelectionMode(false);
-    } catch (error: any) {
-      toast({
-        title: "Generation Failed",
-        description: error.message,
-        variant: "destructive"
-      });
-    }
-  };
-
-  const toggleSelectionMode = () => {
-    setIsSelectionMode(!isSelectionMode);
-    if (isSelectionMode) setSelectedAssetIds([]);
   };
 
   const firstName = user?.fullName?.split(' ')[0] || user?.email?.split('@')[0] || 'there';
@@ -161,7 +111,7 @@ export default function Dashboard() {
     distributed: assets.filter(a => ['distributed', 'closed'].includes(normalize(a.status))).length,
   };
 
-  // Blockers calculation (e.g., individual assets without probate granted)
+  // Blockers calculation
   const blockers = assets.filter(a =>
     a.ownershipType === 'INDIVIDUAL' &&
     estate?.probateStatus !== 'EXECUTOR_APPOINTED'
@@ -383,40 +333,22 @@ export default function Dashboard() {
               <AgentInsights />
 
               <section className="space-y-6">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-center justify-between">
                   <div>
-                    <h2 className="text-xl font-bold text-slate-900 tracking-tight">Asset Ledger</h2>
-                    <p className="text-xs text-slate-500 uppercase font-bold tracking-widest mt-1">Verified Financial Records</p>
+                    <h2 className="text-xl font-bold text-slate-900 tracking-tight">Recent Discovery</h2>
+                    <p className="text-xs text-slate-500 uppercase font-bold tracking-widest mt-1">Found in Vault & Evidence</p>
                   </div>
-
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant={isSelectionMode ? "secondary" : "outline"}
-                      size="sm"
-                      className="h-10 px-3 border-slate-200"
-                      onClick={toggleSelectionMode}
-                    >
-                      {isSelectionMode ? "Cancel" : "Select"}
-                    </Button>
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                      <Input placeholder="Search..." className="pl-9 h-10 w-[180px] md:w-[200px] bg-white border-slate-200 rounded-lg text-sm" />
-                    </div>
-                    <Button variant="outline" size="sm" className="h-10 px-3 border-slate-200 text-slate-600">
-                      <Filter className="w-4 h-4 mr-2" /> Filter
-                    </Button>
-                  </div>
+                  <Button
+                    variant="link"
+                    onClick={() => navigate('/assets')}
+                    className="text-indigo-600 font-bold p-0 h-auto"
+                  >
+                    View Full Ledger <ArrowRight className="w-4 h-4 ml-1" />
+                  </Button>
                 </div>
 
                 <div className="grid grid-cols-1 gap-3">
-                  {!isLoading && assets.length === 0 && (
-                    <div className="py-16 border-2 border-dashed border-slate-200 rounded-2xl text-center bg-white/50">
-                      <p className="font-semibold text-slate-700 mb-1">No data identified</p>
-                      <Button size="sm" variant="link" onClick={() => navigate('/add-asset')}>Add Your First Asset</Button>
-                    </div>
-                  )}
-
-                  {assets.map((asset: any, index: number) => (
+                  {assets.slice(0, 3).map((asset: any, index: number) => (
                     <motion.div key={asset.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: index * 0.05 }}>
                       <AssetCard
                         asset={{
@@ -429,17 +361,26 @@ export default function Dashboard() {
                           nextFollowUpDate: asset.nextFollowUpDate ? String(asset.nextFollowUpDate).split('T')[0] : null,
                           daysSinceContact: 0
                         }}
-                        onClick={() => !isSelectionMode && handleAssetClick(asset.id)}
-                        onSelect={(sel) => handleSelectAsset(asset.id, sel)}
-                        selected={selectedAssetIds.includes(asset.id)}
-                        selectable={isSelectionMode}
-                        className={cn(
-                          "bg-white border-slate-200 hover:border-primary/30 transition-all rounded-xl shadow-sm",
-                          selectedAssetIds.includes(asset.id) && "border-primary"
-                        )}
+                        onClick={() => handleAssetClick(asset.id)}
+                        className="bg-white border-slate-200 hover:border-primary/30 transition-all rounded-xl shadow-sm"
                       />
                     </motion.div>
                   ))}
+                  {!isLoading && assets.length > 3 && (
+                    <Button
+                      variant="outline"
+                      className="w-full h-12 rounded-xl border-slate-200 text-slate-600 font-bold border-dashed"
+                      onClick={() => navigate('/assets')}
+                    >
+                      +{assets.length - 3} More Assets in Ledger
+                    </Button>
+                  )}
+                  {!isLoading && assets.length === 0 && (
+                    <div className="py-16 border-2 border-dashed border-slate-200 rounded-2xl text-center bg-white/50">
+                      <p className="font-semibold text-slate-700 mb-1">No data identified</p>
+                      <Button size="sm" variant="link" onClick={() => navigate('/add-asset')}>Add Your First Asset</Button>
+                    </div>
+                  )}
                 </div>
               </section>
             </div>
@@ -467,45 +408,6 @@ export default function Dashboard() {
         </main>
       </div>
       <WelcomeModal />
-
-      {/* Batch Action Bar */}
-      {selectedAssetIds.length > 0 && (
-        <motion.div
-          initial={{ y: 100, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={{ y: 100, opacity: 0 }}
-          className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 w-full max-w-lg px-4"
-        >
-          <div className="bg-slate-900 text-white rounded-2xl p-4 shadow-2xl flex items-center justify-between border border-slate-800">
-            <div className="flex items-center gap-4">
-              <div className="bg-primary/20 text-primary p-2 rounded-xl">
-                <CheckCircle2 className="w-5 h-5" />
-              </div>
-              <div>
-                <p className="text-sm font-bold">{selectedAssetIds.length} Assets Selected</p>
-                <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Batch Operations Active</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                onClick={handleBatchNotify}
-                className="bg-primary hover:bg-primary/90 text-white font-bold rounded-xl h-11 px-6 gap-2"
-              >
-                <Mail className="w-4 h-4" />
-                Notify All
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setSelectedAssetIds([])}
-                className="text-slate-400 hover:text-white hover:bg-white/10 rounded-xl"
-              >
-                <X className="w-5 h-5" />
-              </Button>
-            </div>
-          </div>
-        </motion.div>
-      )}
     </div>
   );
 }
