@@ -116,8 +116,6 @@ export function CommunicationLogDialog({
         }
     }, [open]);
 
-    };
-
     const handleTemplateSelect = (templateKey: string) => {
         const template = templates[templateKey];
         if (template) {
