@@ -589,6 +589,44 @@ export const api = {
         return parseResponse(response);
     },
 
+    uploadEstateDocumentFile: async (id: string, file: File) => {
+        const headers = getHeaders();
+        headers["Content-Type"] = file.type || "application/octet-stream";
+
+        const response = await fetch(`${API_URL}/estates/my/documents/${id}/upload`, {
+            method: "POST",
+            headers,
+            body: file
+        });
+        return parseResponse(response);
+    },
+
+    createEstateDocument: async (data: any) => {
+        const response = await fetch(`${API_URL}/estates/my/documents`, {
+            method: "POST",
+            headers: getHeaders(),
+            body: JSON.stringify(data),
+        });
+        return parseResponse(response);
+    },
+
+    updateEstateDocument: async (id: string, data: any) => {
+        const response = await fetch(`${API_URL}/estates/my/documents/${id}`, {
+            method: "PUT",
+            headers: getHeaders(),
+            body: JSON.stringify(data),
+        });
+        return parseResponse(response);
+    },
+
+    deleteEstateDocument: async (id: string) => {
+        const response = await fetch(`${API_URL}/estates/my/documents/${id}`, {
+            method: "DELETE",
+            headers: getHeaders(),
+        });
+        return parseResponse(response);
+    },
+
     getEstateDocumentDownloadUrl: (formCode: string) => {
         return `${API_URL}/estates/my/documents/${formCode}/download?token=${localStorage.getItem("auth_token")}`;
     },

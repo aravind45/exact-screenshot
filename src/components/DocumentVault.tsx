@@ -132,7 +132,7 @@ export function DocumentVault() {
     const handleFileUpload = async (id: string, file: File) => {
         setUploadingId(id);
         try {
-            await api.uploadEstateDocument(id, file);
+            await api.uploadEstateDocumentFile(id, file);
             await loadDocuments();
         } catch (error) {
             console.error("Failed to upload file:", error);
@@ -333,7 +333,7 @@ export function DocumentVault() {
                                                 <Button
                                                     variant="outline"
                                                     size="sm"
-                                                    onClick={() => window.open(doc.fileUrl, "_blank")}
+                                                    onClick={() => window.open(api.getEstateDocumentDownloadUrl(doc.documentType), "_blank")}
                                                 >
                                                     <Download className="w-4 h-4 mr-2" />
                                                     Download

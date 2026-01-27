@@ -253,6 +253,105 @@ router.get("/my/documents/:formCode/download", async (req: any, res: Response) =
     }
 });
 
+// Create estate document record (metadata only)
+router.post("/my/documents", async (req: any, res: Response) => {
+    try {
+        const estate = await prisma.estate.findFirst({ where: { userId: req.user.id } });
+        if (!estate) return res.status(404).json({ error: "Estate not found" });
+
+        const document = await prisma.estateDocument.create({
+            data: {
+                ...req.body,
+                estateId: estate.id,
+                userId: req.user.id,
+                obtainedDate: req.body.obtainedDate ? new Date(req.body.obtainedDate) : undefined,
+                expirationDate: req.body.expirationDate ? new Date(req.body.expirationDate) : undefined
+            }
+        });
+        res.json(document);
+    } catch (error) {
+        console.error("Create document error:", error);
+        res.status(500).json({ error: "Failed to create document" });
+    }
+});
+
+// Update estate document
+router.put("/my/documents/:id", async (req: any, res: Response) => {
+    try {
+        const estate = await prisma.estate.findFirst({ where: { userId: req.user.id } });
+        if (!estate) return res.status(404).json({ error: "Estate not found" });
+
+        const count = await prisma.estateDocument.count({
+            where: { id: req.params.id, estateId: estate.id }
+        });
+        if (count === 0) return res.status(404).json({ error: "Document not found" });
+
+        const updated = await prisma.estateDocument.update({
+            where: { id: req.params.id },
+            data: {
+                ...req.body,
+                obtainedDate: req.body.obtainedDate ? new Date(req.body.obtainedDate) : undefined,
+                expirationDate: req.body.expirationDate ? new Date(req.body.expirationDate) : undefined
+            }
+        });
+        res.json(updated);
+    } catch (error) {
+        res.status(500).json({ error: "Failed to update document" });
+    }
+});
+
+// Delete estate document
+router.delete("/my/documents/:id", async (req: any, res: Response) => {
+    try {
+        const estate = await prisma.estate.findFirst({ where: { userId: req.user.id } });
+        if (!estate) return res.status(404).json({ error: "Estate not found" });
+
+        const count = await prisma.estateDocument.count({
+            where: { id: req.params.id, estateId: estate.id }
+        });
+        if (count === 0) return res.status(404).json({ error: "Document not found" });
+
+        await prisma.estateDocument.delete({ where: { id: req.params.id } });
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: "Failed to delete document" });
+    }
+});
+
+// Upload file for a specific document ID
+router.post("/my/documents/:id/upload", async (req: any, res: Response) => {
+    try {
+        const estate = await prisma.estate.findFirst({ where: { userId: req.user.id } });
+        if (!estate) return res.status(404).json({ error: "Estate not found" });
+
+        const existing = await prisma.estateDocument.findFirst({
+            where: { id: req.params.id, estateId: estate.id }
+        });
+        if (!existing) return res.status(404).json({ error: "Document not found" });
+
+        if (!req.body || !Buffer.isBuffer(req.body)) {
+            return res.status(400).json({ error: "Binary file body required" });
+        }
+
+        const fileUrl = `uploads/${estate.id}/${existing.documentType}.pdf`;
+
+        const document = await prisma.estateDocument.update({
+            where: { id: req.params.id },
+            data: {
+                fileUrl,
+                content: req.body,
+                status: "OBTAINED",
+                obtainedDate: new Date()
+            }
+        });
+
+        res.json({ success: true, document: { ...document, content: undefined } });
+    } catch (error) {
+        console.error("Document upload error:", error);
+        res.status(500).json({ error: "Failed to upload file" });
+    }
+});
+
 // Get estate documents
 router.get("/:estateId/documents", async (req: any, res: Response) => {
     try {

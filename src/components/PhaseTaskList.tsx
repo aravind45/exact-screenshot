@@ -247,15 +247,37 @@ function TaskItem({ task, isCompleted, onToggle, getAlertIcon, getAlertColor, do
 
                           <div className="flex items-center gap-2">
                             {uploadedDoc ? (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="h-8 px-3 text-[10px] font-bold bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-indigo-600"
-                                onClick={() => window.open(api.getEstateDocumentDownloadUrl(doc), "_blank")}
-                              >
-                                <Download className="w-3.5 h-3.5 mr-2" />
-                                Download
-                              </Button>
+                              <>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-8 px-3 text-[10px] font-bold bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-indigo-600"
+                                  onClick={() => window.open(api.getEstateDocumentDownloadUrl(doc), "_blank")}
+                                >
+                                  <Download className="w-3.5 h-3.5 mr-2" />
+                                  Download
+                                </Button>
+                                <div className="relative">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-8 px-2 text-[10px] font-bold text-slate-500 hover:text-indigo-600 hover:bg-slate-50"
+                                    disabled={isUploading}
+                                  >
+                                    {isUploading ? <Spinner className="w-3.5 h-3.5 animate-spin" /> : <FileUp className="w-3.5 h-3.5 mr-1" />}
+                                    Update
+                                  </Button>
+                                  <input
+                                    type="file"
+                                    className="absolute inset-0 opacity-0 cursor-pointer"
+                                    onChange={(e) => {
+                                      const file = e.target.files?.[0];
+                                      if (file) onUpload(doc, doc, file);
+                                    }}
+                                    disabled={isUploading}
+                                  />
+                                </div>
+                              </>
                             ) : (
                               <div className="relative">
                                 <Button
