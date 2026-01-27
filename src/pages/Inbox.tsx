@@ -12,14 +12,17 @@ import { Mail, Search, Inbox as InboxIcon, Send, Archive, RefreshCw, Paperclip, 
 import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { CommunicationLogDialog, CommunicationData } from "@/components/CommunicationLogDialog";
 
 export default function Inbox() {
     const { toast } = useToast();
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const initialQuery = searchParams.get("q") || "";
+
     const [selectedId, setSelectedId] = useState<string | null>(null);
-    const [searchQuery, setSearchQuery] = useState("");
+    const [searchQuery, setSearchQuery] = useState(initialQuery);
     const [activeTab, setActiveTab] = useState("timeline");
     const [isLogDialogOpen, setIsLogDialogOpen] = useState(false);
     const [isUpdating, setIsUpdating] = useState(false);

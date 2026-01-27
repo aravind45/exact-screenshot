@@ -41,6 +41,7 @@ import {
   LayoutGrid,
   ArrowRight,
   Gavel,
+  History as HistoryIcon,
   Scale
 } from "lucide-react";
 import { motion } from "framer-motion";
@@ -506,6 +507,17 @@ export default function AssetDetail() {
                     {uiAsset.type.replace(/_/g, ' ')} • Account {uiAsset.accountNumber}
                   </p>
                 </div>
+                {!isEditing && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 text-[10px] font-bold uppercase tracking-widest text-indigo-600 bg-indigo-50 hover:bg-indigo-100 hover:text-indigo-700 gap-1.5"
+                    onClick={() => navigate(`/inbox?q=${encodeURIComponent(uiAsset.institution)}`)}
+                  >
+                    <HistoryIcon className="w-3.5 h-3.5" />
+                    View Audit Trail
+                  </Button>
+                )}
               </div>
               <div className="flex flex-col items-end">
                 <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Total Value</p>
