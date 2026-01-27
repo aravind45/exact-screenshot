@@ -15,6 +15,7 @@ import {
     Inbox,
     History,
     Bell,
+    Map,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -51,6 +52,7 @@ export function Sidebar() {
 
     const navItems = [
         { label: "Overview", icon: LayoutDashboard, path: "/dashboard" },
+        { label: "Roadmap", icon: Map, path: "/roadmap" },
         { label: "Probate", icon: Scale, path: "/probate" },
         { label: "Assets", icon: Landmark, path: "/assets" },
         { label: "Follow-Ups", icon: Bell, path: "/follow-ups" },

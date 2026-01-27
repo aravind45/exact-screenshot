@@ -631,5 +631,15 @@ export const api = {
             headers: getHeaders(),
         });
         return parseResponse(response);
+    },
+
+    post: async (path: string, body: any) => {
+        const response = await fetch(`${API_URL}${path}`, {
+            method: "POST",
+            headers: getHeaders(),
+            body: JSON.stringify(body),
+        });
+        const data = await parseResponse(response);
+        return { data };
     }
 };

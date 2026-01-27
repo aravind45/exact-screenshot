@@ -19,6 +19,10 @@
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
     "@hyperbrowser/sdk": "^0.82.2",
+    "@langchain/core": "^1.1.17",
+    "@langchain/groq": "^1.0.3",
+    "@langchain/langgraph": "^1.1.2",
+    "@langchain/openai": "^1.2.3",
     "@mendable/firecrawl-js": "^4.11.2",
     "@prisma/client": "^6.0.0",
     "@radix-ui/react-accordion": "^1.2.11",
@@ -63,6 +67,7 @@
     "groq-sdk": "^0.37.0",
     "input-otp": "^1.4.2",
     "jsonwebtoken": "^9.0.3",
+    "langchain": "^1.2.14",
     "lucide-react": "^0.462.0",
     "multer": "^2.0.2",
     "next-themes": "^0.3.0",

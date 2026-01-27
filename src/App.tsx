@@ -25,6 +25,8 @@ import Inbox from "./pages/Inbox";
 import FollowUps from "./pages/FollowUps";
 import OnboardingWizard from "./pages/OnboardingWizard";
 import Assets from "./pages/Assets";
+import SettlementRoadmap from "./pages/SettlementRoadmap";
+import { EstateAgentChatWrapper } from "@/components/EstateAgentChatWrapper";
 
 const queryClient = new QueryClient();
 
@@ -129,6 +131,14 @@ const App = () => (
                   }
                 />
                 <Route
+                  path="/roadmap"
+                  element={
+                    <ProtectedRoute>
+                      <SettlementRoadmap />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
                   path="/documents"
                   element={
                     <ProtectedRoute>
@@ -163,6 +173,7 @@ const App = () => (
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
+              <EstateAgentChatWrapper />
             </AuthProvider>
           </NavigationProvider>
         </BrowserRouter>

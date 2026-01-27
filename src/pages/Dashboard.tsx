@@ -39,6 +39,8 @@ import type { Priority } from "@/components/PriorityBadge";
 import { ProcessFlow } from "@/components/ProcessFlow";
 import { TRACK_STAGES, type SettlementTrack } from "@/config/settlementStages";
 import { Sidebar } from "@/components/Sidebar";
+import { SettlementPhaseChevron, type SettlementPhase } from "@/components/SettlementPhaseChevron";
+import { PhaseTaskList } from "@/components/PhaseTaskList";
 
 const normalize = (str: string | null) => str?.toLowerCase() || '';
 
@@ -219,13 +221,31 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Process Roadmap */}
-          <section>
-            <ProcessFlow
-              stages={TRACK_STAGES[(estate?.estateType as SettlementTrack) || "PROBATE"]}
-              currentStageId={estate?.probateStatus === "EXECUTOR_APPOINTED" ? "discovery" : "petition"}
-              completedStageIds={estate?.probateStatus === "EXECUTOR_APPOINTED" ? ["petition", "authority"] : []}
+          {/* Settlement Phase Chevron */}
+          <section className="space-y-4">
+            <div className="flex items-center gap-2 px-1">
+              <Clock className="w-5 h-5 text-slate-900" />
+              <h2 className="text-lg font-bold text-slate-900 tracking-tight">Settlement Roadmap</h2>
+              <Badge variant="outline" className="text-[10px] font-black text-indigo-600 border-indigo-100 bg-indigo-50/50">
+                6 Phases • 30+ Tasks
+              </Badge>
+            </div>
+            <SettlementPhaseChevron
+              currentPhase="immediate_actions"
+              completedPhases={[]}
             />
+            
+            {/* Current Phase Task List */}
+            <div className="mt-6">
+              <PhaseTaskList
+                phase="immediate_actions"
+                completedTaskIds={[]}
+                onTaskToggle={(taskId, completed) => {
+                  console.log(`Task ${taskId} ${completed ? 'completed' : 'uncompleted'}`);
+                  // TODO: Persist to backend
+                }}
+              />
+            </div>
           </section>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
