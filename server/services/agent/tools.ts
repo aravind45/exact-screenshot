@@ -91,4 +91,106 @@ export const legalRetrievalTool = tool(
     }
 );
 
-export const tools = [documentExtractionTool, communicationTool, assetRetrievalTool, legalRetrievalTool];
+/**
+ * probateFormStatusTool
+ * 
+ * Checks the completeness of the estate data for generating DE-111.
+ */
+export const probateFormStatusTool = tool(
+    async ({ estateId }) => {
+        const estate = await prisma.estate.findUnique({
+            where: { id: estateId },
+            include: { heirs: true, assets: true },
+        });
+
+        if (!estate) return "Estate not found.";
+
+        const missing = [];
+        if (!estate.deceasedFirstName || !estate.deceasedLastName) missing.push("Decedent Name");
+        if (!estate.deceasedDateOfDeath) missing.push("Date of Death");
+        if (!estate.probateCounty) missing.push("Probate County");
+        if (estate.heirs.length === 0) missing.push("Heirs/Beneficiaries");
+        if (estate.assets.length === 0) missing.push("Asset Inventory (for bond calculation)");
+
+        const personalProperty = estate.assets.reduce((sum, a) => sum + (a.value || 0), 0);
+
+        return JSON.stringify({
+            isReady: missing.length === 0,
+            missingFields: missing,
+            calculatedTotals: {
+                personalProperty,
+            },
+            estateSummary: {
+                hasWill: estate.hasWill,
+                heirCount: estate.heirs.length,
+            }
+        });
+    },
+    {
+        name: "probate_form_status",
+        description: "Check if all required information is present to generate the DE-111 Petition for Probate.",
+        schema: z.object({
+            estateId: z.string(),
+        }),
+    }
+);
+
+/**
+ * estateUpdateTool
+ * 
+ * Updates estate details or heirs.
+ */
+export const estateUpdateTool = tool(
+    async ({ estateId, data, newHeirs }) => {
+        if (data) {
+            await prisma.estate.update({
+                where: { id: estateId },
+                data
+            });
+        }
+
+        if (newHeirs && newHeirs.length > 0) {
+            for (const heir of newHeirs) {
+                await prisma.heir.create({
+                    data: {
+                        ...(heir as any),
+                        estateId
+                    }
+                });
+            }
+        }
+
+        return "Estate updated successfully.";
+    },
+    {
+        name: "update_estate_data",
+        description: "Update estate details (like date of death, county, will status) or add new heirs.",
+        schema: z.object({
+            estateId: z.string(),
+            data: z.object({
+                deceasedFirstName: z.string().optional(),
+                deceasedLastName: z.string().optional(),
+                deceasedDateOfDeath: z.string().optional(),
+                probateCounty: z.string().optional(),
+                hasWill: z.boolean().optional(),
+                willDate: z.string().optional(),
+                bondWaived: z.boolean().optional(),
+            }).optional(),
+            newHeirs: z.array(z.object({
+                name: z.string(),
+                relationship: z.string(),
+                isAdult: z.boolean().optional(),
+                address: z.string().optional(),
+            })).optional(),
+        }),
+    }
+);
+
+export const tools = [
+    documentExtractionTool,
+    communicationTool,
+    assetRetrievalTool,
+    legalRetrievalTool,
+    probateFormStatusTool,
+    estateUpdateTool
+];

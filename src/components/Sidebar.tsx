@@ -54,6 +54,7 @@ export function Sidebar() {
         { label: "Overview", icon: LayoutDashboard, path: "/dashboard" },
         { label: "Roadmap", icon: Map, path: "/roadmap" },
         { label: "Probate", icon: Scale, path: "/probate" },
+        { label: "Petition", icon: FileText, path: "/probate/petition" },
         { label: "Assets", icon: Landmark, path: "/assets" },
         { label: "Follow-Ups", icon: Bell, path: "/follow-ups" },
         { label: "Settlement Trail", icon: History, path: "/inbox" },
