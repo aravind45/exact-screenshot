@@ -9,7 +9,7 @@ import type { SettlementPhase } from "@/components/SettlementPhaseChevron";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
-import { Eye, FileUp, Loader2 as Spinner } from "lucide-react";
+import { Eye, FileUp, Download, Loader2 as Spinner } from "lucide-react";
 
 interface PhaseTaskListProps {
   phase: SettlementPhase;
@@ -220,39 +220,51 @@ function TaskItem({ task, isCompleted, onToggle, getAlertIcon, getAlertColor, do
                     <FileText className="w-4 h-4 text-slate-600" />
                     <span className="text-xs font-bold text-slate-700">Required Documents</span>
                   </div>
-                  <ul className="space-y-1">
+                  <ul className="space-y-2 mt-2">
                     {task.requiredDocs.map((doc, idx) => {
                       const uploadedDoc = documents.find(d => d.documentType === doc);
                       return (
-                        <li key={idx} className="text-xs text-slate-600 flex items-center justify-between gap-2 p-1 hover:bg-white rounded transition-colors group/doc">
-                          <div className="flex items-center gap-2">
-                            <span className={cn(
-                              "w-1.5 h-1.5 rounded-full",
-                              uploadedDoc ? "bg-green-500" : "bg-slate-300"
-                            )} />
-                            <span className={cn(uploadedDoc && "font-medium text-slate-900")}>{doc}</span>
+                        <li key={idx} className="text-xs text-slate-600 flex items-center justify-between gap-2 p-2 bg-slate-100/50 rounded-lg border border-slate-200/60 transition-colors">
+                          <div className="flex items-center gap-3">
+                            <div className={cn(
+                              "w-8 h-8 rounded-lg flex items-center justify-center",
+                              uploadedDoc ? "bg-green-100" : "bg-slate-200"
+                            )}>
+                              <FileText className={cn("w-4 h-4", uploadedDoc ? "text-green-600" : "text-slate-500")} />
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className={cn("font-bold", uploadedDoc ? "text-slate-900" : "text-slate-600")}>{doc}</span>
+                                {uploadedDoc && (
+                                  <Badge variant="secondary" className="bg-green-100 text-green-700 border-none h-4 px-1 text-[8px] uppercase font-black tracking-tight">
+                                    Obtained
+                                  </Badge>
+                                )}
+                              </div>
+                              <p className="text-[10px] text-slate-500">Required Document</p>
+                            </div>
                           </div>
 
-                          <div className="flex items-center gap-1 opacity-0 group-hover/doc:opacity-100 transition-opacity">
+                          <div className="flex items-center gap-2">
                             {uploadedDoc ? (
                               <Button
-                                variant="ghost"
+                                variant="outline"
                                 size="sm"
-                                className="h-6 px-2 text-[10px] font-bold text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50"
+                                className="h-8 px-3 text-[10px] font-bold bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-indigo-600"
                                 onClick={() => window.open(api.getEstateDocumentDownloadUrl(doc), "_blank")}
                               >
-                                <Eye className="w-3 h-3 mr-1" />
-                                View
+                                <Download className="w-3.5 h-3.5 mr-2" />
+                                Download
                               </Button>
                             ) : (
                               <div className="relative">
                                 <Button
-                                  variant="ghost"
+                                  variant="outline"
                                   size="sm"
-                                  className="h-6 px-2 text-[10px] font-bold text-slate-500 hover:text-indigo-600 hover:bg-indigo-50"
+                                  className="h-8 px-3 text-[10px] font-bold bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-indigo-600"
                                   disabled={isUploading}
                                 >
-                                  {isUploading ? <Spinner className="w-3 h-3 animate-spin" /> : <FileUp className="w-3 h-3 mr-1" />}
+                                  {isUploading ? <Spinner className="w-3.5 h-3.5 animate-spin" /> : <FileUp className="w-3.5 h-3.5 mr-2" />}
                                   Upload
                                 </Button>
                                 <input
