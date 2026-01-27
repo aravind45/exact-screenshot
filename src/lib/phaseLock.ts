@@ -25,7 +25,7 @@ export function getPhaseLocksStatus(
     case 'immediate_actions':
     case 'court_filing':
       return { isLocked: false }; // Always accessible
-      
+
     case 'asset_discovery':
       if (!estate?.lettersReceived) {
         return {
@@ -38,9 +38,9 @@ export function getPhaseLocksStatus(
         };
       }
       return { isLocked: false };
-      
+
     case 'creditor_claims':
-      const discoveryComplete = assets.every((a: any) => 
+      const discoveryComplete = assets.every((a: any) =>
         !['DISCOVERED', 'CONTACTED', 'NOTIFIED'].includes(a.status)
       );
       if (!discoveryComplete) {
@@ -54,11 +54,11 @@ export function getPhaseLocksStatus(
         };
       }
       return { isLocked: false };
-      
-    case 'liquidation':
+
+    case 'asset_liquidation':
       // For now, always unlocked (TODO: Check if all claims resolved)
       return { isLocked: false };
-      
+
     case 'final_distribution':
       const liquidationComplete = assets.every((a: any) =>
         ['DISTRIBUTED', 'CLOSED', 'READY_TO_DISTRIBUTE'].includes(a.status)
@@ -69,12 +69,12 @@ export function getPhaseLocksStatus(
           reason: 'Complete liquidation first',
           unlockAction: {
             label: 'View Assets',
-            route: '/assets?phase=liquidation'
+            route: '/assets?phase=asset_liquidation'
           }
         };
       }
       return { isLocked: false };
-      
+
     default:
       return { isLocked: false };
   }

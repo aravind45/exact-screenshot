@@ -33,49 +33,49 @@ const WorkflowContext = createContext<WorkflowContextValue | null>(null);
 
 export function WorkflowProvider({ children }: { children: ReactNode }) {
   const [currentPhase, setCurrentPhase] = useState<SettlementPhase>('immediate_actions');
-  
+
   const { data: estate } = useQuery({
     queryKey: ['estate'],
     queryFn: api.getMyEstate
   });
-  
+
   const { data: assets = [] } = useQuery({
     queryKey: ['assets'],
     queryFn: api.getAssets
   });
-  
+
   // Calculate asset distribution by phase
   const assetsByPhase = getAssetsByPhase(assets, estate);
-  
+
   // Calculate phase locks
   const phaseLocks: Record<SettlementPhase, PhaseLockStatus> = {
     immediate_actions: { isLocked: false },
     court_filing: { isLocked: false },
     asset_discovery: getPhaseLocksStatus('asset_discovery', estate, assets),
     creditor_claims: getPhaseLocksStatus('creditor_claims', estate, assets),
-    liquidation: getPhaseLocksStatus('liquidation', estate, assets),
+    asset_liquidation: getPhaseLocksStatus('asset_liquidation', estate, assets),
     final_distribution: getPhaseLocksStatus('final_distribution', estate, assets)
   };
-  
+
   // Find probate blockers (INDIVIDUAL assets without Letters)
-  const probateBlockers = assets.filter((a: any) => 
+  const probateBlockers = assets.filter((a: any) =>
     a.ownershipType === 'INDIVIDUAL' && !estate?.lettersReceived
   );
-  
+
   // Extract completed tasks and phases from estate
   const completedTaskIds = estate?.roadmapProgress?.completedTaskIds || [];
   const completedPhases = estate?.roadmapProgress?.completedPhases || [];
-  
+
   // Calculate phase progress
   const phaseProgress: Record<SettlementPhase, PhaseProgress> = {
     immediate_actions: calculateProgress('immediate_actions', completedTaskIds),
     court_filing: calculateProgress('court_filing', completedTaskIds),
     asset_discovery: calculateProgress('asset_discovery', completedTaskIds),
     creditor_claims: calculateProgress('creditor_claims', completedTaskIds),
-    liquidation: calculateProgress('liquidation', completedTaskIds),
+    asset_liquidation: calculateProgress('asset_liquidation', completedTaskIds),
     final_distribution: calculateProgress('final_distribution', completedTaskIds)
   };
-  
+
   // Auto-set current phase based on progress
   useEffect(() => {
     if (completedPhases.includes('immediate_actions') && !completedPhases.includes('court_filing')) {
@@ -84,13 +84,13 @@ export function WorkflowProvider({ children }: { children: ReactNode }) {
       setCurrentPhase('asset_discovery');
     } else if (completedPhases.includes('asset_discovery') && !completedPhases.includes('creditor_claims')) {
       setCurrentPhase('creditor_claims');
-    } else if (completedPhases.includes('creditor_claims') && !completedPhases.includes('liquidation')) {
-      setCurrentPhase('liquidation');
-    } else if (completedPhases.includes('liquidation') && !completedPhases.includes('final_distribution')) {
+    } else if (completedPhases.includes('creditor_claims') && !completedPhases.includes('asset_liquidation')) {
+      setCurrentPhase('asset_liquidation');
+    } else if (completedPhases.includes('asset_liquidation') && !completedPhases.includes('final_distribution')) {
       setCurrentPhase('final_distribution');
     }
   }, [completedPhases]);
-  
+
   return (
     <WorkflowContext.Provider value={{
       currentPhase,
@@ -123,13 +123,13 @@ function calculateProgress(phase: SettlementPhase, completedTaskIds: string[]): 
     court_filing: 5,
     asset_discovery: 5,
     creditor_claims: 5,
-    liquidation: 5,
+    asset_liquidation: 5,
     final_distribution: 5
   };
-  
+
   const total = taskCounts[phase] || 0;
   const completed = completedTaskIds.filter(id => id.startsWith(phase)).length;
   const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
-  
+
   return { completed, total, percentage };
 }
