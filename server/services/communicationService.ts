@@ -23,10 +23,18 @@ export const CommunicationService = {
                 }
             });
 
-            // 2. Update asset last contact
+            // 2. Update asset last contact and status
+            const assetUpdateData: any = {
+                lastContactDate: new Date(data.occurredAt)
+            };
+
+            if (data.statusChange && data.statusChange !== 'none') {
+                assetUpdateData.status = data.statusChange;
+            }
+
             await tx.asset.update({
                 where: { id: data.assetId },
-                data: { lastContactDate: new Date(data.occurredAt) }
+                data: assetUpdateData
             });
 
             return communication;
@@ -70,6 +78,14 @@ export const CommunicationService = {
             });
 
             return { success: true };
+        });
+    },
+
+    async getTimelineByEstate(estateId: string) {
+        return await prisma.communication.findMany({
+            where: { estateId },
+            orderBy: { occurredAt: 'desc' },
+            include: { asset: true, attachments: true }
         });
     },
 
@@ -134,6 +150,15 @@ export const CommunicationService = {
                     statusChange: data.statusChange,
                 }
             });
+
+            // Sync status if changed
+            if (data.statusChange && data.statusChange !== 'none') {
+                await tx.asset.update({
+                    where: { id: updated.assetId },
+                    data: { status: data.statusChange }
+                });
+            }
+
             return updated;
         });
     }

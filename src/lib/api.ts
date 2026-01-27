@@ -539,6 +539,13 @@ export const api = {
         return parseResponse(response);
     },
 
+    getTimeline: async (): Promise<Communication[]> => {
+        const response = await fetch(`${API_URL}/communications/timeline`, {
+            headers: getHeaders(),
+        });
+        return parseResponse(response);
+    },
+
     sendEmail: async (data: { assetId: string, to: string, subject: string, body: string }) => {
         const response = await fetch(`${API_URL}/communications/send-email`, {
             method: "POST",

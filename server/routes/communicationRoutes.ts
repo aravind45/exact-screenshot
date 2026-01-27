@@ -182,4 +182,16 @@ router.post("/send-email", async (req: any, res: Response) => {
     }
 });
 
+router.get("/timeline", async (req: any, res: Response) => {
+    try {
+        const estate = await prisma.estate.findFirst({ where: { userId: req.user.id } });
+        if (!estate) return res.json([]);
+
+        const timeline = await CommunicationService.getTimelineByEstate(estate.id);
+        res.json(timeline);
+    } catch (error: any) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 export default router;

@@ -8,7 +8,7 @@ The implementation prioritizes the core logging workflow first (create, view, ed
 
 ## Tasks
 
-- [ ] 1. Set up database schema and migrations
+- [-] 1. Set up database schema and migrations
   - [-] 1.1 Create communications table with explicit schema
     - Add columns: id (UUID PK), estate_id (FK), asset_id (FK), type (enum), direction (enum), occurred_at (timestamptz), institution_name (varchar 255), contact_name (varchar 255), contact_channel (varchar 255), subject (varchar 500), notes (text), follow_up_due_at (timestamptz), follow_up_completed_at (timestamptz), follow_up_completed_by (FK users), status_change (enum), status_change_effective_at (timestamptz), created_at (timestamptz), updated_at (timestamptz), created_by (FK users)
     - Add CHECK constraints for type, direction, status_change enums
