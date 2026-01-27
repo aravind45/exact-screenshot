@@ -143,7 +143,7 @@ export default function Inbox() {
                             <InboxIcon className="w-5 h-5 text-white" />
                         </div>
                         <div>
-                            <h1 className="text-xl font-bold text-slate-900 tracking-tight">Settlement Inbox</h1>
+                            <h1 className="text-xl font-bold text-slate-900 tracking-tight">Settlement Trail</h1>
                             <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-none mt-1">Pilar Settlement Engine</p>
                         </div>
                         <Badge variant="secondary" className="ml-2 bg-slate-100 text-slate-600 border-none font-bold">
