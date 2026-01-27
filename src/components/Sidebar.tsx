@@ -14,6 +14,7 @@ import {
     Mail,
     Inbox,
     History,
+    Bell,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -52,6 +53,7 @@ export function Sidebar() {
         { label: "Overview", icon: LayoutDashboard, path: "/dashboard" },
         { label: "Discovery", icon: Search, path: "/discovery" },
         { label: "Assets", icon: Landmark, path: "/dashboard" },
+        { label: "Follow-Ups", icon: Bell, path: "/follow-ups" },
         { label: "Probate", icon: Scale, path: "/probate" },
         { label: "Settlement Trail", icon: History, path: "/inbox" },
         { label: "Vault", icon: FileText, path: "/documents" },

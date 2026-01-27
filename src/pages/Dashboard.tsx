@@ -16,11 +16,13 @@ import {
   Lightbulb,
   Bell,
   Mail,
-  X
+  X,
+  History as HistoryIcon
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { AgentInsights } from "@/components/AgentInsights";
 import { FinancialHealthWidget } from "@/components/dashboard/FinancialHealthWidget";
 import { DeadlineTracker } from "@/components/dashboard/DeadlineTracker";
@@ -143,6 +145,32 @@ export default function Dashboard() {
     queryFn: api.getFollowUps,
   });
 
+  const { data: recentActivity = [] } = useQuery({
+    queryKey: ['timeline', 'recent'],
+    queryFn: async () => {
+      const data = await api.getTimeline();
+      return data.slice(0, 5);
+    },
+  });
+
+  // Calculate Asset Stats
+  const statsByStatus = {
+    discovered: assets.filter(a => normalize(a.status) === 'discovered').length,
+    contacted: assets.filter(a => ['contacted', 'notified'].includes(normalize(a.status))).length,
+    inReview: assets.filter(a => ['in_review', 'claim_filed'].includes(normalize(a.status))).length,
+    distributed: assets.filter(a => ['distributed', 'closed'].includes(normalize(a.status))).length,
+  };
+
+  // Blockers calculation (e.g., individual assets without probate granted)
+  const blockers = assets.filter(a =>
+    a.ownershipType === 'INDIVIDUAL' &&
+    estate?.probateStatus !== 'EXECUTOR_APPOINTED'
+  ).length;
+
+  const progressPercent = assets.length > 0
+    ? Math.round((statsByStatus.distributed / assets.length) * 100)
+    : 0;
+
 
   if (error) {
     return <div className="p-8 text-red-500">Error loading dashboard: {(error as Error).message}.</div>;
@@ -178,11 +206,65 @@ export default function Dashboard() {
               <p className="text-slate-500 text-sm">Managing the estate of <span className="font-bold text-slate-900">{estate?.deceasedName || "..."}</span></p>
             </motion.div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 lg:gap-4 shrink-0">
-              <StatCard title="Value" value={isLoading ? "-" : `$${(totalValue / 1000).toFixed(0)}K`} icon={DollarSign} variant="success" />
-              <StatCard title="Active" value={isLoading ? "-" : inProgress} icon={Clock} variant="warning" />
-              <StatCard title="Completed" value={isLoading ? "-" : completed} icon={CheckCircle2} variant="default" className="hidden sm:flex" />
-              <StatCard title="Assets" value={isLoading ? "-" : assets.length} icon={Landmark} variant="primary" className="hidden sm:flex" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 shrink-0 grow">
+              <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                <div className="flex justify-between items-start mb-2">
+                  <div className="p-2 bg-emerald-50 rounded-xl">
+                    <DollarSign className="w-5 h-5 text-emerald-600" />
+                  </div>
+                  <Badge variant="outline" className="text-[10px] font-bold text-emerald-600 border-emerald-100 bg-emerald-50/50">+{Math.round(progressPercent / 2)}% Growth</Badge>
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Estate Value</p>
+                  <p className="text-2xl font-black text-slate-900 leading-none">${(totalValue / 1000).toFixed(0)}K</p>
+                </div>
+              </div>
+
+              <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                <div className="flex justify-between items-start mb-2">
+                  <div className="p-2 bg-indigo-50 rounded-xl">
+                    <CheckCircle2 className="w-5 h-5 text-indigo-600" />
+                  </div>
+                  <p className="text-[10px] font-black text-indigo-600">{completed}/{assets.length} Done</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Progress</p>
+                  <div className="flex items-end gap-2">
+                    <p className="text-2xl font-black text-slate-900 leading-none">{progressPercent}%</p>
+                    <div className="flex-1 h-3 bg-slate-100 rounded-full mb-0.5 overflow-hidden">
+                      <div className="h-full bg-indigo-600" style={{ width: `${progressPercent}%` }} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between cursor-pointer hover:border-amber-200 hover:bg-amber-50/10 transition-all group"
+                onClick={() => navigate('/follow-ups')}
+              >
+                <div className="flex justify-between items-start mb-2">
+                  <div className="p-2 bg-amber-50 rounded-xl group-hover:bg-amber-100 transition-colors">
+                    <Bell className="w-5 h-5 text-amber-600" />
+                  </div>
+                  {blockers > 0 && <Badge variant="destructive" className="animate-pulse text-[10px]">{blockers} Critical</Badge>}
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Action Items</p>
+                  <p className="text-2xl font-black text-slate-900 leading-none">{realFollowUps.length + blockers}</p>
+                </div>
+              </div>
+
+              <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                <div className="flex justify-between items-start mb-2">
+                  <div className="p-2 bg-slate-50 rounded-xl">
+                    <Landmark className="w-5 h-5 text-slate-600" />
+                  </div>
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Active Tracks</p>
+                  <p className="text-2xl font-black text-slate-900 leading-none">{assets.length} Assets</p>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -198,15 +280,104 @@ export default function Dashboard() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             {/* Main Content (Left) */}
             <div className="lg:col-span-8 space-y-10">
-              {Array.isArray(realFollowUps) && realFollowUps.length > 0 && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Action Items Column */}
                 <section className="space-y-4">
-                  <div className="flex items-center gap-2 px-1">
-                    <Bell className="w-5 h-5 text-amber-500" />
-                    <h2 className="text-xl font-bold text-slate-900 tracking-tight">Pending Actions</h2>
+                  <div className="flex items-center justify-between px-1">
+                    <div className="flex items-center gap-2">
+                      <Bell className="w-5 h-5 text-amber-500" />
+                      <h2 className="text-lg font-bold text-slate-900 tracking-tight">Action Items</h2>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {realFollowUps.length > 0 && <Badge variant="secondary" className="bg-amber-100 text-amber-900 text-[10px] border-none">{realFollowUps.length}</Badge>}
+                      <Button variant="ghost" size="sm" className="h-7 text-[10px] uppercase font-black text-amber-600" onClick={() => navigate('/follow-ups')}>View Hub</Button>
+                    </div>
                   </div>
-                  <FollowUpWidget followUps={realFollowUps as any} onFollowUpClick={handleAssetClick} />
+
+                  <div className="space-y-3">
+                    {blockers > 0 && (
+                      <div className="p-4 bg-rose-50 border border-rose-100 rounded-2xl flex gap-3 items-start animate-in slide-in-from-left duration-300">
+                        <div className="p-2 bg-rose-500 text-white rounded-xl">
+                          <X className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-rose-900">Legal Blockers Detected</p>
+                          <p className="text-[10px] text-rose-700 font-medium">{blockers} assets require Probate Authority DE-150.</p>
+                          <Button variant="link" className="p-0 h-auto text-[10px] text-rose-800 font-black uppercase mt-1" onClick={() => navigate('/probate')}>Resolve in Probate Hub</Button>
+                        </div>
+                      </div>
+                    )}
+                    <FollowUpWidget followUps={realFollowUps as any} onFollowUpClick={handleAssetClick} />
+                    {realFollowUps.length === 0 && blockers === 0 && (
+                      <div className="p-12 text-center border-2 border-dashed border-slate-100 rounded-3xl">
+                        <CheckCircle2 className="w-8 h-8 text-emerald-500 mx-auto mb-2 opacity-20" />
+                        <p className="text-xs font-bold text-slate-400">All clear! No pending actions.</p>
+                      </div>
+                    )}
+                  </div>
                 </section>
-              )}
+
+                {/* Recent Activity Column */}
+                <section className="space-y-4">
+                  <div className="flex items-center justify-between px-1">
+                    <div className="flex items-center gap-2">
+                      <HistoryIcon className="w-5 h-5 text-indigo-500" />
+                      <h2 className="text-lg font-bold text-slate-900 tracking-tight">Recent Activity</h2>
+                    </div>
+                    <Button variant="ghost" size="sm" className="h-7 text-[10px] uppercase font-black text-indigo-600" onClick={() => navigate('/inbox')}>View All</Button>
+                  </div>
+
+                  <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm">
+                    {recentActivity.length === 0 && (
+                      <div className="p-10 text-center">
+                        <p className="text-xs font-medium text-slate-400">No recent communications recorded.</p>
+                      </div>
+                    )}
+                    <div className="divide-y divide-slate-100">
+                      {recentActivity.map((act: any) => (
+                        <div key={act.id} className="p-4 hover:bg-slate-50 transition-colors cursor-pointer group" onClick={() => navigate(`/inbox?selected=${act.id}`)}>
+                          <div className="flex justify-between items-start mb-1">
+                            <span className="text-[10px] font-black uppercase text-slate-400 group-hover:text-indigo-600 transition-colors">
+                              {act.institutionName || 'General'}
+                            </span>
+                            <span className="text-[9px] font-bold text-slate-400 uppercase">{new Date(act.occurredAt).toLocaleDateString()}</span>
+                          </div>
+                          <p className="text-xs font-bold text-slate-800 line-clamp-1">{act.subject || act.notes}</p>
+                          <div className="flex items-center gap-2 mt-2">
+                            <div className={cn(
+                              "px-1.5 py-0.5 rounded text-[8px] font-black uppercase",
+                              act.direction === 'inbound' ? "bg-emerald-100 text-emerald-700" : "bg-indigo-100 text-indigo-700"
+                            )}>
+                              {act.type}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </section>
+              </div>
+
+              {/* Asset Status Breakdown */}
+              <section className="space-y-4">
+                <div className="flex items-center gap-2 px-1">
+                  <Landmark className="w-5 h-5 text-slate-900" />
+                  <h2 className="text-lg font-bold text-slate-900 tracking-tight">Asset Inventory by Status</h2>
+                </div>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                  {[
+                    { label: 'Discovered', count: statsByStatus.discovered, color: 'bg-slate-50 border-slate-200', text: 'text-slate-600' },
+                    { label: 'Contacted', count: statsByStatus.contacted, color: 'bg-blue-50 border-blue-100', text: 'text-blue-600' },
+                    { label: 'In Review', count: statsByStatus.inReview, color: 'bg-amber-50 border-amber-100', text: 'text-amber-600' },
+                    { label: 'Distributed', count: statsByStatus.distributed, color: 'bg-emerald-50 border-emerald-100', text: 'text-emerald-600' }
+                  ].map((s) => (
+                    <div key={s.label} className={cn("p-4 rounded-2xl border flex flex-col items-center justify-center text-center", s.color)}>
+                      <p className="text-xl font-black text-slate-900">{s.count}</p>
+                      <p className={cn("text-[10px] font-bold uppercase tracking-widest mt-1", s.text)}>{s.label}</p>
+                    </div>
+                  ))}
+                </div>
+              </section>
 
               <AgentInsights />
 

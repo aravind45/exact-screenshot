@@ -22,6 +22,7 @@ import Documents from "./pages/Documents";
 import NotFound from "./pages/NotFound";
 import PetitionWizard from "./pages/probate/PetitionWizard";
 import Inbox from "./pages/Inbox";
+import FollowUps from "./pages/FollowUps";
 import OnboardingWizard from "./pages/OnboardingWizard";
 
 const queryClient = new QueryClient();
@@ -107,6 +108,14 @@ const App = () => (
                   element={
                     <ProtectedRoute>
                       <Inbox />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/follow-ups"
+                  element={
+                    <ProtectedRoute>
+                      <FollowUps />
                     </ProtectedRoute>
                   }
                 />
