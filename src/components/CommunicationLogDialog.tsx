@@ -100,7 +100,10 @@ export function CommunicationLogDialog({
     useEffect(() => {
         if (open && !initialData && assetId) {
             console.log("Dialog opened, triggering auto-generation for asset:", assetId);
-            handleGenerateDraft();
+            // Small delay to ensure dialog is fully mounted
+            setTimeout(() => {
+                handleGenerateDraft();
+            }, 100);
         } else if (open && initialData) {
             setFormData({
                 method: initialData.method || "email",
@@ -380,14 +383,39 @@ export function CommunicationLogDialog({
                         <div className="grid grid-cols-1 gap-4">
                             {/* Subject */}
                             <div className="space-y-2">
-                                <Label htmlFor="subject" className="text-[11px] font-bold text-slate-500">Subject *</Label>
+                                <div className="flex items-center justify-between">
+                                    <Label htmlFor="subject" className="text-[11px] font-bold text-slate-500">Subject *</Label>
+                                    {assetId && (
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={handleGenerateDraft}
+                                            disabled={isGenerating}
+                                            className="h-6 px-2 text-xs gap-1"
+                                        >
+                                            {isGenerating ? (
+                                                <>
+                                                    <Loader2 className="w-3 h-3 animate-spin" />
+                                                    Generating...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Sparkles className="w-3 h-3" />
+                                                    AI Generate
+                                                </>
+                                            )}
+                                        </Button>
+                                    )}
+                                </div>
                                 <Input
                                     id="subject"
-                                    placeholder="Brief summary of communication"
+                                    placeholder={isGenerating ? "Generating..." : "Brief summary of communication"}
                                     value={formData.subject}
                                     onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
                                     required
                                     className="h-10"
+                                    disabled={isGenerating}
                                 />
                             </div>
 
@@ -396,11 +424,12 @@ export function CommunicationLogDialog({
                                 <Label htmlFor="notes" className="text-[11px] font-bold text-slate-500">Detailed Notes</Label>
                                 <Textarea
                                     id="notes"
-                                    placeholder="Detailed notes about the conversation..."
+                                    placeholder={isGenerating ? "Generating detailed notes..." : "Detailed notes about the conversation..."}
                                     value={formData.notes}
                                     onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                                     rows={4}
                                     className="resize-none min-h-[100px]"
+                                    disabled={isGenerating}
                                 />
                             </div>
                         </div>
