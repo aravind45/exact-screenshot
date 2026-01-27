@@ -677,6 +677,86 @@ export default function AssetDetail() {
                     }}
                     onGenerateLetter={handleGenerateLetter}
                   />
+
+                  {/* Smart Document Checklist */}
+                  <div className="card-elevated p-6 space-y-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <FileCheck className="w-5 h-5 text-indigo-600" />
+                      <h3 className="font-bold text-slate-900">Settlement Checklist</h3>
+                    </div>
+
+                    <p className="text-xs text-slate-500">
+                      Based on this asset's ownership ({asset.ownershipType}) and value ({formatCurrency(asset.value)}),
+                      the following documents are required for settlement:
+                    </p>
+
+                    <div className="space-y-2 pt-2">
+                      {(() => {
+                        const authReq = getInstitutionAuthorityRequirement(
+                          uiAsset.assetType,
+                          uiAsset.category,
+                          uiAsset.value,
+                          uiAsset.ownershipType
+                        );
+
+                        const requirementsMap: Record<string, string[]> = {
+                          "BENEFICIARY_ONLY": ["Death Certificate (certified)"],
+                          "AFFIDAVIT_ACCEPTED": ["Death Certificate (certified)", "Small Estate Affidavit (DE-310)"],
+                          "LETTERS_REQUIRED": ["Death Certificate (certified)", "DE-150 Letters", "DE-111 Petition"],
+                          "LETTERS_PREFERRED": ["Death Certificate (certified)", "DE-150 Letters"],
+                          "VARIES": ["Death Certificate (certified)"]
+                        };
+
+                        const docs = requirementsMap[authReq.requirement] || ["Death Certificate (certified)"];
+
+                        return docs.map((docType, idx) => {
+                          const uploaded = estateDocuments.find(d =>
+                            d.documentType.toLowerCase().includes(docType.split('(')[0].trim().toLowerCase()) ||
+                            docType.toLowerCase().includes(d.name.toLowerCase())
+                          );
+
+                          return (
+                            <div key={idx} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100 group">
+                              <div className="flex items-center gap-3">
+                                {uploaded ? (
+                                  <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center">
+                                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                                  </div>
+                                ) : (
+                                  <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center">
+                                    <Clock className="w-4 h-4 text-slate-400" />
+                                  </div>
+                                )}
+                                <div>
+                                  <p className={cn("text-xs font-bold", uploaded ? "text-slate-900" : "text-slate-600")}>{docType}</p>
+                                  <p className="text-[10px] text-slate-500">{uploaded ? `Obtained ${new Date(uploaded.obtainedDate!).toLocaleDateString()}` : "Action Required"}</p>
+                                </div>
+                              </div>
+
+                              {uploaded ? (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-8 px-3 text-[10px] font-bold text-indigo-600 hover:bg-indigo-50"
+                                  onClick={() => window.open(api.getEstateDocumentDownloadUrl(uploaded.documentType), "_blank")}
+                                >
+                                  <Download className="w-3.5 h-3.5 mr-2" />
+                                  Download
+                                </Button>
+                              ) : (
+                                <Link to="/documents">
+                                  <Button variant="outline" size="sm" className="h-8 px-3 text-[10px] font-bold border-indigo-200 text-indigo-600 hover:bg-indigo-50">
+                                    Go to Vault
+                                    <ArrowRight className="w-3.5 h-3.5 ml-2" />
+                                  </Button>
+                                </Link>
+                              )}
+                            </div>
+                          );
+                        });
+                      })()}
+                    </div>
+                  </div>
                 </div>
               );
             })()}

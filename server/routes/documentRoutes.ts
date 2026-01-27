@@ -70,6 +70,38 @@ router.post("/scan", uploadMemory.single("file"), async (req: any, res: Response
         const extractedData = await analyzeDocument(textToAnalyze);
         const agentInsights = await AgentService.runDetectiveDiscovery(textToAnalyze, "");
 
+        // If estateId is provided, we can optionally link/save this discovery
+        if (req.query.saveToVault === 'true' && req.user) {
+            const estate = await prisma.estate.findFirst({ where: { userId: req.user.id } });
+            if (estate) {
+                await prisma.estateDocument.upsert({
+                    where: {
+                        estateId_documentType: {
+                            estateId: estate.id,
+                            documentType: req.query.documentType || "OTHER_DISCOVERY"
+                        }
+                    },
+                    update: {
+                        content: req.file.buffer,
+                        name: req.file.originalname,
+                        status: "OBTAINED",
+                        obtainedDate: new Date(),
+                        clues: agentInsights as any
+                    },
+                    create: {
+                        estateId: estate.id,
+                        userId: req.user.id,
+                        documentType: req.query.documentType || "OTHER_DISCOVERY",
+                        name: req.file.originalname,
+                        content: req.file.buffer,
+                        status: "OBTAINED",
+                        obtainedDate: new Date(),
+                        clues: agentInsights as any
+                    }
+                });
+            }
+        }
+
         res.json({
             ...(extractedData || { institution: "Unknown", assetType: "Account", value: 0 }),
             agentInsights

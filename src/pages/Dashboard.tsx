@@ -16,7 +16,10 @@ import {
   TrendingUp,
   LayoutGrid,
   History as HistoryIcon,
-  X
+  X,
+  Flag,
+  ArrowDownLeft,
+  ArrowUpRight
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -41,6 +44,9 @@ import { TRACK_STAGES, type SettlementTrack } from "@/config/settlementStages";
 import { Sidebar } from "@/components/Sidebar";
 import { SettlementPhaseChevron, type SettlementPhase } from "@/components/SettlementPhaseChevron";
 import { PhaseTaskList } from "@/components/PhaseTaskList";
+import { CurrentMilestone } from "@/components/dashboard/CurrentMilestone";
+import { QuickActions } from "@/components/dashboard/QuickActions";
+import { SETTLEMENT_PHASE_TASKS } from "@/config/settlementPhases";
 
 const normalize = (str: string | null) => str?.toLowerCase() || '';
 
@@ -138,6 +144,13 @@ export default function Dashboard() {
     queryKey: ['activities'],
     queryFn: api.getActivities,
   });
+
+  const totalTasksCount = SETTLEMENT_PHASE_TASKS.reduce((sum, p) => sum + p.tasks.length, 0);
+  const overallProgress = totalTasksCount > 0
+    ? Math.round((completedTaskIds.length / totalTasksCount) * 100)
+    : 0;
+
+  const currentPhase: SettlementPhase = (estate?.status?.toLowerCase() as SettlementPhase) || "immediate_actions";
 
   // Merge communications and roadmap activities for a unified audit trail
   const unifiedTimeline = [
@@ -273,28 +286,13 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Settlement Phase Chevron */}
-          <section className="space-y-4">
-            <div className="flex items-center gap-2 px-1">
-              <Clock className="w-5 h-5 text-slate-900" />
-              <h2 className="text-lg font-bold text-slate-900 tracking-tight">Settlement Roadmap</h2>
-              <Badge variant="outline" className="text-[10px] font-black text-indigo-600 border-indigo-100 bg-indigo-50/50">
-                6 Phases • 30+ Tasks
-              </Badge>
-            </div>
-            <SettlementPhaseChevron
-              currentPhase="immediate_actions"
-              completedPhases={completedPhases}
-            />
 
-            {/* Current Phase Task List */}
-            <div className="mt-6">
-              <PhaseTaskList
-                phase="immediate_actions"
-                completedTaskIds={completedTaskIds}
-                onTaskToggle={handleTaskToggle}
-              />
-            </div>
+          {/* Current Milestone instead of full Roadmap */}
+          <section>
+            <CurrentMilestone
+              currentPhase={currentPhase}
+              progress={overallProgress}
+            />
           </section>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
@@ -355,20 +353,30 @@ export default function Dashboard() {
                     )}
                     <div className="divide-y divide-slate-100">
                       {unifiedTimeline.map((act: any) => (
-                        <div key={act.id} className="p-4 hover:bg-slate-50 transition-colors cursor-pointer group" onClick={() => act.uiType === 'communication' ? navigate(`/inbox?selected=${act.id}`) : navigate('/roadmap')}>
-                          <div className="flex justify-between items-start mb-1">
-                            <span className="text-[10px] font-black uppercase text-slate-400 group-hover:text-indigo-600 transition-colors">
-                              {act.uiType === 'activity' ? 'Roadmap' : (act.institutionName || 'General')}
-                            </span>
-                            <span className="text-[9px] font-bold text-slate-400 uppercase">{new Date(act.occurredAt).toLocaleDateString()}</span>
+                        <div key={act.id} className="p-4 hover:bg-slate-50 transition-colors cursor-pointer group flex gap-4" onClick={() => act.uiType === 'communication' ? navigate(`/inbox?selected=${act.id}`) : navigate('/roadmap')}>
+                          <div className={cn(
+                            "w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-110",
+                            act.uiType === 'activity' ? "bg-amber-100 text-amber-600" : (act.direction === 'inbound' ? "bg-emerald-100 text-emerald-600" : "bg-indigo-100 text-indigo-600")
+                          )}>
+                            {act.uiType === 'activity' ? <Flag className="w-5 h-5" /> : (act.direction === 'inbound' ? <ArrowDownLeft className="w-5 h-5" /> : <ArrowUpRight className="w-5 h-5" />)}
                           </div>
-                          <p className="text-xs font-bold text-slate-800 line-clamp-1">{act.subject || act.notes}</p>
-                          <div className="flex items-center gap-2 mt-2">
-                            <div className={cn(
-                              "px-1.5 py-0.5 rounded text-[8px] font-black uppercase",
-                              act.uiType === 'activity' ? "bg-amber-100 text-amber-700" : (act.direction === 'inbound' ? "bg-emerald-100 text-emerald-700" : "bg-indigo-100 text-indigo-700")
-                            )}>
-                              {act.type}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex justify-between items-start mb-1">
+                              <span className="text-[10px] font-black uppercase text-slate-400">
+                                {act.uiType === 'activity' ? 'Roadmap Milestone' : (act.institutionName || 'Direct Message')}
+                              </span>
+                              <span className="text-[9px] font-bold text-slate-400 uppercase">{new Date(act.occurredAt).toLocaleDateString()}</span>
+                            </div>
+                            <p className="text-xs font-bold text-slate-800 line-clamp-1">{act.subject || act.notes}</p>
+                            <div className="flex items-center gap-2 mt-2">
+                              {act.type && (
+                                <Badge variant="outline" className="h-4 text-[8px] font-black border-slate-200 text-slate-500 uppercase px-1.5">
+                                  {act.type}
+                                </Badge>
+                              )}
+                              {act.method && (
+                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tight">• {act.method}</span>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -377,6 +385,15 @@ export default function Dashboard() {
                   </div>
                 </section>
               </div>
+
+              {/* Financial Snapshot */}
+              <section className="space-y-4">
+                <div className="flex items-center gap-2 px-1">
+                  <TrendingUp className="w-5 h-5 text-slate-900" />
+                  <h2 className="text-lg font-bold text-slate-900 tracking-tight">Estate Financial Landscape</h2>
+                </div>
+                <FinancialHealthWidget assets={assets as any} />
+              </section>
 
               {/* Asset Status Breakdown */}
               <section className="space-y-4">
@@ -455,22 +472,27 @@ export default function Dashboard() {
             </div>
 
             {/* Sidebar (Right) */}
-            <div className="lg:col-span-5 space-y-6">
-              {estate?.id && <DeadlineTracker estateId={estate.id} />}
+            <div className="lg:col-span-5 space-y-10">
+              <QuickActions />
+
+              <DeadlineTracker estateId={estate?.id || ""} />
 
               <SafetyNetWidget
                 assets={assets}
                 onNavigate={(id) => navigate(`/asset/${id}`)}
               />
 
-              <div className="p-5 rounded-2xl bg-indigo-50 border border-indigo-100/50">
-                <div className="flex items-center gap-2 mb-2 text-indigo-700">
-                  <Lightbulb className="w-4 h-4" />
-                  <span className="font-bold text-[10px] uppercase tracking-wider">Pro Tip</span>
+              <div className="p-6 rounded-[32px] bg-slate-900 text-white border border-slate-800 shadow-2xl">
+                <div className="flex items-center gap-2 mb-3 text-indigo-400">
+                  <Lightbulb className="w-5 h-5" />
+                  <span className="font-black text-[10px] uppercase tracking-wider">Expert Advice</span>
                 </div>
-                <p className="text-xs text-indigo-800 leading-relaxed">
-                  Use the <strong>Safety Net</strong> to catch stalled assets. If a bank hasn't replied in 2 weeks, send a follow-up immediately.
+                <p className="text-sm font-medium text-slate-300 leading-relaxed">
+                  Focus on the <strong className="text-white">Safety Net</strong> to catch stalled assets. If a bank hasn't replied in 2 weeks, send a follow-up immediately.
                 </p>
+                <Button variant="link" className="p-0 h-auto text-indigo-400 text-xs font-bold mt-4 hover:text-indigo-300 uppercase tracking-widest">
+                  View Settlement Best Practices <ArrowRight className="w-3 h-3 ml-1" />
+                </Button>
               </div>
             </div>
           </div>

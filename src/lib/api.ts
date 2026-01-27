@@ -449,19 +449,20 @@ export const api = {
     /**
      * Processes a document using AI to extract estate information and discover hidden assets.
      */
-    processDocument: async (file: File) => {
+    processDocument: async (file: File, saveToVault: boolean = false, documentType?: string) => {
         const formData = new FormData();
         formData.append("file", file);
+        const url = new URL(`${API_URL}/documents/scan`);
+        if (saveToVault) url.searchParams.append("saveToVault", "true");
+        if (documentType) url.searchParams.append("documentType", documentType);
 
-        const token = localStorage.getItem("auth_token");
-        const response = await fetch(`${API_URL}/documents/scan`, {
+        const response = await fetch(url.toString(), {
             method: "POST",
             headers: {
-                ...(token ? { "Authorization": `Bearer ${token}` } : {}),
+                ...(localStorage.getItem("auth_token") ? { "Authorization": `Bearer ${localStorage.getItem("auth_token")}` } : {}),
             },
             body: formData,
         });
-
         return parseResponse(response);
     },
     /**

@@ -17,7 +17,8 @@ import {
     AlertCircle,
     CheckCircle2,
     Clock,
-    FileCheck
+    FileCheck,
+    Search
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { motion, AnimatePresence } from "framer-motion";
@@ -36,6 +37,7 @@ interface EstateDocument {
     issuingAuthority?: string;
     referenceNumber?: string;
     notes?: string;
+    clues?: any;
 }
 
 const DOCUMENT_TYPES = [
@@ -322,8 +324,34 @@ export function DocumentVault() {
                                                     </p>
                                                 )}
 
+                                                {doc.obtainedDate && (
+                                                    <p className="text-[10px] text-slate-500 mt-1 flex items-center gap-1">
+                                                        <Clock className="w-3 h-3" />
+                                                        Obtained on {new Date(doc.obtainedDate).toLocaleDateString()}
+                                                    </p>
+                                                )}
+
                                                 {doc.notes && (
                                                     <p className="text-sm text-gray-500 mt-2 italic">{doc.notes}</p>
+                                                )}
+
+                                                {doc.clues && Array.isArray(doc.clues) && doc.clues.length > 0 && (
+                                                    <div className="mt-3 p-2 bg-indigo-50/50 rounded-lg border border-indigo-100">
+                                                        <p className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest mb-1.5 flex items-center gap-1">
+                                                            <Search className="w-3 h-3" />
+                                                            AI Discovered Leads
+                                                        </p>
+                                                        <div className="space-y-1.5">
+                                                            {(doc.clues as any[]).map((clue: any, idx: number) => (
+                                                                <div key={idx} className="flex items-center justify-between text-[11px] text-slate-600">
+                                                                    <span className="font-medium">{clue.institution} ({clue.potentialAsset || clue.type})</span>
+                                                                    <Badge variant="outline" className="h-4 text-[9px] bg-indigo-100 text-indigo-700 px-1 border-none">
+                                                                        {Math.round((clue.confidence || 0) * 100)}% Match
+                                                                    </Badge>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
                                                 )}
                                             </div>
                                         </div>

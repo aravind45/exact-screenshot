@@ -12,9 +12,11 @@ interface DocumentScannerProps {
     onScanComplete: (data: any) => void;
     onScanError?: (error: string) => void;
     className?: string;
+    saveToVault?: boolean;
+    documentType?: string;
 }
 
-export function DocumentScanner({ onScanStart, onScanComplete, onScanError, className }: DocumentScannerProps) {
+export function DocumentScanner({ onScanStart, onScanComplete, onScanError, className, saveToVault, documentType }: DocumentScannerProps) {
     const { toast } = useToast();
     const [file, setFile] = useState<File | null>(null);
     const [isScanning, setIsScanning] = useState(false);
@@ -34,7 +36,7 @@ export function DocumentScanner({ onScanStart, onScanComplete, onScanError, clas
         if (onScanStart) onScanStart();
 
         try {
-            const data = await api.processDocument(file);
+            const data = await api.processDocument(file, saveToVault, documentType);
             toast({
                 title: "Scan Complete",
                 description: "Document analyzed successfully.",

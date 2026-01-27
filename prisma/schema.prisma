@@ -301,6 +301,7 @@ model EstateDocument {
   issuingAuthority String? @map("issuing_authority") // e.g., "Los Angeles County Superior Court"
   referenceNumber  String? @map("reference_number")  // e.g., Court Case Number for Letters
   notes            String?
+  clues            Json?   // Discovery clues found in this document
   
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")

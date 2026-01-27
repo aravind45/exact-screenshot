@@ -195,6 +195,8 @@ export default function Discovery() {
                                     onScanComplete={handleScanComplete}
                                     onScanError={() => setIsScanning(false)}
                                     className="mt-6"
+                                    saveToVault={true}
+                                    documentType="DISCOVERY_LOG"
                                 />
 
                                 <div className="bg-muted/30 border border-border/50 rounded-xl p-5 space-y-3">
