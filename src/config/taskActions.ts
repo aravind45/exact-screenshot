@@ -14,12 +14,26 @@ export interface TaskAction {
 }
 
 export const TASK_ACTIONS: Record<string, TaskAction> = {
-  // Phase 0: Immediate Actions
+  // Phase 0: Preliminary Assessment
+  'check_small_estate': {
+    type: 'navigate',
+    target: '/documents',
+    label: 'Upload Affidavit',
+    icon: 'Upload',
+    variant: 'primary'
+  },
+  'confirm_executor_role': {
+    type: 'navigate',
+    target: '/profile',
+    label: 'Profile Settings',
+    icon: 'Settings'
+  },
+  // Phase 1: Immediate Actions
   'secure_property': {
-    type: 'modal',
-    target: 'property-checklist',
-    label: 'Open Checklist',
-    icon: 'CheckSquare'
+    type: 'navigate',
+    target: '/documents',
+    label: 'Upload Photos',
+    icon: 'Upload'
   },
   'notify_ssa': {
     type: 'navigate',
@@ -56,16 +70,16 @@ export const TASK_ACTIONS: Record<string, TaskAction> = {
   // Phase 1: Court Filing
   'file_petition': {
     type: 'navigate',
-    target: '/probate/petition-wizard',
+    target: '/probate/petition/wizard',
     label: 'Start Petition',
     icon: 'FileText',
     variant: 'primary'
   },
   'publish_notice': {
-    type: 'modal',
-    target: 'publication-tracker',
-    label: 'Track Publication',
-    icon: 'Newspaper'
+    type: 'navigate',
+    target: '/documents',
+    label: 'Upload Notice',
+    icon: 'Upload'
   },
   'mail_notice': {
     type: 'navigate',
@@ -74,10 +88,10 @@ export const TASK_ACTIONS: Record<string, TaskAction> = {
     icon: 'Send'
   },
   'attend_hearing': {
-    type: 'modal',
-    target: 'court-calendar',
-    label: 'View Calendar',
-    icon: 'Calendar'
+    type: 'navigate',
+    target: '/probate',
+    label: 'View Probate Hub',
+    icon: 'Layout'
   },
   'receive_letters': {
     type: 'navigate',
@@ -102,9 +116,9 @@ export const TASK_ACTIONS: Record<string, TaskAction> = {
     icon: 'DollarSign'
   },
   'hire_appraiser': {
-    type: 'modal',
-    target: 'appraisal-tracker',
-    label: 'Track Appraisals',
+    type: 'navigate',
+    target: '/assets',
+    label: 'Manage Assets',
     icon: 'Home'
   },
   'complete_inventory': {
@@ -156,15 +170,15 @@ export const TASK_ACTIONS: Record<string, TaskAction> = {
 
   // Phase 4: Liquidation
   'list_real_estate': {
-    type: 'modal',
-    target: 'liquidation-tracker',
-    label: 'Track Sales',
+    type: 'navigate',
+    target: '/assets',
+    label: 'Manage Assets',
     icon: 'Home'
   },
   'sell_vehicles': {
-    type: 'modal',
-    target: 'liquidation-tracker',
-    label: 'Track Sales',
+    type: 'navigate',
+    target: '/assets',
+    label: 'Manage Assets',
     icon: 'Car'
   },
   'file_tax_returns': {
@@ -215,9 +229,9 @@ export const TASK_ACTIONS: Record<string, TaskAction> = {
     variant: 'primary'
   },
   'discharge_executor': {
-    type: 'modal',
-    target: 'discharge-petition',
-    label: 'File Discharge',
+    type: 'navigate',
+    target: '/probate/closing-statement',
+    label: 'Closing Statement',
     icon: 'CheckCircle'
   }
 };

@@ -28,10 +28,55 @@ export interface PhaseTaskList {
 export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
   {
     phase: "immediate_actions",
+    title: "Preliminary Assessment",
+    subtitle: "Determine Strategy",
+    duration: "Day 1-7",
+    description: "Determine the legal path for the estate before taking irrevocable actions.",
+    tasks: [
+      {
+        id: "check_small_estate",
+        title: "Check Small Estate Eligibility",
+        description: "Determine if total California assets are under $184,500. You may be able to avoid probate entirely using an Affidavit (Section 13100).",
+        estimatedTime: "1 hour",
+        alerts: [
+          {
+            type: "important",
+            message: "Avoid full probate if possible. Small estates can be settled in 40 days without court."
+          }
+        ]
+      },
+      {
+        id: "confirm_executor_role",
+        title: "Confirm Executor/Trustee Role",
+        description: "Review the Will or Trust to confirm your appointment and willingness to serve.",
+        estimatedTime: "2 hours",
+        alerts: [
+          {
+            type: "info",
+            message: "You have the right to decline. Once you start 'intermeddling' with assets, you may be legally committed."
+          }
+        ]
+      },
+      {
+        id: "secure_property",
+        title: "Secure the Property",
+        description: "Change locks, forward mail, and ensure the home is protected from theft or damage.",
+        estimatedTime: "1-2 days",
+        alerts: [
+          {
+            type: "important",
+            message: "Vacant homes are high-risk. Contact insurance to ensure coverage remains active."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    phase: "immediate_actions",
     title: "Immediate Actions",
     subtitle: "Secure & Notify",
     duration: "Week 1-2",
-    description: "Critical tasks to complete immediately after death, before filing probate.",
+    description: "Critical tasks to complete immediately after death.",
     tasks: [
       {
         id: "secure_property",

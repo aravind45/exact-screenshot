@@ -29,6 +29,14 @@ import Assets from "./pages/Assets";
 import SettlementRoadmap from "./pages/SettlementRoadmap";
 import SettlementRoadmapNew from "./pages/SettlementRoadmapNew";
 import ProbatePetition from "./pages/ProbatePetition";
+import Liabilities from "./pages/Liabilities";
+import Accounting from "./pages/Accounting";
+import TaxManagement from "./pages/TaxManagement";
+import InventoryGenerator from "./pages/InventoryGenerator";
+import Distribution from "./pages/Distribution";
+import Receipts from "./pages/Receipts";
+import ClosingStatement from "./pages/ClosingStatement";
+import DistributionPetition from "./pages/DistributionPetition";
 import { EstateAgentChatWrapper } from "@/components/EstateAgentChatWrapper";
 
 const queryClient = new QueryClient();
@@ -44,149 +52,213 @@ const App = () => (
             <AuthProvider>
               <WorkflowProvider>
                 <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/auth" element={<Auth />} />
-                <Route
-                  path="/onboarding"
-                  element={
-                    <ProtectedRoute>
-                      <OnboardingWizard />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/dashboard"
-                  element={
-                    <ProtectedRoute>
-                      <Dashboard />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/asset/:id"
-                  element={
-                    <ProtectedRoute>
-                      <AssetDetail />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/add-asset"
-                  element={
-                    <ProtectedRoute>
-                      <AddAsset />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/upload"
-                  element={
-                    <ProtectedRoute>
-                      <UploadDocument />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/discovery"
-                  element={
-                    <ProtectedRoute>
-                      <Discovery />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/probate"
-                  element={
-                    <ProtectedRoute>
-                      <Probate />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/assets"
-                  element={
-                    <ProtectedRoute>
-                      <Assets />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/probate/petition"
-                  element={
-                    <ProtectedRoute>
-                      <PetitionWizard />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/inbox"
-                  element={
-                    <ProtectedRoute>
-                      <Inbox />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/follow-ups"
-                  element={
-                    <ProtectedRoute>
-                      <FollowUps />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/roadmap"
-                  element={
-                    <ProtectedRoute>
-                      <SettlementRoadmapNew />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/roadmap-old"
-                  element={
-                    <ProtectedRoute>
-                      <SettlementRoadmap />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/documents"
-                  element={
-                    <ProtectedRoute>
-                      <Documents />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/profile"
-                  element={
-                    <ProtectedRoute>
-                      <ProfileSettings />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin"
-                  element={
-                    <ProtectedRoute>
-                      <AdminDashboard />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin/institutions"
-                  element={
-                    <ProtectedRoute>
-                      <AdminInstitutions />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route path="/probate/petition" element={<ProtectedRoute><ProbatePetition /></ProtectedRoute>} />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-              <EstateAgentChatWrapper />
+                  <Route path="/" element={<Index />} />
+                  <Route path="/auth" element={<Auth />} />
+                  <Route
+                    path="/onboarding"
+                    element={
+                      <ProtectedRoute>
+                        <OnboardingWizard />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/dashboard"
+                    element={
+                      <ProtectedRoute>
+                        <Dashboard />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/asset/:id"
+                    element={
+                      <ProtectedRoute>
+                        <AssetDetail />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/add-asset"
+                    element={
+                      <ProtectedRoute>
+                        <AddAsset />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/upload"
+                    element={
+                      <ProtectedRoute>
+                        <UploadDocument />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/discovery"
+                    element={
+                      <ProtectedRoute>
+                        <Discovery />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/probate"
+                    element={
+                      <ProtectedRoute>
+                        <Probate />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/assets"
+                    element={
+                      <ProtectedRoute>
+                        <Assets />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/probate/petition/wizard"
+                    element={
+                      <ProtectedRoute>
+                        <PetitionWizard />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/inbox"
+                    element={
+                      <ProtectedRoute>
+                        <Inbox />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/follow-ups"
+                    element={
+                      <ProtectedRoute>
+                        <FollowUps />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/roadmap"
+                    element={
+                      <ProtectedRoute>
+                        <SettlementRoadmapNew />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/roadmap-old"
+                    element={
+                      <ProtectedRoute>
+                        <SettlementRoadmap />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/documents"
+                    element={
+                      <ProtectedRoute>
+                        <Documents />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/profile"
+                    element={
+                      <ProtectedRoute>
+                        <ProfileSettings />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin"
+                    element={
+                      <ProtectedRoute>
+                        <AdminDashboard />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin/institutions"
+                    element={
+                      <ProtectedRoute>
+                        <AdminInstitutions />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route path="/probate/petition" element={<ProtectedRoute><ProbatePetition /></ProtectedRoute>} />
+                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                  <Route
+                    path="/liabilities"
+                    element={
+                      <ProtectedRoute>
+                        <Liabilities />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/accounting"
+                    element={
+                      <ProtectedRoute>
+                        <Accounting />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/tax-management"
+                    element={
+                      <ProtectedRoute>
+                        <TaxManagement />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/probate/inventory-generator"
+                    element={
+                      <ProtectedRoute>
+                        <InventoryGenerator />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/distribution"
+                    element={
+                      <ProtectedRoute>
+                        <Distribution />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/receipts"
+                    element={
+                      <ProtectedRoute>
+                        <Receipts />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/probate/closing-statement"
+                    element={
+                      <ProtectedRoute>
+                        <ClosingStatement />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/probate/distribution-petition"
+                    element={
+                      <ProtectedRoute>
+                        <DistributionPetition />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+                <EstateAgentChatWrapper />
               </WorkflowProvider>
             </AuthProvider>
           </NavigationProvider>
