@@ -51,10 +51,10 @@ export function Sidebar() {
 
     const navItems = [
         { label: "Overview", icon: LayoutDashboard, path: "/dashboard" },
-        { label: "Discovery", icon: Search, path: "/discovery" },
-        { label: "Assets", icon: Landmark, path: "/dashboard" },
         { label: "Follow-Ups", icon: Bell, path: "/follow-ups" },
         { label: "Probate", icon: Scale, path: "/probate" },
+        { label: "Discovery", icon: Search, path: "/discovery" },
+        { label: "Assets", icon: Landmark, path: "/dashboard" },
         { label: "Settlement Trail", icon: History, path: "/inbox" },
         { label: "Vault", icon: FileText, path: "/documents" },
         { label: "Profile", icon: User, path: "/profile" },
