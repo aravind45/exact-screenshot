@@ -70,29 +70,6 @@ export function CommunicationLogDialog({
         recipientEmail: ""
     });
 
-    useEffect(() => {
-        if (open) {
-            if (initialData) {
-                setFormData({
-                    method: initialData.method || "email",
-                    subject: initialData.subject || "",
-                    notes: initialData.notes || "",
-                    occurredAt: initialData.occurredAt ? new Date(initialData.occurredAt).toISOString().slice(0, 16) : new Date().toISOString().slice(0, 16),
-                    type: initialData.type || "initial_contact",
-                    direction: initialData.direction || "outbound",
-                    contactPerson: initialData.contactPerson || "",
-                    statusChange: initialData.statusChange || "none",
-                    recipientEmail: initialData.recipientEmail || ""
-                });
-            } else {
-                // Always generate draft when opening (not editing)
-                if (assetId) {
-                    handleGenerateDraft();
-                }
-            }
-        }
-    }, [open, assetId, initialData]);
-
     const handleGenerateDraft = async () => {
         if (!assetId) {
             console.log("No assetId provided, skipping draft generation");
@@ -106,11 +83,11 @@ export function CommunicationLogDialog({
                 workflowStepDescription: workflowContext?.description || "First communication with the institution"
             });
             console.log("Draft generated:", draft);
-            if (draft) {
+            if (draft && draft.subject && draft.notes) {
                 setFormData(prev => ({
                     ...prev,
-                    subject: draft.subject || prev.subject,
-                    notes: draft.notes || prev.notes
+                    subject: draft.subject,
+                    notes: draft.notes
                 }));
             }
         } catch (error) {
@@ -118,6 +95,27 @@ export function CommunicationLogDialog({
         } finally {
             setIsGenerating(false);
         }
+    };
+
+    useEffect(() => {
+        if (open && !initialData && assetId) {
+            console.log("Dialog opened, triggering auto-generation for asset:", assetId);
+            handleGenerateDraft();
+        } else if (open && initialData) {
+            setFormData({
+                method: initialData.method || "email",
+                subject: initialData.subject || "",
+                notes: initialData.notes || "",
+                occurredAt: initialData.occurredAt ? new Date(initialData.occurredAt).toISOString().slice(0, 16) : new Date().toISOString().slice(0, 16),
+                type: initialData.type || "initial_contact",
+                direction: initialData.direction || "outbound",
+                contactPerson: initialData.contactPerson || "",
+                statusChange: initialData.statusChange || "none",
+                recipientEmail: initialData.recipientEmail || ""
+            });
+        }
+    }, [open]);
+
     };
 
     const handleTemplateSelect = (templateKey: string) => {
@@ -191,18 +189,6 @@ export function CommunicationLogDialog({
                 </DialogHeader>
 
                 <div className="flex-1 overflow-y-auto px-6 py-2 space-y-4 min-h-0">
-                    <div className="bg-blue-50/50 border border-blue-100/50 p-3 rounded-xl flex items-start gap-3">
-                        <div className="p-1.5 bg-white rounded-lg border border-blue-100 text-blue-600 shadow-sm shrink-0">
-                            <Mail className="w-3.5 h-3.5" />
-                        </div>
-                        <div>
-                            <p className="text-[11px] font-bold text-blue-900 leading-tight">📤 Personal Email Usage</p>
-                            <p className="text-[10px] text-blue-700 font-medium leading-relaxed">
-                                Send messages using your own email (e.g. Gmail/Outlook). <strong>Log the activity here afterwards</strong> so it's included in your Verified Settlement History.
-                            </p>
-                        </div>
-                    </div>
-
                     <form id="comm-log-form" onSubmit={handleSubmit} className="space-y-4">
                         {/* Template Selector (if templates provided) */}
                         {Object.keys(templates).length > 0 && (
