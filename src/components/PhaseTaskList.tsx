@@ -6,6 +6,10 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { SETTLEMENT_PHASE_TASKS, type PhaseTask } from "@/config/settlementPhases";
 import type { SettlementPhase } from "@/components/SettlementPhaseChevron";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { api } from "@/lib/api";
+import { toast } from "sonner";
+import { Eye, FileUp, Loader2 as Spinner } from "lucide-react";
 
 interface PhaseTaskListProps {
   phase: SettlementPhase;
@@ -21,9 +25,31 @@ export function PhaseTaskList({
   className
 }: PhaseTaskListProps) {
   const [isExpanded, setIsExpanded] = useState(false);
-  
+  const queryClient = useQueryClient();
+
+  const { data: documents = [] } = useQuery({
+    queryKey: ["estate-documents"],
+    queryFn: api.getEstateDocuments,
+  });
+
+  const uploadMutation = useMutation({
+    mutationFn: ({ type, name, file }: { type: string; name: string; file: File }) =>
+      api.uploadEstateDocument(type, name, file),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["estate-documents"] });
+      toast.success("Document uploaded successfully");
+    },
+    onError: (error: any) => {
+      toast.error(`Upload failed: ${error.message}`);
+    },
+  });
+
+  const handleDocumentUpload = async (type: string, name: string, file: File) => {
+    uploadMutation.mutate({ type, name, file });
+  };
+
   const phaseData = SETTLEMENT_PHASE_TASKS.find(p => p.phase === phase);
-  
+
   if (!phaseData) return null;
 
   const completedCount = phaseData.tasks.filter(t => completedTaskIds.includes(t.id)).length;
@@ -73,11 +99,11 @@ export function PhaseTaskList({
             <p className="text-xs text-slate-500">{phaseData.subtitle} • {phaseData.duration}</p>
           </div>
         </div>
-        
+
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
             <div className="w-24 h-2 bg-slate-100 rounded-full overflow-hidden">
-              <div 
+              <div
                 className={cn(
                   "h-full transition-all duration-500",
                   completedCount === totalCount ? "bg-green-600" : "bg-indigo-600"
@@ -107,7 +133,7 @@ export function PhaseTaskList({
           <div className="divide-y divide-slate-100">
             {phaseData.tasks.map((task) => {
               const isCompleted = completedTaskIds.includes(task.id);
-              
+
               return (
                 <TaskItem
                   key={task.id}
@@ -116,6 +142,9 @@ export function PhaseTaskList({
                   onToggle={(completed) => onTaskToggle?.(task.id, completed)}
                   getAlertIcon={getAlertIcon}
                   getAlertColor={getAlertColor}
+                  documents={documents}
+                  onUpload={handleDocumentUpload}
+                  isUploading={uploadMutation.isPending}
                 />
               );
             })}
@@ -132,9 +161,12 @@ interface TaskItemProps {
   onToggle: (completed: boolean) => void;
   getAlertIcon: (type: string) => JSX.Element;
   getAlertColor: (type: string) => string;
+  documents: any[];
+  onUpload: (type: string, name: string, file: File) => void;
+  isUploading: boolean;
 }
 
-function TaskItem({ task, isCompleted, onToggle, getAlertIcon, getAlertColor }: TaskItemProps) {
+function TaskItem({ task, isCompleted, onToggle, getAlertIcon, getAlertColor, documents, onUpload, isUploading }: TaskItemProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
@@ -149,7 +181,7 @@ function TaskItem({ task, isCompleted, onToggle, getAlertIcon, getAlertColor }: 
           onCheckedChange={(checked) => onToggle(checked === true)}
           className="mt-1"
         />
-        
+
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
             <button
@@ -169,7 +201,7 @@ function TaskItem({ task, isCompleted, onToggle, getAlertIcon, getAlertColor }: 
                 {task.description}
               </p>
             </button>
-            
+
             {task.estimatedTime && (
               <Badge variant="outline" className="text-[10px] font-bold text-slate-600 border-slate-200 flex-shrink-0">
                 <Clock className="w-3 h-3 mr-1" />
@@ -189,12 +221,55 @@ function TaskItem({ task, isCompleted, onToggle, getAlertIcon, getAlertColor }: 
                     <span className="text-xs font-bold text-slate-700">Required Documents</span>
                   </div>
                   <ul className="space-y-1">
-                    {task.requiredDocs.map((doc, idx) => (
-                      <li key={idx} className="text-xs text-slate-600 flex items-center gap-2">
-                        <span className="w-1 h-1 rounded-full bg-slate-400" />
-                        {doc}
-                      </li>
-                    ))}
+                    {task.requiredDocs.map((doc, idx) => {
+                      const uploadedDoc = documents.find(d => d.documentType === doc);
+                      return (
+                        <li key={idx} className="text-xs text-slate-600 flex items-center justify-between gap-2 p-1 hover:bg-white rounded transition-colors group/doc">
+                          <div className="flex items-center gap-2">
+                            <span className={cn(
+                              "w-1.5 h-1.5 rounded-full",
+                              uploadedDoc ? "bg-green-500" : "bg-slate-300"
+                            )} />
+                            <span className={cn(uploadedDoc && "font-medium text-slate-900")}>{doc}</span>
+                          </div>
+
+                          <div className="flex items-center gap-1 opacity-0 group-hover/doc:opacity-100 transition-opacity">
+                            {uploadedDoc ? (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 px-2 text-[10px] font-bold text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50"
+                                onClick={() => window.open(api.getEstateDocumentDownloadUrl(doc), "_blank")}
+                              >
+                                <Eye className="w-3 h-3 mr-1" />
+                                View
+                              </Button>
+                            ) : (
+                              <div className="relative">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-6 px-2 text-[10px] font-bold text-slate-500 hover:text-indigo-600 hover:bg-indigo-50"
+                                  disabled={isUploading}
+                                >
+                                  {isUploading ? <Spinner className="w-3 h-3 animate-spin" /> : <FileUp className="w-3 h-3 mr-1" />}
+                                  Upload
+                                </Button>
+                                <input
+                                  type="file"
+                                  className="absolute inset-0 opacity-0 cursor-pointer"
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) onUpload(doc, doc, file);
+                                  }}
+                                  disabled={isUploading}
+                                />
+                              </div>
+                            )}
+                          </div>
+                        </li>
+                      );
+                    })}
                   </ul>
                 </div>
               )}
