@@ -9,12 +9,12 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  ChevronDown, 
-  ChevronRight, 
-  CheckCircle, 
-  Circle, 
-  Lock, 
+import {
+  ChevronDown,
+  ChevronRight,
+  CheckCircle,
+  Circle,
+  Lock,
   AlertCircle,
   ArrowRight
 } from 'lucide-react';
@@ -23,7 +23,7 @@ import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 import { useWorkflow } from '@/contexts/WorkflowContext';
-import { SETTLEMENT_PHASES } from '@/config/settlementPhases';
+import { SETTLEMENT_PHASE_TASKS } from '@/config/settlementPhases';
 import { TASK_ACTIONS } from '@/config/taskActions';
 import type { SettlementPhase } from './SettlementPhaseChevron';
 
@@ -33,19 +33,19 @@ interface CollapsiblePhaseChevronProps {
 
 export function CollapsiblePhaseChevron({ onTaskToggle }: CollapsiblePhaseChevronProps) {
   const navigate = useNavigate();
-  const { 
-    currentPhase, 
-    assetsByPhase, 
-    phaseLocks, 
+  const {
+    currentPhase,
+    assetsByPhase,
+    phaseLocks,
     phaseProgress,
     completedTaskIds,
-    completedPhases 
+    completedPhases
   } = useWorkflow();
-  
+
   const [expandedPhases, setExpandedPhases] = useState<Set<SettlementPhase>>(
     new Set([currentPhase])
   );
-  
+
   const togglePhase = (phase: SettlementPhase) => {
     const newExpanded = new Set(expandedPhases);
     if (newExpanded.has(phase)) {
@@ -55,11 +55,11 @@ export function CollapsiblePhaseChevron({ onTaskToggle }: CollapsiblePhaseChevro
     }
     setExpandedPhases(newExpanded);
   };
-  
+
   const handleTaskAction = (taskId: string) => {
     const action = TASK_ACTIONS[taskId];
     if (!action) return;
-    
+
     if (action.type === 'navigate') {
       navigate(action.target);
     } else if (action.type === 'modal') {
@@ -69,18 +69,18 @@ export function CollapsiblePhaseChevron({ onTaskToggle }: CollapsiblePhaseChevro
       window.open(action.target, '_blank');
     }
   };
-  
+
   return (
     <div className="space-y-3">
-      {Object.entries(SETTLEMENT_PHASES).map(([phaseKey, phaseData]) => {
-        const phase = phaseKey as SettlementPhase;
+      {SETTLEMENT_PHASE_TASKS.map((phaseData) => {
+        const phase = phaseData.phase;
         const isExpanded = expandedPhases.has(phase);
         const isCompleted = completedPhases.includes(phase);
         const isCurrent = phase === currentPhase;
         const lockStatus = phaseLocks[phase];
         const progress = phaseProgress[phase];
         const assetCount = assetsByPhase[phase]?.length || 0;
-        
+
         return (
           <div
             key={phase}
@@ -111,7 +111,7 @@ export function CollapsiblePhaseChevron({ onTaskToggle }: CollapsiblePhaseChevro
                     <Circle className="w-6 h-6 text-slate-300" />
                   )}
                 </div>
-                
+
                 {/* Phase Title & Progress */}
                 <div className="flex-1 text-left">
                   <div className="flex items-center gap-2 mb-1">
@@ -127,11 +127,11 @@ export function CollapsiblePhaseChevron({ onTaskToggle }: CollapsiblePhaseChevro
                       <Badge variant="default" className="text-xs">Current</Badge>
                     )}
                   </div>
-                  
+
                   {/* Progress Bar */}
                   <div className="flex items-center gap-2">
                     <div className="flex-1 h-1.5 bg-slate-200 rounded-full overflow-hidden max-w-[200px]">
-                      <div 
+                      <div
                         className={cn(
                           "h-full transition-all",
                           isCompleted ? "bg-green-600" : "bg-primary"
@@ -149,7 +149,7 @@ export function CollapsiblePhaseChevron({ onTaskToggle }: CollapsiblePhaseChevro
                     )}
                   </div>
                 </div>
-                
+
                 {/* Expand/Collapse Icon */}
                 {!lockStatus.isLocked && (
                   <div className="flex-shrink-0">
@@ -162,7 +162,7 @@ export function CollapsiblePhaseChevron({ onTaskToggle }: CollapsiblePhaseChevro
                 )}
               </div>
             </button>
-            
+
             {/* Lock Message */}
             {lockStatus.isLocked && lockStatus.reason && (
               <div className="px-4 pb-4">
@@ -171,9 +171,9 @@ export function CollapsiblePhaseChevron({ onTaskToggle }: CollapsiblePhaseChevro
                   <div className="flex-1">
                     <p className="text-xs font-medium text-amber-900">{lockStatus.reason}</p>
                     {lockStatus.unlockAction && (
-                      <Button 
-                        size="sm" 
-                        variant="link" 
+                      <Button
+                        size="sm"
+                        variant="link"
                         className="p-0 h-auto text-amber-900 font-bold mt-1"
                         onClick={() => navigate(lockStatus.unlockAction!.route)}
                       >
@@ -184,7 +184,7 @@ export function CollapsiblePhaseChevron({ onTaskToggle }: CollapsiblePhaseChevro
                 </div>
               </div>
             )}
-            
+
             {/* Task List (Expandable) */}
             <AnimatePresence>
               {isExpanded && !lockStatus.isLocked && (
@@ -199,39 +199,44 @@ export function CollapsiblePhaseChevron({ onTaskToggle }: CollapsiblePhaseChevro
                     {phaseData.tasks.map((task) => {
                       const isTaskCompleted = completedTaskIds.includes(task.id);
                       const action = TASK_ACTIONS[task.id];
-                      
+                      const isNext = isCurrent && !isTaskCompleted && phaseData.tasks.find(t => !completedTaskIds.includes(t.id))?.id === task.id;
+
                       return (
                         <div
                           key={task.id}
                           className={cn(
                             "flex items-start gap-3 p-3 rounded-lg border transition-all",
-                            isTaskCompleted ? "bg-green-50 border-green-200" : "bg-white border-slate-200 hover:border-primary/30"
+                            isTaskCompleted ? "bg-green-50 border-green-200" : "bg-white border-slate-200 hover:border-primary/30",
+                            isNext && "ring-2 ring-primary/20 border-primary shadow-sm"
                           )}
                         >
                           {/* Checkbox */}
-                          <Checkbox 
+                          <Checkbox
                             checked={isTaskCompleted}
                             onCheckedChange={(checked) => onTaskToggle(task.id, !!checked)}
                             className="mt-0.5"
                           />
-                          
+
                           {/* Task Content */}
                           <div className="flex-1 min-w-0">
-                            <h4 className={cn(
-                              "text-sm font-semibold mb-1",
-                              isTaskCompleted ? "line-through text-slate-500" : "text-slate-900"
-                            )}>
-                              {task.title}
-                            </h4>
+                            <div className="flex items-center gap-2 mb-1">
+                              <h4 className={cn(
+                                "text-sm font-semibold",
+                                isTaskCompleted ? "line-through text-slate-500" : "text-slate-900"
+                              )}>
+                                {task.title}
+                              </h4>
+                              {isNext && <Badge variant="secondary" className="bg-primary/10 text-primary text-[8px] font-black uppercase h-4 px-1">Next Step</Badge>}
+                            </div>
                             <p className="text-xs text-slate-600 mb-2">{task.description}</p>
-                            
+
                             {/* Action Button */}
                             {action && !isTaskCompleted && (
-                              <Button 
-                                size="sm" 
+                              <Button
+                                size="sm"
                                 variant={action.variant === 'primary' ? 'default' : 'outline'}
                                 onClick={() => handleTaskAction(task.id)}
-                                className="h-8 text-xs"
+                                className={cn("h-8 text-xs font-bold", isNext && "shadow-sm shadow-primary/20")}
                               >
                                 {action.label}
                               </Button>

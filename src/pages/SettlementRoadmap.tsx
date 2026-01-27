@@ -252,11 +252,14 @@ export default function SettlementRoadmap() {
                     key={phase.phase}
                     onClick={() => setCurrentPhase(phase.phase)}
                     className={cn(
-                      "bg-white p-4 rounded-2xl border transition-all text-left",
-                      isCurrent && "border-indigo-300 shadow-md",
-                      !isCurrent && "border-slate-200 hover:border-slate-300"
+                      "group relative bg-white p-5 rounded-[28px] border transition-all text-left overflow-hidden",
+                      isCurrent && "border-indigo-500 bg-indigo-50/40 shadow-xl ring-4 ring-indigo-500/5 scale-[1.02] z-10",
+                      !isCurrent && "border-slate-200 hover:border-slate-300 hover:bg-slate-50/50"
                     )}
                   >
+                    {isCurrent && (
+                      <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-indigo-600 rounded-r-full" />
+                    )}
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div className={cn(
@@ -283,8 +286,8 @@ export default function SettlementRoadmap() {
                       </div>
                       <div className="flex items-center gap-3">
                         {isCurrent && (
-                          <Badge className="bg-indigo-100 text-indigo-700 border-indigo-200">
-                            Current
+                          <Badge className="bg-indigo-600 text-white border-indigo-600 animate-pulse shadow-sm px-3 py-1">
+                            Currently Active
                           </Badge>
                         )}
                         <div className="flex items-center gap-2">

@@ -134,7 +134,7 @@ export default function Dashboard() {
 
 
   const { probateBlockers, completedTaskIds, completedPhases } = useWorkflow();
-  
+
   const [localCompletedTaskIds, setLocalCompletedTaskIds] = useState<string[]>([]);
   const [localCompletedPhases, setLocalCompletedPhases] = useState<SettlementPhase[]>([]);
 
@@ -227,6 +227,8 @@ export default function Dashboard() {
             </motion.div>
           </div>
 
+          <ProbateBlockerAlert />
+
           {/* Stat Cards - Full Row */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="bg-white p-6 rounded-[32px] border border-slate-200 shadow-sm flex flex-col justify-between hover:border-emerald-200 transition-colors">
@@ -295,6 +297,7 @@ export default function Dashboard() {
             <CurrentMilestone
               currentPhase={currentPhase}
               progress={overallProgress}
+              completedTaskIds={localCompletedTaskIds}
             />
           </section>
 

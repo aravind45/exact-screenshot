@@ -22,38 +22,39 @@ export const TASK_ACTIONS: Record<string, TaskAction> = {
     icon: 'CheckSquare'
   },
   'notify_ssa': {
-    type: 'modal',
-    target: 'ssa-notification',
-    label: 'Notify SSA',
-    icon: 'Send'
-  },
-  'forward_mail': {
-    type: 'external',
-    target: 'https://moversguide.usps.com',
-    label: 'USPS Form',
-    icon: 'ExternalLink'
-  },
-  'gather_documents': {
     type: 'navigate',
     target: '/documents',
-    label: 'View Documents',
-    icon: 'FileText'
+    label: 'Upload Death Certificate',
+    icon: 'Upload',
+    variant: 'primary'
   },
-  'notify_banks': {
+  'cancel_cards': {
     type: 'navigate',
-    target: '/assets?action=notify',
-    label: 'Notify Institutions',
-    icon: 'Building'
+    target: '/assets',
+    label: 'Manage Accounts',
+    icon: 'CreditCard'
   },
-  'secure_valuables': {
-    type: 'modal',
-    target: 'valuables-checklist',
-    label: 'Open Checklist',
-    icon: 'Shield'
+  'locate_will': {
+    type: 'navigate',
+    target: '/documents',
+    label: 'Upload Will',
+    icon: 'Upload'
   },
-  
+  'open_estate_account': {
+    type: 'navigate',
+    target: '/documents',
+    label: 'Upload Proof',
+    icon: 'Upload'
+  },
+  'pay_immediate_bills': {
+    type: 'navigate',
+    target: '/assets',
+    label: 'Track Bills',
+    icon: 'DollarSign'
+  },
+
   // Phase 1: Court Filing
-  'file_de111': {
+  'file_petition': {
     type: 'navigate',
     target: '/probate/petition-wizard',
     label: 'Start Petition',
@@ -66,33 +67,27 @@ export const TASK_ACTIONS: Record<string, TaskAction> = {
     label: 'Track Publication',
     icon: 'Newspaper'
   },
+  'mail_notice': {
+    type: 'navigate',
+    target: '/liabilities',
+    label: 'Notify Creditors',
+    icon: 'Send'
+  },
   'attend_hearing': {
     type: 'modal',
     target: 'court-calendar',
     label: 'View Calendar',
     icon: 'Calendar'
   },
-  'upload_letters': {
-    type: 'modal',
-    target: 'upload-letters',
+  'receive_letters': {
+    type: 'navigate',
+    target: '/documents',
     label: 'Upload Letters',
     icon: 'Upload',
     variant: 'primary'
   },
-  'order_certified_copies': {
-    type: 'modal',
-    target: 'copy-tracker',
-    label: 'Track Copies',
-    icon: 'Copy'
-  },
-  
+
   // Phase 2: Asset Discovery
-  'identify_accounts': {
-    type: 'navigate',
-    target: '/assets?action=add',
-    label: 'Add Assets',
-    icon: 'Plus'
-  },
   'freeze_accounts': {
     type: 'navigate',
     target: '/assets?phase=asset_discovery&filter=needs_freeze',
@@ -100,26 +95,32 @@ export const TASK_ACTIONS: Record<string, TaskAction> = {
     icon: 'Lock',
     variant: 'primary'
   },
-  'request_dod_values': {
+  'get_dod_values': {
     type: 'navigate',
     target: '/assets?phase=asset_discovery&filter=needs_dod',
     label: 'Get DOD Values',
     icon: 'DollarSign'
   },
-  'order_appraisals': {
+  'hire_appraiser': {
     type: 'modal',
     target: 'appraisal-tracker',
     label: 'Track Appraisals',
     icon: 'Home'
   },
-  'generate_de160': {
+  'complete_inventory': {
     type: 'navigate',
     target: '/probate/inventory-generator',
     label: 'Generate DE-160',
     icon: 'FileText',
     variant: 'primary'
   },
-  
+  'file_inventory': {
+    type: 'navigate',
+    target: '/documents',
+    label: 'Upload Filed Inventory',
+    icon: 'Upload'
+  },
+
   // Phase 3: Creditor Claims
   'publish_creditor_notice': {
     type: 'modal',
@@ -152,7 +153,7 @@ export const TASK_ACTIONS: Record<string, TaskAction> = {
     label: 'View Accounting',
     icon: 'BarChart'
   },
-  
+
   // Phase 4: Liquidation
   'list_real_estate': {
     type: 'modal',
@@ -185,7 +186,7 @@ export const TASK_ACTIONS: Record<string, TaskAction> = {
     label: 'Close Accounts',
     icon: 'XCircle'
   },
-  
+
   // Phase 5: Final Distribution
   'file_distribution_petition': {
     type: 'navigate',

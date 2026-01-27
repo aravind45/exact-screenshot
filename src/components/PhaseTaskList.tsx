@@ -210,6 +210,76 @@ function TaskItem({ task, isCompleted, onToggle, getAlertIcon, getAlertColor, do
             )}
           </div>
 
+          {!isCompleted && (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {task.requiredDocs && task.requiredDocs.map((doc, idx) => {
+                const uploaded = documents.find(d => d.documentType === doc);
+                if (uploaded) return null;
+                return (
+                  <div key={idx} className="relative">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-7 px-3 text-[10px] bg-indigo-50 border-indigo-200 text-indigo-700 hover:bg-indigo-100 font-black uppercase tracking-wider gap-1.5"
+                    >
+                      <FileUp className="w-3 h-3" />
+                      Upload {doc}
+                    </Button>
+                    <input
+                      type="file"
+                      className="absolute inset-0 opacity-0 cursor-pointer"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) onUpload(doc, doc, file);
+                      }}
+                      disabled={isUploading}
+                    />
+                  </div>
+                );
+              })}
+
+              {task.id === 'file_petition' && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7 px-3 text-[10px] bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100 font-black uppercase tracking-wider gap-1.5"
+                  onClick={() => window.location.href = '/probate'}
+                >
+                  <FileText className="w-3 h-3" />
+                  Generate DE-111
+                </Button>
+              )}
+
+              {task.links && task.links.map((link, idx) => (
+                <Button
+                  key={idx}
+                  variant="outline"
+                  size="sm"
+                  className="h-7 px-3 text-[10px] bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100 font-black uppercase tracking-wider gap-1.5"
+                  onClick={() => window.open(link.url, '_blank')}
+                >
+                  <ExternalLink className="w-3 h-3" />
+                  {link.label}
+                </Button>
+              ))}
+            </div>
+          )}
+
+          {isCompleted && task.requiredDocs && task.requiredDocs.length > 0 && (
+            <div className="mt-2 flex gap-2">
+              {task.requiredDocs.map((doc, idx) => {
+                const uploaded = documents.find(d => d.documentType === doc);
+                if (!uploaded) return null;
+                return (
+                  <Badge key={idx} variant="secondary" className="bg-green-50 text-green-700 border-green-100 text-[9px] font-bold py-0 h-5">
+                    <CheckCircle2 className="w-3 h-3 mr-1" />
+                    {doc} Obtained
+                  </Badge>
+                );
+              })}
+            </div>
+          )}
+
           {/* Expanded Details */}
           {isExpanded && (
             <div className="mt-3 space-y-3 animate-in slide-in-from-top-2 duration-200">

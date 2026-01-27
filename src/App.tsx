@@ -27,6 +27,7 @@ import FollowUps from "./pages/FollowUps";
 import OnboardingWizard from "./pages/OnboardingWizard";
 import Assets from "./pages/Assets";
 import SettlementRoadmap from "./pages/SettlementRoadmap";
+import SettlementRoadmapNew from "./pages/SettlementRoadmapNew";
 import ProbatePetition from "./pages/ProbatePetition";
 import { EstateAgentChatWrapper } from "@/components/EstateAgentChatWrapper";
 
@@ -137,6 +138,14 @@ const App = () => (
                   path="/roadmap"
                   element={
                     <ProtectedRoute>
+                      <SettlementRoadmapNew />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/roadmap-old"
+                  element={
+                    <ProtectedRoute>
                       <SettlementRoadmap />
                     </ProtectedRoute>
                   }
@@ -173,7 +182,6 @@ const App = () => (
                     </ProtectedRoute>
                   }
                 />
-                <Route path="/roadmap" element={<ProtectedRoute><SettlementRoadmap /></ProtectedRoute>} />
                 <Route path="/probate/petition" element={<ProtectedRoute><ProbatePetition /></ProtectedRoute>} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />

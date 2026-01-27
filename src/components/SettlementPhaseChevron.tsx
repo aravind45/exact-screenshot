@@ -1,7 +1,7 @@
 import { Check, Clock, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export type SettlementPhase = 
+export type SettlementPhase =
   | "immediate_actions"
   | "court_filing"
   | "asset_discovery"
@@ -102,10 +102,11 @@ export function SettlementPhaseChevron({
                     "clip-chevron",
                     isCompleted && "bg-green-600",
                     isCurrent && phase.color,
-                    isUpcoming && "bg-slate-200"
+                    isUpcoming && "bg-slate-200",
+                    isCurrent && "scale-110 z-20 shadow-2xl ring-4 ring-white/30"
                   )}
                   style={{
-                    clipPath: index === 0 
+                    clipPath: index === 0
                       ? "polygon(0 0, calc(100% - 20px) 0, 100% 50%, calc(100% - 20px) 100%, 0 100%)"
                       : "polygon(20px 0, calc(100% - 20px) 0, 100% 50%, calc(100% - 20px) 100%, 20px 100%, 0 50%)"
                   }}
@@ -154,7 +155,7 @@ export function SettlementPhaseChevron({
                 {!isUpcoming && (
                   <div className="absolute inset-0 bg-white/0 hover:bg-white/10 transition-colors duration-200 pointer-events-none"
                     style={{
-                      clipPath: index === 0 
+                      clipPath: index === 0
                         ? "polygon(0 0, calc(100% - 20px) 0, 100% 50%, calc(100% - 20px) 100%, 0 100%)"
                         : "polygon(20px 0, calc(100% - 20px) 0, 100% 50%, calc(100% - 20px) 100%, 20px 100%, 0 50%)"
                     }}

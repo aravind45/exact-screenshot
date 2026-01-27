@@ -1,27 +1,33 @@
-
 import { motion } from "framer-motion";
-import { CheckCircle2, ArrowRight, Flag } from "lucide-react";
+import { CheckCircle2, ArrowRight, Flag, FileText, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { SETTLEMENT_PHASE_TASKS } from "@/config/settlementPhases";
+import { TASK_ACTIONS } from "@/config/taskActions";
 import { type SettlementPhase } from "@/components/SettlementPhaseChevron";
 
 interface CurrentMilestoneProps {
     currentPhase: SettlementPhase;
     progress: number;
+    completedTaskIds?: string[];
 }
 
-export function CurrentMilestone({ currentPhase, progress }: CurrentMilestoneProps) {
+export function CurrentMilestone({ currentPhase, progress, completedTaskIds = [] }: CurrentMilestoneProps) {
+    const navigate = useNavigate();
     const phaseData = SETTLEMENT_PHASE_TASKS.find(p => p.phase === currentPhase);
 
     if (!phaseData) return null;
 
+    // Find the current "Active" task - first one not completed
+    const nextTask = phaseData.tasks.find(t => !completedTaskIds.includes(t.id));
+    const nextAction = nextTask ? TASK_ACTIONS[nextTask.id] : null;
+
     return (
         <Card className="bg-white border-slate-200 shadow-sm overflow-hidden rounded-[32px]">
             <CardContent className="p-0">
-                <div className="flex flex-col md:flex-row items-center">
+                <div className="flex flex-col md:flex-row items-stretch">
                     {/* Visual Progress Side */}
                     <div className="p-8 bg-slate-900 text-white flex flex-col items-center justify-center md:w-1/3 text-center space-y-4">
                         <div className="relative w-32 h-32">
@@ -59,7 +65,7 @@ export function CurrentMilestone({ currentPhase, progress }: CurrentMilestonePro
                     </div>
 
                     {/* Content Side */}
-                    <div className="p-8 flex-1 space-y-6">
+                    <div className="p-8 flex-1 flex flex-col justify-between space-y-8">
                         <div className="space-y-2">
                             <div className="flex items-center gap-2 text-indigo-600">
                                 <Flag className="w-4 h-4" />
@@ -67,20 +73,43 @@ export function CurrentMilestone({ currentPhase, progress }: CurrentMilestonePro
                             </div>
                             <h2 className="text-3xl font-black text-slate-900 tracking-tight">{phaseData.title}</h2>
                             <p className="text-slate-600 leading-relaxed font-medium">
-                                {phaseData.subtitle}
+                                {phaseData.subtitle} • {phaseData.duration}
                             </p>
                         </div>
 
-                        <div className="flex flex-col sm:flex-row items-center gap-4 pt-2">
-                            <Button className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white px-8 h-12 rounded-2xl font-bold shadow-lg shadow-indigo-600/20 gap-2" asChild>
+                        {nextTask && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="p-5 bg-indigo-50 border border-indigo-100 rounded-[24px] group hover:border-indigo-300 transition-all cursor-pointer"
+                                onClick={() => nextAction?.type === 'navigate' ? navigate(nextAction.target) : navigate('/roadmap')}
+                            >
+                                <div className="flex items-start justify-between gap-4">
+                                    <div className="space-y-1">
+                                        <p className="text-[10px] font-black uppercase text-indigo-600 tracking-widest">Next Critical Step</p>
+                                        <h4 className="text-base font-black text-slate-900 leading-tight">{nextTask.title}</h4>
+                                        <p className="text-xs text-slate-600 font-medium">{nextTask.description}</p>
+                                    </div>
+                                    <div className="p-3 bg-white rounded-2xl shadow-sm group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                                        {nextAction?.icon === 'Upload' ? <Upload className="w-5 h-5" /> : <FileText className="w-5 h-5" />}
+                                    </div>
+                                </div>
+
+                                {nextAction && (
+                                    <div className="mt-4 flex items-center text-indigo-600 font-black text-[10px] uppercase tracking-widest">
+                                        {nextAction.label} <ArrowRight className="w-3 h-3 ml-2 group-hover:translate-x-1 transition-transform" />
+                                    </div>
+                                )}
+                            </motion.div>
+                        )}
+
+                        <div className="flex flex-col sm:flex-row items-center gap-4 pt-2 border-t border-slate-100 mt-auto pt-6">
+                            <Button className="w-full sm:w-auto bg-slate-100 hover:bg-slate-200 text-slate-900 px-8 h-12 rounded-2xl font-bold gap-2" asChild>
                                 <Link to="/roadmap">
-                                    Resume Roadmap
+                                    View Full Roadmap
                                     <ArrowRight className="w-4 h-4" />
                                 </Link>
                             </Button>
-                            <p className="text-xs text-slate-500 font-medium">
-                                Estimated time: <span className="text-slate-900 font-bold">{phaseData.duration}</span>
-                            </p>
                         </div>
                     </div>
                 </div>

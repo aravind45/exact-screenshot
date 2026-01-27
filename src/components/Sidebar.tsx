@@ -68,6 +68,13 @@ export function Sidebar() {
     navItems.push({ label: "Admin Console", icon: ShieldCheck, path: "/admin" });
     // }
 
+    const { data: estateData } = useQuery({
+        queryKey: ["estate"],
+        queryFn: api.getMyEstate,
+    });
+
+    const hasPendingDocs = estateData?.roadmapProgress?.completedTaskIds?.length === 0 || false; // Simple logic for demo
+
     return (
         <div className="w-64 h-screen bg-slate-900 text-slate-300 flex flex-col fixed left-0 top-0 z-50 border-r border-slate-800">
             {/* Brand */}
@@ -132,7 +139,12 @@ export function Sidebar() {
                             <item.icon className={`w-5 h-5 ${isActive(item.path) ? "text-primary" : "text-slate-500 group-hover:text-slate-300"}`} />
                             <span className={`text-sm font-medium ${isActive(item.path) ? "text-white" : ""}`}>{item.label}</span>
                         </div>
-                        {isActive(item.path) && <motion.div layoutId="nav-acc" className="w-1 h-4 bg-primary rounded-full" />}
+                        <div className="flex items-center gap-2">
+                            {item.label === "Roadmap" && (
+                                <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse shadow-[0_0_10px_rgba(245,158,11,0.5)]" />
+                            )}
+                            {isActive(item.path) && <motion.div layoutId="nav-acc" className="w-1 h-4 bg-primary rounded-full" />}
+                        </div>
                     </button>
                 ))}
             </nav>
