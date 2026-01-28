@@ -12,8 +12,10 @@ import {
     ArrowRight,
     ExternalLink,
     Info,
-    Search
+    Search,
+    HelpCircle
 } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -189,6 +191,24 @@ export function NonProbateHub() {
                             </div>
                             <Button className="w-full bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 text-[10px] font-bold h-8 uppercase tracking-wider">
                                 View Full Guide
+                            </Button>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="border-none shadow-md bg-blue-50/50 border-l-4 border-l-blue-500">
+                        <CardHeader className="pb-2">
+                            <div className="flex items-center gap-2">
+                                <HelpCircle className="w-4 h-4 text-blue-600" />
+                                <h4 className="text-xs font-bold uppercase text-blue-900 tracking-tight">Why track this?</h4>
+                            </div>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                            <p className="text-[10px] text-blue-800 leading-relaxed italic">
+                                Even in full probate, you must track non-probate assets for **tax reporting**
+                                and to ensure a **complete final accounting** for beneficiaries.
+                            </p>
+                            <Button variant="link" size="sm" className="p-0 h-auto text-[10px] font-bold text-blue-600" asChild>
+                                <Link to="/help">Read more in Help Center &rarr;</Link>
                             </Button>
                         </CardContent>
                     </Card>

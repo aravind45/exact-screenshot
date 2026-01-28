@@ -21,6 +21,7 @@ import {
     AlertCircle,
     CheckSquare,
     Heart,
+    HelpCircle,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -91,6 +92,12 @@ export function Sidebar() {
             ]
         },
         {
+            title: "Resources",
+            items: [
+                { label: "Help Center", icon: HelpCircle, path: "/help" },
+            ]
+        },
+        {
             title: "System",
             items: [
                 { label: "Profile", icon: User, path: "/profile" },
@@ -131,20 +138,6 @@ export function Sidebar() {
             {/* Primary Actions */}
             <div className="px-4 mb-8 space-y-2">
                 <p className="px-2 text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">Command actions</p>
-                <Button
-                    onClick={() => navigate('/add-asset')}
-                    className="w-full justify-start gap-3 bg-white/5 hover:bg-white/10 border-none text-white font-semibold h-11"
-                >
-                    <Plus className="w-4 h-4" />
-                    Add New Asset
-                </Button>
-                <Button
-                    onClick={() => navigate('/upload')}
-                    className="w-full justify-start gap-3 bg-white/5 hover:bg-white/10 border-none text-white font-semibold h-11"
-                >
-                    <FileText className="w-4 h-4" />
-                    Upload Statement
-                </Button>
                 <Button
                     onClick={() => navigate('/discovery')}
                     className="w-full justify-start gap-3 bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-11 shadow-lg shadow-primary/20"
