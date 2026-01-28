@@ -60,6 +60,8 @@ import { SettlementWorkflow } from "@/components/SettlementWorkflow";
 import { ProbateProgressMini } from "@/components/ProbateProgressMini";
 import { SmartEmailDraft } from "@/components/SmartEmailDraft";
 import { AssetValueTracker } from "@/components/financials/AssetValueTracker";
+import { Sidebar } from "@/components/Sidebar";
+import { AssetAuthorityBlocker } from "@/components/assets/AssetAuthorityBlocker";
 
 // Helper to normalize status/priority from DB
 const normalize = (str: string | null) => str?.toLowerCase() || '';
@@ -374,762 +376,722 @@ export default function AssetDetail() {
     if (uiAsset.category === 'financial') return ['Death Certificate', 'Claim Form'];
     if (uiAsset.category === 'property') return ['Deed', 'Appraisal'];
     if (uiAsset.category === 'insurance') return ['Death Certificate', 'Policy Document', 'Claim Form'];
-    return ['Death Certificate'];
-  };
 
-  const requiredDocs = getRequiredDocs();
+    const isLocked = asset.ownershipType === 'INDIVIDUAL' && estate?.probateStatus !== 'EXECUTOR_APPOINTED';
 
-  return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-40 glass border-b border-border/50">
-        <div className="section-container">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate(-1)}
-                className="gap-2"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                Back
-              </Button>
-            </div>
-
-            <div className="flex items-center gap-2">
-              {!isEditing ? (
-                <>
-                  <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
-                    <Pencil className="w-4 h-4 mr-2" />
-                    Edit Asset
-                  </Button>
-                  <Button variant="destructive" size="sm" onClick={handleDelete}>
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Delete
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Button variant="ghost" size="sm" onClick={() => setIsEditing(false)}>
-                    <X className="w-4 h-4 mr-2" />
-                    Cancel
-                  </Button>
-                  <Button variant="default" size="sm" onClick={handleSave} disabled={updateMutation.isPending}>
-                    {updateMutation.isPending ? "Saving..." : (
-                      <>
-                        <Save className="w-4 h-4 mr-2" />
-                        Save Changes
-                      </>
-                    )}
-                  </Button>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <main className="section-container py-8 space-y-6">
-
-        {/* Compact Asset Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm"
-        >
-          {isEditing ? (
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium">Institution Name</label>
-                  <Input
-                    value={formData.institution}
-                    onChange={(e) => setFormData({ ...formData, institution: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Account Value</label>
-                  <Input
-                    type="number"
-                    value={formData.value}
-                    onChange={(e) => setFormData({ ...formData, value: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Account Number</label>
-                  <Input
-                    value={formData.accountNumber}
-                    onChange={(e) => setFormData({ ...formData, accountNumber: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Category</label>
-                  <Select
-                    value={formData.category}
-                    onValueChange={(val) => setFormData({ ...formData, category: val })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select Category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="financial">Financial</SelectItem>
-                      <SelectItem value="retirement">Retirement</SelectItem>
-                      <SelectItem value="insurance">Insurance</SelectItem>
-                      <SelectItem value="property">Property</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-              <div className="flex items-center gap-4">
-                <div className={cn(
-                  'p-3 rounded-xl',
-                  uiAsset.category === 'retirement' && 'bg-violet-100 text-violet-600',
-                  uiAsset.category === 'financial' && 'bg-blue-100 text-blue-600',
-                  uiAsset.category === 'insurance' && 'bg-emerald-100 text-emerald-600',
-                  uiAsset.category === 'property' && 'bg-orange-100 text-orange-600',
-                )}>
-                  <CategoryIcon className="w-6 h-6" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-3">
-                    <h1 className="text-xl font-bold text-slate-900">{uiAsset.institution}</h1>
-                    <div className="flex items-center gap-1.5">
-                      <StatusBadge status={uiAsset.status} />
-                      <PriorityBadge priority={uiAsset.priority} />
-                    </div>
-                  </div>
-                  <p className="text-xs text-slate-500 font-medium">
-                    {uiAsset.type.replace(/_/g, ' ')} • Account {uiAsset.accountNumber}
-                  </p>
-                </div>
-                {!isEditing && (
+    return (
+      <div className="flex min-h-screen bg-[#F8FAFC]">
+        <Sidebar />
+        <div className="flex-1 ml-64 flex flex-col">
+          {/* Header */}
+          <header className="sticky top-0 z-40 glass border-b border-border/50 bg-white/80 backdrop-blur-md">
+            <div className="max-w-[1200px] w-full mx-auto px-6">
+              <div className="flex items-center justify-between h-16">
+                <div className="flex items-center gap-4">
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-7 text-[10px] font-bold uppercase tracking-widest text-indigo-600 bg-indigo-50 hover:bg-indigo-100 hover:text-indigo-700 gap-1.5"
-                    onClick={() => navigate(`/inbox?q=${encodeURIComponent(uiAsset.institution)}`)}
+                    onClick={() => navigate(-1)}
+                    className="gap-2"
                   >
-                    <HistoryIcon className="w-3.5 h-3.5" />
-                    View Audit Trail
+                    <ArrowLeft className="w-4 h-4" />
+                    Back
                   </Button>
-                )}
-              </div>
-              <div className="flex flex-col items-end">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Total Value</p>
-                <p className="text-2xl font-black text-slate-900 tracking-tight">
-                  {formatCurrency(uiAsset.value)}
-                </p>
-              </div>
-            </div>
-          )}
-        </motion.div>
-
-        {!isEditing && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <AssetValueTracker
-              assetId={uiAsset.id}
-              currentValue={uiAsset.value || 0}
-              dateOfDeathValue={uiAsset.dateOfDeathValue || 0}
-            />
-          </div>
-        )}
-
-        {/* Tabs for Details vs Guide vs Documents */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="mb-6">
-            <TabsTrigger value="workflow" className="gap-2">
-              <CheckSquare className="w-4 h-4 text-primary" />
-              Settlement Guide
-              {completedStepIds.length > 0 && (
-                <Badge variant="secondary" className="ml-1 h-5 px-1 bg-primary/10 text-primary border-none text-[10px]">
-                  {completedStepIds.length}/{getWorkflow(uiAsset.category).steps.length}
-                </Badge>
-              )}
-            </TabsTrigger>
-            <TabsTrigger value="details" className="gap-2">
-              <LayoutGrid className="w-4 h-4" />
-              Details & Logs
-            </TabsTrigger>
-            <TabsTrigger value="documents" className="gap-2">
-              <FileSearch className="w-4 h-4" />
-              Documents
-              <span className="ml-1 px-1.5 py-0.5 text-[10px] bg-muted rounded-full">
-                {documents?.length || 0}
-              </span>
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="workflow" className="mt-0">
-            {(() => {
-              const rec = calculateAuthorityRecommendation(assets, estate?.deceasedState || "CA");
-              const enhancedAsset = {
-                ...asset,
-                ownershipType: asset.ownershipType,
-                isSmallEstateEligible: rec.isEligibleForSmallEstate,
-                authorityType: rec.type
-              };
-
-              // BLOCKED Check: If asset is individual and probate isn't granted
-              const isLocked = asset.ownershipType === 'INDIVIDUAL' && estate?.probateStatus !== 'EXECUTOR_APPOINTED';
-              const workflow: WorkflowConfig = getWorkflow(asset.category);
-
-              if (isLocked) {
-                return (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="flex flex-col items-center justify-center p-12 bg-slate-50 border-2 border-dashed border-slate-200 rounded-3xl text-center space-y-6"
-                  >
-                    <div className="p-5 bg-amber-100 rounded-2xl">
-                      <Gavel className="w-10 h-10 text-amber-600" />
-                    </div>
-                    <div className="max-w-md space-y-2">
-                      <h2 className="text-2xl font-bold text-slate-900">Court Authority Required</h2>
-                      <p className="text-slate-600 font-medium leading-relaxed">
-                        This account was owned <span className="text-slate-900 font-bold">Individually</span>. {uiAsset.institution} will not allow you to settle this asset until the court issues your <strong>Letters (DE-150)</strong>.
-                      </p>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-lg pt-4">
-                      <div className="p-4 bg-white rounded-2xl border border-slate-200 shadow-sm text-left">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Scale className="w-4 h-4 text-violet-600" />
-                          <span className="text-[10px] font-bold uppercase text-slate-500">Legal Step</span>
-                        </div>
-                        <p className="text-xs font-bold text-slate-700">Obtain Letters Testamentary</p>
-                        <p className="text-[10px] text-slate-500 mt-1">Proof of your legal power to move this asset.</p>
-                      </div>
-                      <div className="p-4 bg-white rounded-2xl border border-slate-200 shadow-sm text-left">
-                        <div className="flex items-center gap-2 mb-2">
-                          <FileText className="w-4 h-4 text-blue-600" />
-                          <span className="text-[10px] font-bold uppercase text-slate-500">Document Needed</span>
-                        </div>
-                        <p className="text-xs font-bold text-slate-700">Form DE-150</p>
-                        <p className="text-[10px] text-slate-500 mt-1">Must be sealed/certified by the clerk.</p>
-                      </div>
-                    </div>
-
-                    <Button
-                      size="lg"
-                      className="px-8 bg-slate-900 hover:bg-slate-800 text-white font-bold h-14 rounded-2xl gap-2 shadow-xl shadow-slate-200"
-                      asChild
-                    >
-                      <Link to="/probate">
-                        Go to Probate Hub
-                        <ArrowRight className="w-4 h-4" />
-                      </Link>
-                    </Button>
-                  </motion.div>
-                );
-              }
-
-              // CELEBRATORY BANNER: If it was locked but now we have authority
-              const justUnlocked = asset.ownershipType === 'INDIVIDUAL' && estate?.probateStatus === 'EXECUTOR_APPOINTED' && completedStepIds.length === 0;
-
-              return (
-                <div className="space-y-6">
-                  <SettlementWorkflow
-                    asset={enhancedAsset}
-                    workflow={workflow}
-                    currentStepId={currentStepId}
-                    completedStepIds={completedStepIds}
-                    onStepSelect={handleStepSelect}
-                    onStepComplete={handleStepComplete}
-                    onLogCommunication={() => setShowCommDialog(true)}
-                    onSendFax={async () => {
-                      if (!asset.institutionFax) {
-                        toast({
-                          title: "Fax Number Missing",
-                          description: "Please update the institution fax number in the details section first.",
-                          variant: "destructive"
-                        });
-                        return;
-                      }
-
-                      try {
-                        const res = await api.sendFax({
-                          assetId: id!,
-                          faxNumber: asset.institutionFax,
-                          subject: `Estate Settlement: ${asset.institution} - ${asset.assetType}`,
-                          documentType: currentStepId
-                        });
-
-                        toast({
-                          title: "Fax Sent",
-                          description: res.message || "Your document has been queued for transmission.",
-                        });
-
-                        // Refetch asset/comms since status might have changed
-                        queryClient.invalidateQueries({ queryKey: ['asset', id] });
-                        queryClient.invalidateQueries({ queryKey: ['communications', id] });
-                      } catch (err: any) {
-                        toast({
-                          title: "Fax Failed",
-                          description: err.message,
-                          variant: "destructive"
-                        });
-                      }
-                    }}
-                    onGenerateLetter={handleGenerateLetter}
-                  />
-
-                  {/* Smart Document Checklist */}
-                  <div className="card-elevated p-6 space-y-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <FileCheck className="w-5 h-5 text-indigo-600" />
-                      <h3 className="font-bold text-slate-900">Settlement Checklist</h3>
-                    </div>
-
-                    <p className="text-xs text-slate-500">
-                      Based on this asset's ownership ({asset.ownershipType}) and value ({formatCurrency(asset.value)}),
-                      the following documents are required for settlement:
-                    </p>
-
-                    <div className="space-y-2 pt-2">
-                      {(() => {
-                        const authReq = getInstitutionAuthorityRequirement(
-                          uiAsset.assetType,
-                          uiAsset.category,
-                          uiAsset.value,
-                          uiAsset.ownershipType
-                        );
-
-                        const requirementsMap: Record<string, string[]> = {
-                          "BENEFICIARY_ONLY": ["Death Certificate (certified)"],
-                          "AFFIDAVIT_ACCEPTED": ["Death Certificate (certified)", "Small Estate Affidavit (DE-310)"],
-                          "LETTERS_REQUIRED": ["Death Certificate (certified)", "DE-150 Letters", "DE-111 Petition"],
-                          "LETTERS_PREFERRED": ["Death Certificate (certified)", "DE-150 Letters"],
-                          "VARIES": ["Death Certificate (certified)"]
-                        };
-
-                        const docs = requirementsMap[authReq.requirement] || ["Death Certificate (certified)"];
-
-                        return docs.map((docType, idx) => {
-                          const uploaded = estateDocuments.find(d =>
-                            d.documentType.toLowerCase().includes(docType.split('(')[0].trim().toLowerCase()) ||
-                            docType.toLowerCase().includes(d.name.toLowerCase())
-                          );
-
-                          return (
-                            <div key={idx} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100 group">
-                              <div className="flex items-center gap-3">
-                                {uploaded ? (
-                                  <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center">
-                                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                                  </div>
-                                ) : (
-                                  <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center">
-                                    <Clock className="w-4 h-4 text-slate-400" />
-                                  </div>
-                                )}
-                                <div>
-                                  <p className={cn("text-xs font-bold", uploaded ? "text-slate-900" : "text-slate-600")}>{docType}</p>
-                                  <p className="text-[10px] text-slate-500">{uploaded ? `Obtained ${new Date(uploaded.obtainedDate!).toLocaleDateString()}` : "Action Required"}</p>
-                                </div>
-                              </div>
-
-                              {uploaded ? (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-8 px-3 text-[10px] font-bold text-indigo-600 hover:bg-indigo-50"
-                                  onClick={() => window.open(api.getEstateDocumentDownloadUrl(uploaded.documentType), "_blank")}
-                                >
-                                  <Download className="w-3.5 h-3.5 mr-2" />
-                                  Download
-                                </Button>
-                              ) : (
-                                <Link to="/documents">
-                                  <Button variant="outline" size="sm" className="h-8 px-3 text-[10px] font-bold border-indigo-200 text-indigo-600 hover:bg-indigo-50">
-                                    Go to Vault
-                                    <ArrowRight className="w-3.5 h-3.5 ml-2" />
-                                  </Button>
-                                </Link>
-                              )}
-                            </div>
-                          );
-                        });
-                      })()}
-                    </div>
-                  </div>
                 </div>
-              );
-            })()}
-          </TabsContent>
 
-          <TabsContent value="details">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2 space-y-6">
-                {!isEditing && (
-                  <div className="bg-white rounded-3xl border border-slate-200 p-8 shadow-sm">
-                    <CommunicationLog assetId={id!} />
-                  </div>
-                )}
-
-                {/* Value Proposition: Why Use Pilar? */}
-                <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl p-8 text-white shadow-xl relative overflow-hidden">
-                  <div className="absolute top-0 right-0 p-4 opacity-10">
-                    <Scale className="w-24 h-24" />
-                  </div>
-                  <div className="relative z-10 space-y-4">
-                    <Badge className="bg-blue-500 text-white border-none px-3 py-1 font-black uppercase text-[10px] tracking-widest">Executor Protection</Badge>
-                    <h3 className="text-xl font-bold tracking-tight">Why log every email here?</h3>
-                    <p className="text-slate-300 text-sm leading-relaxed">
-                      Gmail is for chatting; **Pilar is for Probate.** Every interaction you log here is converted into a **Court-Admissible Audit Trail**.
-                    </p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-                      <div className="p-4 bg-white/5 rounded-2xl border border-white/10">
-                        <p className="text-xs font-bold text-blue-400 uppercase mb-1">Legal Liability</p>
-                        <p className="text-[11px] text-slate-400">Proves to the judge and heirs that you acted with maximum "Due Diligence."</p>
-                      </div>
-                      <div className="p-4 bg-white/5 rounded-2xl border border-white/10">
-                        <p className="text-xs font-bold text-emerald-400 uppercase mb-1">One-Click Report</p>
-                        <p className="text-[11px] text-slate-400">Export your entire verified history as a PDF for the final accounting.</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-6">
-                {/* Probate Progress Mini */}
-                <ProbateProgressMini />
-
-                {/* Authority Requirement */}
-                {(() => {
-                  const authReq = getInstitutionAuthorityRequirement(
-                    uiAsset.assetType,
-                    uiAsset.category,
-                    uiAsset.value,
-                    uiAsset.ownershipType
-                  );
-
-                  const getReqColor = (req: string) => {
-                    switch (req) {
-                      case "AFFIDAVIT_ACCEPTED": return "bg-green-50 border-green-100 text-green-900";
-                      case "LETTERS_PREFERRED": return "bg-amber-50 border-amber-100 text-amber-900";
-                      case "LETTERS_REQUIRED": return "bg-red-50 border-red-100 text-red-900";
-                      case "BENEFICIARY_ONLY": return "bg-blue-50 border-blue-100 text-blue-900";
-                      default: return "bg-slate-50 border-slate-100 text-slate-900";
-                    }
-                  };
-
-                  const getReqLabel = (req: string) => {
-                    switch (req) {
-                      case "AFFIDAVIT_ACCEPTED": return "Small Estate Affidavit Accepted";
-                      case "LETTERS_PREFERRED": return "Letters Testamentary Preferred";
-                      case "LETTERS_REQUIRED": return "Letters Testamentary Required";
-                      case "BENEFICIARY_ONLY": return "Direct Beneficiary Claim";
-                      default: return "Varies by Institution";
-                    }
-                  };
-
-                  return (
-                    <div className="card-elevated p-5 space-y-4">
-                      <div className="flex items-center justify-between">
-                        <h3 className="font-bold text-slate-900">Authority Required</h3>
-                        <Badge className={cn("text-[10px] font-black tracking-tighter", getReqColor(authReq.requirement))}>
-                          {getReqLabel(authReq.requirement)}
-                        </Badge>
-                      </div>
-
-                      {authReq.warning && (
-                        <div className="p-3 rounded-xl bg-amber-50 border border-amber-100">
-                          <p className="text-xs text-amber-900 font-medium leading-relaxed">
-                            ⚠️ {authReq.warning}
-                          </p>
-                        </div>
-                      )}
-
-                      {authReq.conditions && authReq.conditions.length > 0 && (
-                        <div className="space-y-2">
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Conditions</p>
-                          <div className="space-y-1.5">
-                            {authReq.conditions.map((cond, i) => (
-                              <div key={i} className="flex items-start gap-2">
-                                <div className="w-1 h-1 rounded-full bg-slate-400 mt-1.5 shrink-0" />
-                                <span className="text-xs text-slate-600 font-medium leading-tight">{cond}</span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })()}
-
-                <div className="card-elevated p-5 space-y-6">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-bold text-slate-900">Institutional Contact</h3>
-                    <Badge variant="outline" className="text-[10px] uppercase font-bold tracking-wider">{uiAsset.institution}</Badge>
-                  </div>
-
-                  {!isEditing && (
-                    <div className="space-y-6">
-                      <div className="space-y-2">
-                        {[
-                          { icon: Phone, label: "Phone", value: uiAsset.institutionPhone },
-                          { icon: Mail, label: "Email", value: uiAsset.institutionEmail },
-                          { icon: Printer, label: "Fax", value: uiAsset.institutionFax },
-                          { icon: Landmark, label: "Address", value: uiAsset.institutionAddress },
-                        ].map(({ icon: Icon, label, value }) => (
-                          <div key={label} className="flex items-center justify-between p-3 rounded-xl border border-transparent hover:border-border hover:bg-slate-50 transition-all group">
-                            <div className="flex items-center gap-3">
-                              <div className="p-2 rounded-lg bg-slate-100 group-hover:bg-white text-slate-400 group-hover:text-primary transition-colors">
-                                <Icon className="w-3.5 h-3.5" />
-                              </div>
-                              <div>
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter leading-none mb-1">{label}</p>
-                                <p className="text-sm font-semibold text-slate-700 truncate max-w-[140px]">{value}</p>
-                              </div>
-                            </div>
-                            {label === "Email" && value !== "N/A" && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-8 text-[10px] font-bold text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                                onClick={() => setShowDraftModal(true)}
-                              >
-                                Send Professional Draft
-                              </Button>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-
-                      <div className="p-3 bg-blue-50/50 rounded-xl border border-blue-100/50">
-                        <p className="text-[10px] text-blue-700 font-medium leading-relaxed">
-                          <strong>How to Send:</strong> Use your personal email (Gmail/Outlook) to send documents. Then, use the <strong>Log History</strong> tool to create your legal audit trail.
-                        </p>
-                      </div>
-
-                      <div className="space-y-2 pt-4 border-t border-border/50">
-                        {uiAsset.institutionUrl && uiAsset.institutionUrl !== 'N/A' && (
-                          <Button
-                            variant="outline"
-                            className="w-full justify-start gap-3 h-12 border-slate-200 hover:border-primary/30 transition-all rounded-xl shadow-sm text-slate-600 mb-2"
-                            asChild
-                          >
-                            <a
-                              href={(() => {
-                                const url = uiAsset.institutionUrl.startsWith('http') ? uiAsset.institutionUrl : `https://${uiAsset.institutionUrl}`;
-                                if (!estate) return url;
-                                const syncData = {
-                                  deceasedFirstName: estate.deceasedFirstName,
-                                  deceasedLastName: estate.deceasedLastName,
-                                  deceasedSSN: estate.deceasedSsn,
-                                  deceasedDOB: estate.deceasedDateOfBirth?.split('T')[0],
-                                  dateOfDeath: estate.deceasedDateOfDeath?.split('T')[0],
-                                };
-                                try {
-                                  const base64 = btoa(JSON.stringify(syncData));
-                                  return `${url}#ee_data=${base64}`;
-                                } catch (e) {
-                                  return url;
-                                }
-                              })()}
-                              target="_blank"
-                              rel="noreferrer"
-                            >
-                              <ExternalLink className="w-4 h-4" />
-                              <span className="font-bold text-xs uppercase tracking-wider">Visit {uiAsset.institution} Portal</span>
-                            </a>
-                          </Button>
+                <div className="flex items-center gap-2">
+                  {!isEditing ? (
+                    <>
+                      <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
+                        <Pencil className="w-4 h-4 mr-2" />
+                        Edit Asset
+                      </Button>
+                      <Button variant="destructive" size="sm" onClick={handleDelete}>
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Delete
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Button variant="ghost" size="sm" onClick={() => setIsEditing(false)}>
+                        <X className="w-4 h-4 mr-2" />
+                        Cancel
+                      </Button>
+                      <Button variant="default" size="sm" onClick={handleSave} disabled={updateMutation.isPending}>
+                        {updateMutation.isPending ? "Saving..." : (
+                          <>
+                            <Save className="w-4 h-4 mr-2" />
+                            Save Changes
+                          </>
                         )}
-                        <EnrichDataButton assetId={id!} onEnrichComplete={() => queryClient.invalidateQueries({ queryKey: ["asset", id] })} />
-                        {activeTab === 'workflow' && (
-                          <Button
-                            variant="default"
-                            size="lg"
-                            className="w-full gap-3 h-14 bg-gradient-to-r from-primary to-blue-600 hover:shadow-lg hover:shadow-primary/20 transition-all font-bold rounded-2xl border-none"
-                            onClick={handleGenerateLetter}
-                          >
-                            <FileText className="w-5 h-5" />
-                            Generate Settlement Notice
-                          </Button>
-                        )}
-                      </div>
-                    </div>
+                      </Button>
+                    </>
                   )}
                 </div>
               </div>
             </div>
-          </TabsContent>
+          </header>
 
-          <TabsContent value="documents">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="space-y-4">
-                <h3 className="font-semibold text-lg">Required Documents</h3>
-                <p className="text-sm text-muted-foreground">
-                  Based on this asset being a <strong>{uiAsset.category}</strong> asset.
-                </p>
-                <div className="space-y-2">
-                  {Array.isArray(requiredDocs) && requiredDocs.map(docName => {
-                    const isUploaded = Array.isArray(documents) && documents.some((d: any) => d && (d.type === docName || d.name?.includes(docName)));
-                    return (
-                      <div key={docName} className="flex items-center p-3 card-elevated">
-                        {isUploaded ? (
-                          <CheckCircle2 className="w-5 h-5 text-green-500 mr-3" />
-                        ) : (
-                          <AlertCircle className="w-5 h-5 text-orange-400 mr-3" />
-                        )}
-                        <span className={cn("text-sm font-medium", isUploaded && "line-through text-muted-foreground")}>
-                          {docName}
-                        </span>
-                      </div>
-                    )
-                  })}
-                </div>
+          <main className="max-w-[1240px] w-full mx-auto px-6 py-8 space-y-6">
+
+            {/* BLOCKER ALERT - Top of Page */}
+            {isLocked && (
+              <div className="animate-in slide-in-from-top duration-500">
+                <AssetAuthorityBlocker institutionName={uiAsset.institution} />
               </div>
+            )}
 
-              <div className="md:col-span-2 space-y-6">
-                <div className="card-elevated p-6">
-                  <h3 className="font-semibold mb-4 flex items-center gap-2">
-                    <Upload className="w-5 h-5" />
-                    Upload Document
-                  </h3>
-                  <div className="flex items-end gap-4">
-                    <div className="flex-1 space-y-2">
-                      <label className="text-sm font-medium">Document Type</label>
-                      <Select value={uploadType} onValueChange={setUploadType}>
+            {/* Compact Asset Header */}
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-white border border-slate-200 rounded-[32px] p-6 shadow-sm"
+            >
+              {isEditing ? (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-medium">Institution Name</label>
+                      <Input
+                        value={formData.institution}
+                        onChange={(e) => setFormData({ ...formData, institution: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium">Account Value</label>
+                      <Input
+                        type="number"
+                        value={formData.value}
+                        onChange={(e) => setFormData({ ...formData, value: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium">Account Number</label>
+                      <Input
+                        value={formData.accountNumber}
+                        onChange={(e) => setFormData({ ...formData, accountNumber: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium">Category</label>
+                      <Select
+                        value={formData.category}
+                        onValueChange={(val) => setFormData({ ...formData, category: val })}
+                      >
                         <SelectTrigger>
-                          <SelectValue />
+                          <SelectValue placeholder="Select Category" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="DEATH_CERTIFICATE">Death Certificate</SelectItem>
-                          <SelectItem value="CLAIM_FORM">Claim Form</SelectItem>
-                          <SelectItem value="WILL">Will / Trust</SelectItem>
-                          <SelectItem value="OTHER">Other</SelectItem>
+                          <SelectItem value="financial">Financial</SelectItem>
+                          <SelectItem value="retirement">Retirement</SelectItem>
+                          <SelectItem value="insurance">Insurance</SelectItem>
+                          <SelectItem value="property">Property</SelectItem>
+                          <SelectItem value="other">Other</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
-                    <div className="flex-1 space-y-2">
-                      <label className="text-sm font-medium">File</label>
-                      <Input type="file" onChange={(e) => setUploadFile(e.target.files?.[0] || null)} />
-                    </div>
-                    <Button onClick={handleUpload} disabled={!uploadFile || uploadMutation.isPending}>
-                      {uploadMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                      Upload
-                    </Button>
                   </div>
                 </div>
-
-                <div className="space-y-3">
-                  {/* Probate Authority Documents (The Golden Bridge) */}
-                  {(() => {
-                    const authorityDocs = Array.isArray(estateDocuments)
-                      ? [
-                        estateDocuments.find(d => d.documentType === 'DE-150'),
-                        estateDocuments.find(d => d.documentType === 'DE-140')
-                      ].filter(Boolean)
-                      : [];
-
-                    if (authorityDocs.length === 0) return null;
-
-                    return authorityDocs.map((doc: any) => (
-                      <div key={doc.id} className="card-elevated p-4 flex items-center justify-between border-violet-100 bg-violet-50/20">
-                        <div className="flex items-center gap-4">
-                          <div className="p-2 bg-violet-100 text-violet-600 rounded-lg">
-                            <Scale className="w-5 h-5" />
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <p className="font-bold text-violet-900">{doc.name}</p>
-                              <Badge className="bg-violet-600 text-[8px] uppercase font-black tracking-tighter h-4">Probate Authority</Badge>
-                            </div>
-                            <p className="text-[10px] text-violet-600 font-medium">{doc.documentType} • Court Certified Document</p>
-                          </div>
-                        </div>
-                        <a href={api.getEstateDocumentDownloadUrl(doc.documentType)} target="_blank" rel="noreferrer">
-                          <Button variant="ghost" size="sm" className="hover:bg-violet-100 text-violet-600">
-                            <Download className="w-4 h-4" />
-                          </Button>
-                        </a>
-                      </div>
-                    ));
-                  })()}
-
-                  {/* Asset-Specific Documents */}
-                  {Array.isArray(documents) && documents.map((doc: any) => (
-                    <div key={doc.id} className="card-elevated p-4 flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
-                          <File className="w-5 h-5" />
-                        </div>
-                        <div>
-                          <p className="font-medium">{doc.name}</p>
-                          <p className="text-xs text-muted-foreground">{doc.type} • {formatDate(doc.createdAt)}</p>
+              ) : (
+                <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className={cn(
+                      'p-3 rounded-2xl',
+                      uiAsset.category === 'retirement' && 'bg-violet-100 text-violet-600',
+                      uiAsset.category === 'financial' && 'bg-blue-100 text-blue-600',
+                      uiAsset.category === 'insurance' && 'bg-emerald-100 text-emerald-600',
+                      uiAsset.category === 'property' && 'bg-orange-100 text-orange-600',
+                    )}>
+                      <CategoryIcon className="w-8 h-8" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-3">
+                        <h1 className="text-2xl font-black text-slate-900 tracking-tight">{uiAsset.institution}</h1>
+                        <div className="flex items-center gap-1.5">
+                          <StatusBadge status={uiAsset.status} />
+                          <PriorityBadge priority={uiAsset.priority} />
                         </div>
                       </div>
-                      <a href={doc.fileUrl.startsWith('http') ? doc.fileUrl : `${import.meta.env.VITE_API_URL || ''}${doc.fileUrl}`} target="_blank" rel="noreferrer">
-                        <Button variant="ghost" size="sm">
-                          <Download className="w-4 h-4" />
-                        </Button>
-                      </a>
+                      <p className="text-xs text-slate-500 font-bold uppercase tracking-wider mt-1">
+                        {uiAsset.type.replace(/_/g, ' ')} • Account {uiAsset.accountNumber}
+                      </p>
                     </div>
-                  ))}
-                  {documents?.length === 0 && (!estateDocuments.find(d => d.documentType === 'DE-150')) && (
-                    <div className="text-center py-8 text-muted-foreground border-2 border-dashed rounded-xl">
-                      No documents uploaded yet.
-                    </div>
-                  )}
+                    {!isEditing && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 px-4 text-[10px] font-black uppercase tracking-widest text-indigo-600 bg-indigo-50 hover:bg-indigo-100 hover:text-indigo-700 gap-2 rounded-xl"
+                        onClick={() => navigate(`/inbox?q=${encodeURIComponent(uiAsset.institution)}`)}
+                      >
+                        <HistoryIcon className="w-3.5 h-3.5" />
+                        View Audit Trail
+                      </Button>
+                    )}
+                  </div>
+                  <div className="flex flex-col items-end">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Total Value</p>
+                    <p className="text-3xl font-black text-slate-900 tracking-tight">
+                      {formatCurrency(uiAsset.value)}
+                    </p>
+                  </div>
                 </div>
+              )}
+            </motion.div>
+
+            {!isEditing && (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <AssetValueTracker
+                  assetId={uiAsset.id}
+                  currentValue={uiAsset.value || 0}
+                  dateOfDeathValue={uiAsset.dateOfDeathValue || 0}
+                />
               </div>
-            </div>
-          </TabsContent>
-        </Tabs>
-      </main>
+            )}
 
-      {/* Communication Log Dialog */}
-      <CommunicationLogDialog
-        open={showCommDialog}
-        onOpenChange={setShowCommDialog}
-        onSubmit={(data) => createCommMutation.mutate(data)}
-        isLoading={createCommMutation.isPending}
-        assetId={id}
-        availableDocuments={[...(Array.isArray(estateDocuments) ? estateDocuments : []), ...(Array.isArray(documents) ? documents : [])]}
-        workflowContext={(() => {
-          const workflow = getWorkflow(asset.category);
-          const step = workflow.steps.find(s => s.id === currentStepId);
-          if (!step) return undefined;
+            {/* Tabs for Details vs Guide vs Documents */}
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="mb-6 bg-slate-100 p-1 rounded-2xl h-auto">
+                <TabsTrigger value="workflow" className="gap-2 rounded-xl py-2.5 data-[state=active]:shadow-sm">
+                  <CheckSquare className="w-4 h-4 text-primary" />
+                  Settlement Guide
+                  {completedStepIds.length > 0 && (
+                    <Badge variant="secondary" className="ml-1 h-5 px-1 bg-primary/10 text-primary border-none text-[10px]">
+                      {completedStepIds.length}/{getWorkflow(uiAsset.category).steps.length}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger value="details" className="gap-2 rounded-xl py-2.5 data-[state=active]:shadow-sm">
+                  <LayoutGrid className="w-4 h-4" />
+                  Details & Logs
+                </TabsTrigger>
+                <TabsTrigger value="documents" className="gap-2 rounded-xl py-2.5 data-[state=active]:shadow-sm">
+                  <FileSearch className="w-4 h-4" />
+                  Documents
+                  <span className="ml-1 px-1.5 py-0.5 text-[10px] bg-white/50 rounded-full">
+                    {documents?.length || 0}
+                  </span>
+                </TabsTrigger>
+              </TabsList>
 
-          const renderText = (text: string) => {
-            if (!text) return "";
-            return text
-              .replace(/{{institution}}/g, asset.institution || "Institution")
-              .replace(/{{deceasedName}}/g, estate ? `${estate.deceasedFirstName} ${estate.deceasedLastName}` : "the deceased")
-              .replace(/{{accountNumber}}/g, asset.accountNumber || "account");
-          };
+              <TabsContent value="workflow" className="mt-0">
+                {(() => {
+                  const rec = calculateAuthorityRecommendation(assets, estate?.deceasedState || "CA");
+                  const enhancedAsset = {
+                    ...asset,
+                    ownershipType: asset.ownershipType,
+                    isSmallEstateEligible: rec.isEligibleForSmallEstate,
+                    authorityType: rec.type
+                  };
 
-          return {
-            title: renderText(step.title),
-            description: renderText(step.description)
-          };
-        })()}
-      />
+                  // The BLOCKER logic is now handled at the top of the page.
+                  // We render the workflow regardless (or we could hide it, but user might want to see what's next).
+                  // Let's keep it visible but maybe disabled? 
+                  // For now, let's just render the workflow. The top alert is sufficient.
+                  const workflow: WorkflowConfig = getWorkflow(asset.category);
 
-      <SmartEmailDraft
-        open={showDraftModal}
-        onOpenChange={setShowDraftModal}
-        asset={uiAsset}
-        estate={estate}
-        onLogSent={(subject, content) => {
-          createCommMutation.mutate({
-            method: "email",
-            direction: "outbound",
-            subject,
-            notes: content,
-            type: "initial_contact",
-            occurredAt: new Date().toISOString().slice(0, 16),
-            statusChange: "none"
-          } as any);
-        }}
-      />
-    </div>
-  );
-}
+                  return (
+                    <div className={cn("space-y-6", isLocked && "opacity-50 pointer-events-none grayscale")}>
+                      {/* If locked, we overlay or just dim it? The top alert is better. Let's dim. */}
+
+                      <SettlementWorkflow
+                        asset={enhancedAsset}
+
+                        workflow={workflow}
+                        currentStepId={currentStepId}
+                        completedStepIds={completedStepIds}
+                        onStepSelect={handleStepSelect}
+                        onStepComplete={handleStepComplete}
+                        onLogCommunication={() => setShowCommDialog(true)}
+                        onSendFax={async () => {
+                          if (!asset.institutionFax) {
+                            toast({
+                              title: "Fax Number Missing",
+                              description: "Please update the institution fax number in the details section first.",
+                              variant: "destructive"
+                            });
+                            return;
+                          }
+
+                          try {
+                            const res = await api.sendFax({
+                              assetId: id!,
+                              faxNumber: asset.institutionFax,
+                              subject: `Estate Settlement: ${asset.institution} - ${asset.assetType}`,
+                              documentType: currentStepId
+                            });
+
+                            toast({
+                              title: "Fax Sent",
+                              description: res.message || "Your document has been queued for transmission.",
+                            });
+
+                            // Refetch asset/comms since status might have changed
+                            queryClient.invalidateQueries({ queryKey: ['asset', id] });
+                            queryClient.invalidateQueries({ queryKey: ['communications', id] });
+                          } catch (err: any) {
+                            toast({
+                              title: "Fax Failed",
+                              description: err.message,
+                              variant: "destructive"
+                            });
+                          }
+                        }}
+                        onGenerateLetter={handleGenerateLetter}
+                      />
+
+                      {/* Smart Document Checklist */}
+                      <div className="card-elevated p-6 space-y-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          <FileCheck className="w-5 h-5 text-indigo-600" />
+                          <h3 className="font-bold text-slate-900">Settlement Checklist</h3>
+                        </div>
+
+                        <p className="text-xs text-slate-500">
+                          Based on this asset's ownership ({asset.ownershipType}) and value ({formatCurrency(asset.value)}),
+                          the following documents are required for settlement:
+                        </p>
+
+                        <div className="space-y-2 pt-2">
+                          {(() => {
+                            const authReq = getInstitutionAuthorityRequirement(
+                              uiAsset.assetType,
+                              uiAsset.category,
+                              uiAsset.value,
+                              uiAsset.ownershipType
+                            );
+
+                            const requirementsMap: Record<string, string[]> = {
+                              "BENEFICIARY_ONLY": ["Death Certificate (certified)"],
+                              "AFFIDAVIT_ACCEPTED": ["Death Certificate (certified)", "Small Estate Affidavit (DE-310)"],
+                              "LETTERS_REQUIRED": ["Death Certificate (certified)", "DE-150 Letters", "DE-111 Petition"],
+                              "LETTERS_PREFERRED": ["Death Certificate (certified)", "DE-150 Letters"],
+                              "VARIES": ["Death Certificate (certified)"]
+                            };
+
+                            const docs = requirementsMap[authReq.requirement] || ["Death Certificate (certified)"];
+
+                            return docs.map((docType, idx) => {
+                              const uploaded = estateDocuments.find(d =>
+                                d.documentType.toLowerCase().includes(docType.split('(')[0].trim().toLowerCase()) ||
+                                docType.toLowerCase().includes(d.name.toLowerCase())
+                              );
+
+                              return (
+                                <div key={idx} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100 group">
+                                  <div className="flex items-center gap-3">
+                                    {uploaded ? (
+                                      <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center">
+                                        <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                                      </div>
+                                    ) : (
+                                      <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center">
+                                        <Clock className="w-4 h-4 text-slate-400" />
+                                      </div>
+                                    )}
+                                    <div>
+                                      <p className={cn("text-xs font-bold", uploaded ? "text-slate-900" : "text-slate-600")}>{docType}</p>
+                                      <p className="text-[10px] text-slate-500">{uploaded ? `Obtained ${new Date(uploaded.obtainedDate!).toLocaleDateString()}` : "Action Required"}</p>
+                                    </div>
+                                  </div>
+
+                                  {uploaded ? (
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-8 px-3 text-[10px] font-bold text-indigo-600 hover:bg-indigo-50"
+                                      onClick={() => window.open(api.getEstateDocumentDownloadUrl(uploaded.documentType), "_blank")}
+                                    >
+                                      <Download className="w-3.5 h-3.5 mr-2" />
+                                      Download
+                                    </Button>
+                                  ) : (
+                                    <Link to="/documents">
+                                      <Button variant="outline" size="sm" className="h-8 px-3 text-[10px] font-bold border-indigo-200 text-indigo-600 hover:bg-indigo-50">
+                                        Go to Vault
+                                        <ArrowRight className="w-3.5 h-3.5 ml-2" />
+                                      </Button>
+                                    </Link>
+                                  )}
+                                </div>
+                              );
+                            });
+                          })()}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </TabsContent>
+
+              <TabsContent value="details">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <div className="lg:col-span-2 space-y-6">
+                    {!isEditing && (
+                      <div className="bg-white rounded-3xl border border-slate-200 p-8 shadow-sm">
+                        <CommunicationLog assetId={id!} />
+                      </div>
+                    )}
+
+                    {/* Value Proposition: Why Use Pilar? */}
+                    <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl p-8 text-white shadow-xl relative overflow-hidden">
+                      <div className="absolute top-0 right-0 p-4 opacity-10">
+                        <Scale className="w-24 h-24" />
+                      </div>
+                      <div className="relative z-10 space-y-4">
+                        <Badge className="bg-blue-500 text-white border-none px-3 py-1 font-black uppercase text-[10px] tracking-widest">Executor Protection</Badge>
+                        <h3 className="text-xl font-bold tracking-tight">Why log every email here?</h3>
+                        <p className="text-slate-300 text-sm leading-relaxed">
+                          Gmail is for chatting; **Pilar is for Probate.** Every interaction you log here is converted into a **Court-Admissible Audit Trail**.
+                        </p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                          <div className="p-4 bg-white/5 rounded-2xl border border-white/10">
+                            <p className="text-xs font-bold text-blue-400 uppercase mb-1">Legal Liability</p>
+                            <p className="text-[11px] text-slate-400">Proves to the judge and heirs that you acted with maximum "Due Diligence."</p>
+                          </div>
+                          <div className="p-4 bg-white/5 rounded-2xl border border-white/10">
+                            <p className="text-xs font-bold text-emerald-400 uppercase mb-1">One-Click Report</p>
+                            <p className="text-[11px] text-slate-400">Export your entire verified history as a PDF for the final accounting.</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-6">
+                    {/* Probate Progress Mini */}
+                    <ProbateProgressMini />
+
+                    {/* Authority Requirement */}
+                    {(() => {
+                      const authReq = getInstitutionAuthorityRequirement(
+                        uiAsset.assetType,
+                        uiAsset.category,
+                        uiAsset.value,
+                        uiAsset.ownershipType
+                      );
+
+                      const getReqColor = (req: string) => {
+                        switch (req) {
+                          case "AFFIDAVIT_ACCEPTED": return "bg-green-50 border-green-100 text-green-900";
+                          case "LETTERS_PREFERRED": return "bg-amber-50 border-amber-100 text-amber-900";
+                          case "LETTERS_REQUIRED": return "bg-red-50 border-red-100 text-red-900";
+                          case "BENEFICIARY_ONLY": return "bg-blue-50 border-blue-100 text-blue-900";
+                          default: return "bg-slate-50 border-slate-100 text-slate-900";
+                        }
+                      };
+
+                      const getReqLabel = (req: string) => {
+                        switch (req) {
+                          case "AFFIDAVIT_ACCEPTED": return "Small Estate Affidavit Accepted";
+                          case "LETTERS_PREFERRED": return "Letters Testamentary Preferred";
+                          case "LETTERS_REQUIRED": return "Letters Testamentary Required";
+                          case "BENEFICIARY_ONLY": return "Direct Beneficiary Claim";
+                          default: return "Varies by Institution";
+                        }
+                      };
+
+                      return (
+                        <div className="card-elevated p-5 space-y-4">
+                          <div className="flex items-center justify-between">
+                            <h3 className="font-bold text-slate-900">Authority Required</h3>
+                            <Badge className={cn("text-[10px] font-black tracking-tighter", getReqColor(authReq.requirement))}>
+                              {getReqLabel(authReq.requirement)}
+                            </Badge>
+                          </div>
+
+                          {authReq.warning && (
+                            <div className="p-3 rounded-xl bg-amber-50 border border-amber-100">
+                              <p className="text-xs text-amber-900 font-medium leading-relaxed">
+                                ⚠️ {authReq.warning}
+                              </p>
+                            </div>
+                          )}
+
+                          {authReq.conditions && authReq.conditions.length > 0 && (
+                            <div className="space-y-2">
+                              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Conditions</p>
+                              <div className="space-y-1.5">
+                                {authReq.conditions.map((cond, i) => (
+                                  <div key={i} className="flex items-start gap-2">
+                                    <div className="w-1 h-1 rounded-full bg-slate-400 mt-1.5 shrink-0" />
+                                    <span className="text-xs text-slate-600 font-medium leading-tight">{cond}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
+
+                    <div className="card-elevated p-5 space-y-6">
+                      <div className="flex items-center justify-between">
+                        <h3 className="font-bold text-slate-900">Institutional Contact</h3>
+                        <Badge variant="outline" className="text-[10px] uppercase font-bold tracking-wider">{uiAsset.institution}</Badge>
+                      </div>
+
+                      {!isEditing && (
+                        <div className="space-y-6">
+                          <div className="space-y-2">
+                            {[
+                              { icon: Phone, label: "Phone", value: uiAsset.institutionPhone },
+                              { icon: Mail, label: "Email", value: uiAsset.institutionEmail },
+                              { icon: Printer, label: "Fax", value: uiAsset.institutionFax },
+                              { icon: Landmark, label: "Address", value: uiAsset.institutionAddress },
+                            ].map(({ icon: Icon, label, value }) => (
+                              <div key={label} className="flex items-center justify-between p-3 rounded-xl border border-transparent hover:border-border hover:bg-slate-50 transition-all group">
+                                <div className="flex items-center gap-3">
+                                  <div className="p-2 rounded-lg bg-slate-100 group-hover:bg-white text-slate-400 group-hover:text-primary transition-colors">
+                                    <Icon className="w-3.5 h-3.5" />
+                                  </div>
+                                  <div>
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter leading-none mb-1">{label}</p>
+                                    <p className="text-sm font-semibold text-slate-700 truncate max-w-[140px]">{value}</p>
+                                  </div>
+                                </div>
+                                {label === "Email" && value !== "N/A" && (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-8 text-[10px] font-bold text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                    onClick={() => setShowDraftModal(true)}
+                                  >
+                                    Send Professional Draft
+                                  </Button>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+
+                          <div className="p-3 bg-blue-50/50 rounded-xl border border-blue-100/50">
+                            <p className="text-[10px] text-blue-700 font-medium leading-relaxed">
+                              <strong>How to Send:</strong> Use your personal email (Gmail/Outlook) to send documents. Then, use the <strong>Log History</strong> tool to create your legal audit trail.
+                            </p>
+                          </div>
+
+                          <div className="space-y-2 pt-4 border-t border-border/50">
+                            {uiAsset.institutionUrl && uiAsset.institutionUrl !== 'N/A' && (
+                              <Button
+                                variant="outline"
+                                className="w-full justify-start gap-3 h-12 border-slate-200 hover:border-primary/30 transition-all rounded-xl shadow-sm text-slate-600 mb-2"
+                                asChild
+                              >
+                                <a
+                                  href={(() => {
+                                    const url = uiAsset.institutionUrl.startsWith('http') ? uiAsset.institutionUrl : `https://${uiAsset.institutionUrl}`;
+                                    if (!estate) return url;
+                                    const syncData = {
+                                      deceasedFirstName: estate.deceasedFirstName,
+                                      deceasedLastName: estate.deceasedLastName,
+                                      deceasedSSN: estate.deceasedSsn,
+                                      deceasedDOB: estate.deceasedDateOfBirth?.split('T')[0],
+                                      dateOfDeath: estate.deceasedDateOfDeath?.split('T')[0],
+                                    };
+                                    try {
+                                      const base64 = btoa(JSON.stringify(syncData));
+                                      return `${url}#ee_data=${base64}`;
+                                    } catch (e) {
+                                      return url;
+                                    }
+                                  })()}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                >
+                                  <ExternalLink className="w-4 h-4" />
+                                  <span className="font-bold text-xs uppercase tracking-wider">Visit {uiAsset.institution} Portal</span>
+                                </a>
+                              </Button>
+                            )}
+                            <EnrichDataButton assetId={id!} onEnrichComplete={() => queryClient.invalidateQueries({ queryKey: ["asset", id] })} />
+                            {activeTab === 'workflow' && (
+                              <Button
+                                variant="default"
+                                size="lg"
+                                className="w-full gap-3 h-14 bg-gradient-to-r from-primary to-blue-600 hover:shadow-lg hover:shadow-primary/20 transition-all font-bold rounded-2xl border-none"
+                                onClick={handleGenerateLetter}
+                              >
+                                <FileText className="w-5 h-5" />
+                                Generate Settlement Notice
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="documents">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="space-y-4">
+                    <h3 className="font-semibold text-lg">Required Documents</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Based on this asset being a <strong>{uiAsset.category}</strong> asset.
+                    </p>
+                    <div className="space-y-2">
+                      {Array.isArray(requiredDocs) && requiredDocs.map(docName => {
+                        const isUploaded = Array.isArray(documents) && documents.some((d: any) => d && (d.type === docName || d.name?.includes(docName)));
+                        return (
+                          <div key={docName} className="flex items-center p-3 card-elevated">
+                            {isUploaded ? (
+                              <CheckCircle2 className="w-5 h-5 text-green-500 mr-3" />
+                            ) : (
+                              <AlertCircle className="w-5 h-5 text-orange-400 mr-3" />
+                            )}
+                            <span className={cn("text-sm font-medium", isUploaded && "line-through text-muted-foreground")}>
+                              {docName}
+                            </span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="md:col-span-2 space-y-6">
+                    <div className="card-elevated p-6">
+                      <h3 className="font-semibold mb-4 flex items-center gap-2">
+                        <Upload className="w-5 h-5" />
+                        Upload Document
+                      </h3>
+                      <div className="flex items-end gap-4">
+                        <div className="flex-1 space-y-2">
+                          <label className="text-sm font-medium">Document Type</label>
+                          <Select value={uploadType} onValueChange={setUploadType}>
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="DEATH_CERTIFICATE">Death Certificate</SelectItem>
+                              <SelectItem value="CLAIM_FORM">Claim Form</SelectItem>
+                              <SelectItem value="WILL">Will / Trust</SelectItem>
+                              <SelectItem value="OTHER">Other</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="flex-1 space-y-2">
+                          <label className="text-sm font-medium">File</label>
+                          <Input type="file" onChange={(e) => setUploadFile(e.target.files?.[0] || null)} />
+                        </div>
+                        <Button onClick={handleUpload} disabled={!uploadFile || uploadMutation.isPending}>
+                          {uploadMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                          Upload
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
+                      {/* Probate Authority Documents (The Golden Bridge) */}
+                      {(() => {
+                        const authorityDocs = Array.isArray(estateDocuments)
+                          ? [
+                            estateDocuments.find(d => d.documentType === 'DE-150'),
+                            estateDocuments.find(d => d.documentType === 'DE-140')
+                          ].filter(Boolean)
+                          : [];
+
+                        if (authorityDocs.length === 0) return null;
+
+                        return authorityDocs.map((doc: any) => (
+                          <div key={doc.id} className="card-elevated p-4 flex items-center justify-between border-violet-100 bg-violet-50/20">
+                            <div className="flex items-center gap-4">
+                              <div className="p-2 bg-violet-100 text-violet-600 rounded-lg">
+                                <Scale className="w-5 h-5" />
+                              </div>
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <p className="font-bold text-violet-900">{doc.name}</p>
+                                  <Badge className="bg-violet-600 text-[8px] uppercase font-black tracking-tighter h-4">Probate Authority</Badge>
+                                </div>
+                                <p className="text-[10px] text-violet-600 font-medium">{doc.documentType} • Court Certified Document</p>
+                              </div>
+                            </div>
+                            <a href={api.getEstateDocumentDownloadUrl(doc.documentType)} target="_blank" rel="noreferrer">
+                              <Button variant="ghost" size="sm" className="hover:bg-violet-100 text-violet-600">
+                                <Download className="w-4 h-4" />
+                              </Button>
+                            </a>
+                          </div>
+                        ));
+                      })()}
+
+                      {/* Asset-Specific Documents */}
+                      {Array.isArray(documents) && documents.map((doc: any) => (
+                        <div key={doc.id} className="card-elevated p-4 flex items-center justify-between">
+                          <div className="flex items-center gap-4">
+                            <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
+                              <File className="w-5 h-5" />
+                            </div>
+                            <div>
+                              <p className="font-medium">{doc.name}</p>
+                              <p className="text-xs text-muted-foreground">{doc.type} • {formatDate(doc.createdAt)}</p>
+                            </div>
+                          </div>
+                          <a href={doc.fileUrl.startsWith('http') ? doc.fileUrl : `${import.meta.env.VITE_API_URL || ''}${doc.fileUrl}`} target="_blank" rel="noreferrer">
+                            <Button variant="ghost" size="sm">
+                              <Download className="w-4 h-4" />
+                            </Button>
+                          </a>
+                        </div>
+                      ))}
+                      {documents?.length === 0 && (!estateDocuments.find(d => d.documentType === 'DE-150')) && (
+                        <div className="text-center py-8 text-muted-foreground border-2 border-dashed rounded-xl">
+                          No documents uploaded yet.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </TabsContent>
+            </Tabs>
+          </main>
+
+          {/* Communication Log Dialog */}
+          <CommunicationLogDialog
+            open={showCommDialog}
+            onOpenChange={setShowCommDialog}
+            onSubmit={(data) => createCommMutation.mutate(data)}
+            isLoading={createCommMutation.isPending}
+            assetId={id}
+            availableDocuments={[...(Array.isArray(estateDocuments) ? estateDocuments : []), ...(Array.isArray(documents) ? documents : [])]}
+            workflowContext={(() => {
+              const workflow = getWorkflow(asset.category);
+              const step = workflow.steps.find(s => s.id === currentStepId);
+              if (!step) return undefined;
+
+              const renderText = (text: string) => {
+                if (!text) return "";
+                return text
+                  .replace(/{{institution}}/g, asset.institution || "Institution")
+                  .replace(/{{deceasedName}}/g, estate ? `${estate.deceasedFirstName} ${estate.deceasedLastName}` : "the deceased")
+                  .replace(/{{accountNumber}}/g, asset.accountNumber || "account");
+              };
+
+              return {
+                title: renderText(step.title),
+                description: renderText(step.description)
+              };
+            })()}
+          />
+
+          <SmartEmailDraft
+            open={showDraftModal}
+            onOpenChange={setShowDraftModal}
+            asset={uiAsset}
+            estate={estate}
+            onLogSent={(subject, content) => {
+              createCommMutation.mutate({
+                method: "email",
+                direction: "outbound",
+                subject,
+                notes: content,
+                type: "initial_contact",
+                occurredAt: new Date().toISOString().slice(0, 16),
+                statusChange: "none"
+              } as any);
+            }}
+          />
+        </div>
+      </div>
+    );
+  }
