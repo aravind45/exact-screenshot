@@ -50,6 +50,7 @@ import { useWorkflow } from "@/contexts/WorkflowContext";
 import { CurrentMilestone } from "@/components/dashboard/CurrentMilestone";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { SETTLEMENT_PHASE_TASKS } from "@/config/settlementPhases";
+import { ProbateChecklistWidget } from "@/components/dashboard/ProbateChecklistWidget";
 
 const normalize = (str: string | null) => str?.toLowerCase() || '';
 
@@ -292,12 +293,11 @@ export default function Dashboard() {
           </div>
 
 
-          {/* Current Milestone instead of full Roadmap */}
+
+          {/* Probate Roadmap Checklists */}
           <section>
-            <CurrentMilestone
-              currentPhase={currentPhase}
-              progress={overallProgress}
-              completedTaskIds={localCompletedTaskIds}
+            <ProbateChecklistWidget
+              estateType={estate?.estateType || "PROBATE"}
             />
           </section>
 
