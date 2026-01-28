@@ -10,6 +10,7 @@ export interface PhaseTask {
     type: "info" | "warning" | "important" | "caution";
     message: string;
   }[];
+  category?: "probate" | "court-issued";
   links?: {
     label: string;
     url: string;
@@ -172,6 +173,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         title: "File Petition for Probate (DE-111)",
         description: "Submit the probate petition to the Superior Court to open the estate case.",
         estimatedTime: "2-4 hours",
+        category: "probate",
         requiredDocs: [
           "Original Will",
           "Death Certificate (certified)",
@@ -191,6 +193,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         description: "Publish notice in a local newspaper for 3 consecutive weeks to notify creditors.",
         estimatedTime: "1 week",
         requiredDocs: ["Court Case Number"],
+        category: "probate",
         alerts: [
           {
             type: "important",
@@ -204,6 +207,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         description: "Send formal notice to all known creditors (banks, credit cards, medical providers).",
         estimatedTime: "2-3 hours",
         requiredDocs: ["DE-157 Notice to Creditors"],
+        category: "probate",
         alerts: [
           {
             type: "warning",
@@ -229,6 +233,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         title: "Receive Letters Testamentary (DE-150)",
         description: "Obtain certified copies of your Letters - this is your legal authority to act.",
         estimatedTime: "1-2 weeks after hearing",
+        category: "court-issued",
         alerts: [
           {
             type: "important",
@@ -290,6 +295,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         description: "List ALL assets with DOD values and attach appraisal reports.",
         estimatedTime: "1-2 weeks",
         requiredDocs: ["All DOD Statements", "Appraisal Reports"],
+        category: "court-issued",
         alerts: [
           {
             type: "warning",
@@ -302,6 +308,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         title: "File Inventory with Court",
         description: "Submit DE-160 to court and serve copies on all heirs.",
         estimatedTime: "1 day",
+        category: "probate",
         alerts: [
           {
             type: "info",

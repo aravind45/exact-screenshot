@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { motion, AnimatePresence } from "framer-motion";
+import { useToast } from "@/hooks/use-toast";
 
 interface EstateDocument {
     id: string;
@@ -62,6 +63,7 @@ export function DocumentVault() {
     const [editingId, setEditingId] = useState<string | null>(null);
     const [showAddForm, setShowAddForm] = useState(false);
     const [uploadingId, setUploadingId] = useState<string | null>(null);
+    const { toast } = useToast();
 
     const [formData, setFormData] = useState({
         documentType: "",
@@ -250,11 +252,70 @@ export function DocumentVault() {
                                         placeholder="Additional notes..."
                                     />
                                 </div>
+                                <div className="col-span-2 space-y-2">
+                                    <Label>Upload File (Optional)</Label>
+                                    <div className="flex items-center gap-3 p-3 border-2 border-dashed rounded-lg bg-white/50 hover:bg-white transition-colors">
+                                        <div className="p-2 bg-blue-50 rounded">
+                                            <Upload className="w-4 h-4 text-blue-600" />
+                                        </div>
+                                        <div className="flex-1">
+                                            <input
+                                                type="file"
+                                                id="new-doc-file"
+                                                className="hidden"
+                                                onChange={(e) => {
+                                                    const file = e.target.files?.[0];
+                                                    if (file) {
+                                                        const label = document.getElementById('file-label');
+                                                        if (label) label.textContent = file.name;
+                                                    }
+                                                }}
+                                            />
+                                            <p id="file-label" className="text-xs text-slate-500 font-medium">Click to select a PDF or image...</p>
+                                        </div>
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            className="h-7 text-[10px]"
+                                            onClick={() => document.getElementById('new-doc-file')?.click()}
+                                        >
+                                            Browse
+                                        </Button>
+                                    </div>
+                                </div>
                             </div>
                             <div className="flex gap-2 mt-4">
-                                <Button onClick={handleCreate} size="sm">
+                                <Button
+                                    onClick={async () => {
+                                        try {
+                                            const fileInput = document.getElementById('new-doc-file') as HTMLInputElement;
+                                            const file = fileInput?.files?.[0];
+
+                                            // 1. Create the document entry
+                                            const response = await api.createEstateDocument(formData);
+
+                                            // 2. If file exists, upload it to the newly created document
+                                            if (file && response?.id) {
+                                                await api.uploadEstateDocumentFile(response.id, file);
+                                            }
+
+                                            // 3. Refresh and close
+                                            await loadDocuments();
+                                            setShowAddForm(false);
+                                            resetForm();
+
+                                            toast({
+                                                title: "Success",
+                                                description: file ? "Document and file uploaded successfully." : "Document created successfully.",
+                                            });
+                                        } catch (error) {
+                                            console.error("Failed to create document/upload:", error);
+                                        }
+                                    }}
+                                    size="sm"
+                                >
                                     <Check className="w-4 h-4 mr-2" />
-                                    Create
+                                    {loading ? "Saving..." : "Create Document"}
                                 </Button>
                                 <Button onClick={() => { setShowAddForm(false); resetForm(); }} variant="outline" size="sm">
                                     <X className="w-4 h-4 mr-2" />

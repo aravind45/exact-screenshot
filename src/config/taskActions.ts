@@ -95,8 +95,8 @@ export const TASK_ACTIONS: Record<string, TaskAction> = {
   },
   'receive_letters': {
     type: 'navigate',
-    target: '/documents',
-    label: 'Upload Letters',
+    target: '/probate',
+    label: 'Upload Letters (DE-150)',
     icon: 'Upload',
     variant: 'primary'
   },
@@ -123,15 +123,15 @@ export const TASK_ACTIONS: Record<string, TaskAction> = {
   },
   'complete_inventory': {
     type: 'navigate',
-    target: '/probate/inventory-generator',
-    label: 'Generate DE-160',
+    target: '/probate',
+    label: 'Manage Inventory (DE-160)',
     icon: 'FileText',
     variant: 'primary'
   },
   'file_inventory': {
     type: 'navigate',
-    target: '/documents',
-    label: 'Upload Filed Inventory',
+    target: '/probate',
+    label: 'Upload Filed DE-160',
     icon: 'Upload'
   },
 
@@ -223,14 +223,14 @@ export const TASK_ACTIONS: Record<string, TaskAction> = {
   },
   'file_closing_statement': {
     type: 'navigate',
-    target: '/probate/closing-statement',
+    target: '/probate',
     label: 'Generate Statement',
     icon: 'FileText',
     variant: 'primary'
   },
   'discharge_executor': {
     type: 'navigate',
-    target: '/probate/closing-statement',
+    target: '/probate',
     label: 'Closing Statement',
     icon: 'CheckCircle'
   }

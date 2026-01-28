@@ -206,7 +206,13 @@ export function CollapsiblePhaseChevron({ onTaskToggle }: CollapsiblePhaseChevro
                           key={task.id}
                           className={cn(
                             "flex items-start gap-2.5 p-2.5 rounded-lg border transition-all",
-                            isTaskCompleted ? "bg-green-50 border-green-200" : "bg-white border-slate-200 hover:border-primary/30",
+                            isTaskCompleted
+                              ? "bg-green-50 border-green-200"
+                              : task.category === 'probate'
+                                ? "bg-amber-50 border-amber-200 hover:border-amber-400"
+                                : task.category === 'court-issued'
+                                  ? "bg-violet-50 border-violet-200 hover:border-violet-400"
+                                  : "bg-white border-slate-200 hover:border-primary/30",
                             isNext && "ring-2 ring-primary/20 border-primary shadow-sm"
                           )}
                         >
