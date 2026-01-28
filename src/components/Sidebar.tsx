@@ -80,7 +80,6 @@ export function Sidebar() {
             items: [
                 { label: "Asset Ledger", icon: Landmark, path: "/assets" },
                 { label: "Liabilities", icon: AlertCircle, path: "/liabilities" },
-                { label: "Discovery", icon: Search, path: "/discovery" },
             ]
         },
         {
@@ -139,7 +138,7 @@ export function Sidebar() {
             <div className="px-4 mb-8 space-y-2">
                 <p className="px-2 text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">Command actions</p>
                 <Button
-                    onClick={() => navigate('/discovery')}
+                    onClick={() => navigate('/assets?tab=detective')}
                     className="w-full justify-start gap-3 bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-11 shadow-lg shadow-primary/20"
                 >
                     <Zap className="w-4 h-4" />

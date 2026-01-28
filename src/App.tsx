@@ -17,7 +17,6 @@ import UploadDocument from "./pages/UploadDocument";
 import ProfileSettings from "./pages/ProfileSettings";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminInstitutions from "./pages/admin/AdminInstitutions";
-import Discovery from "./pages/Discovery";
 import Probate from "./pages/Probate";
 import Documents from "./pages/Documents";
 import NotFound from "./pages/NotFound";
@@ -94,14 +93,6 @@ const App = () => (
                     element={
                       <ProtectedRoute>
                         <UploadDocument />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/discovery"
-                    element={
-                      <ProtectedRoute>
-                        <Discovery />
                       </ProtectedRoute>
                     }
                   />
