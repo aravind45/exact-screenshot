@@ -459,40 +459,43 @@ export default function AssetDetail() {
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white border border-slate-200 rounded-[32px] p-6 shadow-sm"
+            className="bg-white border border-slate-200 rounded-[24px] p-5 shadow-sm"
           >
             {isEditing ? (
               <div className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                   <div>
-                    <label className="text-sm font-medium">Institution Name</label>
+                    <label className="text-[10px] font-black uppercase text-slate-400 mb-1 block">Institution Name</label>
                     <Input
                       value={formData.institution}
                       onChange={(e) => setFormData({ ...formData, institution: e.target.value })}
+                      className="h-10 rounded-xl"
                     />
                   </div>
                   <div>
-                    <label className="text-sm font-medium">Account Value</label>
+                    <label className="text-[10px] font-black uppercase text-slate-400 mb-1 block">Account Value</label>
                     <Input
                       type="number"
                       value={formData.value}
                       onChange={(e) => setFormData({ ...formData, value: e.target.value })}
+                      className="h-10 rounded-xl"
                     />
                   </div>
                   <div>
-                    <label className="text-sm font-medium">Account Number</label>
+                    <label className="text-[10px] font-black uppercase text-slate-400 mb-1 block">Account Number</label>
                     <Input
                       value={formData.accountNumber}
                       onChange={(e) => setFormData({ ...formData, accountNumber: e.target.value })}
+                      className="h-10 rounded-xl"
                     />
                   </div>
                   <div>
-                    <label className="text-sm font-medium">Category</label>
+                    <label className="text-[10px] font-black uppercase text-slate-400 mb-1 block">Category</label>
                     <Select
                       value={formData.category}
                       onValueChange={(val) => setFormData({ ...formData, category: val })}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="h-10 rounded-xl">
                         <SelectValue placeholder="Select Category" />
                       </SelectTrigger>
                       <SelectContent>
@@ -507,60 +510,59 @@ export default function AssetDetail() {
                 </div>
               </div>
             ) : (
-              <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-                <div className="flex items-center gap-4">
+              <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+                <div className="flex items-center gap-4 min-w-0">
                   <div className={cn(
-                    'p-3 rounded-2xl',
-                    uiAsset.category === 'retirement' && 'bg-violet-100 text-violet-600',
-                    uiAsset.category === 'financial' && 'bg-blue-100 text-blue-600',
-                    uiAsset.category === 'insurance' && 'bg-emerald-100 text-emerald-600',
-                    uiAsset.category === 'property' && 'bg-orange-100 text-orange-600',
+                    'p-3 rounded-2xl flex-shrink-0',
+                    uiAsset.category === 'retirement' && 'bg-violet-50 text-violet-600',
+                    uiAsset.category === 'financial' && 'bg-blue-50 text-blue-600',
+                    uiAsset.category === 'insurance' && 'bg-emerald-50 text-emerald-600',
+                    uiAsset.category === 'property' && 'bg-orange-50 text-orange-600',
                   )}>
-                    <CategoryIcon className="w-8 h-8" />
+                    <CategoryIcon className="w-6 h-6" />
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <div className="flex items-center gap-3">
-                      <h1 className="text-2xl font-black text-slate-900 tracking-tight">{uiAsset.institution}</h1>
-                      <div className="flex items-center gap-1.5">
+                      <h1 className="text-xl font-black text-slate-900 tracking-tight truncate">{uiAsset.institution}</h1>
+                      <div className="flex items-center gap-1.5 flex-shrink-0">
                         <StatusBadge status={uiAsset.status} />
                         <PriorityBadge priority={uiAsset.priority} />
                       </div>
                     </div>
-                    <p className="text-xs text-slate-500 font-bold uppercase tracking-wider mt-1">
-                      {uiAsset.type.replace(/_/g, ' ')} • Account {uiAsset.accountNumber}
+                    <div className="flex items-center gap-2 mt-1">
+                      <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+                        {uiAsset.type.replace(/_/g, ' ')} • Account {uiAsset.accountNumber}
+                      </p>
+                      <div className="h-3 w-px bg-slate-200 mx-1" />
+                      <button
+                        onClick={() => navigate(`/inbox?q=${encodeURIComponent(uiAsset.institution)}`)}
+                        className="text-[10px] font-black uppercase text-indigo-600 hover:text-indigo-700 hover:underline"
+                      >
+                        Audit Trail
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-8">
+                  <div className="hidden sm:block">
+                    <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-0.5">Value at Death</p>
+                    <p className="text-base font-bold text-slate-600">
+                      {formatCurrency(uiAsset.dateOfDeathValue || 0)}
                     </p>
                   </div>
-                  {!isEditing && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-8 px-4 text-[10px] font-black uppercase tracking-widest text-indigo-600 bg-indigo-50 hover:bg-indigo-100 hover:text-indigo-700 gap-2 rounded-xl"
-                      onClick={() => navigate(`/inbox?q=${encodeURIComponent(uiAsset.institution)}`)}
-                    >
-                      <HistoryIcon className="w-3.5 h-3.5" />
-                      View Audit Trail
-                    </Button>
-                  )}
-                </div>
-                <div className="flex flex-col items-end">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Total Value</p>
-                  <p className="text-3xl font-black text-slate-900 tracking-tight">
-                    {formatCurrency(uiAsset.value)}
-                  </p>
+                  <div className="w-px h-10 bg-slate-100 hidden sm:block" />
+                  <div className="text-right">
+                    <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-0.5">Current Value</p>
+                    <p className="text-2xl font-black text-slate-900 tracking-tight">
+                      {formatCurrency(uiAsset.value)}
+                    </p>
+                  </div>
                 </div>
               </div>
             )}
           </motion.div>
 
-          {!isEditing && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <AssetValueTracker
-                assetId={uiAsset.id}
-                currentValue={uiAsset.value || 0}
-                dateOfDeathValue={uiAsset.dateOfDeathValue || 0}
-              />
-            </div>
-          )}
 
           {/* Tabs for Details vs Guide vs Documents */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -749,29 +751,6 @@ export default function AssetDetail() {
                     </div>
                   )}
 
-                  {/* Value Proposition: Why Use Pilar? */}
-                  <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl p-8 text-white shadow-xl relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-4 opacity-10">
-                      <Scale className="w-24 h-24" />
-                    </div>
-                    <div className="relative z-10 space-y-4">
-                      <Badge className="bg-blue-500 text-white border-none px-3 py-1 font-black uppercase text-[10px] tracking-widest">Executor Protection</Badge>
-                      <h3 className="text-xl font-bold tracking-tight">Why log every email here?</h3>
-                      <p className="text-slate-300 text-sm leading-relaxed">
-                        Gmail is for chatting; **Pilar is for Probate.** Every interaction you log here is converted into a **Court-Admissible Audit Trail**.
-                      </p>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-                        <div className="p-4 bg-white/5 rounded-2xl border border-white/10">
-                          <p className="text-xs font-bold text-blue-400 uppercase mb-1">Legal Liability</p>
-                          <p className="text-[11px] text-slate-400">Proves to the judge and heirs that you acted with maximum "Due Diligence."</p>
-                        </div>
-                        <div className="p-4 bg-white/5 rounded-2xl border border-white/10">
-                          <p className="text-xs font-bold text-emerald-400 uppercase mb-1">One-Click Report</p>
-                          <p className="text-[11px] text-slate-400">Export your entire verified history as a PDF for the final accounting.</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
                 </div>
 
                 <div className="space-y-6">
@@ -861,34 +840,30 @@ export default function AssetDetail() {
                     {!isEditing && (
                       <div className="space-y-6">
                         <div className="space-y-2">
-                          {[
-                            { icon: Phone, label: "Phone", value: uiAsset.institutionPhone },
-                            { icon: Mail, label: "Email", value: uiAsset.institutionEmail },
-                            { icon: Printer, label: "Fax", value: uiAsset.institutionFax },
-                            { icon: Landmark, label: "Address", value: uiAsset.institutionAddress },
-                          ].map(({ icon: Icon, label, value }) => (
-                            <div key={label} className="flex items-center justify-between p-3 rounded-xl border border-transparent hover:border-border hover:bg-slate-50 transition-all group">
-                              <div className="flex items-center gap-3">
-                                <div className="p-2 rounded-lg bg-slate-100 group-hover:bg-white text-slate-400 group-hover:text-primary transition-colors">
-                                  <Icon className="w-3.5 h-3.5" />
+                          <div className="grid grid-cols-2 gap-3">
+                            {[
+                              { icon: Phone, label: "Phone", value: uiAsset.institutionPhone },
+                              { icon: Mail, label: "Email", value: uiAsset.institutionEmail },
+                              { icon: Printer, label: "Fax", value: uiAsset.institutionFax },
+                              { icon: Landmark, label: "Address", value: uiAsset.institutionAddress },
+                            ].map(({ icon: Icon, label, value }) => (
+                              <div key={label} className="p-3 rounded-xl border border-slate-100 bg-slate-50/50 hover:bg-slate-50 transition-all flex flex-col gap-1">
+                                <div className="flex items-center gap-2">
+                                  <Icon className="w-3 h-3 text-slate-400" />
+                                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-tighter">{label}</p>
                                 </div>
-                                <div>
-                                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter leading-none mb-1">{label}</p>
-                                  <p className="text-sm font-semibold text-slate-700 truncate max-w-[140px]">{value}</p>
-                                </div>
+                                <p className="text-xs font-bold text-slate-700 truncate">{value}</p>
+                                {label === "Email" && value !== "N/A" && (
+                                  <button
+                                    className="text-[9px] font-bold text-indigo-600 hover:underline text-left mt-1"
+                                    onClick={() => setShowDraftModal(true)}
+                                  >
+                                    Send Draft
+                                  </button>
+                                )}
                               </div>
-                              {label === "Email" && value !== "N/A" && (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-8 text-[10px] font-bold text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                                  onClick={() => setShowDraftModal(true)}
-                                >
-                                  Send Professional Draft
-                                </Button>
-                              )}
-                            </div>
-                          ))}
+                            ))}
+                          </div>
                         </div>
 
                         <div className="p-3 bg-blue-50/50 rounded-xl border border-blue-100/50">

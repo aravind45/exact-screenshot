@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Gavel, Scale, FileText } from "lucide-react";
+import { ArrowRight, Gavel, Scale, FileText, AlertCircle } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface AssetAuthorityBlockerProps {
@@ -10,50 +10,57 @@ interface AssetAuthorityBlockerProps {
 export function AssetAuthorityBlocker({ institutionName }: AssetAuthorityBlockerProps) {
     return (
         <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="flex flex-col items-center justify-center p-8 bg-amber-50/50 border border-amber-200 rounded-3xl text-center space-y-6 shadow-sm"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex flex-col md:flex-row items-center gap-6 p-5 bg-amber-50 border border-amber-200 rounded-3xl shadow-sm overflow-hidden relative"
         >
-            <div className="p-4 bg-amber-100 rounded-2xl ring-4 ring-amber-50">
-                <Gavel className="w-8 h-8 text-amber-600" />
-            </div>
-            <div className="max-w-xl space-y-2">
-                <h2 className="text-xl font-bold text-slate-900">Court Authority Required</h2>
-                <p className="text-slate-600 font-medium leading-relaxed">
-                    This account was owned <span className="text-slate-900 font-bold">Individually</span>.
-                    <span className="font-bold text-slate-800"> {institutionName}</span> will not allow you to settle this asset until the court issues your <strong>Letters (DE-150)</strong>.
-                </p>
+            {/* Background Decorative Element */}
+            <div className="absolute -left-4 -bottom-4 opacity-[0.03] pointer-events-none">
+                <Gavel className="w-24 h-24 text-amber-900 rotate-12" />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-lg pt-2">
-                <div className="p-4 bg-white rounded-2xl border border-slate-200 shadow-sm text-left hover:border-violet-200 transition-colors">
-                    <div className="flex items-center gap-2 mb-2">
-                        <Scale className="w-4 h-4 text-violet-600" />
-                        <span className="text-[10px] font-bold uppercase text-slate-500">Legal Step</span>
-                    </div>
-                    <p className="text-xs font-bold text-slate-700">Obtain Letters Testamentary</p>
-                    <p className="text-[10px] text-slate-500 mt-1">Proof of your legal power to move this asset.</p>
+            {/* Left: Icon & Core Message */}
+            <div className="flex flex-1 items-center gap-5 min-w-0 relative z-10">
+                <div className="p-3.5 bg-amber-100 rounded-2xl flex-shrink-0">
+                    <Gavel className="w-6 h-6 text-amber-600" />
                 </div>
-                <div className="p-4 bg-white rounded-2xl border border-slate-200 shadow-sm text-left hover:border-blue-200 transition-colors">
-                    <div className="flex items-center gap-2 mb-2">
-                        <FileText className="w-4 h-4 text-blue-600" />
-                        <span className="text-[10px] font-bold uppercase text-slate-500">Document Needed</span>
-                    </div>
-                    <p className="text-xs font-bold text-slate-700">Form DE-150</p>
-                    <p className="text-[10px] text-slate-500 mt-1">Must be sealed/certified by the clerk.</p>
+                <div className="min-w-0">
+                    <h2 className="text-sm font-black text-slate-900 uppercase tracking-wider mb-1 flex items-center gap-2">
+                        Court Authority Required
+                        <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
+                    </h2>
+                    <p className="text-[13px] text-slate-600 font-medium leading-tight">
+                        Owned <span className="text-slate-900 font-bold">Individually</span>. {institutionName} requires
+                        <span className="text-slate-900 font-bold"> Letters (DE-150)</span> to grant access.
+                    </p>
                 </div>
             </div>
 
-            <Button
-                size="lg"
-                className="px-8 bg-slate-900 hover:bg-slate-800 text-white font-bold h-12 rounded-xl gap-2 shadow-lg hover:shadow-xl transition-all"
-                asChild
-            >
-                <Link to="/probate">
-                    Go to Probate Hub
-                    <ArrowRight className="w-4 h-4" />
-                </Link>
-            </Button>
+            {/* Middle: Key Requirements Tags */}
+            <div className="flex flex-wrap items-center gap-3 relative z-10">
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 rounded-xl shadow-sm">
+                    <Scale className="w-3.5 h-3.5 text-violet-500" />
+                    <span className="text-[10px] font-bold text-slate-700 uppercase tracking-tight">Letters Testamentary</span>
+                </div>
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 rounded-xl shadow-sm">
+                    <FileText className="w-3.5 h-3.5 text-blue-500" />
+                    <span className="text-[10px] font-bold text-slate-700 uppercase tracking-tight">Form DE-150</span>
+                </div>
+            </div>
+
+            {/* Right: CTA */}
+            <div className="flex-shrink-0 relative z-10">
+                <Button
+                    size="sm"
+                    className="bg-slate-900 hover:bg-slate-800 text-white font-black text-[10px] uppercase tracking-widest h-10 px-6 rounded-xl gap-2 shadow-md shadow-slate-200"
+                    asChild
+                >
+                    <Link to="/probate">
+                        Resolve in Probate Hub
+                        <ArrowRight className="w-3 h-3" />
+                    </Link>
+                </Button>
+            </div>
         </motion.div>
     );
 }
