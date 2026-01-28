@@ -43,14 +43,19 @@ export default function Discovery() {
         setIsScanning(false);
         const newClues: DiscoveredClue[] = [];
 
+        console.log("Discovery Analysis Engine Received:", data);
+
         // 1. Convert Agent Insights (Forensic Clues)
-        if (data.agentInsights && data.agentInsights.length > 0) {
+        if (data.agentInsights && Array.isArray(data.agentInsights)) {
             data.agentInsights.forEach((insight: any, index: number) => {
-                const institution = insight.data?.institution || "Unknown";
-                const type = insight.data?.type || "account";
+                const institution = insight.data?.institution || "Unspecified Institution";
+                const type = insight.data?.type || insight.data?.assetType || "Financial Asset";
 
                 // Avoid visual duplicates in the findings list
-                const isDuplicate = newClues.some(c =>
+                const isDuplicate = clues.some(c =>
+                    c.institution.toLowerCase() === institution.toLowerCase() &&
+                    c.type.toLowerCase() === type.toLowerCase()
+                ) || newClues.some(c =>
                     c.institution.toLowerCase() === institution.toLowerCase() &&
                     c.type.toLowerCase() === type.toLowerCase()
                 );
@@ -58,8 +63,8 @@ export default function Discovery() {
                 if (!isDuplicate) {
                     newClues.push({
                         id: `clue-forensic-${Date.now()}-${index}`,
-                        title: insight.title,
-                        message: insight.message,
+                        title: insight.title || "Potential Asset Found",
+                        message: insight.message || "I've detected a possible financial lead in this document.",
                         institution,
                         type,
                         confidence: insight.data?.confidence || 0.85,
@@ -69,20 +74,28 @@ export default function Discovery() {
             });
         }
 
-        // 2. Capture the Primary Extraction as a clue if it's meaningful AND not duplicate
-        if (data.institution && data.institution !== "Unknown") {
-            const isDuplicate = newClues.some(c =>
-                c.institution.toLowerCase() === data.institution.toLowerCase() &&
-                c.type.toLowerCase() === (data.assetType || "account").toLowerCase()
+        // 2. Capture the Primary Extraction as a clue (even if institution is "Unknown", we can use assetType)
+        const primaryInstitution = data.institution && data.institution !== "Unknown" ? data.institution : null;
+        const primaryType = data.assetType || "Account";
+
+        if (primaryInstitution || data.assetType) {
+            const instName = primaryInstitution || "Newly Identified Account";
+
+            const isDuplicate = clues.some(c =>
+                c.institution.toLowerCase() === instName.toLowerCase() &&
+                c.type.toLowerCase() === primaryType.toLowerCase()
+            ) || newClues.some(c =>
+                c.institution.toLowerCase() === instName.toLowerCase() &&
+                c.type.toLowerCase() === primaryType.toLowerCase()
             );
 
             if (!isDuplicate) {
                 newClues.push({
                     id: `clue-primary-${Date.now()}`,
-                    title: "Primary Asset/Lead Identified",
-                    message: data.reasoningChain || `I've identified a record for ${data.institution}.`,
-                    institution: data.institution,
-                    type: data.assetType || "account",
+                    title: "Direct Document Extraction",
+                    message: data.reasoningChain || `I've successfully extracted record details for this ${primaryType}.`,
+                    institution: instName,
+                    type: primaryType,
                     confidence: 0.95,
                     added: false
                 });
@@ -98,7 +111,7 @@ export default function Discovery() {
         } else {
             toast({
                 title: "Analysis Complete",
-                description: "No hidden assets or leads were found in this specific document.",
+                description: "The Detective didn't find any specific new assets in this document, but has logged the scan.",
             });
         }
     };

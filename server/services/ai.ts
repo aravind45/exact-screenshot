@@ -102,26 +102,27 @@ export async function discoverRelatedAssets(text: string): Promise<DiscoveryClue
     - If you see a 1099-DIV: It proves a brokerage account or specific stock holdings exist.
     
     Also look for:
-    - Cryptocurrency keywords (BTC, ETH, Coinbase).
-    - Transfers to/from other banks (Vanguard, Fidelity, etc.)
-    - Mentions of "Consolidated" accounts or "Summary of other holdings"
-    - Multiple account types listed in one statement (e.g. "Your IRA ending in 4455")
-    - Dividends and Capital Gains reported.
+    - Cryptocurrency keywords (BTC, ETH, Coinbase, Binance).
+    - Transfers to/from other wealth managers (Vanguard, Fidelity, Charles Schwab, TD Ameritrade).
+    - Mentions of "Consolidated" accounts or "Summary of other holdings" (often found on page 1 or 2).
+    - Multiple account types listed in one statement (e.g. "Your IRA ending in 4455" mentioned in a checking statement).
+    - Dividends and Capital Gains reported on 1099-DIV.
+    - Life Insurance premiums paid or proceeds mentioned.
 
     Return JSON list of objects:
     {
       "clues": [
         {
-          "potentialAsset": "Brokerage, 401k, or Crypto",
-          "institution": "Robinhood, Vanguard, or Coinbase",
-          "sourceClue": "Direct evidence found (e.g. 1099-B Payer is Robinhood)",
+          "potentialAsset": "Brokerage, 401k, Checking, or Crypto",
+          "institution": "Robinhood, Vanguard, Coinbase, Wells Fargo, etc.",
+          "sourceClue": "Direct evidence text (e.g. 'ACH Transfer from Fidelity' or 'Payer is Robinhood')",
           "confidence": 0.98
         }
       ]
     }
     
-    Return empty list if no clear clues found.
-    Only return VERY high confidence clues (0.7+).`;
+    If no clear clues are found, still attempt to return the PRIMARY institution mentioned in the text as a clue.
+    Only return clues with confidence (0.5+).`;
 
     try {
         const completion = await groq.chat.completions.create({
