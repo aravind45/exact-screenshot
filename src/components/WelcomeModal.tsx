@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ProcessFlow } from "./ProcessFlow";
+import { TrackChevronList } from "./TrackChevronList";
 import { TRACK_STAGES, SettlementTrack } from "@/config/settlementStages";
 
 const TRACKS = [
@@ -120,27 +121,12 @@ export function WelcomeModal() {
                     </DialogDescription>
                 </DialogHeader>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 py-2">
-                    {TRACKS.map((track) => (
-                        <button
-                            key={track.id}
-                            onClick={() => setSelected(track.id)}
-                            className={`flex items-start gap-4 p-4 rounded-xl border-2 transition-all text-left ${selected === track.id
-                                ? "border-primary bg-primary/5 ring-4 ring-primary/5"
-                                : "border-border hover:border-border-hover bg-card hover:bg-muted/50"
-                                }`}
-                        >
-                            <div className={`p-2 rounded-lg ${track.bg} ${track.color}`}>
-                                <track.icon className="w-5 h-5" />
-                            </div>
-                            <div className="flex-1">
-                                <h3 className="font-bold text-sm">{track.title}</h3>
-                                <p className="text-[10px] text-muted-foreground mt-1 leading-relaxed">
-                                    {track.description}
-                                </p>
-                            </div>
-                        </button>
-                    ))}
+                <div className="py-2">
+                    <TrackChevronList
+                        tracks={TRACKS}
+                        selectedId={selected}
+                        onSelect={setSelected}
+                    />
                 </div>
 
                 <AnimatePresence>

@@ -68,8 +68,7 @@ export default function OnboardingWizard() {
                     deceasedLastName: lastNameParts.join(" ") || "",
                     deceasedDateOfDeath: new Date(estateData.dateOfDeath),
                     deceasedState: estateData.location,
-                    estimatedPersonalProperty: parseFloat(estateData.estimatedValue) || 0,
-                    estateType: parseFloat(estateData.estimatedValue) < 166250 ? "SMALL_ESTATE" : "PROBATE"
+                    estimatedPersonalProperty: parseFloat(estateData.estimatedValue) || 0
                 });
             } else if (currentStep === 3) { // Heirs
                 const validHeirs = heirs.filter(h => h.name.trim() !== "");
