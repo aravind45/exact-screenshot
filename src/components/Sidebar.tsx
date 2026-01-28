@@ -16,6 +16,10 @@ import {
     History,
     Bell,
     Map,
+    BookOpen,
+    Calculator,
+    AlertCircle,
+    CheckSquare,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -50,23 +54,47 @@ export function Sidebar() {
 
     const isActive = (path: string) => location.pathname === path;
 
-    const navItems = [
-        { label: "Overview", icon: LayoutDashboard, path: "/dashboard" },
-        { label: "Roadmap", icon: Map, path: "/roadmap" },
-        { label: "Probate", icon: Scale, path: "/probate" },
-        { label: "Petition", icon: FileText, path: "/probate/petition" },
-        { label: "Assets", icon: Landmark, path: "/assets" },
-        { label: "Follow-Ups", icon: Bell, path: "/follow-ups" },
-        { label: "Settlement Trail", icon: History, path: "/inbox" },
-        { label: "Discovery", icon: Search, path: "/discovery" },
-        { label: "Vault", icon: FileText, path: "/documents" },
-        { label: "Profile", icon: User, path: "/profile" },
+    const NAV_CATEGORIES = [
+        {
+            title: "Strategy",
+            items: [
+                { label: "Overview", icon: LayoutDashboard, path: "/dashboard" },
+                { label: "Roadmap", icon: Map, path: "/roadmap" },
+            ]
+        },
+        {
+            title: "Legal Workflow",
+            items: [
+                { label: "Probate Hub", icon: Scale, path: "/probate" },
+                { label: "Petition Wizard", icon: FileText, path: "/probate/petition/wizard" },
+                { label: "Accounting", icon: Calculator, path: "/accounting" },
+                { label: "Closing", icon: CheckSquare, path: "/probate/closing-statement" },
+            ]
+        },
+        {
+            title: "Inventory & Assets",
+            items: [
+                { label: "Asset Ledger", icon: Landmark, path: "/assets" },
+                { label: "Liabilities", icon: AlertCircle, path: "/liabilities" },
+                { label: "Discovery", icon: Search, path: "/discovery" },
+            ]
+        },
+        {
+            title: "Records & Tasks",
+            items: [
+                { label: "Follow-Ups", icon: Bell, path: "/follow-ups" },
+                { label: "Settlement Trail", icon: History, path: "/inbox" },
+                { label: "Document Vault", icon: Inbox, path: "/documents" },
+            ]
+        },
+        {
+            title: "System",
+            items: [
+                { label: "Profile", icon: User, path: "/profile" },
+                { label: "Admin Console", icon: ShieldCheck, path: "/admin" },
+            ]
+        }
     ];
-
-    // For demo/dev purposes, showing Admin Console to all users or ensure checking DB role
-    // if (user?.role === 'ADMIN') {
-    navItems.push({ label: "Admin Console", icon: ShieldCheck, path: "/admin" });
-    // }
 
     const { data: estateData } = useQuery({
         queryKey: ["estate"],
@@ -123,29 +151,42 @@ export function Sidebar() {
                 </Button>
             </div>
 
-            {/* Navigation */}
-            <nav className="flex-1 px-4 space-y-1">
-                <p className="px-2 text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">Navigation</p>
-                {navItems.map((item) => (
-                    <button
-                        key={item.label}
-                        onClick={() => navigate(item.path)}
-                        className={`
-              w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all group
-              ${isActive(item.path) ? "bg-primary/10 text-primary" : "hover:bg-white/5"}
-            `}
-                    >
-                        <div className="flex items-center gap-3">
-                            <item.icon className={`w-5 h-5 ${isActive(item.path) ? "text-primary" : "text-slate-500 group-hover:text-slate-300"}`} />
-                            <span className={`text-sm font-medium ${isActive(item.path) ? "text-white" : ""}`}>{item.label}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            {item.label === "Roadmap" && (
-                                <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse shadow-[0_0_10px_rgba(245,158,11,0.5)]" />
-                            )}
-                            {isActive(item.path) && <motion.div layoutId="nav-acc" className="w-1 h-4 bg-primary rounded-full" />}
-                        </div>
-                    </button>
+            {/* Navigation Categories */}
+            <nav className="flex-1 px-4 space-y-8 overflow-y-auto pb-4 custom-scrollbar">
+                {NAV_CATEGORIES.map((category) => (
+                    <div key={category.title} className="space-y-1">
+                        <p className="px-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-3 opacity-60">
+                            {category.title}
+                        </p>
+                        {category.items.map((item) => (
+                            <button
+                                key={item.label}
+                                onClick={() => navigate(item.path)}
+                                className={`
+                                    w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all group
+                                    ${isActive(item.path) ? "bg-primary/10 text-primary" : "hover:bg-white/5"}
+                                `}
+                            >
+                                <div className="flex items-center gap-3">
+                                    <item.icon className={`w-4 h-4 ${isActive(item.path) ? "text-primary" : "text-slate-500 group-hover:text-slate-300"}`} />
+                                    <span className={`text-[13px] font-semibold ${isActive(item.path) ? "text-white" : "text-slate-400 group-hover:text-slate-200"}`}>
+                                        {item.label}
+                                    </span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    {item.label === "Roadmap" && !isActive(item.path) && (
+                                        <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse shadow-[0_0_10px_rgba(245,158,11,0.5)]" />
+                                    )}
+                                    {isActive(item.path) && (
+                                        <motion.div
+                                            layoutId="nav-acc"
+                                            className="w-1 h-3 bg-primary rounded-full shadow-[0_0_8px_rgba(var(--primary-rgb),0.5)]"
+                                        />
+                                    )}
+                                </div>
+                            </button>
+                        ))}
+                    </div>
                 ))}
             </nav>
 
