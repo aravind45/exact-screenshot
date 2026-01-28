@@ -452,7 +452,7 @@ export const api = {
     processDocument: async (file: File, saveToVault: boolean = false, documentType?: string) => {
         const formData = new FormData();
         formData.append("file", file);
-        const url = new URL(`${API_URL}/documents/scan`);
+        const url = new URL(`${API_URL}/documents/scan`, window.location.origin);
         if (saveToVault) url.searchParams.append("saveToVault", "true");
         if (documentType) url.searchParams.append("documentType", documentType);
 
