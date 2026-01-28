@@ -62,7 +62,11 @@ router.post("/scan", uploadMemory.single("file"), async (req: any, res: Response
         } else if (req.file.mimetype.startsWith("image/")) {
             const imageBase64 = req.file.buffer.toString("base64");
             const extractedData = await analyzeDocument(undefined, imageBase64);
-            return res.json(extractedData);
+            const agentInsights = await AgentService.runDetectiveDiscovery("", imageBase64);
+            return res.json({
+                ...(extractedData || { institution: "Unknown", assetType: "Account", value: 0 }),
+                agentInsights
+            });
         } else {
             return res.status(400).json({ error: "Unsupported file type" });
         }

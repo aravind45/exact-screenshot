@@ -30,33 +30,41 @@ export async function analyzeDocument(text?: string, imageBase64?: string): Prom
     const prompt = `You are a forensic "Detective Agent" for the ExpectedEstate platform. 
     Analyze the provided document (Text or Image) to extract financial assets.
     
+    CRITICAL: Identify the INSTITUTION (Bank, Brokerage, Employer) and the ASSET TYPE.
+    
     SPECIAL HANDLING BY DOCUMENT TYPE:
     1. W-2:
        - institution: [Employer Name] from Box c.
        - assetType: If Box 13 "Retirement Plan" is checked, use "401k/Pension (Employer-sponsored)". Otherwise "Employment Record".
        - value: Box 1 "Wages" (Annual).
-    2. 1099-B / 1099-DIV / 1099-INT (Brokerage/Bank):
-       - institution: [Payer Name] (e.g. Robinhood, Fidelity, Charles Schwab, Chase). LOOK AT THE TOP HEADER OR "PAYER" SECTION.
-       - assetType: "Brokerage Account", "Cryptocurrency", or "Savings/Checking" based on the form.
-       - value: Total proceeds, dividends, or interest reported.
-    3. Form 1098-T (Education):
-       - institution: [School Name].
-       - assetType: "Education Credit/Expense".
+    2. 1099-B / 1099-DIV / 1099-INT / 1099-R:
+       - institution: [Payer Name] (e.g. Robinhood, Fidelity, Charles Schwab, Chase, Vanguard). 
+       - LOOK AT THE TOP HEADER, "PAYER NAME", OR FOOTER. 
+       - If you see "Robinhood Securities" or "Robinhood Financial", the institution is "Robinhood".
+       - assetType: "Brokerage Account", "Cryptocurrency", "IRA", or "Savings/Checking" based on the form.
+       - value: Look for "Total Proceeds", "Fair Market Value", or "Total Distribution".
+    3. Bank Statements:
+       - institution: Look for the logo or bank name at the very top.
+       - value: Ending Balance.
+       - assetType: Checking or Savings.
 
     Standard Fields for JSON:
-    - institution: Name of Bank, Brokerage, or Employer.
-    - accountNumber: Last 4 digits (if found).
-    - value: Numeric dollar amount reported.
-    - assetType: checking, brokerage, 401k, crypto, insurance, property, etc.
-    - category: financial, retirement, insurance, employer, etc.
-    - reasoningChain: 1-2 sentences on what clues were found.
-    - suggestNextSteps: 2-3 specific actions for an executor.
+    {
+      "institution": "Name of Bank, Brokerage, or Employer",
+      "accountNumber": "Last 4 digits",
+      "value": 1234.56,
+      "assetType": "checking, brokerage, 401k, crypto, insurance, property, etc.",
+      "category": "financial, retirement, insurance, employer, etc.",
+      "reasoningChain": "1-2 sentences on what clues were found.",
+      "suggestNextSteps": ["Step 1", "Step 2"]
+    }
     
+    If you cannot find the EXACT name, use the most likely candidate or "Unknown".
     Return ONLY valid JSON.`;
 
     try {
         const contentMessage: any[] = [];
-        if (text) contentMessage.push({ type: "text", text: `Analyze this document text: ${text.substring(0, 8000)}` });
+        if (text) contentMessage.push({ type: "text", text: `Analyze this document text:\n\n${text.substring(0, 10000)}` });
         if (imageBase64) contentMessage.push({
             type: "image_url",
             image_url: { url: `data:image/jpeg;base64,${imageBase64}` }
@@ -64,14 +72,8 @@ export async function analyzeDocument(text?: string, imageBase64?: string): Prom
 
         const completion = await groq.chat.completions.create({
             messages: [
-                {
-                    role: "system",
-                    content: prompt,
-                },
-                {
-                    role: "user",
-                    content: imageBase64 ? contentMessage : (text || ""),
-                },
+                { role: "system", content: prompt },
+                { role: "user", content: imageBase64 ? contentMessage : (text || "") },
             ],
             model: imageBase64 ? "llama-3.2-11b-vision-preview" : "llama-3.3-70b-versatile",
             temperature: 0,
@@ -81,9 +83,21 @@ export async function analyzeDocument(text?: string, imageBase64?: string): Prom
         const content = completion.choices[0]?.message?.content;
         if (!content) return null;
 
-        return JSON.parse(content) as ExtractedAsset;
+        const parsed = JSON.parse(content);
+        // Handle cases where AI might wrap the result in a key
+        const result = parsed.result || parsed.asset || parsed.extracted || parsed;
+
+        return {
+            institution: result.institution || "Unknown",
+            accountNumber: result.accountNumber,
+            value: typeof result.value === 'string' ? parseFloat(result.value.replace(/[^0-9.]/g, '')) : (result.value || 0),
+            assetType: result.assetType || "Account",
+            category: result.category || "financial",
+            reasoningChain: result.reasoningChain,
+            suggestNextSteps: result.suggestNextSteps
+        } as ExtractedAsset;
     } catch (error: any) {
-        console.error("AI Analysis Error:", error.message, error);
+        console.error("AI Analysis Error:", error.message);
         return null;
     }
 }
@@ -91,11 +105,11 @@ export async function analyzeDocument(text?: string, imageBase64?: string): Prom
 /**
  * The "Detective Agent": Scans documents for clues pointing to OTHER related assets.
  */
-export async function discoverRelatedAssets(text: string): Promise<DiscoveryClue[]> {
+export async function discoverRelatedAssets(text?: string, imageBase64?: string): Promise<DiscoveryClue[]> {
     const prompt = `You are a forensic "Detective Agent" for the ExpectedEstate platform. 
     Your mission is to find hidden financial assets by scanning the document text for "clues".
     
-    CRITICAL: You are specialized in TAX DOCUMENTS (W-2, 1099-INT, 1099-DIV, 1040).
+    CRITICAL: You are specialized in TAX DOCUMENTS (W-2, 1099-INT, 1099-DIV, 1040) and BANK STATEMENTS.
     - If you see a 1099-B / Brokerage Statement: Look for "Robinhood", "Public", "Coinbase", or "ETrade". This proves an active trading account.
     - If you see a W-2: Look at the "Employer" section. If "Retirement Plan" (Box 13) is checked, there IS a 401k/403b/Pension.
     - If you see a 1099-INT: It proves an account at the specified bank exists.
@@ -125,12 +139,19 @@ export async function discoverRelatedAssets(text: string): Promise<DiscoveryClue
     Only return clues with confidence (0.5+).`;
 
     try {
+        const contentMessage: any[] = [];
+        if (text) contentMessage.push({ type: "text", text: `Detect clues in this text:\n\n${text.substring(0, 10000)}` });
+        if (imageBase64) contentMessage.push({
+            type: "image_url",
+            image_url: { url: `data:image/jpeg;base64,${imageBase64}` }
+        });
+
         const completion = await groq.chat.completions.create({
             messages: [
                 { role: "system", content: prompt },
-                { role: "user", content: `Detect clues in this text:\n\n${text.substring(0, 10000)}` }
+                { role: "user", content: imageBase64 ? contentMessage : (text || "") }
             ],
-            model: "llama-3.3-70b-versatile",
+            model: imageBase64 ? "llama-3.2-11b-vision-preview" : "llama-3.3-70b-versatile",
             response_format: { type: "json_object" },
             temperature: 0,
         });

@@ -61,8 +61,8 @@ export class AgentService {
     /**
      * The Detective: Deep scan of a document to find hidden assets.
      */
-    static async runDetectiveDiscovery(text: string, estateId: string) {
-        const clues = await discoverRelatedAssets(text);
+    static async runDetectiveDiscovery(text: string, imageBase64: string = "") {
+        const clues = await discoverRelatedAssets(text || undefined, imageBase64 || undefined);
 
         const findings = clues.filter(c => c.confidence >= 0.7).map(clue => ({
             type: "HIDDEN_ASSET_DISCOVERED",

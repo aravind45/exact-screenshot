@@ -134,17 +134,6 @@ export function Sidebar() {
                 )}
             </div>
 
-            {/* Primary Actions */}
-            <div className="px-4 mb-8 space-y-2">
-                <p className="px-2 text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">Command actions</p>
-                <Button
-                    onClick={() => navigate('/assets?tab=detective')}
-                    className="w-full justify-start gap-3 bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-11 shadow-lg shadow-primary/20"
-                >
-                    <Zap className="w-4 h-4" />
-                    Detective Scan
-                </Button>
-            </div>
 
             {/* Navigation Categories */}
             <nav className="flex-1 px-4 space-y-8 overflow-y-auto pb-4 custom-scrollbar">
