@@ -20,6 +20,7 @@ import {
     Calculator,
     AlertCircle,
     CheckSquare,
+    Heart,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -66,6 +67,8 @@ export function Sidebar() {
             title: "Legal Workflow",
             items: [
                 { label: "Probate Hub", icon: Scale, path: "/probate" },
+                { label: "Non-Probate", icon: Zap, path: "/non-probate" },
+                { label: "Spousal Petition", icon: Heart, path: "/probate/spousal-petition" },
                 { label: "Petition Wizard", icon: FileText, path: "/probate/petition/wizard" },
                 { label: "Accounting", icon: Calculator, path: "/accounting" },
                 { label: "Closing", icon: CheckSquare, path: "/probate/closing-statement" },

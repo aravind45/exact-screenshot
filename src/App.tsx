@@ -37,6 +37,8 @@ import Distribution from "./pages/Distribution";
 import Receipts from "./pages/Receipts";
 import ClosingStatement from "./pages/ClosingStatement";
 import DistributionPetition from "./pages/DistributionPetition";
+import NonProbate from "./pages/NonProbate";
+import SpousalPropertyPetition from "./pages/SpousalPropertyPetition";
 import { EstateAgentChatWrapper } from "@/components/EstateAgentChatWrapper";
 
 const queryClient = new QueryClient();
@@ -253,6 +255,22 @@ const App = () => (
                     element={
                       <ProtectedRoute>
                         <DistributionPetition />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/non-probate"
+                    element={
+                      <ProtectedRoute>
+                        <NonProbate />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/probate/spousal-petition"
+                    element={
+                      <ProtectedRoute>
+                        <SpousalPropertyPetition />
                       </ProtectedRoute>
                     }
                   />
