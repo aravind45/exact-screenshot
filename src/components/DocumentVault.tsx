@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { cn } from "@/lib/utils";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,18 +44,26 @@ interface EstateDocument {
 
 const DOCUMENT_TYPES = [
     { value: "DEATH_CERTIFICATE", label: "Death Certificate", icon: FileText },
-    { value: "LETTERS_TESTAMENTARY", label: "Letters Testamentary", icon: FileCheck },
-    { value: "SMALL_ESTATE_AFFIDAVIT", label: "Small Estate Affidavit", icon: FileCheck },
+    { value: "LETTERS_TESTAMENTARY", label: "Letters Testamentary (DE-150)", icon: FileCheck },
+    { value: "SMALL_ESTATE_AFFIDAVIT", label: "Small Estate Affidavit (DE-310)", icon: FileCheck },
     { value: "EIN_LETTER", label: "EIN Letter (IRS)", icon: FileText },
     { value: "TRUST_CERTIFICATION", label: "Trust Certification", icon: FileText },
-    { value: "WILL", label: "Will", icon: FileText }
+    { value: "WILL", label: "Original Will", icon: FileText },
+    { value: "DE-111", label: "Petition for Probate (DE-111)", icon: FileText },
+    { value: "DE-160", label: "Inventory & Appraisal (DE-160)", icon: FileText }
+];
+
+const FOUNDATION_DOCUMENTS = [
+    { type: "DEATH_CERTIFICATE", label: "Death Certificate", roadmapId: "notify_ssa", note: "Required for SSA & Social Security." },
+    { type: "WILL", label: "Original Will", roadmapId: "locate_will", note: "Must be located to prove legal intent." },
+    { type: "LETTERS_TESTAMENTARY", label: "Letters Testamentary (DE-150)", roadmapId: "receive_letters", note: "The legal authority to move assets." },
 ];
 
 const STATUS_CONFIG = {
-    NOT_STARTED: { label: "Not Started", color: "bg-gray-500", icon: AlertCircle },
-    PENDING: { label: "Pending", color: "bg-yellow-500", icon: Clock },
-    OBTAINED: { label: "Obtained", color: "bg-green-500", icon: CheckCircle2 },
-    EXPIRED: { label: "Expired", color: "bg-red-500", icon: X }
+    NOT_STARTED: { label: "Not Started", color: "bg-gray-500", icon: Clock },
+    PENDING: { label: "Pending", color: "bg-amber-500", icon: Clock },
+    OBTAINED: { label: "Obtained", color: "bg-emerald-500", icon: CheckCircle2 },
+    EXPIRED: { label: "Expired", color: "bg-rose-500", icon: X }
 };
 
 export function DocumentVault() {
@@ -63,6 +72,7 @@ export function DocumentVault() {
     const [editingId, setEditingId] = useState<string | null>(null);
     const [showAddForm, setShowAddForm] = useState(false);
     const [uploadingId, setUploadingId] = useState<string | null>(null);
+    const [file, setFile] = useState<File | null>(null);
     const { toast } = useToast();
 
     const [formData, setFormData] = useState({
@@ -133,10 +143,41 @@ export function DocumentVault() {
         }
     };
 
-    const handleFileUpload = async (id: string, file: File) => {
+    const handleSyncRoadmap = async (roadmapId: string) => {
+        try {
+            const estate = await api.getMyEstate();
+            if (!estate) return;
+
+            const completedTaskIds = estate.roadmapProgress?.completedTaskIds || [];
+            if (!completedTaskIds.includes(roadmapId)) {
+                const newIds = [...completedTaskIds, roadmapId];
+                await api.updateRoadmap({
+                    completedTaskIds: newIds,
+                    completedPhases: estate.roadmapProgress?.completedPhases || [],
+                    taskId: roadmapId,
+                    action: 'COMPLETED'
+                });
+                toast({
+                    title: "Roadmap Sync",
+                    description: `Automatically marked roadmap task as "Complete".`,
+                });
+            }
+        } catch (err) {
+            console.error("Failed to sync roadmap:", err);
+        }
+    };
+
+    const handleFileUpload = async (id: string, file: File, docType: string) => {
         setUploadingId(id);
         try {
             await api.uploadEstateDocumentFile(id, file);
+
+            // Check for roadmap sync
+            const foundation = FOUNDATION_DOCUMENTS.find(f => f.type === docType);
+            if (foundation) {
+                await handleSyncRoadmap(foundation.roadmapId);
+            }
+
             await loadDocuments();
         } catch (error) {
             console.error("Failed to upload file:", error);
@@ -201,16 +242,28 @@ export function DocumentVault() {
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: "auto" }}
                             exit={{ opacity: 0, height: 0 }}
-                            className="mb-6 p-4 border rounded-lg bg-gray-50"
+                            className="mb-6 p-6 border rounded-[24px] bg-slate-50/50 shadow-inner"
                         >
-                            <h3 className="font-semibold mb-4">Add New Document</h3>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <Label>Document Type</Label>
+                            <div className="flex items-center justify-between mb-6">
+                                <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                                    <Plus className="w-4 h-4 text-indigo-600" />
+                                    New Document Entry
+                                </h3>
+                                <button onClick={() => setShowAddForm(false)} className="text-slate-400 hover:text-slate-600">
+                                    <X className="w-4 h-4" />
+                                </button>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <Label className="text-[10px] font-black uppercase text-slate-500 tracking-widest pl-1">Document Type</Label>
                                     <select
-                                        className="w-full mt-1 p-2 border rounded"
+                                        className="w-full h-11 px-4 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none appearance-none cursor-pointer"
                                         value={formData.documentType}
-                                        onChange={(e) => setFormData({ ...formData, documentType: e.target.value })}
+                                        onChange={(e) => {
+                                            const type = DOCUMENT_TYPES.find(t => t.value === e.target.value);
+                                            setFormData({ ...formData, documentType: e.target.value, name: type?.label || "" });
+                                        }}
                                     >
                                         <option value="">Select type...</option>
                                         {DOCUMENT_TYPES.map((type) => (
@@ -220,111 +273,197 @@ export function DocumentVault() {
                                         ))}
                                     </select>
                                 </div>
-                                <div>
-                                    <Label>Document Name</Label>
+                                <div className="space-y-2">
+                                    <Label className="text-[10px] font-black uppercase text-slate-500 tracking-widest pl-1">Display Name</Label>
                                     <Input
                                         value={formData.name}
                                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                        placeholder="e.g., Certified Death Certificate"
+                                        placeholder="e.g. Health Directive"
+                                        className="h-11 px-4 rounded-xl border-slate-200 focus:ring-indigo-500/20"
                                     />
                                 </div>
-                                <div>
-                                    <Label>Total Copies</Label>
-                                    <Input
-                                        type="number"
-                                        value={formData.totalCopies}
-                                        onChange={(e) => setFormData({ ...formData, totalCopies: parseInt(e.target.value) || 0 })}
-                                    />
-                                </div>
-                                <div>
-                                    <Label>Issuing Authority</Label>
-                                    <Input
-                                        value={formData.issuingAuthority}
-                                        onChange={(e) => setFormData({ ...formData, issuingAuthority: e.target.value })}
-                                        placeholder="e.g., Los Angeles County"
-                                    />
-                                </div>
-                                <div className="col-span-2">
-                                    <Label>Notes</Label>
-                                    <Textarea
-                                        value={formData.notes}
-                                        onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                                        placeholder="Additional notes..."
-                                    />
-                                </div>
-                                <div className="col-span-2 space-y-2">
-                                    <Label>Upload File (Optional)</Label>
-                                    <div className="flex items-center gap-3 p-3 border-2 border-dashed rounded-lg bg-white/50 hover:bg-white transition-colors">
-                                        <div className="p-2 bg-blue-50 rounded">
-                                            <Upload className="w-4 h-4 text-blue-600" />
-                                        </div>
-                                        <div className="flex-1">
-                                            <input
-                                                type="file"
-                                                id="new-doc-file"
-                                                className="hidden"
-                                                onChange={(e) => {
-                                                    const file = e.target.files?.[0];
-                                                    if (file) {
-                                                        const label = document.getElementById('file-label');
-                                                        if (label) label.textContent = file.name;
-                                                    }
-                                                }}
-                                            />
-                                            <p id="file-label" className="text-xs text-slate-500 font-medium">Click to select a PDF or image...</p>
-                                        </div>
-                                        <Button
-                                            size="sm"
-                                            variant="outline"
-                                            className="h-7 text-[10px]"
-                                            onClick={() => document.getElementById('new-doc-file')?.click()}
-                                        >
-                                            Browse
-                                        </Button>
+
+                                <div className="col-span-1 md:col-span-2 space-y-2">
+                                    <Label className="text-[10px] font-black uppercase text-slate-500 tracking-widest pl-1">Upload File (Optional)</Label>
+                                    <div
+                                        className="relative group/upload h-32 border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center hover:border-indigo-300 hover:bg-white transition-all cursor-pointer overflow-hidden bg-white/50"
+                                        onClick={() => document.getElementById('new-doc-file')?.click()}
+                                    >
+                                        {formData.name && (file?.name) ? (
+                                            <div className="flex flex-col items-center gap-2">
+                                                <div className="p-2 bg-emerald-100 rounded-lg text-emerald-600">
+                                                    <FileText className="w-6 h-6" />
+                                                </div>
+                                                <p className="text-xs font-bold text-slate-700">{file.name}</p>
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => { e.stopPropagation(); setFile(null); }}
+                                                    className="text-[10px] text-red-500 hover:underline font-bold"
+                                                >
+                                                    Remove
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <>
+                                                <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center mb-2 group-hover/upload:scale-110 transition-transform">
+                                                    <Upload className="w-5 h-5 text-slate-400 group-hover/upload:text-indigo-500" />
+                                                </div>
+                                                <p className="text-xs font-bold text-slate-500 group-hover/upload:text-slate-700">Click to select or drag and drop</p>
+                                                <p className="text-[9px] text-slate-400 mt-1 font-medium italic">Max size 10MB</p>
+                                            </>
+                                        )}
+                                        <input
+                                            type="file"
+                                            id="new-doc-file"
+                                            className="hidden"
+                                            onChange={(e) => setFile(e.target.files?.[0] || null)}
+                                            accept=".pdf,.jpg,.jpeg,.png"
+                                        />
                                     </div>
                                 </div>
                             </div>
-                            <div className="flex gap-2 mt-4">
+
+                            <div className="flex flex-col sm:flex-row gap-3 mt-8">
                                 <Button
                                     onClick={async () => {
                                         try {
-                                            const fileInput = document.getElementById('new-doc-file') as HTMLInputElement;
-                                            const file = fileInput?.files?.[0];
-
-                                            // 1. Create the document entry
                                             const response = await api.createEstateDocument(formData);
-
-                                            // 2. If file exists, upload it to the newly created document
                                             if (file && response?.id) {
                                                 await api.uploadEstateDocumentFile(response.id, file);
+                                                const foundation = FOUNDATION_DOCUMENTS.find(f => f.type === formData.documentType);
+                                                if (foundation) await handleSyncRoadmap(foundation.roadmapId);
                                             }
-
-                                            // 3. Refresh and close
                                             await loadDocuments();
                                             setShowAddForm(false);
                                             resetForm();
-
-                                            toast({
-                                                title: "Success",
-                                                description: file ? "Document and file uploaded successfully." : "Document created successfully.",
-                                            });
+                                            setFile(null);
+                                            toast({ title: "Success", description: "Document saved to vault." });
                                         } catch (error) {
-                                            console.error("Failed to create document/upload:", error);
+                                            console.error("Failed to create document:", error);
                                         }
                                     }}
-                                    size="sm"
+                                    className="flex-1 h-11 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl"
                                 >
                                     <Check className="w-4 h-4 mr-2" />
-                                    {loading ? "Saving..." : "Create Document"}
+                                    Save Document
                                 </Button>
-                                <Button onClick={() => { setShowAddForm(false); resetForm(); }} variant="outline" size="sm">
-                                    <X className="w-4 h-4 mr-2" />
+                                <Button
+                                    onClick={() => { setShowAddForm(false); resetForm(); setFile(null); }}
+                                    variant="outline"
+                                    className="h-11 px-8 rounded-xl border-slate-200 text-slate-600 font-bold"
+                                >
                                     Cancel
                                 </Button>
                             </div>
                         </motion.div>
                     )}
                 </AnimatePresence>
+
+                {/* Foundation Checklist */}
+                <div className="mb-8 space-y-4">
+                    <div className="flex items-center gap-2 px-1">
+                        <FileCheck className="w-5 h-5 text-indigo-600" />
+                        <h3 className="font-bold text-slate-900">Foundation Documents</h3>
+                        <Badge variant="outline" className="ml-2 bg-indigo-50 text-indigo-700 border-indigo-100 text-[9px] uppercase font-black tracking-widest px-1.5 h-5">
+                            Required for Compliance
+                        </Badge>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {FOUNDATION_DOCUMENTS.map((foundation) => {
+                            const existing = documents.find(d => d.documentType === foundation.type);
+                            const isObtained = !!existing?.fileUrl;
+
+                            return (
+                                <div key={foundation.type} className={cn(
+                                    "p-4 rounded-2xl border transition-all duration-300",
+                                    isObtained ? "bg-emerald-50/30 border-emerald-200 shadow-sm" : "bg-white border-slate-200 hover:border-indigo-300 hover:shadow-md"
+                                )}>
+                                    <div className="flex items-start justify-between mb-3">
+                                        <div className={cn(
+                                            "w-10 h-10 rounded-xl flex items-center justify-center",
+                                            isObtained ? "bg-emerald-100 text-emerald-600" : "bg-slate-100 text-slate-400"
+                                        )}>
+                                            {isObtained ? <CheckCircle2 className="w-6 h-6" /> : <Plus className="w-6 h-6" />}
+                                        </div>
+                                        {isObtained && (
+                                            <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 border-none text-[8px] font-black uppercase tracking-tight h-5 px-1.5">
+                                                Obtained
+                                            </Badge>
+                                        )}
+                                    </div>
+
+                                    <h4 className="text-sm font-bold text-slate-900 mb-1">{foundation.label}</h4>
+                                    <p className="text-[10px] text-slate-500 leading-tight mb-4 min-h-[2.5em]">{foundation.note}</p>
+
+                                    {isObtained ? (
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="w-full h-8 text-[10px] font-bold bg-white border-slate-200 text-slate-600 hover:text-indigo-600"
+                                            onClick={() => window.open(api.getEstateDocumentDownloadUrl(foundation.type), "_blank")}
+                                        >
+                                            <Download className="w-3.5 h-3.5 mr-2" />
+                                            View Document
+                                        </Button>
+                                    ) : (
+                                        <div className="relative">
+                                            <Button
+                                                variant="default"
+                                                size="sm"
+                                                className="w-full h-8 text-[10px] font-bold bg-indigo-600 hover:bg-indigo-700"
+                                                disabled={uploadingId === (existing?.id || 'new')}
+                                            >
+                                                {uploadingId === (existing?.id || 'new') ? "Uploading..." : (
+                                                    <>
+                                                        <Upload className="w-3.5 h-3.5 mr-2" />
+                                                        Upload {foundation.type.split('_')[0]}
+                                                    </>
+                                                )}
+                                            </Button>
+                                            <input
+                                                type="file"
+                                                className="absolute inset-0 opacity-0 cursor-pointer"
+                                                onChange={async (e) => {
+                                                    const file = e.target.files?.[0];
+                                                    if (!file) return;
+
+                                                    if (existing) {
+                                                        await handleFileUpload(existing.id, file, existing.documentType);
+                                                    } else {
+                                                        // Create a basic entry first
+                                                        try {
+                                                            const newDoc = await api.createEstateDocument({
+                                                                documentType: foundation.type,
+                                                                name: foundation.label,
+                                                                status: "OBTAINED",
+                                                                totalCopies: 1
+                                                            });
+                                                            if (newDoc?.id) {
+                                                                await handleFileUpload(newDoc.id, file, foundation.type);
+                                                            }
+                                                        } catch (err) {
+                                                            console.error("Failed to auto-create doc:", err);
+                                                        }
+                                                    }
+                                                }}
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                <div className="h-px bg-slate-100 my-8" />
+
+                <div className="flex items-center justify-between px-1 mb-4">
+                    <h3 className="font-bold text-slate-900">General Vault</h3>
+                    <p className="text-[10px] text-slate-400 font-medium uppercase tracking-widest">
+                        {documents.length} Items Total
+                    </p>
+                </div>
 
                 {documents.length === 0 ? (
                     <div className="text-center py-12 border-2 border-dashed rounded-lg">
@@ -436,7 +575,7 @@ export function DocumentVault() {
                                                         accept=".pdf,.jpg,.jpeg,.png"
                                                         onChange={(e) => {
                                                             const file = e.target.files?.[0];
-                                                            if (file) handleFileUpload(doc.id, file);
+                                                            if (file) handleFileUpload(doc.id, file, doc.documentType);
                                                         }}
                                                     />
                                                     <Button

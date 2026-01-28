@@ -16,9 +16,10 @@ interface AssetValueTrackerProps {
     currentValue: number;
     dateOfDeathValue?: number;
     assetType?: string;
+    onSuccess?: () => void;
 }
 
-export function AssetValueTracker({ assetId, currentValue, dateOfDeathValue, assetType }: AssetValueTrackerProps) {
+export function AssetValueTracker({ assetId, currentValue, dateOfDeathValue, assetType, onSuccess }: AssetValueTrackerProps) {
     const { toast } = useToast();
     const queryClient = useQueryClient();
     const [isEditing, setIsEditing] = useState(false);
@@ -38,6 +39,7 @@ export function AssetValueTracker({ assetId, currentValue, dateOfDeathValue, ass
             queryClient.invalidateQueries({ queryKey: ["asset", assetId] });
             queryClient.invalidateQueries({ queryKey: ["assets"] });
             setIsEditing(false);
+            if (onSuccess) onSuccess();
             toast({ title: "Value Verified", description: "Financial audit trail updated." });
         }
     });

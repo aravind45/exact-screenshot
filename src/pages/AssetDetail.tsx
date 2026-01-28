@@ -284,6 +284,29 @@ export default function AssetDetail() {
     }
   });
 
+  const handleSyncRoadmap = async (roadmapId: string) => {
+    try {
+      if (!estate) return;
+      const completedTaskIds = estate.roadmapProgress?.completedTaskIds || [];
+      if (!completedTaskIds.includes(roadmapId)) {
+        const newIds = [...completedTaskIds, roadmapId];
+        await api.updateRoadmap({
+          completedTaskIds: newIds,
+          completedPhases: estate.roadmapProgress?.completedPhases || [],
+          taskId: roadmapId,
+          action: 'COMPLETED'
+        });
+        queryClient.invalidateQueries({ queryKey: ["estate"] });
+        toast({
+          title: "Roadmap Sync",
+          description: `Progress in "${uiAsset.institution}" updated your Roadmap.`,
+        });
+      }
+    } catch (err) {
+      console.error("Failed to sync roadmap:", err);
+    }
+  };
+
   const handleStepComplete = (stepId: string) => {
     const newCompleted = [...completedStepIds];
     if (!newCompleted.includes(stepId)) {
@@ -297,6 +320,14 @@ export default function AssetDetail() {
       const nextId = nextStep ? nextStep.id : stepId;
 
       if (nextStep) setCurrentStepId(nextId);
+
+      // Auto-sync roadmap milestones
+      if (stepId === "initial_notification") {
+        if (asset.category === 'financial') handleSyncRoadmap("freeze_accounts");
+        if (asset.category === 'property') handleSyncRoadmap("get_dod_values");
+      } else if (stepId === "obtain_balance") {
+        handleSyncRoadmap("get_dod_values");
+      }
 
       updateWorkflowMutation.mutate({
         currentStepId: nextId,
@@ -762,7 +793,8 @@ export default function AssetDetail() {
                     assetId={id!}
                     currentValue={asset.value}
                     dateOfDeathValue={asset.dateOfDeathValue}
-                    assetType={uiAsset.type}
+                    assetType={asset.category}
+                    onSuccess={() => handleSyncRoadmap("get_dod_values")}
                   />
 
                   {/* Authority Requirement */}
@@ -774,11 +806,16 @@ export default function AssetDetail() {
                       uiAsset.ownershipType
                     );
 
+                    const hasLetters = Array.isArray(estateDocuments) && estateDocuments.some(d => d.documentType === 'DE-150');
+
+                    if (authReq.requirement === "LETTERS_REQUIRED" && !hasLetters) {
+                      return <AssetAuthorityBlocker institutionName={uiAsset.institution} hasLetters={hasLetters} />;
+                    }
+
                     const getReqColor = (req: string) => {
                       switch (req) {
                         case "AFFIDAVIT_ACCEPTED": return "bg-green-50 border-green-100 text-green-900";
                         case "LETTERS_PREFERRED": return "bg-amber-50 border-amber-100 text-amber-900";
-                        case "LETTERS_REQUIRED": return "bg-red-50 border-red-100 text-red-900";
                         case "BENEFICIARY_ONLY": return "bg-blue-50 border-blue-100 text-blue-900";
                         default: return "bg-slate-50 border-slate-100 text-slate-900";
                       }
@@ -788,7 +825,6 @@ export default function AssetDetail() {
                       switch (req) {
                         case "AFFIDAVIT_ACCEPTED": return "Small Estate Affidavit Accepted";
                         case "LETTERS_PREFERRED": return "Letters Testamentary Preferred";
-                        case "LETTERS_REQUIRED": return "Letters Testamentary Required";
                         case "BENEFICIARY_ONLY": return "Direct Beneficiary Claim";
                         default: return "Varies by Institution";
                       }
@@ -797,7 +833,7 @@ export default function AssetDetail() {
                     return (
                       <div className="card-elevated p-5 space-y-4">
                         <div className="flex items-center justify-between">
-                          <h3 className="font-bold text-slate-900">Authority Required</h3>
+                          <h3 className="font-bold text-slate-900">Authority Guidance</h3>
                           <Badge className={cn("text-[10px] font-black tracking-tighter", getReqColor(authReq.requirement))}>
                             {getReqLabel(authReq.requirement)}
                           </Badge>
@@ -806,7 +842,7 @@ export default function AssetDetail() {
                         {authReq.warning && (
                           <div className="p-3 rounded-xl bg-amber-50 border border-amber-100">
                             <p className="text-xs text-amber-900 font-medium leading-relaxed">
-                              ⚠️ {authReq.warning}
+                              ℹ️ {authReq.warning}
                             </p>
                           </div>
                         )}

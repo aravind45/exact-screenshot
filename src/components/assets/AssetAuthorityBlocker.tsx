@@ -5,9 +5,12 @@ import { motion } from "framer-motion";
 
 interface AssetAuthorityBlockerProps {
     institutionName: string;
+    hasLetters?: boolean;
 }
 
-export function AssetAuthorityBlocker({ institutionName }: AssetAuthorityBlockerProps) {
+export function AssetAuthorityBlocker({ institutionName, hasLetters }: AssetAuthorityBlockerProps) {
+    if (hasLetters) return null;
+
     return (
         <motion.div
             initial={{ opacity: 0, y: -20 }}

@@ -107,6 +107,61 @@ export default function HelpCenter() {
                         </Card>
                     </div>
 
+                    {/* Roadmap to Hub Mapping */}
+                    <div className="space-y-6">
+                        <div className="flex items-center justify-between px-1">
+                            <h2 className="text-xl font-bold text-slate-900">Roadmap to Hub Mapping</h2>
+                            <Badge variant="outline" className="bg-indigo-50 text-indigo-700 border-indigo-100 text-[10px] uppercase font-black tracking-widest px-2 py-0.5">
+                                App Navigation Guide
+                            </Badge>
+                        </div>
+                        <Card className="border-none shadow-sm bg-white overflow-hidden">
+                            <CardContent className="p-0">
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-left border-collapse">
+                                        <thead>
+                                            <tr className="bg-slate-50 border-b border-slate-100">
+                                                <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Step #</th>
+                                                <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Roadmap Step</th>
+                                                <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Functional Hub</th>
+                                                <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Action / Form</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-slate-50">
+                                            {[
+                                                { step: "01", roadmap: "Immediate Actions (Phase 1)", hub: "Document Vault", action: "Upload Death Certificate & Will", note: "Foundational documents needed for everything else." },
+                                                { step: "02", roadmap: "Check Eligibility", hub: "Overview / Onboarding", action: "Strategy Selection", note: "Determine if probate is even required (Small Estate)." },
+                                                { step: "02b", roadmap: "Non-Probate Transfers", hub: "Assets Hub", action: "TOD / Beneficiary Claims", note: "Assets like Life Insurance or Joint Accounts that bypass court." },
+                                                { step: "03", roadmap: "File Petition (DE-111)", hub: "Probate Hub", action: "Generate/Upload DE-111", note: "Opens the court case and starts the clock." },
+                                                { step: "04", roadmap: "Publish/Mail Notice", hub: "Settlement Trail", action: "Upload Proofs of Notice", note: "Required to clear potential debts." },
+                                                { step: "05", roadmap: "Receive Letters (DE-150)", hub: "Probate Hub", action: "Upload DE-150 (Unlocks Assets)", note: "Grant of legal authority. The 'God Move'." },
+                                                { step: "06", roadmap: "Asset Discovery", hub: "Assets Hub", action: "Extract from statements", note: "Finding and valuing all estate property." },
+                                                { step: "07", roadmap: "Inventory & Appraisal", hub: "Probate Hub", action: "Upload DE-160", note: "Official report of values to the court." },
+                                                { step: "08", roadmap: "Creditor Claims", hub: "Settlement Trail", action: "Manage Debt status", note: "Paying valid debts or rejecting invalid ones." },
+                                                { step: "09", roadmap: "Asset Liquidation", hub: "Assets Hub", action: "Record transfers/sales", note: "Moving assets out of the name of the deceased." },
+                                                { step: "10", roadmap: "Final Distribution", hub: "Distribution Hub", action: "Close Estate", note: "Handing over inheritance and closing the file." }
+                                            ].map((row, idx) => (
+                                                <tr key={idx} className="group hover:bg-slate-50/50 transition-colors">
+                                                    <td className="px-6 py-4 text-xs font-black text-slate-400">{row.step}</td>
+                                                    <td className="px-6 py-4">
+                                                        <div className="text-sm font-bold text-slate-900">{row.roadmap}</div>
+                                                        <div className="text-[10px] text-slate-500 mt-0.5">{row.note}</div>
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <Badge variant="secondary" className="bg-slate-100 text-slate-600 border-none text-[9px] font-bold uppercase tracking-tight px-1.5 h-5">
+                                                            {row.hub}
+                                                        </Badge>
+                                                    </td>
+                                                    <td className="px-6 py-4 text-xs font-medium text-slate-600">{row.action}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+
                     {/* FAQ Accordion */}
                     <div className="space-y-6">
                         <h2 className="text-xl font-bold text-slate-900 px-1">Common Questions</h2>

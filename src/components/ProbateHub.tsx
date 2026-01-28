@@ -72,11 +72,51 @@ export function ProbateHub() {
         }
     });
 
+    const handleSyncRoadmap = async (roadmapId: string) => {
+        try {
+            if (!estate) return;
+            const completedTaskIds = estate.roadmapProgress?.completedTaskIds || [];
+            if (!completedTaskIds.includes(roadmapId)) {
+                const newIds = [...completedTaskIds, roadmapId];
+                await api.updateRoadmap({
+                    completedTaskIds: newIds,
+                    completedPhases: estate.roadmapProgress?.completedPhases || [],
+                    taskId: roadmapId,
+                    action: 'COMPLETED'
+                });
+                queryClient.invalidateQueries({ queryKey: ["estate"] });
+                toast({
+                    title: "Roadmap Sync",
+                    description: `Automatically marked roadmap task as "Complete".`,
+                });
+            }
+        } catch (err) {
+            console.error("Failed to sync roadmap:", err);
+        }
+    };
+
     const handleUpload = async (formCode: string, file: File) => {
         setUploadingForm(formCode);
         try {
             await api.uploadEstateDocument(formCode, `${formCode} - Completed`, file);
             toast({ title: "Form Uploaded", description: `${formCode} saved successfully.` });
+
+            // Auto-sync roadmap
+            const roadmapMapping: Record<string, string> = {
+                "DE-111": "file_petition",
+                "DE-150": "receive_letters",
+                "DE-160": "complete_inventory"
+            };
+            if (roadmapMapping[formCode]) {
+                await handleSyncRoadmap(roadmapMapping[formCode]);
+            }
+
+            // Special Case: DE-150 clears the blocker
+            if (formCode === "DE-150") {
+                await api.updateMyEstate({ probateStatus: 'EXECUTOR_APPOINTED' });
+                queryClient.invalidateQueries({ queryKey: ["estate"] });
+            }
+
             queryClient.invalidateQueries({ queryKey: ["estate", "documents"] });
         } catch (error) {
             toast({ variant: "destructive", title: "Upload Failed" });
