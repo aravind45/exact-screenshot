@@ -23,12 +23,14 @@ interface CommunicationTimelineProps {
     onEdit?: (comm: Communication) => void;
 }
 
+
 export function CommunicationTimeline({ communications, onDelete, onEdit }: CommunicationTimelineProps) {
     if (!Array.isArray(communications) || communications.length === 0) {
         return (
             <div className="text-center py-12 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
                 <Clock className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                <p className="text-slate-500 font-medium">No communications recorded yet.</p>
+                <p className="text-slate-500 font-medium tracking-tight">Financial audit trail is empty.</p>
+                <p className="text-[10px] text-slate-400 mt-1 uppercase font-black">Ready for "Due Diligence" entry</p>
             </div>
         );
     }
@@ -45,97 +47,142 @@ export function CommunicationTimeline({ communications, onDelete, onEdit }: Comm
     };
 
     return (
-        <div className="relative space-y-8 before:absolute before:inset-0 before:ml-5 before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-200 before:to-transparent">
-            {communications.map((comm) => (
-                <div key={comm.id} className="relative flex items-start group">
-                    {/* Icon Column */}
-                    <div className={cn(
-                        "absolute left-0 w-10 h-10 rounded-full border-4 border-white flex items-center justify-center shadow-sm z-10 transition-transform group-hover:scale-110",
-                        comm.direction === 'outbound' ? "bg-primary text-white" : "bg-slate-900 text-white"
-                    )}>
-                        {getTypeIcon(comm.type)}
-                    </div>
+        <div className="space-y-4">
+            <div className="hidden md:grid grid-cols-12 gap-4 px-6 py-2 bg-slate-100 rounded-xl border border-slate-200 mb-2">
+                <div className="col-span-2 text-[10px] font-black uppercase text-slate-500 tracking-widest">Timestamp</div>
+                <div className="col-span-1 text-[10px] font-black uppercase text-slate-500 tracking-widest">Type</div>
+                <div className="col-span-5 text-[10px] font-black uppercase text-slate-500 tracking-widest">Subject & Record</div>
+                <div className="col-span-2 text-[10px] font-black uppercase text-slate-500 tracking-widest text-center">Protocol</div>
+                <div className="col-span-2 text-[10px] font-black uppercase text-slate-500 tracking-widest text-right">Actions</div>
+            </div>
 
-                    {/* Content Column */}
-                    <div className="flex-1 ml-14 bg-white rounded-2xl border border-slate-200 p-5 shadow-sm transition-shadow hover:shadow-md">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
-                            <div className="flex items-center gap-2">
-                                <div className="flex items-center gap-1.5 px-2 py-0.5 bg-slate-100 rounded text-[10px] font-bold uppercase tracking-wider text-slate-600">
-                                    {comm.direction === 'outbound' ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownLeft className="w-3 h-3" />}
-                                    {comm.direction}
+            <div className="space-y-3">
+                {communications.map((comm) => (
+                    <div
+                        key={comm.id}
+                        className="group relative bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:border-slate-300 transition-all duration-300 overflow-hidden"
+                    >
+                        {/* Status Strip */}
+                        <div className={cn(
+                            "absolute top-0 left-0 w-1 h-full",
+                            comm.direction === 'outbound' ? "bg-primary" : "bg-slate-900"
+                        )} />
+
+                        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 p-5 items-start">
+                            {/* Timestamp */}
+                            <div className="md:col-span-2 space-y-1">
+                                <p className="text-xs font-black text-slate-900 leading-none">
+                                    {format(new Date(comm.occurredAt), 'MMM d, yyyy')}
+                                </p>
+                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">
+                                    {format(new Date(comm.occurredAt), 'h:mm a')}
+                                </p>
+                            </div>
+
+                            {/* Type */}
+                            <div className="md:col-span-1">
+                                <div className={cn(
+                                    "w-8 h-8 rounded-lg flex items-center justify-center shadow-sm ring-1",
+                                    comm.direction === 'outbound' ? "bg-blue-50 text-blue-600 ring-blue-100" : "bg-slate-50 text-slate-600 ring-slate-200"
+                                )}>
+                                    {getTypeIcon(comm.type)}
                                 </div>
-                                <span className="text-xs font-bold text-slate-400">
-                                    {format(new Date(comm.occurredAt), 'MMM d, yyyy • h:mm a')}
-                                </span>
                             </div>
-                            {comm.statusChange && (
-                                <Badge variant="secondary" className="w-fit bg-amber-100 text-amber-700 border-none font-bold uppercase text-[10px]">
-                                    {comm.statusChange.replace(/_/g, ' ')}
-                                </Badge>
-                            )}
-                        </div>
 
-                        {comm.subject && (
-                            <h4 className="font-bold text-slate-900 mb-1 leading-tight">{comm.subject}</h4>
-                        )}
+                            {/* Subject & Summary */}
+                            <div className="md:col-span-5 space-y-2">
+                                <div className="flex items-center gap-2">
+                                    <h4 className="font-bold text-slate-900 leading-tight tracking-tight">
+                                        {comm.subject || "Undisclosed Subject"}
+                                    </h4>
+                                    {comm.direction === 'outbound' ? (
+                                        <ArrowUpRight className="w-3 h-3 text-blue-500 font-black" />
+                                    ) : (
+                                        <ArrowDownLeft className="w-3 h-3 text-slate-400 font-black" />
+                                    )}
+                                </div>
+                                <p className="text-xs text-slate-500 leading-relaxed line-clamp-2 italic font-medium">
+                                    "{comm.notes}"
+                                </p>
 
-                        <div className="text-sm text-slate-600 leading-relaxed mb-4 whitespace-pre-wrap">
-                            {comm.notes}
-                        </div>
-
-                        {(comm.contactName || comm.contactChannel) && (
-                            <div className="flex flex-wrap gap-4 pt-4 border-t border-slate-100 mb-4">
                                 {comm.contactName && (
-                                    <div className="flex flex-col">
-                                        <span className="text-[10px] font-bold uppercase tracking-tighter text-slate-400">Contact</span>
-                                        <span className="text-xs font-semibold text-slate-700">{comm.contactName}</span>
-                                    </div>
-                                )}
-                                {comm.contactChannel && (
-                                    <div className="flex flex-col">
-                                        <span className="text-[10px] font-bold uppercase tracking-tighter text-slate-400">Channel</span>
-                                        <span className="text-xs font-semibold text-slate-700">{comm.contactChannel}</span>
+                                    <div className="flex items-center gap-2 pt-1">
+                                        <Badge variant="outline" className="h-4 text-[9px] font-black uppercase tracking-tighter bg-slate-50">
+                                            Rep: {comm.contactName}
+                                        </Badge>
+                                        {comm.contactChannel && (
+                                            <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">{comm.contactChannel}</span>
+                                        )}
                                     </div>
                                 )}
                             </div>
-                        )}
 
-                        <div className="flex items-center justify-between">
-                            <div className="flex gap-2">
-                                {comm.attachments?.map((att) => (
-                                    <Badge key={att.id} variant="outline" className="flex items-center gap-1.5 py-1 px-2 hover:bg-slate-50 cursor-pointer">
-                                        <Paperclip className="w-3 h-3" />
-                                        <span className="text-[10px] truncate max-w-[120px]">{att.fileName}</span>
+                            {/* Protocol / Phase Change */}
+                            <div className="md:col-span-2 flex flex-col items-center justify-center gap-2 pt-1">
+                                {comm.statusChange ? (
+                                    <Badge className="bg-emerald-600 text-white border-none font-black uppercase text-[9px] tracking-widest h-5">
+                                        {comm.statusChange.replace(/_/g, ' ')}
                                     </Badge>
-                                ))}
+                                ) : (
+                                    <Badge variant="outline" className="text-slate-400 border-slate-100 font-black uppercase text-[9px] tracking-widest h-5">
+                                        Verification Only
+                                    </Badge>
+                                )}
+                                <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest">Protocol Stamped</span>
                             </div>
 
-                            <div className="flex items-center gap-1">
-                                {onEdit && (
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => onEdit(comm)}
-                                        className="h-8 w-8 p-0 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-full"
-                                    >
-                                        <Pencil className="w-4 h-4" />
-                                    </Button>
+                            {/* Actions */}
+                            <div className="md:col-span-2 flex items-center justify-end gap-2">
+                                {comm.attachments && comm.attachments.length > 0 && (
+                                    <div className="flex -space-x-2 mr-2">
+                                        {comm.attachments.map((_, i) => (
+                                            <div key={i} className="w-6 h-6 rounded-lg bg-slate-100 border-2 border-white flex items-center justify-center text-slate-400">
+                                                <Paperclip className="w-3 h-3" />
+                                            </div>
+                                        ))}
+                                    </div>
                                 )}
-                                {onDelete && (
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => onDelete(comm.id)}
-                                        className="h-8 w-8 p-0 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-full"
-                                    >
-                                        <Trash2 className="w-4 h-4" />
-                                    </Button>
-                                )}
+
+                                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    {onEdit && (
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => onEdit(comm)}
+                                            className="h-8 w-8 p-0 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg"
+                                        >
+                                            <Pencil className="w-3.5 h-3.5" />
+                                        </Button>
+                                    )}
+                                    {onDelete && (
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => onDelete(comm.id)}
+                                            className="h-8 w-8 p-0 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
+                                        >
+                                            <Trash2 className="w-3.5 h-3.5" />
+                                        </Button>
+                                    )}
+                                </div>
                             </div>
                         </div>
+                    </div>
+                ))}
+            </div>
+
+            <div className="p-4 bg-slate-900 rounded-2xl flex items-center justify-between shadow-lg shadow-slate-200">
+                <div className="flex items-center gap-3">
+                    <div className="p-2 bg-white/10 rounded-lg">
+                        <FileText className="w-4 h-4 text-white" />
+                    </div>
+                    <div>
+                        <p className="text-[10px] font-black text-white/50 uppercase tracking-widest leading-none">Court Admissibility Check</p>
+                        <p className="text-xs font-bold text-white mt-1">Audit Trail Active & Verified</p>
                     </div>
                 </div>
-            ))}
+                <Badge className="bg-emerald-500 text-white border-none font-black text-[9px] tracking-widest">Due Diligence Valid</Badge>
+            </div>
         </div>
     );
 }

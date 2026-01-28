@@ -62,6 +62,8 @@ import { SmartEmailDraft } from "@/components/SmartEmailDraft";
 import { AssetValueTracker } from "@/components/financials/AssetValueTracker";
 import { Sidebar } from "@/components/Sidebar";
 import { AssetAuthorityBlocker } from "@/components/assets/AssetAuthorityBlocker";
+import { PhysicalAssetProtector } from "@/components/assets/PhysicalAssetProtector";
+import { SubscriptionAudit } from "@/components/assets/SubscriptionAudit";
 
 // Helper to normalize status/priority from DB
 const normalize = (str: string | null) => str?.toLowerCase() || '';
@@ -371,6 +373,23 @@ export default function AssetDetail() {
 
   const CategoryIcon = getCategoryIcon(uiAsset.category);
 
+  const authReq = getInstitutionAuthorityRequirement(
+    uiAsset.assetType,
+    uiAsset.category,
+    uiAsset.value,
+    uiAsset.ownershipType
+  );
+
+  const requirementsMap: Record<string, string[]> = {
+    "BENEFICIARY_ONLY": ["Death Certificate (certified)"],
+    "AFFIDAVIT_ACCEPTED": ["Death Certificate (certified)", "Small Estate Affidavit (DE-310)"],
+    "LETTERS_REQUIRED": ["Death Certificate (certified)", "DE-150 Letters", "DE-111 Petition"],
+    "LETTERS_PREFERRED": ["Death Certificate (certified)", "DE-150 Letters"],
+    "VARIES": ["Death Certificate (certified)"]
+  };
+
+  const requiredDocs = requirementsMap[authReq.requirement] || ["Death Certificate (certified)"];
+
 
   const isLocked = asset.ownershipType === 'INDIVIDUAL' && estate?.probateStatus !== 'EXECUTOR_APPOINTED';
 
@@ -634,6 +653,9 @@ export default function AssetDetail() {
                       onGenerateLetter={handleGenerateLetter}
                     />
 
+                    {/* Physical Asset Protection (Think like an old executor) */}
+                    <PhysicalAssetProtector assetCategory={uiAsset.category} assetType={uiAsset.type} />
+
                     {/* Smart Document Checklist */}
                     <div className="card-elevated p-6 space-y-4">
                       <div className="flex items-center gap-2 mb-2">
@@ -756,6 +778,14 @@ export default function AssetDetail() {
                   {/* Probate Progress Mini */}
                   <ProbateProgressMini />
 
+                  {/* Enhanced Valuation Ledger */}
+                  <AssetValueTracker
+                    assetId={id!}
+                    currentValue={asset.value}
+                    dateOfDeathValue={asset.dateOfDeathValue}
+                    assetType={uiAsset.type}
+                  />
+
                   {/* Authority Requirement */}
                   {(() => {
                     const authReq = getInstitutionAuthorityRequirement(
@@ -818,6 +848,9 @@ export default function AssetDetail() {
                       </div>
                     );
                   })()}
+
+                  {/* Waste Prevention (Subscription Audit) */}
+                  <SubscriptionAudit assetType={uiAsset.type} />
 
                   <div className="card-elevated p-5 space-y-6">
                     <div className="flex items-center justify-between">
