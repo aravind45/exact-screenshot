@@ -30,7 +30,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { DOCUMENT_REGISTRY, findCanonicalDoc } from "@/config/documents";
-import { FileUp, FileText, CheckCircle2, Download, Trash2, Loader2 as Spinner } from "lucide-react";
+import { FileUp, FileText, CheckCircle2, Download, Trash2, Loader2 as Spinner, Eye } from "lucide-react";
 
 interface CollapsiblePhaseChevronProps {
   onTaskToggle: (taskId: string, completed: boolean) => void;
@@ -96,6 +96,17 @@ export function CollapsiblePhaseChevron({ onTaskToggle }: CollapsiblePhaseChevro
     },
     onError: (error: any) => {
       toast.error(`Upload failed: ${error.message}`);
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (docId: string) => api.deleteEstateDocument(docId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["estate-documents"] });
+      toast.success("Document deleted");
+    },
+    onError: (error: any) => {
+      toast.error(`Delete failed: ${error.message}`);
     },
   });
 
@@ -312,10 +323,36 @@ export function CollapsiblePhaseChevron({ onTaskToggle }: CollapsiblePhaseChevro
                                   });
 
                                   if (uploaded) return (
-                                    <Badge key={idx} variant="secondary" className="bg-green-50 text-green-700 border-green-100 text-[9px] font-bold py-0 h-6">
-                                      <CheckCircle2 className="w-3 h-3 mr-1" />
-                                      {doc} Obtained
-                                    </Badge>
+                                    <div key={idx} className="flex items-center gap-2">
+                                      <Badge variant="secondary" className="bg-green-50 text-green-700 border-green-100 text-[9px] font-bold py-0 h-7 px-2">
+                                        <CheckCircle2 className="w-3 h-3 mr-1" />
+                                        {doc} Obtained
+                                      </Badge>
+                                      <div className="flex items-center gap-1">
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          className="h-7 w-7 p-0 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            window.open(api.getEstateDocumentDownloadUrl(uploaded.documentType), "_blank");
+                                          }}
+                                        >
+                                          <Eye className="w-3.5 h-3.5" />
+                                        </Button>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          className="h-7 w-7 p-0 text-slate-400 hover:text-red-600 hover:bg-red-50"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            deleteMutation.mutate(uploaded.id);
+                                          }}
+                                        >
+                                          <Trash2 className="w-3.5 h-3.5" />
+                                        </Button>
+                                      </div>
+                                    </div>
                                   );
 
                                   return (
@@ -358,10 +395,36 @@ export function CollapsiblePhaseChevron({ onTaskToggle }: CollapsiblePhaseChevro
 
                                   if (!uploaded) return null;
                                   return (
-                                    <Badge key={idx} variant="secondary" className="bg-green-50 text-green-700 border-green-100 text-[9px] font-bold py-0 h-5">
-                                      <CheckCircle2 className="w-3 h-3 mr-1" />
-                                      {doc} Obtained
-                                    </Badge>
+                                    <div key={idx} className="flex items-center gap-2">
+                                      <Badge variant="secondary" className="bg-green-50 text-green-700 border-green-100 text-[9px] font-bold py-0 h-5 px-2">
+                                        <CheckCircle2 className="w-3 h-3 mr-1" />
+                                        {doc} Obtained
+                                      </Badge>
+                                      <div className="flex items-center gap-1">
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          className="h-5 w-5 p-0 text-slate-400 hover:text-indigo-600"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            window.open(api.getEstateDocumentDownloadUrl(uploaded.documentType), "_blank");
+                                          }}
+                                        >
+                                          <Eye className="w-3 h-3" />
+                                        </Button>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          className="h-5 w-5 p-0 text-slate-400 hover:text-red-600"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            deleteMutation.mutate(uploaded.id);
+                                          }}
+                                        >
+                                          <Trash2 className="w-3 h-3" />
+                                        </Button>
+                                      </div>
+                                    </div>
                                   );
                                 })}
                               </div>
@@ -382,6 +445,51 @@ export function CollapsiblePhaseChevron({ onTaskToggle }: CollapsiblePhaseChevro
                         </div>
                       );
                     })}
+
+                    {/* Discovered / Other Documents for this Phase */}
+                    {documents.filter(d => {
+                      const canon = findCanonicalDoc(d.documentType) || findCanonicalDoc(d.name);
+                      if (canon) return false;
+                      // Logic: If it's the 'court_filing' phase, show all OTHER/OTHER_DISCOVERY docs
+                      // This is a simplification; ideally we'd map OTHER docs to phases too.
+                      // For now, let's show them in the first active expanded phase.
+                      return phase === 'court_filing';
+                    }).length > 0 && (
+                        <div className="p-3 bg-slate-50/30 border-t border-slate-100">
+                          <div className="flex items-center gap-2 mb-2 px-1">
+                            <FileText className="w-3.5 h-3.5 text-slate-400" />
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Other Documents</span>
+                          </div>
+                          <div className="grid grid-cols-1 gap-1.5">
+                            {documents.filter(d => !findCanonicalDoc(d.documentType) && !findCanonicalDoc(d.name)).map(doc => (
+                              <div key={doc.id} className="flex items-center justify-between p-2 bg-white/80 rounded-xl border border-slate-200/60 shadow-sm text-xs group">
+                                <div className="flex items-center gap-2 min-w-0">
+                                  <FileText className="w-3.5 h-3.5 text-indigo-400" />
+                                  <span className="truncate font-bold text-slate-700">{doc.name || doc.documentType}</span>
+                                </div>
+                                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-7 w-7 p-0 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50"
+                                    onClick={() => window.open(api.getEstateDocumentDownloadUrl(doc.documentType), "_blank")}
+                                  >
+                                    <Eye className="w-3.5 h-3.5" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-7 w-7 p-0 text-slate-400 hover:text-red-600 hover:bg-red-50"
+                                    onClick={() => deleteMutation.mutate(doc.id)}
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </Button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
 
                     {/* Phase Footer Action (Upload Miscellaneous) */}
                     <div className="p-3 bg-slate-50/50 flex justify-center border-t border-slate-100">
