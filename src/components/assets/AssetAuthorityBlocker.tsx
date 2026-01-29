@@ -90,7 +90,7 @@ export function AssetAuthorityBlocker({ institutionName, hasLetters, track }: As
         emerald: "text-emerald-600",
         violet: "text-violet-600",
         indigo: "text-indigo-600",
-    }[config.color as keyof typeof textColorClass];
+    }[config.color as keyof typeof textColorClass] || "text-slate-600";
 
     return (
         <motion.div
