@@ -49,6 +49,29 @@ export interface Communication {
     };
 }
 
+export interface Liability {
+    id: string;
+    estateId: string;
+    name: string;
+    amount: number;
+    status: 'DISCOVERED' | 'NOTICE_SENT' | 'CLAIM_FILED' | 'APPROVED' | 'REJECTED' | 'PAID' | 'DISPUTED';
+    invoiceDate?: string;
+    dueDate?: string;
+    accountNumber?: string;
+    notes?: string;
+    contactPhone?: string;
+    contactEmail?: string;
+    priority: 'HIGH' | 'MEDIUM' | 'LOW';
+    createdAt: string;
+}
+
+export interface LiabilityStats {
+    total: number;
+    paid: number;
+    count: number;
+    openCount: number;
+}
+
 const API_URL = import.meta.env.VITE_API_URL || "/api";
 
 const getHeaders = () => {
@@ -731,6 +754,47 @@ export const api = {
 
     getCollaborators: async (estateId: string) => {
         const response = await fetch(`${API_URL}/collaboration/estates/${estateId}/collaborators`, {
+            headers: getHeaders(),
+        });
+        return parseResponse(response);
+    },
+
+    // Liabilities
+    getLiabilities: async () => {
+        const response = await fetch(`${API_URL}/liabilities`, {
+            headers: getHeaders(),
+        });
+        return parseResponse(response);
+    },
+
+    getLiabilityStats: async () => {
+        const response = await fetch(`${API_URL}/liabilities/stats`, {
+            headers: getHeaders(),
+        });
+        return parseResponse(response);
+    },
+
+    createLiability: async (data: Partial<Liability>) => {
+        const response = await fetch(`${API_URL}/liabilities`, {
+            method: "POST",
+            headers: getHeaders(),
+            body: JSON.stringify(data),
+        });
+        return parseResponse(response);
+    },
+
+    updateLiability: async (id: string, data: Partial<Liability>) => {
+        const response = await fetch(`${API_URL}/liabilities/${id}`, {
+            method: "PUT",
+            headers: getHeaders(),
+            body: JSON.stringify(data),
+        });
+        return parseResponse(response);
+    },
+
+    deleteLiability: async (id: string) => {
+        const response = await fetch(`${API_URL}/liabilities/${id}`, {
+            method: "DELETE",
             headers: getHeaders(),
         });
         return parseResponse(response);

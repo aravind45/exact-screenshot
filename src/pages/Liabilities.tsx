@@ -1,50 +1,68 @@
+import React, { useState } from "react";
 import { Sidebar } from "@/components/Sidebar";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { AlertCircle, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ArrowLeft, Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { api } from "@/lib/api";
+import { LiabilityStatsWidget } from "@/components/liabilities/LiabilityStatsWidget";
+import { LiabilityList } from "@/components/liabilities/LiabilityList";
+import { AddLiabilityDialog } from "@/components/liabilities/AddLiabilityDialog";
 
 export default function Liabilities() {
     const navigate = useNavigate();
+    const [showAddDialog, setShowAddDialog] = useState(false);
+
+    const { data: stats } = useQuery({
+        queryKey: ["liabilityStations"],
+        queryFn: api.getLiabilityStats
+    });
+
+    const { data: liabilities = [], isLoading } = useQuery({
+        queryKey: ["liabilities"],
+        queryFn: api.getLiabilities
+    });
 
     return (
         <div className="flex bg-[#F8FAFC] min-h-screen">
             <Sidebar />
             <main className="flex-1 ml-64 p-8">
-                <div className="max-w-4xl mx-auto space-y-6">
-                    <Button variant="ghost" className="mb-4" onClick={() => navigate(-1)}>
-                        <ArrowLeft className="w-4 h-4 mr-2" /> Back
-                    </Button>
-
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <h1 className="text-3xl font-black text-slate-900 tracking-tight">Liabilities & Creditors</h1>
-                            <p className="text-slate-500 mt-1 text-sm uppercase font-bold tracking-wider">Phase: Creditor Claims</p>
+                <div className="max-w-5xl mx-auto space-y-8">
+                    {/* Header */}
+                    <div className="space-y-4">
+                        <Button variant="ghost" className="pl-0 hover:bg-transparent" onClick={() => navigate(-1)}>
+                            <ArrowLeft className="w-4 h-4 mr-2" /> Back
+                        </Button>
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <h1 className="text-3xl font-black text-slate-900 tracking-tight">Liabilities & Creditors</h1>
+                                <p className="text-slate-500 mt-1">Track estate debts, manage creditor claims, and record payments.</p>
+                            </div>
+                            <Button onClick={() => setShowAddDialog(true)} className="bg-indigo-600 text-white font-bold shadow-lg shadow-indigo-200 hover:bg-indigo-700">
+                                <Plus className="w-5 h-5 mr-2" /> Add Liability
+                            </Button>
                         </div>
-                        <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">Feature Shell</Badge>
                     </div>
 
-                    <Card className="border-2 border-dashed border-slate-200 bg-slate-50/50">
-                        <CardContent className="flex flex-col items-center justify-center py-20 text-center">
-                            <div className="w-16 h-16 bg-white rounded-2xl shadow-sm border border-slate-100 flex items-center justify-center mb-6">
-                                <AlertCircle className="w-8 h-8 text-indigo-600" />
-                            </div>
-                            <CardTitle className="text-xl font-bold text-slate-900">Creditor Tracking Coming Soon</CardTitle>
-                            <CardDescription className="max-w-md mt-2 text-slate-500">
-                                A dedicated space to track medical bills, funerals costs, and institutional claims.
-                                For now, use the <strong>Document Vault</strong> to upload and categorize any invoices.
-                            </CardDescription>
-                            <Button
-                                onClick={() => navigate("/documents")}
-                                className="mt-8 bg-indigo-600 hover:bg-indigo-700 text-white"
-                            >
-                                Go to Document Vault
-                            </Button>
-                        </CardContent>
-                    </Card>
+                    {/* Stats */}
+                    {stats && <LiabilityStatsWidget stats={stats} />}
+
+                    {/* List */}
+                    {isLoading ? (
+                        <div className="py-20 text-center">
+                            <div className="animate-spin w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full mx-auto"></div>
+                            <p className="text-sm font-medium text-slate-400 mt-4">Loading liabilities...</p>
+                        </div>
+                    ) : (
+                        <LiabilityList liabilities={liabilities} />
+                    )}
                 </div>
             </main>
+
+            <AddLiabilityDialog
+                open={showAddDialog}
+                onOpenChange={setShowAddDialog}
+            />
         </div>
     );
 }

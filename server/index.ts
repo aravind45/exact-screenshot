@@ -16,6 +16,7 @@ import agentRoutes from "./routes/agentRoutes.js";
 import communicationRoutes from "./routes/communicationRoutes.js";
 import webhookRoutes from "./routes/webhookRoutes.js";
 import collaborationRoutes from "./routes/collaborationRoutes.js";
+import liabilityRoutes from "./routes/liabilityRoutes.js";
 
 const app = express();
 const port = Number(process.env.PORT) || 3000;
@@ -87,6 +88,7 @@ app.use("/api/admin", authenticate, adminRoutes);
 app.use("/api/agent", authenticate, agentRoutes);
 app.use("/api/communications", authenticate, communicationRoutes);
 app.use("/api/collaboration", authenticate, collaborationRoutes);
+app.use("/api/liabilities", authenticate, liabilityRoutes);
 app.use("/api/webhooks", webhookRoutes); // Auth handled via Mailgun signatures
 
 // Profile (simple, keep here or move if grows)

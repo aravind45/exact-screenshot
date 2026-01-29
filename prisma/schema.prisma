@@ -98,6 +98,7 @@ model Estate {
   communications  Communication[]
   deadlines       Deadline[]
   activities      SettlementActivity[]
+  liabilities     Liability[]
 
   @@map("estates")
 }
@@ -406,4 +407,32 @@ model AppSetting {
   updatedAt   DateTime @updatedAt @map("updated_at")
 
   @@map("app_settings")
+}
+
+model Liability {
+  id            String   @id @default(uuid())
+  estateId      String   @map("estate_id")
+  
+  name          String   // Creditor Name
+  amount        Decimal  @db.Decimal(12,2)
+  status        String   @default("DISCOVERED") // DISCOVERED, NOTICE_SENT, CLAIM_FILED, APPROVED, REJECTED, PAID, DISPUTED
+  
+  invoiceDate   DateTime? @map("invoice_date")
+  dueDate       DateTime? @map("due_date")
+  
+  accountNumber String?  @map("account_number")
+  notes         String?
+  
+  contactPhone  String?  @map("contact_phone")
+  contactEmail  String?  @map("contact_email")
+  
+  priority      String   @default("MEDIUM") // HIGH, MEDIUM, LOW
+  
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  estate        Estate   @relation(fields: [estateId], references: [id], onDelete: Cascade)
+
+  @@index([estateId])
+  @@map("liabilities")
 }
