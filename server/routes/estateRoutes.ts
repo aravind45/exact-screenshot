@@ -7,7 +7,12 @@ const router = Router();
 router.get("/my", async (req: any, res: Response) => {
     try {
         const estate = await prisma.estate.findFirst({
-            where: { userId: req.user.id }
+            where: {
+                OR: [
+                    { userId: req.user.id },
+                    { grants: { some: { userId: req.user.id } } }
+                ]
+            }
         });
         if (estate) {
             await EmailService.ensureEstateHandle(estate.id);
@@ -23,7 +28,14 @@ router.get("/my", async (req: any, res: Response) => {
 
 router.put("/my", async (req: any, res: Response) => {
     try {
-        const estate = await prisma.estate.findFirst({ where: { userId: req.user.id } });
+        const estate = await prisma.estate.findFirst({
+            where: {
+                OR: [
+                    { userId: req.user.id },
+                    { grants: { some: { userId: req.user.id } } }
+                ]
+            }
+        });
         if (!estate) return res.status(404).json({ error: "Estate not found" });
 
         const updated = await prisma.estate.update({
@@ -46,7 +58,14 @@ router.put("/my", async (req: any, res: Response) => {
 // Roadmap Persistence
 router.put("/my/roadmap", async (req: any, res: Response) => {
     try {
-        const estate = await prisma.estate.findFirst({ where: { userId: req.user.id } });
+        const estate = await prisma.estate.findFirst({
+            where: {
+                OR: [
+                    { userId: req.user.id },
+                    { grants: { some: { userId: req.user.id } } }
+                ]
+            }
+        });
         if (!estate) return res.status(404).json({ error: "Estate not found" });
 
         const { completedTaskIds, completedPhases, taskId, action, phase } = req.body;

@@ -15,15 +15,17 @@ import {
     Plus,
     Landmark,
     CheckCircle2,
-    ChevronRight,
     ShieldCheck,
     FileText,
     UserCircle,
     Scale,
     Zap,
-    Info
+    Info,
+    Users,
+    Mail
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { InstitutionSelect } from "@/components/InstitutionSelect";
 import { calculateAuthorityRecommendation } from "@/lib/authorityEngine";
 import { useQuery } from "@tanstack/react-query";
 
@@ -34,6 +36,7 @@ const STEPS = [
     { id: "heirs", title: "Heirs & Beneficiaries" },
     { id: "documents", title: "Death Certificate" },
     { id: "assets", title: "Key Assets" },
+    { id: "team", title: "The Team" },
     { id: "completion", title: "All Set" }
 ];
 
@@ -58,9 +61,10 @@ export default function OnboardingWizard() {
         { name: "", relationship: "", email: "" }
     ]);
     const [uploadedFile, setUploadedFile] = useState<File | null>(null);
-    const [assets, setAssets] = useState<Array<{ name: string; type: string }>>([
+    const [assets, setAssets] = useState<Array<{ name: string; type: string; institutionId?: string }>>([
         { name: "", type: "financial" }
     ]);
+    const [collaborators, setCollaborators] = useState<Array<{ email: string; role: string }>>([]);
 
     const recommendation = calculateAuthorityRecommendation(
         [], // No actual assets yet, just using estimates
@@ -75,6 +79,9 @@ export default function OnboardingWizard() {
     const handleNext = async () => {
         setIsLoading(true);
         try {
+            const estate = await api.getMyEstate();
+            if (!estate && currentStep > 0) throw new Error("Estate not found");
+
             if (currentStep === 1) {
                 // Update Estate (Created on registration)
                 const [firstName, ...lastNameParts] = estateData.deceasedName.split(" ");
@@ -107,6 +114,15 @@ export default function OnboardingWizard() {
                         status: "discovered",
                         priority: "medium",
                         assetType: "bank_account"
+                    });
+                }
+            } else if (currentStep === 6) { // Team
+                const validCollabs = collaborators.filter(c => c.email.trim() !== "");
+                for (const collab of validCollabs) {
+                    await api.inviteCollaborator({
+                        estateId: estate.id,
+                        email: collab.email,
+                        role: collab.role
                     });
                 }
             }
@@ -530,87 +546,80 @@ export default function OnboardingWizard() {
                                     </div>
                                 )}
 
-                                {/* 5. ASSETS */}
+                                {/* 5. ASSETS (RE-DESIGNED) */}
                                 {stepId === "assets" && (
                                     <div className="space-y-6">
                                         <div className="text-center mb-6">
                                             <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
                                                 <Landmark className="w-6 h-6 text-emerald-600" />
                                             </div>
-                                            <h2 className="text-2xl font-bold text-slate-900">Initial Asset List</h2>
-                                            <p className="text-slate-500">List 1-3 institutions. We'll set up their checklists for you.</p>
+                                            <h2 className="text-2xl font-bold text-slate-900">Key Assets</h2>
+                                            <p className="text-slate-500">Search for the primary banks or institutions involved.</p>
                                         </div>
 
-                                        <div className="space-y-3">
+                                        <div className="space-y-4">
                                             {assets.map((asset, idx) => (
-                                                <div key={idx} className="space-y-2">
-                                                    <div className="flex gap-2">
-                                                        <Input
-                                                            placeholder="Bank or Brokerage Name"
-                                                            value={asset.name}
-                                                            onChange={e => {
-                                                                const newAssets = [...assets];
-                                                                newAssets[idx].name = e.target.value;
-                                                                setAssets(newAssets);
-                                                            }}
-                                                            className="h-11 bg-slate-50 rounded-xl"
-                                                        />
-                                                        <Select
-                                                            value={asset.type}
-                                                            onValueChange={val => {
-                                                                const newAssets = [...assets];
-                                                                newAssets[idx].type = val;
-                                                                setAssets(newAssets);
-                                                            }}
-                                                        >
-                                                            <SelectTrigger className="w-[140px] h-11 bg-slate-50 rounded-xl">
-                                                                <SelectValue />
-                                                            </SelectTrigger>
-                                                            <SelectContent>
-                                                                <SelectItem value="financial">Bank Account</SelectItem>
-                                                                <SelectItem value="retirement">Retirement/401k</SelectItem>
-                                                                <SelectItem value="property">Real Estate</SelectItem>
-                                                                <SelectItem value="insurance">Life Insurance</SelectItem>
-                                                                <SelectItem value="crypto">Crypto/Digital</SelectItem>
-                                                            </SelectContent>
-                                                        </Select>
-                                                    </div>
-                                                    {asset.name && asset.name.length > 3 && (
+                                                <div key={idx} className="space-y-3 p-4 rounded-2xl bg-slate-50 border border-slate-100 relative group">
+                                                    {assets.length > 1 && (
                                                         <button
-                                                            onClick={async () => {
-                                                                toast({ title: "AI Discovery", description: `Searching for settlement process at ${asset.name}...` });
-                                                                // Future: Call HyperAgent here
-                                                            }}
-                                                            className="flex items-center gap-1.5 text-[10px] font-bold text-primary hover:text-primary/80 transition-colors ml-1"
+                                                            onClick={() => setAssets(assets.filter((_, i) => i !== idx))}
+                                                            className="absolute -top-2 -right-2 w-6 h-6 bg-white border border-slate-100 rounded-full flex items-center justify-center text-slate-400 hover:text-rose-500 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity z-20"
                                                         >
-                                                            <Zap className="w-3 h-3 fill-primary" /> DISCOVER REQUIREMENTS
+                                                            <Plus className="w-3 h-3 rotate-45" />
                                                         </button>
                                                     )}
+                                                    <div className="flex gap-2">
+                                                        <div className="flex-1">
+                                                            <Label className="text-[10px] uppercase font-bold text-slate-400 ml-1 mb-1 block">Institution</Label>
+                                                            <InstitutionSelect
+                                                                value={asset.name}
+                                                                onSelect={(inst) => {
+                                                                    const newAssets = [...assets];
+                                                                    newAssets[idx].name = inst.name;
+                                                                    newAssets[idx].institutionId = inst.id;
+                                                                    setAssets(newAssets);
+                                                                }}
+                                                                onChange={(val) => {
+                                                                    const newAssets = [...assets];
+                                                                    newAssets[idx].name = val;
+                                                                    setAssets(newAssets);
+                                                                }}
+                                                            />
+                                                        </div>
+                                                        <div className="w-[140px]">
+                                                            <Label className="text-[10px] uppercase font-bold text-slate-400 ml-1 mb-1 block">Type</Label>
+                                                            <Select
+                                                                value={asset.type}
+                                                                onValueChange={val => {
+                                                                    const newAssets = [...assets];
+                                                                    newAssets[idx].type = val;
+                                                                    setAssets(newAssets);
+                                                                }}
+                                                            >
+                                                                <SelectTrigger className="h-11 bg-white rounded-xl">
+                                                                    <SelectValue />
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                    <SelectItem value="financial">Bank Account</SelectItem>
+                                                                    <SelectItem value="retirement">Retirement/401k</SelectItem>
+                                                                    <SelectItem value="property">Real Estate</SelectItem>
+                                                                    <SelectItem value="insurance">Life Insurance</SelectItem>
+                                                                    <SelectItem value="crypto">Crypto/Digital</SelectItem>
+                                                                </SelectContent>
+                                                            </Select>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             ))}
                                             {assets.length < 5 && (
                                                 <Button
                                                     variant="outline"
                                                     onClick={() => setAssets([...assets, { name: "", type: "financial" }])}
-                                                    className="w-full border-dashed border-slate-300 text-slate-500 rounded-xl"
+                                                    className="w-full border-dashed border-slate-300 text-slate-500 rounded-2xl h-12"
                                                 >
-                                                    <Plus className="w-4 h-4 mr-2" /> Add Another
+                                                    <Plus className="w-4 h-4 mr-2" /> Add Another Asset
                                                 </Button>
                                             )}
-                                        </div>
-
-                                        <div className="p-4 rounded-2xl bg-slate-100/50 border border-slate-200">
-                                            <div className="flex items-start gap-3">
-                                                <div className="p-2 rounded-lg bg-white shadow-sm">
-                                                    <Zap className="w-4 h-4 text-primary fill-primary" />
-                                                </div>
-                                                <div>
-                                                    <h4 className="text-xs font-bold text-slate-900">AI-Powered Discovery</h4>
-                                                    <p className="text-[10px] text-slate-500 mt-0.5 leading-relaxed">
-                                                        Enter an institution above and click **Discover** to automatically pull their forms and settlement requirements.
-                                                    </p>
-                                                </div>
-                                            </div>
                                         </div>
 
                                         <Button
@@ -619,12 +628,96 @@ export default function OnboardingWizard() {
                                             disabled={assets.every(a => !a.name) || isLoading}
                                             className="w-full rounded-2xl h-12 font-bold mt-4"
                                         >
-                                            {isLoading ? "Saving Ledger..." : "Finish Onboarding"}
+                                            {isLoading ? "Saving..." : "Continue to Team"}
                                         </Button>
                                     </div>
                                 )}
 
-                                {/* 6. COMPLETION */}
+                                {/* 6. THE TEAM (NEW) */}
+                                {stepId === "team" && (
+                                    <div className="space-y-6">
+                                        <div className="text-center mb-6">
+                                            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                                <Users className="w-6 h-6 text-blue-600" />
+                                            </div>
+                                            <h2 className="text-2xl font-bold text-slate-900">Assemble Your Team</h2>
+                                            <p className="text-slate-500">Invite co-executors, attorneys, or family members to help.</p>
+                                        </div>
+
+                                        <div className="space-y-4">
+                                            {collaborators.map((collab, idx) => (
+                                                <div key={idx} className="flex gap-2 items-end bg-slate-50 p-4 rounded-2xl border border-slate-100 relative group">
+                                                    <button
+                                                        onClick={() => setCollaborators(collaborators.filter((_, i) => i !== idx))}
+                                                        className="absolute -top-2 -right-2 w-6 h-6 bg-white border border-slate-100 rounded-full flex items-center justify-center text-slate-400 hover:text-rose-500 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity z-20"
+                                                    >
+                                                        <Plus className="w-3 h-3 rotate-45" />
+                                                    </button>
+                                                    <div className="flex-1 space-y-1.5">
+                                                        <Label className="text-[10px] uppercase font-bold text-slate-400 ml-1">Email Address</Label>
+                                                        <div className="relative">
+                                                            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 pointer-events-none" />
+                                                            <Input
+                                                                placeholder="email@example.com"
+                                                                className="pl-9 h-11 bg-white"
+                                                                value={collab.email}
+                                                                onChange={e => {
+                                                                    const newCollabs = [...collaborators];
+                                                                    newCollabs[idx].email = e.target.value;
+                                                                    setCollaborators(newCollabs);
+                                                                }}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                    <div className="w-[140px] space-y-1.5">
+                                                        <Label className="text-[10px] uppercase font-bold text-slate-400 ml-1">Role</Label>
+                                                        <Select
+                                                            value={collab.role}
+                                                            onValueChange={val => {
+                                                                const newCollabs = [...collaborators];
+                                                                newCollabs[idx].role = val;
+                                                                setCollaborators(newCollabs);
+                                                            }}
+                                                        >
+                                                            <SelectTrigger className="h-11 bg-white">
+                                                                <SelectValue />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                <SelectItem value="CO_EXECUTOR">Co-Executor</SelectItem>
+                                                                <SelectItem value="ATTORNEY">Attorney</SelectItem>
+                                                                <SelectItem value="VIEWER">Heir/Viewer</SelectItem>
+                                                            </SelectContent>
+                                                        </Select>
+                                                    </div>
+                                                </div>
+                                            ))}
+
+                                            <Button
+                                                variant="outline"
+                                                onClick={() => setCollaborators([...collaborators, { email: "", role: "VIEWER" }])}
+                                                className="w-full border-dashed border-slate-300 text-slate-500 rounded-2xl h-12"
+                                            >
+                                                <Plus className="w-4 h-4 mr-2" /> Add Team Member
+                                            </Button>
+                                        </div>
+
+                                        <div className="flex flex-col gap-3">
+                                            <Button
+                                                size="lg"
+                                                onClick={handleNext}
+                                                disabled={isLoading}
+                                                className="w-full rounded-2xl h-12 font-bold"
+                                            >
+                                                {isLoading ? "Sending Invites..." : collaborators.length > 0 ? "Send Invites & Finish" : "Finish Setup"}
+                                            </Button>
+                                            <Button variant="ghost" onClick={handleNext} className="text-slate-400 text-xs">
+                                                Skip for now
+                                            </Button>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* 7. COMPLETION */}
                                 {stepId === "completion" && (
                                     <div className="text-center space-y-8 py-4">
                                         <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto animate-bounce">

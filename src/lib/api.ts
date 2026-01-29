@@ -700,5 +700,21 @@ export const api = {
             body: JSON.stringify(data),
         });
         return parseResponse(response);
+    },
+
+    inviteCollaborator: async (data: { estateId: string, email: string, role: string }) => {
+        const response = await fetch(`${API_URL}/collaboration/invite`, {
+            method: "POST",
+            headers: getHeaders(),
+            body: JSON.stringify(data),
+        });
+        return parseResponse(response);
+    },
+
+    getCollaborators: async (estateId: string) => {
+        const response = await fetch(`${API_URL}/collaboration/estates/${estateId}/collaborators`, {
+            headers: getHeaders(),
+        });
+        return parseResponse(response);
     }
 };

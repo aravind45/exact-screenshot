@@ -4,19 +4,37 @@ import { AgentService } from "./agentService.js";
 export const AssetService = {
     async getAll(userId: string) {
         return await prisma.asset.findMany({
-            where: { userId }
+            where: {
+                OR: [
+                    { userId },
+                    { estate: { grants: { some: { userId } } } }
+                ]
+            }
         });
     },
 
     async getById(id: string, userId: string) {
         return await prisma.asset.findFirst({
-            where: { id, userId },
+            where: {
+                id,
+                OR: [
+                    { userId },
+                    { estate: { grants: { some: { userId } } } }
+                ]
+            },
             include: { communications: true, newCommunications: true }
         });
     },
 
     async create(userId: string, data: any) {
-        const estate = await prisma.estate.findFirst({ where: { userId } });
+        const estate = await prisma.estate.findFirst({
+            where: {
+                OR: [
+                    { userId },
+                    { grants: { some: { userId } } }
+                ]
+            }
+        });
         if (!estate) throw new Error("No estate found for user.");
 
         const { institution, assetType, category, ownershipType, value, dateOfDeathValue, priority, status } = data;

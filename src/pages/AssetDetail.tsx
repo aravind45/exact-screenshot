@@ -42,7 +42,8 @@ import {
   ArrowRight,
   Gavel,
   History as HistoryIcon,
-  Scale
+  Scale,
+  Zap
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { TRACK_STAGES, SettlementTrack } from "@/config/settlementStages";
@@ -595,558 +596,628 @@ export default function AssetDetail() {
           </motion.div>
 
 
-          {/* Tabs for Details vs Guide vs Documents */}
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="mb-6 bg-slate-100 p-1 rounded-2xl h-auto">
-              <TabsTrigger value="workflow" className="gap-2 rounded-xl py-2.5 data-[state=active]:shadow-sm">
-                <CheckSquare className="w-4 h-4 text-primary" />
-                Settlement Guide
-                {completedStepIds.length > 0 && (
-                  <Badge variant="secondary" className="ml-1 h-5 px-1 bg-primary/10 text-primary border-none text-[10px]">
-                    {completedStepIds.length}/{getWorkflow(uiAsset.category).steps.length}
-                  </Badge>
-                )}
-              </TabsTrigger>
-              <TabsTrigger value="details" className="gap-2 rounded-xl py-2.5 data-[state=active]:shadow-sm">
-                <LayoutGrid className="w-4 h-4" />
-                Details & Logs
-              </TabsTrigger>
-              <TabsTrigger value="documents" className="gap-2 rounded-xl py-2.5 data-[state=active]:shadow-sm">
-                <FileSearch className="w-4 h-4" />
-                Documents
-                <span className="ml-1 px-1.5 py-0.5 text-[10px] bg-white/50 rounded-full">
-                  {documents?.length || 0}
-                </span>
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="workflow" className="mt-0">
-              {(() => {
-                const rec = calculateAuthorityRecommendation(assets, estate?.deceasedState || "CA");
-                const enhancedAsset = {
-                  ...asset,
-                  ownershipType: asset.ownershipType,
-                  isSmallEstateEligible: rec.isEligibleForSmallEstate,
-                  authorityType: rec.type
-                };
-
-                // The BLOCKER logic is now handled at the top of the page.
-                // We render the workflow regardless (or we could hide it, but user might want to see what's next).
-                // Let's keep it visible but maybe disabled? 
-                // For now, let's just render the workflow. The top alert is sufficient.
-                const workflow: WorkflowConfig = getWorkflow(asset.category);
-
-                return (
-                  <div className={cn("space-y-6", isLocked && "opacity-50 pointer-events-none grayscale")}>
-                    {/* If locked, we overlay or just dim it? The top alert is better. Let's dim. */}
-
-                    <SettlementWorkflow
-                      asset={enhancedAsset}
-
-                      workflow={workflow}
-                      currentStepId={currentStepId}
-                      completedStepIds={completedStepIds}
-                      onStepSelect={handleStepSelect}
-                      onStepComplete={handleStepComplete}
-                      onLogCommunication={() => setShowCommDialog(true)}
-                      onSendFax={async () => {
-                        if (!asset.institutionFax) {
-                          toast({
-                            title: "Fax Number Missing",
-                            description: "Please update the institution fax number in the details section first.",
-                            variant: "destructive"
-                          });
-                          return;
-                        }
-
-                        try {
-                          const res = await api.sendFax({
-                            assetId: id!,
-                            faxNumber: asset.institutionFax,
-                            subject: `Estate Settlement: ${asset.institution} - ${asset.assetType}`,
-                            documentType: currentStepId
-                          });
-
-                          toast({
-                            title: "Fax Sent",
-                            description: res.message || "Your document has been queued for transmission.",
-                          });
-
-                          // Refetch asset/comms since status might have changed
-                          queryClient.invalidateQueries({ queryKey: ['asset', id] });
-                          queryClient.invalidateQueries({ queryKey: ['communications', id] });
-                        } catch (err: any) {
-                          toast({
-                            title: "Fax Failed",
-                            description: err.message,
-                            variant: "destructive"
-                          });
-                        }
-                      }}
-                      onGenerateLetter={handleGenerateLetter}
-                    />
-
-                    {/* Physical Asset Protection (Think like an old executor) */}
-                    <PhysicalAssetProtector assetCategory={uiAsset.category} assetType={uiAsset.type} />
-
-                    {/* Smart Document Checklist */}
-                    <div className="card-elevated p-6 space-y-4">
-                      <div className="flex items-center gap-2 mb-2">
-                        <FileCheck className="w-5 h-5 text-indigo-600" />
-                        <h3 className="font-bold text-slate-900">Settlement Checklist</h3>
-                      </div>
-
-                      <p className="text-xs text-slate-500">
-                        Based on this asset's ownership ({asset.ownershipType}) and value ({formatCurrency(asset.value)}),
-                        the following documents are required for settlement:
-                      </p>
-
-                      <div className="space-y-2 pt-2">
-                        {(() => {
-                          const authReq = getInstitutionAuthorityRequirement(
-                            uiAsset.assetType,
-                            uiAsset.category,
-                            uiAsset.value,
-                            uiAsset.ownershipType
-                          );
-
-                          const requirementsMap: Record<string, string[]> = {
-                            "BENEFICIARY_ONLY": ["Death Certificate (certified)"],
-                            "AFFIDAVIT_ACCEPTED": ["Death Certificate (certified)", "Small Estate Affidavit (DE-310)"],
-                            "LETTERS_REQUIRED": ["Death Certificate (certified)", "DE-150 Letters", "DE-111 Petition"],
-                            "LETTERS_PREFERRED": ["Death Certificate (certified)", "DE-150 Letters"],
-                            "VARIES": ["Death Certificate (certified)"]
-                          };
-
-                          const docs = requirementsMap[authReq.requirement] || ["Death Certificate (certified)"];
-
-                          return docs.map((docType, idx) => {
-                            const uploaded = estateDocuments.find(d =>
-                              d.documentType.toLowerCase().includes(docType.split('(')[0].trim().toLowerCase()) ||
-                              docType.toLowerCase().includes(d.name.toLowerCase())
-                            );
-
-                            return (
-                              <div key={idx} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100 group">
-                                <div className="flex items-center gap-3">
-                                  {uploaded ? (
-                                    <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center">
-                                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                                    </div>
-                                  ) : (
-                                    <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center">
-                                      <Clock className="w-4 h-4 text-slate-400" />
-                                    </div>
-                                  )}
-                                  <div>
-                                    <p className={cn("text-xs font-bold", uploaded ? "text-slate-900" : "text-slate-600")}>{docType}</p>
-                                    <p className="text-[10px] text-slate-500">{uploaded ? `Obtained ${new Date(uploaded.obtainedDate!).toLocaleDateString()}` : "Action Required"}</p>
-                                  </div>
-                                </div>
-
-                                {uploaded ? (
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-8 px-3 text-[10px] font-bold text-indigo-600 hover:bg-indigo-50"
-                                    onClick={() => window.open(api.getEstateDocumentDownloadUrl(uploaded.documentType), "_blank")}
-                                  >
-                                    <Download className="w-3.5 h-3.5 mr-2" />
-                                    Download
-                                  </Button>
-                                ) : (
-                                  <Link to="/documents">
-                                    <Button variant="outline" size="sm" className="h-8 px-3 text-[10px] font-bold border-indigo-200 text-indigo-600 hover:bg-indigo-50">
-                                      Go to Vault
-                                      <ArrowRight className="w-3.5 h-3.5 ml-2" />
-                                    </Button>
-                                  </Link>
-                                )}
-                              </div>
-                            );
-                          });
-                        })()}
-                      </div>
+          {/* COMPACT MISSION BAR */}
+          <div className="bg-white border border-slate-200 rounded-[20px] p-1.5 shadow-sm mb-6">
+            <div className="flex items-center justify-between px-4 h-12">
+              <div className="flex items-center gap-8">
+                {[
+                  { id: 'discovery', label: 'Discovery', active: uiAsset.status === 'discovered' || uiAsset.status === 'verified' },
+                  { id: 'notification', label: 'Notification', active: uiAsset.status === 'notified' || uiAsset.status === 'notices_sent' },
+                  { id: 'settlement', label: 'Settlement', active: uiAsset.status === 'claimed' || uiAsset.status === 'collected' || uiAsset.status === 'closed' }
+                ].map((stage, idx) => (
+                  <div key={stage.id} className="flex items-center gap-3">
+                    <div className={cn(
+                      "w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black",
+                      stage.active ? "bg-primary text-white" : "bg-slate-100 text-slate-400"
+                    )}>
+                      {idx + 1}
                     </div>
+                    <span className={cn(
+                      "text-[11px] font-bold uppercase tracking-wider",
+                      stage.active ? "text-slate-900" : "text-slate-400"
+                    )}>
+                      {stage.label}
+                    </span>
+                    {idx < 2 && <ArrowRight className="w-3 h-3 text-slate-300 ml-2" />}
                   </div>
-                );
-              })()}
-            </TabsContent>
-
-            <TabsContent value="details">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2 space-y-6">
-                  {!isEditing && (
-                    <div className="bg-white rounded-3xl border border-slate-200 p-8 shadow-sm">
-                      <CommunicationLog assetId={id!} />
-                    </div>
-                  )}
-
+                ))}
+              </div>
+              <div className="flex items-center gap-4 border-l border-slate-100 pl-8">
+                <div className="text-right">
+                  <p className="text-[9px] font-black uppercase text-slate-400 leading-none mb-1">Time in Stage</p>
+                  <p className="text-xs font-bold text-slate-900">12 Days</p>
                 </div>
+                <div className="text-right">
+                  <p className="text-[9px] font-black uppercase text-slate-400 leading-none mb-1">Next Milestone</p>
+                  <p className="text-xs font-bold text-primary">Obtain Balance</p>
+                </div>
+              </div>
+            </div>
+          </div>
 
-                <div className="space-y-6">
-                  {/* Probate Progress Mini */}
-                  <ProbateProgressMini />
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            {/* LEFT COLUMN: ACTION & WORKFLOW */}
+            <div className="lg:col-span-8 space-y-6">
 
-                  {/* Enhanced Valuation Ledger */}
-                  <AssetValueTracker
-                    assetId={id!}
-                    currentValue={asset.value}
-                    dateOfDeathValue={asset.dateOfDeathValue}
-                    assetType={asset.category}
-                    onSuccess={() => handleSyncRoadmap("get_dod_values")}
-                  />
+              {/* STICKY NEXT ACTION HIGHLIGHT */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="bg-gradient-to-br from-indigo-600 to-blue-700 rounded-[24px] p-6 text-white shadow-xl shadow-indigo-200 relative overflow-hidden"
+              >
+                <div className="absolute top-0 right-0 p-8 opacity-10">
+                  <Zap className="w-32 h-32" />
+                </div>
+                <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+                  <div className="space-y-2">
+                    <Badge className="bg-white/20 hover:bg-white/30 text-white border-none text-[10px] font-black uppercase tracking-widest px-2 py-1">
+                      Priority Action
+                    </Badge>
+                    <h2 className="text-2xl font-black tracking-tight">
+                      {uiAsset.status === 'discovered' ? 'Notify Institution of Death' :
+                        uiAsset.status === 'notified' ? 'Request Date of Death Balance' :
+                          'Follow up on Claim Status'}
+                    </h2>
+                    <p className="text-indigo-100 text-sm font-medium leading-relaxed max-w-md">
+                      {uiAsset.status === 'discovered' ?
+                        `Initiate formal contact with ${uiAsset.institution} to freeze accounts and begin the settlement process.` :
+                        `The next logical step is to confirm the exact value for court appraisal.`}
+                    </p>
+                  </div>
+                  <Button
+                    size="lg"
+                    onClick={() => uiAsset.status === 'discovered' ? setShowDraftModal(true) : handleStepSelect(currentStepId)}
+                    className="bg-white text-indigo-600 hover:bg-slate-50 font-black h-14 px-8 rounded-2xl shadow-lg transition-all"
+                  >
+                    Take Action
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </Button>
+                </div>
+              </motion.div>
 
-                  {/* Authority Requirement */}
+              {/* TABS (Now inside the layout) */}
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                <TabsList className="mb-4 bg-slate-100 p-1 rounded-2xl h-auto w-full justify-start">
+                  <TabsTrigger value="workflow" className="gap-2 rounded-xl py-2 data-[state=active]:shadow-sm px-6">
+                    <CheckSquare className="w-4 h-4" />
+                    Settlement Guide
+                  </TabsTrigger>
+                  <TabsTrigger value="documents" className="gap-2 rounded-xl py-2 data-[state=active]:shadow-sm px-6">
+                    <FileSearch className="w-4 h-4" />
+                    Vault
+                    <Badge variant="secondary" className="ml-1 h-5 px-1.5 bg-white/50 text-slate-600 border-none text-[10px]">
+                      {documents?.length || 0}
+                    </Badge>
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="workflow" className="mt-0">
                   {(() => {
-                    const authReq = getInstitutionAuthorityRequirement(
-                      uiAsset.assetType,
-                      uiAsset.category,
-                      uiAsset.value,
-                      uiAsset.ownershipType
-                    );
-
-                    const hasAuthority = () => {
-                      if (estate?.lettersReceived) return true;
-                      const docTypes = Array.isArray(estateDocuments) ? estateDocuments.map(d => d.documentType) : [];
-                      const track = estate?.estateType;
-
-                      if (track === "SMALL_ESTATE") return docTypes.includes("DE-310");
-                      if (track === "SPOUSAL_PETITION") return docTypes.includes("DE-226");
-                      if (track === "TRUST_ADMIN") return docTypes.includes("TRUST_CERT") || docTypes.includes("TRUSTEE_ACC");
-                      if (track === "JOINT_TRANSFER" || track === "POD_TOD_TRANSFER") return true;
-                      return docTypes.includes("DE-150");
+                    const rec = calculateAuthorityRecommendation(assets, estate?.deceasedState || "CA");
+                    const enhancedAsset = {
+                      ...asset,
+                      ownershipType: asset.ownershipType,
+                      isSmallEstateEligible: rec.isEligibleForSmallEstate,
+                      authorityType: rec.type
                     };
 
-                    const authorityGranted = hasAuthority();
-
-                    if (authReq.requirement === "LETTERS_REQUIRED" && !authorityGranted) {
-                      return <AssetAuthorityBlocker
-                        institutionName={uiAsset.institution}
-                        hasLetters={authorityGranted}
-                        track={estate?.estateType as SettlementTrack}
-                      />;
-                    }
-
-                    const getReqColor = (req: string) => {
-                      switch (req) {
-                        case "AFFIDAVIT_ACCEPTED": return "bg-green-50 border-green-100 text-green-900";
-                        case "LETTERS_PREFERRED": return "bg-amber-50 border-amber-100 text-amber-900";
-                        case "BENEFICIARY_ONLY": return "bg-blue-50 border-blue-100 text-blue-900";
-                        default: return "bg-slate-50 border-slate-100 text-slate-900";
-                      }
-                    };
-
-                    const getReqLabel = (req: string) => {
-                      switch (req) {
-                        case "AFFIDAVIT_ACCEPTED": return "Small Estate Affidavit Accepted";
-                        case "LETTERS_PREFERRED": return "Letters Testamentary Preferred";
-                        case "BENEFICIARY_ONLY": return "Direct Beneficiary Claim";
-                        default: return "Varies by Institution";
-                      }
-                    };
+                    // The BLOCKER logic is now handled at the top of the page.
+                    // We render the workflow regardless (or we could hide it, but user might want to see what's next).
+                    // Let's keep it visible but maybe disabled? 
+                    // For now, let's just render the workflow. The top alert is sufficient.
+                    const workflow: WorkflowConfig = getWorkflow(asset.category);
 
                     return (
-                      <div className="card-elevated p-5 space-y-4">
-                        <div className="flex items-center justify-between">
-                          <h3 className="font-bold text-slate-900">Authority Guidance</h3>
-                          <Badge className={cn("text-[10px] font-black tracking-tighter", getReqColor(authReq.requirement))}>
-                            {getReqLabel(authReq.requirement)}
-                          </Badge>
+                      <div className={cn("space-y-6", isLocked && "opacity-50 pointer-events-none grayscale")}>
+                        {/* If locked, we overlay or just dim it? The top alert is better. Let's dim. */}
+
+                        <SettlementWorkflow
+                          asset={enhancedAsset}
+
+                          workflow={workflow}
+                          currentStepId={currentStepId}
+                          completedStepIds={completedStepIds}
+                          onStepSelect={handleStepSelect}
+                          onStepComplete={handleStepComplete}
+                          onLogCommunication={() => setShowCommDialog(true)}
+                          onSendFax={async () => {
+                            if (!asset.institutionFax) {
+                              toast({
+                                title: "Fax Number Missing",
+                                description: "Please update the institution fax number in the details section first.",
+                                variant: "destructive"
+                              });
+                              return;
+                            }
+
+                            try {
+                              const res = await api.sendFax({
+                                assetId: id!,
+                                faxNumber: asset.institutionFax,
+                                subject: `Estate Settlement: ${asset.institution} - ${asset.assetType}`,
+                                documentType: currentStepId
+                              });
+
+                              toast({
+                                title: "Fax Sent",
+                                description: res.message || "Your document has been queued for transmission.",
+                              });
+
+                              // Refetch asset/comms since status might have changed
+                              queryClient.invalidateQueries({ queryKey: ['asset', id] });
+                              queryClient.invalidateQueries({ queryKey: ['communications', id] });
+                            } catch (err: any) {
+                              toast({
+                                title: "Fax Failed",
+                                description: err.message,
+                                variant: "destructive"
+                              });
+                            }
+                          }}
+                          onGenerateLetter={handleGenerateLetter}
+                        />
+
+                        {/* Physical Asset Protection (Think like an old executor) */}
+                        <PhysicalAssetProtector assetCategory={uiAsset.category} assetType={uiAsset.type} />
+
+                        {/* Smart Document Checklist */}
+                        <div className="card-elevated p-6 space-y-4">
+                          <div className="flex items-center gap-2 mb-2">
+                            <FileCheck className="w-5 h-5 text-indigo-600" />
+                            <h3 className="font-bold text-slate-900">Settlement Checklist</h3>
+                          </div>
+
+                          <p className="text-xs text-slate-500">
+                            Based on this asset's ownership ({asset.ownershipType}) and value ({formatCurrency(asset.value)}),
+                            the following documents are required for settlement:
+                          </p>
+
+                          <div className="space-y-2 pt-2">
+                            {(() => {
+                              const authReq = getInstitutionAuthorityRequirement(
+                                uiAsset.assetType,
+                                uiAsset.category,
+                                uiAsset.value,
+                                uiAsset.ownershipType
+                              );
+
+                              const requirementsMap: Record<string, string[]> = {
+                                "BENEFICIARY_ONLY": ["Death Certificate (certified)"],
+                                "AFFIDAVIT_ACCEPTED": ["Death Certificate (certified)", "Small Estate Affidavit (DE-310)"],
+                                "LETTERS_REQUIRED": ["Death Certificate (certified)", "DE-150 Letters", "DE-111 Petition"],
+                                "LETTERS_PREFERRED": ["Death Certificate (certified)", "DE-150 Letters"],
+                                "VARIES": ["Death Certificate (certified)"]
+                              };
+
+                              const docs = requirementsMap[authReq.requirement] || ["Death Certificate (certified)"];
+
+                              return docs.map((docType, idx) => {
+                                const uploaded = estateDocuments.find(d =>
+                                  d.documentType.toLowerCase().includes(docType.split('(')[0].trim().toLowerCase()) ||
+                                  docType.toLowerCase().includes(d.name.toLowerCase())
+                                );
+
+                                return (
+                                  <div key={idx} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100 group">
+                                    <div className="flex items-center gap-3">
+                                      {uploaded ? (
+                                        <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center">
+                                          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                                        </div>
+                                      ) : (
+                                        <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center">
+                                          <Clock className="w-4 h-4 text-slate-400" />
+                                        </div>
+                                      )}
+                                      <div>
+                                        <p className={cn("text-xs font-bold", uploaded ? "text-slate-900" : "text-slate-600")}>{docType}</p>
+                                        <p className="text-[10px] text-slate-500">{uploaded ? `Obtained ${new Date(uploaded.obtainedDate!).toLocaleDateString()}` : "Action Required"}</p>
+                                      </div>
+                                    </div>
+
+                                    {uploaded ? (
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-8 px-3 text-[10px] font-bold text-indigo-600 hover:bg-indigo-50"
+                                        onClick={() => window.open(api.getEstateDocumentDownloadUrl(uploaded.documentType), "_blank")}
+                                      >
+                                        <Download className="w-3.5 h-3.5 mr-2" />
+                                        Download
+                                      </Button>
+                                    ) : (
+                                      <Link to="/documents">
+                                        <Button variant="outline" size="sm" className="h-8 px-3 text-[10px] font-bold border-indigo-200 text-indigo-600 hover:bg-indigo-50">
+                                          Go to Vault
+                                          <ArrowRight className="w-3.5 h-3.5 ml-2" />
+                                        </Button>
+                                      </Link>
+                                    )}
+                                  </div>
+                                );
+                              });
+                            })()}
+                          </div>
                         </div>
-
-                        {authReq.warning && (
-                          <div className="p-3 rounded-xl bg-amber-50 border border-amber-100">
-                            <p className="text-xs text-amber-900 font-medium leading-relaxed">
-                              ℹ️ {authReq.warning}
-                            </p>
-                          </div>
-                        )}
-
-                        {authReq.conditions && authReq.conditions.length > 0 && (
-                          <div className="space-y-2">
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Conditions</p>
-                            <div className="space-y-1.5">
-                              {authReq.conditions.map((cond, i) => (
-                                <div key={i} className="flex items-start gap-2">
-                                  <div className="w-1 h-1 rounded-full bg-slate-400 mt-1.5 shrink-0" />
-                                  <span className="text-xs text-slate-600 font-medium leading-tight">{cond}</span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
                       </div>
                     );
                   })()}
+                </TabsContent>
 
-                  {/* Waste Prevention (Subscription Audit) */}
-                  <SubscriptionAudit assetType={uiAsset.type} />
+                <TabsContent value="details">
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div className="lg:col-span-2 space-y-6">
+                      {!isEditing && (
+                        <div className="bg-white rounded-3xl border border-slate-200 p-8 shadow-sm">
+                          <CommunicationLog assetId={id!} />
+                        </div>
+                      )}
 
-                  <div className="card-elevated p-5 space-y-6">
-                    <div className="flex items-center justify-between">
-                      <h3 className="font-bold text-slate-900">Institutional Contact</h3>
-                      <Badge variant="outline" className="text-[10px] uppercase font-bold tracking-wider">{uiAsset.institution}</Badge>
                     </div>
 
-                    {!isEditing && (
-                      <div className="space-y-6">
-                        <div className="space-y-2">
-                          <div className="grid grid-cols-2 gap-3">
-                            {[
-                              { icon: Phone, label: "Phone", value: uiAsset.institutionPhone },
-                              { icon: Mail, label: "Email", value: uiAsset.institutionEmail },
-                              { icon: Printer, label: "Fax", value: uiAsset.institutionFax },
-                              { icon: Landmark, label: "Address", value: uiAsset.institutionAddress },
-                            ].map(({ icon: Icon, label, value }) => (
-                              <div key={label} className="p-3 rounded-xl border border-slate-100 bg-slate-50/50 hover:bg-slate-50 transition-all flex flex-col gap-1">
-                                <div className="flex items-center gap-2">
-                                  <Icon className="w-3 h-3 text-slate-400" />
-                                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-tighter">{label}</p>
+                    <div className="space-y-6">
+                      {/* Probate Progress Mini */}
+                      <ProbateProgressMini />
+
+                      {/* Enhanced Valuation Ledger */}
+                      <AssetValueTracker
+                        assetId={id!}
+                        currentValue={asset.value}
+                        dateOfDeathValue={asset.dateOfDeathValue}
+                        assetType={asset.category}
+                        onSuccess={() => handleSyncRoadmap("get_dod_values")}
+                      />
+
+                      {/* Authority Requirement */}
+                      {(() => {
+                        const authReq = getInstitutionAuthorityRequirement(
+                          uiAsset.assetType,
+                          uiAsset.category,
+                          uiAsset.value,
+                          uiAsset.ownershipType
+                        );
+
+                        const hasAuthority = () => {
+                          if (estate?.lettersReceived) return true;
+                          const docTypes = Array.isArray(estateDocuments) ? estateDocuments.map(d => d.documentType) : [];
+                          const track = estate?.estateType;
+
+                          if (track === "SMALL_ESTATE") return docTypes.includes("DE-310");
+                          if (track === "SPOUSAL_PETITION") return docTypes.includes("DE-226");
+                          if (track === "TRUST_ADMIN") return docTypes.includes("TRUST_CERT") || docTypes.includes("TRUSTEE_ACC");
+                          if (track === "JOINT_TRANSFER" || track === "POD_TOD_TRANSFER") return true;
+                          return docTypes.includes("DE-150");
+                        };
+
+                        const authorityGranted = hasAuthority();
+
+                        if (authReq.requirement === "LETTERS_REQUIRED" && !authorityGranted) {
+                          return <AssetAuthorityBlocker
+                            institutionName={uiAsset.institution}
+                            hasLetters={authorityGranted}
+                            track={estate?.estateType as SettlementTrack}
+                          />;
+                        }
+
+                        const getReqColor = (req: string) => {
+                          switch (req) {
+                            case "AFFIDAVIT_ACCEPTED": return "bg-green-50 border-green-100 text-green-900";
+                            case "LETTERS_PREFERRED": return "bg-amber-50 border-amber-100 text-amber-900";
+                            case "BENEFICIARY_ONLY": return "bg-blue-50 border-blue-100 text-blue-900";
+                            default: return "bg-slate-50 border-slate-100 text-slate-900";
+                          }
+                        };
+
+                        const getReqLabel = (req: string) => {
+                          switch (req) {
+                            case "AFFIDAVIT_ACCEPTED": return "Small Estate Affidavit Accepted";
+                            case "LETTERS_PREFERRED": return "Letters Testamentary Preferred";
+                            case "BENEFICIARY_ONLY": return "Direct Beneficiary Claim";
+                            default: return "Varies by Institution";
+                          }
+                        };
+
+                        return (
+                          <div className="card-elevated p-5 space-y-4">
+                            <div className="flex items-center justify-between">
+                              <h3 className="font-bold text-slate-900">Authority Guidance</h3>
+                              <Badge className={cn("text-[10px] font-black tracking-tighter", getReqColor(authReq.requirement))}>
+                                {getReqLabel(authReq.requirement)}
+                              </Badge>
+                            </div>
+
+                            {authReq.warning && (
+                              <div className="p-3 rounded-xl bg-amber-50 border border-amber-100">
+                                <p className="text-xs text-amber-900 font-medium leading-relaxed">
+                                  ℹ️ {authReq.warning}
+                                </p>
+                              </div>
+                            )}
+
+                            {authReq.conditions && authReq.conditions.length > 0 && (
+                              <div className="space-y-2">
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Conditions</p>
+                                <div className="space-y-1.5">
+                                  {authReq.conditions.map((cond, i) => (
+                                    <div key={i} className="flex items-start gap-2">
+                                      <div className="w-1 h-1 rounded-full bg-slate-400 mt-1.5 shrink-0" />
+                                      <span className="text-xs text-slate-600 font-medium leading-tight">{cond}</span>
+                                    </div>
+                                  ))}
                                 </div>
-                                <p className="text-xs font-bold text-slate-700 truncate">{value}</p>
-                                {label === "Email" && value !== "N/A" && (
-                                  <button
-                                    className="text-[9px] font-bold text-indigo-600 hover:underline text-left mt-1"
-                                    onClick={() => setShowDraftModal(true)}
-                                  >
-                                    Send Draft
-                                  </button>
-                                )}
                               </div>
-                            ))}
+                            )}
                           </div>
+                        );
+                      })()}
+
+                      {/* Waste Prevention (Subscription Audit) */}
+                      <SubscriptionAudit assetType={uiAsset.type} />
+
+                      <div className="card-elevated p-5 space-y-6">
+                        <div className="flex items-center justify-between">
+                          <h3 className="font-bold text-slate-900">Institutional Contact</h3>
+                          <Badge variant="outline" className="text-[10px] uppercase font-bold tracking-wider">{uiAsset.institution}</Badge>
                         </div>
 
-                        <div className="p-3 bg-blue-50/50 rounded-xl border border-blue-100/50">
-                          <p className="text-[10px] text-blue-700 font-medium leading-relaxed">
-                            <strong>How to Send:</strong> Use your personal email (Gmail/Outlook) to send documents. Then, use the <strong>Log History</strong> tool to create your legal audit trail.
-                          </p>
-                        </div>
+                        {!isEditing && (
+                          <div className="space-y-6">
+                            <div className="space-y-2">
+                              <div className="grid grid-cols-2 gap-3">
+                                {[
+                                  { icon: Phone, label: "Phone", value: uiAsset.institutionPhone },
+                                  { icon: Mail, label: "Email", value: uiAsset.institutionEmail },
+                                  { icon: Printer, label: "Fax", value: uiAsset.institutionFax },
+                                  { icon: Landmark, label: "Address", value: uiAsset.institutionAddress },
+                                ].map(({ icon: Icon, label, value }) => (
+                                  <div key={label} className="p-3 rounded-xl border border-slate-100 bg-slate-50/50 hover:bg-slate-50 transition-all flex flex-col gap-1">
+                                    <div className="flex items-center gap-2">
+                                      <Icon className="w-3 h-3 text-slate-400" />
+                                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-tighter">{label}</p>
+                                    </div>
+                                    <p className="text-xs font-bold text-slate-700 truncate">{value}</p>
+                                    {label === "Email" && value !== "N/A" && (
+                                      <button
+                                        className="text-[9px] font-bold text-indigo-600 hover:underline text-left mt-1"
+                                        onClick={() => setShowDraftModal(true)}
+                                      >
+                                        Send Draft
+                                      </button>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
 
-                        <div className="space-y-2 pt-4 border-t border-border/50">
-                          {uiAsset.institutionUrl && uiAsset.institutionUrl !== 'N/A' && (
-                            <Button
-                              variant="outline"
-                              className="w-full justify-start gap-3 h-12 border-slate-200 hover:border-primary/30 transition-all rounded-xl shadow-sm text-slate-600 mb-2"
-                              asChild
-                            >
-                              <a
-                                href={(() => {
-                                  const url = uiAsset.institutionUrl.startsWith('http') ? uiAsset.institutionUrl : `https://${uiAsset.institutionUrl}`;
-                                  if (!estate) return url;
-                                  const syncData = {
-                                    deceasedFirstName: estate.deceasedFirstName,
-                                    deceasedLastName: estate.deceasedLastName,
-                                    deceasedSSN: estate.deceasedSsn,
-                                    deceasedDOB: estate.deceasedDateOfBirth?.split('T')[0],
-                                    dateOfDeath: estate.deceasedDateOfDeath?.split('T')[0],
-                                  };
-                                  try {
-                                    const base64 = btoa(JSON.stringify(syncData));
-                                    return `${url}#ee_data=${base64}`;
-                                  } catch (e) {
-                                    return url;
-                                  }
-                                })()}
-                                target="_blank"
-                                rel="noreferrer"
-                              >
-                                <ExternalLink className="w-4 h-4" />
-                                <span className="font-bold text-xs uppercase tracking-wider">Visit {uiAsset.institution} Portal</span>
-                              </a>
-                            </Button>
-                          )}
-                          <EnrichDataButton assetId={id!} onEnrichComplete={() => queryClient.invalidateQueries({ queryKey: ["asset", id] })} />
-                          {activeTab === 'workflow' && (
-                            <Button
-                              variant="default"
-                              size="lg"
-                              className="w-full gap-3 h-14 bg-gradient-to-r from-primary to-blue-600 hover:shadow-lg hover:shadow-primary/20 transition-all font-bold rounded-2xl border-none"
-                              onClick={handleGenerateLetter}
-                            >
-                              <FileText className="w-5 h-5" />
-                              Generate Settlement Notice
-                            </Button>
-                          )}
-                        </div>
+                            <div className="p-3 bg-blue-50/50 rounded-xl border border-blue-100/50">
+                              <p className="text-[10px] text-blue-700 font-medium leading-relaxed">
+                                <strong>How to Send:</strong> Use your personal email (Gmail/Outlook) to send documents. Then, use the <strong>Log History</strong> tool to create your legal audit trail.
+                              </p>
+                            </div>
+
+                            <div className="space-y-2 pt-4 border-t border-border/50">
+                              {uiAsset.institutionUrl && uiAsset.institutionUrl !== 'N/A' && (
+                                <Button
+                                  variant="outline"
+                                  className="w-full justify-start gap-3 h-12 border-slate-200 hover:border-primary/30 transition-all rounded-xl shadow-sm text-slate-600 mb-2"
+                                  asChild
+                                >
+                                  <a
+                                    href={(() => {
+                                      const url = uiAsset.institutionUrl.startsWith('http') ? uiAsset.institutionUrl : `https://${uiAsset.institutionUrl}`;
+                                      if (!estate) return url;
+                                      const syncData = {
+                                        deceasedFirstName: estate.deceasedFirstName,
+                                        deceasedLastName: estate.deceasedLastName,
+                                        deceasedSSN: estate.deceasedSsn,
+                                        deceasedDOB: estate.deceasedDateOfBirth?.split('T')[0],
+                                        dateOfDeath: estate.deceasedDateOfDeath?.split('T')[0],
+                                      };
+                                      try {
+                                        const base64 = btoa(JSON.stringify(syncData));
+                                        return `${url}#ee_data=${base64}`;
+                                      } catch (e) {
+                                        return url;
+                                      }
+                                    })()}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                  >
+                                    <ExternalLink className="w-4 h-4" />
+                                    <span className="font-bold text-xs uppercase tracking-wider">Visit {uiAsset.institution} Portal</span>
+                                  </a>
+                                </Button>
+                              )}
+                              <EnrichDataButton assetId={id!} onEnrichComplete={() => queryClient.invalidateQueries({ queryKey: ["asset", id] })} />
+                              {activeTab === 'workflow' && (
+                                <Button
+                                  variant="default"
+                                  size="lg"
+                                  className="w-full gap-3 h-14 bg-gradient-to-r from-primary to-blue-600 hover:shadow-lg hover:shadow-primary/20 transition-all font-bold rounded-2xl border-none"
+                                  onClick={handleGenerateLetter}
+                                >
+                                  <FileText className="w-5 h-5" />
+                                  Generate Settlement Notice
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="documents">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="space-y-4">
-                  <h3 className="font-semibold text-lg">Required Documents</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Based on this asset being a <strong>{uiAsset.category}</strong> asset.
-                  </p>
-                  <div className="space-y-2">
-                    {Array.isArray(requiredDocs) && requiredDocs.map(docName => {
-                      const isUploaded = Array.isArray(documents) && documents.some((d: any) => d && (d.type === docName || d.name?.includes(docName)));
-                      return (
-                        <div key={docName} className="flex items-center p-3 card-elevated">
-                          {isUploaded ? (
-                            <CheckCircle2 className="w-5 h-5 text-green-500 mr-3" />
-                          ) : (
-                            <AlertCircle className="w-5 h-5 text-orange-400 mr-3" />
-                          )}
-                          <span className={cn("text-sm font-medium", isUploaded && "line-through text-muted-foreground")}>
-                            {docName}
-                          </span>
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
-
-                <div className="md:col-span-2 space-y-6">
-                  <div className="card-elevated p-6">
-                    <h3 className="font-semibold mb-4 flex items-center gap-2">
-                      <Upload className="w-5 h-5" />
-                      Upload Document
-                    </h3>
-                    <div className="flex items-end gap-4">
-                      <div className="flex-1 space-y-2">
-                        <label className="text-sm font-medium">Document Type</label>
-                        <Select value={uploadType} onValueChange={setUploadType}>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="DEATH_CERTIFICATE">Death Certificate</SelectItem>
-                            <SelectItem value="CLAIM_FORM">Claim Form</SelectItem>
-                            <SelectItem value="WILL">Will / Trust</SelectItem>
-                            <SelectItem value="OTHER">Other</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="flex-1 space-y-2">
-                        <label className="text-sm font-medium">File</label>
-                        <Input type="file" onChange={(e) => setUploadFile(e.target.files?.[0] || null)} />
-                      </div>
-                      <Button onClick={handleUpload} disabled={!uploadFile || uploadMutation.isPending}>
-                        {uploadMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                        Upload
-                      </Button>
                     </div>
                   </div>
+                </TabsContent>
 
-                  <div className="space-y-3">
-                    {/* Probate Authority Documents (The Golden Bridge) */}
-                    {(() => {
-                      const authorityDocs = Array.isArray(estateDocuments)
-                        ? [
-                          estateDocuments.find(d => d.documentType === 'DE-150'),
-                          estateDocuments.find(d => d.documentType === 'DE-140')
-                        ].filter(Boolean)
-                        : [];
-
-                      if (authorityDocs.length === 0) return null;
-
-                      return authorityDocs.map((doc: any) => (
-                        <div key={doc.id} className="card-elevated p-4 flex items-center justify-between border-violet-100 bg-violet-50/20">
-                          <div className="flex items-center gap-4">
-                            <div className="p-2 bg-violet-100 text-violet-600 rounded-lg">
-                              <Scale className="w-5 h-5" />
+                <TabsContent value="documents">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="space-y-4">
+                      <h3 className="font-semibold text-lg">Required Documents</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Based on this asset being a <strong>{uiAsset.category}</strong> asset.
+                      </p>
+                      <div className="space-y-2">
+                        {Array.isArray(requiredDocs) && requiredDocs.map(docName => {
+                          const isUploaded = Array.isArray(documents) && documents.some((d: any) => d && (d.type === docName || d.name?.includes(docName)));
+                          return (
+                            <div key={docName} className="flex items-center p-3 card-elevated">
+                              {isUploaded ? (
+                                <CheckCircle2 className="w-5 h-5 text-green-500 mr-3" />
+                              ) : (
+                                <AlertCircle className="w-5 h-5 text-orange-400 mr-3" />
+                              )}
+                              <span className={cn("text-sm font-medium", isUploaded && "line-through text-muted-foreground")}>
+                                {docName}
+                              </span>
                             </div>
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <p className="font-bold text-violet-900">{doc.name}</p>
-                                <Badge className="bg-violet-600 text-[8px] uppercase font-black tracking-tighter h-4">Probate Authority</Badge>
-                              </div>
-                              <p className="text-[10px] text-violet-600 font-medium">{doc.documentType} • Court Certified Document</p>
-                            </div>
-                          </div>
-                          <a href={api.getEstateDocumentDownloadUrl(doc.documentType)} target="_blank" rel="noreferrer">
-                            <Button variant="ghost" size="sm" className="hover:bg-violet-100 text-violet-600">
-                              <Download className="w-4 h-4" />
-                            </Button>
-                          </a>
-                        </div>
-                      ));
-                    })()}
+                          )
+                        })}
+                      </div>
+                    </div>
 
-                    {/* Asset-Specific Documents */}
-                    {Array.isArray(documents) && documents.map((doc: any) => (
-                      <div key={doc.id} className="card-elevated p-4 flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                          <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
-                            <File className="w-5 h-5" />
+                    <div className="md:col-span-2 space-y-6">
+                      <div className="card-elevated p-6">
+                        <h3 className="font-semibold mb-4 flex items-center gap-2">
+                          <Upload className="w-5 h-5" />
+                          Upload Document
+                        </h3>
+                        <div className="flex items-end gap-4">
+                          <div className="flex-1 space-y-2">
+                            <label className="text-sm font-medium">Document Type</label>
+                            <Select value={uploadType} onValueChange={setUploadType}>
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="DEATH_CERTIFICATE">Death Certificate</SelectItem>
+                                <SelectItem value="CLAIM_FORM">Claim Form</SelectItem>
+                                <SelectItem value="WILL">Will / Trust</SelectItem>
+                                <SelectItem value="OTHER">Other</SelectItem>
+                              </SelectContent>
+                            </Select>
                           </div>
-                          <div>
-                            <p className="font-medium">{doc.name}</p>
-                            <p className="text-xs text-muted-foreground">{doc.type} • {formatDate(doc.createdAt)}</p>
+                          <div className="flex-1 space-y-2">
+                            <label className="text-sm font-medium">File</label>
+                            <Input type="file" onChange={(e) => setUploadFile(e.target.files?.[0] || null)} />
                           </div>
-                        </div>
-                        <a href={doc.fileUrl.startsWith('http') ? doc.fileUrl : `${import.meta.env.VITE_API_URL || ''}${doc.fileUrl}`} target="_blank" rel="noreferrer">
-                          <Button variant="ghost" size="sm">
-                            <Download className="w-4 h-4" />
+                          <Button onClick={handleUpload} disabled={!uploadFile || uploadMutation.isPending}>
+                            {uploadMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                            Upload
                           </Button>
-                        </a>
+                        </div>
                       </div>
-                    ))}
-                    {documents?.length === 0 && (!estateDocuments.find(d => d.documentType === 'DE-150')) && (
-                      <div className="text-center py-8 text-muted-foreground border-2 border-dashed rounded-xl">
-                        No documents uploaded yet.
+
+                      <div className="space-y-3">
+                        {/* Probate Authority Documents (The Golden Bridge) */}
+                        {(() => {
+                          const authorityDocs = Array.isArray(estateDocuments)
+                            ? [
+                              estateDocuments.find(d => d.documentType === 'DE-150'),
+                              estateDocuments.find(d => d.documentType === 'DE-140')
+                            ].filter(Boolean)
+                            : [];
+
+                          if (authorityDocs.length === 0) return null;
+
+                          return authorityDocs.map((doc: any) => (
+                            <div key={doc.id} className="card-elevated p-4 flex items-center justify-between border-violet-100 bg-violet-50/20">
+                              <div className="flex items-center gap-4">
+                                <div className="p-2 bg-violet-100 text-violet-600 rounded-lg">
+                                  <Scale className="w-5 h-5" />
+                                </div>
+                                <div>
+                                  <div className="flex items-center gap-2">
+                                    <p className="font-bold text-violet-900">{doc.name}</p>
+                                    <Badge className="bg-violet-600 text-[8px] uppercase font-black tracking-tighter h-4">Probate Authority</Badge>
+                                  </div>
+                                  <p className="text-[10px] text-violet-600 font-medium">{doc.documentType} • Court Certified Document</p>
+                                </div>
+                              </div>
+                              <a href={api.getEstateDocumentDownloadUrl(doc.documentType)} target="_blank" rel="noreferrer">
+                                <Button variant="ghost" size="sm" className="hover:bg-violet-100 text-violet-600">
+                                  <Download className="w-4 h-4" />
+                                </Button>
+                              </a>
+                            </div>
+                          ));
+                        })()}
+
+                        {/* Asset-Specific Documents */}
+                        {Array.isArray(documents) && documents.map((doc: any) => (
+                          <div key={doc.id} className="card-elevated p-4 flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                              <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
+                                <File className="w-5 h-5" />
+                              </div>
+                              <div>
+                                <p className="font-medium">{doc.name}</p>
+                                <p className="text-xs text-muted-foreground">{doc.type} • {formatDate(doc.createdAt)}</p>
+                              </div>
+                            </div>
+                            <a href={doc.fileUrl.startsWith('http') ? doc.fileUrl : `${import.meta.env.VITE_API_URL || ''}${doc.fileUrl}`} target="_blank" rel="noreferrer">
+                              <Button variant="ghost" size="sm">
+                                <Download className="w-4 h-4" />
+                              </Button>
+                            </a>
+                          </div>
+                        ))}
+                        {documents?.length === 0 && (!estateDocuments.find(d => d.documentType === 'DE-150')) && (
+                          <div className="text-center py-8 text-muted-foreground border-2 border-dashed rounded-xl">
+                            No documents uploaded yet.
+                          </div>
+                        )}
                       </div>
-                    )}
+                    </div>
                   </div>
-                </div>
-              </div>
-            </TabsContent>
-          </Tabs>
-        </main>
+                </TabsContent>
+              </Tabs>
+            </main>
 
-        {/* Communication Log Dialog */}
-        <CommunicationLogDialog
-          open={showCommDialog}
-          onOpenChange={setShowCommDialog}
-          onSubmit={(data) => createCommMutation.mutate(data)}
-          isLoading={createCommMutation.isPending}
-          assetId={id}
-          availableDocuments={[...(Array.isArray(estateDocuments) ? estateDocuments : []), ...(Array.isArray(documents) ? documents : [])]}
-          workflowContext={(() => {
-            const workflow = getWorkflow(asset.category);
-            const step = workflow.steps.find(s => s.id === currentStepId);
-            if (!step) return undefined;
+            {/* Communication Log Dialog */}
+            <CommunicationLogDialog
+              open={showCommDialog}
+              onOpenChange={setShowCommDialog}
+              onSubmit={(data) => createCommMutation.mutate(data)}
+              isLoading={createCommMutation.isPending}
+              assetId={id}
+              availableDocuments={[...(Array.isArray(estateDocuments) ? estateDocuments : []), ...(Array.isArray(documents) ? documents : [])]}
+              workflowContext={(() => {
+                const workflow = getWorkflow(asset.category);
+                const step = workflow.steps.find(s => s.id === currentStepId);
+                if (!step) return undefined;
 
-            const renderText = (text: string) => {
-              if (!text) return "";
-              return text
-                .replace(/{{institution}}/g, asset.institution || "Institution")
-                .replace(/{{deceasedName}}/g, estate ? `${estate.deceasedFirstName} ${estate.deceasedLastName}` : "the deceased")
-                .replace(/{{accountNumber}}/g, asset.accountNumber || "account");
-            };
+                const renderText = (text: string) => {
+                  if (!text) return "";
+                  return text
+                    .replace(/{{institution}}/g, asset.institution || "Institution")
+                    .replace(/{{deceasedName}}/g, estate ? `${estate.deceasedFirstName} ${estate.deceasedLastName}` : "the deceased")
+                    .replace(/{{accountNumber}}/g, asset.accountNumber || "account");
+                };
 
-            return {
-              title: renderText(step.title),
-              description: renderText(step.description)
-            };
-          })()}
-        />
+                return {
+                  title: renderText(step.title),
+                  description: renderText(step.description)
+                };
+              })()}
+            />
 
-        <SmartEmailDraft
-          open={showDraftModal}
-          onOpenChange={setShowDraftModal}
-          asset={uiAsset}
-          estate={estate}
-          onLogSent={(subject, content) => {
-            createCommMutation.mutate({
-              method: "email",
-              direction: "outbound",
-              subject,
-              notes: content,
-              type: "initial_contact",
-              occurredAt: new Date().toISOString().slice(0, 16),
-              statusChange: "none"
-            } as any);
-          }}
-        />
+            <SmartEmailDraft
+              open={showDraftModal}
+              onOpenChange={setShowDraftModal}
+              asset={uiAsset}
+              estate={estate}
+              onLogSent={(subject, content) => {
+                createCommMutation.mutate({
+                  method: "email",
+                  direction: "outbound",
+                  subject,
+                  notes: content,
+                  type: "initial_contact",
+                  occurredAt: new Date().toISOString().slice(0, 16),
+                  statusChange: "none"
+                } as any);
+              }}
+            />
+          </div>
       </div>
-    </div>
-  );
+      );
 }

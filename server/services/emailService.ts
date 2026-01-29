@@ -177,7 +177,38 @@ Which asset ID does this email most likely belong to? Return ONLY the ID. If non
             institutionName: params.to.split("@")[1] || "Institution",
             contactName: params.to,
         });
-
         return { status: "sent", ccEmail };
+    }
+
+    static async sendInviteEmail(to: string, data: { inviterName: string, estateName: string, token: string }) {
+        const domain = process.env.MAILGUN_DOMAIN || "mg.pilar.ai";
+        const sender = `Pilar Team <noreply@${domain}>`;
+        const appUrl = process.env.APP_URL || "http://localhost:5173";
+        const inviteUrl = `${appUrl}/invite/${data.token}`;
+
+        const apiKey = process.env.MAILGUN_API_KEY || "";
+        const encodedKey = Buffer.from(`api:${apiKey}`).toString("base64");
+
+        const formData = new URLSearchParams();
+        formData.append("from", sender);
+        formData.append("to", to);
+        formData.append("subject", `Invitation to collaborate on ${data.estateName}`);
+        formData.append("text", `${data.inviterName} has invited you to collaborate on the estate of ${data.estateName} on Pilar.\n\nClick the link below to accept the invitation:\n${inviteUrl}\n\nThis invitation will expire in 7 days.`);
+
+        console.log(`[EmailService] Sending invite to ${to}`);
+
+        const response = await fetch(`https://api.mailgun.net/v3/${domain}/messages`, {
+            method: "POST",
+            headers: {
+                "Authorization": `Basic ${encodedKey}`
+            },
+            body: formData
+        });
+
+        if (!response.ok) {
+            const error = await response.text();
+            console.error("[EmailService] Invitation Email Error:", error);
+            // Don't throw here, just log so the process continues
+        }
     }
 }

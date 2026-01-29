@@ -20,6 +20,9 @@ model User {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   estates         Estate[]
+  grants          EstateGrant[]
+  invitations     Invitation[] // Invitations sent by this user
+  
   communications  AssetCommunication[]
   documents       Document[]
   estateDocuments EstateDocument[]
@@ -30,7 +33,7 @@ model User {
   uploadedAttachments     CommunicationAttachment[]
   settlementActivities    SettlementActivity[]
 
-  @@map("profiles") // Matching the Supabase 'profiles' table name for consistency
+  @@map("profiles")
 }
 
 model Estate {
@@ -88,6 +91,8 @@ model Estate {
   roadmapProgress    Json? @map("roadmap_progress") // { completedTaskIds: string[], completedPhases: string[] }
   
   user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  grants          EstateGrant[]
+  invitations     Invitation[]
   assets          Asset[]
   estateDocuments EstateDocument[]
   communications  Communication[]
@@ -95,6 +100,40 @@ model Estate {
   activities      SettlementActivity[]
 
   @@map("estates")
+}
+
+model EstateGrant {
+  id          String   @id @default(uuid())
+  estateId    String   @map("estate_id")
+  userId      String   @map("user_id")
+  role        String   // 'OWNER', 'CO_EXECUTOR', 'ATTORNEY', 'VIEWER'
+  permissions Json?    // Fine-grained permissions if needed
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  estate      Estate   @relation(fields: [estateId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([estateId, userId])
+  @@map("estate_grants")
+}
+
+model Invitation {
+  id          String   @id @default(uuid())
+  estateId    String   @map("estate_id")
+  email       String
+  token       String   @unique
+  role        String   @default("VIEWER") // 'CO_EXECUTOR', 'ATTORNEY', 'VIEWER'
+  status      String   @default("PENDING") // 'PENDING', 'ACCEPTED', 'EXPIRED', 'REVOKED'
+  invitedBy   String   @map("invited_by")
+  expiresAt   DateTime @map("expires_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+  acceptedAt  DateTime? @map("accepted_at")
+
+  estate      Estate   @relation(fields: [estateId], references: [id], onDelete: Cascade)
+  inviter     User     @relation(fields: [invitedBy], references: [id], onDelete: Cascade)
+
+  @@map("estate_invitations")
 }
 
 model Deadline {
