@@ -9,6 +9,9 @@ import { cn } from "@/lib/utils";
 import { api } from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+
 
 interface SmartEmailDraftProps {
     open: boolean;
@@ -23,6 +26,9 @@ export function SmartEmailDraft({ open, onOpenChange, asset, estate, onLogSent }
     const [selectedTemplate, setSelectedTemplate] = useState("notification");
     const [isSending, setIsSending] = useState(false);
     const [ccPersonalEmail, setCcPersonalEmail] = useState(true);
+    const [editedSubject, setEditedSubject] = useState("");
+    const [editedBody, setEditedBody] = useState("");
+
 
     const { data: user } = useQuery({
         queryKey: ['user-profile'],
@@ -42,15 +48,25 @@ export function SmartEmailDraft({ open, onOpenChange, asset, estate, onLogSent }
         }
     };
 
+    useEffect(() => {
+        if (open && templates[selectedTemplate as keyof typeof templates]) {
+            const template = templates[selectedTemplate as keyof typeof templates];
+            setEditedSubject(template.subject);
+            setEditedBody(template.body);
+        }
+    }, [open, selectedTemplate, asset, estate]);
+
     const currentTemplate = templates[selectedTemplate as keyof typeof templates];
 
+
     const handleCopyAndOpen = () => {
-        navigator.clipboard.writeText(currentTemplate.body);
+        navigator.clipboard.writeText(editedBody);
         toast({ title: "Draft Copied", description: "Draft copied to clipboard. Opening Gmail..." });
 
-        const mailtoUrl = `mailto:${asset?.institutionEmail || ""}?subject=${encodeURIComponent(currentTemplate.subject)}&body=${encodeURIComponent(currentTemplate.body)}`;
+        const mailtoUrl = `mailto:${asset?.institutionEmail || ""}?subject=${encodeURIComponent(editedSubject)}&body=${encodeURIComponent(editedBody)}`;
         window.location.href = mailtoUrl;
     };
+
 
     const handleSendDirectly = async () => {
         if (!asset?.institutionEmail) {
@@ -68,10 +84,11 @@ export function SmartEmailDraft({ open, onOpenChange, asset, estate, onLogSent }
             const result = await api.sendEmail({
                 assetId: asset.id,
                 to: asset.institutionEmail,
-                subject: currentTemplate.subject,
-                body: currentTemplate.body,
+                subject: editedSubject,
+                body: editedBody,
                 ccPersonalEmail
             });
+
             const ccMsg = result.ccEmail ? ` (CC: ${result.ccEmail})` : '';
             toast({ title: "Email Sent", description: `Notification sent to ${asset.institution}${ccMsg}` });
             onOpenChange(false);
@@ -115,18 +132,25 @@ export function SmartEmailDraft({ open, onOpenChange, asset, estate, onLogSent }
                     <div className="space-y-4">
                         <div className="space-y-1">
                             <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Subject Line</label>
-                            <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl font-bold text-slate-700 text-sm">
-                                {currentTemplate.subject}
-                            </div>
+                            <Input
+                                value={editedSubject}
+                                onChange={(e) => setEditedSubject(e.target.value)}
+                                className="rounded-2xl font-bold text-slate-700 text-sm border-slate-200 focus:border-indigo-500 transition-all h-12"
+                                placeholder="Email Subject"
+                            />
                         </div>
 
                         <div className="space-y-1">
                             <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Email Body</label>
-                            <div className="p-5 bg-slate-50 border border-slate-200 rounded-2xl text-slate-600 text-sm h-48 overflow-y-auto whitespace-pre-wrap leading-relaxed font-medium">
-                                {currentTemplate.body}
-                            </div>
+                            <Textarea
+                                value={editedBody}
+                                onChange={(e) => setEditedBody(e.target.value)}
+                                className="rounded-2xl text-slate-600 text-sm h-64 border-slate-200 focus:border-indigo-500 transition-all font-medium leading-relaxed resize-none"
+                                placeholder="Write your email here..."
+                            />
                         </div>
                     </div>
+
 
                     {/* CC Personal Email Option */}
                     <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
@@ -173,10 +197,11 @@ export function SmartEmailDraft({ open, onOpenChange, asset, estate, onLogSent }
                         <Button
                             className="h-14 rounded-2xl bg-blue-600 hover:bg-blue-700 transition-all gap-3 font-bold shadow-lg shadow-blue-500/20 col-span-2 sm:col-span-1"
                             onClick={() => {
-                                onLogSent(currentTemplate.subject, currentTemplate.body);
+                                onLogSent(editedSubject, editedBody);
                                 onOpenChange(false);
                             }}
                         >
+
                             <CheckCircle2 className="w-5 h-5" />
                             <div className="text-left flex flex-col">
                                 <span className="leading-tight">Log as Sent Manual</span>
