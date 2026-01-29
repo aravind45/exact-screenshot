@@ -163,7 +163,9 @@ export default function Dashboard() {
     ...(activitiesData || []).map((a: any) => ({
       id: a.id,
       occurredAt: a.occurredAt,
-      subject: a.action === 'PHASE_COMPLETED' ? `Phase Completed: ${a.taskId.split('_').map((s: any) => s.charAt(0).toUpperCase() + s.slice(1)).join(' ')}` : `Task: ${a.taskId.split('_').map((s: any) => s.charAt(0).toUpperCase() + s.slice(1)).join(' ')}`,
+      subject: a.action === 'PHASE_COMPLETED'
+        ? `Phase Completed: ${(a.taskId || '').split('_').map((s: any) => s.charAt(0).toUpperCase() + s.slice(1)).join(' ')}`
+        : `Task: ${(a.taskId || 'Unknown Task').split('_').map((s: any) => s.charAt(0).toUpperCase() + s.slice(1)).join(' ')}`,
       notes: a.action === 'PHASE_COMPLETED' ? `Advanced to next roadmap stage` : `Status changed to ${a.action.toLowerCase()}`,
       direction: 'system',
       type: 'roadmap',
