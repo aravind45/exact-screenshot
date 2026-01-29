@@ -176,9 +176,9 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         category: "probate",
         requiredDocs: [
           "Original Will",
-          "Death Certificate (certified)",
-          "DE-111 Petition",
-          "DE-121 Notice of Petition"
+          "Death Certificate",
+          "DE-111",
+          "DE-121"
         ],
         alerts: [
           {
@@ -192,7 +192,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         title: "Publish Creditor Notice",
         description: "Publish notice in a local newspaper for 3 consecutive weeks to notify creditors.",
         estimatedTime: "1 week",
-        requiredDocs: ["Court Case Number"],
+        requiredDocs: ["Court Case Number", "DE-130"],
         category: "probate",
         alerts: [
           {
@@ -206,7 +206,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         title: "Mail Notice to Known Creditors",
         description: "Send formal notice to all known creditors (banks, credit cards, medical providers).",
         estimatedTime: "2-3 hours",
-        requiredDocs: ["DE-157 Notice to Creditors"],
+        requiredDocs: ["DE-157"],
         category: "probate",
         alerts: [
           {
@@ -220,7 +220,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         title: "Attend Probate Hearing",
         description: "Appear in court for the probate hearing (usually 60-90 days after filing).",
         estimatedTime: "2-3 hours",
-        requiredDocs: ["Valid ID", "Proof of Publication"],
+        requiredDocs: ["Valid ID", "DE-130"],
         alerts: [
           {
             type: "info",
@@ -234,7 +234,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         description: "Obtain certified copies of your Letters - this is your legal authority to act.",
         estimatedTime: "1-2 weeks after hearing",
         category: "court-issued",
-        requiredDocs: ["DE-150 Letters"],
+        requiredDocs: ["DE-150"],
         alerts: [
           {
             type: "important",

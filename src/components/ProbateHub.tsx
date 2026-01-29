@@ -38,7 +38,7 @@ const GET_REQUIRED_FORMS = (track?: string) => {
         { code: "DE-111", name: "Petition for Probate", url: "https://www.courts.ca.gov/documents/de111.pdf", required: true, source: "PREP" },
         { code: "DE-121", name: "Notice of Hearing", url: "https://www.courts.ca.gov/documents/de121.pdf", required: true, source: "PREP" },
         { code: "DE-160", name: "Inventory and Appraisal", url: "https://www.courts.ca.gov/documents/de160.pdf", required: false, source: "PREP" },
-        { code: "Proof of Publication", name: "Proof of Publication (DE-130)", url: "https://www.courts.ca.gov/documents/de130.pdf", required: true, source: "PREP" },
+        { code: "DE-130", name: "Proof of Publication (DE-130)", url: "https://www.courts.ca.gov/documents/de130.pdf", required: true, source: "PREP" },
         { code: "DE-140", name: "Order for Probate", url: "https://www.courts.ca.gov/documents/de140.pdf", required: true, source: "COURT" },
         { code: "DE-150", name: "Letters Testamentary", url: "https://www.courts.ca.gov/documents/de150.pdf", required: true, source: "COURT" }
     ];
@@ -141,15 +141,35 @@ export function ProbateHub() {
                 "DE-310": "file_affidavit",
                 "DE-221": "file_spousal_petition",
                 "TRUST_CERT": "issue_cert_trust",
+                "DE-130": "publish_notice",
                 "Proof of Publication": "publish_notice",
+                "Publication Proof": "publish_notice",
                 "Death Certificate": "notify_ssa",
                 "Original Will": "locate_will",
                 "DE-157": "mail_notice",
                 "DE-174": "reject_invalid",
                 "DE-295": "close_estate"
             };
-            if (roadmapMapping[formCode]) {
-                await handleSyncRoadmap(roadmapMapping[formCode]);
+
+            // Try to sync by formCode first, then by displayName (for generic uploads)
+            let syncId = roadmapMapping[formCode];
+
+            if (!syncId && displayName) {
+                // Direct match on name
+                syncId = roadmapMapping[displayName];
+
+                // Partial match check
+                if (!syncId) {
+                    const foundKey = Object.keys(roadmapMapping).find(key =>
+                        displayName.toLowerCase().includes(key.toLowerCase()) ||
+                        key.toLowerCase().includes(displayName.toLowerCase())
+                    );
+                    if (foundKey) syncId = roadmapMapping[foundKey];
+                }
+            }
+
+            if (syncId) {
+                await handleSyncRoadmap(syncId);
             }
 
             // Special Case: Documents that clear "Probate Required" status
@@ -539,8 +559,7 @@ export function ProbateHub() {
 
                             {/* Discovered / Other Uploaded Documents */}
                             {documents?.filter((d: any) =>
-                                !GET_REQUIRED_FORMS(estate?.estateType).some(f => f.code === d.documentType) &&
-                                d.documentType !== 'OTHER'
+                                !GET_REQUIRED_FORMS(estate?.estateType).some(f => f.code === d.documentType)
                             ).map((doc: any) => (
                                 <div key={doc.id} className="px-4 py-2 flex items-center justify-between hover:bg-slate-50/50 transition-colors group">
                                     <div className="flex flex-col min-w-0">

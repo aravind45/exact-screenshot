@@ -107,10 +107,14 @@ export function SmallEstateHub() {
                 "DE-150": "receive_letters",
                 "DE-221": "file_spousal_petition",
                 "TRUST_CERT": "issue_cert_trust",
+                "DE-130": "publish_notice",
                 "Proof of Publication": "publish_notice"
             };
-            if (roadmapMapping[formCode]) {
-                await handleSyncRoadmap(roadmapMapping[formCode]);
+
+            // Try to sync by formCode first, then by displayName (for generic uploads)
+            const syncId = roadmapMapping[formCode] || (displayName ? roadmapMapping[displayName] : null);
+            if (syncId) {
+                await handleSyncRoadmap(syncId);
             }
 
             if (formCode === "DE-310") {
@@ -315,8 +319,7 @@ export function SmallEstateHub() {
 
                             {/* Discovered Documents */}
                             {documents?.filter((d: any) =>
-                                !GET_REQUIRED_FORMS().some(f => f.code === d.documentType) &&
-                                d.documentType !== 'OTHER'
+                                !GET_REQUIRED_FORMS().some(f => f.code === d.documentType)
                             ).map((doc: any) => (
                                 <div key={doc.id} className="px-6 py-4 flex items-center justify-between hover:bg-slate-50/50 transition-colors group">
                                     <div className="flex flex-col min-w-0">
