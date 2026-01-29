@@ -1048,15 +1048,6 @@ export default function AssetDetail() {
                 </div>
               )}
 
-              {/* Settlement Trail */}
-              <div className="bg-white rounded-[32px] border border-slate-200 shadow-sm overflow-hidden">
-                <div className="p-6 border-b border-slate-50 flex items-center justify-between">
-                  <h3 className="font-bold text-slate-900">Settlement Trail</h3>
-                </div>
-                <div className="max-h-[300px] overflow-y-auto p-2">
-                  <CommunicationLog assetId={id!} />
-                </div>
-              </div>
             </div>
 
           </div>

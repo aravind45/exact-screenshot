@@ -21,6 +21,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { SettlementMindMap } from "@/components/dashboard/SettlementMindMap";
 
 export default function HelpCenter() {
     const faqs = [
@@ -161,6 +162,19 @@ export default function HelpCenter() {
                                 <div className="font-bold text-sm text-slate-900">Form Guides</div>
                             </CardContent>
                         </Card>
+                    </div>
+
+                    {/* Visual Roadmap */}
+                    <div className="space-y-6">
+                        <div className="flex items-center justify-between px-1">
+                            <h2 className="text-xl font-bold text-slate-900">Interactive Settlement Map</h2>
+                            <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-100 text-[10px] uppercase font-black tracking-widest px-2 py-0.5">
+                                Visual Aid
+                            </Badge>
+                        </div>
+                        <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden p-8">
+                            <SettlementMindMap />
+                        </div>
                     </div>
 
                     {/* Roadmap to Hub Mapping */}

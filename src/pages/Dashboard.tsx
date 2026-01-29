@@ -51,7 +51,6 @@ import { CurrentMilestone } from "@/components/dashboard/CurrentMilestone";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { SETTLEMENT_PHASE_TASKS } from "@/config/settlementPhases";
 import { ProbateChecklistWidget } from "@/components/dashboard/ProbateChecklistWidget";
-import { SettlementMindMap } from "@/components/dashboard/SettlementMindMap";
 
 const normalize = (str: string | null) => str?.toLowerCase() || '';
 
@@ -233,14 +232,6 @@ export default function Dashboard() {
 
           <ProbateBlockerAlert />
 
-          {/* Settlement Mind Map Graph */}
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-          >
-            <SettlementMindMap />
-          </motion.section>
 
           {/* Stat Cards - Full Row */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
