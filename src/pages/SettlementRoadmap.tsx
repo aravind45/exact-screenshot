@@ -59,10 +59,21 @@ export default function SettlementRoadmap() {
 
     setCompletedTaskIds(newCompletedIds);
 
+    // Find the task title for better logging
+    let taskTitle = taskId;
+    for (const phase of SETTLEMENT_PHASE_TASKS) {
+      const task = phase.tasks.find(t => t.id === taskId);
+      if (task) {
+        taskTitle = task.title;
+        break;
+      }
+    }
+
     roadmapMutation.mutate({
       completedTaskIds: newCompletedIds,
       completedPhases,
       taskId,
+      taskTitle, // Pass title for logging
       action: completed ? 'COMPLETED' : 'UNCOMPLETED'
     });
   };

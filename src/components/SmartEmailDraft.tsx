@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Copy, CheckCircle2, Scale, Mail, AlertCircle } from "lucide-react";
+import { Copy, CheckCircle2, Scale, Mail, AlertCircle, Printer, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -195,17 +195,26 @@ export function SmartEmailDraft({ open, onOpenChange, asset, estate, onLogSent }
                             </div>
                         </Button>
                         <Button
-                            className="h-14 rounded-2xl bg-blue-600 hover:bg-blue-700 transition-all gap-3 font-bold shadow-lg shadow-blue-500/20 col-span-2 sm:col-span-1"
+                            className="h-14 rounded-2xl bg-white border-2 border-slate-200 hover:bg-slate-50 text-slate-900 transition-all gap-3 font-bold shadow-sm col-span-2 sm:col-span-1"
                             onClick={() => {
+                                // Auto-log as a "Letter" since they are printing it
                                 onLogSent(editedSubject, editedBody);
-                                onOpenChange(false);
+
+                                // Trigger PDF generation/print logic. We'll use window.print() for now as a simple fallback, 
+                                // but ideally this calls the PDF generation endpoint we used earlier.
+                                const printWindow = window.open('', '_blank');
+                                if (printWindow) {
+                                    printWindow.document.write(`<html><head><title>Print</title></head><body><pre style="white-space: pre-wrap; font-family: sans-serif;">${editedBody}</pre></body></html>`);
+                                    printWindow.document.close();
+                                    printWindow.print();
+                                }
                             }}
                         >
 
-                            <CheckCircle2 className="w-5 h-5" />
+                            <Printer className="w-5 h-5 text-slate-500" />
                             <div className="text-left flex flex-col">
-                                <span className="leading-tight">Log as Sent Manual</span>
-                                <span className="text-[9px] opacity-70 font-medium">Record in Evidence History</span>
+                                <span className="leading-tight">Print Letter</span>
+                                <span className="text-[9px] opacity-70 font-medium text-slate-400">Download for Mailing</span>
                             </div>
                         </Button>
                         <Button

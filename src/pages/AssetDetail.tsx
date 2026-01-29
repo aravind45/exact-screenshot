@@ -755,21 +755,7 @@ export default function AssetDetail() {
                             <Zap className="w-5 h-5 text-indigo-500 fill-indigo-500/10" />
                             <span className="text-lg font-black text-slate-900">AI Draft</span>
                           </div>
-                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Draft Personalized Message</span>
-                        </div>
-                      </Button>
-                      <Button
-                        size="lg"
-                        variant="outline"
-                        onClick={() => setShowLetterPreview(true)}
-                        className="w-full sm:w-auto h-16 px-10 rounded-[20px] border-slate-200 hover:bg-slate-50 group transition-all"
-                      >
-                        <div className="flex flex-col items-center">
-                          <div className="flex items-center gap-2">
-                            <FileCheck className="w-5 h-5 text-indigo-500 fill-indigo-500/10" />
-                            <span className="text-lg font-black text-slate-900">Generate PDF</span>
-                          </div>
-                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Official Letterhead</span>
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Draft • Send • Print</span>
                         </div>
                       </Button>
                     </>
