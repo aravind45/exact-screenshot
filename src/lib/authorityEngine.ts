@@ -8,7 +8,17 @@ export const STATE_THRESHOLDS: Record<string, number> = {
     "PA": 50000,
 };
 
-export type AuthorityType = "PROBATE" | "SMALL_ESTATE" | "NON_PROBATE" | "UNSET";
+export type AuthorityType =
+    | "FORMAL_PROBATE"
+    | "INFORMAL_PROBATE"
+    | "SMALL_ESTATE"
+    | "TRUST_ADMIN"
+    | "INTESTATE"
+    | "JOINT_TRANSFER"
+    | "POD_TOD_TRANSFER"
+    | "SPOUSAL_PETITION"
+    | "ANCILLARY_PROBATE"
+    | "UNSET";
 
 export interface AuthorityRecommendation {
     type: AuthorityType;
@@ -20,13 +30,14 @@ export interface AuthorityRecommendation {
 
 export function calculateAuthorityRecommendation(
     assets: any[],
-    state: string
+    state: string,
+    metadata?: { hasWill?: boolean; isSpouse?: boolean; isOutOfState?: boolean }
 ): AuthorityRecommendation {
-    const threshold = STATE_THRESHOLDS[state] || 50000; // Default to $50k if unknown
+    const threshold = STATE_THRESHOLDS[state] || 50000;
 
-    // Probate assets are those owned INDIVIDUALLY (no trust, joint, or beneficiary override)
     const probateAssets = assets.filter(a => a.ownershipType === "INDIVIDUAL");
     const probateTotal = probateAssets.reduce((sum, a) => sum + (a.value || 0), 0);
+    const trustAssets = assets.filter(a => a.ownershipType === "TRUST");
 
     const isEligibleForSmallEstate = probateTotal > 0 && probateTotal <= threshold;
 
@@ -36,15 +47,30 @@ export function calculateAuthorityRecommendation(
     if (assets.length === 0) {
         type = "UNSET";
         reason = "Add assets to determine the required legal path.";
+    } else if (metadata?.isOutOfState) {
+        type = "ANCILLARY_PROBATE";
+        reason = "Property located in another state requires Ancillary Probate.";
+    } else if (metadata?.isSpouse && probateTotal > 0) {
+        type = "SPOUSAL_PETITION";
+        reason = "As a surviving spouse, you may be eligible for a Spousal Property Petition, which is faster than full probate.";
+    } else if (probateAssets.length === 0 && trustAssets.length > 0) {
+        type = "TRUST_ADMIN";
+        reason = "Assets are held in Trust. No court probate required; proceed with Trust Administration.";
     } else if (probateAssets.length === 0) {
-        type = "NON_PROBATE";
-        reason = "All assets appear to have beneficiary designations or joint ownership. No court authority may be required.";
+        // More specific check for JOINT vs POD
+        const hasJoint = assets.some(a => a.ownershipType === "JOINT");
+        type = hasJoint ? "JOINT_TRANSFER" : "POD_TOD_TRANSFER";
+        reason = hasJoint
+            ? "Assets pass automatically to the surviving joint owner."
+            : "Assets pass directly to named beneficiaries via POD/TOD designations.";
     } else if (isEligibleForSmallEstate) {
         type = "SMALL_ESTATE";
-        reason = `Probate assets ($${probateTotal.toLocaleString()}) are below the ${state} threshold of $${threshold.toLocaleString()}. You can likely use a Small Estate Affidavit.`;
+        reason = `Probate assets ($${probateTotal.toLocaleString()}) are below the ${state} threshold. You can likely use a Small Estate Affidavit.`;
     } else {
-        type = "PROBATE";
-        reason = `Probate assets ($${probateTotal.toLocaleString()}) exceed the ${state} threshold of $${threshold.toLocaleString()}. Formal Probate and Letters Testamentary are likely required.`;
+        type = metadata?.hasWill === false ? "INTESTATE" : "FORMAL_PROBATE";
+        reason = metadata?.hasWill === false
+            ? "No Will found and assets exceed threshold. Formal Intestate Succession is required."
+            : `Assets exceed the ${state} threshold. Formal Probate is required.`;
     }
 
     return {

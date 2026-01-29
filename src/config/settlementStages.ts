@@ -1,11 +1,13 @@
-
 export type SettlementTrack =
-    | "PROBATE"
+    | "FORMAL_PROBATE"
+    | "INFORMAL_PROBATE"
     | "SMALL_ESTATE"
-    | "TRUST_BASED"
-    | "NON_PROBATE"
+    | "TRUST_ADMIN"
     | "INTESTATE"
-    | "ANCILLARY"
+    | "JOINT_TRANSFER"
+    | "POD_TOD_TRANSFER"
+    | "SPOUSAL_PETITION"
+    | "ANCILLARY_PROBATE"
     | "INSOLVENT"
     | "SPECIAL";
 
@@ -17,7 +19,7 @@ export interface ProcessStage {
 }
 
 export const TRACK_STAGES: Record<SettlementTrack, ProcessStage[]> = {
-    PROBATE: [
+    FORMAL_PROBATE: [
         {
             id: "petition", title: "Petition", description: "File petition and original Will with the court.",
             tasks: [
@@ -106,14 +108,14 @@ export const TRACK_STAGES: Record<SettlementTrack, ProcessStage[]> = {
             ]
         }
     ],
-    TRUST_BASED: [
+    TRUST_ADMIN: [
         { id: "acceptance", title: "Acceptance", description: "Successor Trustee signs Certificate of Trust." },
         { id: "notification", title: "Notice", description: "Send mandatory notices to all Trust beneficiaries." },
         { id: "inventory", title: "Inventory", description: "Identify assets specifically titled in the Trust." },
         { id: "expenses", title: "Expenses", description: "Pay Trust-related taxes and administration costs." },
         { id: "transfer", title: "Transfer", description: "Direct distribution per Trust terms without court." }
     ],
-    NON_PROBATE: [
+    JOINT_TRANSFER: [
         { id: "id_beneficiaries", title: "ID Heirs", description: "Confirm primary and contingent beneficiaries." },
         { id: "claim_forms", title: "Claims", description: "Submit claim forms to Insurance / Retirement co's." },
         { id: "tax_check", title: "Tax Check", description: "Verify if RMDs or estate taxes are due." },
@@ -126,11 +128,45 @@ export const TRACK_STAGES: Record<SettlementTrack, ProcessStage[]> = {
         { id: "clearance", title: "Clearance", description: "Resolve disputes over family inheritance priority." },
         { id: "statutory", title: "Statutory", description: "Distribute according to state percentage rules." }
     ],
-    ANCILLARY: [
+    ANCILLARY_PROBATE: [
         { id: "domiciliary", title: "Domiciliary", description: "Complete primary probate in decedent's home state." },
         { id: "local_filing", title: "Local Filing", description: "File 'Foreign Will' in state where property exists." },
         { id: "local_rep", title: "Local Rep", description: "Appoint representative for out-of-state property." },
         { id: "sale_transfer", title: "Sale/Move", description: "Sell or transfer the out-of-state real property." }
+    ],
+    INFORMAL_PROBATE: [
+        {
+            id: "petition", title: "Petition", description: "Simplified court petition for uncontested estates.",
+            tasks: [
+                { id: "file_petition", title: "File Informal Petition" },
+                { id: "appoint_rep", title: "Appoint Personal Rep" },
+                { id: "notify_heirs", title: "Notify All Heirs" }
+            ]
+        },
+        {
+            id: "admin", title: "Admin", description: "Collect assets and pay debts without frequent hearings.",
+            tasks: [
+                { id: "inventory", title: "List All Assets" },
+                { id: "pay_creditors", title: "Pay Debts" }
+            ]
+        },
+        { id: "close", title: "Close", description: "Final accounting and distribution." }
+    ],
+    POD_TOD_TRANSFER: [
+        { id: "id_accounts", title: "ID Accounts", description: "Locate accounts with designated beneficiaries." },
+        { id: "claim_forms", title: "Claim Forms", description: "Submit POD/TOD claim packets to institutions." },
+        { id: "transfer", title: "Transfer", description: "Direct transfer of funds to beneficiaries." }
+    ],
+    SPOUSAL_PETITION: [
+        {
+            id: "petition", title: "Petition", description: "File Spousal Property Petition (DE-221).",
+            tasks: [
+                { id: "prepare_de221", title: "Prepare DE-221" },
+                { id: "file_court", title: "File with Local Court" }
+            ]
+        },
+        { id: "hearing", title: "Hearing", description: "Attend hearing for Spousal Property Order." },
+        { id: "transfer", title: "Transfer", description: "Transfer title to surviving spouse." }
     ],
     INSOLVENT: [
         { id: "freeze", title: "Freeze", description: "Stop all payments until priority is established." },

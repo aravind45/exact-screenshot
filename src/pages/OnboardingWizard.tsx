@@ -24,6 +24,8 @@ import {
     Info
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { calculateAuthorityRecommendation } from "@/lib/authorityEngine";
+import { useQuery } from "@tanstack/react-query";
 
 const STEPS = [
     { id: "welcome", title: "Welcome" },
@@ -47,7 +49,10 @@ export default function OnboardingWizard() {
         deceasedName: "",
         dateOfDeath: "",
         location: "",
-        estimatedValue: ""
+        estimatedValue: "",
+        hasWill: true,
+        isSpouse: false,
+        isOutOfState: false
     });
     const [heirs, setHeirs] = useState<Array<{ name: string; relationship: string; email: string }>>([
         { name: "", relationship: "", email: "" }
@@ -56,6 +61,16 @@ export default function OnboardingWizard() {
     const [assets, setAssets] = useState<Array<{ name: string; type: string }>>([
         { name: "", type: "financial" }
     ]);
+
+    const recommendation = calculateAuthorityRecommendation(
+        [], // No actual assets yet, just using estimates
+        estateData.location,
+        {
+            hasWill: estateData.hasWill,
+            isSpouse: estateData.isSpouse,
+            isOutOfState: estateData.isOutOfState
+        }
+    );
 
     const handleNext = async () => {
         setIsLoading(true);
@@ -69,6 +84,10 @@ export default function OnboardingWizard() {
                     deceasedDateOfDeath: new Date(estateData.dateOfDeath),
                     deceasedState: estateData.location,
                     estimatedPersonalProperty: parseFloat(estateData.estimatedValue) || 0
+                });
+            } else if (currentStep === 2) { // Track Scout
+                await api.updateMyEstate({
+                    estateType: recommendation.type
                 });
             } else if (currentStep === 3) { // Heirs
                 const validHeirs = heirs.filter(h => h.name.trim() !== "");
@@ -250,6 +269,59 @@ export default function OnboardingWizard() {
                                                 </div>
                                                 <p className="text-[10px] text-slate-400 mt-1 italic">A rough estimate is fine; we use this to suggest shortcuts.</p>
                                             </div>
+
+                                            <div className="pt-4 space-y-4 border-t border-slate-100">
+                                                <div className="flex items-center justify-between">
+                                                    <div className="space-y-0.5">
+                                                        <Label className="text-sm font-bold">Was there a Will?</Label>
+                                                        <p className="text-[10px] text-slate-500">Determines if it's Intestate or Probate.</p>
+                                                    </div>
+                                                    <div className="flex bg-slate-100 p-1 rounded-lg">
+                                                        <button
+                                                            onClick={() => setEstateData({ ...estateData, hasWill: true })}
+                                                            className={cn("px-4 py-1.5 text-xs font-bold rounded-md transition-all", estateData.hasWill ? "bg-white shadow-sm text-primary" : "text-slate-400")}
+                                                        > Yes </button>
+                                                        <button
+                                                            onClick={() => setEstateData({ ...estateData, hasWill: false })}
+                                                            className={cn("px-4 py-1.5 text-xs font-bold rounded-md transition-all", !estateData.hasWill ? "bg-white shadow-sm text-primary" : "text-slate-400")}
+                                                        > No </button>
+                                                    </div>
+                                                </div>
+
+                                                <div className="flex items-center justify-between">
+                                                    <div className="space-y-0.5">
+                                                        <Label className="text-sm font-bold">Are you the surviving spouse?</Label>
+                                                        <p className="text-[10px] text-slate-500">May qualify for Spousal Property Petition.</p>
+                                                    </div>
+                                                    <div className="flex bg-slate-100 p-1 rounded-lg">
+                                                        <button
+                                                            onClick={() => setEstateData({ ...estateData, isSpouse: true })}
+                                                            className={cn("px-4 py-1.5 text-xs font-bold rounded-md transition-all", estateData.isSpouse ? "bg-white shadow-sm text-primary" : "text-slate-400")}
+                                                        > Yes </button>
+                                                        <button
+                                                            onClick={() => setEstateData({ ...estateData, isSpouse: false })}
+                                                            className={cn("px-4 py-1.5 text-xs font-bold rounded-md transition-all", !estateData.isSpouse ? "bg-white shadow-sm text-primary" : "text-slate-400")}
+                                                        > No </button>
+                                                    </div>
+                                                </div>
+
+                                                <div className="flex items-center justify-between">
+                                                    <div className="space-y-0.5">
+                                                        <Label className="text-sm font-bold">Any out-of-state property?</Label>
+                                                        <p className="text-[10px] text-slate-500">Real estate outside of {estateData.location || 'home state'}.</p>
+                                                    </div>
+                                                    <div className="flex bg-slate-100 p-1 rounded-lg">
+                                                        <button
+                                                            onClick={() => setEstateData({ ...estateData, isOutOfState: true })}
+                                                            className={cn("px-4 py-1.5 text-xs font-bold rounded-md transition-all", estateData.isOutOfState ? "bg-white shadow-sm text-primary" : "text-slate-400")}
+                                                        > Yes </button>
+                                                        <button
+                                                            onClick={() => setEstateData({ ...estateData, isOutOfState: false })}
+                                                            className={cn("px-4 py-1.5 text-xs font-bold rounded-md transition-all", !estateData.isOutOfState ? "bg-white shadow-sm text-primary" : "text-slate-400")}
+                                                        > No </button>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
 
                                         <Button
@@ -274,53 +346,35 @@ export default function OnboardingWizard() {
                                             <p className="text-slate-500">Based on the value in {estateData.location}, here is your path.</p>
                                         </div>
 
-                                        {parseFloat(estateData.estimatedValue) < 166250 ? (
-                                            <div className="p-6 rounded-2xl bg-emerald-50 border-2 border-emerald-100 space-y-4">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="p-2 rounded-lg bg-emerald-500 text-white shadow-lg shadow-emerald-200">
-                                                        <Zap className="w-5 h-5" />
-                                                    </div>
-                                                    <h3 className="font-bold text-emerald-900 text-lg uppercase tracking-tight">Small Estate Track</h3>
+                                        <div className="p-6 rounded-2xl bg-indigo-50 border-2 border-indigo-100 space-y-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className="p-2 rounded-lg bg-indigo-600 text-white shadow-lg shadow-indigo-200">
+                                                    <Scale className="w-5 h-5" />
                                                 </div>
-                                                <p className="text-sm text-emerald-800 leading-relaxed">
-                                                    Good news! Because the estate is under the statutory limit, you may qualify for the **Affidavit Process**.
-                                                </p>
-                                                <ul className="space-y-2">
-                                                    <li className="flex items-start gap-2 text-xs text-emerald-700">
-                                                        <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" />
-                                                        <span>**No court hearings** required in many cases.</span>
-                                                    </li>
-                                                    <li className="flex items-start gap-2 text-xs text-emerald-700">
-                                                        <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" />
-                                                        <span>**Wait 40 days**, then present an affidavit to banks.</span>
-                                                    </li>
-                                                </ul>
+                                                <h3 className="font-bold text-indigo-900 text-lg uppercase tracking-tight">
+                                                    {recommendation.type.replace('_', ' ')}
+                                                </h3>
                                             </div>
-                                        ) : (
-                                            <div className="p-6 rounded-2xl bg-indigo-50 border-2 border-indigo-100 space-y-4">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="p-2 rounded-lg bg-indigo-600 text-white shadow-lg shadow-indigo-200">
-                                                        <Scale className="w-5 h-5" />
-                                                    </div>
-                                                    <h3 className="font-bold text-indigo-900 text-lg uppercase tracking-tight">Full Probate Track</h3>
+                                            <p className="text-sm text-indigo-800 leading-relaxed">
+                                                {recommendation.reason}
+                                            </p>
+                                            <div className="p-4 rounded-xl bg-white/50 border border-indigo-100">
+                                                <div className="flex items-center gap-2 mb-2 text-indigo-900 font-bold text-xs uppercase">
+                                                    <Info className="w-3.5 h-3.5" /> Next Legal Move
                                                 </div>
-                                                <p className="text-sm text-indigo-800 leading-relaxed">
-                                                    The estate exceeds the threshold for a shortcut. You will likely need to file a **Petition for Probate**.
+                                                <p className="text-xs text-indigo-700">
+                                                    {recommendation.type === 'SMALL_ESTATE'
+                                                        ? 'Wait 40 days, then prepare and notarize the 13100 Affidavit.'
+                                                        : recommendation.type === 'SPOUSAL_PETITION'
+                                                            ? 'Prepare the DE-221 petition and file it with the local court.'
+                                                            : 'Gather the Death Certificate and Original Will to prepare your court filing.'}
                                                 </p>
-                                                <div className="p-4 rounded-xl bg-white/50 border border-indigo-100">
-                                                    <div className="flex items-center gap-2 mb-2 text-indigo-900 font-bold text-xs uppercase">
-                                                        <Info className="w-3.5 h-3.5" /> Next Legal Move
-                                                    </div>
-                                                    <p className="text-xs text-indigo-700">
-                                                        You'll need a "Certified Death Certificate" and the "Original Will" (if one exists) to begin.
-                                                    </p>
-                                                </div>
                                             </div>
-                                        )}
+                                        </div>
 
                                         <Button
                                             size="lg"
-                                            onClick={() => setCurrentStep(prev => prev + 1)}
+                                            onClick={handleNext}
                                             className="w-full rounded-2xl h-12 font-bold mt-4"
                                         >
                                             Understood, Continue
