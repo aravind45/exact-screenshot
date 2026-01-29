@@ -31,14 +31,38 @@ import { motion, AnimatePresence } from "framer-motion";
 import { calculateAuthorityRecommendation, getInstitutionAuthorityRequirement } from "@/lib/authorityEngine";
 import { cn } from "@/lib/utils";
 
-const REQUIRED_FORMS = [
-    { code: "DE-111", name: "Petition for Probate", url: "https://www.courts.ca.gov/documents/de111.pdf", required: true, source: "PREP" },
-    { code: "DE-121", name: "Notice of Hearing", url: "https://www.courts.ca.gov/documents/de121.pdf", required: true, source: "PREP" },
-    { code: "DE-160", name: "Inventory and Appraisal", url: "https://www.courts.ca.gov/documents/de160.pdf", required: false, source: "PREP" },
-    { code: "DE-165", name: "Notice of Proposed Action", url: "https://www.courts.ca.gov/documents/de165.pdf", required: false, source: "PREP" },
-    { code: "DE-140", name: "Order for Probate", url: "https://www.courts.ca.gov/documents/de140.pdf", required: true, source: "COURT" },
-    { code: "DE-150", name: "Letters Testamentary", url: "https://www.courts.ca.gov/documents/de150.pdf", required: true, source: "COURT" }
-];
+const GET_REQUIRED_FORMS = (track?: string) => {
+    const baseDocs = [
+        { code: "DE-111", name: "Petition for Probate", url: "https://www.courts.ca.gov/documents/de111.pdf", required: true, source: "PREP" },
+        { code: "DE-121", name: "Notice of Hearing", url: "https://www.courts.ca.gov/documents/de121.pdf", required: true, source: "PREP" },
+        { code: "DE-160", name: "Inventory and Appraisal", url: "https://www.courts.ca.gov/documents/de160.pdf", required: false, source: "PREP" },
+        { code: "DE-140", name: "Order for Probate", url: "https://www.courts.ca.gov/documents/de140.pdf", required: true, source: "COURT" },
+        { code: "DE-150", name: "Letters Testamentary", url: "https://www.courts.ca.gov/documents/de150.pdf", required: true, source: "COURT" }
+    ];
+
+    if (track === "SMALL_ESTATE") {
+        return [
+            { code: "DE-310", name: "Small Estate Affidavit", url: "https://www.courts.ca.gov/documents/de310.pdf", required: true, source: "PREP" },
+            { code: "DE-315", name: "Inventory & Appraisal (Small Estate)", url: "https://www.courts.ca.gov/documents/de315.pdf", required: true, source: "PREP" }
+        ];
+    }
+
+    if (track === "SPOUSAL_PETITION") {
+        return [
+            { code: "DE-221", name: "Spousal Property Petition", url: "https://www.courts.ca.gov/documents/de221.pdf", required: true, source: "PREP" },
+            { code: "DE-226", name: "Spousal Property Order", url: "https://www.courts.ca.gov/documents/de226.pdf", required: true, source: "COURT" }
+        ];
+    }
+
+    if (track === "TRUST_ADMIN") {
+        return [
+            { code: "TRUST_CERT", name: "Certification of Trust", url: "#", required: true, source: "PREP" },
+            { code: "TRUSTEE_ACC", name: "Acceptance of Trusteeship", url: "#", required: true, source: "PREP" }
+        ];
+    }
+
+    return baseDocs;
+};
 
 export function ProbateHub() {
     const { toast } = useToast();
@@ -105,14 +129,18 @@ export function ProbateHub() {
             const roadmapMapping: Record<string, string> = {
                 "DE-111": "file_petition",
                 "DE-150": "receive_letters",
-                "DE-160": "complete_inventory"
+                "DE-160": "complete_inventory",
+                "DE-310": "file_affidavit",
+                "DE-221": "file_spousal_petition",
+                "TRUST_CERT": "issue_cert_trust"
             };
             if (roadmapMapping[formCode]) {
                 await handleSyncRoadmap(roadmapMapping[formCode]);
             }
 
-            // Special Case: DE-150 clears the blocker
-            if (formCode === "DE-150") {
+            // Special Case: Documents that clear "Probate Required" status
+            const clearingForms = ["DE-150", "DE-310", "DE-226", "TRUSTEE_ACC"];
+            if (clearingForms.includes(formCode)) {
                 await api.updateMyEstate({ probateStatus: 'EXECUTOR_APPOINTED' });
                 queryClient.invalidateQueries({ queryKey: ["estate"] });
             }
@@ -395,7 +423,12 @@ export function ProbateHub() {
                                 </div>
                                 <div className="p-2 rounded-lg bg-slate-900/5 border border-slate-200/50">
                                     <p className="text-[9px] text-slate-600 leading-tight">
-                                        These assets are <span className="font-bold text-slate-900">Locked</span> because they were owned individually. Institutions require <strong>Letters (DE-150)</strong> to proceed.
+                                        These assets are <span className="font-bold text-slate-900">Locked</span> because they were owned individually. Institutions require <strong>{
+                                            estate?.estateType === 'SMALL_ESTATE' ? 'Affidavit (DE-310)' :
+                                                estate?.estateType === 'SPOUSAL_PETITION' ? 'Spousal Order (DE-226)' :
+                                                    estate?.estateType === 'TRUST_ADMIN' ? 'Cert of Trust' :
+                                                        'Letters (DE-150)'
+                                        }</strong> to proceed.
                                     </p>
                                 </div>
                             </div>
@@ -420,7 +453,7 @@ export function ProbateHub() {
                             </div>
                         </div>
                         <div className="divide-y divide-slate-100">
-                            {REQUIRED_FORMS.map((form) => {
+                            {GET_REQUIRED_FORMS(estate?.estateType).map((form) => {
                                 const status = getFormStatus(form.code);
                                 const isCompleted = status === "OBTAINED";
                                 return (

@@ -240,6 +240,30 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
             message: "Order 10-15 certified copies ($15 each). You'll need them for every institution."
           }
         ]
+      },
+      {
+        id: "file_affidavit",
+        title: "File Small Estate Affidavit (DE-310)",
+        description: "For estates under threshold, use this shortcut to bypass court probate.",
+        estimatedTime: "40 days after death",
+        category: "court-issued",
+        requiredDocs: ["DE-310 Affidavit", "Death Certificate"]
+      },
+      {
+        id: "file_spousal_petition",
+        title: "File Spousal Property Petition (DE-221)",
+        description: "Request court order to transfer property to surviving spouse without full probate.",
+        estimatedTime: "4-6 weeks",
+        category: "probate",
+        requiredDocs: ["DE-221 Petition", "Death Certificate"]
+      },
+      {
+        id: "issue_cert_trust",
+        title: "Issue Certificate of Trust",
+        description: "Formalize successor trustee authority for trust-held assets.",
+        estimatedTime: "1 week",
+        category: "court-issued",
+        requiredDocs: ["Trust Agreement"]
       }
     ]
   },

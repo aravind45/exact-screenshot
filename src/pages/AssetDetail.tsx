@@ -809,7 +809,11 @@ export default function AssetDetail() {
                     const hasLetters = Array.isArray(estateDocuments) && estateDocuments.some(d => d.documentType === 'DE-150');
 
                     if (authReq.requirement === "LETTERS_REQUIRED" && !hasLetters) {
-                      return <AssetAuthorityBlocker institutionName={uiAsset.institution} hasLetters={hasLetters} />;
+                      return <AssetAuthorityBlocker
+                        institutionName={uiAsset.institution}
+                        hasLetters={hasLetters}
+                        track={estate?.estateType as SettlementTrack}
+                      />;
                     }
 
                     const getReqColor = (req: string) => {

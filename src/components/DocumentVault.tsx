@@ -57,6 +57,8 @@ const FOUNDATION_DOCUMENTS = [
     { type: "DEATH_CERTIFICATE", label: "Death Certificate", roadmapId: "notify_ssa", note: "Required for SSA & Social Security." },
     { type: "WILL", label: "Original Will", roadmapId: "locate_will", note: "Must be located to prove legal intent." },
     { type: "LETTERS_TESTAMENTARY", label: "Letters Testamentary (DE-150)", roadmapId: "receive_letters", note: "The legal authority to move assets." },
+    { type: "SMALL_ESTATE_AFFIDAVIT", label: "Small Estate Affidavit (DE-310)", roadmapId: "file_affidavit", note: "Shortcut to settle smaller estates." },
+    { type: "TRUST_CERTIFICATION", label: "Trust Certification", roadmapId: "issue_cert_trust", note: "Proof of Trustee authority." },
 ];
 
 const STATUS_CONFIG = {
