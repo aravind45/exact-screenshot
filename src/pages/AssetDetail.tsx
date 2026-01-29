@@ -1028,32 +1028,30 @@ export default function AssetDetail() {
                 </div>
               </div>
 
-              {/* Institution Intel (More compact) */}
-              <div className="bg-white rounded-[32px] border border-slate-200 p-6 shadow-sm space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-bold text-slate-900">Institution Intel</h3>
-                  <EnrichDataButton assetId={id!} onEnrichComplete={() => queryClient.invalidateQueries({ queryKey: ["asset", id] })} />
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="p-3 bg-slate-50 rounded-xl">
-                    <p className="text-[9px] font-black text-slate-400 uppercase">Hotline</p>
-                    <p className="text-xs font-bold text-slate-700">{uiAsset.institutionPhone}</p>
+              {/* Institution Intel (Only show if data exists) */}
+              {(uiAsset.institutionPhone || uiAsset.institutionFax) && (
+                <div className="bg-white rounded-[32px] border border-slate-200 p-6 shadow-sm space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-bold text-slate-900">Institution Intel</h3>
+                    <EnrichDataButton assetId={id!} onEnrichComplete={() => queryClient.invalidateQueries({ queryKey: ["asset", id] })} />
                   </div>
-                  <div className="p-3 bg-slate-50 rounded-xl">
-                    <p className="text-[9px] font-black text-slate-400 uppercase">Fax Line</p>
-                    <p className="text-xs font-bold text-slate-700">{uiAsset.institutionFax}</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="p-3 bg-slate-50 rounded-xl">
+                      <p className="text-[9px] font-black text-slate-400 uppercase">Hotline</p>
+                      <p className="text-xs font-bold text-slate-700">{uiAsset.institutionPhone}</p>
+                    </div>
+                    <div className="p-3 bg-slate-50 rounded-xl">
+                      <p className="text-[9px] font-black text-slate-400 uppercase">Fax Line</p>
+                      <p className="text-xs font-bold text-slate-700">{uiAsset.institutionFax}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
 
               {/* Settlement Trail */}
               <div className="bg-white rounded-[32px] border border-slate-200 shadow-sm overflow-hidden">
                 <div className="p-6 border-b border-slate-50 flex items-center justify-between">
                   <h3 className="font-bold text-slate-900">Settlement Trail</h3>
-                  <Button variant="ghost" size="sm" onClick={() => setShowCommDialog(true)} className="h-8 text-[10px] font-black uppercase text-indigo-600">
-                    <Plus className="w-3.5 h-3.5 mr-1" />
-                    Log
-                  </Button>
                 </div>
                 <div className="max-h-[300px] overflow-y-auto p-2">
                   <CommunicationLog assetId={id!} />
