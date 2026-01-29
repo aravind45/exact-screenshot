@@ -93,33 +93,30 @@ export const TASK_ACTIONS: Record<string, TaskAction> = {
     label: 'View Roadmap',
     icon: 'Layout'
   },
+  // These are now handled by integrated UI in CollapsiblePhaseChevron
   'receive_letters': {
-    type: 'navigate',
-    target: '/roadmap',
-    label: 'Upload Letters (DE-150)',
-    icon: 'Upload',
-    variant: 'primary'
+    type: 'modal',
+    target: 'none',
+    label: 'Upload Required',
+    icon: 'Upload'
   },
   'file_affidavit': {
-    type: 'navigate',
-    target: '/roadmap',
-    label: 'Upload Affidavit (DE-310)',
-    icon: 'Upload',
-    variant: 'primary'
+    type: 'modal',
+    target: 'none',
+    label: 'Upload Required',
+    icon: 'Upload'
   },
   'file_spousal_petition': {
-    type: 'navigate',
-    target: '/roadmap',
-    label: 'Manage Spousal Petition',
-    icon: 'FileText',
-    variant: 'primary'
+    type: 'modal',
+    target: 'none',
+    label: 'Upload Required',
+    icon: 'Upload'
   },
   'issue_cert_trust': {
-    type: 'navigate',
-    target: '/roadmap',
-    label: 'Upload Trust Docs',
-    icon: 'Upload',
-    variant: 'primary'
+    type: 'modal',
+    target: 'none',
+    label: 'Upload Required',
+    icon: 'Upload'
   },
 
   // Phase 2: Asset Discovery
@@ -143,16 +140,15 @@ export const TASK_ACTIONS: Record<string, TaskAction> = {
     icon: 'Home'
   },
   'complete_inventory': {
-    type: 'navigate',
-    target: '/roadmap',
-    label: 'Manage Inventory (DE-160)',
-    icon: 'FileText',
-    variant: 'primary'
+    type: 'modal',
+    target: 'none',
+    label: 'Upload Required',
+    icon: 'Upload'
   },
   'file_inventory': {
-    type: 'navigate',
-    target: '/roadmap',
-    label: 'Upload Filed DE-160',
+    type: 'modal',
+    target: 'none',
+    label: 'Upload Required',
     icon: 'Upload'
   },
 

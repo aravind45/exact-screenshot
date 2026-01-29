@@ -23,9 +23,14 @@ import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 import { useWorkflow } from '@/contexts/WorkflowContext';
-import { SETTLEMENT_PHASE_TASKS } from '@/config/settlementPhases';
+import { SETTLEMENT_PHASE_TASKS, type PhaseTask } from '@/config/settlementPhases';
 import { TASK_ACTIONS } from '@/config/taskActions';
 import type { SettlementPhase } from './SettlementPhaseChevron';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { api } from "@/lib/api";
+import { toast } from "sonner";
+import { DOCUMENT_REGISTRY, findCanonicalDoc } from "@/config/documents";
+import { FileUp, FileText, CheckCircle2, Download, Trash2, Loader2 as Spinner } from "lucide-react";
 
 interface CollapsiblePhaseChevronProps {
   onTaskToggle: (taskId: string, completed: boolean) => void;
@@ -33,6 +38,7 @@ interface CollapsiblePhaseChevronProps {
 
 export function CollapsiblePhaseChevron({ onTaskToggle }: CollapsiblePhaseChevronProps) {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const {
     currentPhase,
     assetsByPhase,
@@ -41,6 +47,61 @@ export function CollapsiblePhaseChevron({ onTaskToggle }: CollapsiblePhaseChevro
     completedTaskIds,
     completedPhases
   } = useWorkflow();
+
+  const { data: documents = [] } = useQuery({
+    queryKey: ["estate-documents"],
+    queryFn: api.getEstateDocuments,
+  });
+
+  const { data: estate } = useQuery({
+    queryKey: ["estate"],
+    queryFn: api.getMyEstate,
+  });
+
+  const handleSyncRoadmap = async (roadmapId: string) => {
+    try {
+      if (!estate) return;
+      const currentCompletedIds = estate.roadmapProgress?.completedTaskIds || [];
+      if (!currentCompletedIds.includes(roadmapId)) {
+        const newIds = [...currentCompletedIds, roadmapId];
+        await api.updateRoadmap({
+          completedTaskIds: newIds,
+          completedPhases: estate.roadmapProgress?.completedPhases || [],
+          taskId: roadmapId,
+          action: 'COMPLETED'
+        });
+        queryClient.invalidateQueries({ queryKey: ["estate"] });
+        toast.info(`Automatically marked roadmap task as "Complete".`);
+      }
+    } catch (err) {
+      console.error("Failed to sync roadmap:", err);
+    }
+  };
+
+  const uploadMutation = useMutation({
+    mutationFn: ({ type, name, file }: { type: string; name: string; file: File }) =>
+      api.uploadEstateDocument(type, name, file),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["estate-documents"] });
+      toast.success("Document uploaded successfully");
+
+      // Auto-sync roadmap if this doc matches a task in any phase
+      for (const p of SETTLEMENT_PHASE_TASKS) {
+        const taskWithDoc = p.tasks.find(t => t.requiredDocs?.includes(variables.type));
+        if (taskWithDoc) {
+          handleSyncRoadmap(taskWithDoc.id);
+          break;
+        }
+      }
+    },
+    onError: (error: any) => {
+      toast.error(`Upload failed: ${error.message}`);
+    },
+  });
+
+  const handleDocumentUpload = async (type: string, name: string, file: File) => {
+    uploadMutation.mutate({ type, name, file });
+  };
 
   const [expandedPhases, setExpandedPhases] = useState<Set<SettlementPhase>>(
     new Set([currentPhase])
@@ -236,13 +297,83 @@ export function CollapsiblePhaseChevron({ onTaskToggle }: CollapsiblePhaseChevro
                             </div>
                             <p className="text-xs text-slate-600 mb-2">{task.description}</p>
 
-                            {/* Action Button */}
-                            {action && !isTaskCompleted && (
+                            {/* Integrated Document Controls */}
+                            {!isTaskCompleted && (
+                              <div className="mt-2 flex flex-wrap gap-2">
+                                {task.requiredDocs && task.requiredDocs.map((doc, idx) => {
+                                  const canon = findCanonicalDoc(doc);
+                                  const uploaded = documents.find(d => {
+                                    if (d.documentType === doc) return true;
+                                    if (canon) {
+                                      const uploadedCanon = findCanonicalDoc(d.documentType) || findCanonicalDoc(d.name);
+                                      return uploadedCanon?.code === canon.code;
+                                    }
+                                    return false;
+                                  });
+
+                                  if (uploaded) return (
+                                    <Badge key={idx} variant="secondary" className="bg-green-50 text-green-700 border-green-100 text-[9px] font-bold py-0 h-6">
+                                      <CheckCircle2 className="w-3 h-3 mr-1" />
+                                      {doc} Obtained
+                                    </Badge>
+                                  );
+
+                                  return (
+                                    <div key={idx} className="relative">
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="h-7 px-2 text-[10px] bg-indigo-50 border-indigo-200 text-indigo-700 hover:bg-indigo-100 font-bold uppercase tracking-tight gap-1.5"
+                                      >
+                                        <FileUp className="w-3 h-3" />
+                                        Upload {doc}
+                                      </Button>
+                                      <input
+                                        type="file"
+                                        className="absolute inset-0 opacity-0 cursor-pointer"
+                                        onChange={(e) => {
+                                          const file = e.target.files?.[0];
+                                          if (file) handleDocumentUpload(doc, doc, file);
+                                        }}
+                                        disabled={uploadMutation.isPending}
+                                      />
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            )}
+
+                            {isTaskCompleted && task.requiredDocs && task.requiredDocs.length > 0 && (
+                              <div className="mt-1 flex gap-2">
+                                {task.requiredDocs.map((doc, idx) => {
+                                  const canon = findCanonicalDoc(doc);
+                                  const uploaded = documents.find(d => {
+                                    if (d.documentType === doc) return true;
+                                    if (canon) {
+                                      const uploadedCanon = findCanonicalDoc(d.documentType) || findCanonicalDoc(d.name);
+                                      return uploadedCanon?.code === canon.code;
+                                    }
+                                    return false;
+                                  });
+
+                                  if (!uploaded) return null;
+                                  return (
+                                    <Badge key={idx} variant="secondary" className="bg-green-50 text-green-700 border-green-100 text-[9px] font-bold py-0 h-5">
+                                      <CheckCircle2 className="w-3 h-3 mr-1" />
+                                      {doc} Obtained
+                                    </Badge>
+                                  );
+                                })}
+                              </div>
+                            )}
+
+                            {/* Action Button (Legacy/Secondary) */}
+                            {action && !isTaskCompleted && action.target !== 'none' && (
                               <Button
                                 size="sm"
                                 variant={action.variant === 'primary' ? 'default' : 'outline'}
                                 onClick={() => handleTaskAction(task.id)}
-                                className={cn("h-8 text-xs font-bold", isNext && "shadow-sm shadow-primary/20")}
+                                className={cn("h-8 text-xs font-bold mt-2", isNext && "shadow-sm shadow-primary/20")}
                               >
                                 {action.label}
                               </Button>
@@ -251,6 +382,26 @@ export function CollapsiblePhaseChevron({ onTaskToggle }: CollapsiblePhaseChevro
                         </div>
                       );
                     })}
+
+                    {/* Phase Footer Action (Upload Miscellaneous) */}
+                    <div className="p-3 bg-slate-50/50 flex justify-center border-t border-slate-100">
+                      <div className="relative">
+                        <Button variant="ghost" size="sm" className="text-[10px] font-bold text-slate-500 uppercase tracking-widest gap-2 hover:text-primary transition-colors h-7">
+                          <FileUp className="w-3.5 h-3.5" /> Upload Miscellaneous
+                        </Button>
+                        <input
+                          type="file"
+                          className="absolute inset-0 opacity-0 cursor-pointer"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              const name = window.prompt("Enter a name for this document:");
+                              if (name) handleDocumentUpload("OTHER", name, file);
+                            }
+                          }}
+                        />
+                      </div>
+                    </div>
                   </div>
                 </motion.div>
               )}
