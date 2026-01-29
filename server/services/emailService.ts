@@ -113,6 +113,7 @@ Which asset ID does this email most likely belong to? Return ONLY the ID. If non
 
     /**
      * Sends an outbound email via Mailgun.
+     * Falls back to simulated mode if API key is missing to prevent process failure.
      */
     static async sendEmail(params: {
         estateId: string;
@@ -131,10 +132,35 @@ Which asset ID does this email most likely belong to? Return ONLY the ID. If non
         const handle = await this.ensureEstateHandle(params.estateId);
         const domain = process.env.MAILGUN_DOMAIN || "mg.pilar.ai";
         const sender = `ExpectedEstate <settle-${handle}@${domain}>`;
+        const apiKey = process.env.MAILGUN_API_KEY;
 
-        const apiKey = process.env.MAILGUN_API_KEY || "";
+        // Add CC if requested and user has personal email
+        let ccEmail = null;
+        if (params.ccPersonalEmail && estate.user.personalEmail) {
+            ccEmail = estate.user.personalEmail;
+        }
+
+        // SIMULATED MODE: Log and succeed if no API key
+        if (!apiKey) {
+            console.log(`[EmailService] SIMULATED SEND - To: ${params.to}, From: ${sender}, Subject: ${params.subject}${ccEmail ? ` (CC: ${ccEmail})` : ''}`);
+
+            // Auto-log the outbound communication
+            await CommunicationService.create(estate.userId, {
+                estateId: params.estateId,
+                assetId: params.assetId,
+                type: "email",
+                direction: "outbound",
+                subject: params.subject,
+                notes: `[SIMULATED SEND] ${params.body}${ccEmail ? `\n\n[CC: ${ccEmail}]` : ''}`,
+                occurredAt: new Date().toISOString(),
+                institutionName: params.to.split("@")[1] || "Institution",
+                contactName: params.to,
+            });
+
+            return { status: "sent", ccEmail, simulated: true };
+        }
+
         const encodedKey = Buffer.from(`api:${apiKey}`).toString("base64");
-
         const formData = new URLSearchParams();
         formData.append("from", sender);
         formData.append("to", params.to);
@@ -142,11 +168,8 @@ Which asset ID does this email most likely belong to? Return ONLY the ID. If non
         formData.append("text", params.body);
         formData.append("h:Reply-To", estate.inboundEmail || sender);
 
-        // Add CC if requested and user has personal email
-        let ccEmail = null;
-        if (params.ccPersonalEmail && estate.user.personalEmail) {
-            formData.append("cc", estate.user.personalEmail);
-            ccEmail = estate.user.personalEmail;
+        if (ccEmail) {
+            formData.append("cc", ccEmail);
         }
 
         console.log(`[EmailService] Sending email to ${params.to} from ${sender}${ccEmail ? ` (CC: ${ccEmail})` : ''}`);
@@ -165,7 +188,7 @@ Which asset ID does this email most likely belong to? Return ONLY the ID. If non
             throw new Error(`Failed to send email: ${error}`);
         }
 
-        // Auto-log the outbound communication with CC info
+        // Auto-log the outbound communication
         await CommunicationService.create(estate.userId, {
             estateId: params.estateId,
             assetId: params.assetId,

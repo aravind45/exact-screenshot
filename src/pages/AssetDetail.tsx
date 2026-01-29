@@ -438,52 +438,37 @@ export default function AssetDetail() {
       <div className="flex-1 ml-64 flex flex-col">
         {/* Header */}
         <header className="sticky top-0 z-40 glass border-b border-border/50 bg-white/80 backdrop-blur-md">
-          <div className="max-w-[1200px] w-full mx-auto px-6">
-            <div className="flex items-center justify-between h-16">
-              <div className="flex items-center gap-4">
+          <div className="max-w-[1240px] w-full mx-auto px-6">
+            <div className="flex items-center justify-between h-20">
+              <div className="flex items-center gap-6">
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => navigate(-1)}
-                  className="gap-2"
+                  className="rounded-full w-10 h-10 p-0 hover:bg-slate-100"
                 >
-                  <ArrowLeft className="w-4 h-4" />
-                  Back
+                  <ArrowLeft className="w-5 h-5 text-slate-600" />
                 </Button>
+                <div className="flex items-center gap-3">
+                  <span className="text-xl font-black text-slate-900">Pilar</span>
+                  <div className="w-px h-6 bg-slate-200" />
+                  <span className="text-lg font-bold text-slate-500">Institution Settlement Hub: {uiAsset.institution}</span>
+                </div>
               </div>
 
-              <div className="flex items-center gap-2">
-                {!isEditing ? (
-                  <>
-                    <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
-                      <Pencil className="w-4 h-4 mr-2" />
-                      Edit Asset
-                    </Button>
-                    <Button variant="destructive" size="sm" onClick={handleDelete}>
-                      <Trash2 className="w-4 h-4 mr-2" />
-                      Delete
-                    </Button>
-                  </>
-                ) : (
-                  <>
-                    <Button variant="ghost" size="sm" onClick={() => setIsEditing(false)}>
-                      <X className="w-4 h-4 mr-2" />
-                      Cancel
-                    </Button>
-                    <Button variant="default" size="sm" onClick={handleSave} disabled={updateMutation.isPending}>
-                      {updateMutation.isPending ? "Saving..." : (
-                        <>
-                          <Save className="w-4 h-4 mr-2" />
-                          Save Changes
-                        </>
-                      )}
-                    </Button>
-                  </>
-                )}
+              <div className="flex items-center gap-3">
+                <Button variant="outline" className="rounded-xl font-bold border-slate-200" onClick={() => setIsEditing(true)}>
+                  <Pencil className="w-4 h-4 mr-2" />
+                  Edit
+                </Button>
+                <Button className="bg-[#5C7491] hover:bg-[#4A5E75] text-white rounded-xl font-bold px-6 shadow-lg shadow-slate-100">
+                  Review
+                </Button>
               </div>
             </div>
           </div>
         </header>
+
 
         <main className="max-w-[1240px] w-full mx-auto px-6 py-8 space-y-6">
 
@@ -602,85 +587,119 @@ export default function AssetDetail() {
             )}
           </motion.div>
 
+          {/* HIGH-FIDELITY MISSION BAR */}
+          <div className="bg-white border border-slate-200 rounded-[32px] p-8 shadow-sm mb-6">
+            <div className="relative flex items-center justify-between">
+              {/* Connection Line */}
+              <div className="absolute top-1/2 left-0 w-full h-1 bg-slate-100 -translate-y-1/2 z-0" />
+              <div
+                className="absolute top-1/2 left-0 h-1 bg-blue-500 -translate-y-1/2 z-0 transition-all duration-500"
+                style={{ width: uiAsset.status === 'closed' || uiAsset.status === 'collected' ? '100%' : uiAsset.status === 'notified' || uiAsset.status === 'notices_sent' ? '50%' : '25%' }}
+              />
 
-          {/* COMPACT MISSION BAR */}
-          <div className="bg-white border border-slate-200 rounded-[20px] p-1.5 shadow-sm mb-6">
-            <div className="flex items-center justify-between px-4 h-12">
-              <div className="flex items-center gap-8">
-                {[
-                  { id: 'discovery', label: 'Discovery', active: uiAsset.status === 'discovered' || uiAsset.status === 'verified' },
-                  { id: 'notification', label: 'Notification', active: uiAsset.status === 'notified' || uiAsset.status === 'notices_sent' },
-                  { id: 'settlement', label: 'Settlement', active: uiAsset.status === 'claimed' || uiAsset.status === 'collected' || uiAsset.status === 'closed' }
-                ].map((stage, idx) => (
-                  <div key={stage.id} className="flex items-center gap-3">
+              {[
+                { id: 'notified', label: 'Notified', icon: CheckCircle2, active: uiAsset.status !== 'discovered' },
+                { id: 'response', label: 'Initial Response', icon: MessageSquare, active: ['notified', 'notices_sent', 'claimed', 'collected', 'closed'].includes(uiAsset.status) },
+                { id: 'docs', label: 'Documents Requested', icon: FileText, active: ['claimed', 'collected', 'closed'].includes(uiAsset.status) },
+                { id: 'review', label: 'In Review', icon: CheckCircle2, active: ['collected', 'closed'].includes(uiAsset.status) },
+                { id: 'claimed', label: 'Asset Claimed', icon: CheckCircle2, active: uiAsset.status === 'closed' }
+              ].map((stage, idx) => {
+                const Icon = stage.icon;
+                return (
+                  <div key={stage.id} className="relative z-10 flex flex-col items-center gap-3 bg-white px-4">
                     <div className={cn(
-                      "w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black",
-                      stage.active ? "bg-primary text-white" : "bg-slate-100 text-slate-400"
+                      "w-14 h-14 rounded-full flex items-center justify-center border-4 transition-all duration-300",
+                      stage.active
+                        ? "bg-blue-50 border-blue-500 text-blue-600 shadow-lg shadow-blue-100"
+                        : "bg-slate-50 border-slate-100 text-slate-300"
                     )}>
-                      {idx + 1}
+                      <Icon className="w-6 h-6" />
                     </div>
-                    <span className={cn(
-                      "text-[11px] font-bold uppercase tracking-wider",
-                      stage.active ? "text-slate-900" : "text-slate-400"
-                    )}>
-                      {stage.label}
-                    </span>
-                    {idx < 2 && <ArrowRight className="w-3 h-3 text-slate-300 ml-2" />}
+                    <div className="text-center">
+                      <p className={cn(
+                        "text-[11px] font-black uppercase tracking-wider",
+                        stage.active ? "text-slate-900" : "text-slate-400"
+                      )}>{stage.label}</p>
+                    </div>
                   </div>
-                ))}
-              </div>
-              <div className="flex items-center gap-4 border-l border-slate-100 pl-8">
-                <div className="text-right">
-                  <p className="text-[9px] font-black uppercase text-slate-400 leading-none mb-1">Time in Stage</p>
-                  <p className="text-xs font-bold text-slate-900">12 Days</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-[9px] font-black uppercase text-slate-400 leading-none mb-1">Next Milestone</p>
-                  <p className="text-xs font-bold text-primary">Obtain Balance</p>
-                </div>
-              </div>
+                );
+              })}
             </div>
           </div>
+
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/* LEFT COLUMN: ACTION & WORKFLOW */}
             <div className="lg:col-span-8 space-y-6">
 
-              {/* STICKY NEXT ACTION HIGHLIGHT */}
+              {/* PRIMARY ACTION CARD */}
               <motion.div
                 initial={{ opacity: 0, scale: 0.98 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="bg-gradient-to-br from-indigo-600 to-blue-700 rounded-[24px] p-6 text-white shadow-xl shadow-indigo-200 relative overflow-hidden"
+                className="bg-white rounded-[32px] p-10 border border-slate-200 shadow-sm text-center space-y-8"
               >
-                <div className="absolute top-0 right-0 p-8 opacity-10">
-                  <Zap className="w-32 h-32" />
+                <div className="space-y-4">
+                  <Badge className="bg-slate-100 text-slate-500 hover:bg-slate-200 border-none text-[11px] font-black uppercase tracking-[0.2em] px-4 py-1.5 rounded-full">
+                    Primary Action
+                  </Badge>
+                  <h2 className="text-4xl font-black text-slate-900 tracking-tight">
+                    {uiAsset.status === 'discovered' ? 'Initiate Notification' :
+                      uiAsset.status === 'notified' ? 'Request DoD Balance' :
+                        'Confirm Claim Status'}
+                  </h2>
+                  <p className="text-slate-500 text-lg font-medium leading-relaxed max-w-xl mx-auto">
+                    {uiAsset.status === 'discovered' ?
+                      `Begin the formal notification process with ${uiAsset.institution} regarding the estate of ${estate?.deceasedFirstName} ${estate?.deceasedLastName}. Use our AI tools to draft a comprehensive message or generate official documents.` :
+                      `Initiate a formal request for Date of Death values from ${uiAsset.institution} to satisfy court appraisal requirements.`}
+                  </p>
                 </div>
-                <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
-                  <div className="space-y-2">
-                    <Badge className="bg-white/20 hover:bg-white/30 text-white border-none text-[10px] font-black uppercase tracking-widest px-2 py-1">
-                      Priority Action
-                    </Badge>
-                    <h2 className="text-2xl font-black tracking-tight">
-                      {uiAsset.status === 'discovered' ? 'Notify Institution of Death' :
-                        uiAsset.status === 'notified' ? 'Request Date of Death Balance' :
-                          'Follow up on Claim Status'}
-                    </h2>
-                    <p className="text-indigo-100 text-sm font-medium leading-relaxed max-w-md">
-                      {uiAsset.status === 'discovered' ?
-                        `Initiate formal contact with ${uiAsset.institution} to freeze accounts and begin the settlement process.` :
-                        `The next logical step is to confirm the exact value for court appraisal.`}
-                    </p>
-                  </div>
+
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                   <Button
                     size="lg"
-                    onClick={() => uiAsset.status === 'discovered' ? setShowDraftModal(true) : handleStepSelect(currentStepId)}
-                    className="bg-white text-indigo-600 hover:bg-slate-50 font-black h-14 px-8 rounded-2xl shadow-lg transition-all"
+                    variant="outline"
+                    onClick={() => setShowDraftModal(true)}
+                    className="w-full sm:w-auto h-16 px-10 rounded-[20px] border-slate-200 hover:bg-slate-50 group transition-all"
                   >
-                    Take Action
-                    <ArrowRight className="w-4 h-4 ml-2" />
+                    <div className="flex flex-col items-center">
+                      <div className="flex items-center gap-2">
+                        <Zap className="w-5 h-5 text-indigo-500 fill-indigo-500/10" />
+                        <span className="text-lg font-black text-slate-900">AI Draft</span>
+                      </div>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Draft Personalized Message</span>
+                    </div>
+                  </Button>
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    onClick={() => setShowLetterPreview(true)}
+                    className="w-full sm:w-auto h-16 px-10 rounded-[20px] border-slate-200 hover:bg-slate-50 group transition-all"
+                  >
+                    <div className="flex flex-col items-center">
+                      <div className="flex items-center gap-2">
+                        <FileText className="w-5 h-5 text-indigo-500" />
+                        <span className="text-lg font-black text-slate-900">Generate PDF</span>
+                      </div>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Create Official Letter</span>
+                    </div>
                   </Button>
                 </div>
+
+                <div className="bg-slate-50 rounded-3xl p-6 text-left border border-slate-100">
+                  <div className="flex items-center justify-between mb-3 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                    <span>Draft Preview</span>
+                    <button className="text-indigo-600 hover:underline" onClick={() => setShowDraftModal(true)}>View Full Draft</button>
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-xs font-bold text-slate-600">Subject: Notification of Death & Request for Account Information</p>
+                    <p className="text-xs font-medium text-slate-500 leading-relaxed">
+                      Dear {uiAsset.institution} Representative,<br /><br />
+                      This communication serves as formal notification of the passing of {estate?.deceasedFirstName} {estate?.deceasedLastName}, Account Holder. We are initiating the estate settlement process...
+                    </p>
+                  </div>
+                </div>
               </motion.div>
+
 
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList className="mb-4 bg-slate-100 p-1 rounded-2xl h-auto w-full justify-start">
@@ -930,71 +949,129 @@ export default function AssetDetail() {
             {/* RIGHT COLUMN: CONTEXT & LOGS */}
             <div className="lg:col-span-4 space-y-6">
 
-              {/* Institution Intel */}
-              <div className="bg-white rounded-[24px] border border-slate-200 p-5 shadow-sm space-y-5">
-                <div className="flex items-center justify-between border-b border-slate-50 pb-4">
-                  <h3 className="font-bold text-slate-900">Institution Intel</h3>
-                  <Badge variant="outline" className="text-[10px] uppercase font-black text-slate-400">Reference Info</Badge>
-                </div>
+              {/* SMART FOLLOW-UP CARD */}
+              <div className="bg-white rounded-[32px] border border-slate-200 p-8 shadow-sm space-y-8">
+                <div className="text-center space-y-4">
+                  <h3 className="text-xl font-black text-slate-900 tracking-tight">Smart Follow-Up</h3>
 
-                <div className="grid grid-cols-2 gap-3">
-                  {[
-                    { icon: Phone, label: "Hotline", value: uiAsset.institutionPhone },
-                    { icon: Printer, label: "Fax Line", value: uiAsset.institutionFax },
-                  ].map(({ icon: Icon, label, value }) => (
-                    <div key={label} className="p-3 bg-slate-50 rounded-xl border border-slate-100">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Icon className="w-3 h-3 text-slate-400" />
-                        <span className="text-[9px] font-black uppercase text-slate-400 tracking-tighter">{label}</span>
-                      </div>
-                      <p className="text-xs font-bold text-slate-800 truncate">{value}</p>
+                  {/* Circular Progress */}
+                  <div className="relative w-32 h-32 mx-auto">
+                    <svg className="w-full h-full transform -rotate-90">
+                      <circle
+                        cx="64"
+                        cy="64"
+                        r="58"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="12"
+                        className="text-slate-100"
+                      />
+                      <circle
+                        cx="64"
+                        cy="64"
+                        r="58"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="12"
+                        strokeDasharray={364.4}
+                        strokeDashoffset={364.4 * (1 - 5 / 30)} // 5 days out of 30
+                        strokeLinecap="round"
+                        className="text-blue-500 transition-all duration-1000"
+                      />
+                    </svg>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                      <span className="text-[10px] font-black uppercase text-slate-400 leading-none">Days</span>
+                      <span className="text-3xl font-black text-slate-900 leading-none my-0.5">5</span>
+                      <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest leading-none">since contact</span>
                     </div>
-                  ))}
-                </div>
+                  </div>
 
-                <div className="space-y-3">
-                  <Button
-                    variant="outline"
-                    className="w-full justify-between h-11 border-slate-200 hover:border-indigo-100 hover:bg-indigo-50/50 rounded-xl transition-all group"
-                    onClick={() => setShowDraftModal(true)}
-                  >
-                    <div className="flex items-center gap-2">
-                      <Mail className="w-4 h-4 text-indigo-500" />
-                      <span className="text-xs font-bold text-slate-700">Draft Smart Message</span>
-                    </div>
-                    <ArrowRight className="w-3 h-3 text-slate-300 group-hover:text-indigo-400 transition-colors" />
+                  <p className="text-sm font-medium text-slate-500 leading-relaxed px-2">
+                    Last contact with {uiAsset.institution} was 5 days ago. It is recommended to schedule a follow-up action.
+                  </p>
+
+                  <Button className="w-full h-12 rounded-2xl bg-[#5C7491] hover:bg-[#4A5E75] text-white font-bold gap-2 shadow-lg shadow-slate-100">
+                    <Clock className="w-4 h-4" />
+                    Schedule Next Check
                   </Button>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Set a reminder for follow-up</p>
+                </div>
+
+                {/* Past Actions */}
+                <div className="space-y-4 pt-4 border-t border-slate-50">
+                  <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Past Actions</h4>
+                  <div className="space-y-4">
+                    {[
+                      { label: "Initial Contact Attempt (Email)", time: "5 days ago" },
+                      { label: "Document Upload (Death Certificate)", time: "3 days ago" },
+                      { label: "Fidelity Portal Login", time: "2 days ago" }
+                    ].map((action, i) => (
+                      <div key={i} className="flex items-start gap-3">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-slate-300 mt-0.5" />
+                        <div className="text-[11px] font-bold text-slate-600">
+                          {action.label} <span className="text-slate-400 font-medium">— {action.time}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Mini Calendar */}
+                <div className="pt-4 border-t border-slate-50">
+                  <div className="grid grid-cols-7 gap-1 text-center">
+                    {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(day => (
+                      <span key={day} className="text-[9px] font-black text-slate-300 py-1">{day}</span>
+                    ))}
+                    {Array.from({ length: 31 }, (_, i) => i + 1).map(day => (
+                      <span
+                        key={day}
+                        className={cn(
+                          "text-[10px] font-bold py-1.5 rounded-lg transition-colors cursor-default",
+                          day === 12 ? "bg-blue-500 text-white shadow-md shadow-blue-100" :
+                            day === 14 ? "border-2 border-blue-500 text-blue-600" :
+                              "text-slate-800 hover:bg-slate-50"
+                        )}
+                      >
+                        {day}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Institution Intel (More compact) */}
+              <div className="bg-white rounded-[32px] border border-slate-200 p-6 shadow-sm space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-bold text-slate-900">Institution Intel</h3>
                   <EnrichDataButton assetId={id!} onEnrichComplete={() => queryClient.invalidateQueries({ queryKey: ["asset", id] })} />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="p-3 bg-slate-50 rounded-xl">
+                    <p className="text-[9px] font-black text-slate-400 uppercase">Hotline</p>
+                    <p className="text-xs font-bold text-slate-700">{uiAsset.institutionPhone}</p>
+                  </div>
+                  <div className="p-3 bg-slate-50 rounded-xl">
+                    <p className="text-[9px] font-black text-slate-400 uppercase">Fax Line</p>
+                    <p className="text-xs font-bold text-slate-700">{uiAsset.institutionFax}</p>
+                  </div>
                 </div>
               </div>
 
               {/* Settlement Trail */}
-              <div className="bg-white rounded-[24px] border border-slate-200 shadow-sm overflow-hidden">
-                <div className="p-5 border-b border-slate-50 flex items-center justify-between bg-slate-50/50">
-                  <div className="flex items-center gap-2">
-                    <HistoryIcon className="w-4 h-4 text-slate-500" />
-                    <h3 className="font-bold text-slate-900">Settlement Trail</h3>
-                  </div>
-                  <Button variant="ghost" size="sm" onClick={() => setShowCommDialog(true)} className="h-8 text-[10px] font-black uppercase text-indigo-600 bg-indigo-50/50 hover:bg-indigo-100 rounded-lg">
+              <div className="bg-white rounded-[32px] border border-slate-200 shadow-sm overflow-hidden">
+                <div className="p-6 border-b border-slate-50 flex items-center justify-between">
+                  <h3 className="font-bold text-slate-900">Settlement Trail</h3>
+                  <Button variant="ghost" size="sm" onClick={() => setShowCommDialog(true)} className="h-8 text-[10px] font-black uppercase text-indigo-600">
                     <Plus className="w-3.5 h-3.5 mr-1" />
                     Log
                   </Button>
                 </div>
-                <div className="max-h-[500px] overflow-y-auto p-2">
+                <div className="max-h-[300px] overflow-y-auto p-2">
                   <CommunicationLog assetId={id!} />
                 </div>
               </div>
-
-              <ProbateProgressMini />
-
-              <AssetValueTracker
-                assetId={id!}
-                currentValue={asset.value}
-                dateOfDeathValue={asset.dateOfDeathValue}
-                assetType={asset.category}
-                onSuccess={() => handleSyncRoadmap("get_dod_values")}
-              />
             </div>
+
           </div>
         </main>
 
