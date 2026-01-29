@@ -16,7 +16,9 @@ import {
     Save,
     X,
     Loader2,
-    ExternalLink
+    ExternalLink,
+    Mail,
+    FileCheck
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -483,7 +485,7 @@ function CommunicationsManager() {
                             <FileCheck className="w-5 h-5" />
                         </div>
                         <div>
-                            <CardTitle>Digital Fax Provider (Phaxio)</CardTitle>
+                            <CardTitle>Digital Fax Provider (PamFax)</CardTitle>
                             <CardDescription>Setup secure faxing for HIPAA/Legal document submission.</CardDescription>
                         </div>
                     </div>
@@ -491,26 +493,26 @@ function CommunicationsManager() {
                 <CardContent className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <label className="text-xs font-black uppercase text-slate-400">Phaxio API Key</label>
+                            <label className="text-xs font-black uppercase text-slate-400">PamFax API Key</label>
                             <div className="flex gap-2">
                                 <Input
-                                    placeholder="px_xxxxxxxx"
-                                    defaultValue={getVal("PHAXIO_API_KEY")}
-                                    onBlur={(e) => handleSave("PHAXIO_API_KEY", e.target.value)}
+                                    placeholder="e.g. AravindThiyagarajan"
+                                    defaultValue={getVal("PAMFAX_API_KEY")}
+                                    onBlur={(e) => handleSave("PAMFAX_API_KEY", e.target.value)}
                                 />
-                                {saving === "PHAXIO_API_KEY" && <Loader2 className="w-4 h-4 animate-spin self-center" />}
+                                {saving === "PAMFAX_API_KEY" && <Loader2 className="w-4 h-4 animate-spin self-center" />}
                             </div>
                         </div>
                         <div className="space-y-2">
-                            <label className="text-xs font-black uppercase text-slate-400">Phaxio API Secret</label>
+                            <label className="text-xs font-black uppercase text-slate-400">PamFax Secret Word</label>
                             <div className="flex gap-2">
                                 <Input
                                     type="password"
-                                    placeholder="ps_xxxxxxxx"
-                                    defaultValue={getVal("PHAXIO_API_SECRET")}
-                                    onBlur={(e) => handleSave("PHAXIO_API_SECRET", e.target.value, true)}
+                                    placeholder="e.g. secret_word"
+                                    defaultValue={getVal("PAMFAX_API_SECRET")}
+                                    onBlur={(e) => handleSave("PAMFAX_API_SECRET", e.target.value, true)}
                                 />
-                                {saving === "PHAXIO_API_SECRET" && <Loader2 className="w-4 h-4 animate-spin self-center" />}
+                                {saving === "PAMFAX_API_SECRET" && <Loader2 className="w-4 h-4 animate-spin self-center" />}
                             </div>
                         </div>
                     </div>
@@ -519,5 +521,3 @@ function CommunicationsManager() {
         </div>
     );
 }
-
-import { Mail, FileCheck } from "lucide-react";
