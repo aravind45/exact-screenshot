@@ -2,6 +2,7 @@ import { prisma } from "../db.js";
 import crypto from "crypto";
 import { CommunicationService } from "./communicationService.js";
 import { ai } from "./ai.js";
+import { ConfigService } from "./configService.js";
 import "dotenv/config";
 
 export class EmailService {
@@ -130,9 +131,9 @@ Which asset ID does this email most likely belong to? Return ONLY the ID. If non
         if (!estate) throw new Error("Estate not found");
 
         const handle = await this.ensureEstateHandle(params.estateId);
-        const domain = process.env.MAILGUN_DOMAIN || "mg.pilar.ai";
+        const domain = await ConfigService.get("MAILGUN_DOMAIN") || "mg.pilar.ai";
         const sender = `ExpectedEstate <settle-${handle}@${domain}>`;
-        const apiKey = process.env.MAILGUN_API_KEY;
+        const apiKey = await ConfigService.get("MAILGUN_API_KEY");
 
         // Add CC if requested and user has personal email
         let ccEmail = null;
@@ -204,12 +205,12 @@ Which asset ID does this email most likely belong to? Return ONLY the ID. If non
     }
 
     static async sendInviteEmail(to: string, data: { inviterName: string, estateName: string, token: string }) {
-        const domain = process.env.MAILGUN_DOMAIN || "mg.pilar.ai";
+        const domain = await ConfigService.get("MAILGUN_DOMAIN") || "mg.pilar.ai";
         const sender = `Pilar Team <noreply@${domain}>`;
         const appUrl = process.env.APP_URL || "http://localhost:5173";
         const inviteUrl = `${appUrl}/invite/${data.token}`;
 
-        const apiKey = process.env.MAILGUN_API_KEY || "";
+        const apiKey = await ConfigService.get("MAILGUN_API_KEY") || "";
         const encodedKey = Buffer.from(`api:${apiKey}`).toString("base64");
 
         const formData = new URLSearchParams();

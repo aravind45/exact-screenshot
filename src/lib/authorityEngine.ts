@@ -12,6 +12,8 @@ export type AuthorityType =
     | "FORMAL_PROBATE"
     | "INFORMAL_PROBATE"
     | "SMALL_ESTATE"
+    | "SUMMARY_ADMINISTRATION" // Florida specific
+    | "VOLUNTARY_ADMINISTRATION" // New York specific
     | "TRUST_ADMIN"
     | "INTESTATE"
     | "JOINT_TRANSFER"
@@ -26,6 +28,7 @@ export interface AuthorityRecommendation {
     probateTotal: number;
     isEligibleForSmallEstate: boolean;
     reason: string;
+    legalTerm?: string;
 }
 
 export function calculateAuthorityRecommendation(
@@ -43,6 +46,7 @@ export function calculateAuthorityRecommendation(
 
     let type: AuthorityType = "UNSET";
     let reason = "";
+    let legalTerm = "";
 
     if (assets.length === 0) {
         type = "UNSET";
@@ -50,27 +54,48 @@ export function calculateAuthorityRecommendation(
     } else if (metadata?.isOutOfState) {
         type = "ANCILLARY_PROBATE";
         reason = "Property located in another state requires Ancillary Probate.";
+        legalTerm = "Ancillary Administration";
     } else if (metadata?.isSpouse && probateTotal > 0) {
         type = "SPOUSAL_PETITION";
         reason = "As a surviving spouse, you may be eligible for a Spousal Property Petition, which is faster than full probate.";
+        legalTerm = state === "CA" ? "DE-221 Spousal Property Petition" : "Spousal Set-Aside";
     } else if (probateAssets.length === 0 && trustAssets.length > 0) {
         type = "TRUST_ADMIN";
         reason = "Assets are held in Trust. No court probate required; proceed with Trust Administration.";
+        legalTerm = "Trust Administration";
     } else if (probateAssets.length === 0) {
-        // More specific check for JOINT vs POD
         const hasJoint = assets.some(a => a.ownershipType === "JOINT");
         type = hasJoint ? "JOINT_TRANSFER" : "POD_TOD_TRANSFER";
         reason = hasJoint
             ? "Assets pass automatically to the surviving joint owner."
             : "Assets pass directly to named beneficiaries via POD/TOD designations.";
+        legalTerm = "Non-Probate Transfer";
     } else if (isEligibleForSmallEstate) {
-        type = "SMALL_ESTATE";
-        reason = `Probate assets ($${probateTotal.toLocaleString()}) are below the ${state} threshold. You can likely use a Small Estate Affidavit.`;
+        if (state === "FL") {
+            type = "SUMMARY_ADMINISTRATION";
+            reason = `Florida Summary Administration is available for estates under $75,000.`;
+            legalTerm = "FL Statute 735.201 Summary Administration";
+        } else if (state === "NY") {
+            type = "VOLUNTARY_ADMINISTRATION";
+            reason = `New York Voluntary Administration is available for estates under $50,000.`;
+            legalTerm = "NY SCPA Article 13 Small Estate";
+        } else if (state === "TX") {
+            type = "SMALL_ESTATE";
+            reason = `Texas Small Estate Affidavit is available for estates under $75,000 without a complex will.`;
+            legalTerm = "TX Estates Code 205 Small Estate Affidavit";
+        } else {
+            type = "SMALL_ESTATE";
+            reason = `Probate assets ($${probateTotal.toLocaleString()}) are below the ${state} threshold. You can likely use a Small Estate Affidavit.`;
+            legalTerm = state === "CA" ? "CA Prob. Code 13100 Affidavit" : "Small Estate Affidavit";
+        }
     } else {
         type = metadata?.hasWill === false ? "INTESTATE" : "FORMAL_PROBATE";
+        const stateTerm = state === "NY" ? "Formal Administration" : state === "FL" ? "Formal Administration" : "Formal Probate";
+
         reason = metadata?.hasWill === false
-            ? "No Will found and assets exceed threshold. Formal Intestate Succession is required."
-            : `Assets exceed the ${state} threshold. Formal Probate is required.`;
+            ? `No Will found and assets exceed the ${state} threshold. Formal Intestate Succession is required.`
+            : `Assets exceed the ${state} threshold ($${threshold.toLocaleString()}). ${stateTerm} is required.`;
+        legalTerm = metadata?.hasWill === false ? "Intestate Administration" : stateTerm;
     }
 
     return {
@@ -78,7 +103,8 @@ export function calculateAuthorityRecommendation(
         threshold,
         probateTotal,
         isEligibleForSmallEstate,
-        reason
+        reason,
+        legalTerm
     };
 }
 

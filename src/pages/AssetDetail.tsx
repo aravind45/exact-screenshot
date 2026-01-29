@@ -196,6 +196,24 @@ export default function AssetDetail() {
     queryFn: api.getAssets,
   });
 
+  const { data: communications = [] } = useQuery({
+    queryKey: ['communications', id],
+    queryFn: () => api.getCommunications(id!),
+    enabled: !!id
+  });
+
+  // Calculate follow-up metrics
+  const lastContact = communications
+    .filter(c => c.direction === 'outbound')
+    .sort((a, b) => new Date(b.occurredAt).getTime() - new Date(a.occurredAt).getTime())[0];
+
+  const daysSinceContact = lastContact
+    ? Math.floor((new Date().getTime() - new Date(lastContact.occurredAt).getTime()) / (1000 * 60 * 60 * 24))
+    : 0;
+
+  const followUpStatus = daysSinceContact > 14 ? 'urgent' : daysSinceContact > 7 ? 'needed' : 'good';
+
+
   useEffect(() => {
     if (asset?.workflowState) {
       const state = asset.workflowState as any;
@@ -412,7 +430,10 @@ export default function AssetDetail() {
 
   const CategoryIcon = getCategoryIcon(uiAsset.category);
 
+  const rec = calculateAuthorityRecommendation(assets || [], estate?.deceasedState || "CA");
+
   const authReq = getInstitutionAuthorityRequirement(
+
     uiAsset.assetType,
     uiAsset.category,
     uiAsset.value,
@@ -422,6 +443,8 @@ export default function AssetDetail() {
   const requirementsMap: Record<string, string[]> = {
     "BENEFICIARY_ONLY": ["Death Certificate (certified)"],
     "AFFIDAVIT_ACCEPTED": ["Death Certificate (certified)", "Small Estate Affidavit (DE-310)"],
+    "SUMMARY_ADMINISTRATION": ["Death Certificate (certified)", "Summary Administration Order"],
+    "VOLUNTARY_ADMINISTRATION": ["Death Certificate (certified)", "Affidavit of Voluntary Administration"],
     "LETTERS_REQUIRED": ["Death Certificate (certified)", "DE-150 Letters", "DE-111 Petition"],
     "LETTERS_PREFERRED": ["Death Certificate (certified)", "DE-150 Letters"],
     "VARIES": ["Death Certificate (certified)"]
@@ -575,6 +598,16 @@ export default function AssetDetail() {
                       {formatCurrency(uiAsset.dateOfDeathValue || 0)}
                     </p>
                   </div>
+
+                  {uiAsset.settledValue !== undefined && (
+                    <div className="hidden sm:block">
+                      <p className="text-[9px] font-black uppercase tracking-widest text-emerald-500 mb-0.5">Actual Collected</p>
+                      <p className="text-base font-black text-emerald-600">
+                        {formatCurrency(uiAsset.settledValue)}
+                      </p>
+                    </div>
+                  )}
+
                   <div className="w-px h-10 bg-slate-100 hidden sm:block" />
                   <div className="text-right">
                     <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-0.5">Current Value</p>
@@ -642,47 +675,105 @@ export default function AssetDetail() {
                   <Badge className="bg-slate-100 text-slate-500 hover:bg-slate-200 border-none text-[11px] font-black uppercase tracking-[0.2em] px-4 py-1.5 rounded-full">
                     Primary Action
                   </Badge>
+                  {rec.legalTerm && (
+                    <div className="flex flex-col items-center gap-1.5 mb-2">
+                      <div className="flex items-center justify-center gap-2">
+                        <Scale className="w-3 h-3 text-indigo-500" />
+                        <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider">{rec.legalTerm}</span>
+                      </div>
+
+                      {/* Physical Workflow Alerts */}
+                      {(() => {
+                        const workflow = getWorkflow(uiAsset.category, uiAsset.type);
+                        const currentStep = workflow.steps.find(s => s.id === currentStepId);
+                        if (!currentStep) return null;
+
+                        return (
+                          <div className="flex items-center gap-3">
+                            {currentStep.requiresNotary && (
+                              <div className="flex items-center gap-1 px-2 py-0.5 bg-amber-50 rounded-md border border-amber-100">
+                                <Gavel className="w-2.5 h-2.5 text-amber-600" />
+                                <span className="text-[8px] font-black text-amber-700 uppercase">Notary Required</span>
+                              </div>
+                            )}
+                            {currentStep.requiresPhysicalMail && (
+                              <div className="flex items-center gap-1 px-2 py-0.5 bg-blue-50 rounded-md border border-blue-100">
+                                <FileText className="w-2.5 h-2.5 text-blue-600" />
+                                <span className="text-[8px] font-black text-blue-700 uppercase">Physical Mail / Fax</span>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  )}
+
                   <h2 className="text-4xl font-black text-slate-900 tracking-tight">
-                    {uiAsset.status === 'discovered' ? 'Initiate Notification' :
-                      uiAsset.status === 'notified' ? 'Request DoD Balance' :
-                        'Confirm Claim Status'}
+                    {uiAsset.status === 'approved' ? 'Liquidation Ready' :
+                      uiAsset.status === 'discovered' ? 'Initiate Notification' :
+                        uiAsset.status === 'notified' ? 'Request DoD Balance' :
+                          'Confirm Claim Status'}
                   </h2>
                   <p className="text-slate-500 text-lg font-medium leading-relaxed max-w-xl mx-auto">
-                    {uiAsset.status === 'discovered' ?
-                      `Begin the formal notification process with ${uiAsset.institution} regarding the estate of ${estate?.deceasedFirstName} ${estate?.deceasedLastName}. Use our AI tools to draft a comprehensive message or generate official documents.` :
-                      `Initiate a formal request for Date of Death values from ${uiAsset.institution} to satisfy court appraisal requirements.`}
+                    {uiAsset.status === 'approved' ?
+                      `The institution has approved your claim for ${uiAsset.institution}. You can now record the final receipt of funds to close this asset.` :
+                      uiAsset.status === 'discovered' ?
+                        `Begin the formal notification process with ${uiAsset.institution} regarding the estate of ${estate?.deceasedFirstName} ${estate?.deceasedLastName}. Use our AI tools to draft a comprehensive message or generate official documents.` :
+                        `Initiate a formal request for Date of Death values from ${uiAsset.institution} to satisfy court appraisal requirements.`}
                   </p>
                 </div>
 
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    onClick={() => setShowDraftModal(true)}
-                    className="w-full sm:w-auto h-16 px-10 rounded-[20px] border-slate-200 hover:bg-slate-50 group transition-all"
-                  >
-                    <div className="flex flex-col items-center">
-                      <div className="flex items-center gap-2">
-                        <Zap className="w-5 h-5 text-indigo-500 fill-indigo-500/10" />
-                        <span className="text-lg font-black text-slate-900">AI Draft</span>
-                      </div>
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Draft Personalized Message</span>
-                    </div>
-                  </Button>
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    onClick={() => setShowLetterPreview(true)}
-                    className="w-full sm:w-auto h-16 px-10 rounded-[20px] border-slate-200 hover:bg-slate-50 group transition-all"
-                  >
-                    <div className="flex flex-col items-center">
-                      <div className="flex items-center gap-2">
-                        <FileText className="w-5 h-5 text-indigo-500" />
-                        <span className="text-lg font-black text-slate-900">Generate PDF</span>
-                      </div>
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Create Official Letter</span>
-                    </div>
-                  </Button>
+                  {uiAsset.status === 'approved' ? (
+                    <Button
+                      size="lg"
+                      onClick={() => {
+                        const amount = prompt("Enter the final amount received:", uiAsset.value?.toString());
+                        if (amount) {
+                          updateMutation.mutate({
+                            status: 'distributed',
+                            settledValue: parseFloat(amount),
+                            settledAt: new Date().toISOString()
+                          });
+                        }
+                      }}
+                      className="w-full sm:w-auto h-16 px-10 rounded-[20px] bg-emerald-600 hover:bg-emerald-700 text-white font-black transition-all shadow-lg shadow-emerald-100"
+                    >
+                      <CheckCircle2 className="w-5 h-5 mr-3" />
+                      Confirm Receipt of Funds
+                    </Button>
+                  ) : (
+                    <>
+                      <Button
+                        size="lg"
+                        variant="outline"
+                        onClick={() => setShowDraftModal(true)}
+                        className="w-full sm:w-auto h-16 px-10 rounded-[20px] border-slate-200 hover:bg-slate-50 group transition-all"
+                      >
+                        <div className="flex flex-col items-center">
+                          <div className="flex items-center gap-2">
+                            <Zap className="w-5 h-5 text-indigo-500 fill-indigo-500/10" />
+                            <span className="text-lg font-black text-slate-900">AI Draft</span>
+                          </div>
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Draft Personalized Message</span>
+                        </div>
+                      </Button>
+                      <Button
+                        size="lg"
+                        variant="outline"
+                        onClick={() => setShowLetterPreview(true)}
+                        className="w-full sm:w-auto h-16 px-10 rounded-[20px] border-slate-200 hover:bg-slate-50 group transition-all"
+                      >
+                        <div className="flex flex-col items-center">
+                          <div className="flex items-center gap-2">
+                            <FileCheck className="w-5 h-5 text-indigo-500 fill-indigo-500/10" />
+                            <span className="text-lg font-black text-slate-900">Generate PDF</span>
+                          </div>
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Official Letterhead</span>
+                        </div>
+                      </Button>
+                    </>
+                  )}
                 </div>
 
                 <div className="bg-slate-50 rounded-3xl p-6 text-left border border-slate-100">
@@ -718,7 +809,6 @@ export default function AssetDetail() {
 
                 <TabsContent value="workflow" className="mt-0">
                   {(() => {
-                    const rec = calculateAuthorityRecommendation(assets, estate?.deceasedState || "CA");
                     const enhancedAsset = {
                       ...asset,
                       ownershipType: asset.ownershipType,
@@ -727,113 +817,18 @@ export default function AssetDetail() {
                     };
                     const workflow: WorkflowConfig = getWorkflow(asset.category);
 
+
                     return (
                       <div className={cn("space-y-6", isLocked && "opacity-50 pointer-events-none grayscale")}>
-                        <SettlementWorkflow
-                          asset={enhancedAsset}
-                          workflow={workflow}
-                          currentStepId={currentStepId}
-                          completedStepIds={completedStepIds}
-                          onStepSelect={handleStepSelect}
-                          onStepComplete={handleStepComplete}
-                          onLogCommunication={() => setShowCommDialog(true)}
-                          onSendFax={async () => {
-                            if (!asset.institutionFax) {
-                              toast({
-                                title: "Fax Number Missing",
-                                description: "Please update the institution fax number in the details section first.",
-                                variant: "destructive"
-                              });
-                              return;
-                            }
-
-                            try {
-                              const res = await api.sendFax({
-                                assetId: id!,
-                                faxNumber: asset.institutionFax,
-                                subject: `Estate Settlement: ${asset.institution} - ${asset.assetType}`,
-                                documentType: currentStepId
-                              });
-
-                              toast({
-                                title: "Fax Sent",
-                                description: res.message || "Your document has been queued for transmission.",
-                              });
-
-                              queryClient.invalidateQueries({ queryKey: ['asset', id] });
-                              queryClient.invalidateQueries({ queryKey: ['communications', id] });
-                            } catch (err: any) {
-                              toast({
-                                title: "Fax Failed",
-                                description: err.message,
-                                variant: "destructive"
-                              });
-                            }
-                          }}
-                          onGenerateLetter={() => setShowLetterPreview(true)}
-                        />
+                        {/* 
+                            REMOVED OLD WORKFLOW ACCORDIONS TO REDUCE CLUTTER
+                            Focus is now on the central Primary Action card above.
+                        */}
                         <PhysicalAssetProtector assetCategory={uiAsset.category} assetType={uiAsset.type} />
-
-                        <div className="card-elevated p-6 space-y-4">
-                          <div className="flex items-center gap-2 mb-2">
-                            <FileCheck className="w-5 h-5 text-indigo-600" />
-                            <h3 className="font-bold text-slate-900">Settlement Checklist</h3>
-                          </div>
-                          <p className="text-xs text-slate-500">
-                            Based on this asset's ownership ({asset.ownershipType}) and value ({formatCurrency(asset.value)}),
-                            the following documents are required for settlement:
-                          </p>
-                          <div className="space-y-2 pt-2">
-                            {requiredDocs.map((docType, idx) => {
-                              const uploaded = estateDocuments.find(d =>
-                                d.documentType.toLowerCase().includes(docType.split('(')[0].trim().toLowerCase()) ||
-                                docType.toLowerCase().includes(d.name.toLowerCase())
-                              );
-
-                              return (
-                                <div key={idx} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100 group">
-                                  <div className="flex items-center gap-3">
-                                    {uploaded ? (
-                                      <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center">
-                                        <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                                      </div>
-                                    ) : (
-                                      <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center">
-                                        <Clock className="w-4 h-4 text-slate-400" />
-                                      </div>
-                                    )}
-                                    <div>
-                                      <p className={cn("text-xs font-bold", uploaded ? "text-slate-900" : "text-slate-600")}>{docType}</p>
-                                      <p className="text-[10px] text-slate-500">{uploaded ? `Obtained ${new Date(uploaded.obtainedDate!).toLocaleDateString()}` : "Action Required"}</p>
-                                    </div>
-                                  </div>
-
-                                  {uploaded ? (
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      className="h-8 px-3 text-[10px] font-bold text-indigo-600 hover:bg-indigo-50"
-                                      onClick={() => window.open(api.getEstateDocumentDownloadUrl(uploaded.documentType), "_blank")}
-                                    >
-                                      <Download className="w-3.5 h-3.5 mr-2" />
-                                      Download
-                                    </Button>
-                                  ) : (
-                                    <Link to="/documents">
-                                      <Button variant="outline" size="sm" className="h-8 px-3 text-[10px] font-bold border-indigo-200 text-indigo-600 hover:bg-indigo-50">
-                                        Go to Vault
-                                        <ArrowRight className="w-3.5 h-3.5 ml-2" />
-                                      </Button>
-                                    </Link>
-                                  )}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
                       </div>
                     );
                   })()}
+
                 </TabsContent>
 
                 <TabsContent value="documents">
@@ -974,23 +969,31 @@ export default function AssetDetail() {
                         stroke="currentColor"
                         strokeWidth="12"
                         strokeDasharray={364.4}
-                        strokeDashoffset={364.4 * (1 - 5 / 30)} // 5 days out of 30
+                        strokeDashoffset={364.4 * (1 - Math.min(daysSinceContact, 30) / 30)}
                         strokeLinecap="round"
-                        className="text-blue-500 transition-all duration-1000"
+                        className={cn(
+                          "transition-all duration-1000",
+                          followUpStatus === 'urgent' ? "text-rose-500" : followUpStatus === 'needed' ? "text-orange-500" : "text-blue-500"
+                        )}
                       />
                     </svg>
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
                       <span className="text-[10px] font-black uppercase text-slate-400 leading-none">Days</span>
-                      <span className="text-3xl font-black text-slate-900 leading-none my-0.5">5</span>
+                      <span className="text-3xl font-black text-slate-900 leading-none my-0.5">{daysSinceContact}</span>
                       <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest leading-none">since contact</span>
                     </div>
                   </div>
 
                   <p className="text-sm font-medium text-slate-500 leading-relaxed px-2">
-                    Last contact with {uiAsset.institution} was 5 days ago. It is recommended to schedule a follow-up action.
+                    {lastContact
+                      ? `Last contact with ${uiAsset.institution} was ${daysSinceContact} days ago. ${followUpStatus !== 'good' ? 'It is recommended to schedule a follow-up action.' : 'Your settlement trail is up to date.'}`
+                      : `No contact history found for ${uiAsset.institution}. Start by sending an initial notification.`}
                   </p>
 
-                  <Button className="w-full h-12 rounded-2xl bg-[#5C7491] hover:bg-[#4A5E75] text-white font-bold gap-2 shadow-lg shadow-slate-100">
+                  <Button
+                    onClick={() => setShowCommDialog(true)}
+                    className="w-full h-12 rounded-2xl bg-[#5C7491] hover:bg-[#4A5E75] text-white font-bold gap-2 shadow-lg shadow-slate-100"
+                  >
                     <Clock className="w-4 h-4" />
                     Schedule Next Check
                   </Button>
@@ -1001,18 +1004,18 @@ export default function AssetDetail() {
                 <div className="space-y-4 pt-4 border-t border-slate-50">
                   <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Past Actions</h4>
                   <div className="space-y-4">
-                    {[
-                      { label: "Initial Contact Attempt (Email)", time: "5 days ago" },
-                      { label: "Document Upload (Death Certificate)", time: "3 days ago" },
-                      { label: "Fidelity Portal Login", time: "2 days ago" }
-                    ].map((action, i) => (
-                      <div key={i} className="flex items-start gap-3">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-slate-300 mt-0.5" />
-                        <div className="text-[11px] font-bold text-slate-600">
-                          {action.label} <span className="text-slate-400 font-medium">— {action.time}</span>
+                    {communications.length > 0 ? (
+                      communications.slice(0, 3).map((comm, i) => (
+                        <div key={comm.id} className="flex items-start gap-3">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-slate-300 mt-0.5" />
+                          <div className="text-[11px] font-bold text-slate-600">
+                            {comm.subject || comm.type} <span className="text-slate-400 font-medium">— {formatDate(comm.occurredAt)}</span>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ))
+                    ) : (
+                      <div className="text-[11px] text-slate-400 italic">No past actions recorded.</div>
+                    )}
                   </div>
                 </div>
 
@@ -1127,7 +1130,7 @@ export default function AssetDetail() {
           onGenerate={handleGenerateLetter}
           isGenerating={isGeneratingLetter}
         />
-      </div>
-    </div>
+      </div >
+    </div >
   );
 }

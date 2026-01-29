@@ -9,6 +9,8 @@ export interface WorkflowStep {
     estimatedTime?: string;
     guidance?: string;
     condition?: (asset: any) => boolean;
+    requiresNotary?: boolean;
+    requiresPhysicalMail?: boolean;
 }
 
 export interface WorkflowConfig {
@@ -59,7 +61,8 @@ export const bankWorkflow: WorkflowConfig = {
                     message: "Why we do this: Banks are legally prohibited from releasing assets until they verify your court-appointed power (the 'Letters')."
                 }
             ],
-            estimatedTime: '1-3 days'
+            estimatedTime: '1-3 days',
+            requiresPhysicalMail: true
         },
         {
             id: 'final_distribution',

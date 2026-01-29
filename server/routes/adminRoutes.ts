@@ -126,4 +126,28 @@ router.delete("/institutions/:id", isAdmin, async (req: any, res: Response) => {
     }
 });
 
+// App Settings Management
+router.get("/settings", isAdmin, async (req: any, res: Response) => {
+    try {
+        const { ConfigService } = await import("../services/configService.js");
+        const settings = await ConfigService.getAll();
+        res.json(settings);
+    } catch (error) {
+        res.status(500).json({ error: "Failed to fetch settings" });
+    }
+});
+
+router.post("/settings", isAdmin, async (req: any, res: Response) => {
+    try {
+        const { ConfigService } = await import("../services/configService.js");
+        const { key, value, isSecret } = req.body;
+        if (!key) return res.status(400).json({ error: "Key required" });
+
+        await ConfigService.set(key, value, isSecret);
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: "Failed to save setting" });
+    }
+});
+
 export default router;

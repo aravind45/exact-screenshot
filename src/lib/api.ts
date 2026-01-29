@@ -304,6 +304,23 @@ export const api = {
         return response.json();
     },
 
+    // Admin Settings
+    getAdminSettings: async () => {
+        const response = await fetch(`${API_URL}/admin/settings`, {
+            headers: getHeaders(),
+        });
+        return parseResponse(response);
+    },
+
+    updateAdminSetting: async (key: string, value: string, isSecret: boolean = false) => {
+        const response = await fetch(`${API_URL}/admin/settings`, {
+            method: "POST",
+            headers: getHeaders(),
+            body: JSON.stringify({ key, value, isSecret }),
+        });
+        return parseResponse(response);
+    },
+
     /**
      * Generate a smart draft for a communication log
      */

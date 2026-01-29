@@ -133,6 +133,7 @@ export default function AdminDashboard() {
                             <TabsTrigger value="overview">System Users</TabsTrigger>
                             <TabsTrigger value="institutions">Institution Master</TabsTrigger>
                             <TabsTrigger value="templates">Form Templates</TabsTrigger>
+                            <TabsTrigger value="communications">Communications</TabsTrigger>
                         </TabsList>
 
                         <TabsContent value="overview" className="mt-0 space-y-4">
@@ -219,6 +220,10 @@ export default function AdminDashboard() {
 
                         <TabsContent value="templates" className="mt-0">
                             <TemplateManager />
+                        </TabsContent>
+
+                        <TabsContent value="communications" className="mt-0">
+                            <CommunicationsManager />
                         </TabsContent>
                     </Tabs>
                 </main>
@@ -395,3 +400,124 @@ function TemplateManager() {
         </div>
     );
 }
+function CommunicationsManager() {
+    const { toast } = useToast();
+    const queryClient = useQueryClient();
+    const [saving, setSaving] = useState<string | null>(null);
+
+    const { data: settings, isLoading } = useQuery({
+        queryKey: ["admin", "settings"],
+        queryFn: () => api.getAdminSettings()
+    });
+
+    const updateSetting = useMutation({
+        mutationFn: ({ key, value, isSecret }: { key: string; value: string; isSecret: boolean }) =>
+            api.updateAdminSetting(key, value, isSecret),
+        onSuccess: (_, variables) => {
+            toast({ title: "Setting Saved", description: `${variables.key} has been updated.` });
+            queryClient.invalidateQueries({ queryKey: ["admin", "settings"] });
+            setSaving(null);
+        },
+        onError: () => {
+            toast({ variant: "destructive", title: "Save Failed" });
+            setSaving(null);
+        }
+    });
+
+    const getVal = (key: string) => settings?.find((s: any) => s.key === key)?.value || "";
+
+    const handleSave = (key: string, value: string, isSecret: boolean = false) => {
+        setSaving(key);
+        updateSetting.mutate({ key, value, isSecret });
+    };
+
+    if (isLoading) return <div className="p-8 text-center text-muted-foreground">Loading settings...</div>;
+
+    return (
+        <div className="space-y-6">
+            <Card className="card-elevated border-none">
+                <CardHeader>
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 bg-indigo-100 rounded-lg text-indigo-600">
+                            <Mail className="w-5 h-5" />
+                        </div>
+                        <div>
+                            <CardTitle>Email Infrastructure (Mailgun)</CardTitle>
+                            <CardDescription>Configure outbound and inbound email routing for estates.</CardDescription>
+                        </div>
+                    </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <label className="text-xs font-black uppercase text-slate-400">Mailgun Domain</label>
+                            <div className="flex gap-2">
+                                <Input
+                                    placeholder="mg.pilar.ai"
+                                    defaultValue={getVal("MAILGUN_DOMAIN")}
+                                    onBlur={(e) => handleSave("MAILGUN_DOMAIN", e.target.value)}
+                                />
+                                {saving === "MAILGUN_DOMAIN" && <Loader2 className="w-4 h-4 animate-spin self-center" />}
+                            </div>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-xs font-black uppercase text-slate-400">Mailgun API Key</label>
+                            <div className="flex gap-2">
+                                <Input
+                                    type="password"
+                                    placeholder="key-xxxxxxxxxxxx"
+                                    defaultValue={getVal("MAILGUN_API_KEY")}
+                                    onBlur={(e) => handleSave("MAILGUN_API_KEY", e.target.value, true)}
+                                />
+                                {saving === "MAILGUN_API_KEY" && <Loader2 className="w-4 h-4 animate-spin self-center" />}
+                            </div>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+
+            <Card className="card-elevated border-none">
+                <CardHeader>
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 bg-blue-100 rounded-lg text-blue-600">
+                            <FileCheck className="w-5 h-5" />
+                        </div>
+                        <div>
+                            <CardTitle>Digital Fax Provider (Phaxio)</CardTitle>
+                            <CardDescription>Setup secure faxing for HIPAA/Legal document submission.</CardDescription>
+                        </div>
+                    </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <label className="text-xs font-black uppercase text-slate-400">Phaxio API Key</label>
+                            <div className="flex gap-2">
+                                <Input
+                                    placeholder="px_xxxxxxxx"
+                                    defaultValue={getVal("PHAXIO_API_KEY")}
+                                    onBlur={(e) => handleSave("PHAXIO_API_KEY", e.target.value)}
+                                />
+                                {saving === "PHAXIO_API_KEY" && <Loader2 className="w-4 h-4 animate-spin self-center" />}
+                            </div>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-xs font-black uppercase text-slate-400">Phaxio API Secret</label>
+                            <div className="flex gap-2">
+                                <Input
+                                    type="password"
+                                    placeholder="ps_xxxxxxxx"
+                                    defaultValue={getVal("PHAXIO_API_SECRET")}
+                                    onBlur={(e) => handleSave("PHAXIO_API_SECRET", e.target.value, true)}
+                                />
+                                {saving === "PHAXIO_API_SECRET" && <Loader2 className="w-4 h-4 animate-spin self-center" />}
+                            </div>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+        </div>
+    );
+}
+
+import { Mail, FileCheck } from "lucide-react";

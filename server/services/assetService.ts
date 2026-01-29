@@ -111,7 +111,9 @@ export const AssetService = {
             institutionAddress,
             institutionUrl,
             notes,
-            workflowState
+            workflowState,
+            settledValue,
+            settledAt
         } = data;
 
         const updated = await prisma.asset.update({
@@ -132,7 +134,9 @@ export const AssetService = {
                 institutionAddress,
                 institutionUrl,
                 notes,
-                workflowState: workflowState !== undefined ? workflowState : undefined
+                workflowState: workflowState !== undefined ? workflowState : undefined,
+                settledValue: settledValue !== undefined ? parseFloat(settledValue) : undefined,
+                settledAt: settledAt !== undefined ? new Date(settledAt) : undefined
             }
         });
 

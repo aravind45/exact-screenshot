@@ -10,6 +10,8 @@ export interface WorkflowStep {
     estimatedTime?: string;
     guidance?: string;
     condition?: (asset: any) => boolean; // Optional condition to show/hide step
+    requiresNotary?: boolean;
+    requiresPhysicalMail?: boolean;
 }
 
 export interface WorkflowConfig {
@@ -66,7 +68,8 @@ export const fidelityWorkflow: WorkflowConfig = {
                 }
             ],
             guidance: "Pro-Tip: Use our Fax Tool to send your DE-150 directly to the Estate department to bypass the snail mail delay.",
-            estimatedTime: "1-2 days"
+            estimatedTime: "1-2 days",
+            requiresPhysicalMail: true
         },
         {
             id: "small_estate_path",
@@ -79,7 +82,9 @@ export const fidelityWorkflow: WorkflowConfig = {
                 "Valid ID"
             ],
             guidance: "This bypasses full probate but requires specific state-level paperwork.",
-            estimatedTime: "2-6 weeks"
+            estimatedTime: "2-6 weeks",
+            requiresNotary: true,
+            requiresPhysicalMail: true
         },
         {
             id: "final_distribution",

@@ -164,6 +164,8 @@ model Asset {
   accountNumber     String?  @map("account_number")
   value             Float?
   dateOfDeathValue  Float?   @map("date_of_death_value")
+  settledValue      Float?   @map("settled_value")
+  settledAt         DateTime? @map("settled_at")
   
   status            String?  // 'DISCOVERED', 'CONTACTED'
   priority          String?  // 'low', 'medium', 'high', 'urgent'
@@ -395,4 +397,13 @@ model SettlementActivity {
   user        User     @relation(fields: [userId], references: [id])
 
   @@map("settlement_activities")
+}
+
+model AppSetting {
+  key         String   @id
+  value       String   @db.Text
+  isSecret    Boolean  @default(false) @map("is_secret")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("app_settings")
 }

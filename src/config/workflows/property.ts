@@ -9,6 +9,8 @@ export interface WorkflowStep {
     estimatedTime?: string;
     guidance?: string;
     condition?: (asset: any) => boolean;
+    requiresNotary?: boolean;
+    requiresPhysicalMail?: boolean;
 }
 
 export interface WorkflowConfig {
@@ -53,7 +55,9 @@ export const propertyWorkflow: WorkflowConfig = {
             description: 'Record your Court Letters (DE-150) and the Affidavit of Death with the County. This takes the house out of the deceased’s name.',
             requiredDocs: ['Death Certificate', 'Affidavit of Death', 'Letters (DE-150)'],
             guidance: 'Why we do this: You cannot sell or refinance a house that legally still belongs to a deceased person. This step updates the public record to show YOU have the power to sign deeds.',
-            estimatedTime: '1-3 weeks'
+            estimatedTime: '1-3 weeks',
+            requiresNotary: true,
+            requiresPhysicalMail: true
         },
         {
             id: 'final_distribution',
@@ -61,7 +65,9 @@ export const propertyWorkflow: WorkflowConfig = {
             description: 'The final move. Record the new Grant Deed transferring ownership to the heirs or a buyer.',
             requiredDocs: ['Certified Order for Distribution', 'Grant Deed'],
             guidance: 'Why we do this: The legal finish line. This is the moment when the heirs finally become the official, legal owners of the home.',
-            estimatedTime: '2-4 weeks'
+            estimatedTime: '2-4 weeks',
+            requiresNotary: true,
+            requiresPhysicalMail: true
         }
     ],
     templates: {}
