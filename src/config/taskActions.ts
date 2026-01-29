@@ -100,6 +100,27 @@ export const TASK_ACTIONS: Record<string, TaskAction> = {
     icon: 'Upload',
     variant: 'primary'
   },
+  'file_affidavit': {
+    type: 'navigate',
+    target: '/probate',
+    label: 'Upload Affidavit (DE-310)',
+    icon: 'Upload',
+    variant: 'primary'
+  },
+  'file_spousal_petition': {
+    type: 'navigate',
+    target: '/probate',
+    label: 'Manage Spousal Petition',
+    icon: 'FileText',
+    variant: 'primary'
+  },
+  'issue_cert_trust': {
+    type: 'navigate',
+    target: '/probate',
+    label: 'Upload Trust Docs',
+    icon: 'Upload',
+    variant: 'primary'
+  },
 
   // Phase 2: Asset Discovery
   'freeze_accounts': {

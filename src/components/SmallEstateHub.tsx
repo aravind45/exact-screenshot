@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
 import { api } from "@/lib/api";
 import {
     Zap,
@@ -23,6 +24,13 @@ import { cn } from "@/lib/utils";
 
 const THRESHOLD = 184500;
 
+const GET_REQUIRED_FORMS = () => {
+    return [
+        { code: "DE-310", name: "Small Estate Affidavit", url: "https://www.courts.ca.gov/documents/de310.pdf", required: true, source: "PREP" },
+        { code: "DE-315", name: "Inventory & Appraisal (Small Estate)", url: "https://www.courts.ca.gov/documents/de315.pdf", required: true, source: "PREP" }
+    ];
+};
+
 export function SmallEstateHub() {
     const [showFullRules, setShowFullRules] = useState(false);
 
@@ -30,6 +38,15 @@ export function SmallEstateHub() {
         queryKey: ["estate"],
         queryFn: api.getMyEstate,
     });
+
+    const { data: documents } = useQuery({
+        queryKey: ["estate", "documents"],
+        queryFn: api.getEstateDocuments
+    });
+
+    const [uploadingForm, setUploadingForm] = useState<string | null>(null);
+    const queryClient = useQueryClient();
+    const { toast } = useToast();
 
     const { data: assetsData } = useQuery({
         queryKey: ["assets"],
@@ -45,6 +62,58 @@ export function SmallEstateHub() {
     const totalQualifiedValue = qualifiedAssets.reduce((sum, a) => sum + (parseFloat(a.value) || 0), 0);
     const progressPercentage = Math.min((totalQualifiedValue / THRESHOLD) * 100, 100);
     const isOverThreshold = totalQualifiedValue > THRESHOLD;
+
+    const handleSyncRoadmap = async (roadmapId: string) => {
+        try {
+            if (!estate) return;
+            const completedTaskIds = estate.roadmapProgress?.completedTaskIds || [];
+            if (!completedTaskIds.includes(roadmapId)) {
+                const newIds = [...completedTaskIds, roadmapId];
+                await api.updateRoadmap({
+                    completedTaskIds: newIds,
+                    completedPhases: estate.roadmapProgress?.completedPhases || [],
+                    taskId: roadmapId,
+                    action: 'COMPLETED'
+                });
+                queryClient.invalidateQueries({ queryKey: ["estate"] });
+                toast({
+                    title: "Roadmap Sync",
+                    description: `Automatically marked roadmap task as "Complete".`,
+                });
+            }
+        } catch (err) {
+            console.error("Failed to sync roadmap:", err);
+        }
+    };
+
+    const handleUpload = async (formCode: string, file: File) => {
+        setUploadingForm(formCode);
+        try {
+            await api.uploadEstateDocument(formCode, `${formCode} - Completed`, file);
+            toast({ title: "Form Uploaded", description: `${formCode} saved successfully.` });
+
+            const roadmapMapping: Record<string, string> = {
+                "DE-310": "file_affidavit",
+                "DE-315": "complete_inventory"
+            };
+            if (roadmapMapping[formCode]) {
+                await handleSyncRoadmap(roadmapMapping[formCode]);
+            }
+
+            if (formCode === "DE-310") {
+                await api.updateMyEstate({ probateStatus: 'EXECUTOR_APPOINTED' });
+                queryClient.invalidateQueries({ queryKey: ["estate"] });
+            }
+
+            queryClient.invalidateQueries({ queryKey: ["estate", "documents"] });
+        } catch (error) {
+            toast({ variant: "destructive", title: "Upload Failed" });
+        } finally {
+            setUploadingForm(null);
+        }
+    };
+
+    const getFormStatus = (formCode: string) => documents?.find((d: any) => d.documentType === formCode)?.status || "NOT_STARTED";
 
     const checklist = [
         { id: 1, label: "40 Days Have Passed since date of death", status: "PENDING", details: "You must wait at least 40 days before using an affidavit." },
@@ -166,6 +235,70 @@ export function SmallEstateHub() {
                                         "Calculating..."}
                                 </div>
                             </div>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                {/* Required Documents List */}
+                <Card className="lg:col-span-12 border-none shadow-xl shadow-slate-200/50 bg-white overflow-hidden">
+                    <CardHeader className="pb-2 border-b border-slate-50 bg-slate-50/30">
+                        <div className="flex items-center justify-between">
+                            <CardTitle className="text-sm font-bold uppercase tracking-tight text-slate-600 flex items-center gap-2">
+                                <FileText className="w-4 h-4" /> Required Affidavit Documents
+                            </CardTitle>
+                        </div>
+                    </CardHeader>
+                    <CardContent className="p-0">
+                        <div className="divide-y divide-slate-50">
+                            {GET_REQUIRED_FORMS().map((form) => {
+                                const status = getFormStatus(form.code);
+                                const isCompleted = status === "OBTAINED";
+                                return (
+                                    <div key={form.code} className="px-6 py-4 flex items-center justify-between hover:bg-slate-50/50 transition-colors group">
+                                        <div className="flex flex-col min-w-0">
+                                            <div className="flex items-center gap-2">
+                                                <Badge variant="outline" className="bg-amber-100 text-amber-700 border-none px-1 py-0 text-[9px] font-bold">
+                                                    SECTION 13100
+                                                </Badge>
+                                                <span className="font-mono text-[10px] font-bold text-slate-500">{form.code}</span>
+                                                {isCompleted && <CheckCircle2 className="w-4 h-4 text-green-500" />}
+                                            </div>
+                                            <span className="text-sm font-bold text-slate-700 mt-1">{form.name}</span>
+                                        </div>
+
+                                        <div className="flex items-center gap-2">
+                                            <Button variant="ghost" size="sm" asChild className="h-8 w-8 p-0 text-slate-400 hover:text-slate-600">
+                                                <a href={form.url} target="_blank" rel="noopener noreferrer">
+                                                    <Download className="w-4 h-4" />
+                                                </a>
+                                            </Button>
+                                            <Button
+                                                variant={isCompleted ? "outline" : "default"}
+                                                size="sm"
+                                                className={cn(
+                                                    "h-9 px-4 text-xs font-bold uppercase tracking-tight",
+                                                    isCompleted ? "border-green-100 text-green-600" : "bg-slate-900 text-white"
+                                                )}
+                                                disabled={uploadingForm === form.code}
+                                                onClick={() => {
+                                                    const input = document.createElement('input');
+                                                    input.type = 'file';
+                                                    input.accept = '.pdf';
+                                                    input.onchange = (e: any) => {
+                                                        const file = e.target.files?.[0];
+                                                        if (file) handleUpload(form.code, file);
+                                                    };
+                                                    input.click();
+                                                }}
+                                            >
+                                                {uploadingForm === form.code ? "..." : isCompleted ? "UPDATE" : "UPLOAD COMPLETED"}
+                                            </Button>
+                                        </div>
+                                    </div>
+                                );
+                            })}
                         </div>
                     </CardContent>
                 </Card>

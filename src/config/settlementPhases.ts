@@ -234,6 +234,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         description: "Obtain certified copies of your Letters - this is your legal authority to act.",
         estimatedTime: "1-2 weeks after hearing",
         category: "court-issued",
+        requiredDocs: ["DE-150 Letters"],
         alerts: [
           {
             type: "important",
