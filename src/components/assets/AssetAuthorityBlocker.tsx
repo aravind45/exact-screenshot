@@ -83,7 +83,7 @@ export function AssetAuthorityBlocker({ institutionName, hasLetters, track }: As
         emerald: "bg-emerald-100",
         violet: "bg-violet-100",
         indigo: "bg-indigo-100",
-    }[config.color as keyof typeof iconBgClass];
+    }[config.color as keyof typeof iconBgClass] || "bg-slate-100";
 
     const textColorClass = {
         amber: "text-amber-600",
