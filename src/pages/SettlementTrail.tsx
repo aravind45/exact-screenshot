@@ -103,8 +103,9 @@ export default function SettlementTrail() {
                         ) : (
                             <div className="relative border-l-2 border-slate-200 ml-4 pl-8 space-y-8 py-4">
                                 {filteredActivities.map((activity, idx) => {
-                                    const Icon = getActivityIcon(activity.type);
-                                    const colorClasses = getActivityColor(activity.type);
+                                    const activityType = activity.type || 'ROADMAP';
+                                    const Icon = getActivityIcon(activityType);
+                                    const colorClasses = getActivityColor(activityType);
 
                                     // Better action display
                                     const getActionDisplay = () => {
