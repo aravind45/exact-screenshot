@@ -78,31 +78,36 @@ router.post("/scan", uploadMemory.single("file"), async (req: any, res: Response
         if (req.query.saveToVault === 'true' && req.user) {
             const estate = await prisma.estate.findFirst({ where: { userId: req.user.id } });
             if (estate) {
-                await prisma.estateDocument.upsert({
-                    where: {
-                        estateId_documentType: {
+                const docType = (req.query.documentType as string) || "OTHER_DISCOVERY";
+                const existing = docType !== "OTHER_DISCOVERY"
+                    ? await prisma.estateDocument.findFirst({
+                        where: { estateId: estate.id, documentType: docType }
+                    })
+                    : null;
+
+                const commonData = {
+                    content: req.file.buffer,
+                    name: req.file.originalname,
+                    status: "OBTAINED",
+                    obtainedDate: new Date(),
+                    clues: agentInsights as any
+                };
+
+                if (existing) {
+                    await prisma.estateDocument.update({
+                        where: { id: existing.id },
+                        data: commonData
+                    });
+                } else {
+                    await prisma.estateDocument.create({
+                        data: {
+                            ...commonData,
                             estateId: estate.id,
-                            documentType: req.query.documentType || "OTHER_DISCOVERY"
+                            userId: req.user.id,
+                            documentType: docType
                         }
-                    },
-                    update: {
-                        content: req.file.buffer,
-                        name: req.file.originalname,
-                        status: "OBTAINED",
-                        obtainedDate: new Date(),
-                        clues: agentInsights as any
-                    },
-                    create: {
-                        estateId: estate.id,
-                        userId: req.user.id,
-                        documentType: req.query.documentType || "OTHER_DISCOVERY",
-                        name: req.file.originalname,
-                        content: req.file.buffer,
-                        status: "OBTAINED",
-                        obtainedDate: new Date(),
-                        clues: agentInsights as any
-                    }
-                });
+                    });
+                }
             }
         }
 

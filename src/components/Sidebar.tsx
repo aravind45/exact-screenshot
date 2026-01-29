@@ -58,40 +58,30 @@ export function Sidebar() {
 
     const NAV_CATEGORIES = [
         {
-            title: "Strategy",
+            title: "Navigation",
             items: [
-                { label: "Overview", icon: LayoutDashboard, path: "/dashboard" },
+                { label: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
                 { label: "Roadmap", icon: Map, path: "/roadmap" },
             ]
         },
         {
-            title: "Legal Workflow",
-            items: [
-                { label: "Probate Hub", icon: Scale, path: "/probate" },
-                { label: "Non-Probate", icon: Zap, path: "/non-probate" },
-                { label: "Spousal Petition", icon: Heart, path: "/probate/spousal-petition" },
-                { label: "Petition Wizard", icon: FileText, path: "/probate/petition/wizard" },
-                { label: "Accounting", icon: Calculator, path: "/accounting" },
-                { label: "Closing", icon: CheckSquare, path: "/probate/closing-statement" },
-            ]
-        },
-        {
-            title: "Inventory & Assets",
+            title: "Settlement",
             items: [
                 { label: "Asset Ledger", icon: Landmark, path: "/assets" },
                 { label: "Liabilities", icon: AlertCircle, path: "/liabilities" },
+                { label: "Accounting", icon: Calculator, path: "/accounting" },
             ]
         },
         {
-            title: "Records & Tasks",
+            title: "Records",
             items: [
-                { label: "Follow-Ups", icon: Bell, path: "/follow-ups" },
-                { label: "Settlement Trail", icon: History, path: "/settlement-trail" },
                 { label: "Document Vault", icon: Inbox, path: "/documents" },
+                { label: "Settlement Trail", icon: History, path: "/settlement-trail" },
+                { label: "Follow-Ups", icon: Bell, path: "/follow-ups" },
             ]
         },
         {
-            title: "Resources",
+            title: "Support",
             items: [
                 { label: "Help Center", icon: HelpCircle, path: "/help" },
             ]

@@ -9,7 +9,10 @@ import type { SettlementPhase } from "@/components/SettlementPhaseChevron";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
-import { Eye, FileUp, Download, Loader2 as Spinner } from "lucide-react";
+import { Eye, FileUp, Download, Loader2 as Spinner, Trash2 } from "lucide-react";
+import { DOCUMENT_REGISTRY, findCanonicalDoc } from "@/config/documents";
+import { DocumentUploadDialog } from "@/components/documents/DocumentUploadDialog";
+import { Card } from "@/components/ui/card";
 
 interface PhaseTaskListProps {
   phase: SettlementPhase;
@@ -74,6 +77,17 @@ export function PhaseTaskList({
     },
     onError: (error: any) => {
       toast.error(`Upload failed: ${error.message}`);
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (docId: string) => api.deleteEstateDocument(docId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["estate-documents"] });
+      toast.success("Document deleted");
+    },
+    onError: (error: any) => {
+      toast.error(`Delete failed: ${error.message}`);
     },
   });
 
@@ -177,10 +191,83 @@ export function PhaseTaskList({
                   getAlertColor={getAlertColor}
                   documents={documents}
                   onUpload={handleDocumentUpload}
+                  onDelete={(id) => deleteMutation.mutate(id)}
                   isUploading={uploadMutation.isPending}
                 />
               );
             })}
+
+            {/* Discovered / Other Documents for this Phase */}
+            {documents.filter(d => {
+              // Show documents that don't match any standard form in ANY phase
+              // OR show them here if they match a form in THIS phase specifically
+              const canon = findCanonicalDoc(d.documentType) || findCanonicalDoc(d.name);
+              const isStandard = !!canon;
+
+              if (isStandard) {
+                // If it's a standard doc, only show it in the discovered section 
+                // if it's NOT already accounted for in a task above.
+                // However, the cleanest way is to hide ALL standard docs from "Discovered" 
+                // and only show truly "Other" ones.
+                return false;
+              }
+              return true;
+            }).length > 0 && phase === 'court_filing' && (
+                <div className="p-4 bg-slate-50 border-t border-slate-200">
+                  <div className="flex items-center gap-2 mb-3">
+                    <FileText className="w-4 h-4 text-slate-400" />
+                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Other Documents</span>
+                  </div>
+                  <div className="grid grid-cols-1 gap-2">
+                    {documents.filter(d => !findCanonicalDoc(d.documentType) && !findCanonicalDoc(d.name)).map(doc => (
+                      <div key={doc.id} className="flex items-center justify-between p-2 bg-white rounded-lg border border-slate-200 text-xs">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <FileText className="w-3.5 h-3.5 text-slate-400" />
+                          <span className="truncate font-medium text-slate-700">{doc.name || doc.documentType}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 w-7 p-0 text-slate-400 hover:text-indigo-600"
+                            onClick={() => window.open(api.getEstateDocumentDownloadUrl(doc.documentType), "_blank")}
+                          >
+                            <Download className="w-3.5 h-3.5" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 w-7 p-0 text-slate-400 hover:text-red-600"
+                            onClick={() => deleteMutation.mutate(doc.id)}
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+            {/* Phase Footer Actions */}
+            <div className="p-3 bg-slate-50 border-t border-slate-100 flex justify-center">
+              <div className="relative">
+                <Button variant="ghost" size="sm" className="text-[10px] font-bold text-slate-500 uppercase tracking-widest gap-2 hover:text-indigo-600 transition-colors">
+                  <FileUp className="w-3.5 h-3.5" /> Upload Miscellaneous
+                </Button>
+                <input
+                  type="file"
+                  className="absolute inset-0 opacity-0 cursor-pointer"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const name = window.prompt("Enter a name for this document:");
+                      if (name) handleDocumentUpload("OTHER", name, file);
+                    }
+                  }}
+                />
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -196,10 +283,11 @@ interface TaskItemProps {
   getAlertColor: (type: string) => string;
   documents: any[];
   onUpload: (type: string, name: string, file: File) => void;
+  onDelete: (id: string) => void;
   isUploading: boolean;
 }
 
-function TaskItem({ task, isCompleted, onToggle, getAlertIcon, getAlertColor, documents, onUpload, isUploading }: TaskItemProps) {
+function TaskItem({ task, isCompleted, onToggle, getAlertIcon, getAlertColor, documents, onUpload, onDelete, isUploading }: TaskItemProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
@@ -246,7 +334,17 @@ function TaskItem({ task, isCompleted, onToggle, getAlertIcon, getAlertColor, do
           {!isCompleted && (
             <div className="mt-3 flex flex-wrap gap-2">
               {task.requiredDocs && task.requiredDocs.map((doc, idx) => {
-                const uploaded = documents.find(d => d.documentType === doc);
+                // SMARTER MATCHING: check registry for aliases or name matches
+                const canon = findCanonicalDoc(doc);
+                const uploaded = documents.find(d => {
+                  if (d.documentType === doc) return true;
+                  if (canon) {
+                    const uploadedCanon = findCanonicalDoc(d.documentType) || findCanonicalDoc(d.name);
+                    return uploadedCanon?.code === canon.code;
+                  }
+                  return false;
+                });
+
                 if (uploaded) return null;
                 return (
                   <div key={idx} className="relative">
@@ -301,7 +399,16 @@ function TaskItem({ task, isCompleted, onToggle, getAlertIcon, getAlertColor, do
           {isCompleted && task.requiredDocs && task.requiredDocs.length > 0 && (
             <div className="mt-2 flex gap-2">
               {task.requiredDocs.map((doc, idx) => {
-                const uploaded = documents.find(d => d.documentType === doc);
+                const canon = findCanonicalDoc(doc);
+                const uploaded = documents.find(d => {
+                  if (d.documentType === doc) return true;
+                  if (canon) {
+                    const uploadedCanon = findCanonicalDoc(d.documentType) || findCanonicalDoc(d.name);
+                    return uploadedCanon?.code === canon.code;
+                  }
+                  return false;
+                });
+
                 if (!uploaded) return null;
                 return (
                   <Badge key={idx} variant="secondary" className="bg-green-50 text-green-700 border-green-100 text-[9px] font-bold py-0 h-5">
@@ -325,7 +432,16 @@ function TaskItem({ task, isCompleted, onToggle, getAlertIcon, getAlertColor, do
                   </div>
                   <ul className="space-y-2 mt-2">
                     {task.requiredDocs.map((doc, idx) => {
-                      const uploadedDoc = documents.find(d => d.documentType === doc);
+                      const canon = findCanonicalDoc(doc);
+                      const uploadedDoc = documents.find(d => {
+                        if (d.documentType === doc) return true;
+                        if (canon) {
+                          const uploadedCanon = findCanonicalDoc(d.documentType) || findCanonicalDoc(d.name);
+                          return uploadedCanon?.code === canon.code;
+                        }
+                        return false;
+                      });
+
                       return (
                         <li key={idx} className="text-xs text-slate-600 flex items-center justify-between gap-2 p-2 bg-slate-100/50 rounded-lg border border-slate-200/60 transition-colors">
                           <div className="flex items-center gap-3">
@@ -344,7 +460,7 @@ function TaskItem({ task, isCompleted, onToggle, getAlertIcon, getAlertColor, do
                                   </Badge>
                                 )}
                               </div>
-                              <p className="text-[10px] text-slate-500">Required Document</p>
+                              <p className="text-[10px] text-slate-500">{uploadedDoc ? (uploadedDoc.name || uploadedDoc.documentType) : "Required Document"}</p>
                             </div>
                           </div>
 
@@ -355,31 +471,21 @@ function TaskItem({ task, isCompleted, onToggle, getAlertIcon, getAlertColor, do
                                   variant="outline"
                                   size="sm"
                                   className="h-8 px-3 text-[10px] font-bold bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-indigo-600"
-                                  onClick={() => window.open(api.getEstateDocumentDownloadUrl(doc), "_blank")}
+                                  onClick={() => window.open(api.getEstateDocumentDownloadUrl(uploadedDoc.documentType), "_blank")}
                                 >
                                   <Download className="w-3.5 h-3.5 mr-2" />
                                   Download
                                 </Button>
-                                <div className="relative">
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-8 px-2 text-[10px] font-bold text-slate-500 hover:text-indigo-600 hover:bg-slate-50"
-                                    disabled={isUploading}
-                                  >
-                                    {isUploading ? <Spinner className="w-3.5 h-3.5 animate-spin" /> : <FileUp className="w-3.5 h-3.5 mr-1" />}
-                                    Update
-                                  </Button>
-                                  <input
-                                    type="file"
-                                    className="absolute inset-0 opacity-0 cursor-pointer"
-                                    onChange={(e) => {
-                                      const file = e.target.files?.[0];
-                                      if (file) onUpload(doc, doc, file);
-                                    }}
-                                    disabled={isUploading}
-                                  />
-                                </div>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-8 px-2 text-[10px] font-bold text-red-500 hover:text-red-700 hover:bg-red-50"
+                                  onClick={() => onDelete(uploadedDoc.id)}
+                                  disabled={isUploading}
+                                >
+                                  <Trash2 className="w-3.5 h-3.5 mr-1" />
+                                  Delete
+                                </Button>
                               </>
                             ) : (
                               <div className="relative">

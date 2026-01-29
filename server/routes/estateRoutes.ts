@@ -194,30 +194,37 @@ router.post("/:estateId/documents", async (req: any, res: Response) => {
 
         const fileUrl = `uploads/${estateId}/${documentType}.pdf`;
 
-        const document = await prisma.estateDocument.upsert({
-            where: {
-                estateId_documentType: {
+        // Smart Upsert: Update standard forms, Create for 'OTHER'
+        const existing = documentType !== 'OTHER'
+            ? await prisma.estateDocument.findFirst({
+                where: { estateId, documentType: documentType as string }
+            })
+            : null;
+
+        let document;
+        const commonData = {
+            fileUrl,
+            content: req.body,
+            status: "OBTAINED",
+            obtainedDate: new Date(),
+            name: name as string
+        };
+
+        if (existing) {
+            document = await prisma.estateDocument.update({
+                where: { id: existing.id },
+                data: commonData
+            });
+        } else {
+            document = await prisma.estateDocument.create({
+                data: {
+                    ...commonData,
                     estateId,
-                    documentType: documentType as string
+                    userId: req.user.id,
+                    documentType: documentType as string,
                 }
-            },
-            update: {
-                fileUrl,
-                content: req.body,
-                status: "OBTAINED",
-                obtainedDate: new Date()
-            },
-            create: {
-                estateId,
-                userId: req.user.id,
-                documentType: documentType as string,
-                name: name as string,
-                fileUrl,
-                content: req.body,
-                status: "OBTAINED",
-                obtainedDate: new Date()
-            }
-        });
+            });
+        }
 
         // Log Activity
         await prisma.settlementActivity.create({
@@ -243,13 +250,12 @@ router.get("/my/documents/:formCode/download", async (req: any, res: Response) =
         const estate = await prisma.estate.findFirst({ where: { userId: req.user.id } });
         if (!estate) return res.status(404).json({ error: "Estate not found" });
 
-        const document = await prisma.estateDocument.findUnique({
+        const document = await prisma.estateDocument.findFirst({
             where: {
-                estateId_documentType: {
-                    estateId: estate.id,
-                    documentType: req.params.formCode
-                }
-            }
+                estateId: estate.id,
+                documentType: req.params.formCode
+            },
+            orderBy: { createdAt: 'desc' } // Get latest if multiple exist
         });
 
         if (!document || !document.content) {

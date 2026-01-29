@@ -89,34 +89,34 @@ export const TASK_ACTIONS: Record<string, TaskAction> = {
   },
   'attend_hearing': {
     type: 'navigate',
-    target: '/probate',
-    label: 'View Probate Hub',
+    target: '/roadmap',
+    label: 'View Roadmap',
     icon: 'Layout'
   },
   'receive_letters': {
     type: 'navigate',
-    target: '/probate',
+    target: '/roadmap',
     label: 'Upload Letters (DE-150)',
     icon: 'Upload',
     variant: 'primary'
   },
   'file_affidavit': {
     type: 'navigate',
-    target: '/probate',
+    target: '/roadmap',
     label: 'Upload Affidavit (DE-310)',
     icon: 'Upload',
     variant: 'primary'
   },
   'file_spousal_petition': {
     type: 'navigate',
-    target: '/probate',
+    target: '/roadmap',
     label: 'Manage Spousal Petition',
     icon: 'FileText',
     variant: 'primary'
   },
   'issue_cert_trust': {
     type: 'navigate',
-    target: '/probate',
+    target: '/roadmap',
     label: 'Upload Trust Docs',
     icon: 'Upload',
     variant: 'primary'
@@ -144,14 +144,14 @@ export const TASK_ACTIONS: Record<string, TaskAction> = {
   },
   'complete_inventory': {
     type: 'navigate',
-    target: '/probate',
+    target: '/roadmap',
     label: 'Manage Inventory (DE-160)',
     icon: 'FileText',
     variant: 'primary'
   },
   'file_inventory': {
     type: 'navigate',
-    target: '/probate',
+    target: '/roadmap',
     label: 'Upload Filed DE-160',
     icon: 'Upload'
   },
@@ -244,14 +244,14 @@ export const TASK_ACTIONS: Record<string, TaskAction> = {
   },
   'file_closing_statement': {
     type: 'navigate',
-    target: '/probate',
+    target: '/roadmap',
     label: 'Generate Statement',
     icon: 'FileText',
     variant: 'primary'
   },
   'discharge_executor': {
     type: 'navigate',
-    target: '/probate',
+    target: '/roadmap',
     label: 'Closing Statement',
     icon: 'CheckCircle'
   }

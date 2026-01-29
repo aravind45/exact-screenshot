@@ -248,7 +248,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         description: "For estates under threshold, use this shortcut to bypass court probate.",
         estimatedTime: "40 days after death",
         category: "court-issued",
-        requiredDocs: ["DE-310 Affidavit", "Death Certificate"]
+        requiredDocs: ["DE-310", "Death Certificate"]
       },
       {
         id: "file_spousal_petition",
@@ -256,7 +256,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         description: "Request court order to transfer property to surviving spouse without full probate.",
         estimatedTime: "4-6 weeks",
         category: "probate",
-        requiredDocs: ["DE-221 Petition", "Death Certificate"]
+        requiredDocs: ["DE-221", "Death Certificate"]
       },
       {
         id: "issue_cert_trust",

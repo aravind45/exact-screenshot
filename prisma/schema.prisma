@@ -309,7 +309,7 @@ model EstateDocument {
   estate Estate @relation(fields: [estateId], references: [id], onDelete: Cascade)
   user   User   @relation(fields: [userId], references: [id])
 
-  @@unique([estateId, documentType])
+  @@index([estateId, documentType])
   @@map("estate_documents")
 }
 

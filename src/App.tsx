@@ -17,7 +17,7 @@ import UploadDocument from "./pages/UploadDocument";
 import ProfileSettings from "./pages/ProfileSettings";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminInstitutions from "./pages/admin/AdminInstitutions";
-import Probate from "./pages/Probate";
+import { Navigate } from "react-router-dom";
 import Documents from "./pages/Documents";
 import NotFound from "./pages/NotFound";
 import PetitionWizard from "./pages/probate/PetitionWizard";
@@ -99,11 +99,7 @@ const App = () => (
                   />
                   <Route
                     path="/probate"
-                    element={
-                      <ProtectedRoute>
-                        <Probate />
-                      </ProtectedRoute>
-                    }
+                    element={<Navigate to="/roadmap" replace />}
                   />
                   <Route
                     path="/assets"
