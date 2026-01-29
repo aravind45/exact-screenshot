@@ -99,7 +99,7 @@ export const PdfService = {
     /**
      * Generates a formal "Notification of Death" letter for a specific asset.
      */
-    async generateLetter(asset: any, estate: any) {
+    async generateLetter(asset: any, estate: any, overrides?: any) {
         const doc = await PDFDocument.create();
         const page = doc.addPage([612, 792]); // Standard US Letter
         const { width, height } = page.getSize();
@@ -118,6 +118,12 @@ export const PdfService = {
             cursorY -= (size + 5);
         };
 
+        const institution = overrides?.institution || asset.institution;
+        const deceasedName = overrides?.deceasedName || `${estate.deceasedFirstName} ${estate.deceasedLastName}`;
+        const accountNumber = overrides?.accountNumber || asset.accountNumber || "Unknown";
+        const assetType = overrides?.assetType || asset.assetType;
+        const dateOfDeath = overrides?.dateOfDeath || (estate.deceasedDateOfDeath ? new Date(estate.deceasedDateOfDeath).toLocaleDateString() : "[Date]");
+
         // Header
         drawText("NOTIFICATION OF DEATH AND ESTATE OPENING", fontBoldSize);
         cursorY -= 15;
@@ -128,22 +134,22 @@ export const PdfService = {
 
         // Institution Address
         drawText("TO:");
-        drawText(asset.institution);
-        if (asset.institutionAddress) {
+        drawText(institution);
+        if (asset.institutionAddress && !overrides?.institution) {
             asset.institutionAddress.split(',').forEach((line: string) => drawText(line.trim()));
         }
         cursorY -= 15;
 
         // Subject
-        drawText(`RE: Estate of ${estate.deceasedFirstName} ${estate.deceasedLastName}`);
-        drawText(`Account Number: ${asset.accountNumber || "Unknown"}`);
-        drawText(`Asset Type: ${asset.assetType}`);
+        drawText(`RE: Estate of ${deceasedName}`);
+        drawText(`Account Number: ${accountNumber}`);
+        drawText(`Asset Type: ${assetType}`);
         cursorY -= 20;
 
         // Body
         drawText("To whom it may concern,");
         cursorY -= 10;
-        drawText(`Please be advised that ${estate.deceasedFirstName} ${estate.deceasedLastName} passed away on ${new Date(estate.deceasedDateOfDeath).toLocaleDateString()}.`);
+        drawText(`Please be advised that ${deceasedName} passed away on ${dateOfDeath}.`);
         drawText("I have been appointed as the Executor/Administrator of the estate.");
         cursorY -= 10;
         drawText("We are currently in the process of identifying and securing all estate assets.");
@@ -157,7 +163,7 @@ export const PdfService = {
         // Closing
         drawText("Sincerely,");
         cursorY -= 20;
-        drawText(estate.user?.fullName || "The Executor");
+        drawText(overrides?.senderName || estate.user?.fullName || "The Executor");
         drawText("Executor / Administrator");
 
         return await doc.save();

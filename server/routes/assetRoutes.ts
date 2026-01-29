@@ -112,7 +112,7 @@ router.post("/:id/generate-letter", async (req: any, res: Response) => {
         if (!estate) return res.status(404).json({ error: "Estate not found" });
 
         const { PdfService } = await import("../services/pdfService.js");
-        const pdfBytes = await PdfService.generateLetter(asset, estate);
+        const pdfBytes = await PdfService.generateLetter(asset, estate, req.body);
 
         res.contentType("application/pdf");
         res.send(Buffer.from(pdfBytes));

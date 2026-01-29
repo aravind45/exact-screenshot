@@ -32,7 +32,7 @@ export function SmartEmailDraft({ open, onOpenChange, asset, estate, onLogSent }
     const templates = {
         notification: {
             title: "Formal Notification",
-            subject: `Legal Notification: Estate of ${estate?.deceasedFirstName} ${estate?.deceasedLastName} - Account ${asset?.accountNumber || "(pending)"}`,
+            subject: `Estate Notification: Estate of ${estate?.deceasedFirstName} ${estate?.deceasedLastName} - Account ${asset?.accountNumber || "(pending)"}`,
             body: `Dear ${asset?.institution} Estate Services,\n\nI am writing to formally notify you of the passing of ${estate?.deceasedFirstName} ${estate?.deceasedLastName} on ${estate?.deceasedDateOfDeath ? new Date(estate.deceasedDateOfDeath).toLocaleDateString() : "[Date]"}.\n\nI have been appointed as the legal representative of the estate. Please place an immediate secure lock on all accounts held by the deceased to prevent any unauthorized transactions or automatic withdrawals.\n\nPlease provide me with your specific requirements for asset transfer, including any required forms or certified documents.\n\nSincerely,\n\n${estate?.deceasedFirstName} Estate Representative\nExecutor of the Estate`
         },
         inquiry: {
@@ -89,9 +89,9 @@ export function SmartEmailDraft({ open, onOpenChange, asset, estate, onLogSent }
                     <div className="absolute top-0 right-0 p-8 opacity-10">
                         <Scale className="w-24 h-24" />
                     </div>
-                    <Badge className="bg-blue-500 text-white border-none mb-4 px-3 py-1 font-black uppercase text-[10px] tracking-widest">Legal Draft Assist</Badge>
+                    <Badge className="bg-blue-500 text-white border-none mb-4 px-3 py-1 font-black uppercase text-[10px] tracking-widest">Draft Assist</Badge>
                     <DialogTitle className="text-3xl font-black tracking-tighter leading-none mb-2">Smart Email Draft</DialogTitle>
-                    <DialogDescription className="text-slate-400 font-medium">Professional, court-ready templates verified by legal experts.</DialogDescription>
+                    <DialogDescription className="text-slate-400 font-medium">Professional templates for estate administration.</DialogDescription>
                 </div>
 
                 <div className="p-8 space-y-6">
@@ -167,7 +167,7 @@ export function SmartEmailDraft({ open, onOpenChange, asset, estate, onLogSent }
                             <Scale className="w-5 h-5 text-amber-400" />
                             <div className="text-left flex flex-col">
                                 <span className="leading-tight">{isSending ? "Sending..." : "Send via Digital Inbox"}</span>
-                                <span className="text-[9px] opacity-70 font-medium text-amber-200">Official Estate Record</span>
+                                <span className="text-[9px] opacity-70 font-medium text-amber-200">Permanent Digital Log</span>
                             </div>
                         </Button>
                         <Button

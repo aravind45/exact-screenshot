@@ -243,10 +243,11 @@ export const api = {
         return parseResponse(response);
     },
 
-    generateLetter: async (id: string) => {
+    generateLetter: async (id: string, overrides?: any) => {
         const response = await fetch(`${API_URL}/assets/${id}/generate-letter`, {
             method: "POST",
             headers: getHeaders(),
+            body: overrides ? JSON.stringify(overrides) : undefined
         });
         if (!response.ok) throw new Error("Failed to generate letter");
         return await response.blob();

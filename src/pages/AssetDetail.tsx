@@ -65,6 +65,7 @@ import { Sidebar } from "@/components/Sidebar";
 import { AssetAuthorityBlocker } from "@/components/assets/AssetAuthorityBlocker";
 import { PhysicalAssetProtector } from "@/components/assets/PhysicalAssetProtector";
 import { SubscriptionAudit } from "@/components/assets/SubscriptionAudit";
+import { LetterPreviewDialog } from "@/components/LetterPreviewDialog";
 
 // Helper to normalize status/priority from DB
 const normalize = (str: string | null) => str?.toLowerCase() || '';
@@ -156,6 +157,8 @@ export default function AssetDetail() {
   const [completedStepIds, setCompletedStepIds] = useState<string[]>([]);
   const [hasSetInitialTab, setHasSetInitialTab] = useState(false);
   const [showDraftModal, setShowDraftModal] = useState(false);
+  const [showLetterPreview, setShowLetterPreview] = useState(false);
+  const [isGeneratingLetter, setIsGeneratingLetter] = useState(false);
 
   const getWorkflow = (category: string, type?: string) => {
     const isBrokerage = type?.toLowerCase().includes('brokerage') || type?.toLowerCase().includes('401k') || type?.toLowerCase().includes('retirement');
@@ -362,17 +365,21 @@ export default function AssetDetail() {
     uploadMutation.mutate();
   };
 
-  const handleGenerateLetter = async () => {
+  const handleGenerateLetter = async (overrides?: any) => {
+    setIsGeneratingLetter(true);
     try {
-      const blob = await api.generateLetter(id!);
+      const blob = await api.generateLetter(id!, overrides);
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `Settlement_Notice_${uiAsset.institution}.pdf`;
+      a.download = `Settlement_Notice_${overrides?.institution || uiAsset.institution}.pdf`;
       a.click();
       toast({ title: "Letter Generated", description: "Your settlement notice is ready to send." });
+      setShowLetterPreview(false);
     } catch (e: any) {
       toast({ variant: "destructive", title: "PDF Failed", description: e.message });
+    } finally {
+      setIsGeneratingLetter(false);
     }
   };
 
@@ -744,7 +751,7 @@ export default function AssetDetail() {
                               });
                             }
                           }}
-                          onGenerateLetter={handleGenerateLetter}
+                          onGenerateLetter={() => setShowLetterPreview(true)}
                         />
                         <PhysicalAssetProtector assetCategory={uiAsset.category} assetType={uiAsset.type} />
 
@@ -927,7 +934,7 @@ export default function AssetDetail() {
               <div className="bg-white rounded-[24px] border border-slate-200 p-5 shadow-sm space-y-5">
                 <div className="flex items-center justify-between border-b border-slate-50 pb-4">
                   <h3 className="font-bold text-slate-900">Institution Intel</h3>
-                  <Badge variant="outline" className="text-[10px] uppercase font-black text-slate-400">Verified</Badge>
+                  <Badge variant="outline" className="text-[10px] uppercase font-black text-slate-400">Reference Info</Badge>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
@@ -1034,6 +1041,14 @@ export default function AssetDetail() {
               statusChange: "none"
             } as any);
           }}
+        />
+        <LetterPreviewDialog
+          open={showLetterPreview}
+          onOpenChange={setShowLetterPreview}
+          asset={uiAsset}
+          estate={estate}
+          onGenerate={handleGenerateLetter}
+          isGenerating={isGeneratingLetter}
         />
       </div>
     </div>
