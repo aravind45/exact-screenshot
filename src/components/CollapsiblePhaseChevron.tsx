@@ -58,7 +58,7 @@ export function CollapsiblePhaseChevron({ onTaskToggle }: CollapsiblePhaseChevro
     queryFn: api.getMyEstate,
   });
 
-  const handleSyncRoadmap = async (roadmapId: string) => {
+  const handleSyncRoadmap = async (roadmapId: string, taskTitle?: string, phaseName?: string) => {
     try {
       if (!estate) return;
       const currentCompletedIds = estate.roadmapProgress?.completedTaskIds || [];
@@ -68,7 +68,9 @@ export function CollapsiblePhaseChevron({ onTaskToggle }: CollapsiblePhaseChevro
           completedTaskIds: newIds,
           completedPhases: estate.roadmapProgress?.completedPhases || [],
           taskId: roadmapId,
-          action: 'COMPLETED'
+          action: 'COMPLETED',
+          taskTitle,
+          phaseName
         });
         queryClient.invalidateQueries({ queryKey: ["estate"] });
         toast.info(`Automatically marked roadmap task as "Complete".`);

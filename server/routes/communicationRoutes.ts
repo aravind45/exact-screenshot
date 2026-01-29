@@ -159,7 +159,7 @@ router.delete("/:id", async (req: any, res: Response) => {
 // Send an outbound email via Mailgun
 router.post("/send-email", async (req: any, res: Response) => {
     try {
-        const { assetId, to, subject, body } = req.body;
+        const { assetId, to, subject, body, ccPersonalEmail } = req.body;
 
         // Security check
         const asset = await prisma.asset.findFirst({
@@ -172,7 +172,8 @@ router.post("/send-email", async (req: any, res: Response) => {
             assetId,
             to,
             subject,
-            body
+            body,
+            ccPersonalEmail: ccPersonalEmail !== false // Default to true
         });
 
         res.json(result);

@@ -40,7 +40,7 @@ export function PhaseTaskList({
     queryFn: api.getMyEstate,
   });
 
-  const handleSyncRoadmap = async (roadmapId: string) => {
+  const handleSyncRoadmap = async (roadmapId: string, taskTitle?: string, phaseName?: string) => {
     try {
       if (!estate) return;
       const completedTaskIds = estate.roadmapProgress?.completedTaskIds || [];
@@ -50,7 +50,9 @@ export function PhaseTaskList({
           completedTaskIds: newIds,
           completedPhases: estate.roadmapProgress?.completedPhases || [],
           taskId: roadmapId,
-          action: 'COMPLETED'
+          action: 'COMPLETED',
+          taskTitle,
+          phaseName
         });
         queryClient.invalidateQueries({ queryKey: ["estate"] });
         toast.info(`Automatically marked roadmap task as "Complete".`);

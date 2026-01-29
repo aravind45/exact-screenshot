@@ -106,6 +106,19 @@ export default function SettlementTrail() {
                                     const Icon = getActivityIcon(activity.type);
                                     const colorClasses = getActivityColor(activity.type);
 
+                                    // Better action display
+                                    const getActionDisplay = () => {
+                                        if (activity.notes) return activity.notes;
+                                        if (activity.action === 'COMPLETED') return 'Task Completed';
+                                        if (activity.action === 'UNCOMPLETED') return 'Task Uncompleted';
+                                        if (activity.action === 'PHASE_COMPLETED') return 'Phase Completed';
+                                        if (activity.action === 'UPLOADED') return 'Document Uploaded';
+                                        if (activity.action === 'CREATED') return 'Created';
+                                        if (activity.action === 'UPDATED') return 'Updated';
+                                        if (activity.action === 'DELETED') return 'Deleted';
+                                        return activity.action;
+                                    };
+
                                     return (
                                         <motion.div
                                             key={activity.id}
@@ -119,7 +132,7 @@ export default function SettlementTrail() {
                                                 <div className={`w-2 h-2 rounded-full ${colorClasses.split(' ')[0].replace('text-', 'bg-')}`} />
                                             </div>
 
-                                            <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow group relative overflow-hidden">
+                                            <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-all group relative overflow-hidden hover:border-slate-300">
                                                 {/* Background Accent */}
                                                 <div className={`absolute right-0 top-0 w-32 h-32 opacity-[0.03] -mr-8 -mt-8 rotate-12 pointer-events-none`}>
                                                     <Icon className="w-32 h-32" />
@@ -127,28 +140,31 @@ export default function SettlementTrail() {
 
                                                 <div className="flex items-start justify-between gap-4">
                                                     <div className="space-y-3 flex-1 min-w-0">
-                                                        <div className="flex items-center gap-3">
+                                                        <div className="flex items-center gap-3 flex-wrap">
                                                             <Badge className={`rounded-lg px-2 py-0.5 text-[10px] font-black uppercase tracking-widest border ${colorClasses}`}>
                                                                 {activity.type}
                                                             </Badge>
-                                                            <div className="text-[11px] font-bold text-slate-400 flex items-center gap-1.5 capitalize">
+                                                            <div className="text-[11px] font-bold text-slate-400 flex items-center gap-1.5">
                                                                 <Clock className="w-3 h-3" />
                                                                 {format(new Date(activity.occurredAt), "MMM d, h:mm a")}
                                                             </div>
                                                         </div>
 
-                                                        <div className="space-y-1">
-                                                            <h3 className="font-bold text-slate-900 text-sm leading-tight group-hover:text-primary transition-colors">
-                                                                {activity.action}
+                                                        <div className="space-y-1.5">
+                                                            <h3 className="font-bold text-slate-900 text-base leading-tight group-hover:text-primary transition-colors">
+                                                                {getActionDisplay()}
                                                             </h3>
-                                                            <p className="text-[13px] text-slate-600 font-medium leading-relaxed">
-                                                                {activity.notes}
-                                                            </p>
+                                                            {activity.phase && (
+                                                                <p className="text-xs text-slate-500 font-medium flex items-center gap-1.5">
+                                                                    <MapPin className="w-3 h-3" />
+                                                                    Phase: {activity.phase.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                                                                </p>
+                                                            )}
                                                         </div>
                                                     </div>
 
                                                     <div className="flex-shrink-0">
-                                                        <div className={`p-3 rounded-xl ${colorClasses.split(' ')[1]}`}>
+                                                        <div className={`p-3 rounded-xl ${colorClasses.split(' ')[1]} group-hover:scale-110 transition-transform`}>
                                                             <Icon className={`w-5 h-5 ${colorClasses.split(' ')[0]}`} />
                                                         </div>
                                                     </div>

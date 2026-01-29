@@ -1,11 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Copy, CheckCircle2, Scale } from "lucide-react";
+import { Copy, CheckCircle2, Scale, Mail, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { api } from "@/lib/api";
+import { useQuery } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
 
 interface SmartEmailDraftProps {
     open: boolean;
@@ -19,6 +22,12 @@ export function SmartEmailDraft({ open, onOpenChange, asset, estate, onLogSent }
     const { toast } = useToast();
     const [selectedTemplate, setSelectedTemplate] = useState("notification");
     const [isSending, setIsSending] = useState(false);
+    const [ccPersonalEmail, setCcPersonalEmail] = useState(true);
+
+    const { data: user } = useQuery({
+        queryKey: ['user-profile'],
+        queryFn: api.getProfile,
+    });
 
     const templates = {
         notification: {
@@ -49,15 +58,22 @@ export function SmartEmailDraft({ open, onOpenChange, asset, estate, onLogSent }
             return;
         }
 
+        if (ccPersonalEmail && !user?.personalEmail) {
+            toast({ variant: "destructive", title: "Personal Email Required", description: "Please add your personal email in Profile Settings to use CC." });
+            return;
+        }
+
         setIsSending(true);
         try {
-            await api.sendEmail({
+            const result = await api.sendEmail({
                 assetId: asset.id,
                 to: asset.institutionEmail,
                 subject: currentTemplate.subject,
-                body: currentTemplate.body
+                body: currentTemplate.body,
+                ccPersonalEmail
             });
-            toast({ title: "Email Sent", description: `Notification sent to ${asset.institution} directly from Pilar.` });
+            const ccMsg = result.ccEmail ? ` (CC: ${result.ccEmail})` : '';
+            toast({ title: "Email Sent", description: `Notification sent to ${asset.institution}${ccMsg}` });
             onOpenChange(false);
         } catch (error: any) {
             toast({ variant: "destructive", title: "Send Failed", description: error.message });
@@ -110,6 +126,36 @@ export function SmartEmailDraft({ open, onOpenChange, asset, estate, onLogSent }
                                 {currentTemplate.body}
                             </div>
                         </div>
+                    </div>
+
+                    {/* CC Personal Email Option */}
+                    <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
+                        <div className="flex items-center space-x-3">
+                            <Checkbox
+                                id="cc-personal"
+                                checked={ccPersonalEmail}
+                                onCheckedChange={(checked) => setCcPersonalEmail(checked as boolean)}
+                            />
+                            <label htmlFor="cc-personal" className="text-sm font-bold text-slate-700 cursor-pointer flex items-center gap-2">
+                                <Mail className="w-4 h-4 text-indigo-600" />
+                                CC my personal email for records
+                            </label>
+                        </div>
+                        {ccPersonalEmail && (
+                            <div className="ml-7 text-xs">
+                                {user?.personalEmail ? (
+                                    <div className="flex items-center gap-2 text-slate-600">
+                                        <CheckCircle2 className="w-3.5 h-3.5 text-green-600" />
+                                        <span className="font-medium">{user.personalEmail}</span>
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center gap-2 text-amber-600 bg-amber-50 p-2 rounded-lg">
+                                        <AlertCircle className="w-3.5 h-3.5" />
+                                        <span className="font-medium">No personal email set. <Link to="/profile" className="underline hover:text-amber-700">Add in Profile</Link></span>
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </div>
 
                     <div className="pt-4 border-t border-slate-100 grid grid-cols-2 gap-4">

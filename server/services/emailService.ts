@@ -120,8 +120,12 @@ Which asset ID does this email most likely belong to? Return ONLY the ID. If non
         subject: string;
         body: string;
         assetId: string;
+        ccPersonalEmail?: boolean;
     }) {
-        const estate = await prisma.estate.findUnique({ where: { id: params.estateId } });
+        const estate = await prisma.estate.findUnique({
+            where: { id: params.estateId },
+            include: { user: true }
+        });
         if (!estate) throw new Error("Estate not found");
 
         const handle = await this.ensureEstateHandle(params.estateId);
@@ -138,7 +142,14 @@ Which asset ID does this email most likely belong to? Return ONLY the ID. If non
         formData.append("text", params.body);
         formData.append("h:Reply-To", estate.inboundEmail || sender);
 
-        console.log(`[EmailService] Sending email to ${params.to} from ${sender}`);
+        // Add CC if requested and user has personal email
+        let ccEmail = null;
+        if (params.ccPersonalEmail && estate.user.personalEmail) {
+            formData.append("cc", estate.user.personalEmail);
+            ccEmail = estate.user.personalEmail;
+        }
+
+        console.log(`[EmailService] Sending email to ${params.to} from ${sender}${ccEmail ? ` (CC: ${ccEmail})` : ''}`);
 
         const response = await fetch(`https://api.mailgun.net/v3/${domain}/messages`, {
             method: "POST",
@@ -154,19 +165,19 @@ Which asset ID does this email most likely belong to? Return ONLY the ID. If non
             throw new Error(`Failed to send email: ${error}`);
         }
 
-        // Auto-log the outbound communication
+        // Auto-log the outbound communication with CC info
         await CommunicationService.create(estate.userId, {
             estateId: params.estateId,
             assetId: params.assetId,
             type: "email",
             direction: "outbound",
             subject: params.subject,
-            notes: params.body,
+            notes: `${params.body}${ccEmail ? `\n\n[CC: ${ccEmail}]` : ''}`,
             occurredAt: new Date().toISOString(),
             institutionName: params.to.split("@")[1] || "Institution",
             contactName: params.to,
         });
 
-        return { status: "sent" };
+        return { status: "sent", ccEmail };
     }
 }

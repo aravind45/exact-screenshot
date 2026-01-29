@@ -68,15 +68,22 @@ router.put("/my/roadmap", async (req: any, res: Response) => {
             data: updateData
         });
 
-        // Log activity
+        // Log activity with detailed task information
         if (taskId) {
+            const taskTitle = req.body.taskTitle || taskId;
+            const phaseName = req.body.phaseName || phase;
+            const actionLabel = action === 'COMPLETED' ? 'Completed' :
+                action === 'UNCOMPLETED' ? 'Uncompleted' :
+                    action === 'PHASE_COMPLETED' ? 'Completed Phase' : action;
+
             await prisma.settlementActivity.create({
                 data: {
                     estateId: estate.id,
                     userId: req.user.id,
                     taskId,
                     phase,
-                    action, // 'COMPLETED' or 'UNCOMPLETED' or 'PHASE_COMPLETED'
+                    action,
+                    notes: `${actionLabel}: ${taskTitle}${phaseName ? ` (${phaseName})` : ''}`
                 }
             });
         }

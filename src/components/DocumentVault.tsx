@@ -374,7 +374,7 @@ export function DocumentVault() {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         {FOUNDATION_DOCUMENTS.map((foundation) => {
                             const existing = documents.find(d => d.documentType === foundation.type);
-                            const isObtained = !!existing?.fileUrl;
+                            const isObtained = !!existing?.fileUrl || existing?.status === "OBTAINED";
 
                             return (
                                 <div key={foundation.type} className={cn(
