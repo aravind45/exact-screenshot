@@ -25,32 +25,88 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 export default function HelpCenter() {
     const faqs = [
         {
-            category: "Core Concepts",
+            category: "Probate 101: Duties & Steps",
             items: [
                 {
-                    q: "Why do I see 'Non-Probate' assets if I'm doing a Full Probate?",
-                    a: "Settling an estate requires a complete financial picture. Even if you are in court for 'solely owned' assets, you still need to track 'Non-Probate' items (like life insurance or joint accounts) because they impact your total estate value for taxes, and you are responsible for ensuring they reach the right beneficiaries."
+                    q: "When is full probate actually needed?",
+                    a: "Probate is required when a deceased person owned assets in their name alone (no beneficiary, no joint owner) that exceed the state's 'Small Estate' threshold. In California, this is currently $184,500 for assets not in a trust or joint tenancy."
                 },
                 {
-                    q: "What is the California Small Estate threshold?",
-                    a: "In California, if the total value of probate-qualified assets is under $184,500, you can usually avoid full court probate and use a 'Small Estate Affidavit' (Section 13100) instead. Non-probate assets like Living Trusts or Joint Tenancy do NOT count toward this limit."
+                    q: "What are the core duties of an Executor?",
+                    a: "Your 'Fiduciary Duty' involves four main pillars: 1. Gathering and protecting assets. 2. Notifying creditors and heirs. 3. Paying valid debts and taxes from estate funds. 4. Distributing remaining property exactly as the Will specifies."
                 },
                 {
-                    q: "What is the difference between an Executor and an Administrator?",
-                    a: "An Executor is named in a Will. An Administrator is appointed by the court if there is no Will (Intestate). Both perform the same duties as the 'Personal Representative' of the estate."
+                    q: "What are the standard steps in a California probate case?",
+                    a: "1. File Petition (DE-111) to open the case. 2. Publish Notice in a local paper. 3. Attend Hearing to get 'Letters (DE-150)'. 4. File Inventory (DE-160). 5. Pay Creditors/Taxes. 6. File Final Petition for Distribution. 7. Distribute assets and close the case."
                 }
             ]
         },
         {
-            category: "Legal Forms",
+            category: "Avoiding & Minimizing Probate",
             items: [
                 {
-                    q: "What is a DE-160 (Inventory & Appraisal)?",
-                    a: "This is a mandatory list of everything the deceased owned. You value cash items (Attachment 1), and a court-appointed Probate Referee values everything else like real estate or jewelry (Attachment 2)."
+                    q: "How can I avoid court probate entirely?",
+                    a: "Common 'Probate Shortcuts' include: 1. Small Estate Affidavits (for estates under threshold). 2. Living Trusts (assets move privately). 3. Joint Tenancy (survivor takes title). 4. POD/TOD designation (transfers on death). 5. Spousal Property Petitions (simplified court order for surviving spouses)."
                 },
                 {
-                    q: "Do I need a lawyer for a Spousal Property Petition (DE-221)?",
-                    a: "While not strictly required, a DE-221 is a legal proceeding. It's much simpler than full probate, but you must still file a petition and attend a court hearing. Our wizard helps you prep the forms, but an attorney can provide peace of mind."
+                    q: "What is the benefit of a Spousal Property Petition (DE-221)?",
+                    a: "This is a streamlined court process that transfers property to a surviving spouse without full probate. It's faster (weeks instead of months), costs less, and doesn't require the full 'Executor' checklist."
+                }
+            ]
+        },
+        {
+            category: "Trust Administration",
+            items: [
+                {
+                    q: "How do I administer a Living Trust?",
+                    a: "1. Read the Trust document carefully. 2. Sign an 'Affidavit of Assumption' to take over as Trustee. 3. Notify beneficiaries. 4. Collect and value trust assets. 5. Pay trust-related debts and taxes. 6. Distribute property according to the trust's instructions—usually without any court involvement."
+                },
+                {
+                    q: "What is the difference between an Executor and a Successor Trustee?",
+                    a: "An Executor handles property in the Will (monitored by a judge). A Successor Trustee handles property inside a Living Trust (handled privately). Often, the same person does both if some assets were left out of the trust."
+                }
+            ]
+        },
+        {
+            category: "Asset Mastery: Locate, Value, Manage",
+            items: [
+                {
+                    q: "How do I find all the assets?",
+                    a: "Search through: 1. Physical mail/statements. 2. Tax returns (look for 1099s). 3. Digital accounts/email. 4. Real estate records in the county. 5. Unclaimed property databases. Our 'Discovery' hub helps automate this forensic search."
+                },
+                {
+                    q: "How are assets valued for the court?",
+                    a: "You must use the 'Date of Death' market value. For cash/bank accounts, you list the balance. For real estate, vehicles, or jewelry, a court-appointed 'Probate Referee' must perform an official appraisal (DE-160)."
+                },
+                {
+                    q: "What are my duties for managing property?",
+                    a: "You must safeguard assets: Change locks on empty houses, ensure vehicles are insured/garaged, keep estate cash in a separate 'Estate Bank Account', and avoid mixing estate money with your own."
+                }
+            ]
+        },
+        {
+            category: "Creditors, Taxes & Closing",
+            items: [
+                {
+                    q: "How do I handle creditors?",
+                    a: "You must send a formal Notice to Creditors (DE-157). They generally have 4 months to file a claim. You pay valid bills in a specific legal order: Admin expenses first, then funeral costs, then taxes, then general debts."
+                },
+                {
+                    q: "What tax returns are required?",
+                    a: "1. The final 'Individual Income Tax' (Form 1040) for the deceased. 2. The 'Estate Income Tax' (Form 1041) if the estate generates income while probate is open. 3. Estate Tax (Form 706) only if the total value exceeds the multi-million dollar federal limit."
+                }
+            ]
+        },
+        {
+            category: "Wills vs. No-Will (Intestacy)",
+            items: [
+                {
+                    q: "What if there is no Will?",
+                    a: "This is called 'Intestacy'. The state's 'Intestate Succession' laws decide who inherits (usually spouse, then children, then parents). You are appointed as an 'Administrator' instead of an 'Executor', but the process is mostly the same."
+                },
+                {
+                    q: "Is an 'Administrator' different from an 'Executor'?",
+                    a: "Only in how you are named. An Executor is chosen by the deceased in a Will. An Administrator is chosen by the Judge. Both have the same 'Personal Representative' authority once they receive their Letters."
                 }
             ]
         }
@@ -74,7 +130,7 @@ export default function HelpCenter() {
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                             <Input
                                 className="pl-12 h-14 bg-white border-none shadow-xl shadow-slate-200/50 rounded-2xl text-lg"
-                                placeholder="Search probate terms, forms like 'DE-160'..."
+                                placeholder="Search 'Trust', 'DE-310', 'Creditors'..."
                             />
                         </div>
                     </div>
@@ -108,7 +164,7 @@ export default function HelpCenter() {
                     </div>
 
                     {/* Roadmap to Hub Mapping */}
-                    <div className="space-y-6">
+                    <div id="mapping" className="space-y-6 scroll-mt-20">
                         <div className="flex items-center justify-between px-1">
                             <h2 className="text-xl font-bold text-slate-900">Roadmap to Hub Mapping</h2>
                             <Badge variant="outline" className="bg-indigo-50 text-indigo-700 border-indigo-100 text-[10px] uppercase font-black tracking-widest px-2 py-0.5">
