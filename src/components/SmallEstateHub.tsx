@@ -14,7 +14,8 @@ import {
     Info,
     ArrowRight,
     Gavel,
-    Shield
+    Shield,
+    Upload
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -86,11 +87,12 @@ export function SmallEstateHub() {
         }
     };
 
-    const handleUpload = async (formCode: string, file: File) => {
+    const handleUpload = async (formCode: string, file: File, displayName?: string) => {
         setUploadingForm(formCode);
         try {
-            await api.uploadEstateDocument(formCode, `${formCode} - Completed`, file);
-            toast({ title: "Form Uploaded", description: `${formCode} saved successfully.` });
+            const docName = displayName || `${formCode} - Completed`;
+            await api.uploadEstateDocument(formCode, docName, file);
+            toast({ title: "Form Uploaded", description: `${displayName || formCode} saved successfully.` });
 
             const roadmapMapping: Record<string, string> = {
                 "DE-310": "file_affidavit",
@@ -299,6 +301,40 @@ export function SmallEstateHub() {
                                     </div>
                                 );
                             })}
+
+                            {/* Generic Upload Row */}
+                            <div className="px-6 py-4 flex items-center justify-between hover:bg-slate-50/50 transition-colors group border-t border-dashed border-slate-200">
+                                <div className="flex flex-col min-w-0">
+                                    <div className="flex items-center gap-2">
+                                        <Badge variant="outline" className="px-1 py-0 text-[8px] font-bold border-none bg-slate-100 text-slate-700">
+                                            OTHER
+                                        </Badge>
+                                        <span className="text-sm font-bold text-slate-700 mt-1">Generic Document Upload</span>
+                                    </div>
+                                    <span className="text-[11px] text-slate-400 mt-0.5">Use this for any documents not listed above</span>
+                                </div>
+
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-9 px-4 text-xs font-bold uppercase tracking-tight border-dashed border-slate-300 hover:border-blue-400 hover:bg-blue-50/10 text-slate-500 hover:text-blue-600 transition-all font-bold"
+                                    onClick={() => {
+                                        const name = window.prompt("Enter a name for this document (e.g. 'Death Certificate', 'Will copy'):");
+                                        if (name) {
+                                            const input = document.createElement('input');
+                                            input.type = 'file';
+                                            input.accept = '.pdf,.jpg,.jpeg,.png';
+                                            input.onchange = (e: any) => {
+                                                const file = e.target.files?.[0];
+                                                if (file) handleUpload('OTHER', file, name);
+                                            };
+                                            input.click();
+                                        }
+                                    }}
+                                >
+                                    <Upload className="w-3.5 h-3.5 mr-1" /> UPLOAD OTHER
+                                </Button>
+                            </div>
                         </div>
                     </CardContent>
                 </Card>
