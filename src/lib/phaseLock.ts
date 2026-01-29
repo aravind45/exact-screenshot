@@ -19,21 +19,52 @@ export interface PhaseLockStatus {
 export function getPhaseLocksStatus(
   phase: SettlementPhase,
   estate: any,
-  assets: any[]
+  assets: any[],
+  documents: any[] = []
 ): PhaseLockStatus {
+  const track = estate?.estateType;
+
+  // Unified authority check based on track
+  const hasAuthority = () => {
+    if (estate?.lettersReceived) return true; // Legacy flag
+
+    const docTypes = documents.map(d => d.documentType);
+
+    switch (track) {
+      case 'SMALL_ESTATE':
+        return docTypes.includes('DE-310');
+      case 'SPOUSAL_PETITION':
+        return docTypes.includes('DE-226'); // Spousal Order
+      case 'TRUST_ADMIN':
+        return docTypes.includes('TRUST_CERT') || docTypes.includes('TRUSTEE_ACC');
+      case 'JOINT_TRANSFER':
+      case 'POD_TOD_TRANSFER':
+        return true; // Usually no court authority needed, but might need Death Cert
+      default:
+        return docTypes.includes('DE-150'); // Letters Testamentary
+    }
+  };
+
+  const authorityGranted = hasAuthority();
+
   switch (phase) {
     case 'immediate_actions':
     case 'court_filing':
       return { isLocked: false }; // Always accessible
 
     case 'asset_discovery':
-      if (!estate?.lettersReceived) {
+      if (!authorityGranted) {
+        let docLabel = 'Letters Testamentary (DE-150)';
+        if (track === 'SMALL_ESTATE') docLabel = 'Small Estate Affidavit (DE-310)';
+        else if (track === 'SPOUSAL_PETITION') docLabel = 'Spousal Order (DE-226)';
+        else if (track === 'TRUST_ADMIN') docLabel = 'Trust Certification';
+
         return {
           isLocked: true,
-          reason: 'Letters Testamentary (DE-150) required',
+          reason: `${docLabel} required`,
           unlockAction: {
-            label: 'Upload Letters',
-            route: '/probate?action=upload-letters'
+            label: 'Upload Documents',
+            route: track === 'SMALL_ESTATE' || track === 'TRUST_ADMIN' ? '/vault' : '/probate'
           }
         };
       }

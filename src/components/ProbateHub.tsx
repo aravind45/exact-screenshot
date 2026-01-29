@@ -139,8 +139,13 @@ export function ProbateHub() {
             }
 
             // Special Case: Documents that clear "Probate Required" status
-            const clearingForms = ["DE-150", "DE-310", "DE-226", "TRUSTEE_ACC"];
-            if (clearingForms.includes(formCode)) {
+            if (formCode === "DE-150") {
+                await api.updateMyEstate({
+                    probateStatus: 'EXECUTOR_APPOINTED',
+                    lettersReceived: true
+                });
+                queryClient.invalidateQueries({ queryKey: ["estate"] });
+            } else if (["DE-310", "DE-226", "TRUSTEE_ACC"].includes(formCode)) {
                 await api.updateMyEstate({ probateStatus: 'EXECUTOR_APPOINTED' });
                 queryClient.invalidateQueries({ queryKey: ["estate"] });
             }

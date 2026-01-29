@@ -86,7 +86,7 @@ export function Sidebar() {
             title: "Records & Tasks",
             items: [
                 { label: "Follow-Ups", icon: Bell, path: "/follow-ups" },
-                { label: "Settlement Trail", icon: History, path: "/inbox" },
+                { label: "Settlement Trail", icon: History, path: "/settlement-trail" },
                 { label: "Document Vault", icon: Inbox, path: "/documents" },
             ]
         },

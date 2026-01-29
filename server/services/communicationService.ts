@@ -37,6 +37,17 @@ export const CommunicationService = {
                 data: assetUpdateData
             });
 
+            // 3. Log Activity
+            await tx.settlementActivity.create({
+                data: {
+                    estateId: data.estateId,
+                    userId,
+                    type: 'COMMUNICATION',
+                    action: 'CREATED',
+                    notes: `${data.direction === 'outbound' ? 'Sent' : 'Received'} ${data.type}: ${data.subject} (${data.institutionName})`
+                }
+            });
+
             return communication;
         });
     },
@@ -75,6 +86,17 @@ export const CommunicationService = {
             await tx.asset.update({
                 where: { id: assetId },
                 data: { lastContactDate: latest?.occurredAt || null }
+            });
+
+            // 3. Log Activity
+            await tx.settlementActivity.create({
+                data: {
+                    estateId: estateId,
+                    userId: comm.createdBy, // Use the creator's ID for the log
+                    type: 'COMMUNICATION',
+                    action: 'DELETED',
+                    notes: `Deleted communication record for ${comm.institutionName}: ${comm.subject}`
+                }
             });
 
             return { success: true };

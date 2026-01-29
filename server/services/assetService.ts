@@ -59,6 +59,17 @@ export const AssetService = {
             console.error("Concierge Enrichment Error:", err)
         );
 
+        // Log Activity
+        await prisma.settlementActivity.create({
+            data: {
+                estateId: estate.id,
+                userId,
+                type: 'ASSET',
+                action: 'CREATED',
+                notes: `Added asset: ${institution} (${assetType})`
+            }
+        });
+
         return asset;
     },
 
@@ -85,7 +96,7 @@ export const AssetService = {
             workflowState
         } = data;
 
-        return await prisma.asset.update({
+        const updated = await prisma.asset.update({
             where: { id },
             data: {
                 institution,
@@ -106,6 +117,19 @@ export const AssetService = {
                 workflowState: workflowState !== undefined ? workflowState : undefined
             }
         });
+
+        // Log Activity
+        await prisma.settlementActivity.create({
+            data: {
+                estateId: existing.estateId,
+                userId,
+                type: 'ASSET',
+                action: 'UPDATED',
+                notes: `Updated asset: ${updated.institution} (${updated.assetType}). Status: ${updated.status || 'N/A'}`
+            }
+        });
+
+        return updated;
     },
 
     async delete(id: string, userId: string) {
@@ -115,6 +139,18 @@ export const AssetService = {
         await prisma.asset.delete({
             where: { id }
         });
+
+        // Log Activity
+        await prisma.settlementActivity.create({
+            data: {
+                estateId: existing.estateId,
+                userId,
+                type: 'ASSET',
+                action: 'DELETED',
+                notes: `Removed asset: ${existing.institution} (${existing.assetType})`
+            }
+        });
+
         return { success: true };
     },
 

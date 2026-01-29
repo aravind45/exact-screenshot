@@ -806,12 +806,24 @@ export default function AssetDetail() {
                       uiAsset.ownershipType
                     );
 
-                    const hasLetters = Array.isArray(estateDocuments) && estateDocuments.some(d => d.documentType === 'DE-150');
+                    const hasAuthority = () => {
+                      if (estate?.lettersReceived) return true;
+                      const docTypes = Array.isArray(estateDocuments) ? estateDocuments.map(d => d.documentType) : [];
+                      const track = estate?.estateType;
 
-                    if (authReq.requirement === "LETTERS_REQUIRED" && !hasLetters) {
+                      if (track === "SMALL_ESTATE") return docTypes.includes("DE-310");
+                      if (track === "SPOUSAL_PETITION") return docTypes.includes("DE-226");
+                      if (track === "TRUST_ADMIN") return docTypes.includes("TRUST_CERT") || docTypes.includes("TRUSTEE_ACC");
+                      if (track === "JOINT_TRANSFER" || track === "POD_TOD_TRANSFER") return true;
+                      return docTypes.includes("DE-150");
+                    };
+
+                    const authorityGranted = hasAuthority();
+
+                    if (authReq.requirement === "LETTERS_REQUIRED" && !authorityGranted) {
                       return <AssetAuthorityBlocker
                         institutionName={uiAsset.institution}
-                        hasLetters={hasLetters}
+                        hasLetters={authorityGranted}
                         track={estate?.estateType as SettlementTrack}
                       />;
                     }

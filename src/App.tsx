@@ -39,6 +39,7 @@ import DistributionPetition from "./pages/DistributionPetition";
 import NonProbate from "./pages/NonProbate";
 import SpousalPropertyPetition from "./pages/SpousalPropertyPetition";
 import HelpCenter from "./pages/HelpCenter";
+import SettlementTrail from "./pages/SettlementTrail";
 import { EstateAgentChatWrapper } from "@/components/EstateAgentChatWrapper";
 
 const queryClient = new QueryClient();
@@ -121,10 +122,10 @@ const App = () => (
                     }
                   />
                   <Route
-                    path="/inbox"
+                    path="/settlement-trail"
                     element={
                       <ProtectedRoute>
-                        <Inbox />
+                        <SettlementTrail />
                       </ProtectedRoute>
                     }
                   />

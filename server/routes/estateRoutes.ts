@@ -203,7 +203,7 @@ router.post("/:estateId/documents", async (req: any, res: Response) => {
             },
             update: {
                 fileUrl,
-                content: req.body, // Store binary data
+                content: req.body,
                 status: "OBTAINED",
                 obtainedDate: new Date()
             },
@@ -213,9 +213,20 @@ router.post("/:estateId/documents", async (req: any, res: Response) => {
                 documentType: documentType as string,
                 name: name as string,
                 fileUrl,
-                content: req.body, // Store binary data
+                content: req.body,
                 status: "OBTAINED",
                 obtainedDate: new Date()
+            }
+        });
+
+        // Log Activity
+        await prisma.settlementActivity.create({
+            data: {
+                estateId,
+                userId: req.user.id,
+                type: 'DOCUMENT',
+                action: 'UPLOADED',
+                notes: `Uploaded document: ${name} (${documentType})`
             }
         });
 
@@ -268,6 +279,17 @@ router.post("/my/documents", async (req: any, res: Response) => {
                 expirationDate: req.body.expirationDate ? new Date(req.body.expirationDate) : undefined
             }
         });
+
+        // Log Activity
+        await prisma.settlementActivity.create({
+            data: {
+                estateId: estate.id,
+                userId: req.user.id,
+                type: 'DOCUMENT',
+                action: 'CREATED',
+                notes: `Created document record: ${document.name} (${document.documentType})`
+            }
+        });
         res.json(document);
     } catch (error) {
         console.error("Create document error:", error);
@@ -311,7 +333,19 @@ router.delete("/my/documents/:id", async (req: any, res: Response) => {
         });
         if (count === 0) return res.status(404).json({ error: "Document not found" });
 
-        await prisma.estateDocument.delete({ where: { id: req.params.id } });
+        const deletedDoc = await prisma.estateDocument.delete({ where: { id: req.params.id } });
+
+        // Log Activity
+        await prisma.settlementActivity.create({
+            data: {
+                estateId: estate.id,
+                userId: req.user.id,
+                type: 'DOCUMENT',
+                action: 'DELETED',
+                notes: `Deleted document: ${deletedDoc.name} (${deletedDoc.documentType})`
+            }
+        });
+
         res.json({ success: true });
     } catch (error) {
         res.status(500).json({ error: "Failed to delete document" });

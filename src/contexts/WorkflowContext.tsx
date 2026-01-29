@@ -44,6 +44,12 @@ export function WorkflowProvider({ children }: { children: ReactNode }) {
     queryFn: api.getAssets
   });
 
+  const { data: documents = [] } = useQuery({
+    queryKey: ['estate', 'documents'],
+    queryFn: api.getEstateDocuments,
+    enabled: !!estate
+  });
+
   // Calculate asset distribution by phase
   const assetsByPhase = getAssetsByPhase(assets, estate);
 
@@ -51,15 +57,16 @@ export function WorkflowProvider({ children }: { children: ReactNode }) {
   const phaseLocks: Record<SettlementPhase, PhaseLockStatus> = {
     immediate_actions: { isLocked: false },
     court_filing: { isLocked: false },
-    asset_discovery: getPhaseLocksStatus('asset_discovery', estate, assets),
-    creditor_claims: getPhaseLocksStatus('creditor_claims', estate, assets),
-    asset_liquidation: getPhaseLocksStatus('asset_liquidation', estate, assets),
-    final_distribution: getPhaseLocksStatus('final_distribution', estate, assets)
+    asset_discovery: getPhaseLocksStatus('asset_discovery', estate, assets, documents),
+    creditor_claims: getPhaseLocksStatus('creditor_claims', estate, assets, documents),
+    asset_liquidation: getPhaseLocksStatus('asset_liquidation', estate, assets, documents),
+    final_distribution: getPhaseLocksStatus('final_distribution', estate, assets, documents)
   };
 
-  // Find probate blockers (INDIVIDUAL assets without Letters)
+  // Find probate blockers
+  const authorityGranted = phaseLocks.asset_discovery.isLocked === false;
   const probateBlockers = assets.filter((a: any) =>
-    a.ownershipType === 'INDIVIDUAL' && !estate?.lettersReceived
+    a.ownershipType === 'INDIVIDUAL' && !authorityGranted
   );
 
   // Extract completed tasks and phases from estate

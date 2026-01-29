@@ -343,9 +343,10 @@ model FormTemplate {
 model SettlementActivity {
   id          String   @id @default(uuid())
   estateId    String   @map("estate_id")
-  taskId      String   @map("task_id")
+  taskId      String?  @map("task_id")
   phase       String?
-  action      String   // 'COMPLETED', 'UNCOMPLETED', 'PHASE_COMPLETED'
+  type        String   @default("ROADMAP") // 'ROADMAP', 'DOCUMENT', 'ASSET', 'COMMUNICATION'
+  action      String   // 'COMPLETED', 'UNCOMPLETED', 'PHASE_COMPLETED', 'UPLOADED', 'UPDATED', 'CREATED'
   notes       String?
   occurredAt  DateTime @default(now()) @map("occurred_at")
   userId      String   @map("user_id")
