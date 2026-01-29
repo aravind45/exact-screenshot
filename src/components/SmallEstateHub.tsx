@@ -15,13 +15,15 @@ import {
     ArrowRight,
     Gavel,
     Shield,
-    Upload
+    Upload,
+    ExternalLink
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
+import { DocumentUploadDialog } from "@/components/documents/DocumentUploadDialog";
 
 const THRESHOLD = 184500;
 
@@ -46,6 +48,9 @@ export function SmallEstateHub() {
     });
 
     const [uploadingForm, setUploadingForm] = useState<string | null>(null);
+    const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
+    const [activeUploadCode, setActiveUploadCode] = useState<string>("OTHER");
+    const [activeUploadInitialName, setActiveUploadInitialName] = useState<string>("");
     const queryClient = useQueryClient();
     const { toast } = useToast();
 
@@ -96,7 +101,13 @@ export function SmallEstateHub() {
 
             const roadmapMapping: Record<string, string> = {
                 "DE-310": "file_affidavit",
-                "DE-315": "complete_inventory"
+                "DE-315": "complete_inventory",
+                "Death Certificate": "notify_ssa",
+                "Original Will": "locate_will",
+                "DE-150": "receive_letters",
+                "DE-221": "file_spousal_petition",
+                "TRUST_CERT": "issue_cert_trust",
+                "Proof of Publication": "publish_notice"
             };
             if (roadmapMapping[formCode]) {
                 await handleSyncRoadmap(roadmapMapping[formCode]);
@@ -302,6 +313,44 @@ export function SmallEstateHub() {
                                 );
                             })}
 
+                            {/* Discovered Documents */}
+                            {documents?.filter((d: any) =>
+                                !GET_REQUIRED_FORMS().some(f => f.code === d.documentType) &&
+                                d.documentType !== 'OTHER'
+                            ).map((doc: any) => (
+                                <div key={doc.id} className="px-6 py-4 flex items-center justify-between hover:bg-slate-50/50 transition-colors group">
+                                    <div className="flex flex-col min-w-0">
+                                        <div className="flex items-center gap-2">
+                                            <Badge variant="outline" className="px-1 py-0 text-[8px] font-bold border-none bg-blue-100 text-blue-700">
+                                                UPLOADED
+                                            </Badge>
+                                            <CheckCircle2 className="w-4 h-4 text-green-500" />
+                                        </div>
+                                        <span className="text-sm font-bold text-slate-700 mt-1">{doc.name || doc.documentType}</span>
+                                    </div>
+
+                                    <div className="flex items-center gap-2">
+                                        <Button variant="ghost" size="sm" asChild className="h-9 w-9 p-0 hover:bg-green-50 text-green-600">
+                                            <a href={api.getEstateDocumentDownloadUrl(doc.documentType)} target="_blank" rel="noopener noreferrer">
+                                                <ExternalLink className="w-4 h-4" />
+                                            </a>
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="h-9 px-4 text-xs font-bold border-green-100 text-green-600"
+                                            onClick={() => {
+                                                setActiveUploadCode(doc.documentType);
+                                                setActiveUploadInitialName(doc.name || doc.documentType);
+                                                setIsUploadDialogOpen(true);
+                                            }}
+                                        >
+                                            UPDATE
+                                        </Button>
+                                    </div>
+                                </div>
+                            ))}
+
                             {/* Generic Upload Row */}
                             <div className="px-6 py-4 flex items-center justify-between hover:bg-slate-50/50 transition-colors group border-t border-dashed border-slate-200">
                                 <div className="flex flex-col min-w-0">
@@ -319,23 +368,24 @@ export function SmallEstateHub() {
                                     size="sm"
                                     className="h-9 px-4 text-xs font-bold uppercase tracking-tight border-dashed border-slate-300 hover:border-blue-400 hover:bg-blue-50/10 text-slate-500 hover:text-blue-600 transition-all font-bold"
                                     onClick={() => {
-                                        const name = window.prompt("Enter a name for this document (e.g. 'Death Certificate', 'Will copy'):");
-                                        if (name) {
-                                            const input = document.createElement('input');
-                                            input.type = 'file';
-                                            input.accept = '.pdf,.jpg,.jpeg,.png';
-                                            input.onchange = (e: any) => {
-                                                const file = e.target.files?.[0];
-                                                if (file) handleUpload('OTHER', file, name);
-                                            };
-                                            input.click();
-                                        }
+                                        setActiveUploadCode("OTHER");
+                                        setActiveUploadInitialName("");
+                                        setIsUploadDialogOpen(true);
                                     }}
                                 >
                                     <Upload className="w-3.5 h-3.5 mr-1" /> UPLOAD OTHER
                                 </Button>
                             </div>
                         </div>
+
+                        <DocumentUploadDialog
+                            isOpen={isUploadDialogOpen}
+                            onClose={() => setIsUploadDialogOpen(false)}
+                            onUpload={(name, file) => handleUpload(activeUploadCode, file, name)}
+                            initialName={activeUploadInitialName}
+                            title={activeUploadCode === 'OTHER' ? 'Upload Other Document' : 'Update Document'}
+                            description={activeUploadCode === 'OTHER' ? 'Upload any miscellaneous estate document.' : undefined}
+                        />
                     </CardContent>
                 </Card>
             </div>

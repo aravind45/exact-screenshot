@@ -32,12 +32,45 @@ export function PhaseTaskList({
     queryFn: api.getEstateDocuments,
   });
 
+  const { data: estate } = useQuery({
+    queryKey: ["estate"],
+    queryFn: api.getMyEstate,
+  });
+
+  const handleSyncRoadmap = async (roadmapId: string) => {
+    try {
+      if (!estate) return;
+      const completedTaskIds = estate.roadmapProgress?.completedTaskIds || [];
+      if (!completedTaskIds.includes(roadmapId)) {
+        const newIds = [...completedTaskIds, roadmapId];
+        await api.updateRoadmap({
+          completedTaskIds: newIds,
+          completedPhases: estate.roadmapProgress?.completedPhases || [],
+          taskId: roadmapId,
+          action: 'COMPLETED'
+        });
+        queryClient.invalidateQueries({ queryKey: ["estate"] });
+        toast.info(`Automatically marked roadmap task as "Complete".`);
+      }
+    } catch (err) {
+      console.error("Failed to sync roadmap:", err);
+    }
+  };
+
   const uploadMutation = useMutation({
     mutationFn: ({ type, name, file }: { type: string; name: string; file: File }) =>
       api.uploadEstateDocument(type, name, file),
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["estate-documents"] });
       toast.success("Document uploaded successfully");
+
+      // Auto-sync roadmap if this doc matches a task
+      // This is a bit more dynamic: if the task that contains this doc is not complete, complete it.
+      // We look for the task in the current phase that listed this doc.
+      const taskWithDoc = phaseData.tasks.find(t => t.requiredDocs?.includes(variables.type));
+      if (taskWithDoc) {
+        handleSyncRoadmap(taskWithDoc.id);
+      }
     },
     onError: (error: any) => {
       toast.error(`Upload failed: ${error.message}`);

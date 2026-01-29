@@ -30,12 +30,15 @@ import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { calculateAuthorityRecommendation, getInstitutionAuthorityRequirement } from "@/lib/authorityEngine";
 import { cn } from "@/lib/utils";
+import { DocumentUploadDialog } from "@/components/documents/DocumentUploadDialog";
+import { Eye, FileUp, Loader2 as Spinner } from "lucide-react";
 
 const GET_REQUIRED_FORMS = (track?: string) => {
     const baseDocs = [
         { code: "DE-111", name: "Petition for Probate", url: "https://www.courts.ca.gov/documents/de111.pdf", required: true, source: "PREP" },
         { code: "DE-121", name: "Notice of Hearing", url: "https://www.courts.ca.gov/documents/de121.pdf", required: true, source: "PREP" },
         { code: "DE-160", name: "Inventory and Appraisal", url: "https://www.courts.ca.gov/documents/de160.pdf", required: false, source: "PREP" },
+        { code: "Proof of Publication", name: "Proof of Publication (DE-130)", url: "https://www.courts.ca.gov/documents/de130.pdf", required: true, source: "PREP" },
         { code: "DE-140", name: "Order for Probate", url: "https://www.courts.ca.gov/documents/de140.pdf", required: true, source: "COURT" },
         { code: "DE-150", name: "Letters Testamentary", url: "https://www.courts.ca.gov/documents/de150.pdf", required: true, source: "COURT" }
     ];
@@ -70,6 +73,9 @@ export function ProbateHub() {
     const [isEditing, setIsEditing] = useState(false);
     const [showHelp, setShowHelp] = useState(false);
     const [uploadingForm, setUploadingForm] = useState<string | null>(null);
+    const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
+    const [activeUploadCode, setActiveUploadCode] = useState<string>("OTHER");
+    const [activeUploadInitialName, setActiveUploadInitialName] = useState<string>("");
 
     const { data: estate, isLoading } = useQuery({
         queryKey: ["estate"],
@@ -129,11 +135,18 @@ export function ProbateHub() {
             // Auto-sync roadmap
             const roadmapMapping: Record<string, string> = {
                 "DE-111": "file_petition",
+                "DE-121": "file_petition",
                 "DE-150": "receive_letters",
                 "DE-160": "complete_inventory",
                 "DE-310": "file_affidavit",
                 "DE-221": "file_spousal_petition",
-                "TRUST_CERT": "issue_cert_trust"
+                "TRUST_CERT": "issue_cert_trust",
+                "Proof of Publication": "publish_notice",
+                "Death Certificate": "notify_ssa",
+                "Original Will": "locate_will",
+                "DE-157": "mail_notice",
+                "DE-174": "reject_invalid",
+                "DE-295": "close_estate"
             };
             if (roadmapMapping[formCode]) {
                 await handleSyncRoadmap(roadmapMapping[formCode]);
@@ -524,6 +537,46 @@ export function ProbateHub() {
                                 );
                             })}
 
+                            {/* Discovered / Other Uploaded Documents */}
+                            {documents?.filter((d: any) =>
+                                !GET_REQUIRED_FORMS(estate?.estateType).some(f => f.code === d.documentType) &&
+                                d.documentType !== 'OTHER'
+                            ).map((doc: any) => (
+                                <div key={doc.id} className="px-4 py-2 flex items-center justify-between hover:bg-slate-50/50 transition-colors group">
+                                    <div className="flex flex-col min-w-0">
+                                        <div className="flex items-center gap-2">
+                                            <Badge variant="outline" className="px-1 py-0 text-[8px] font-bold border-none bg-blue-100 text-blue-700">
+                                                UPLOADED
+                                            </Badge>
+                                            <span className="font-mono text-[10px] font-bold text-slate-500 whitespace-nowrap">EXT</span>
+                                            <CheckCircle2 className="w-3 h-3 text-green-500" />
+                                        </div>
+                                        <span className="text-[11px] font-medium text-slate-700 truncate">{doc.name || doc.documentType}</span>
+                                    </div>
+
+                                    <div className="flex items-center gap-1.5 opacity-100 lg:opacity-60 group-hover:opacity-100 transition-opacity">
+                                        <Button variant="ghost" size="sm" asChild className="h-7 w-7 p-0 hover:bg-green-50 text-green-600">
+                                            <a href={api.getEstateDocumentDownloadUrl(doc.documentType)} target="_blank" rel="noopener noreferrer" title="View Uploaded">
+                                                <ExternalLink className="w-3.5 h-3.5" />
+                                            </a>
+                                        </Button>
+
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="h-7 px-2 text-[9px] font-bold uppercase tracking-tight border-green-100 text-green-600"
+                                            onClick={() => {
+                                                setActiveUploadCode(doc.documentType);
+                                                setActiveUploadInitialName(doc.name || doc.documentType);
+                                                setIsUploadDialogOpen(true);
+                                            }}
+                                        >
+                                            UPDATE
+                                        </Button>
+                                    </div>
+                                </div>
+                            ))}
+
                             {/* Generic Upload Row */}
                             <div className="px-4 py-3 flex items-center justify-between hover:bg-slate-50/50 transition-colors group border-t border-dashed border-slate-200">
                                 <div className="flex flex-col min-w-0">
@@ -541,17 +594,9 @@ export function ProbateHub() {
                                     size="sm"
                                     className="h-7 px-3 text-[9px] font-bold uppercase tracking-tight border-dashed border-slate-300 hover:border-blue-400 hover:bg-blue-50/10 text-slate-500 hover:text-blue-600 transition-all"
                                     onClick={() => {
-                                        const name = window.prompt("Enter a name for this document (e.g. 'Death Certificate', 'Will copy'):");
-                                        if (name) {
-                                            const input = document.createElement('input');
-                                            input.type = 'file';
-                                            input.accept = '.pdf,.jpg,.jpeg,.png';
-                                            input.onchange = (e: any) => {
-                                                const file = e.target.files?.[0];
-                                                if (file) handleUpload('OTHER', file, name);
-                                            };
-                                            input.click();
-                                        }
+                                        setActiveUploadCode("OTHER");
+                                        setActiveUploadInitialName("");
+                                        setIsUploadDialogOpen(true);
                                     }}
                                 >
                                     <Upload className="w-3.5 h-3.5 mr-1" /> UPLOAD OTHER
@@ -560,6 +605,15 @@ export function ProbateHub() {
                         </div>
                     </div>
                 </div>
+
+                <DocumentUploadDialog
+                    isOpen={isUploadDialogOpen}
+                    onClose={() => setIsUploadDialogOpen(false)}
+                    onUpload={(name, file) => handleUpload(activeUploadCode, file, name)}
+                    initialName={activeUploadInitialName}
+                    title={activeUploadCode === 'OTHER' ? 'Upload Other Document' : 'Update Document'}
+                    description={activeUploadCode === 'OTHER' ? 'Upload any miscellaneous estate document.' : undefined}
+                />
 
                 {/* Help Section */}
                 <AnimatePresence>
