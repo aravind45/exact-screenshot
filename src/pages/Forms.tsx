@@ -3,8 +3,10 @@ import React from "react";
 import { Sidebar } from "@/components/Sidebar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileText, Download, Eye, Gavel, Scale, ScrollText } from "lucide-react";
+import { FileText, Download, Eye, Gavel, Scale, ScrollText, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
+import { api } from "@/lib/api";
+import { toast } from "sonner";
 
 const FORMS = [
     {
@@ -31,6 +33,33 @@ const FORMS = [
 ];
 
 const Forms = () => {
+    const [loading, setLoading] = React.useState<string | null>(null);
+
+    const handleFormAction = async (formId: string, isPreview: boolean) => {
+        setLoading(`${formId}-${isPreview ? 'preview' : 'generate'}`);
+        try {
+            const blob = await api.generateForm(formId, isPreview);
+            const url = window.URL.createObjectURL(blob);
+
+            if (isPreview) {
+                window.open(url, '_blank');
+            } else {
+                const link = document.createElement('a');
+                link.href = url;
+                link.setAttribute('download', `${formId}.pdf`);
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+            }
+            toast.success(isPreview ? "Preview generated" : "Form downloaded");
+        } catch (e: any) {
+            console.error(e);
+            toast.error(`Failed to generate ${formId}: ${e.message}`);
+        } finally {
+            setLoading(null);
+        }
+    };
+
     return (
         <div className="flex min-h-screen bg-slate-950 text-white">
             <Sidebar />
@@ -88,12 +117,29 @@ const Forms = () => {
                                     </div>
                                 </CardContent>
                                 <CardFooter className="flex gap-3">
-                                    <Button variant="outline" className="flex-1 bg-transparent border-slate-700 hover:bg-white/5 text-slate-300">
-                                        <Eye className="w-4 h-4 mr-2" />
+                                    <Button
+                                        variant="outline"
+                                        className="flex-1 bg-transparent border-slate-700 hover:bg-white/5 text-slate-300"
+                                        onClick={() => handleFormAction(form.id, true)}
+                                        disabled={loading !== null}
+                                    >
+                                        {loading === `${form.id}-preview` ? (
+                                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                        ) : (
+                                            <Eye className="w-4 h-4 mr-2" />
+                                        )}
                                         Preview
                                     </Button>
-                                    <Button className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_15px_rgba(var(--primary-rgb),0.3)]">
-                                        <Download className="w-4 h-4 mr-2" />
+                                    <Button
+                                        className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_15px_rgba(var(--primary-rgb),0.3)]"
+                                        onClick={() => handleFormAction(form.id, false)}
+                                        disabled={loading !== null}
+                                    >
+                                        {loading === `${form.id}-generate` ? (
+                                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                        ) : (
+                                            <Download className="w-4 h-4 mr-2" />
+                                        )}
                                         Generate
                                     </Button>
                                 </CardFooter>

@@ -802,6 +802,16 @@ export const api = {
         return parseResponse(response);
     },
 
+    generateForm: async (formId: string, isPreview: boolean = true) => {
+        const response = await fetch(`${API_URL}/forms/generate`, {
+            method: "POST",
+            headers: getHeaders(),
+            body: JSON.stringify({ formId, isPreview }),
+        });
+        if (!response.ok) throw new Error("Failed to generate form");
+        return await response.blob();
+    },
+
     inviteCollaborator: async (data: { estateId: string, email: string, role: string }) => {
         const response = await fetch(`${API_URL}/collaboration/invite`, {
             method: "POST",
