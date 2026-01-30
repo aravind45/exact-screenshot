@@ -19,6 +19,9 @@ import {
     BookOpen,
     Calculator,
     AlertCircle,
+    CheckCircle2,
+    Settings,
+    Gavel,
     CheckSquare,
     Heart,
     HelpCircle,
@@ -73,7 +76,6 @@ export function Sidebar() {
                 { label: "Letters (DE-150)", icon: Gavel, path: "/probate/letters" },
                 { label: "Liabilities", icon: AlertCircle, path: "/liabilities" },
                 { label: "Final Distribution", icon: CheckCircle2, path: "/distribution" },
-                { label: "Final Distribution", icon: CheckCircle2, path: "/distribution" },
                 { label: "Accounting", icon: Calculator, path: "/accounting" },
             ]
         },
@@ -90,6 +92,7 @@ export function Sidebar() {
             title: "Support",
             items: [
                 { label: "Help Center", icon: HelpCircle, path: "/help" },
+                { label: "Settings", icon: Settings, path: "/settings" },
             ]
         },
         {

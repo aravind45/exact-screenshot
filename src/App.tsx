@@ -27,6 +27,7 @@ import OnboardingWizard from "./pages/OnboardingWizard";
 import Assets from "./pages/Assets";
 import SettlementRoadmap from "./pages/SettlementRoadmap";
 import SettlementRoadmapNew from "./pages/SettlementRoadmapNew";
+import Settings from "./pages/Settings";
 import ProbatePetition from "./pages/ProbatePetition";
 import InventoryAppraisal from "./pages/probate/InventoryAppraisal";
 import Notices from "./pages/probate/Notices";
@@ -40,18 +41,8 @@ import Liabilities from "./pages/Liabilities";
                 <Route path="/probate/notices" element={<Notices />} />
                 <Route path="/discovery" element={<Discovery />} />
                 <Route path="/distribution" element={<Distribution />} />
-import Accounting from "./pages/Accounting";
-import TaxManagement from "./pages/TaxManagement";
-import InventoryGenerator from "./pages/InventoryGenerator";
-import Distribution from "./pages/Distribution";
-import Receipts from "./pages/Receipts";
-import ClosingStatement from "./pages/ClosingStatement";
-import DistributionPetition from "./pages/DistributionPetition";
-import NonProbate from "./pages/NonProbate";
-import SpousalPropertyPetition from "./pages/SpousalPropertyPetition";
-import HelpCenter from "./pages/HelpCenter";
-import SettlementTrail from "./pages/SettlementTrail";
-import { EstateAgentChatWrapper } from "@/components/EstateAgentChatWrapper";
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/accounting" element={<Accounting />} />
 
 const queryClient = new QueryClient();
 
