@@ -1,4 +1,6 @@
 import { Router } from "express";
+import { prisma } from "../db.js";
+import { AgentService } from "../services/agentService.js";
 import { graph } from "../services/agent/graph.js";
 import { HumanMessage } from "@langchain/core/messages";
 
@@ -33,6 +35,41 @@ router.post("/chat", async (req, res) => {
         });
     } catch (error: any) {
         console.error("Agent Route Error:", error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+/**
+ * GET /api/agent/insights
+ * 
+ * Returns proactive insights for the current estate.
+ */
+router.get("/insights", async (req: any, res) => {
+    try {
+        const estate = await prisma.estate.findFirst({
+            where: { userId: req.user.id }
+        });
+
+        if (!estate) {
+            return res.json([]);
+        }
+
+        const insights = await AgentService.runWatchdogScan(estate.id);
+
+        // Add a generic welcome insight if empty
+        if (insights.length === 0) {
+            insights.push({
+                assetId: "system",
+                type: "WELCOME",
+                title: "Agent Ready",
+                message: "I am monitoring your estate for deadlines and delays. I'll post insights here as I find them.",
+                priority: "low"
+            });
+        }
+
+        res.json(insights);
+    } catch (error: any) {
+        console.error("Agent Insights Error:", error);
         res.status(500).json({ error: error.message });
     }
 });

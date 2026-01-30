@@ -45,6 +45,7 @@ import NonProbate from "./pages/NonProbate";
 import SpousalPropertyPetition from "./pages/SpousalPropertyPetition";
 import HelpCenter from "./pages/HelpCenter";
 import SettlementTrail from "./pages/SettlementTrail";
+import Letters from "./pages/probate/Letters";
 import { EstateAgentChatWrapper } from "@/components/EstateAgentChatWrapper";
 
 const queryClient = new QueryClient();
@@ -203,6 +204,7 @@ const App = () => (
                   <Route path="/probate/closing-statement" element={<ProtectedRoute><ClosingStatement /></ProtectedRoute>} />
                   <Route path="/probate/distribution-petition" element={<ProtectedRoute><DistributionPetition /></ProtectedRoute>} />
                   <Route path="/probate/spousal-petition" element={<ProtectedRoute><SpousalPropertyPetition /></ProtectedRoute>} />
+                  <Route path="/probate/letters" element={<ProtectedRoute><Letters /></ProtectedRoute>} />
 
                   {/* Core Features */}
                   <Route path="/discovery" element={<ProtectedRoute><Discovery /></ProtectedRoute>} />
