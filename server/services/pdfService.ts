@@ -343,47 +343,48 @@ export const PdfService = {
         const page = doc.addPage();
         const { width, height } = page.getSize();
         let y = height - 50;
-        const fontBold = await doc.embedStandardFont('Helvetica-Bold');
+        const fontBold = await doc.embedStandardFont(StandardFonts.HelveticaBold);
+        const fontRegular = await doc.embedStandardFont(StandardFonts.Helvetica);
 
         // Header
-        page.drawText('LETTERS (DE-150)', { x: 50, y, size: 18, font: await doc.embedStandardFont(StandardFonts.HelveticaBold) });
-        y -= 30;
-        page.drawText('FOR COURT USE ONLY', { x: 400, y, size: 10 });
-        y -= 20;
+        page.drawText('LETTERS (DE-150)', { x: 50, y, size: 20, font: fontBold });
+        y -= 40;
 
-        page.drawText(`Estate of: ${estate.deceasedFirstName} ${estate.deceasedLastName}`, { x: 50, y, size: 12 });
-        page.drawText(`Case Number: ${estate.courtCaseNumber || 'Pending'}`, { x: 400, y, size: 12 });
+        page.drawText('FOR COURT USE ONLY', { x: 380, y: height - 80, size: 9, font: fontRegular, color: { type: 'RGB', r: 0.4, g: 0.4, b: 0.4 } as any });
+
+        page.drawText(`Estate of: ${estate.deceasedFirstName} ${estate.deceasedLastName}`, { x: 50, y, size: 12, font: fontRegular });
+        page.drawText(`Case Number: ${estate.courtCaseNumber || 'Pending'}`, { x: 380, y, size: 12, font: fontRegular });
         y -= 40;
 
         // 1. Appointed As
-        page.drawText('1. The Court Appoints:', { x: 50, y, size: 12 });
-        y -= 20;
-        page.drawText(`   [X] Executor: ${estate.user?.fullName || 'Petitioner'}`, { x: 50, y });
-        y -= 20;
+        page.drawText('1. The Court Appoints:', { x: 50, y, size: 12, font: fontBold });
+        y -= 25;
+        page.drawText(`   [X] Executor: ${estate.user?.fullName || 'Petitioner'}`, { x: 50, y, size: 12, font: fontRegular });
+        y -= 35;
 
         // 2. Authority
-        page.drawText('2. The personal representative is authorized to administer the estate under:', { x: 50, y });
-        y -= 15;
-        page.drawText('   the Independent Administration of Estates Act.', { x: 70, y });
-        y -= 20;
+        page.drawText('2. The personal representative is authorized to administer the estate under:', { x: 50, y, size: 12, font: fontBold });
+        y -= 25;
+        page.drawText('   the Independent Administration of Estates Act.', { x: 50, y, size: 12, font: fontRegular });
+        y -= 25;
 
         const isFull = estate.iaeaType === 'FULL';
-        page.drawText(`   [${isFull ? 'X' : ' '}] with full authority`, { x: 70, y });
-        y -= 15;
-        page.drawText(`   [${!isFull ? 'X' : ' '}] with limited authority (no power to sell real property)`, { x: 70, y });
-        y -= 30;
+        page.drawText(`   [${isFull ? 'X' : ' '}] with full authority`, { x: 70, y, size: 12, font: fontRegular });
+        y -= 20;
+        page.drawText(`   [${!isFull ? 'X' : ' '}] with limited authority (no power to sell real property)`, { x: 70, y, size: 12, font: fontRegular });
+        y -= 40;
 
         // 3. Affirmation
         page.drawText('AFFIRMATION', { x: 50, y, size: 12, font: fontBold });
-        y -= 20;
-        page.drawText('I solemnly affirm that I will perform the duties of personal representative', { x: 50, y });
-        page.drawText('according to law.', { x: 50, y: y - 15 });
+        y -= 25;
+        page.drawText('I solemnly affirm that I will perform the duties of personal representative', { x: 50, y, size: 11, font: fontRegular });
+        y -= 18;
+        page.drawText('according to law.', { x: 50, y, size: 11, font: fontRegular });
         y -= 50;
 
         const appointedDate = estate.appointedDate ? new Date(estate.appointedDate).toLocaleDateString() : new Date().toLocaleDateString();
-        page.drawText('Executed on:', { x: 50, y });
-        page.drawText(`${appointedDate}`, { x: 150, y });
-        page.drawText(`at (City, State): ${estate.user?.state || 'California'}`, { x: 300, y });
+        page.drawText(`Executed on: ${appointedDate}`, { x: 50, y, size: 12, font: fontRegular });
+        page.drawText(`at (City, State): ${estate.user?.state || 'California'}`, { x: 300, y, size: 12, font: fontRegular });
 
         return await doc.save();
     },
@@ -396,10 +397,10 @@ export const PdfService = {
         const page = doc.addPage();
         const { width, height } = page.getSize();
         let y = height - 50;
-        const fontBold = await doc.embedStandardFont('Helvetica-Bold');
+        const fontBold = await doc.embedStandardFont(StandardFonts.HelveticaBold);
 
         // Header
-        page.drawText('ALLOWANCE OR REJECTION OF CREDITOR\'S CLAIM (DE-174)', { x: 50, y, size: 14, font: await doc.embedStandardFont(StandardFonts.HelveticaBold) });
+        page.drawText('ALLOWANCE OR REJECTION OF CREDITOR\'S CLAIM (DE-174)', { x: 50, y, size: 14, font: fontBold });
         y -= 30;
 
         page.drawText(`Estate of: ${estate.deceasedFirstName} ${estate.deceasedLastName}`, { x: 50, y, size: 12 });
@@ -459,10 +460,10 @@ export const PdfService = {
         const page = doc.addPage();
         const { width, height } = page.getSize();
         let y = height - 50;
-        const fontBold = await doc.embedStandardFont('Helvetica-Bold');
+        const fontBold = await doc.embedStandardFont(StandardFonts.HelveticaBold);
 
         // Header
-        page.drawText('PETITION FOR FINAL DISTRIBUTION (DE-310)', { x: 50, y, size: 14, font: await doc.embedStandardFont(StandardFonts.HelveticaBold) });
+        page.drawText('PETITION FOR FINAL DISTRIBUTION (DE-310)', { x: 50, y, size: 14, font: fontBold });
         y -= 30;
 
         page.drawText(`Estate of: ${estate.deceasedFirstName} ${estate.deceasedLastName}`, { x: 50, y, size: 12 });
