@@ -22,6 +22,7 @@ router.get("/my", async (req: any, res: Response) => {
         }
         res.json(estate);
     } catch (error) {
+        console.error("Failed to fetch estate:", error);
         res.status(500).json({ error: "Failed to fetch estate" });
     }
 });
