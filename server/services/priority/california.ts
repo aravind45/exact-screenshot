@@ -15,16 +15,51 @@ export const CaliforniaPrioritySystem: StatePrioritySystem = {
     stateCode: "CA",
     rules: CA_RULES,
 
-    isValidPayment: (currentLiabilityClass, openLiabilities) => {
+    isValidPayment: (currentLiabilityClass, openLiabilities, authorityType) => {
         // Find the rank of the current liability we want to pay
         const currentRule = CA_RULES.find(r => r.classId === currentLiabilityClass);
-        if (!currentRule) return { allowed: true }; // Unknown class, default allow (or could be strict deny)
+        if (!currentRule) return { allowed: true };
 
-        // Filter open liabilities that have a higher priority (lower rank number)
-        // AND are effectively strictly higher priority.
-        // Equal rank does NOT block in CA (pro rata), but for simplicity we allow equal rank to pay.
-        // We only block if there is a STRICTLY higher priority debt unpaid.
+        // Logic for Trust Administration
+        // In CA, Trusts are generally governed by the Trust instrument, but often follow similar priority
+        // if the estate is insolvent (Probate Code 19000+).
+        if (authorityType === "TRUST_ADMIN") {
+            // Trusts might have different priority rules depending on the document, 
+            // but we'll apply a standard protective layer for now.
+            const higherPriorityLiabilities = openLiabilities.filter(l => {
+                const rule = CA_RULES.find(r => r.classId === l.priorityClass);
+                return rule && rule.rank < currentRule.rank;
+            });
 
+            if (higherPriorityLiabilities.length > 0) {
+                return {
+                    allowed: false,
+                    reason: `Trust Administration best practice suggests paying '${higherPriorityLiabilities[0].priorityClass}' before '${currentRule.label}'.`,
+                    blockingItems: higherPriorityLiabilities
+                };
+            }
+            return { allowed: true };
+        }
+
+        // Logic for Small Estates (13100 Affidavits)
+        // Affidavits usually require the person to declare all debts have been considered or paid.
+        if (authorityType === "SMALL_ESTATE") {
+            const higherPriorityLiabilities = openLiabilities.filter(l => {
+                const rule = CA_RULES.find(r => r.classId === l.priorityClass);
+                return rule && rule.rank < currentRule.rank;
+            });
+
+            if (higherPriorityLiabilities.length > 0) {
+                return {
+                    allowed: false,
+                    reason: `Small Estate rules require addressing higher priority claims like '${higherPriorityLiabilities[0].priorityClass}' even when using an affidavit.`,
+                    blockingItems: higherPriorityLiabilities
+                };
+            }
+            return { allowed: true };
+        }
+
+        // Standard Probate Logic
         const higherPriorityLiabilities = openLiabilities.filter(l => {
             const rule = CA_RULES.find(r => r.classId === l.priorityClass);
             return rule && rule.rank < currentRule.rank;

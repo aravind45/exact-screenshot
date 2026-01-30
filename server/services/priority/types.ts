@@ -21,6 +21,7 @@ export interface StatePrioritySystem {
     rules: PriorityRule[];
     isValidPayment: (
         currentLiabilityClass: string,
-        openLiabilities: { id: string; name: string; amount: number; priorityClass: string }[]
+        openLiabilities: { id: string; name: string; amount: number; priorityClass: string }[],
+        authorityType?: string
     ) => PaymentEligibility;
 }

@@ -88,14 +88,30 @@ router.get("/stats", async (req: any, res: Response) => {
 router.get("/solvency", async (req: any, res: Response) => {
     try {
         const estateId = await getEstateId(req.user.id);
-        if (!estateId) return res.status(404).json({ error: "Estate not found" });
+        const estate = await prisma.estate.findUnique({
+            where: { id: estateId },
+            select: { authorityType: true }
+        });
 
         const liabilities = await prisma.liability.findMany({ where: { estateId } });
+
+        // Filter assets based on Authority Type
+        // Probate/Small Estate -> Individual assets
+        // Trust Admin -> Trust assets
+        const assetFilter: any = {
+            estateId,
+            assetType: { in: ["checking", "savings", "cash", "brokerage", "monetary"] }
+        };
+
+        if (estate?.authorityType === "TRUST_ADMIN") {
+            assetFilter.ownershipType = "TRUST";
+        } else {
+            // Default to Individual for Probate/Small Estate
+            assetFilter.ownershipType = "INDIVIDUAL";
+        }
+
         const assets = await prisma.asset.findMany({
-            where: {
-                estateId,
-                assetType: { in: ["checking", "savings", "cash", "brokerage", "monetary"] }
-            }
+            where: assetFilter
         });
 
         const totalDebt = liabilities.reduce((sum, l) => sum + Number(l.amount), 0);
@@ -109,7 +125,8 @@ router.get("/solvency", async (req: any, res: Response) => {
             totalLiquidAssets,
             isSolvent,
             ratio: Math.min(ratio, 2), // Cap ratio display for UI
-            countLiquidAssets: assets.length
+            countLiquidAssets: assets.length,
+            authorityType: estate?.authorityType || "UNKNOWN"
         });
     } catch (e: any) {
         res.status(500).json({ error: e.message });

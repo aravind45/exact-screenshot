@@ -10,7 +10,7 @@ export class PriorityService {
         // 1. Get Estate Info (State)
         const estate = await prisma.estate.findUnique({
             where: { id: estateId },
-            select: { deceasedState: true }
+            select: { deceasedState: true, authorityType: true }
         });
 
         if (!estate) throw new Error("Estate not found");
@@ -43,7 +43,7 @@ export class PriorityService {
             amount: Number(l.amount)
         }));
 
-        return system.isValidPayment(targetLiability.priorityClass, formattedOpenLiabilities);
+        return system.isValidPayment(targetLiability.priorityClass, formattedOpenLiabilities, estate.authorityType);
     }
 
     /**
