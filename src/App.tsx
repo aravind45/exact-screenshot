@@ -28,7 +28,18 @@ import Assets from "./pages/Assets";
 import SettlementRoadmap from "./pages/SettlementRoadmap";
 import SettlementRoadmapNew from "./pages/SettlementRoadmapNew";
 import ProbatePetition from "./pages/ProbatePetition";
+import InventoryAppraisal from "./pages/probate/InventoryAppraisal";
+import Notices from "./pages/probate/Notices";
+import Discovery from "./pages/Discovery";
 import Liabilities from "./pages/Liabilities";
+
+// ...
+
+                <Route path="/probate/liabilities" element={<Liabilities />} />
+                <Route path="/probate/inventory" element={<InventoryAppraisal />} />
+                <Route path="/probate/notices" element={<Notices />} />
+                <Route path="/discovery" element={<Discovery />} />
+                <Route path="/distribution" element={<Distribution />} />
 import Accounting from "./pages/Accounting";
 import TaxManagement from "./pages/TaxManagement";
 import InventoryGenerator from "./pages/InventoryGenerator";

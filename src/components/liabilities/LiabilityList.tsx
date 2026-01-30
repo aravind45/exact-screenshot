@@ -1,7 +1,8 @@
 import { Liability } from "@/lib/api";
 import { Badge } from "@/components/ui/badge";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, Calendar, Trash2, Edit2, Check } from "lucide-react";
+import { MoreHorizontal, Calendar, Trash2, Edit2, Check, ShieldAlert } from "lucide-react";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -11,8 +12,13 @@ import {
 import { api } from "@/lib/api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
+import { ManageClaimDialog } from "./ManageClaimDialog";
+import { useState } from "react";
+
 export function LiabilityList({ liabilities }: { liabilities: Liability[] }) {
     const queryClient = useQueryClient();
+    const [selectedLiability, setSelectedLiability] = useState<Liability | null>(null);
+    const [showManageDialog, setShowManageDialog] = useState(false);
 
     const deleteMutation = useMutation({
         mutationFn: (id: string) => api.deleteLiability(id),
@@ -21,7 +27,17 @@ export function LiabilityList({ liabilities }: { liabilities: Liability[] }) {
 
     const updateStatusMutation = useMutation({
         mutationFn: ({ id, status }: { id: string, status: string }) => api.updateLiability(id, { status } as any),
-        onSuccess: () => queryClient.invalidateQueries({ queryKey: ["liabilities"] })
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ["liabilities"] }),
+        onError: (err: any) => {
+            // If we have detailed blocking info, show it
+            if (err.message.includes("Payment Blocked")) {
+                // In a real app, we'd parse the details better or use a Toast
+                // For now, simple alert or console
+                alert(`PAYMENT BLOCKED:\n${err.message}\n\nYou must pay higher priority debts first.`);
+            } else {
+                alert("Failed to update status");
+            }
+        }
     });
 
     if (liabilities.length === 0) {
@@ -45,7 +61,7 @@ export function LiabilityList({ liabilities }: { liabilities: Liability[] }) {
                     <thead className="bg-slate-50 border-b border-slate-100">
                         <tr>
                             <th className="px-6 py-4 text-[10px] font-black uppercase text-slate-400 tracking-wider">Creditor</th>
-                            <th className="px-6 py-4 text-[10px] font-black uppercase text-slate-400 tracking-wider">Note</th>
+                            <th className="px-6 py-4 text-[10px] font-black uppercase text-slate-400 tracking-wider">Priority</th>
                             <th className="px-6 py-4 text-[10px] font-black uppercase text-slate-400 tracking-wider">Due Date</th>
                             <th className="px-6 py-4 text-[10px] font-black uppercase text-slate-400 tracking-wider">Status</th>
                             <th className="px-6 py-4 text-[10px] font-black uppercase text-slate-400 tracking-wider text-right">Amount</th>
@@ -60,7 +76,9 @@ export function LiabilityList({ liabilities }: { liabilities: Liability[] }) {
                                     <div className="text-[10px] text-slate-500">{item.accountNumber ? `Acct: ${item.accountNumber}` : 'No Acct #'}</div>
                                 </td>
                                 <td className="px-6 py-4 max-w-[200px]">
-                                    <div className="text-xs text-slate-600 truncate">{item.notes || "-"}</div>
+                                    <Badge variant="outline" className="text-[10px] font-normal bg-slate-50 border-slate-200">
+                                        {item.priorityClass?.replace(/_/g, " ") || "GENERAL"}
+                                    </Badge>
                                 </td>
                                 <td className="px-6 py-4">
                                     {item.dueDate ? (
@@ -86,6 +104,9 @@ export function LiabilityList({ liabilities }: { liabilities: Liability[] }) {
                                             </Button>
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent align="end">
+                                            <DropdownMenuItem onClick={() => { setSelectedLiability(item); setShowManageDialog(true); }}>
+                                                <ShieldAlert className="w-4 h-4 mr-2 text-indigo-500" /> Manage Claim (DE-174)
+                                            </DropdownMenuItem>
                                             <DropdownMenuItem onClick={() => updateStatusMutation.mutate({ id: item.id, status: 'PAID' })}>
                                                 <Check className="w-4 h-4 mr-2 text-emerald-500" /> Mark as Paid
                                             </DropdownMenuItem>
@@ -100,6 +121,12 @@ export function LiabilityList({ liabilities }: { liabilities: Liability[] }) {
                     </tbody>
                 </table>
             </div>
+
+            <ManageClaimDialog
+                open={showManageDialog}
+                onOpenChange={setShowManageDialog}
+                liability={selectedLiability}
+            />
         </div>
     );
 }

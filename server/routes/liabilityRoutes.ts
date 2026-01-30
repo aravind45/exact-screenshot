@@ -1,5 +1,6 @@
 import { Router, Response } from "express";
 import { prisma } from "../db.js";
+import { PriorityService } from "../services/priorityService.js";
 
 const router = Router();
 
@@ -23,6 +24,27 @@ router.get("/", async (req: any, res: Response) => {
             orderBy: { createdAt: "desc" }
         });
         res.json(liabilities);
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// GET /api/liabilities/priority-options - Get state-specific options
+router.get("/priority-options", async (req: any, res: Response) => {
+    try {
+        const estateId = await getEstateId(req.user.id);
+        if (!estateId) return res.status(404).json({ error: "Estate not found" });
+
+        const estate = await prisma.estate.findUnique({
+            where: { id: estateId },
+            select: { deceasedState: true }
+        });
+
+        // Default to CA if state is missing
+        const state = estate?.deceasedState || "CA";
+        const options = PriorityService.getPriorityOptions(state);
+
+        res.json({ state, options });
     } catch (e: any) {
         res.status(500).json({ error: e.message });
     }
@@ -54,7 +76,7 @@ router.post("/", async (req: any, res: Response) => {
         const estateId = await getEstateId(req.user.id);
         if (!estateId) return res.status(404).json({ error: "Estate not found" });
 
-        const { name, amount, status, invoiceDate, dueDate, accountNumber, notes, contactPhone, contactEmail, priority } = req.body;
+        const { name, amount, status, invoiceDate, dueDate, accountNumber, notes, contactPhone, contactEmail, priority, priorityClass } = req.body;
 
         const liability = await prisma.liability.create({
             data: {
@@ -68,7 +90,8 @@ router.post("/", async (req: any, res: Response) => {
                 notes,
                 contactPhone,
                 contactEmail,
-                priority: priority || "MEDIUM"
+                priority: priority || "MEDIUM",
+                priorityClass: priorityClass || "GENERAL_DEBTS"
             }
         });
 
@@ -102,6 +125,17 @@ router.put("/:id", async (req: any, res: Response) => {
         if (data.invoiceDate) data.invoiceDate = new Date(data.invoiceDate);
         if (data.dueDate) data.dueDate = new Date(data.dueDate);
         if (data.amount) data.amount = Number(data.amount);
+
+        // PRIORITY CHECK: If trying to mark as PAID, run the validation
+        if (data.status === "PAID" && !data.forcePay) {
+            const eligibility = await PriorityService.checkPaymentEligibility(estateId, id);
+            if (!eligibility.allowed) {
+                return res.status(400).json({
+                    error: "Payment Blocked by Priority Rules",
+                    details: eligibility
+                });
+            }
+        }
 
         const liability = await prisma.liability.update({
             where: { id },

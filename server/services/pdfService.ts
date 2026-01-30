@@ -92,6 +92,32 @@ export const PdfService = {
             safeSetText(form, 'BondAmount', total.toFixed(2));
         }
 
+        // 6. Publication Info (NEW)
+        if (estate.publicationNewspaper) {
+            safeSetText(form, 'PublicationNewspaper', estate.publicationNewspaper);
+        }
+
+        // 7. Codicils (NEW)
+        if (estate.hasCodicil) {
+            safeSetCheckbox(form, 'HasCodicilBox', true);
+            if (estate.codicilDate) {
+                safeSetText(form, 'CodicilDate', new Date(estate.codicilDate).toLocaleDateString());
+            }
+        }
+
+        // 8. Contact Info (NEW)
+        safeSetText(form, 'PetitionerPhone', estate.petitionerPhone || "");
+        safeSetText(form, 'PetitionerEmail', estate.petitionerEmail || "");
+
+        // 9. Attorney Details (Enhanced)
+        if (estate.attorneyName) {
+            safeSetText(form, 'AttorneyName', estate.attorneyName);
+            safeSetText(form, 'AttorneyFirm', estate.attorneyFirm || "");
+            safeSetText(form, 'AttorneyAddress', estate.attorneyAddress || "");
+            safeSetText(form, 'AttorneyPhone', estate.attorneyPhone || "");
+            safeSetText(form, 'AttorneyBarNumber', estate.attorneyBarNumber || "");
+        }
+
         // Return bytes
         return await pdfDoc.save();
     },
@@ -176,7 +202,396 @@ export const PdfService = {
         const pdfDoc = await PDFDocument.load(pdfBytes);
         const form = pdfDoc.getForm();
         return form.getFields().map(f => f.getName());
+    },
+
+    /**
+     * Generates DE-160 Inventory and Appraisal
+     */
+    async generateDE160(estate: any, assets: any[]) {
+        const doc = await PDFDocument.create();
+        const page = doc.addPage();
+        const { width, height } = page.getSize();
+        let y = height - 50;
+
+        // Title
+        page.drawText('INVENTORY AND APPRAISAL (DE-160 Placeholder)', { x: 50, y, size: 18 });
+        y -= 30;
+
+        page.drawText(`Estate of: ${estate.deceasedFirstName} ${estate.deceasedLastName}`, { x: 50, y, size: 12 });
+        page.drawText(`Case Number: ${estate.courtCaseNumber || 'N/A'}`, { x: 400, y, size: 12 });
+        y -= 40;
+
+        // Categorization
+        const realAssets = assets.filter(a => a.inventoryCategory === 'ATTACHMENT_1');
+        const personalAssets = assets.filter(a => a.inventoryCategory === 'ATTACHMENT_2');
+
+        const totalReal = realAssets.reduce((sum, a) => sum + Number(a.inventoryValue || a.value || 0), 0);
+        const totalPersonal = personalAssets.reduce((sum, a) => sum + Number(a.inventoryValue || a.value || 0), 0);
+        const total = totalReal + totalPersonal;
+
+        // Summary Table
+        page.drawText('SUMMARY', { x: 50, y, size: 14 });
+        y -= 25;
+        page.drawText(`1. Real Property (Attachment 1):`, { x: 50, y });
+        page.drawText(`$${totalReal.toFixed(2)}`, { x: 400, y });
+        y -= 20;
+        page.drawText(`2. Personal Property (Attachment 2):`, { x: 50, y });
+        page.drawText(`$${totalPersonal.toFixed(2)}`, { x: 400, y });
+        y -= 20;
+        page.drawText(`TOTAL VALUE:`, { x: 50, y, size: 12 });
+        page.drawText(`$${total.toFixed(2)}`, { x: 400, y, size: 12 });
+        y -= 40;
+
+        // Listings
+        const drawAsset = (a: any) => {
+            if (y < 50) {
+                const newPage = doc.addPage();
+                y = height - 50;
+                // Note: 'page' variable in closure is stale, but we only drawText on 'page' which refers to the first page.
+                // We need to update 'page' reference or just use 'newPage' for subsequent draws.
+                // Simpler: just use 'doc.getPages()[doc.getPageCount()-1]' or reassign if let.
+                // Since 'page' is const, I can't reassign.
+                // Strategy: Use a helper that takes the current page as arg?
+                // For now, let's just assume 1 page for MVP or fix properly.
+                // Fixing properly:
+            }
+            // Implementation: To support multi-page, we need a mutable page reference.
+            // But 'page' is const.
+            // Short-term fix: Just draw on the current page (ignore overflow) or refactor.
+            // Refactoring to use iteration with mutable page variable.
+
+            // Let's rewrite the loop instead of this closure if possible.
+            // Or just allow overflow for now.
+            const currentPage = doc.getPages()[doc.getPageCount() - 1];
+
+            const desc = `${a.institution} - ${a.assetType} ${a.inventoryNote ? `(${a.inventoryNote})` : ''}`;
+            const val = `$${Number(a.inventoryValue || a.value || 0).toFixed(2)}`;
+            currentPage.drawText(desc, { x: 50, y, size: 10 });
+            currentPage.drawText(val, { x: 450, y, size: 10 });
+            y -= 15;
+        };
+
+        if (realAssets.length > 0) {
+            page.drawText('Attachment 1: Real Property', { x: 50, y, size: 12 });
+            y -= 20;
+            realAssets.forEach(drawAsset);
+            y -= 20;
+        }
+
+        if (personalAssets.length > 0) {
+            page.drawText('Attachment 2: Personal Property', { x: 50, y, size: 12 });
+            y -= 20;
+            personalAssets.forEach(drawAsset);
+        }
+
+        return await doc.save();
+    },
+
+    /**
+     * Generates DE-121 Notice of Petition to Administer Estate
+     */
+    async generateDE121(estate: any) {
+        const doc = await PDFDocument.create();
+        const page = doc.addPage();
+        const { width, height } = page.getSize();
+        let y = height - 50;
+
+        // Header
+        page.drawText('NOTICE OF PETITION TO ADMINISTER ESTATE (DE-121)', { x: 50, y, size: 16 });
+        y -= 30;
+        page.drawText(`Estate of: ${estate.deceasedFirstName} ${estate.deceasedLastName}`, { x: 50, y, size: 12 });
+        page.drawText(`Case Number: ${estate.courtCaseNumber || 'Pending'}`, { x: 400, y, size: 12 });
+        y -= 40;
+
+        // 1. Notice Info
+        page.drawText('To all heirs, beneficiaries, creditors, and contingent creditors:', { x: 50, y, size: 10 });
+        y -= 20;
+        page.drawText(`A Petition for Probate has been filed by: ${estate.user?.fullName || 'Petitioner'}`, { x: 50, y, size: 10 });
+        y -= 20;
+        page.drawText(`in the Superior Court of California, County of: ${estate.probateCounty || '[County]'}`, { x: 50, y, size: 10 });
+        y -= 40;
+
+        // 2. Hearing Info
+        page.drawText('THE PETITION requests authority to administer the estate.', { x: 50, y, size: 10 });
+        y -= 30;
+        page.drawText('NOTICE OF HEARING:', { x: 50, y, size: 12, opacity: 1 }); // Bold simulation
+        y -= 20;
+
+        if (estate.hearingDate) {
+            const date = new Date(estate.hearingDate).toLocaleDateString();
+            const time = estate.hearingTime || "TBD";
+            const dept = estate.hearingDept || "TBD";
+            page.drawText(`Date: ${date}   Time: ${time}   Dept: ${dept}`, { x: 70, y, size: 12 });
+            y -= 20;
+            page.drawText(`Address: ${estate.hearingAddress || 'See Court Website'}`, { x: 70, y, size: 10 });
+        } else {
+            page.drawText('[ ] Hearing date not yet set', { x: 70, y, size: 12 });
+        }
+
+        y -= 50;
+        page.drawText('IF you object to the granting of the petition, you should appear at the hearing.', { x: 50, y, size: 10 });
+
+        return await doc.save();
+    },
+
+    /**
+     * Generates DE-150 Letters
+     */
+    async generateDE150(estate: any) {
+        const doc = await PDFDocument.create();
+        const page = doc.addPage();
+        const { width, height } = page.getSize();
+        let y = height - 50;
+        const fontBold = await doc.embedStandardFont('Helvetica-Bold');
+
+        // Header
+        page.drawText('LETTERS (DE-150)', { x: 50, y, size: 18, font: fontBold });
+        y -= 30;
+        page.drawText('FOR COURT USE ONLY', { x: 400, y, size: 10 });
+        y -= 20;
+
+        page.drawText(`Estate of: ${estate.deceasedFirstName} ${estate.deceasedLastName}`, { x: 50, y, size: 12 });
+        page.drawText(`Case Number: ${estate.courtCaseNumber || 'Pending'}`, { x: 400, y, size: 12 });
+        y -= 40;
+
+        // 1. Appointed As
+        page.drawText('1. The Court Appoints:', { x: 50, y, size: 12 });
+        y -= 20;
+        page.drawText(`   [X] Executor: ${estate.user?.fullName || 'Petitioner'}`, { x: 50, y });
+        y -= 20;
+
+        // 2. Authority
+        page.drawText('2. The personal representative is authorized to administer the estate under:', { x: 50, y });
+        y -= 15;
+        page.drawText('   the Independent Administration of Estates Act.', { x: 70, y });
+        y -= 20;
+
+        const isFull = estate.iaeaType === 'FULL';
+        page.drawText(`   [${isFull ? 'X' : ' '}] with full authority`, { x: 70, y });
+        y -= 15;
+        page.drawText(`   [${!isFull ? 'X' : ' '}] with limited authority (no power to sell real property)`, { x: 70, y });
+        y -= 30;
+
+        // 3. Affirmation
+        page.drawText('AFFIRMATION', { x: 50, y, size: 12, font: fontBold });
+        y -= 20;
+        page.drawText('I solemnly affirm that I will perform the duties of personal representative', { x: 50, y });
+        page.drawText('according to law.', { x: 50, y: y - 15 });
+        y -= 50;
+
+        const appointedDate = estate.appointedDate ? new Date(estate.appointedDate).toLocaleDateString() : new Date().toLocaleDateString();
+        page.drawText('Executed on:', { x: 50, y });
+        page.drawText(`${appointedDate}`, { x: 150, y });
+        page.drawText(`at (City, State): ${estate.user?.state || 'California'}`, { x: 300, y });
+
+        return await doc.save();
+    },
+
+    /**
+     * Generates DE-174 Allowance or Rejection of Creditor's Claim
+     */
+    async generateDE174(estate: any, liability: any) {
+        const doc = await PDFDocument.create();
+        const page = doc.addPage();
+        const { width, height } = page.getSize();
+        let y = height - 50;
+        const fontBold = await doc.embedStandardFont('Helvetica-Bold');
+
+        // Header
+        page.drawText('ALLOWANCE OR REJECTION OF CREDITOR\'S CLAIM (DE-174)', { x: 50, y, size: 14, font: fontBold });
+        y -= 30;
+
+        page.drawText(`Estate of: ${estate.deceasedFirstName} ${estate.deceasedLastName}`, { x: 50, y, size: 12 });
+        page.drawText(`Case Number: ${estate.courtCaseNumber || 'Pending'}`, { x: 400, y, size: 12 });
+        y -= 40;
+
+        // Creditor Info
+        page.drawText(`Creditor: ${liability.name}`, { x: 50, y, size: 12 });
+        y -= 20;
+        page.drawText(`Claim Amount: $${Number(liability.amount).toFixed(2)}`, { x: 50, y, size: 12 });
+        if (liability.dateClaimFiled) {
+            page.drawText(`Date Claim Filed: ${new Date(liability.dateClaimFiled).toLocaleDateString()}`, { x: 300, y, size: 12 });
+        }
+        y -= 40;
+
+        // Action
+        page.drawText('The personal representative takes the following action:', { x: 50, y, size: 12 });
+        y -= 20;
+
+        const isAllowed = liability.status === 'APPROVED' || liability.status === 'PAID';
+        const isRejected = liability.status === 'REJECTED';
+
+        if (isAllowed) {
+            page.drawText('[X] ALLOWANCE', { x: 70, y, size: 12, font: fontBold });
+            y -= 20;
+            const allowedAmt = liability.allowedAmount || liability.amount;
+            page.drawText(`    Allowed for: $${Number(allowedAmt).toFixed(2)}`, { x: 70, y });
+        } else if (isRejected) {
+            page.drawText('[X] REJECTION', { x: 70, y, size: 12, font: fontBold });
+            y -= 20;
+            page.drawText(`    The claim is rejected for: $${Number(liability.amount).toFixed(2)}`, { x: 70, y });
+            y -= 20;
+            if (liability.rejectionReason) {
+                page.drawText(`    Reason: ${liability.rejectionReason}`, { x: 70, y });
+            }
+        } else {
+            page.drawText('[ ] Claim Not Yet Acted Upon', { x: 70, y });
+        }
+        y -= 40;
+
+        // Signature
+        page.drawText(`Date: ${new Date().toLocaleDateString()}`, { x: 50, y });
+        y -= 30;
+        page.drawText('___________________________________________________', { x: 50, y });
+        y -= 15;
+        page.drawText(`${estate.user?.fullName || 'Executor'}`, { x: 50, y });
+        page.drawText('Personal Representative', { x: 50, y: y - 15 });
+
+        return await doc.save();
     }
+};
+// ... existing DE-121 code ...
+const doc = await PDFDocument.create();
+const page = doc.addPage();
+const { width, height } = page.getSize();
+let y = height - 50;
+// ... check prior view for exact method content to match closing brace ...
+// Re-implementing simplified for brevity in this replace call since we are appending
+// Wait, replace target is 'generateDE121' closing.
+// I will just append generateDE150 after generateDE121.
+// Actually, viewing the file showed generateDE121 ends around line 332 (relative to full file, view was partial).
+// I should stick to 'append after last method'.
+
+// Re-targeting: I will replace the END of generateDE121 to append generateDE150.
+
+// ... (previous DE-121 content repl) ...
+// actually, let's just stick to the 'generateDE121' logic block I see in View.
+
+// Header
+page.drawText('NOTICE OF PETITION TO ADMINISTER ESTATE (DE-121)', { x: 50, y, size: 16 });
+// ...
+
+return await doc.save();
+        },
+
+    /**
+     * Generates DE-150 Letters
+     */
+    async generateDE150(estate: any) {
+    const doc = await PDFDocument.create();
+    const page = doc.addPage();
+    const { width, height } = page.getSize();
+    let y = height - 50;
+
+    // Header
+    page.drawText('LETTERS (DE-150)', { x: 50, y, size: 18, font: await doc.embedStandardFont('Helvetica-Bold') });
+    y -= 30;
+    page.drawText('FOR COURT USE ONLY', { x: 400, y, size: 10, color: { type: 'RGB', r: 0.5, g: 0.5, b: 0.5 } });
+    y -= 20;
+
+    page.drawText(`Estate of: ${estate.deceasedFirstName} ${estate.deceasedLastName}`, { x: 50, y, size: 12 });
+    page.drawText(`Case Number: ${estate.courtCaseNumber || 'Pending'}`, { x: 400, y, size: 12 });
+    y -= 40;
+
+    // 1. Appointed As
+    page.drawText('1. The Court Appoints:', { x: 50, y, size: 12 });
+    y -= 20;
+    page.drawText(`   [X] Executor: ${estate.user?.fullName || 'Petitioner'}`, { x: 50, y });
+    y -= 20;
+
+    // 2. Authority
+    page.drawText('2. The personal representative is authorized to administer the estate under:', { x: 50, y });
+    y -= 15;
+    page.drawText('   the Independent Administration of Estates Act.', { x: 70, y });
+    y -= 20;
+
+    const isFull = estate.iaeaType === 'FULL';
+    page.drawText(`   [${isFull ? 'X' : ' '}] with full authority`, { x: 70, y });
+    y -= 15;
+    page.drawText(`   [${!isFull ? 'X' : ' '}] with limited authority (no power to sell real property)`, { x: 70, y });
+    y -= 30;
+
+    // 3. Affirmation
+    page.drawText('AFFIRMATION', { x: 50, y, size: 12, font: await doc.embedStandardFont('Helvetica-Bold') });
+    y -= 20;
+    page.drawText('I solemnly affirm that I will perform the duties of personal representative', { x: 50, y });
+    page.drawText('according to law.', { x: 50, y: y - 15 });
+    y -= 50;
+
+    page.drawText('Executed on:', { x: 50, y });
+    page.drawText(`${new Date().toLocaleDateString()}`, { x: 150, y });
+    page.drawText(`at (City, State): ${estate.user?.state || 'California'}`, { x: 300, y });
+
+    return await doc.save();
+},
+
+    /**
+     * Generates DE-310 Petition for Final Distribution
+     */
+    async generateDE310(estate: any, distributions: any[], inventoryValue: number) {
+    const doc = await PDFDocument.create();
+    const page = doc.addPage();
+    const { width, height } = page.getSize();
+    let y = height - 50;
+    const fontBold = await doc.embedStandardFont('Helvetica-Bold');
+
+    // Header
+    page.drawText('PETITION FOR FINAL DISTRIBUTION (DE-310)', { x: 50, y, size: 14, font: fontBold });
+    y -= 30;
+
+    page.drawText(`Estate of: ${estate.deceasedFirstName} ${estate.deceasedLastName}`, { x: 50, y, size: 12 });
+    page.drawText(`Case Number: ${estate.courtCaseNumber || 'Pending'}`, { x: 400, y, size: 12 });
+    y -= 40;
+
+    // 1. Character of Property
+    page.drawText('1. Character of Property:', { x: 50, y, size: 12, font: fontBold });
+    y -= 20;
+    page.drawText(`   Total Inventory Value: $${inventoryValue.toLocaleString()}`, { x: 70, y });
+    y -= 30;
+
+    // 2. Statutory Fees
+    const fee = FeeService.calculateStatutoryFee(inventoryValue);
+    page.drawText('2. Statutory Fees (Probate Code § 10800):', { x: 50, y, size: 12, font: fontBold });
+    y -= 20;
+    page.drawText(`   Base Fee Calculation: $${fee.toLocaleString()}`, { x: 70, y });
+    page.drawText(`   Executor Commission: $${fee.toLocaleString()}`, { x: 70, y: y - 15 });
+    page.drawText(`   Attorney Fees: $${fee.toLocaleString()}`, { x: 70, y: y - 30 });
+    y -= 60;
+
+    // 3. Plan of Distribution
+    page.drawText('3. The Petitioner requests that the estate be distributed as follows:', { x: 50, y, size: 12, font: fontBold });
+    y -= 25;
+
+    distributions.forEach((dist) => {
+        const heirName = dist.heir?.name || "Unknown Heir";
+        const desc = dist.asset ? (dist.asset.name + (dist.amount ? ` ($${dist.amount})` : '')) : (dist.description || "Residue");
+        const amount = dist.amount ? `$${Number(dist.amount).toLocaleString()}` : (dist.percentage ? `${dist.percentage}%` : 'Specific Gift');
+
+        page.drawText(`   Beneficiary: ${heirName}`, { x: 70, y, size: 10, font: fontBold });
+        y -= 15;
+        page.drawText(`   Property: ${desc}`, { x: 90, y, size: 10 });
+        y -= 15;
+        page.drawText(`   Value/Share: ${amount}`, { x: 90, y, size: 10 });
+        y -= 25;
+
+        if (y < 50) {
+            doc.addPage();
+            y = height - 50;
+        }
+    });
+
+    y -= 20;
+
+    // Signature
+    page.drawText(`Date: ${new Date().toLocaleDateString()}`, { x: 50, y });
+    y -= 30;
+    page.drawText('___________________________________________________', { x: 50, y });
+    y -= 15;
+    page.drawText(`${estate.user?.fullName || 'Executor'}`, { x: 50, y });
+    page.drawText('Petitioner', { x: 50, y: y - 15 });
+
+    return await doc.save();
+}
 };
 
 function safeSetText(form: any, name: string, value: string | undefined) {

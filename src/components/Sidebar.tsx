@@ -68,13 +68,19 @@ export function Sidebar() {
             title: "Settlement",
             items: [
                 { label: "Asset Ledger", icon: Landmark, path: "/assets" },
+                { label: "Inventory (DE-160)", icon: Scale, path: "/probate/inventory" },
+                { label: "Notices (DE-121)", icon: Mail, path: "/probate/notices" },
+                { label: "Letters (DE-150)", icon: Gavel, path: "/probate/letters" },
                 { label: "Liabilities", icon: AlertCircle, path: "/liabilities" },
+                { label: "Final Distribution", icon: CheckCircle2, path: "/distribution" },
+                { label: "Final Distribution", icon: CheckCircle2, path: "/distribution" },
                 { label: "Accounting", icon: Calculator, path: "/accounting" },
             ]
         },
         {
             title: "Records",
             items: [
+                { label: "Asset Detective", icon: Search, path: "/discovery" },
                 { label: "Document Vault", icon: Inbox, path: "/documents" },
                 { label: "Settlement Trail", icon: History, path: "/settlement-trail" },
                 { label: "Follow-Ups", icon: Bell, path: "/follow-ups" },

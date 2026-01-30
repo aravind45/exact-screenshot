@@ -53,6 +53,35 @@ export default function ProbatePetition() {
         window.open(`${import.meta.env.VITE_API_URL || "/api"}/estates/my/petition/pdf?token=${localStorage.getItem("auth_token")}`, '_blank');
     };
 
+    const [previewOpen, setPreviewOpen] = React.useState(false);
+    const [previewPdf, setPreviewPdf] = React.useState<string | null>(null);
+    const [formData, setFormData] = React.useState<any>({});
+
+    // Sync estate data to local form state on load
+    React.useEffect(() => {
+        if (estate) {
+            setFormData({
+                publicationNewspaper: estate.publicationNewspaper || "",
+                hasCodicil: estate.hasCodicil || false,
+                codicilDate: estate.codicilDate || "",
+                petitionerPhone: estate.petitionerPhone || "",
+            });
+        }
+    }, [estate]);
+
+    const previewMutation = useMutation({
+        mutationFn: (data: any) => api.previewPetition({ ...estate, ...data }),
+        onSuccess: (res: any) => {
+            setPreviewPdf(`data:application/pdf;base64,${res.pdfBase64}`);
+            setPreviewOpen(true);
+        },
+        onError: (err: any) => toast.error("Preview failed: " + err.message)
+    });
+
+    const handlePreview = () => {
+        previewMutation.mutate(formData);
+    };
+
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
@@ -131,6 +160,49 @@ export default function ProbatePetition() {
                                             />
                                         </div>
 
+                                        {/* NEW: Additional Inputs */}
+                                        <div className="p-4 bg-white rounded-lg border space-y-4">
+                                            <h4 className="text-sm font-bold flex items-center gap-2">
+                                                <Edit2 className="w-4 h-4 text-blue-500" /> Additional Details (Required)
+                                            </h4>
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="space-y-2">
+                                                    <Label>Publication Newspaper</Label>
+                                                    <Input 
+                                                        placeholder="e.g. SF Chronicle" 
+                                                        value={formData.publicationNewspaper || ""}
+                                                        onChange={(e) => setFormData({...formData, publicationNewspaper: e.target.value})}
+                                                    />
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <Label>Petitioner Phone</Label>
+                                                    <Input 
+                                                        placeholder="(555) 123-4567" 
+                                                        value={formData.petitionerPhone || ""}
+                                                        onChange={(e) => setFormData({...formData, petitionerPhone: e.target.value})}
+                                                    />
+                                                </div>
+                                                <div className="col-span-2 flex items-center gap-2 pt-2">
+                                                    <Checkbox 
+                                                        id="hasCodicil" 
+                                                        checked={formData.hasCodicil} 
+                                                        onCheckedChange={(c) => setFormData({...formData, hasCodicil: c === true})}
+                                                    />
+                                                    <Label htmlFor="hasCodicil">Are there any codicils to the will?</Label>
+                                                </div>
+                                                {formData.hasCodicil && (
+                                                    <div className="col-span-2 space-y-2">
+                                                        <Label>Date of Codicil</Label>
+                                                        <Input 
+                                                            type="date" 
+                                                            value={formData.codicilDate ? new Date(formData.codicilDate).toISOString().split('T')[0] : ""}
+                                                            onChange={(e) => setFormData({...formData, codicilDate: e.target.value})}
+                                                        />
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+
                                         {!isReady && (
                                             <div className="p-4 bg-amber-50 rounded-lg border border-amber-200">
                                                 <div className="flex gap-2">
@@ -152,7 +224,8 @@ export default function ProbatePetition() {
                                         )}
 
                                         <div className="flex justify-end gap-3 pt-4 border-t">
-                                            <Button variant="outline" onClick={handleDownloadDraft} disabled={!isReady && progress < 10}>
+                                            <Button variant="outline" onClick={handlePreview} disabled={previewMutation.isPending}>
+                                                {previewMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Eye className="w-4 h-4 mr-2" />}
                                                 Preview Draft
                                             </Button>
                                             <Button onClick={handleDownloadDraft} disabled={!isReady}>
@@ -291,8 +364,23 @@ export default function ProbatePetition() {
                         </TabsContent>
                     </Tabs>
                 </div>
-            </main>
-        </div>
+                </div>
+
+                <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+                    <DialogContent className="max-w-4xl h-[80vh] flex flex-col">
+                        <DialogHeader>
+                            <DialogTitle>Petition Preview</DialogTitle>
+                            <DialogDescription>Review your DE-111 before downloading.</DialogDescription>
+                        </DialogHeader>
+                        <div className="flex-1 bg-slate-100 rounded-md overflow-hidden border">
+                            {previewPdf && (
+                                <iframe src={previewPdf} className="w-full h-full" title="PDF Preview" />
+                            )}
+                        </div>
+                    </DialogContent>
+                </Dialog>
+            </main >
+        </div >
     );
 }
 
@@ -315,3 +403,10 @@ function StatusItem({ icon, label, complete }: { icon: React.ReactNode, label: s
         </div>
     );
 }
+
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+
+// ... (Existing code above remains, this is appended helper/components or state integration)

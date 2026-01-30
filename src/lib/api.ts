@@ -22,6 +22,17 @@ export interface Estate {
     certifiedCopies?: number;
     inboundEmail?: string;
     handle?: string;
+
+    // Hearing Info
+    hearingDate?: string;
+    hearingTime?: string;
+    hearingDept?: string;
+    hearingAddress?: string;
+
+    // DE-150
+    iaeaType?: 'FULL' | 'LIMITED';
+    appointedDate?: string;
+
     roadmapProgress?: {
         completedTaskIds: string[];
         completedPhases: string[];
@@ -55,6 +66,12 @@ export interface Liability {
     name: string;
     amount: number;
     status: 'DISCOVERED' | 'NOTICE_SENT' | 'CLAIM_FILED' | 'APPROVED' | 'REJECTED' | 'PAID' | 'DISPUTED';
+
+    // Claims
+    dateClaimFiled?: string;
+    rejectionReason?: string;
+    allowedAmount?: number;
+
     invoiceDate?: string;
     dueDate?: string;
     accountNumber?: string;
@@ -62,7 +79,25 @@ export interface Liability {
     contactPhone?: string;
     contactEmail?: string;
     priority: 'HIGH' | 'MEDIUM' | 'LOW';
+    priorityClass: string;
     createdAt: string;
+}
+
+export interface Asset {
+    id: string;
+    estateId: string;
+    name?: string;
+    institution: string;
+    assetType: string;
+    value?: number;
+    inventoryValue?: number;
+    inventoryNote?: string;
+    inventoryCategory?: string;
+    institutionPhone?: string;
+    institutionEmail?: string;
+    notes?: string;
+    status?: string;
+    priority?: string;
 }
 
 export interface LiabilityStats {
@@ -770,6 +805,22 @@ export const api = {
     getLiabilityStats: async () => {
         const response = await fetch(`${API_URL}/liabilities/stats`, {
             headers: getHeaders(),
+        });
+        return parseResponse(response);
+    },
+
+    getPriorityOptions: async () => {
+        const response = await fetch(`${API_URL}/liabilities/priority-options`, {
+            headers: getHeaders(),
+        });
+        return parseResponse(response);
+    },
+
+    previewPetition: async (data: Partial<Estate>) => {
+        const response = await fetch(`${API_URL}/pdf/de111/preview`, {
+            method: "POST",
+            headers: getHeaders(),
+            body: JSON.stringify(data),
         });
         return parseResponse(response);
     },
