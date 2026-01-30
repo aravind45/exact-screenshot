@@ -33,23 +33,29 @@ const Forms = () => {
         queryFn: api.getFormTemplates
     });
 
-    const handleFormAction = async (formId: string, isPreview: boolean) => {
-        setLoadingAction(`${formId}-${isPreview ? 'preview' : 'generate'}`);
+    const handleFormAction = async (formId: string, isPreview: boolean, isBlank: boolean = false) => {
+        setLoadingAction(`${formId}-${isBlank ? 'blank' : (isPreview ? 'preview' : 'generate')}`);
         try {
-            const blob = await api.generateForm(formId, isPreview);
+            let blob: Blob;
+            if (isBlank) {
+                blob = await api.getTemplateFile(formId);
+            } else {
+                blob = await api.generateForm(formId, isPreview);
+            }
+
             const url = window.URL.createObjectURL(blob);
 
-            if (isPreview) {
+            if (isPreview && !isBlank) {
                 window.open(url, '_blank');
             } else {
                 const link = document.createElement('a');
                 link.href = url;
-                link.setAttribute('download', `${formId}.pdf`);
+                link.setAttribute('download', `${formId}${isBlank ? '_Blank' : ''}.pdf`);
                 document.body.appendChild(link);
                 link.click();
                 link.remove();
             }
-            toast.success(isPreview ? "Preview layout ready" : "Form downloaded");
+            toast.success(isBlank ? "Blank template downloaded" : (isPreview ? "Preview layout ready" : "Form downloaded"));
         } catch (e: any) {
             console.error(e);
             toast.error(`Failed to handle ${formId}: ${e.message}`);
@@ -176,33 +182,49 @@ const Forms = () => {
                                                 </CardHeader>
 
                                                 <div className="mt-auto px-6 pb-6 pt-2">
-                                                    <div className="flex gap-3 pt-4 border-t border-white/5">
+                                                    <div className="flex flex-col gap-2 pt-4 border-t border-white/5">
+                                                        <div className="flex gap-2">
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                className="flex-1 bg-white/5 hover:bg-white/10 text-slate-300 border border-white/5"
+                                                                onClick={() => handleFormAction(form.name, true)}
+                                                                disabled={loadingAction !== null}
+                                                            >
+                                                                {loadingAction === `${form.name}-preview` ? (
+                                                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                                                ) : (
+                                                                    <Eye className="w-4 h-4 mr-2" />
+                                                                )}
+                                                                Preview
+                                                            </Button>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                className="flex-1 bg-white/5 hover:bg-white/10 text-slate-300 border border-white/5"
+                                                                onClick={() => handleFormAction(form.name, false, true)}
+                                                                disabled={loadingAction !== null}
+                                                            >
+                                                                {loadingAction === `${form.name}-blank` ? (
+                                                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                                                ) : (
+                                                                    <Download className="w-4 h-4 mr-2" />
+                                                                )}
+                                                                Blank
+                                                            </Button>
+                                                        </div>
                                                         <Button
-                                                            variant="ghost"
                                                             size="sm"
-                                                            className="flex-1 bg-white/5 hover:bg-white/10 text-slate-300 border border-white/5"
-                                                            onClick={() => handleFormAction(form.name, true)}
-                                                            disabled={loadingAction !== null}
-                                                        >
-                                                            {loadingAction === `${form.name}-preview` ? (
-                                                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                                            ) : (
-                                                                <Eye className="w-4 h-4 mr-2" />
-                                                            )}
-                                                            Preview
-                                                        </Button>
-                                                        <Button
-                                                            size="sm"
-                                                            className="flex-1 bg-primary/10 hover:bg-primary text-primary hover:text-white transition-all border border-primary/20"
+                                                            className="w-full bg-primary/10 hover:bg-primary text-primary hover:text-white transition-all border border-primary/20 font-bold"
                                                             onClick={() => handleFormAction(form.name, false)}
                                                             disabled={loadingAction !== null}
                                                         >
                                                             {loadingAction === `${form.name}-generate` ? (
                                                                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                                                             ) : (
-                                                                <Download className="w-4 h-4 mr-2" />
+                                                                <FileText className="w-4 h-4 mr-2" />
                                                             )}
-                                                            Print & Fill
+                                                            Auto-Fill (Beta)
                                                         </Button>
                                                     </div>
                                                 </div>

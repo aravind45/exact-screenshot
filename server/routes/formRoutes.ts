@@ -18,7 +18,7 @@ router.get("/templates", async (req: Request, res: Response) => {
                 state: true,
                 category: true,
                 updatedAt: true
-            }
+            } as any
         });
         res.json(templates);
     } catch (error) {
@@ -88,6 +88,23 @@ router.post("/generate", async (req: any, res: Response) => {
 
     } catch (e: any) {
         console.error(`Error generating ${req.body.formId}:`, e);
+        res.status(500).json({ error: e.message });
+    }
+});
+
+router.get("/templates/:name/download", async (req: Request, res: Response) => {
+    try {
+        const name = req.params.name as string;
+        const pdfBytes = await FormService.getTemplateBytes(name);
+
+        if (!pdfBytes) {
+            return res.status(404).json({ error: "Template not found" });
+        }
+
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="${name}_Template.pdf"`);
+        res.send(Buffer.from(pdfBytes));
+    } catch (e: any) {
         res.status(500).json({ error: e.message });
     }
 });

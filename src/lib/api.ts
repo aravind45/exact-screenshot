@@ -827,6 +827,14 @@ export const api = {
         return parseResponse(response);
     },
 
+    getTemplateFile: async (name: string) => {
+        const response = await fetch(`${API_URL}/forms/templates/${name}/download`, {
+            headers: getHeaders(),
+        });
+        if (!response.ok) throw new Error("Failed to download template");
+        return await response.blob();
+    },
+
     inviteCollaborator: async (data: { estateId: string, email: string, role: string }) => {
         const response = await fetch(`${API_URL}/collaboration/invite`, {
             method: "POST",

@@ -6,24 +6,24 @@ import { FormMapping } from './formService.js';
  */
 export const CA_HEADER: FormMapping = {
     // ATTORNEY OR PARTY WITHOUT ATTORNEY (Name, State Bar number, and address)
-    'partyName': { x: 50, y: 755 },
-    'attorneyName': { x: 50, y: 755 },
-    'partyAddress': { x: 50, y: 742 },
-    'partyPhone': { x: 50, y: 729 },
-    'partyEmail': { x: 50, y: 716 },
-    'attorneyFor': { x: 50, y: 703 },
+    'partyName': { x: 50, y: 715 },
+    'attorneyName': { x: 50, y: 715 },
+    'partyAddress': { x: 50, y: 702 },
+    'partyPhone': { x: 50, y: 689 },
+    'partyEmail': { x: 50, y: 676 },
+    'attorneyFor': { x: 50, y: 663 },
 
     // SUPERIOR COURT OF CALIFORNIA, COUNTY OF
-    'courtCounty': { x: 130, y: 675, font: 'HelveticaBold' },
-    'courtName': { x: 85, y: 675 },
-    'courtAddress': { x: 85, y: 663 },
-    'courtBranch': { x: 85, y: 638 },
+    'courtCounty': { x: 130, y: 635, font: 'HelveticaBold' },
+    'courtName': { x: 85, y: 635 },
+    'courtAddress': { x: 85, y: 623 },
+    'courtBranch': { x: 85, y: 598 },
 
     // ESTATE OF (Name): DECEDENT
-    'estateOf': { x: 160, y: 605, size: 12, font: 'HelveticaBold' },
+    'estateOf': { x: 160, y: 575, size: 12, font: 'HelveticaBold' },
 
     // CASE NUMBER (Right side box)
-    'caseNumber': { x: 420, y: 565, size: 12 },
+    'caseNumber': { x: 420, y: 540, size: 12 },
 };
 
 export const DE160_MAPPING: FormMapping = {
@@ -57,7 +57,7 @@ export const DE150_MAPPING: FormMapping = {
 
 export const DE111_MAPPING: FormMapping = {
     ...CA_HEADER,
-    'petitionerName': { x: 160, y: 652 },
+    'petitionerName': { x: 160, y: 612 },
 
     // Probate type checkboxes
     'checkProbateOfWill': { x: 58, y: 545 },

@@ -17,26 +17,26 @@ export interface FormMapping {
 export class FormService {
     private static TEMPLATES_DIR = path.join(process.cwd(), 'server', 'templates');
 
-    /**
-     * Generates a PDF by overlaying text on an official template at specific coordinates.
-     */
-    static async generateOverlayPdf(templateName: string, data: Record<string, any>, mapping: FormMapping) {
-        let templateBytes: Buffer;
-
-        // Try DB first
+    static async getTemplateBytes(templateName: string): Promise<Buffer | null> {
         const dbTemplate = await prisma.formTemplate.findUnique({
             where: { name: templateName }
         });
 
-        if (dbTemplate) {
-            templateBytes = Buffer.from(dbTemplate.data);
-        } else {
-            // Fallback to filesystem
-            const templatePath = path.join(this.TEMPLATES_DIR, templateName.endsWith('.pdf') ? templateName : `${templateName}.pdf`);
-            if (!fs.existsSync(templatePath)) {
-                throw new Error(`Template ${templateName} not found in DB or at ${templatePath}`);
-            }
-            templateBytes = fs.readFileSync(templatePath);
+        if (dbTemplate) return Buffer.from(dbTemplate.data);
+
+        const templatePath = path.join(this.TEMPLATES_DIR, templateName.endsWith('.pdf') ? templateName : `${templateName}.pdf`);
+        if (fs.existsSync(templatePath)) return fs.readFileSync(templatePath);
+
+        return null;
+    }
+
+    /**
+     * Generates a PDF by overlaying text on an official template at specific coordinates.
+     */
+    static async generateOverlayPdf(templateName: string, data: Record<string, any>, mapping: FormMapping) {
+        const templateBytes = await this.getTemplateBytes(templateName);
+        if (!templateBytes) {
+            throw new Error(`Template ${templateName} not found in DB or filesystem`);
         }
 
         const pdfDoc = await PDFDocument.load(templateBytes, { ignoreEncryption: true });
