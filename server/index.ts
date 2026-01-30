@@ -19,6 +19,7 @@ import collaborationRoutes from "./routes/collaborationRoutes.js";
 import liabilityRoutes from "./routes/liabilityRoutes.js";
 import { discoveryRoutes } from "./routes/discoveryRoutes.js";
 import { heirRoutes } from "./routes/heirRoutes.js";
+import { pdfRoutes } from "./routes/pdfRoutes.js";
 
 const app = express();
 const port = Number(process.env.PORT) || 3000;
