@@ -25,6 +25,7 @@ import {
     CheckSquare,
     Heart,
     HelpCircle,
+    ScrollText,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -77,6 +78,7 @@ export function Sidebar() {
                 { label: "Liabilities", icon: AlertCircle, path: "/liabilities" },
                 { label: "Final Distribution", icon: CheckCircle2, path: "/distribution" },
                 { label: "Accounting", icon: Calculator, path: "/accounting" },
+                { label: "Official Forms", icon: ScrollText, path: "/forms" },
             ]
         },
         {

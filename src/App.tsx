@@ -46,6 +46,7 @@ import SpousalPropertyPetition from "./pages/SpousalPropertyPetition";
 import HelpCenter from "./pages/HelpCenter";
 import SettlementTrail from "./pages/SettlementTrail";
 import Letters from "./pages/probate/Letters";
+import Forms from "./pages/Forms";
 import { EstateAgentChatWrapper } from "@/components/EstateAgentChatWrapper";
 
 const queryClient = new QueryClient();
@@ -152,6 +153,14 @@ const App = () => (
                     element={
                       <ProtectedRoute>
                         <SettlementRoadmap />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/forms"
+                    element={
+                      <ProtectedRoute>
+                        <Forms />
                       </ProtectedRoute>
                     }
                   />
