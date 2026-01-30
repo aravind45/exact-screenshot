@@ -44,8 +44,8 @@ router.post("/preview", async (req: any, res: Response) => {
         res.json({ pdfBase64: base64Pdf });
 
     } catch (e: any) {
-        console.error("PDF Preview Error:", e);
-        res.status(500).json({ error: e.message });
+        console.error("CRITICAL PDF Preview Error:", e);
+        res.status(500).json({ error: e.message, stack: process.env.NODE_ENV === 'development' ? e.stack : undefined });
     }
 });
 

@@ -1,4 +1,4 @@
-import { PDFDocument, StandardFonts } from 'pdf-lib';
+import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 import fs from 'fs';
 import path from 'path';
 
@@ -315,7 +315,7 @@ export const PdfService = {
         // 2. Hearing Info
         page.drawText('THE PETITION requests authority to administer the estate.', { x: 50, y, size: 10 });
         y -= 30;
-        page.drawText('NOTICE OF HEARING:', { x: 50, y, size: 12, opacity: 1 }); // Bold simulation
+        page.drawText('NOTICE OF HEARING:', { x: 50, y, size: 12, opacity: 1 }); // Opacity is fine, but drawText expects string for content
         y -= 20;
 
         if (estate.hearingDate) {
@@ -350,7 +350,7 @@ export const PdfService = {
         page.drawText('LETTERS (DE-150)', { x: 50, y, size: 20, font: fontBold });
         y -= 40;
 
-        page.drawText('FOR COURT USE ONLY', { x: 380, y: height - 80, size: 9, font: fontRegular, color: { type: 'RGB', r: 0.4, g: 0.4, b: 0.4 } as any });
+        page.drawText('FOR COURT USE ONLY', { x: 380, y: height - 80, size: 9, font: fontRegular, color: rgb(0.4, 0.4, 0.4) });
 
         page.drawText(`Estate of: ${String(estate.deceasedFirstName || '')} ${String(estate.deceasedLastName || '')}`, { x: 50, y, size: 12, font: fontRegular });
         page.drawText(`Case Number: ${String(estate.courtCaseNumber || 'Pending')}`, { x: 380, y, size: 12, font: fontRegular });

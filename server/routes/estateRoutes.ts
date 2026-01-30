@@ -60,6 +60,7 @@ router.put("/my", async (req: any, res: Response) => {
         const updateData: any = {};
         const dateFields = ['deceasedDateOfDeath', 'deceasedDateOfBirth', 'authorityEffectiveDate', 'appointedDate', 'willDate', 'hearingDate'];
 
+        const numericFields = ['certifiedCopies', 'estimatedPersonalProperty', 'estimatedRealProperty', 'estimatedAnnualIncome', 'bondAmount'];
         for (const key of allowedFields) {
             if (req.body[key] !== undefined) {
                 if (dateFields.includes(key)) {
@@ -68,14 +69,19 @@ router.put("/my", async (req: any, res: Response) => {
                         if (!isNaN(date.getTime())) {
                             updateData[key] = date;
                         } else {
-                            // If invalid date, set to null if optional or skip
                             updateData[key] = null;
                         }
                     } else {
                         updateData[key] = null;
                     }
+                } else if (numericFields.includes(key)) {
+                    if (req.body[key] === "" || req.body[key] === null) {
+                        updateData[key] = null;
+                    } else {
+                        const val = parseFloat(req.body[key]);
+                        updateData[key] = isNaN(val) ? null : val;
+                    }
                 } else if (key === 'codicilDates' && typeof req.body[key] === 'string') {
-                    // Split if it comes as a comma-separated string, otherwise assume it's already an array
                     updateData[key] = req.body[key].split(',').map((s: string) => s.trim()).filter(Boolean);
                 } else {
                     updateData[key] = req.body[key];
@@ -95,8 +101,9 @@ router.put("/my", async (req: any, res: Response) => {
         }
 
         res.json(updated);
-    } catch (error) {
-        res.status(500).json({ error: "Failed to update estate" });
+    } catch (error: any) {
+        console.error("Estate Update Error:", error);
+        res.status(500).json({ error: "Failed to update estate", message: error.message });
     }
 });
 
