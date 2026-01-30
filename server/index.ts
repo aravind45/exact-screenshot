@@ -5,6 +5,7 @@ import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
 import { AuthService } from "./services/authService.js";
+import { prisma } from "./db.js";
 
 import authRoutes from "./routes/authRoutes.js";
 import assetRoutes from "./routes/assetRoutes.js";
@@ -132,10 +133,22 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 // Cloud Run expects the server to listen on the PORT environment variable
 console.log(`🎧 Starting server on 0.0.0.0:${port}...`);
 
-const server = app.listen(port, '0.0.0.0', () => {
+const server = app.listen(port, '0.0.0.0', async () => {
     console.log(`✅ Server running on http://0.0.0.0:${port}`);
     console.log(`✅ Environment: ${process.env.NODE_ENV}`);
     console.log(`✅ Database: ${process.env.DATABASE_URL ? 'Connected' : 'NOT CONFIGURED'}`);
+
+    // Seed default forms if DB is empty
+    try {
+        const { FormSeedingService } = await import("./services/formSeedingService.js");
+        const count = await prisma.formTemplate.count();
+        if (count === 0) {
+            await FormSeedingService.seedDefaults();
+        }
+    } catch (e) {
+        console.error("Failed to seed default forms:", e);
+    }
+
     console.log(`🎉 Server is ready to accept connections!`);
 }).on('error', (err: any) => {
     console.error("❌ Failed to start server:", err);

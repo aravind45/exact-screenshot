@@ -1,5 +1,6 @@
 import { Router, Request, Response } from "express";
 import { prisma } from "../db.js";
+import { FormSeedingService } from "../services/formSeedingService.js";
 
 const router = Router();
 
@@ -78,6 +79,15 @@ router.post("/templates", isAdmin, async (req: any, res: Response) => {
     } catch (e) {
         console.error("Upload error:", e);
         res.status(500).json({ error: "Failed to upload template" });
+    }
+});
+
+router.post("/seed-templates", isAdmin, async (req: any, res: Response) => {
+    try {
+        await FormSeedingService.seedDefaults();
+        res.json({ success: true, message: "Default templates seeded successfully" });
+    } catch (error: any) {
+        res.status(500).json({ error: error.message });
     }
 });
 
