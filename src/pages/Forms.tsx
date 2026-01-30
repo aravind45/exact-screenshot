@@ -3,6 +3,7 @@ import React, { useState, useMemo } from "react";
 import { Sidebar } from "@/components/Sidebar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { SEO } from "@/components/SEO";
 import { FileText, Download, Eye, Gavel, Scale, ScrollText, Loader2, MapPin, Search } from "lucide-react";
 import * as LucideIcons from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -27,6 +28,8 @@ const Forms = () => {
     const [selectedState, setSelectedState] = useState("CA");
     const [searchQuery, setSearchQuery] = useState("");
     const [loadingAction, setLoadingAction] = useState<string | null>(null);
+
+    const stateName = STATES.find(s => s.id === selectedState)?.name || selectedState;
 
     const { data: templates, isLoading: templatesLoading } = useQuery({
         queryKey: ["forms", "templates"],
@@ -75,6 +78,10 @@ const Forms = () => {
 
     return (
         <div className="flex min-h-screen bg-slate-950 text-white font-sans">
+            <SEO
+                title={`${stateName} Probate Forms`}
+                description={`Access official ${stateName} Judicial Council and Probate forms. Pre-filled, blank download, and auto-fill (Beta) support.`}
+            />
             <Sidebar />
             <main className="flex-1 ml-64 flex flex-col h-screen overflow-hidden">
                 {/* Header Section */}

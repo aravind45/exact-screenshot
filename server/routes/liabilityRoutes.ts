@@ -64,7 +64,53 @@ router.get("/stats", async (req: any, res: Response) => {
         const count = liabilities.length;
         const openCount = liabilities.filter(l => l.status !== "PAID").length;
 
-        res.json({ total, paid, count, openCount });
+        // Priority breakdown
+        const priorityBreakdown: Record<string, { total: number, paid: number }> = {};
+        liabilities.forEach(l => {
+            const pClass = l.priorityClass;
+            if (!priorityBreakdown[pClass]) {
+                priorityBreakdown[pClass] = { total: 0, paid: 0 };
+            }
+            const amt = Number(l.amount);
+            priorityBreakdown[pClass].total += amt;
+            if (l.status === "PAID") {
+                priorityBreakdown[pClass].paid += amt;
+            }
+        });
+
+        res.json({ total, paid, count, openCount, priorityBreakdown });
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// GET /api/liabilities/solvency - Asset vs Debt comparison
+router.get("/solvency", async (req: any, res: Response) => {
+    try {
+        const estateId = await getEstateId(req.user.id);
+        if (!estateId) return res.status(404).json({ error: "Estate not found" });
+
+        const liabilities = await prisma.liability.findMany({ where: { estateId } });
+        const assets = await prisma.asset.findMany({
+            where: {
+                estateId,
+                assetType: { in: ["checking", "savings", "cash", "brokerage", "monetary"] }
+            }
+        });
+
+        const totalDebt = liabilities.reduce((sum, l) => sum + Number(l.amount), 0);
+        const totalLiquidAssets = assets.reduce((sum, a) => sum + (a.value || 0), 0);
+
+        const isSolvent = totalLiquidAssets >= totalDebt;
+        const ratio = totalDebt > 0 ? (totalLiquidAssets / totalDebt) : 1;
+
+        res.json({
+            totalDebt,
+            totalLiquidAssets,
+            isSolvent,
+            ratio: Math.min(ratio, 2), // Cap ratio display for UI
+            countLiquidAssets: assets.length
+        });
     } catch (e: any) {
         res.status(500).json({ error: e.message });
     }

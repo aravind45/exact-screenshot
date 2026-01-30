@@ -8,6 +8,8 @@ import { api } from "@/lib/api";
 import { LiabilityStatsWidget } from "@/components/liabilities/LiabilityStatsWidget";
 import { LiabilityList } from "@/components/liabilities/LiabilityList";
 import { AddLiabilityDialog } from "@/components/liabilities/AddLiabilityDialog";
+import { SolvencyTracker } from "@/components/liabilities/SolvencyTracker";
+import { ClaimsPriorityEngine } from "@/components/liabilities/ClaimsPriorityEngine";
 
 export default function Liabilities() {
     const navigate = useNavigate();
@@ -21,6 +23,11 @@ export default function Liabilities() {
     const { data: liabilities = [], isLoading } = useQuery({
         queryKey: ["liabilities"],
         queryFn: api.getLiabilities
+    });
+
+    const { data: solvency, isLoading: solvencyLoading } = useQuery({
+        queryKey: ["solvency"],
+        queryFn: api.getSolvency
     });
 
     return (
@@ -46,6 +53,15 @@ export default function Liabilities() {
 
                     {/* Stats */}
                     {stats && <LiabilityStatsWidget stats={stats} />}
+
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        {solvency && (
+                            <SolvencyTracker solvency={solvency} isLoading={solvencyLoading} />
+                        )}
+                        {stats && (
+                            <ClaimsPriorityEngine stats={stats} isLoading={isLoading} />
+                        )}
+                    </div>
 
                     {/* List */}
                     {isLoading ? (

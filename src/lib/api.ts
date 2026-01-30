@@ -129,6 +129,15 @@ export interface LiabilityStats {
     paid: number;
     count: number;
     openCount: number;
+    priorityBreakdown?: Record<string, { total: number, paid: number }>;
+}
+
+export interface SolvencyAssessment {
+    totalDebt: number;
+    totalLiquidAssets: number;
+    isSolvent: boolean;
+    ratio: number;
+    countLiquidAssets: number;
 }
 
 const API_URL = import.meta.env.VITE_API_URL || "/api";
@@ -859,8 +868,15 @@ export const api = {
         return parseResponse(response);
     },
 
-    getLiabilityStats: async () => {
+    getLiabilityStats: async (): Promise<LiabilityStats> => {
         const response = await fetch(`${API_URL}/liabilities/stats`, {
+            headers: getHeaders(),
+        });
+        return parseResponse(response);
+    },
+
+    getSolvency: async (): Promise<SolvencyAssessment> => {
+        const response = await fetch(`${API_URL}/liabilities/solvency`, {
             headers: getHeaders(),
         });
         return parseResponse(response);

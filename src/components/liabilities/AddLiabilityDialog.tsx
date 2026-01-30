@@ -125,11 +125,13 @@ export function AddLiabilityDialog({ open, onOpenChange }: AddLiabilityDialogPro
                                 <SelectValue placeholder="Select class" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="EXPENSES_OF_ADMIN" className="text-xs">1. Admin Expenses (Legal/Exctr)</SelectItem>
-                                <SelectItem value="FUNERAL_EXPENSES" className="text-xs">2. Funeral/Last Illness</SelectItem>
-                                <SelectItem value="FAMILY_ALLOWANCE" className="text-xs">3. Family Allowance</SelectItem>
-                                <SelectItem value="WAGE_CLAIMS" className="text-xs">4. Wage Claims</SelectItem>
-                                <SelectItem value="GENERAL_DEBTS" className="text-xs">5. General Debts / All Other</SelectItem>
+                                <SelectItem value="ADMINISTRATION_EXPENSES" className="text-xs">1. Administration Expenses</SelectItem>
+                                <SelectItem value="MORTGAGES_SECURED" className="text-xs">2. Secured Debts (Mortgages)</SelectItem>
+                                <SelectItem value="FUNERAL_EXPENSES" className="text-xs">3. Funeral Expenses</SelectItem>
+                                <SelectItem value="MEDICAL_LAST_ILLNESS" className="text-xs">4. Last Illness Expenses</SelectItem>
+                                <SelectItem value="FAMILY_ALLOWANCE" className="text-xs">5. Family Allowance</SelectItem>
+                                <SelectItem value="WAGE_CLAIMS" className="text-xs">6. Wage Claims (to $2000)</SelectItem>
+                                <SelectItem value="GENERAL_DEBTS" className="text-xs">7. General Debts / Credit Cards</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
@@ -138,8 +140,8 @@ export function AddLiabilityDialog({ open, onOpenChange }: AddLiabilityDialogPro
                         <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Description / Notes</Label>
                         <Textarea
                             placeholder="Optional details about this liability..."
-                            value={formData.description || ""}
-                            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                            value={formData.notes || ""}
+                            onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                             className="min-h-[80px] text-xs border-slate-200 resize-none"
                         />
                     </div>
