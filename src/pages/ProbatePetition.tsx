@@ -168,35 +168,35 @@ export default function ProbatePetition() {
                                             <div className="grid grid-cols-2 gap-4">
                                                 <div className="space-y-2">
                                                     <Label>Publication Newspaper</Label>
-                                                    <Input 
-                                                        placeholder="e.g. SF Chronicle" 
+                                                    <Input
+                                                        placeholder="e.g. SF Chronicle"
                                                         value={formData.publicationNewspaper || ""}
-                                                        onChange={(e) => setFormData({...formData, publicationNewspaper: e.target.value})}
+                                                        onChange={(e) => setFormData({ ...formData, publicationNewspaper: e.target.value })}
                                                     />
                                                 </div>
                                                 <div className="space-y-2">
                                                     <Label>Petitioner Phone</Label>
-                                                    <Input 
-                                                        placeholder="(555) 123-4567" 
+                                                    <Input
+                                                        placeholder="(555) 123-4567"
                                                         value={formData.petitionerPhone || ""}
-                                                        onChange={(e) => setFormData({...formData, petitionerPhone: e.target.value})}
+                                                        onChange={(e) => setFormData({ ...formData, petitionerPhone: e.target.value })}
                                                     />
                                                 </div>
                                                 <div className="col-span-2 flex items-center gap-2 pt-2">
-                                                    <Checkbox 
-                                                        id="hasCodicil" 
-                                                        checked={formData.hasCodicil} 
-                                                        onCheckedChange={(c) => setFormData({...formData, hasCodicil: c === true})}
+                                                    <Checkbox
+                                                        id="hasCodicil"
+                                                        checked={formData.hasCodicil}
+                                                        onCheckedChange={(c) => setFormData({ ...formData, hasCodicil: c === true })}
                                                     />
                                                     <Label htmlFor="hasCodicil">Are there any codicils to the will?</Label>
                                                 </div>
                                                 {formData.hasCodicil && (
                                                     <div className="col-span-2 space-y-2">
                                                         <Label>Date of Codicil</Label>
-                                                        <Input 
-                                                            type="date" 
+                                                        <Input
+                                                            type="date"
                                                             value={formData.codicilDate ? new Date(formData.codicilDate).toISOString().split('T')[0] : ""}
-                                                            onChange={(e) => setFormData({...formData, codicilDate: e.target.value})}
+                                                            onChange={(e) => setFormData({ ...formData, codicilDate: e.target.value })}
                                                         />
                                                     </div>
                                                 )}
@@ -361,52 +361,49 @@ export default function ProbatePetition() {
                                     </CardContent>
                                 </Card>
                             </div>
-                        </TabsContent>
-                    </Tabs>
-                </div>
-                </div>
-
-                <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
-                    <DialogContent className="max-w-4xl h-[80vh] flex flex-col">
-                        <DialogHeader>
-                            <DialogTitle>Petition Preview</DialogTitle>
-                            <DialogDescription>Review your DE-111 before downloading.</DialogDescription>
-                        </DialogHeader>
-                        <div className="flex-1 bg-slate-100 rounded-md overflow-hidden border">
-                            {previewPdf && (
-                                <iframe src={previewPdf} className="w-full h-full" title="PDF Preview" />
-                            )}
                         </div>
-                    </DialogContent>
-                </Dialog>
-            </main >
-        </div >
-    );
+
+                        <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+                            <DialogContent className="max-w-4xl h-[80vh] flex flex-col">
+                                <DialogHeader>
+                                    <DialogTitle>Petition Preview</DialogTitle>
+                                    <DialogDescription>Review your DE-111 before downloading.</DialogDescription>
+                                </DialogHeader>
+                                <div className="flex-1 bg-slate-100 rounded-md overflow-hidden border">
+                                    {previewPdf && (
+                                        <iframe src={previewPdf} className="w-full h-full" title="PDF Preview" />
+                                    )}
+                                </div>
+                            </DialogContent>
+                        </Dialog>
+                    </main>
+                </div>
+                );
 }
 
-function StatusItem({ icon, label, complete }: { icon: React.ReactNode, label: string, complete: boolean }) {
+                function StatusItem({icon, label, complete}: {icon: React.ReactNode, label: string, complete: boolean }) {
     return (
-        <div className="flex items-center gap-3 p-3 border rounded-lg bg-card">
-            <div className={cn(
-                "p-2 rounded-md",
-                complete ? "bg-green-100 text-green-600" : "bg-muted text-muted-foreground"
-            )}>
-                {icon}
-            </div>
-            <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium truncate">{label}</p>
-                <p className={cn("text-[10px]", complete ? "text-green-600" : "text-muted-foreground")}>
-                    {complete ? "Complete" : "Missing"}
-                </p>
-            </div>
-            {complete && <CheckCircle className="w-4 h-4 text-green-500" />}
-        </div>
-    );
+                <div className="flex items-center gap-3 p-3 border rounded-lg bg-card">
+                    <div className={cn(
+                        "p-2 rounded-md",
+                        complete ? "bg-green-100 text-green-600" : "bg-muted text-muted-foreground"
+                    )}>
+                        {icon}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium truncate">{label}</p>
+                        <p className={cn("text-[10px]", complete ? "text-green-600" : "text-muted-foreground")}>
+                            {complete ? "Complete" : "Missing"}
+                        </p>
+                    </div>
+                    {complete && <CheckCircle className="w-4 h-4 text-green-500" />}
+                </div>
+                );
 }
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
+                import {Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription} from "@/components/ui/dialog";
+                import {Label} from "@/components/ui/label";
+                import {Input} from "@/components/ui/input";
+                import {Checkbox} from "@/components/ui/checkbox";
 
 // ... (Existing code above remains, this is appended helper/components or state integration)
