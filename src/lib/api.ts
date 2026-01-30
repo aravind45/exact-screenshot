@@ -477,11 +477,19 @@ export const api = {
         return parseResponse(response);
     },
 
-    uploadTemplate: async (name: string, file: File) => {
+    uploadTemplate: async (name: string, file: File, options?: { state?: string, category?: string, title?: string, description?: string, icon?: string }) => {
         const headers = getHeaders();
         headers["Content-Type"] = "application/pdf";
 
-        const response = await fetch(`${API_URL}/admin/templates?name=${encodeURIComponent(name)}`, {
+        const url = new URL(`${API_URL}/admin/templates`);
+        url.searchParams.append("name", name);
+        if (options?.state) url.searchParams.append("state", options.state);
+        if (options?.category) url.searchParams.append("category", options.category);
+        if (options?.title) url.searchParams.append("title", options.title);
+        if (options?.description) url.searchParams.append("description", options.description);
+        if (options?.icon) url.searchParams.append("icon", options.icon);
+
+        const response = await fetch(url.toString(), {
             method: "POST",
             headers,
             body: file
@@ -810,6 +818,13 @@ export const api = {
         });
         if (!response.ok) throw new Error("Failed to generate form");
         return await response.blob();
+    },
+
+    getFormTemplates: async () => {
+        const response = await fetch(`${API_URL}/forms/templates`, {
+            headers: getHeaders(),
+        });
+        return parseResponse(response);
     },
 
     inviteCollaborator: async (data: { estateId: string, email: string, role: string }) => {

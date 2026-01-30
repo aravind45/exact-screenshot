@@ -45,7 +45,7 @@ router.get("/users", isAdmin, async (req: any, res: Response) => {
 router.get("/templates", isAdmin, async (req: any, res: Response) => {
     try {
         const templates = await prisma.formTemplate.findMany({
-            select: { id: true, name: true, updatedAt: true }
+            select: { id: true, name: true, title: true, description: true, icon: true, state: true, category: true, updatedAt: true }
         });
         res.json(templates);
     } catch (e) {
@@ -56,6 +56,12 @@ router.get("/templates", isAdmin, async (req: any, res: Response) => {
 router.post("/templates", isAdmin, async (req: any, res: Response) => {
     try {
         const name = req.query.name as string;
+        const state = (req.query.state as string) || "CA";
+        const category = (req.query.category as string) || "General";
+        const title = req.query.title as string;
+        const description = req.query.description as string;
+        const icon = req.query.icon as string;
+
         if (!name) return res.status(400).json({ error: "Name query param required" });
 
         // req.body is Buffer because of express.raw
@@ -65,8 +71,8 @@ router.post("/templates", isAdmin, async (req: any, res: Response) => {
 
         const template = await prisma.formTemplate.upsert({
             where: { name },
-            update: { data: req.body },
-            create: { name, data: req.body }
+            update: { data: req.body, state, category, title, description, icon },
+            create: { name, data: req.body, state, category, title, description, icon }
         });
         res.json({ success: true, id: template.id });
     } catch (e) {

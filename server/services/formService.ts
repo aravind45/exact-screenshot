@@ -1,7 +1,7 @@
-
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import fs from 'fs';
 import path from 'path';
+import { prisma } from '../db.js';
 
 export interface OverlayCoordinate {
     x: number;
@@ -21,12 +21,24 @@ export class FormService {
      * Generates a PDF by overlaying text on an official template at specific coordinates.
      */
     static async generateOverlayPdf(templateName: string, data: Record<string, any>, mapping: FormMapping) {
-        const templatePath = path.join(this.TEMPLATES_DIR, templateName);
-        if (!fs.existsSync(templatePath)) {
-            throw new Error(`Template ${templateName} not found at ${templatePath}`);
+        let templateBytes: Buffer;
+
+        // Try DB first
+        const dbTemplate = await prisma.formTemplate.findUnique({
+            where: { name: templateName }
+        });
+
+        if (dbTemplate) {
+            templateBytes = Buffer.from(dbTemplate.data);
+        } else {
+            // Fallback to filesystem
+            const templatePath = path.join(this.TEMPLATES_DIR, templateName.endsWith('.pdf') ? templateName : `${templateName}.pdf`);
+            if (!fs.existsSync(templatePath)) {
+                throw new Error(`Template ${templateName} not found in DB or at ${templatePath}`);
+            }
+            templateBytes = fs.readFileSync(templatePath);
         }
 
-        const templateBytes = fs.readFileSync(templatePath);
         const pdfDoc = await PDFDocument.load(templateBytes, { ignoreEncryption: true });
         const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
         const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);

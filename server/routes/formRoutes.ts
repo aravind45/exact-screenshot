@@ -1,10 +1,31 @@
-
-import { Router, Response } from "express";
+import { Router, Request, Response } from "express";
 import { prisma } from "../db.js";
 import { FormService } from "../services/formService.js";
 import { FORM_MAPPINGS } from "../services/formMappings.js";
 
 const router = Router();
+
+// List all available form templates (public)
+router.get("/templates", async (req: Request, res: Response) => {
+    try {
+        const templates = await prisma.formTemplate.findMany({
+            select: {
+                id: true,
+                name: true,
+                title: true,
+                description: true,
+                icon: true,
+                state: true,
+                category: true,
+                updatedAt: true
+            }
+        });
+        res.json(templates);
+    } catch (error) {
+        console.error("Failed to fetch form templates:", error);
+        res.status(500).json({ error: "Failed to fetch form templates" });
+    }
+});
 
 const getEstateId = async (userId: string) => {
     const grant = await prisma.estateGrant.findFirst({
@@ -35,12 +56,11 @@ router.post("/generate", async (req: any, res: Response) => {
             return res.status(404).json({ error: "Estate data not found" });
         }
 
-        // Prepare data for mapping
         const data: Record<string, any> = {
-            'estateOf': `ESTATE OF ${estate.deceasedFirstName || ''} ${estate.deceasedLastName || ''}`.toUpperCase(),
+            'estateOf': `${estate.deceasedFirstName || ''} ${estate.deceasedLastName || ''}`.toUpperCase(),
             'partyName': estate.user?.fullName || '',
             'attorneyName': estate.user?.fullName || '',
-            // Add more common mappings here
+            'petitionerName': estate.user?.fullName || '', // Map user to petitioner for now
         };
 
         // Form-specific data
@@ -55,19 +75,9 @@ router.post("/generate", async (req: any, res: Response) => {
             return res.status(400).json({ error: `No mapping found for form ${formId}` });
         }
 
-        // Template naming convention: DE-160 INVENTORY AND APPRAISAL.pdf
-        const templateMap: Record<string, string> = {
-            'DE-111': 'DE-111.pdf',
-            'DE-150': 'DE-150 LETTERS (Probate).pdf',
-            'DE-160': 'DE-160 INVENTORY AND APPRAISAL.pdf',
-        };
-
-        const templateName = templateMap[formId];
-        if (!templateName) {
-            return res.status(400).json({ error: `No template found for form ${formId}` });
-        }
-
-        const pdfBytes = await FormService.generateOverlayPdf(templateName, data, mapping);
+        // The FormService now handles checking DB by name or filesystem fallback
+        // We use the formId (e.g. DE-111) as the template name.
+        const pdfBytes = await FormService.generateOverlayPdf(formId, data, mapping);
 
         res.setHeader('Content-Type', 'application/pdf');
         if (!isPreview) {

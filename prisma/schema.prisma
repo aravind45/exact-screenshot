@@ -414,11 +414,16 @@ model Distribution {
 }
 
 model FormTemplate {
-  id        String   @id @default(uuid())
-  name      String   @unique
-  data      Bytes
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id          String   @id @default(uuid())
+  name        String   @unique
+  title       String?
+  description String?
+  icon        String?  @default("FileText")
+  state       String   @default("CA")
+  category    String   @default("General")
+  data        Bytes
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
 
   @@map("form_templates")
 }
