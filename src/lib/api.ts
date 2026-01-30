@@ -816,8 +816,8 @@ export const api = {
         return parseResponse(response);
     },
 
-    previewPetition: async (data: Partial<Estate>) => {
-        const response = await fetch(`${API_URL}/pdf/de111/preview`, {
+    previewPetition: async (data: any) => {
+        const response = await fetch(`${API_URL}/pdf/preview`, {
             method: "POST",
             headers: getHeaders(),
             body: JSON.stringify(data),

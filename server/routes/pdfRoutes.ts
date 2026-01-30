@@ -12,8 +12,8 @@ const getEstateId = async (userId: string) => {
     return grant?.estateId || (await prisma.estate.findFirst({ where: { userId } }))?.id;
 };
 
-// POST /api/pdf/de111/preview - Generate PDF for preview (no save)
-router.post("/de111/preview", async (req: any, res: Response) => {
+// POST /api/pdf/preview - Generate PDF for preview (no save)
+router.post("/preview", async (req: any, res: Response) => {
     try {
         const estateId = await getEstateId(req.user.id);
         if (!estateId) return res.status(404).json({ error: "Estate not found" });
