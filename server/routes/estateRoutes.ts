@@ -12,18 +12,26 @@ router.get("/my", async (req: any, res: Response) => {
                     { userId: req.user.id },
                     { grants: { some: { userId: req.user.id } } }
                 ]
-            }
+            },
+            include: { user: true }
         });
         if (estate) {
-            await EmailService.ensureEstateHandle(estate.id);
+            try {
+                await EmailService.ensureEstateHandle(estate.id);
+            } catch (handleErr) {
+                console.warn("Failed to ensure estate handle (non-fatal):", handleErr);
+            }
             // Re-fetch to get the new handle/email if it was just created
-            const updatedEstate = await prisma.estate.findUnique({ where: { id: estate.id } });
+            const updatedEstate = await prisma.estate.findUnique({
+                where: { id: estate.id },
+                include: { user: true }
+            });
             return res.json(updatedEstate);
         }
         res.json(estate);
-    } catch (error) {
-        console.error("Failed to fetch estate:", error);
-        res.status(500).json({ error: "Failed to fetch estate" });
+    } catch (error: any) {
+        console.error("CRITICAL Estate Fetch Error:", error);
+        res.status(500).json({ error: "Failed to fetch estate", message: error.message });
     }
 });
 
@@ -54,8 +62,21 @@ router.put("/my", async (req: any, res: Response) => {
 
         for (const key of allowedFields) {
             if (req.body[key] !== undefined) {
-                if (dateFields.includes(key) && req.body[key]) {
-                    updateData[key] = new Date(req.body[key]);
+                if (dateFields.includes(key)) {
+                    if (req.body[key]) {
+                        const date = new Date(req.body[key]);
+                        if (!isNaN(date.getTime())) {
+                            updateData[key] = date;
+                        } else {
+                            // If invalid date, set to null if optional or skip
+                            updateData[key] = null;
+                        }
+                    } else {
+                        updateData[key] = null;
+                    }
+                } else if (key === 'codicilDates' && typeof req.body[key] === 'string') {
+                    // Split if it comes as a comma-separated string, otherwise assume it's already an array
+                    updateData[key] = req.body[key].split(',').map((s: string) => s.trim()).filter(Boolean);
                 } else {
                     updateData[key] = req.body[key];
                 }

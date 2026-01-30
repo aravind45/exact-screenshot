@@ -37,6 +37,30 @@ export interface Estate {
         completedTaskIds: string[];
         completedPhases: string[];
     };
+
+    // Will & Codicil
+    hasWill?: boolean;
+    willDate?: string;
+    hasCodicil?: boolean;
+    codicilDates?: string[];
+    publicationNewspaper?: string;
+
+    // Petitioner
+    petitionerPhone?: string;
+    petitionerIsAttorney?: boolean;
+
+    // Financials
+    estimatedPersonalProperty?: number;
+    estimatedRealProperty?: number;
+    estimatedAnnualIncome?: number;
+    bondAmount?: number;
+    bondWaived?: boolean;
+
+    // Custom
+    user?: {
+        fullName: string;
+        state: string;
+    };
 }
 
 export interface Communication {

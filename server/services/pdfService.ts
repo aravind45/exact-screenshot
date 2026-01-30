@@ -145,11 +145,11 @@ export const PdfService = {
             cursorY -= (size + 5);
         };
 
-        const institution = overrides?.institution || asset.institution;
-        const deceasedName = overrides?.deceasedName || `${estate.deceasedFirstName} ${estate.deceasedLastName}`;
-        const accountNumber = overrides?.accountNumber || asset.accountNumber || "Unknown";
-        const assetType = overrides?.assetType || asset.assetType;
-        const dateOfDeath = overrides?.dateOfDeath || (estate.deceasedDateOfDeath ? new Date(estate.deceasedDateOfDeath).toLocaleDateString() : "[Date]");
+        const institution = String(overrides?.institution || asset.institution || 'Unknown Institution');
+        const deceasedName = String(overrides?.deceasedName || `${estate.deceasedFirstName || ''} ${estate.deceasedLastName || ''}`);
+        const accountNumber = String(overrides?.accountNumber || asset.accountNumber || "Unknown");
+        const assetType = String(overrides?.assetType || asset.assetType || 'Asset');
+        const dateOfDeath = String(overrides?.dateOfDeath || (estate.deceasedDateOfDeath ? new Date(estate.deceasedDateOfDeath).toLocaleDateString() : "[Date]"));
 
         // Header
         drawText("NOTIFICATION OF DEATH AND ESTATE OPENING", fontBoldSize);
@@ -163,7 +163,7 @@ export const PdfService = {
         drawText("TO:");
         drawText(institution);
         if (asset.institutionAddress && !overrides?.institution) {
-            asset.institutionAddress.split(',').forEach((line: string) => drawText(line.trim()));
+            String(asset.institutionAddress).split(',').forEach((line: string) => drawText(line.trim()));
         }
         cursorY -= 15;
 
@@ -190,7 +190,7 @@ export const PdfService = {
         // Closing
         drawText("Sincerely,");
         cursorY -= 20;
-        drawText(overrides?.senderName || estate.user?.fullName || "The Executor");
+        drawText(String(overrides?.senderName || estate.user?.fullName || "The Executor"));
         drawText("Executor / Administrator");
 
         return await doc.save();
@@ -218,8 +218,8 @@ export const PdfService = {
         page.drawText('INVENTORY AND APPRAISAL (DE-160 Placeholder)', { x: 50, y, size: 18 });
         y -= 30;
 
-        page.drawText(`Estate of: ${estate.deceasedFirstName} ${estate.deceasedLastName}`, { x: 50, y, size: 12 });
-        page.drawText(`Case Number: ${estate.courtCaseNumber || 'N/A'}`, { x: 400, y, size: 12 });
+        page.drawText(`Estate of: ${String(estate.deceasedFirstName || '')} ${String(estate.deceasedLastName || '')}`, { x: 50, y, size: 12 });
+        page.drawText(`Case Number: ${String(estate.courtCaseNumber || 'N/A')}`, { x: 400, y, size: 12 });
         y -= 40;
 
         // Categorization
@@ -265,7 +265,7 @@ export const PdfService = {
             // Or just allow overflow for now.
             const currentPage = doc.getPages()[doc.getPageCount() - 1];
 
-            const desc = `${a.institution} - ${a.assetType} ${a.inventoryNote ? `(${a.inventoryNote})` : ''}`;
+            const desc = `${String(a.institution || 'Unknown')} - ${String(a.assetType || 'Asset')} ${a.inventoryNote ? `(${String(a.inventoryNote)})` : ''}`;
             const val = `$${Number(a.inventoryValue || a.value || 0).toFixed(2)}`;
             currentPage.drawText(desc, { x: 50, y, size: 10 });
             currentPage.drawText(val, { x: 450, y, size: 10 });
@@ -300,16 +300,16 @@ export const PdfService = {
         // Header
         page.drawText('NOTICE OF PETITION TO ADMINISTER ESTATE (DE-121)', { x: 50, y, size: 16 });
         y -= 30;
-        page.drawText(`Estate of: ${estate.deceasedFirstName} ${estate.deceasedLastName}`, { x: 50, y, size: 12 });
-        page.drawText(`Case Number: ${estate.courtCaseNumber || 'Pending'}`, { x: 400, y, size: 12 });
+        page.drawText(`Estate of: ${String(estate.deceasedFirstName || '')} ${String(estate.deceasedLastName || '')}`, { x: 50, y, size: 12 });
+        page.drawText(`Case Number: ${String(estate.courtCaseNumber || 'Pending')}`, { x: 400, y, size: 12 });
         y -= 40;
 
         // 1. Notice Info
         page.drawText('To all heirs, beneficiaries, creditors, and contingent creditors:', { x: 50, y, size: 10 });
         y -= 20;
-        page.drawText(`A Petition for Probate has been filed by: ${estate.user?.fullName || 'Petitioner'}`, { x: 50, y, size: 10 });
+        page.drawText(`A Petition for Probate has been filed by: ${String(estate.user?.fullName || 'Petitioner')}`, { x: 50, y, size: 10 });
         y -= 20;
-        page.drawText(`in the Superior Court of California, County of: ${estate.probateCounty || '[County]'}`, { x: 50, y, size: 10 });
+        page.drawText(`in the Superior Court of California, County of: ${String(estate.probateCounty || '[County]')}`, { x: 50, y, size: 10 });
         y -= 40;
 
         // 2. Hearing Info
@@ -320,11 +320,11 @@ export const PdfService = {
 
         if (estate.hearingDate) {
             const date = new Date(estate.hearingDate).toLocaleDateString();
-            const time = estate.hearingTime || "TBD";
-            const dept = estate.hearingDept || "TBD";
+            const time = String(estate.hearingTime || "TBD");
+            const dept = String(estate.hearingDept || "TBD");
             page.drawText(`Date: ${date}   Time: ${time}   Dept: ${dept}`, { x: 70, y, size: 12 });
             y -= 20;
-            page.drawText(`Address: ${estate.hearingAddress || 'See Court Website'}`, { x: 70, y, size: 10 });
+            page.drawText(`Address: ${String(estate.hearingAddress || 'See Court Website')}`, { x: 70, y, size: 10 });
         } else {
             page.drawText('[ ] Hearing date not yet set', { x: 70, y, size: 12 });
         }
@@ -352,14 +352,14 @@ export const PdfService = {
 
         page.drawText('FOR COURT USE ONLY', { x: 380, y: height - 80, size: 9, font: fontRegular, color: { type: 'RGB', r: 0.4, g: 0.4, b: 0.4 } as any });
 
-        page.drawText(`Estate of: ${estate.deceasedFirstName} ${estate.deceasedLastName}`, { x: 50, y, size: 12, font: fontRegular });
-        page.drawText(`Case Number: ${estate.courtCaseNumber || 'Pending'}`, { x: 380, y, size: 12, font: fontRegular });
+        page.drawText(`Estate of: ${String(estate.deceasedFirstName || '')} ${String(estate.deceasedLastName || '')}`, { x: 50, y, size: 12, font: fontRegular });
+        page.drawText(`Case Number: ${String(estate.courtCaseNumber || 'Pending')}`, { x: 380, y, size: 12, font: fontRegular });
         y -= 40;
 
         // 1. Appointed As
         page.drawText('1. The Court Appoints:', { x: 50, y, size: 12, font: fontBold });
         y -= 25;
-        page.drawText(`   [X] Executor: ${estate.user?.fullName || 'Petitioner'}`, { x: 50, y, size: 12, font: fontRegular });
+        page.drawText(`   [X] Executor: ${String(estate.user?.fullName || 'Petitioner')}`, { x: 50, y, size: 12, font: fontRegular });
         y -= 35;
 
         // 2. Authority
@@ -384,7 +384,7 @@ export const PdfService = {
 
         const appointedDate = estate.appointedDate ? new Date(estate.appointedDate).toLocaleDateString() : new Date().toLocaleDateString();
         page.drawText(`Executed on: ${appointedDate}`, { x: 50, y, size: 12, font: fontRegular });
-        page.drawText(`at (City, State): ${estate.user?.state || 'California'}`, { x: 300, y, size: 12, font: fontRegular });
+        page.drawText(`at (City, State): ${String(estate.user?.state || 'California')}`, { x: 300, y, size: 12, font: fontRegular });
 
         return await doc.save();
     },
@@ -403,12 +403,12 @@ export const PdfService = {
         page.drawText('ALLOWANCE OR REJECTION OF CREDITOR\'S CLAIM (DE-174)', { x: 50, y, size: 14, font: fontBold });
         y -= 30;
 
-        page.drawText(`Estate of: ${estate.deceasedFirstName} ${estate.deceasedLastName}`, { x: 50, y, size: 12 });
-        page.drawText(`Case Number: ${estate.courtCaseNumber || 'Pending'}`, { x: 400, y, size: 12 });
+        page.drawText(`Estate of: ${String(estate.deceasedFirstName || '')} ${String(estate.deceasedLastName || '')}`, { x: 50, y, size: 12 });
+        page.drawText(`Case Number: ${String(estate.courtCaseNumber || 'Pending')}`, { x: 400, y, size: 12 });
         y -= 40;
 
         // Creditor Info
-        page.drawText(`Creditor: ${liability.name}`, { x: 50, y, size: 12 });
+        page.drawText(`Creditor: ${String(liability.name || 'Unknown')}`, { x: 50, y, size: 12 });
         y -= 20;
         page.drawText(`Claim Amount: $${Number(liability.amount).toFixed(2)}`, { x: 50, y, size: 12 });
         if (liability.dateClaimFiled) {
@@ -434,7 +434,7 @@ export const PdfService = {
             page.drawText(`    The claim is rejected for: $${Number(liability.amount).toFixed(2)}`, { x: 70, y });
             y -= 20;
             if (liability.rejectionReason) {
-                page.drawText(`    Reason: ${liability.rejectionReason}`, { x: 70, y });
+                page.drawText(`    Reason: ${String(liability.rejectionReason)}`, { x: 70, y });
             }
         } else {
             page.drawText('[ ] Claim Not Yet Acted Upon', { x: 70, y });
@@ -446,7 +446,7 @@ export const PdfService = {
         y -= 30;
         page.drawText('___________________________________________________', { x: 50, y });
         y -= 15;
-        page.drawText(`${estate.user?.fullName || 'Executor'}`, { x: 50, y });
+        page.drawText(`${String(estate.user?.fullName || 'Executor')}`, { x: 50, y });
         page.drawText('Personal Representative', { x: 50, y: y - 15 });
 
         return await doc.save();
@@ -466,8 +466,8 @@ export const PdfService = {
         page.drawText('PETITION FOR FINAL DISTRIBUTION (DE-310)', { x: 50, y, size: 14, font: fontBold });
         y -= 30;
 
-        page.drawText(`Estate of: ${estate.deceasedFirstName} ${estate.deceasedLastName}`, { x: 50, y, size: 12 });
-        page.drawText(`Case Number: ${estate.courtCaseNumber || 'Pending'}`, { x: 400, y, size: 12 });
+        page.drawText(`Estate of: ${String(estate.deceasedFirstName || '')} ${String(estate.deceasedLastName || '')}`, { x: 50, y, size: 12 });
+        page.drawText(`Case Number: ${String(estate.courtCaseNumber || 'Pending')}`, { x: 400, y, size: 12 });
         y -= 40;
 
         // 1. Character of Property
@@ -494,11 +494,11 @@ export const PdfService = {
             const desc = dist.asset ? (dist.asset.name + (dist.amount ? ` ($${dist.amount})` : '')) : (dist.description || "Residue");
             const amount = dist.amount ? `$${Number(dist.amount).toLocaleString()}` : (dist.percentage ? `${dist.percentage}%` : 'Specific Gift');
 
-            page.drawText(`   Beneficiary: ${heirName}`, { x: 70, y, size: 10, font: fontBold });
+            page.drawText(`   Beneficiary: ${String(heirName)}`, { x: 70, y, size: 10, font: fontBold });
             y -= 15;
-            page.drawText(`   Property: ${desc}`, { x: 90, y, size: 10 });
+            page.drawText(`   Property: ${String(desc)}`, { x: 90, y, size: 10 });
             y -= 15;
-            page.drawText(`   Value/Share: ${amount}`, { x: 90, y, size: 10 });
+            page.drawText(`   Value/Share: ${String(amount)}`, { x: 90, y, size: 10 });
             y -= 25;
 
             if (y < 50) {
@@ -514,7 +514,7 @@ export const PdfService = {
         y -= 30;
         page.drawText('___________________________________________________', { x: 50, y });
         y -= 15;
-        page.drawText(`${estate.user?.fullName || 'Executor'}`, { x: 50, y });
+        page.drawText(`${String(estate.user?.fullName || 'Executor')}`, { x: 50, y });
         page.drawText('Petitioner', { x: 50, y: y - 15 });
 
         return await doc.save();

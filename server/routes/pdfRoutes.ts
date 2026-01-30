@@ -7,7 +7,7 @@ const router = Router();
 const getEstateId = async (userId: string) => {
     const grant = await prisma.estateGrant.findFirst({
         where: { userId },
-        include: { estate: true }
+        include: { estate: { include: { user: true } } }
     });
     return grant?.estateId || (await prisma.estate.findFirst({ where: { userId } }))?.id;
 };
@@ -19,7 +19,10 @@ router.post("/preview", async (req: any, res: Response) => {
         if (!estateId) return res.status(404).json({ error: "Estate not found" });
 
         // Merge DB estate data with form override data from request
-        const dbEstate = await prisma.estate.findUnique({ where: { id: estateId } });
+        const dbEstate = await prisma.estate.findUnique({
+            where: { id: estateId },
+            include: { user: true }
+        });
         const mergedData = { ...dbEstate, ...req.body };
 
         let pdfBytes;
