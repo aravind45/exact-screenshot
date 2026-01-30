@@ -4,7 +4,7 @@ import { api } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { FileText, Download, CheckCircle, AlertCircle, Users, Gavel, Landmark, Upload, Eye, FileUp, Loader2, Archive } from "lucide-react";
+import { FileText, Download, CheckCircle, AlertCircle, Users, Gavel, Landmark, Upload, Eye, FileUp, Loader2, Archive, Edit2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -361,49 +361,51 @@ export default function ProbatePetition() {
                                     </CardContent>
                                 </Card>
                             </div>
+                        </TabsContent>
+                    </Tabs>
+                </div>
+
+                <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+                    <DialogContent className="max-w-4xl h-[80vh] flex flex-col">
+                        <DialogHeader>
+                            <DialogTitle>Petition Preview</DialogTitle>
+                            <DialogDescription>Review your DE-111 before downloading.</DialogDescription>
+                        </DialogHeader>
+                        <div className="flex-1 bg-slate-100 rounded-md overflow-hidden border">
+                            {previewPdf && (
+                                <iframe src={previewPdf} className="w-full h-full" title="PDF Preview" />
+                            )}
                         </div>
-
-                        <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
-                            <DialogContent className="max-w-4xl h-[80vh] flex flex-col">
-                                <DialogHeader>
-                                    <DialogTitle>Petition Preview</DialogTitle>
-                                    <DialogDescription>Review your DE-111 before downloading.</DialogDescription>
-                                </DialogHeader>
-                                <div className="flex-1 bg-slate-100 rounded-md overflow-hidden border">
-                                    {previewPdf && (
-                                        <iframe src={previewPdf} className="w-full h-full" title="PDF Preview" />
-                                    )}
-                                </div>
-                            </DialogContent>
-                        </Dialog>
-                    </main>
-                </div>
-                );
+                    </DialogContent>
+                </Dialog>
+            </main>
+        </div>
+    );
 }
 
-                function StatusItem({icon, label, complete}: {icon: React.ReactNode, label: string, complete: boolean }) {
+function StatusItem({ icon, label, complete }: { icon: React.ReactNode, label: string, complete: boolean }) {
     return (
-                <div className="flex items-center gap-3 p-3 border rounded-lg bg-card">
-                    <div className={cn(
-                        "p-2 rounded-md",
-                        complete ? "bg-green-100 text-green-600" : "bg-muted text-muted-foreground"
-                    )}>
-                        {icon}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                        <p className="text-xs font-medium truncate">{label}</p>
-                        <p className={cn("text-[10px]", complete ? "text-green-600" : "text-muted-foreground")}>
-                            {complete ? "Complete" : "Missing"}
-                        </p>
-                    </div>
-                    {complete && <CheckCircle className="w-4 h-4 text-green-500" />}
-                </div>
-                );
+        <div className="flex items-center gap-3 p-3 border rounded-lg bg-card">
+            <div className={cn(
+                "p-2 rounded-md",
+                complete ? "bg-green-100 text-green-600" : "bg-muted text-muted-foreground"
+            )}>
+                {icon}
+            </div>
+            <div className="flex-1 min-w-0">
+                <p className="text-xs font-medium truncate">{label}</p>
+                <p className={cn("text-[10px]", complete ? "text-green-600" : "text-muted-foreground")}>
+                    {complete ? "Complete" : "Missing"}
+                </p>
+            </div>
+            {complete && <CheckCircle className="w-4 h-4 text-green-500" />}
+        </div>
+    );
 }
 
-                import {Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription} from "@/components/ui/dialog";
-                import {Label} from "@/components/ui/label";
-                import {Input} from "@/components/ui/input";
-                import {Checkbox} from "@/components/ui/checkbox";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 
 // ... (Existing code above remains, this is appended helper/components or state integration)
