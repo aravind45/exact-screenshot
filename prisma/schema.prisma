@@ -58,6 +58,12 @@ model Estate {
   iaeaType      String?   @map("iaea_type") // 'FULL', 'LIMITED'
   appointedDate DateTime? @map("appointed_date")
 
+  // Hearing Info
+  hearingDate    DateTime? @map("hearing_date")
+  hearingTime    String?   @map("hearing_time")
+  hearingDept    String?   @map("hearing_dept")
+  hearingAddress String?   @map("hearing_address")
+
   // Probate Tracking
   probateStatus   String  @default("NOT_STARTED") @map("probate_status") // 'NOT_REQUIRED', 'NOT_STARTED', 'FILED', 'EXECUTOR_APPOINTED', 'CLOSED'
   courtCaseNumber String? @map("court_case_number")

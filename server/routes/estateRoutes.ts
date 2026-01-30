@@ -38,9 +38,32 @@ router.put("/my", async (req: any, res: Response) => {
         });
         if (!estate) return res.status(404).json({ error: "Estate not found" });
 
+        // Whitelist allowed fields and parse dates
+        const allowedFields = [
+            'name', 'deceasedFirstName', 'deceasedLastName', 'deceasedDateOfDeath', 'deceasedState',
+            'estateType', 'authorityType', 'authorityStatus', 'certifiedCopies', 'authorityEffectiveDate',
+            'iaeaType', 'appointedDate', 'probateStatus', 'courtCaseNumber', 'probateCounty', 'status',
+            'petitionerPhone', 'petitionerIsAttorney', 'hasWill', 'willDate', 'codicilDates',
+            'estimatedPersonalProperty', 'estimatedRealProperty', 'estimatedAnnualIncome',
+            'bondAmount', 'bondWaived', 'probateNotes', 'hearingDate', 'hearingTime', 'hearingDept', 'hearingAddress'
+        ];
+
+        const updateData: any = {};
+        const dateFields = ['deceasedDateOfDeath', 'deceasedDateOfBirth', 'authorityEffectiveDate', 'appointedDate', 'willDate', 'hearingDate'];
+
+        for (const key of allowedFields) {
+            if (req.body[key] !== undefined) {
+                if (dateFields.includes(key) && req.body[key]) {
+                    updateData[key] = new Date(req.body[key]);
+                } else {
+                    updateData[key] = req.body[key];
+                }
+            }
+        }
+
         const updated = await prisma.estate.update({
             where: { id: estate.id },
-            data: req.body
+            data: updateData
         });
 
         // If status changed to EXECUTOR_APPOINTED, auto-sync assets
