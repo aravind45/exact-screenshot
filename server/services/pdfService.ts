@@ -524,94 +524,142 @@ export const PdfService = {
      * Generates a professional chronological Settlement Trail PDF.
      * Filters for completed actions and adds a fiduciary affirmation.
      */
+    /**
+     * Generates a professional chronological Settlement Trail PDF with multi-page support.
+     */
     async generateActivityLogPdf(estate: any, activities: any[], userName: string) {
         const doc = await PDFDocument.create();
-        const page = doc.addPage([612, 792]); // US Letter
-        const { width, height } = page.getSize();
-
         const fontBold = await doc.embedStandardFont(StandardFonts.HelveticaBold);
         const fontRegular = await doc.embedStandardFont(StandardFonts.Helvetica);
 
         const margin = 50;
-        let cursorY = height - margin;
+        const pageWidth = 612; // US Letter
+        const pageHeight = 792;
+        let page = doc.addPage([pageWidth, pageHeight]);
+        let cursorY = pageHeight - margin;
 
-        const drawText = (text: string, size = 11, font = fontRegular) => {
-            page.drawText(text, { x: margin, y: cursorY, size, font });
+        const addNewPage = () => {
+            page = doc.addPage([pageWidth, pageHeight]);
+            cursorY = pageHeight - margin;
+            // Add page number or header on sub-pages if desired
+            drawText(`(Continued - Page ${doc.getPageCount()})`, 8, fontRegular);
+            cursorY -= 10;
+        };
+
+        const drawText = (text: string, size = 11, font = fontRegular, xOffset = 0) => {
+            if (cursorY < margin + 20) {
+                addNewPage();
+            }
+            page.drawText(text, { x: margin + xOffset, y: cursorY, size, font });
             cursorY -= (size + 5);
         };
 
-        // Header
-        drawText("SETTLEMENT TRAIL: CHRONOLOGICAL FIDUCIARY RECORD", 16, fontBold);
-        cursorY -= 10;
-        drawText(`ESTATE: ${String(estate.deceasedFirstName || 'Unknown')} ${String(estate.deceasedLastName || 'Estate')}`, 12, fontBold);
-        drawText(`EXECUTOR / REPORTER: ${userName || 'Authorized Representative'}`);
+        const drawLine = (thickness = 1, color = rgb(0.8, 0.8, 0.8)) => {
+            page.drawLine({
+                start: { x: margin, y: cursorY + 5 },
+                end: { x: pageWidth - margin, y: cursorY + 5 },
+                thickness,
+                color
+            });
+            cursorY -= 10;
+        };
+
+        // --- Header Section ---
+        drawText("SETTLEMENT TRAIL: OFFICIAL FIDUCIARY RECORD", 16, fontBold);
+        cursorY -= 5;
+        drawText(`ESTATE: ${String(estate.deceasedFirstName || 'Unknown')} ${String(estate.deceasedLastName || 'Estate').toUpperCase()}`, 12, fontBold);
+        drawText(`EXECUTOR: ${userName || 'Authorized Representative'}`);
+        drawText(`JURISDICTION: ${estate.deceasedState || 'N/A'}`);
         drawText(`SYSTEM OF RECORD: ExpectedEstate`);
         drawText(`EXPORTED ON: ${new Date().toLocaleDateString()}`);
         cursorY -= 15;
 
-        // Fiduciary Introduction
+        // --- Summary Section ---
+        drawText("RECORD SUMMARY", 12, fontBold);
+        drawLine(1.5, rgb(0.4, 0.4, 0.4));
+        const completedCount = activities.filter(a => a.action === 'COMPLETED' || a.action === 'PHASE_COMPLETED').length;
+        drawText(`Total Verified Actions: ${activities.length}`, 10);
+        drawText(`Milestones Reached: ${completedCount}`, 10);
+        drawText(`Estate Status: ${estate.probateStatus?.replace(/_/g, ' ') || 'In Progress'}`, 10);
+        cursorY -= 15;
+
+        // --- Introduction ---
         const introLines = [
-            "This log provides a timestamped audit trail of completed fiduciary actions taken during the estate",
-            "settlement process. It is intended to serve as evidence of reasonable care and procedural compliance",
-            "for review by heirs, legal counsel, or the probate court."
+            "This document constitutes a timestamped audit trail of fiduciary actions taken in the administration of",
+            "this estate. Each entry represents a verified completion of a statutory or procedural requirement,",
+            "serving as formal evidence of the executor's reasonable care and diligence."
         ];
-        introLines.forEach(line => drawText(line, 10));
+        introLines.forEach(line => drawText(line, 9));
         cursorY -= 15;
 
-        // Divider
-        page.drawLine({
-            start: { x: margin, y: cursorY + 5 },
-            end: { x: width - margin, y: cursorY + 5 },
-            thickness: 1,
-            color: rgb(0.8, 0.8, 0.8)
-        });
-        cursorY -= 15;
+        // --- Activity Log ---
+        drawText("CHRONOLOGICAL LOG OF ACTIONS", 12, fontBold);
+        drawLine(1, rgb(0.6, 0.6, 0.6));
+        cursorY -= 5;
 
-        // Activities (Sorted Ascending - Earliest First)
-        // Filter for completed items (assumes action starting with "COMPLETED" or logic in route)
+        // Sort Ascending (Earliest First)
         const sorted = [...activities].sort((a, b) =>
             new Date(a.occurredAt).getTime() - new Date(b.occurredAt).getTime()
         );
 
         sorted.forEach((log) => {
-            if (cursorY < 150) { // Leave room for affirmation at bottom
-                // For MVP, we'll keep it to one page, or just draw
-                // (In a full prod app, we'd add pages dynamically)
-            }
+            const dateStr = new Date(log.occurredAt).toLocaleDateString();
+            const timeStr = new Date(log.occurredAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const phaseStr = log.phase ? `${log.phase.replace(/_/g, ' ')}` : 'GENERAL';
 
-            const date = new Date(log.occurredAt).toLocaleDateString();
-            const phaseStr = log.phase ? ` [${log.phase.replace(/_/g, ' ')}] ` : ' ';
-            const entryText = `[${date}]${phaseStr}${log.action}`;
+            // Draw Date/Phase Row
+            drawText(`${dateStr} ${timeStr} | ${phaseStr}`, 9, fontBold);
 
-            drawText(entryText, 10, fontBold);
-            // Notes (handle basic truncation/wrapping for now)
-            if (log.notes) {
-                const noteText = `  Note: ${log.notes}`;
-                drawText(noteText, 9);
-            }
-            cursorY -= 5;
+            // Draw Action Description (Handle basic wrapping logic if needed, but for now single line)
+            const description = log.notes || log.action;
+            drawText(description, 10, fontRegular, 10);
+            cursorY -= 8;
         });
 
-        // Bottom Affirmation (Fixed at bottom if room or new page)
-        if (cursorY < 150) {
-            // If very tight, in a real scenario we'd jump to new page.
-            // For now, let's just draw near bottom.
-        }
-        cursorY = 120;
-
-        drawText("FIDUCIARY AFFIRMATION", 12, fontBold);
-        drawText("I, the undersigned, affirm under penalty of perjury under the laws of the State of", 9);
-        drawText(`${estate.deceasedState || 'the resident state'} that the foregoing record of actions and dates is true and correct to`, 9);
-        drawText("the best of my knowledge and reflects the diligent administration of this estate.", 9);
-
+        // --- Fiduciary Affirmation Section ---
+        // Ensure affirmation is on the same page or at least not cut off
+        if (cursorY < 180) addNewPage();
         cursorY -= 20;
+
+        drawLine(1, rgb(0, 0, 0));
+        drawText("DECLARATION & AFFIRMATION", 12, fontBold);
+        cursorY -= 5;
+
+        const affirmationLines = [
+            "I, the undersigned Fiduciary, hereby declare under penalty of perjury under the laws of the State of",
+            `${estate.deceasedState || 'residence'} that I have reviewed the foregoing Settlement Trail and that it constitutes a true,`,
+            "complete, and accurate record of the actions performed in the administration of this estate to the",
+            "best of my knowledge and belief."
+        ];
+        affirmationLines.forEach(line => drawText(line, 9));
+
+        cursorY -= 30;
         page.drawLine({
             start: { x: margin, y: cursorY },
-            end: { x: margin + 200, y: cursorY },
+            end: { x: margin + 250, y: cursorY },
             thickness: 1
         });
-        cursorY -= 15;
-        drawText("Executor Signature & Date", 9);
+        page.drawLine({
+            start: { x: pageWidth - margin - 150, y: cursorY },
+            end: { x: pageWidth - margin, y: cursorY },
+            thickness: 1
+        });
+
+        cursorY -= 12;
+        page.drawText("Signature of Executor / Administrator", { x: margin, y: cursorY, size: 8, font: fontRegular });
+        page.drawText("Date Signed", { x: pageWidth - margin - 150, y: cursorY, size: 8, font: fontRegular });
+
+        // Footer with Page Numbers
+        const pages = doc.getPages();
+        pages.forEach((p, i) => {
+            p.drawText(`Page ${i + 1} of ${pages.length} - ExpectedEstate Fiduciary Record`, {
+                x: margin,
+                y: 30,
+                size: 8,
+                font: fontRegular,
+                color: rgb(0.5, 0.5, 0.5)
+            });
+        });
 
         return await doc.save();
     }

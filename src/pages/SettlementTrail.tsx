@@ -111,7 +111,7 @@ export default function SettlementTrail() {
                     </header>
 
                     {/* Timeline */}
-                    <div className="space-y-4">
+                    <div className="space-y-8 pb-20">
                         {isLoading ? (
                             <div className="h-40 flex items-center justify-center text-slate-400 font-medium">
                                 Loading chronological history...
@@ -124,80 +124,115 @@ export default function SettlementTrail() {
                                 <p className="text-slate-600 font-bold uppercase text-xs tracking-widest">No matching activities</p>
                             </div>
                         ) : (
-                            <div className="relative border-l-2 border-slate-200 ml-4 pl-8 space-y-8 py-4">
-                                {filteredActivities.map((activity, idx) => {
-                                    const activityType = activity.type || 'ROADMAP';
-                                    const Icon = getActivityIcon(activityType);
-                                    const colorClasses = getActivityColor(activityType);
+                            // Group by date
+                            Object.entries(
+                                filteredActivities.reduce((groups: any, activity) => {
+                                    const dateKey = format(new Date(activity.occurredAt), "yyyy-MM-dd");
+                                    if (!groups[dateKey]) groups[dateKey] = [];
+                                    groups[dateKey].push(activity);
+                                    return groups;
+                                }, {})
+                            ).sort((a: any, b: any) => b[0].localeCompare(a[0])) // Descending dates
+                                .map(([dateKey, groupActivities]: [string, any]) => {
+                                    const groupDate = new Date(dateKey + 'T12:00:00'); // Midday to avoid TZ shifts
+                                    let dateLabel = format(groupDate, "MMMM d, yyyy");
 
-                                    // Better action display
-                                    const getActionDisplay = () => {
-                                        if (activity.notes) return activity.notes;
-                                        if (activity.action === 'COMPLETED') return 'Task Completed';
-                                        if (activity.action === 'UNCOMPLETED') return 'Task Uncompleted';
-                                        if (activity.action === 'PHASE_COMPLETED') return 'Phase Completed';
-                                        if (activity.action === 'UPLOADED') return 'Document Uploaded';
-                                        if (activity.action === 'CREATED') return 'Created';
-                                        if (activity.action === 'UPDATED') return 'Updated';
-                                        if (activity.action === 'DELETED') return 'Deleted';
-                                        return activity.action;
-                                    };
+                                    // Simple relative date labels
+                                    const todayStr = format(new Date(), "yyyy-MM-dd");
+                                    const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
+                                    const yesterdayStr = format(yesterday, "yyyy-MM-dd");
+
+                                    if (dateKey === todayStr) dateLabel = "Today";
+                                    else if (dateKey === yesterdayStr) dateLabel = "Yesterday";
 
                                     return (
-                                        <motion.div
-                                            key={activity.id}
-                                            initial={{ opacity: 0, x: -20 }}
-                                            animate={{ opacity: 1, x: 0 }}
-                                            transition={{ delay: idx * 0.05 }}
-                                            className="relative"
-                                        >
-                                            {/* Timeline Dot */}
-                                            <div className={`absolute -left-[41px] top-1 p-1.5 rounded-full border-2 border-white shadow-sm z-10 ${colorClasses.split(' ')[1]}`}>
-                                                <div className={`w-2 h-2 rounded-full ${colorClasses.split(' ')[0].replace('text-', 'bg-')}`} />
+                                        <div key={dateKey} className="space-y-4">
+                                            <div className="flex items-center gap-4 px-2">
+                                                <div className="h-px flex-1 bg-slate-200" />
+                                                <span className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">
+                                                    {dateLabel}
+                                                </span>
+                                                <div className="h-px flex-1 bg-slate-200" />
                                             </div>
 
-                                            <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-all group relative overflow-hidden hover:border-slate-300">
-                                                {/* Background Accent */}
-                                                <div className={`absolute right-0 top-0 w-32 h-32 opacity-[0.03] -mr-8 -mt-8 rotate-12 pointer-events-none`}>
-                                                    <Icon className="w-32 h-32" />
-                                                </div>
+                                            <div className="relative border-l-2 border-slate-200 ml-4 pl-8 space-y-4">
+                                                {groupActivities.map((activity: any, idx: number) => {
+                                                    const activityType = activity.type || 'ROADMAP';
+                                                    const Icon = getActivityIcon(activityType);
+                                                    const colorClasses = getActivityColor(activityType);
 
-                                                <div className="flex items-start justify-between gap-4">
-                                                    <div className="space-y-3 flex-1 min-w-0">
-                                                        <div className="flex items-center gap-3 flex-wrap">
-                                                            <Badge className={`rounded-lg px-2 py-0.5 text-[10px] font-black uppercase tracking-widest border ${colorClasses}`}>
-                                                                {activity.type}
-                                                            </Badge>
-                                                            <div className="text-[11px] font-bold text-slate-400 flex items-center gap-1.5">
-                                                                <Clock className="w-3 h-3" />
-                                                                {format(new Date(activity.occurredAt), "MMM d, h:mm a")}
+                                                    const getActionDisplay = () => {
+                                                        // High priority for descriptive notes
+                                                        if (activity.notes) {
+                                                            // If it's a generic "Completed: ID", maybe strip it if we have something better?
+                                                            // But usually notes contain the task title as we saw in estateRoutes.ts
+                                                            return activity.notes;
+                                                        }
+
+                                                        const labels: Record<string, string> = {
+                                                            'COMPLETED': 'Task Completed',
+                                                            'PHASE_COMPLETED': 'Phase Completed',
+                                                            'UPLOADED': 'Document Uploaded',
+                                                            'CREATED': 'Entry Created',
+                                                            'UPDATED': 'Entry Updated',
+                                                            'UNCOMPLETED': 'Task Re-opened'
+                                                        };
+                                                        return labels[activity.action] || activity.action;
+                                                    };
+
+                                                    return (
+                                                        <motion.div
+                                                            key={activity.id}
+                                                            initial={{ opacity: 0, x: -10 }}
+                                                            animate={{ opacity: 1, x: 0 }}
+                                                            transition={{ delay: idx * 0.05 }}
+                                                            className="relative"
+                                                        >
+                                                            {/* Timeline Dot */}
+                                                            <div className={`absolute -left-[41px] top-1 p-1.5 rounded-full border-2 border-white shadow-sm z-10 ${colorClasses.split(' ')[1]}`}>
+                                                                <div className={`w-2 h-2 rounded-full ${colorClasses.split(' ')[0].replace('text-', 'bg-')}`} />
                                                             </div>
-                                                        </div>
 
-                                                        <div className="space-y-1.5">
-                                                            <h3 className="font-bold text-slate-900 text-base leading-tight group-hover:text-primary transition-colors">
-                                                                {getActionDisplay()}
-                                                            </h3>
-                                                            {activity.phase && (
-                                                                <p className="text-xs text-slate-500 font-medium flex items-center gap-1.5">
-                                                                    <MapPin className="w-3 h-3" />
-                                                                    Phase: {activity.phase.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                                                                </p>
-                                                            )}
-                                                        </div>
-                                                    </div>
+                                                            <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm hover:shadow-md transition-all group relative overflow-hidden hover:border-slate-300">
+                                                                <div className="flex items-start justify-between gap-4">
+                                                                    <div className="space-y-2 flex-1 min-w-0">
+                                                                        <div className="flex items-center gap-3 flex-wrap">
+                                                                            <Badge className={`rounded-lg px-2 py-0.5 text-[10px] font-black uppercase tracking-widest border ${colorClasses}`}>
+                                                                                {activityType}
+                                                                            </Badge>
+                                                                            <div className="text-[10px] font-bold text-slate-400 flex items-center gap-1.5">
+                                                                                <Clock className="w-3 h-3" />
+                                                                                {format(new Date(activity.occurredAt), "h:mm a")}
+                                                                            </div>
+                                                                        </div>
 
-                                                    <div className="flex-shrink-0">
-                                                        <div className={`p-3 rounded-xl ${colorClasses.split(' ')[1]} group-hover:scale-110 transition-transform`}>
-                                                            <Icon className={`w-5 h-5 ${colorClasses.split(' ')[0]}`} />
-                                                        </div>
-                                                    </div>
-                                                </div>
+                                                                        <div className="space-y-1">
+                                                                            <h3 className="font-bold text-slate-900 text-[15px] leading-tight group-hover:text-primary transition-colors">
+                                                                                {getActionDisplay()}
+                                                                            </h3>
+                                                                            {activity.phase && (
+                                                                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
+                                                                                    <MapPin className="w-2.5 h-2.5" />
+                                                                                    {activity.phase.replace(/_/g, ' ')}
+                                                                                </p>
+                                                                            )}
+                                                                        </div>
+                                                                    </div>
+
+                                                                    <div className="flex-shrink-0">
+                                                                        <div className={`p-2.5 rounded-xl ${colorClasses.split(' ')[1]} group-hover:scale-110 transition-transform`}>
+                                                                            <Icon className={`w-4 h-4 ${colorClasses.split(' ')[0]}`} />
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </motion.div>
+                                                    );
+                                                })}
                                             </div>
-                                        </motion.div>
+                                        </div>
                                     );
-                                })}
-                            </div>
+                                })
                         )}
                     </div>
                 </div>

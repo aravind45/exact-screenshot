@@ -27,7 +27,7 @@ export default function SettlementRoadmapNew() {
     }
   });
 
-  const handleTaskToggle = (taskId: string, completed: boolean) => {
+  const handleTaskToggle = (taskId: string, completed: boolean, taskTitle: string, phaseName: string) => {
     const currentCompleted = estate?.roadmapProgress?.completedTaskIds || [];
     const currentPhases = estate?.roadmapProgress?.completedPhases || [];
 
@@ -39,7 +39,9 @@ export default function SettlementRoadmapNew() {
       completedTaskIds: newCompletedIds,
       completedPhases: currentPhases,
       taskId,
-      action: completed ? 'COMPLETED' : 'UNCOMPLETED'
+      action: completed ? 'COMPLETED' : 'UNCOMPLETED',
+      taskTitle,
+      phaseName
     });
   };
 

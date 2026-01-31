@@ -33,7 +33,7 @@ import { DOCUMENT_REGISTRY, findCanonicalDoc } from "@/config/documents";
 import { FileUp, FileText, CheckCircle2, Download, Trash2, Loader2 as Spinner, Eye } from "lucide-react";
 
 interface CollapsiblePhaseChevronProps {
-  onTaskToggle: (taskId: string, completed: boolean) => void;
+  onTaskToggle: (taskId: string, completed: boolean, taskTitle: string, phaseName: string) => void;
 }
 
 export function CollapsiblePhaseChevron({ onTaskToggle }: CollapsiblePhaseChevronProps) {
@@ -293,7 +293,7 @@ export function CollapsiblePhaseChevron({ onTaskToggle }: CollapsiblePhaseChevro
                           {/* Checkbox */}
                           <Checkbox
                             checked={isTaskCompleted}
-                            onCheckedChange={(checked) => onTaskToggle(task.id, !!checked)}
+                            onCheckedChange={(checked) => onTaskToggle(task.id, !!checked, task.title, phaseData.title)}
                             className="mt-0.5"
                           />
 
