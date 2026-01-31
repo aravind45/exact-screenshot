@@ -42,6 +42,7 @@ const UPC_RULES: PriorityRule[] = [
 export const UPCPrioritySystem: StatePrioritySystem = {
     stateCode: "UPC",
     rules: UPC_RULES,
+    creditorNoticePeriodDays: 120, // 4 months standard UPC
 
     isValidPayment: (currentLiabilityClass, openLiabilities, authorityType) => {
         const currentRule = UPC_RULES.find(r => r.classId === currentLiabilityClass);

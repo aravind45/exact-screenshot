@@ -556,4 +556,23 @@ router.post("/:estateId/deadlines/generate", async (req: any, res: Response) => 
     }
 });
 
+import { DossierService } from "../services/dossierService.js";
+
+router.get("/my/dossier/download", async (req: any, res: Response) => {
+    try {
+        const estate = await prisma.estate.findFirst({ where: { userId: req.user.id } });
+        if (!estate) return res.status(404).json({ error: "Estate not found" });
+
+        const data = await DossierService.generateDossierData(estate.id);
+        const report = DossierService.formatComplianceSummary(data);
+
+        res.setHeader('Content-Type', 'text/plain');
+        res.setHeader('Content-Disposition', `attachment; filename=Compliance_Dossier_${estate.deceasedLastName}.txt`);
+        res.send(report);
+    } catch (e: any) {
+        console.error("Dossier generation error:", e);
+        res.status(500).json({ error: "Failed to generate compliance dossier" });
+    }
+});
+
 export default router;

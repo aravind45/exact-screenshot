@@ -54,6 +54,7 @@ const FL_RULES: PriorityRule[] = [
 export const FloridaPrioritySystem: StatePrioritySystem = {
     stateCode: "FL",
     rules: FL_RULES,
+    creditorNoticePeriodDays: 90, // Florida notice period is 3 months (90 days)
 
     isValidPayment: (currentLiabilityClass, openLiabilities, authorityType) => {
         const currentRule = FL_RULES.find(r => r.classId === currentLiabilityClass);

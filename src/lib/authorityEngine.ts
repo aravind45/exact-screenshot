@@ -29,6 +29,7 @@ export interface AuthorityRecommendation {
     isEligibleForSmallEstate: boolean;
     reason: string;
     legalTerm?: string;
+    citations?: string[];
 }
 
 export function calculateAuthorityRecommendation(
@@ -47,6 +48,7 @@ export function calculateAuthorityRecommendation(
     let type: AuthorityType = "UNSET";
     let reason = "";
     let legalTerm = "";
+    let citations: string[] = [];
 
     if (assets.length === 0) {
         type = "UNSET";
@@ -55,14 +57,17 @@ export function calculateAuthorityRecommendation(
         type = "ANCILLARY_PROBATE";
         reason = "Property located in another state requires Ancillary Probate.";
         legalTerm = "Ancillary Administration";
+        citations = ["CA Prob. Code §12501", "Uniform Probate Code §IV"];
     } else if (metadata?.isSpouse && probateTotal > 0) {
         type = "SPOUSAL_PETITION";
         reason = "As a surviving spouse, you may be eligible for a Spousal Property Petition, which is faster than full probate.";
         legalTerm = state === "CA" ? "DE-221 Spousal Property Petition" : "Spousal Set-Aside";
+        citations = state === "CA" ? ["CA Prob. Code §13500"] : ["State Spousal Set-Aside Statute"];
     } else if (probateAssets.length === 0 && trustAssets.length > 0) {
         type = "TRUST_ADMIN";
         reason = "Assets are held in Trust. No court probate required; proceed with Trust Administration.";
         legalTerm = "Trust Administration";
+        citations = ["Uniform Trust Code", "State Trust Statute"];
     } else if (probateAssets.length === 0) {
         const hasJoint = assets.some(a => a.ownershipType === "JOINT");
         type = hasJoint ? "JOINT_TRANSFER" : "POD_TOD_TRANSFER";
@@ -70,23 +75,28 @@ export function calculateAuthorityRecommendation(
             ? "Assets pass automatically to the surviving joint owner."
             : "Assets pass directly to named beneficiaries via POD/TOD designations.";
         legalTerm = "Non-Probate Transfer";
+        citations = ["Right of Survivorship Laws"];
     } else if (isEligibleForSmallEstate) {
         if (state === "FL") {
             type = "SUMMARY_ADMINISTRATION";
             reason = `Florida Summary Administration is available for estates under $75,000.`;
             legalTerm = "FL Statute 735.201 Summary Administration";
+            citations = ["FL Stat. §735.201"];
         } else if (state === "NY") {
             type = "VOLUNTARY_ADMINISTRATION";
             reason = `New York Voluntary Administration is available for estates under $50,000.`;
             legalTerm = "NY SCPA Article 13 Small Estate";
+            citations = ["NY SCPA Article 13"];
         } else if (state === "TX") {
             type = "SMALL_ESTATE";
             reason = `Texas Small Estate Affidavit is available for estates under $75,000 without a complex will.`;
             legalTerm = "TX Estates Code 205 Small Estate Affidavit";
+            citations = ["TX Estates Code §205"];
         } else {
             type = "SMALL_ESTATE";
             reason = `Probate assets ($${probateTotal.toLocaleString()}) are below the ${state} threshold. You can likely use a Small Estate Affidavit.`;
             legalTerm = state === "CA" ? "CA Prob. Code 13100 Affidavit" : "Small Estate Affidavit";
+            citations = state === "CA" ? ["CA Prob. Code §13100"] : ["Uniform Probate Code §III"];
         }
     } else {
         type = metadata?.hasWill === false ? "INTESTATE" : "FORMAL_PROBATE";
@@ -96,6 +106,7 @@ export function calculateAuthorityRecommendation(
             ? `No Will found and assets exceed the ${state} threshold. Formal Intestate Succession is required.`
             : `Assets exceed the ${state} threshold ($${threshold.toLocaleString()}). ${stateTerm} is required.`;
         legalTerm = metadata?.hasWill === false ? "Intestate Administration" : stateTerm;
+        citations = state === "CA" ? ["CA Prob. Code §7000"] : ["Uniform Probate Code §III"];
     }
 
     return {
@@ -104,7 +115,8 @@ export function calculateAuthorityRecommendation(
         probateTotal,
         isEligibleForSmallEstate,
         reason,
-        legalTerm
+        legalTerm,
+        citations
     };
 }
 

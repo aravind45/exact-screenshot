@@ -52,4 +52,11 @@ export class PriorityService {
     static getPriorityOptions(state: string) {
         return PriorityFactory.getAllRules(state);
     }
+
+    /**
+     * Get the priority system for a state
+     */
+    static getPrioritySystem(state: string) {
+        return PriorityFactory.getSystem(state);
+    }
 }

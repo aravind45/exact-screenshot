@@ -36,6 +36,7 @@ const NY_RULES: PriorityRule[] = [
 export const NewYorkPrioritySystem: StatePrioritySystem = {
     stateCode: "NY",
     rules: NY_RULES,
+    creditorNoticePeriodDays: 210, // New York notice period is 7 months (210 days - SCPA 1802)
 
     isValidPayment: (currentLiabilityClass, openLiabilities, authorityType) => {
         const currentRule = NY_RULES.find(r => r.classId === currentLiabilityClass);

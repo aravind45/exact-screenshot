@@ -17,6 +17,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
+import { UserManagement } from "@/components/UserManagement";
 
 export default function Settings() {
     const queryClient = useQueryClient();
@@ -26,7 +27,7 @@ export default function Settings() {
 
     // General Estate Form
     const updateEstateMutation = useMutation({
-        mutationFn: (data: any) => api.updateEstate(estate.id, data),
+        mutationFn: (data: any) => api.updateMyEstate(data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["estate"] });
             toast.success("Estate details updated");
@@ -215,48 +216,34 @@ export default function Settings() {
                         </TabsContent>
 
                         {/* Team Tab */}
-                        <TabsContent value="team">
+                        <TabsContent value="team" className="space-y-6">
                             <Card>
                                 <CardHeader>
-                                    <CardTitle>Legal Team & Executor</CardTitle>
+                                    <CardTitle>Case Executor</CardTitle>
                                     <CardDescription>
-                                        Contact info used for the bottom of court forms.
+                                        The primary person responsible for this estate.
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent>
-                                    <div className="space-y-6">
-                                        <div className="p-4 bg-slate-50 rounded-lg border">
-                                            <h3 className="font-bold flex items-center gap-2 mb-2">
-                                                <User className="w-4 h-4" /> Executor / Petitioner
-                                            </h3>
-                                            <div className="grid grid-cols-2 gap-4 text-sm">
-                                                <div>
-                                                    <span className="text-slate-500 block">Name</span>
-                                                    {user?.fullName || "Not set"}
-                                                </div>
-                                                <div>
-                                                    <span className="text-slate-500 block">Email</span>
-                                                    {user?.email}
-                                                </div>
-                                                <div className="col-span-2">
-                                                    <span className="text-slate-500 block">Address</span>
-                                                    {user?.streetAddress ? `${user.streetAddress}, ${user.city}, ${user.state} ${user.zipCode}` : "Not set (Go to Profile to edit)"}
-                                                </div>
+                                    <div className="p-4 bg-slate-50 rounded-lg border">
+                                        <h3 className="font-bold flex items-center gap-2 mb-2">
+                                            <User className="w-4 h-4 text-indigo-600" /> Primary Petitioner
+                                        </h3>
+                                        <div className="grid grid-cols-2 gap-4 text-sm">
+                                            <div>
+                                                <span className="text-slate-500 block">Name</span>
+                                                {user?.fullName || "Not set"}
                                             </div>
-                                        </div>
-
-                                        <div className="p-4 bg-slate-50 rounded-lg border opacity-50 cursor-not-allowed">
-                                            <h3 className="font-bold flex items-center gap-2 mb-2">
-                                                <Gavel className="w-4 h-4" /> Attorney (Pro Per)
-                                            </h3>
-                                            <p className="text-sm text-slate-500">
-                                                Currently operating as "Pro Per" (Self-Represented).
-                                                Attorney management coming soon.
-                                            </p>
+                                            <div>
+                                                <span className="text-slate-500 block">Email</span>
+                                                {user?.email}
+                                            </div>
                                         </div>
                                     </div>
                                 </CardContent>
                             </Card>
+
+                            <UserManagement estateId={estate.id} />
                         </TabsContent>
                     </Tabs>
                 </div>

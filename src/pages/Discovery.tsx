@@ -79,10 +79,10 @@ export default function Discovery() {
                     <div>
                         <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
                             <Sparkles className="w-8 h-8 text-amber-500" />
-                            Asset Detective
+                            Discovery Assistant
                         </h1>
                         <p className="text-slate-500 mt-1">
-                            Upload tax returns, bank statements, or wills. Our AI will scan them for lost accounts.
+                            Analyzes provided documents to suggest potential accounts for your review and systematic ledger entry.
                         </p>
                     </div>
 
@@ -111,7 +111,7 @@ export default function Discovery() {
                                     Drag & Drop Documents
                                 </h3>
                                 <p className="text-slate-400 max-w-sm mx-auto mb-6">
-                                    Support for PDF and Images. We extract institution names and values automatically.
+                                    Support for PDF and Images. Assists in identifying potentially relevant data for your review.
                                 </p>
                                 <Button className="bg-indigo-600 hover:bg-indigo-700">
                                     Or Click to Upload
@@ -135,7 +135,7 @@ export default function Discovery() {
                         <div className="space-y-4 animate-in slide-in-from-bottom-8">
                             <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
                                 <CheckCircle2 className="w-5 h-5 text-green-500" />
-                                Discovered Assets ({findings.length})
+                                Potential Findings ({findings.length})
                             </h2>
 
                             <div className="grid grid-cols-1 gap-4">

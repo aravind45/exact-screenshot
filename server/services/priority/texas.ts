@@ -48,6 +48,7 @@ const TX_RULES: PriorityRule[] = [
 export const TexasPrioritySystem: StatePrioritySystem = {
     stateCode: "TX",
     rules: TX_RULES,
+    creditorNoticePeriodDays: 120, // Texas notice period is 4 months (120 days)
 
     isValidPayment: (currentLiabilityClass, openLiabilities, authorityType) => {
         const currentRule = TX_RULES.find(r => r.classId === currentLiabilityClass);

@@ -20,6 +20,7 @@ router.post("/invitations", async (req: any, res: Response) => {
     }
 });
 
+
 // Accept an invitation
 router.post("/invitations/accept", async (req: any, res: Response) => {
     try {

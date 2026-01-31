@@ -42,9 +42,14 @@ router.get("/priority-options", async (req: any, res: Response) => {
 
         // Default to CA if state is missing
         const state = estate?.deceasedState || "CA";
+        const system = PriorityService.getPrioritySystem(state);
         const options = PriorityService.getPriorityOptions(state);
 
-        res.json({ state, options });
+        res.json({
+            state,
+            options,
+            creditorNoticePeriodDays: system.creditorNoticePeriodDays
+        });
     } catch (e: any) {
         res.status(500).json({ error: e.message });
     }

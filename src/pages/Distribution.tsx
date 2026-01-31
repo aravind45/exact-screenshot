@@ -4,16 +4,19 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import { Banknote, Users, Scale, FileText, ArrowRight } from "lucide-react";
+import { Banknote, Users, Scale, FileText, ArrowRight, Download, ShieldAlert, FileSearch } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+import { useWorkflow } from "@/contexts/WorkflowContext";
+import { RiskBanner } from "@/components/RiskBanner";
 
 export default function Distribution() {
     const queryClient = useQueryClient();
+    const { assets, legalRisks } = useWorkflow();
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
-    const { data: estate } = useQuery({ queryKey: ["estate"], queryFn: api.getMyEstate });
-    const { data: assets = [] } = useQuery({ queryKey: ["assets"], queryFn: api.getAssets });
+    const hasCriticalRisk = legalRisks.some(r => r.level === 'CRITICAL');
+
     const { data: heirs = [] } = useQuery({
         queryKey: ["heirs"], queryFn: async () => {
             // Mocking heirs fetch since api.getHeirs might not exist yet, 
@@ -49,6 +52,8 @@ export default function Distribution() {
                             Calculate fees, assign assets, and close the estate.
                         </p>
                     </div>
+
+                    <RiskBanner />
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         {/* 1. Value Summary */}
@@ -117,12 +122,55 @@ export default function Distribution() {
 
                             <Button
                                 size="lg"
-                                className="w-full bg-indigo-600 hover:bg-indigo-700"
-                                onClick={() => generatePdfMutation.mutate()}
+                                className={`w-full ${hasCriticalRisk ? 'bg-slate-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'}`}
+                                onClick={() => !hasCriticalRisk && generatePdfMutation.mutate()}
+                                disabled={hasCriticalRisk}
                             >
-                                <FileText className="w-5 h-5 mr-2" />
-                                Generate Final Petition (DE-310)
+                                {hasCriticalRisk ? (
+                                    <>
+                                        <ShieldAlert className="w-5 h-5 mr-2" />
+                                        Distribution Locked (See Alerts)
+                                    </>
+                                ) : (
+                                    <>
+                                        <FileText className="w-5 h-5 mr-2" />
+                                        Generate Final Petition (DE-310)
+                                    </>
+                                )}
                             </Button>
+
+                            <div className="pt-4 border-t border-slate-200 mt-4">
+                                <h3 className="text-sm font-bold text-slate-900 mb-2 flex items-center gap-2">
+                                    <FileSearch className="w-4 h-4 text-slate-400" />
+                                    Endgame Proof
+                                </h3>
+                                <p className="text-xs text-slate-500 mb-4">
+                                    Generate a court-ready Compliance Dossier containing all asset logs, creditor notices, and communication history.
+                                </p>
+                                <Button
+                                    variant="outline"
+                                    className="w-full border-indigo-200 text-indigo-700 hover:bg-indigo-50"
+                                    onClick={async () => {
+                                        try {
+                                            toast.info("Generating Final Estate Dossier...");
+                                            const blob = await api.downloadDossier();
+                                            const url = window.URL.createObjectURL(blob);
+                                            const a = document.createElement('a');
+                                            a.href = url;
+                                            a.download = `Compliance_Dossier_Final.txt`;
+                                            document.body.appendChild(a);
+                                            a.click();
+                                            window.URL.revokeObjectURL(url);
+                                            toast.success("Dossier downloaded successfully");
+                                        } catch (err) {
+                                            toast.error("Failed to download dossier");
+                                        }
+                                    }}
+                                >
+                                    <Download className="w-4 h-4 mr-2" />
+                                    Download Compliance Dossier
+                                </Button>
+                            </div>
                         </div>
 
                         {/* Right: PDF Preview */}

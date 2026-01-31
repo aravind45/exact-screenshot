@@ -12,10 +12,20 @@ import { calculateAssetPhase, getAssetsByPhase, type AssetPhaseStatus } from '@/
 import { getPhaseLocksStatus, type PhaseLockStatus } from '@/lib/phaseLock';
 import type { SettlementPhase } from '@/components/SettlementPhaseChevron';
 
-interface PhaseProgress {
+export interface PhaseProgress {
   completed: number;
   total: number;
   percentage: number;
+}
+
+export type LegalRiskLevel = 'INFO' | 'WARNING' | 'CRITICAL';
+
+export interface LegalRisk {
+  id: string;
+  level: LegalRiskLevel;
+  title: string;
+  description: string;
+  mitigation?: string;
 }
 
 interface WorkflowContextValue {
@@ -27,6 +37,9 @@ interface WorkflowContextValue {
   phaseProgress: Record<SettlementPhase, PhaseProgress>;
   completedTaskIds: string[];
   completedPhases: SettlementPhase[];
+  legalRisks: LegalRisk[];
+  assets: any[];
+  liabilities: any[];
 }
 
 const WorkflowContext = createContext<WorkflowContextValue | null>(null);
@@ -44,10 +57,20 @@ export function WorkflowProvider({ children }: { children: ReactNode }) {
     queryFn: api.getAssets
   });
 
+  const { data: liabilities = [] } = useQuery({
+    queryKey: ['liabilities'],
+    queryFn: api.getLiabilities
+  });
+
   const { data: documents = [] } = useQuery({
     queryKey: ['estate', 'documents'],
     queryFn: api.getEstateDocuments,
     enabled: !!estate
+  });
+
+  const { data: stateConfig } = useQuery({
+    queryKey: ['liabilities', 'priority-options'],
+    queryFn: api.getPriorityOptions
   });
 
   // Calculate asset distribution by phase
@@ -83,6 +106,66 @@ export function WorkflowProvider({ children }: { children: ReactNode }) {
     final_distribution: calculateProgress('final_distribution', completedTaskIds)
   };
 
+  // Calculate Legal Risks
+  const legalRisks: LegalRisk[] = [];
+  const totalAssets = assets.reduce((sum: number, a: any) => sum + (a.value || 0), 0);
+  const totalDebt = liabilities.reduce((sum: number, l: any) => sum + Number(l.amount), 0);
+
+  // 1. Insolvency Risk
+  if (totalDebt > totalAssets && totalAssets > 0) {
+    legalRisks.push({
+      id: 'insolvency',
+      level: 'CRITICAL',
+      title: 'Estate is Insolvent',
+      description: 'Total liabilities exceed total assets. You are legally required to follow statutory priority order for payments exactly to avoid personal liability.',
+      mitigation: 'Consult an attorney before making ANY payments.'
+    });
+  }
+
+  // 2. Premature Distribution Risk
+  const noticePublished = completedTaskIds.includes('court_filing_publish_notice');
+  const noticePeriodDays = stateConfig?.creditorNoticePeriodDays || 120;
+  const noticePeriodMs = noticePeriodDays * 24 * 60 * 60 * 1000;
+
+  const noticeDate = estate?.dateOfNoticePublication;
+  const periodExpired = noticeDate && (new Date().getTime() - new Date(noticeDate).getTime()) > noticePeriodMs;
+
+  if (completedPhases.includes('final_distribution') && !periodExpired) {
+    legalRisks.push({
+      id: 'early_distribution',
+      level: 'CRITICAL',
+      title: 'Premature Distribution Risk',
+      description: `The statutory ${Math.round(noticePeriodDays / 30)}-month (${noticePeriodDays} days) creditor notice period for ${stateConfig?.state || 'the state'} has not yet expired. Distributing assets now exposes you to personal liability and violates fundamental fiduciary requirements.`,
+      mitigation: 'Wait for the notice period to expire before final distribution.'
+    });
+  }
+
+  // 3. Priority Violation Risk
+  // We determine "High Priority" as anything ranked significantly higher than "General Debts" (usually the last rank)
+  const priorityOptions = stateConfig?.options || [];
+  const generalRule = priorityOptions.find((o: any) => o.classId.includes('GENERAL'));
+  const generalRank = generalRule ? generalRule.rank : 999;
+
+  const highPriorityUnpaid = liabilities.some((l: any) => {
+    const rule = priorityOptions.find((o: any) => o.classId === l.priorityClass);
+    return rule && rule.rank < generalRank && l.status !== 'PAID';
+  });
+
+  const lowPriorityPaid = liabilities.some((l: any) => {
+    const rule = priorityOptions.find((o: any) => o.classId === l.priorityClass);
+    return rule && rule.rank >= generalRank && l.status === 'PAID';
+  });
+
+  if (highPriorityUnpaid && lowPriorityPaid) {
+    legalRisks.push({
+      id: 'priority_violation',
+      level: 'CRITICAL',
+      title: 'Statutory Priority Violation',
+      description: `Higher priority claims (Rank < ${generalRank}) remain unpaid while lower priority debts have been settled. In ${stateConfig?.state || 'this state'}, this is a breach of fiduciary duty.`,
+      mitigation: 'Stop all payments and re-verify project priority according to state law.'
+    });
+  }
+
   // Auto-set current phase based on progress
   useEffect(() => {
     if (completedPhases.includes('immediate_actions') && !completedPhases.includes('court_filing')) {
@@ -107,7 +190,10 @@ export function WorkflowProvider({ children }: { children: ReactNode }) {
       probateBlockers,
       phaseProgress,
       completedTaskIds,
-      completedPhases
+      completedPhases,
+      legalRisks,
+      assets,
+      liabilities
     }}>
       {children}
     </WorkflowContext.Provider>

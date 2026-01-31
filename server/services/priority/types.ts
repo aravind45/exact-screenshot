@@ -19,6 +19,7 @@ export interface PaymentEligibility {
 export interface StatePrioritySystem {
     stateCode: string;
     rules: PriorityRule[];
+    creditorNoticePeriodDays: number;
     isValidPayment: (
         currentLiabilityClass: string,
         openLiabilities: { id: string; name: string; amount: number; priorityClass: string }[],

@@ -556,6 +556,13 @@ export const api = {
         return parseResponse(response);
     },
 
+    getHeirs: async () => {
+        const response = await fetch(`${API_URL}/estates/my/heirs`, {
+            headers: getHeaders(),
+        });
+        return parseResponse(response);
+    },
+
     getAgentInsights: async () => {
         const response = await fetch(`${API_URL}/agent/insights`, {
             headers: getHeaders(),
@@ -793,6 +800,15 @@ export const api = {
         return parseResponse(response);
     },
 
+    downloadDossier: async () => {
+        const response = await fetch(`${API_URL}/estates/my/dossier/download`, {
+            headers: getHeaders(),
+        });
+        if (!response.ok) throw new Error("Failed to generate dossier");
+        return await response.blob();
+    },
+
+
     post: async (path: string, body: any) => {
         const response = await fetch(`${API_URL}${path}`, {
             method: "POST",
@@ -845,7 +861,7 @@ export const api = {
     },
 
     inviteCollaborator: async (data: { estateId: string, email: string, role: string }) => {
-        const response = await fetch(`${API_URL}/collaboration/invite`, {
+        const response = await fetch(`${API_URL}/collaboration/invitations`, {
             method: "POST",
             headers: getHeaders(),
             body: JSON.stringify(data),
@@ -854,7 +870,7 @@ export const api = {
     },
 
     getCollaborators: async (estateId: string) => {
-        const response = await fetch(`${API_URL}/collaboration/estates/${estateId}/collaborators`, {
+        const response = await fetch(`${API_URL}/collaboration/${estateId}/collaborators`, {
             headers: getHeaders(),
         });
         return parseResponse(response);

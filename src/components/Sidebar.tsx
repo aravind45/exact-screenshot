@@ -81,7 +81,7 @@ export function Sidebar() {
         {
             title: "Records",
             items: [
-                { label: "Asset Detective", icon: Search, path: "/discovery" },
+                { label: "Discovery Assistant", icon: Search, path: "/discovery" },
                 { label: "Document Vault", icon: Inbox, path: "/documents" },
                 { label: "Settlement Trail", icon: History, path: "/settlement-trail" },
                 { label: "Follow-Ups", icon: Bell, path: "/follow-ups" },

@@ -14,6 +14,7 @@ const CA_RULES: PriorityRule[] = [
 export const CaliforniaPrioritySystem: StatePrioritySystem = {
     stateCode: "CA",
     rules: CA_RULES,
+    creditorNoticePeriodDays: 120, // 4 months
 
     isValidPayment: (currentLiabilityClass, openLiabilities, authorityType) => {
         // Find the rank of the current liability we want to pay

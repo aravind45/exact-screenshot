@@ -1,6 +1,7 @@
 import { Sidebar } from "@/components/Sidebar";
 import { CollapsiblePhaseChevron } from "@/components/CollapsiblePhaseChevron";
 import { ProbateBlockerAlert } from "@/components/ProbateBlockerAlert";
+import { RiskBanner, AuthorityDecisionGuide } from "@/components/RiskBanner";
 import { useWorkflow } from "@/contexts/WorkflowContext";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
@@ -8,10 +9,11 @@ import { Badge } from "@/components/ui/badge";
 import { Clock, CheckCircle } from "lucide-react";
 import { SettlementPhaseChevron } from "@/components/SettlementPhaseChevron";
 import { type SettlementPhase } from "@/components/SettlementPhaseChevron";
+import { calculateAuthorityRecommendation } from "@/lib/authorityEngine";
 
 export default function SettlementRoadmapNew() {
   const queryClient = useQueryClient();
-  const { phaseProgress, probateBlockers, currentPhase, completedPhases } = useWorkflow();
+  const { phaseProgress, probateBlockers, currentPhase, completedPhases, assets } = useWorkflow();
 
   const { data: estate } = useQuery({
     queryKey: ['estate'],
@@ -94,9 +96,27 @@ export default function SettlementRoadmapNew() {
 
         {/* Main Content */}
         <main className="max-w-[1000px] w-full mx-auto px-8 py-10 space-y-8">
+          {/* Risk Signaling */}
+          <RiskBanner />
+
           {/* Probate Blocker Alert */}
           {probateBlockers.length > 0 && (
             <ProbateBlockerAlert />
+          )}
+
+          {/* Authority Scout Explanation */}
+          {estate && (
+            <AuthorityDecisionGuide
+              recommendation={calculateAuthorityRecommendation(
+                assets,
+                estate.deceasedState || "CA",
+                {
+                  hasWill: estate.hasWill,
+                  isSpouse: estate.isSpouse,
+                  isOutOfState: estate.isOutOfState
+                }
+              )}
+            />
           )}
 
           {/* Horizontal Phase Progress */}
@@ -114,7 +134,7 @@ export default function SettlementRoadmapNew() {
               <div>
                 <h3 className="text-sm font-bold text-indigo-900 mb-0.5">How This Roadmap Works</h3>
                 <p className="text-xs text-indigo-800/80 mb-2">
-                  12-18 month guide to estate settlement. Click phases to expand/collapse.
+                  Workflow designed to build a defensible record of reasonable care and meet fiduciary duty over 12-18 months.
                 </p>
                 <div className="flex flex-wrap gap-1.5">
                   <Badge variant="secondary" className="bg-white/50 text-indigo-700 border-indigo-200 text-[9px] h-5">
