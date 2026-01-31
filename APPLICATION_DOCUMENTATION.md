@@ -42,10 +42,10 @@ The Roadmap is a deterministic workflow assistant designed to help executors doc
     *   Attend probate hearing.
     *   Receive **Letters Testamentary (DE-150)**.
 3.  **Phase 3: Asset Discovery**
-    *   Freeze financial accounts.
-    *   Obtain Date-of-Death (DOD) values.
-    *   Hire Probate Referee for appraisals.
-    *   File **Inventory & Appraisal (DE-160)**.
+    *   **Systematic Inventory**: Review all state-specific asset classes (Real Property, Digital, etc.).
+    *   **Discovery Verification**: Obtain Date-of-Death (DOD) values for all leads.
+    *   **Evidence Collection**: Log negative findings ("Searched but not found") for court protection.
+    *   **I&A Filing**: File **Inventory & Appraisal (DE-160)** based on the verified ledger.
 4.  **Phase 4: Creditor Claims**
     *   Wait for 4-month claim period.
     *   Review, approve, or reject claims.
@@ -64,14 +64,20 @@ The Roadmap is a deterministic workflow assistant designed to help executors doc
 
 ## 3. Assisted Discovery Service
 
-ExpectedEstate uses deterministic document intelligence to assist executors in identifying potential assets within provided paperwork.
+ExpectedEstate provides a systematic framework for asset discovery, replacing "AI magic" with a legally defensible process of reasonable diligence.
 
-### Manual Asset Management:
-*   Add asset details: Type, Institution, Account Number, Value.
-*   Track per-asset status: Discovered → Contacted → Documents Submitted → In Review → Approved → Distributed.
-*   **Asset Detail Page**: View specific forms, communication logs, and checklists for each asset.
+### Asset Coverage Matrix:
+To ensure no stones are left unturned, the system mandates a review of key asset classes:
+*   **Bank & Investment Accounts**: Checking, Savings, Brokerage, IRAs.
+*   **Employer Benefits**: Final paycheck, stock plans, group life insurance.
+*   **Digital Assets**: Cryptocurrency, PayPal/Venmo, social media monetization.
+*   **Real & Personal Property**: Homes, vehicles, jewelry, art.
+*   **Unclaimed Property**: Verification against state-specific registries.
 
-### Discovery Assistance Flow:
+### Negative Assurance Logs:
+The platform allows executors to record **Negative Findings**. If a bank search yields nothing, the executor logs a specific statement (e.g., "Searched physical files/tax returns; no evidence of cryptocurrency found.") which is then included in the final report to prove a diligent search was conducted.
+
+### Discovery Assistance Helper:
 1.  **Upload**: User drags and drops tax returns, bank statements, or old mail.
 2.  **Analysis**: Assists in extracting text and using deterministic patterns to find potential institution names and values.
 3.  **Potential Findings**: User reviews potential leads with a "Confidence Score" and source text citations.
@@ -126,13 +132,15 @@ This module solves the "14-day institutional black hole" by tracking every inter
 
 When the estate is closed, the executor needs proof of their faithful service.
 
-### Dossier Functionality:
+### Report Functionality:
 *   **One-Click Export**: Available on the Distribution page.
-*   **Audit Trail**: Generates a court-ready text/PDF report containing:
-    *   Full Asset Ledger (Inventory vs. Final Value).
-    *   Creditor Claims Log (Filed, Allowed, Paid with Priority Class).
-    *   Fiduciary Activity Log (Timestamped record of every uploaded document, logged call, and decision).
-*   **Defensibility**: Designed to be handed to beneficiaries or judges if questions arise years later.
+*   **Log of Reasonable Care**: Generates a court-ready text/PDF report containing:
+    *   **Asset Coverage Matrix**: Checklist status of all asset classes reviewed.
+    *   **Negative Assurance Log**: List of categories searched where no assets were found.
+    *   **Inventory Ledger**: Final values vs. Date-of-Death values.
+    *   **Creditor Claims Log**: Filed, Allowed, Paid with Priority Class.
+    *   **Fiduciary Activity Log**: Timestamped record of every action, call, and decision.
+*   **Defensibility**: Provides evidence of diligent search to mitigate liability for omitted assets.
 
 ---
 
@@ -160,12 +168,30 @@ ExpectedEstate is built for team collaboration, allowing the executor to invite 
 
 ---
 
-## Trust, Limits, and Legal Boundaries
+---
 
-ExpectedEstate is designed to bridge the gap between "DIY" executors and professional legal standards by providing a systematic process monitor.
+## 9. Professional Integration & Attorney Endorsement
+
+ExpectedEstate is designed to be a "System of Record" that complements, rather than replaces, legal counsel.
+
+### The Attorney Perspective:
+*"ExpectedEstate provides executors with a disciplined, state-specific workflow that mirrors how probate attorneys document estate administration. The platform does not replace legal counsel. Instead, it creates a clear, timestamped record of fiduciary actions so attorneys can efficiently review, advise, and defend executor decisions when needed."*
+
+### Why Attorneys Recommend ExpectedEstate:
+*   **Mistake Reduction**: Procedural errors are often due to poor record-keeping. The platform enforces statutory timing and priority.
+*   **Audit Trail**: Simplifies attorney oversight by providing a structured record relative to probate court expectations.
+*   **Efficiency**: Reduces time spent reconstructing executor actions for accounting or petitions.
+
+### Legal Notice & Bar-Safe Framing:
+**ExpectedEstate does not provide legal advice.** It provides a structured, state-aware system for executors to document reasonable diligence and fiduciary compliance, making attorney review faster, cheaper, and more reliable.
+
+---
+
+## 10. Trust, Limits, and Legal Boundaries
 
 ### What We Guarantee:
 *   **Process Integrity**: We guarantee that the activity logs, timestamped actions, and document discovery results represent a faithful digital record of the executor's diligence.
+*   **Systematic Search Record**: We guarantee a structured framework (Asset Coverage Matrix) to ensure and document that all common asset classes have been explicitly reviewed.
 *   **Deterministic Logic**: Our notice period clocks and distribution locks follow the exact statutory days (e.g., 120 days for CA, 90 days for FL) as defined in the state probate codes.
 
 ### What We Do Not Replace:
@@ -173,4 +199,7 @@ ExpectedEstate is designed to bridge the gap between "DIY" executors and profess
 *   **Verification Duty**: The platform assists in discovery and tracking, but the executor remains responsible for verifying the accuracy of all account values and creditor claim statuses before distributing funds.
 
 ### Court & Attorney Interpretation:
-The **Fiduciary Activity Report** (formerly "Dossier") is designed to be presented to heirs, attorneys, and probate judges as **Evidence of Reasonable Care**. It demonstrates that the executor followed a rigorous, state-specific settlement process, significantly lowering the risk of liability claims.
+The **Fiduciary Activity Report** is designed to be presented to heirs, attorneys, and probate judges as **Evidence of Reasonable Care**. It demonstrates that the executor followed a rigorous, state-specific settlement process, significantly lowering the risk of liability claims.
+
+### Legal Notice
+ExpectedEstate is not a law firm and does not provide legal advice. Use of this platform does not create an attorney-client relationship. ExpectedEstate provides a structured process and recordkeeping system designed to help executors document fiduciary actions and comply with procedural requirements. Executors are encouraged to consult qualified legal counsel for legal interpretation, judgment, and advice.

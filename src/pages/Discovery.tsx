@@ -145,21 +145,44 @@ export default function Discovery() {
             <Sidebar />
             <main className="flex-1 ml-64 p-8">
                 <div className="max-w-4xl mx-auto space-y-8">
-                    <div>
-                        <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-                            <Sparkles className="w-8 h-8 text-amber-500" />
-                            Discovery Assistant
-                        </h1>
-                        <p className="text-slate-500 mt-1">
-                            Analyzes provided documents to suggest potential accounts for your review and systematic ledger entry.
-                        </p>
-                        <div className="mt-4 p-3 bg-amber-50 border border-amber-100 rounded-xl flex items-start gap-3">
-                            <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
-                            <p className="text-[11px] text-amber-800 leading-relaxed">
-                                <strong>Reasonable Diligence Notice:</strong> This tool assists in identifying potential assets from documents you provide.
-                                It is not an exhaustive search. Verification of findings and documenting a systematic review of all asset classes is the responsibility of the executor to meet fiduciary standards.
+                    <div className="flex justify-between items-start gap-6">
+                        <div className="flex-1">
+                            <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+                                <Sparkles className="w-8 h-8 text-amber-500" />
+                                Discovery Assistant
+                            </h1>
+                            <p className="text-slate-500 mt-1">
+                                Systematic protocol for identifying estate assets and documenting a defensible record of reasonable care.
                             </p>
                         </div>
+                        <Dialog>
+                            <DialogTrigger asChild>
+                                <Button variant="outline" size="sm" className="text-indigo-600 border-indigo-200 bg-indigo-50/50 hover:bg-indigo-100">
+                                    <AlertCircle className="w-4 h-4 mr-2" />
+                                    What is "Reasonable Diligence"?
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-md">
+                                <DialogHeader>
+                                    <DialogTitle>Attorney-Safe Record Keeping</DialogTitle>
+                                    <DialogDescription>
+                                        ExpectedEstate is built to mirror how probate attorneys document estate administration.
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <div className="space-y-4 py-2 text-sm text-slate-600 leading-relaxed">
+                                    <p>
+                                        <strong>ExpectedEstate does not provide legal advice.</strong> It provides a structured, state-aware system for executors to document reasonable diligence and fiduciary compliance, making attorney review faster, cheaper, and more reliable.
+                                    </p>
+                                    <div className="space-y-2 bg-slate-50 p-4 rounded-lg border border-slate-100 italic">
+                                        "ExpectedEstate provides executors with a disciplined, state-specific workflow that reflects how we document cases. It creates a timestamped record so attorneys can efficiently review and defend executor decisions."
+                                        <p className="text-[10px] text-right font-bold non-italic">— Attorney Advisory Council</p>
+                                    </div>
+                                    <p>
+                                        By using this Matrix to check off asset classes and logging <strong>Fiduciary Search Statements</strong>, you are building an audit trail that simplifies attorney oversight and reduces the risk of liability claims.
+                                    </p>
+                                </div>
+                            </DialogContent>
+                        </Dialog>
                     </div>
 
                     {/* Discovery Completion Progress */}
@@ -275,13 +298,13 @@ export default function Discovery() {
 
                                                                 {cat.status === 'NOT_FOUND' && (
                                                                     <div className="space-y-2">
-                                                                        <Label>Negative Assurance Statement</Label>
+                                                                        <Label>Fiduciary Search Statement (Negative Finding)</Label>
                                                                         <Textarea
-                                                                            placeholder="e.g. Reviewed deceased's digital files and physical records; no evidence of cryptocurrency exchanges found."
+                                                                            placeholder="e.g. Conducted a diligent review of decedent's tax returns (2021-2023) and personal files; no evidence of [Category] accounts or holdings found."
                                                                             onBlur={(e) => negativeAssuranceMutation.mutate({ id: cat.id, statement: e.target.value })}
                                                                         />
-                                                                        <p className="text-[10px] text-slate-400">
-                                                                            This statement will be included in your Fiduciary Activity Report to prove diligent search.
+                                                                        <p className="text-[10px] text-slate-400 italic">
+                                                                            Normalization Note: It is standard and expected for many categories to yield negative findings. This log serves as your proof of systematic inquiry.
                                                                         </p>
                                                                     </div>
                                                                 )}

@@ -69,50 +69,75 @@ export class DossierService {
     static formatComplianceSummary(data: DossierData): string {
         const { estate, summary, assets, liabilities, activityLogs } = data;
 
-        let report = `ESTATE COMPLIANCE DOSSIER: ${estate.deceasedFirstName} ${estate.deceasedLastName}\n`;
+        let report = `FIDUCIARY ACTIVITY REPORT: EVIDENCE OF REASONABLE CARE\n`;
+        report += `ESTATE: ${estate.deceasedFirstName} ${estate.deceasedLastName}\n`;
         report += `DATE OF DEATH: ${estate.deceasedDateOfDeath.toISOString().split('T')[0]}\n`;
-        report += `JURISDICTION: ${estate.deceasedState}\n`;
+        report += `JURISDICTION: ${estate.deceasedState} (Probate Code Compliance)\n`;
         report += `AUTHORITY TRACK: ${estate.authorityType}\n`;
         report += `-------------------------------------------\n\n`;
 
-        report += `FINANCIAL SUMMARY\n`;
+        report += `STATUTORY INVENTORY SUMMARY\n`;
         report += `Total Inventory Value: $${summary.totalAssets.toLocaleString()}\n`;
-        report += `Total Valid Claims: $${summary.totalDebt.toLocaleString()}\n`;
+        report += `Total Valid Claims (State Priority Order): $${summary.totalDebt.toLocaleString()}\n`;
         report += `Net Estate Value: $${summary.netValue.toLocaleString()}\n`;
-        report += `Status: ${summary.status}\n\n`;
+        report += `Process Status: ${summary.status}\n\n`;
 
-        report += `ASSET LEDGER (${assets.length})\n`;
+        report += `VERIFIED ASSET LEDGER (${assets.length})\n`;
         assets.forEach(a => {
-            report += `- ${a.institution}: $${(a.value || 0).toLocaleString()} [${a.status}]\n`;
+            report += `- ${a.institution}: $${(a.value || 0).toLocaleString()} [Verified Status: ${a.status}]\n`;
         });
         report += `\n`;
 
         report += `LIABILITY & CREDITOR LOG (${liabilities.length})\n`;
+        report += `All claims categorized and reviewed per state priority statutes.\n`;
         liabilities.forEach(l => {
-            report += `- ${l.name}: $${Number(l.amount).toLocaleString()} [${l.status}] - Priority: ${l.priorityClass}\n`;
+            report += `- ${l.name}: $${Number(l.amount).toLocaleString()} [${l.status}] - Class: ${l.priorityClass}\n`;
         });
         report += `\n`;
 
-        report += `FIDUCIARY ACTIVITY TRAIL\n`;
+        report += `FIDUCIARY ACTIVITY TRAIL (Diligence Record)\n`;
         activityLogs.slice(0, 10).forEach(log => {
-            report += `[${log.occurredAt.toISOString()}] ${log.action} - ${log.notes}\n`;
+            report += `[${log.occurredAt.toISOString()}] ${log.action}: ${log.notes}\n`;
         });
 
-        report += `ASSET DISCOVERY & DILIGENCE LOG\n`;
+        report += `\nRECORD OF REASONABLE DILIGENCE (ASSET DISCOVERY)\n`;
+        report += `A systematic search of all mandated asset classes was conducted.\n`;
         data.discoveryCategories.forEach(cat => {
             if (cat.status === 'NOT_FOUND') {
-                report += `[NOT FOUND] ${cat.category}: Systematically searched. Findings: negative.\n`;
+                report += `[NEGATIVE FINDING] ${cat.category}: Systematic search conducted; no holdings identified.\n`;
                 cat.negativeFindings?.forEach((f: any) => {
-                    report += `  - Assurance statement: "${f.statement}"\n`;
+                    report += `  - Fiduciary Statement: "${f.statement}"\n`;
                 });
             } else if (cat.status === 'REVIEWED') {
-                report += `[REVIEWED] ${cat.category}: Assets discovered and logged. Evidence: ${cat.evidenceSource || 'Records examined'}\n`;
+                report += `[VERIFIED] ${cat.category}: Assets discovered and added to inventory. Source: ${cat.evidenceSource || 'Record review'}\n`;
             } else if (cat.status === 'NA') {
-                report += `[N/A] ${cat.category}: Not applicable to this estate.\n`;
+                report += `[NOT APPLICABLE] ${cat.category}: Class search exempt for this estate type.\n`;
             }
         });
 
-        report += `\n--- END OF DOSSIER ---`;
+        report += `\n--- END OF FIDUCIARY REPORT ---`;
+        return report;
+    }
+
+    /**
+     * Formats only the activity log into a professional chronological record.
+     */
+    static formatActivityLog(estate: any, activities: any[]): string {
+        let report = `SETTLEMENT TRAIL: CHRONOLOGICAL FIDUCIARY RECORD\n`;
+        report += `ESTATE: ${estate.deceasedFirstName} ${estate.deceasedLastName}\n`;
+        report += `SYSTEM OF RECORD: ExpectedEstate\n`;
+        report += `EXPORTED ON: ${new Date().toISOString().split('T')[0]}\n`;
+        report += `-------------------------------------------\n\n`;
+
+        report += `This log provides a timestamped audit trail of all fiduciary actions taken during the estate settlement process. It is intended to serve as evidence of reasonable care and procedural compliance for review by heirs, attorneys, or the probate court.\n\n`;
+
+        activities.forEach(log => {
+            const date = new Date(log.occurredAt).toLocaleString();
+            const phaseStr = log.phase ? ` [Phase: ${log.phase.replace(/_/g, ' ')}]` : '';
+            report += `[${date}]${phaseStr} ${log.action}: ${log.notes}\n`;
+        });
+
+        report += `\n--- END OF SETTLEMENT TRAIL ---`;
         return report;
     }
 }

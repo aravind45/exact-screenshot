@@ -78,14 +78,14 @@ export default function Distribution() {
                             </CardContent>
                         </Card>
 
-                        {/* 3. Attorney Fee */}
+                        {/* 3. Attorney Fees (Statutory) */}
                         <Card>
                             <CardHeader className="pb-2">
-                                <CardTitle className="text-sm font-medium text-slate-500">Attorney Fees</CardTitle>
+                                <CardTitle className="text-sm font-medium text-slate-500">Statutory Attorney Fees</CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <div className="text-2xl font-bold text-indigo-600">${statutoryFee.toLocaleString()}</div>
-                                <p className="text-xs text-slate-400 mt-1">Equal to Executor Commission</p>
+                                <p className="text-xs text-slate-400 mt-1">Review fees for legal counsel advice & defense.</p>
                             </CardContent>
                         </Card>
                     </div>
@@ -129,12 +129,12 @@ export default function Distribution() {
                                 {hasCriticalRisk ? (
                                     <>
                                         <ShieldAlert className="w-5 h-5 mr-2" />
-                                        Distribution Locked (See Alerts)
+                                        Distribution Locked (System of Record Pending)
                                     </>
                                 ) : (
                                     <>
                                         <FileText className="w-5 h-5 mr-2" />
-                                        Generate Final Petition (DE-310)
+                                        Generate Final Petition for Attorney Review
                                     </>
                                 )}
                             </Button>

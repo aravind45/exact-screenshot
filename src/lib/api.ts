@@ -889,6 +889,14 @@ export const api = {
         return parseResponse(response);
     },
 
+    downloadActivityLog: async () => {
+        const response = await fetch(`${API_URL}/estates/my/activities/download?token=${localStorage.getItem("auth_token")}`, {
+            headers: getHeaders(),
+        });
+        if (!response.ok) throw new Error("Failed to download activity log");
+        return await response.blob();
+    },
+
     updateRoadmap: async (data: { completedTaskIds: string[], completedPhases: string[], taskId?: string, action?: 'COMPLETED' | 'UNCOMPLETED' | 'PHASE_COMPLETED', phase?: string, taskTitle?: string, phaseName?: string }) => {
         const response = await fetch(`${API_URL}/estates/my/roadmap`, {
             method: "PUT",

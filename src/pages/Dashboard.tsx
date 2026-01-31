@@ -412,14 +412,14 @@ export default function Dashboard() {
 
               <div className="p-6 rounded-[32px] bg-slate-900 text-white border border-slate-800 shadow-2xl">
                 <div className="flex items-center gap-2 mb-3 text-indigo-400">
-                  <Lightbulb className="w-5 h-5" />
-                  <span className="font-black text-[10px] uppercase tracking-wider">Expert Advice</span>
+                  <Flag className="w-5 h-5" />
+                  <span className="font-black text-[10px] uppercase tracking-wider">Fiduciary Guidelines</span>
                 </div>
                 <p className="text-sm font-medium text-slate-300 leading-relaxed">
-                  Focus on the <strong className="text-white">Safety Net</strong> to catch stalled assets. If a bank hasn't replied in 2 weeks, send a follow-up immediately.
+                  Maintain your <strong className="text-white">System of Record</strong> by logging all bank communications. Consistent documentation is key to evidence of reasonable care if disputes arise.
                 </p>
                 <Button variant="link" className="p-0 h-auto text-indigo-400 text-xs font-bold mt-4 hover:text-indigo-300 uppercase tracking-widest">
-                  View Settlement Best Practices <ArrowRight className="w-3 h-3 ml-1" />
+                  View Procedural Best Practices <ArrowRight className="w-3 h-3 ml-1" />
                 </Button>
               </div>
             </div>

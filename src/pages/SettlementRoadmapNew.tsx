@@ -6,7 +6,7 @@ import { useWorkflow } from "@/contexts/WorkflowContext";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { Badge } from "@/components/ui/badge";
-import { Clock, CheckCircle, Scale } from "lucide-react";
+import { Clock, CheckCircle, Scale, ShieldCheck } from "lucide-react";
 import { SettlementPhaseChevron } from "@/components/SettlementPhaseChevron";
 import { type SettlementPhase } from "@/components/SettlementPhaseChevron";
 import { calculateAuthorityRecommendation } from "@/lib/authorityEngine";
@@ -129,24 +129,29 @@ export default function SettlementRoadmapNew() {
 
           {/* Info Card - Simplified */}
           <div className="p-4 bg-gradient-to-r from-indigo-50/50 to-blue-50/50 border border-indigo-100/50 rounded-2xl">
-            <div className="flex items-start gap-3">
-              <Clock className="w-4 h-4 text-indigo-600 flex-shrink-0 mt-0.5" />
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm border border-indigo-100 shrink-0">
+                <ShieldCheck className="w-5 h-5 text-indigo-600" />
+              </div>
               <div>
-                <h3 className="text-sm font-bold text-indigo-900 mb-0.5">How This Roadmap Works</h3>
-                <p className="text-xs text-indigo-800/80 mb-2">
-                  Workflow designed to build a defensible record of reasonable care and meet fiduciary duty over 12-18 months.
+                <h3 className="text-sm font-black text-indigo-900 mb-1">Fiduciary Process & Record System</h3>
+                <p className="text-[11px] text-indigo-800/80 leading-relaxed mb-3">
+                  <strong>ExpectedEstate does not provide legal advice.</strong> It provides a structured, state-aware system for executors to document reasonable diligence and fiduciary compliance, making attorney review faster, cheaper, and more reliable.
                 </p>
-                <div className="flex flex-wrap gap-1.5">
+                <div className="flex flex-wrap gap-1.5 pb-3 border-b border-indigo-100/30 mb-3">
                   <Badge variant="secondary" className="bg-white/50 text-indigo-700 border-indigo-200 text-[9px] h-5">
-                    Expandable Phases
+                    State-Specific Discipline
                   </Badge>
                   <Badge variant="secondary" className="bg-white/50 text-indigo-700 border-indigo-200 text-[9px] h-5">
-                    Task Tracking
+                    Fiduciary Record Keeping
+                  </Badge>
+                  <Badge variant="secondary" className="bg-white/50 text-indigo-700 border-indigo-200 text-[9px] h-5">
+                    Attorney-Optimized Review
                   </Badge>
                 </div>
-                <div className="mt-3 flex items-start gap-2 text-[10px] text-indigo-400 font-medium">
+                <div className="flex items-start gap-2 text-[10px] text-slate-400 font-medium italic">
                   <Scale className="w-3 h-3 mt-0.5 shrink-0" />
-                  <p>Legal Information Notice: This roadmap is a general workflow assistance tool. It does not constitute legal advice and should be reviewed by legal counsel for specific case compliance.</p>
+                  <p>Designed to complement legal counsel by creating a clear, timestamped record of fiduciary actions—asset discovery, creditor handling, and statutory periods—to support defending executor decisions.</p>
                 </div>
               </div>
             </div>

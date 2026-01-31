@@ -76,14 +76,37 @@ export default function SettlementTrail() {
                                 Real-time chronological history of every legal action, document upload, and asset revision.
                             </p>
                         </div>
-                        <div className="relative w-full md:w-72">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                            <Input
-                                placeholder="Search actions..."
-                                className="pl-10 h-11 bg-white border-slate-200 rounded-xl shadow-sm"
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                            />
+                        <div className="flex items-center gap-3 w-full md:w-auto">
+                            <Button
+                                variant="outline"
+                                className="h-11 rounded-xl bg-white border-slate-200 text-slate-600 font-bold hover:bg-slate-50 relative overflow-hidden group/btn px-6"
+                                onClick={async () => {
+                                    try {
+                                        const blob = await api.downloadActivityLog();
+                                        const url = window.URL.createObjectURL(blob);
+                                        const a = document.createElement('a');
+                                        a.href = url;
+                                        a.download = `Settlement_Trail_${new Date().toISOString().split('T')[0]}.txt`;
+                                        document.body.appendChild(a);
+                                        a.click();
+                                        window.URL.revokeObjectURL(url);
+                                    } catch (e) {
+                                        console.error("Download failed:", e);
+                                    }
+                                }}
+                            >
+                                <ArrowUpRight className="w-4 h-4 mr-2 text-slate-400 group-hover/btn:text-primary transition-colors" />
+                                Export Trail
+                            </Button>
+                            <div className="relative w-full md:w-72">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                <Input
+                                    placeholder="Search actions..."
+                                    className="pl-10 h-11 bg-white border-slate-200 rounded-xl shadow-sm"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                />
+                            </div>
                         </div>
                     </header>
 
