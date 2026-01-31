@@ -18,12 +18,12 @@ if [ ! -d "/app/dist" ]; then
 fi
 echo "✅ dist folder exists ($(du -sh /app/dist | cut -f1))"
 
-# Check if server folder exists
-if [ ! -d "/app/server" ]; then
-    echo "❌ ERROR: /app/server folder not found!"
+# Check if dist-server folder exists
+if [ ! -d "/app/dist-server" ]; then
+    echo "❌ ERROR: /app/dist-server folder not found!"
     exit 1
 fi
-echo "✅ server folder exists"
+echo "✅ dist-server folder exists"
 
 # Check if node_modules exists
 if [ ! -d "/app/node_modules" ]; then
