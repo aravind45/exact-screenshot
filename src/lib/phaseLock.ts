@@ -32,16 +32,16 @@ export function getPhaseLocksStatus(
 
     switch (track) {
       case 'SMALL_ESTATE':
-        return docTypes.includes('DE-310');
+        return docTypes.includes('DE-310') || docTypes.includes('SMALL_ESTATE_AFFIDAVIT');
       case 'SPOUSAL_PETITION':
         return docTypes.includes('DE-226'); // Spousal Order
       case 'TRUST_ADMIN':
-        return docTypes.includes('TRUST_CERT') || docTypes.includes('TRUSTEE_ACC');
+        return docTypes.includes('TRUST_CERT') || docTypes.includes('TRUSTEE_ACC') || docTypes.includes('TRUST_CERTIFICATION');
       case 'JOINT_TRANSFER':
       case 'POD_TOD_TRANSFER':
-        return true; // Usually no court authority needed, but might need Death Cert
+        return true; // Usually no court authority needed
       default:
-        return docTypes.includes('DE-150'); // Letters Testamentary
+        return docTypes.includes('DE-150') || docTypes.includes('LETTERS_TESTAMENTARY') || docTypes.includes('LETTERS_OF_ADMIN');
     }
   };
 

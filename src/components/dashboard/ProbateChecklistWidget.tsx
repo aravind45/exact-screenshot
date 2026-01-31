@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { type SettlementTrack, TRACK_STAGES, type ProcessStage } from "@/config/settlementStages";
+import { type SettlementTrack, getTrackStages, type ProcessStage } from "@/config/settlementStages";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,9 +9,10 @@ import { CheckCircle2, Circle, Flag } from "lucide-react";
 
 interface ProbateChecklistWidgetProps {
     estateType: SettlementTrack | null;
+    deceasedState?: string;
 }
 
-export function ProbateChecklistWidget({ estateType }: ProbateChecklistWidgetProps) {
+export function ProbateChecklistWidget({ estateType, deceasedState = "CA" }: ProbateChecklistWidgetProps) {
     const [checkedTasks, setCheckedTasks] = useState<Record<string, boolean>>({});
 
     // Load initial state from local storage or props if available
@@ -32,17 +33,17 @@ export function ProbateChecklistWidget({ estateType }: ProbateChecklistWidgetPro
         localStorage.setItem("probate_checklist_progress", JSON.stringify(newChecked));
     };
 
-    if (!estateType || !TRACK_STAGES[estateType]) {
+    const stages = estateType ? getTrackStages(estateType, deceasedState) : [];
+
+    if (!estateType || stages.length === 0) {
         return (
             <Card className="border-slate-200 shadow-sm">
                 <CardContent className="p-8 text-center text-slate-500">
-                    Probate track not configured for this estate type.
+                    Probate track not configured for this estate type or state.
                 </CardContent>
             </Card>
         );
     }
-
-    const stages = TRACK_STAGES[estateType];
 
     // Calculate overall progress
     const totalTasks = stages.reduce((acc, stage) => acc + (stage.tasks?.length || 0), 0);

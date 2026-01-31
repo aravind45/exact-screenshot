@@ -181,3 +181,85 @@ export const TRACK_STAGES: Record<SettlementTrack, ProcessStage[]> = {
         { id: "settlement", title: "Mediation", description: "Reach legally binding agreement or judgment." }
     ]
 };
+// State-specific form names and deadlines
+export const STATE_ROADMAP_OVERRIDES: Record<string, Partial<Record<SettlementTrack, ProcessStage[]>>> = {
+    TX: {
+        FORMAL_PROBATE: [
+            {
+                id: "petition", title: "Application", description: "File Application for Probate & Original Will.",
+                tasks: [
+                    { id: "file_app", title: "File Application for Probate" },
+                    { id: "lodge_will", title: "Lodge Original Will" },
+                    { id: "notice_posting", title: "Wait for Posting of Notice (10 days)" }
+                ]
+            },
+            {
+                id: "authority", title: "Independent Authority", description: "Court appoints Independent Executor.",
+                tasks: [
+                    { id: "attend_hearing", title: "Attend Hearing" },
+                    { id: "oath", title: "Take Oath of Office" },
+                    { id: "letters", title: "Get Letters Testamentary" },
+                    { id: "ein", title: "Obtain EIN" }
+                ]
+            },
+            {
+                id: "creditors", title: "Notice to Creditors", description: "Publish notice and notify secured creditors.",
+                tasks: [
+                    { id: "publish_notice", title: "Publish Notice (within 30 days)" },
+                    { id: "notify_secured", title: "Certified Mail to Secured Creditors" },
+                    { id: "pay_debts", title: "Pay Valid Debts per Priority" }
+                ]
+            },
+            {
+                id: "inventory", title: "Inventory / Affidavit", description: "File inventory or Affidavit in Lieu.",
+                tasks: [
+                    { id: "prepare_inventory", title: "Prepare Asset Inventory" },
+                    { id: "file_inventory", title: "File Inventory (within 90 days)" },
+                    { id: "affidavit_lieu", title: "OR: File Affidavit in Lieu of Inventory" }
+                ]
+            },
+            {
+                id: "distribution", title: "Closing", description: "Independent distribution of estate assets.",
+                tasks: [
+                    { id: "distribute", title: "Distribute Assets" },
+                    { id: "close_files", title: "Close Internal Files" }
+                ]
+            }
+        ]
+    },
+    FL: {
+        FORMAL_PROBATE: [
+            {
+                id: "petition", title: "Opening Estate", description: "File Will and Petition for Administration.",
+                tasks: [
+                    { id: "lodge_will", title: "Lodge Will (10-day deadline!)" },
+                    { id: "file_petition", title: "File Petition for Administration" },
+                    { id: "notice_beneficiaries", title: "Serve Formal Notice to Beneficiaries" }
+                ]
+            },
+            {
+                id: "authority", title: "Letters", description: "Court issues Letters of Administration.",
+                tasks: [
+                    { id: "oath", title: "Oath of Personal Representative" },
+                    { id: "bond", title: "File Bond" },
+                    { id: "letters", title: "Letters of Administration" }
+                ]
+            },
+            {
+                id: "creditors", title: "90-Day Creditors", description: "Notice to Creditors and 90-day claim window.",
+                tasks: [
+                    { id: "publish_notice", title: "Publish Notice to Creditors" },
+                    { id: "search_creditors", title: "Diligent Search for Creditors" },
+                    { id: "90_day_wait", title: "Wait 90 Days for Claims" },
+                    { id: "pay_priorities", title: "Pay Class 1-8 Priority Claims" }
+                ]
+            },
+            { id: "discovery", title: "Inventory", description: "Identify and inventory all probate assets.", tasks: [{ id: "file_inventory", title: "File Inventory" }] },
+            { id: "distribution", title: "Final Distribution", description: "Closing petition and discharge.", tasks: [{ id: "discharge", title: "Final Discharge" }] }
+        ]
+    }
+};
+
+export const getTrackStages = (track: SettlementTrack, stateCode: string = "CA"): ProcessStage[] => {
+    return STATE_ROADMAP_OVERRIDES[stateCode]?.[track] || TRACK_STAGES[track] || [];
+};

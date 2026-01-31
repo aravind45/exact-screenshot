@@ -94,7 +94,8 @@ export default function OnboardingWizard() {
                 });
             } else if (currentStep === 2) { // Track Scout
                 await api.updateMyEstate({
-                    estateType: recommendation.type
+                    estateType: recommendation.type,
+                    authorityType: recommendation.type
                 });
             } else if (currentStep === 3) { // Heirs
                 const validHeirs = heirs.filter(h => h.name.trim() !== "");

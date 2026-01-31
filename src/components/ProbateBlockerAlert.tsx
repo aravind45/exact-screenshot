@@ -10,55 +10,97 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, ArrowRight, FileText } from 'lucide-react';
 import { useWorkflow } from '@/contexts/WorkflowContext';
+import { useQuery } from '@tanstack/react-query';
+import { api } from '@/lib/api';
 
 export function ProbateBlockerAlert() {
   const { probateBlockers } = useWorkflow();
   const navigate = useNavigate();
-  
+
+  const { data: estate } = useQuery({
+    queryKey: ['estate'],
+    queryFn: api.getMyEstate,
+  });
+
   if (probateBlockers.length === 0) return null;
-  
+
+  const track = estate?.estateType || 'PROBATE';
+
+  const getBlockerConfig = () => {
+    switch (track) {
+      case 'SMALL_ESTATE':
+        return {
+          title: 'Small Estate Blocker',
+          docName: 'Affidavit (DE-310)',
+          description: 'These assets require a notarized Small Estate Affidavit before you can collect them.',
+          actionLabel: 'Go to Vault',
+          actionRoute: '/vault'
+        };
+      case 'TRUST_ADMIN':
+        return {
+          title: 'Trust Authority Blocker',
+          docName: 'Certification of Trust',
+          description: 'These assets are titled in the Trust and require a Certification of Trust for access.',
+          actionLabel: 'Go to Documents',
+          actionRoute: '/vault'
+        };
+      case 'SPOUSAL_PETITION':
+        return {
+          title: 'Spousal Order Required',
+          docName: 'Spousal Property Order (DE-226)',
+          description: 'These assets require a Spousal Property Order from the court.',
+          actionLabel: 'Probate Hub',
+          actionRoute: '/probate'
+        };
+      default:
+        return {
+          title: 'Probate Blocker Detected',
+          docName: 'Letters Testamentary (DE-150)',
+          description: 'These assets have INDIVIDUAL ownership and require probate authority (Letters) for access.',
+          actionLabel: 'Upload Letters',
+          actionRoute: '/probate?action=upload-letters'
+        };
+    }
+  };
+
+  const config = getBlockerConfig();
+
   return (
-    <Alert variant="destructive" className="border-2 border-rose-300 bg-rose-50">
+    <Alert variant="destructive" className="border-2 border-rose-300 bg-rose-50 rounded-[24px]">
       <AlertTriangle className="h-5 w-5 text-rose-600" />
-      <AlertTitle className="text-rose-900 font-bold text-base">
-        Probate Blocker Detected
-      </AlertTitle>
-      <AlertDescription className="text-rose-800">
-        <p className="mb-3 text-sm">
-          <strong>{probateBlockers.length} asset{probateBlockers.length !== 1 ? 's are' : ' is'}</strong> blocked 
-          until you receive <strong>Letters Testamentary (DE-150)</strong> from the court.
-        </p>
-        <p className="mb-4 text-xs text-rose-700">
-          These assets have INDIVIDUAL ownership and require probate authority before you can access them.
-        </p>
-        <div className="flex flex-wrap gap-2">
-          <Button 
-            size="sm" 
-            variant="default"
-            onClick={() => navigate('/probate?action=upload-letters')}
-            className="bg-rose-600 hover:bg-rose-700 h-9"
-          >
-            <FileText className="w-4 h-4 mr-2" />
-            Upload Letters
-          </Button>
-          <Button 
-            size="sm" 
-            variant="outline"
-            onClick={() => navigate('/assets?filter=blocked')}
-            className="border-rose-300 text-rose-700 hover:bg-rose-100 h-9"
-          >
-            View Blocked Assets <ArrowRight className="w-4 h-4 ml-2" />
-          </Button>
-          <Button 
-            size="sm" 
-            variant="ghost"
-            onClick={() => navigate('/probate')}
-            className="text-rose-700 hover:bg-rose-100 h-9"
-          >
-            Go to Probate Hub
-          </Button>
-        </div>
-      </AlertDescription>
+      <div className="ml-2">
+        <AlertTitle className="text-rose-900 font-black text-base tracking-tight">
+          {config.title}
+        </AlertTitle>
+        <AlertDescription className="text-rose-800">
+          <p className="mb-3 text-sm font-medium">
+            <strong className="font-black">{probateBlockers.length} asset{probateBlockers.length !== 1 ? 's are' : ' is'}</strong> blocked
+            until you provide the <strong className="font-black text-rose-900">{config.docName}</strong>.
+          </p>
+          <p className="mb-4 text-xs text-rose-600/80 font-medium">
+            {config.description}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              size="sm"
+              variant="default"
+              onClick={() => navigate(config.actionRoute)}
+              className="bg-rose-600 hover:bg-rose-700 h-9 font-bold px-4"
+            >
+              <FileText className="w-4 h-4 mr-2" />
+              {config.actionLabel}
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => navigate('/assets?filter=blocked')}
+              className="border-rose-300 text-rose-700 hover:bg-rose-100 h-9 font-bold px-4"
+            >
+              View Blocked Assets <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
+          </div>
+        </AlertDescription>
+      </div>
     </Alert>
   );
 }
