@@ -381,10 +381,15 @@ export default function OnboardingWizard() {
                                                 </div>
                                                 <p className="text-xs text-indigo-700">
                                                     {recommendation.type === 'SMALL_ESTATE'
-                                                        ? 'Wait 40 days, then prepare and notarize the 13100 Affidavit.'
+                                                        ? (estateData.location === 'CA' ? 'Wait 40 days, then prepare and notarize the 13100 Affidavit (DE-310).' :
+                                                            estateData.location === 'TX' ? 'Prepare and file the Small Estate Affidavit (SEA) with the court.' :
+                                                                estateData.location === 'FL' ? 'Prepare the Petition for Summary Administration.' :
+                                                                    'Prepare and notarize a Small Estate Affidavit.')
                                                         : recommendation.type === 'SPOUSAL_PETITION'
-                                                            ? 'Prepare the DE-221 petition and file it with the local court.'
-                                                            : 'Gather the Death Certificate and Original Will to prepare your court filing.'}
+                                                            ? (estateData.location === 'CA' ? 'Prepare the DE-221 petition and file it with the local court.' : 'File a Spousal Property Petition.')
+                                                            : (estateData.location === 'FL' ? 'Lodge the original Will within 10 days of the death.' :
+                                                                estateData.location === 'TX' ? 'File the Application for Probate with the county clerk.' :
+                                                                    'Gather the Death Certificate and Original Will to prepare your court filing.')}
                                                 </p>
                                             </div>
                                         </div>

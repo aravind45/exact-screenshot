@@ -12,6 +12,7 @@ import { AlertTriangle, ArrowRight, FileText } from 'lucide-react';
 import { useWorkflow } from '@/contexts/WorkflowContext';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
+import { getPrimaryAuthorityDocName } from '@/config/settlementStages';
 
 export function ProbateBlockerAlert() {
   const { probateBlockers } = useWorkflow();
@@ -24,22 +25,25 @@ export function ProbateBlockerAlert() {
 
   if (probateBlockers.length === 0) return null;
 
-  const track = estate?.estateType || 'PROBATE';
+  const track = (estate?.estateType || 'FORMAL_PROBATE') as any;
+  const stateCode = estate?.deceasedState || 'CA';
 
   const getBlockerConfig = () => {
+    const docName = getPrimaryAuthorityDocName(stateCode, track);
+
     switch (track) {
       case 'SMALL_ESTATE':
         return {
           title: 'Small Estate Blocker',
-          docName: 'Affidavit (DE-310)',
-          description: 'These assets require a notarized Small Estate Affidavit before you can collect them.',
+          docName,
+          description: `These assets require a notarized ${docName} before you can collect them.`,
           actionLabel: 'Go to Vault',
           actionRoute: '/vault'
         };
       case 'TRUST_ADMIN':
         return {
           title: 'Trust Authority Blocker',
-          docName: 'Certification of Trust',
+          docName,
           description: 'These assets are titled in the Trust and require a Certification of Trust for access.',
           actionLabel: 'Go to Documents',
           actionRoute: '/vault'
@@ -47,17 +51,17 @@ export function ProbateBlockerAlert() {
       case 'SPOUSAL_PETITION':
         return {
           title: 'Spousal Order Required',
-          docName: 'Spousal Property Order (DE-226)',
-          description: 'These assets require a Spousal Property Order from the court.',
+          docName,
+          description: `These assets require a ${docName} from the court.`,
           actionLabel: 'Probate Hub',
           actionRoute: '/probate'
         };
       default:
         return {
           title: 'Probate Blocker Detected',
-          docName: 'Letters Testamentary (DE-150)',
-          description: 'These assets have INDIVIDUAL ownership and require probate authority (Letters) for access.',
-          actionLabel: 'Upload Letters',
+          docName,
+          description: `These assets have INDIVIDUAL ownership and require probate authority (${docName}) for access.`,
+          actionLabel: 'Upload Documents',
           actionRoute: '/probate?action=upload-letters'
         };
     }

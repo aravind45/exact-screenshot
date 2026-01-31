@@ -300,7 +300,8 @@ export default function Dashboard() {
           {/* Probate Roadmap Checklists */}
           <section>
             <ProbateChecklistWidget
-              estateType={estate?.estateType || "PROBATE"}
+              estateType={estate?.estateType as any || "FORMAL_PROBATE"}
+              deceasedState={estate?.deceasedState}
             />
           </section>
 

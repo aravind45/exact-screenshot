@@ -225,6 +225,32 @@ export const STATE_ROADMAP_OVERRIDES: Record<string, Partial<Record<SettlementTr
                     { id: "close_files", title: "Close Internal Files" }
                 ]
             }
+        ],
+        SMALL_ESTATE: [
+            {
+                id: "qualification", title: "Qualification", description: "Verify estate is < $75,000 (excluding homestead).",
+                tasks: [
+                    { id: "asset_list", title: "List All Assets" },
+                    { id: "id_homestead", title: "Identify Homestead Property" },
+                    { id: "verify_limit", title: "Verify Total < $75,000" }
+                ]
+            },
+            {
+                id: "affidavit", title: "Affidavit & Order", description: "File SEA with court and obtain Judge's signature.",
+                tasks: [
+                    { id: "prepare_sea", title: "Prepare Small Estate Affidavit" },
+                    { id: "heir_signatures", title: "Obtain All Heir Signatures" },
+                    { id: "file_sea", title: "File SEA with Probate Court" },
+                    { id: "obtain_order", title: "Obtain Signed Order from Judge" }
+                ]
+            },
+            {
+                id: "collection", title: "Collection", description: "Present the Signed Order to institutions.",
+                tasks: [
+                    { id: "present_order", title: "Present Signed Order to Banks" },
+                    { id: "transfer_title", title: "Transfer Title to Heirs" }
+                ]
+            }
         ]
     },
     FL: {
@@ -256,7 +282,76 @@ export const STATE_ROADMAP_OVERRIDES: Record<string, Partial<Record<SettlementTr
             },
             { id: "discovery", title: "Inventory", description: "Identify and inventory all probate assets.", tasks: [{ id: "file_inventory", title: "File Inventory" }] },
             { id: "distribution", title: "Final Distribution", description: "Closing petition and discharge.", tasks: [{ id: "discharge", title: "Final Discharge" }] }
+        ],
+        SMALL_ESTATE: [
+            {
+                id: "eligibility", title: "Eligibility", description: "Confirm assets < $75k or decedent dead > 2 years.",
+                tasks: [
+                    { id: "valuation", title: "Appraise All Assets" },
+                    { id: "check_debts", title: "List All Known Debts" }
+                ]
+            },
+            {
+                id: "petition", title: "Petition for Summary", description: "File for Summary Administration with the court.",
+                tasks: [
+                    { id: "prepare_petition", title: "Prepare Petition for Summary Admin" },
+                    { id: "file_petition", title: "File with Probate Court" }
+                ]
+            },
+            {
+                id: "authority", title: "Order of Summary", description: "Judge issues Order of Summary Administration.",
+                tasks: [
+                    { id: "obtain_order", title: "Obtain Certified Order" },
+                    { id: "distribute", title: "Distribute Assets per Order" }
+                ]
+            }
         ]
+    },
+    NY: {
+        FORMAL_PROBATE: [
+            {
+                id: "petition", title: "Probate Petition", description: "File Petition and original Will (SCPA).",
+                tasks: [
+                    { id: "file_petition", title: "File Petition for Probate" },
+                    { id: "lodge_will", title: "Lodge Original Will" },
+                    { id: "citations", title: "Issue Citations to Heirs" }
+                ]
+            },
+            {
+                id: "authority", title: "Letters", description: "Surrogate court issues Letters Testamentary.",
+                tasks: [
+                    { id: "oath", title: "Oath & Designation" },
+                    { id: "letters", title: "Letters Testamentary" }
+                ]
+            },
+            {
+                id: "creditors", title: "Claims", description: "7-month period for generic claims.",
+                tasks: [
+                    { id: "7_month_window", title: "Wait 7 Months for Creditors" },
+                    { id: "pay_debts", title: "Pay SCPA 1811 Priorities" }
+                ]
+            }
+        ]
+    }
+};
+
+export const getPrimaryAuthorityDocName = (stateCode: string, track: SettlementTrack): string => {
+    switch (track) {
+        case 'SMALL_ESTATE':
+            if (stateCode === 'CA') return 'Affidavit (DE-310)';
+            if (stateCode === 'TX') return 'Small Estate Affidavit';
+            return 'Small Estate Affidavit';
+        case 'TRUST_ADMIN':
+            return 'Certification of Trust';
+        case 'SPOUSAL_PETITION':
+            if (stateCode === 'CA') return 'Spousal Property Order (DE-226)';
+            return 'Spousal Property Order';
+        default:
+            if (stateCode === 'FL') return 'Letters of Administration';
+            if (stateCode === 'TX') return 'Letters Testamentary';
+            if (stateCode === 'NY') return 'Letters Testamentary';
+            if (stateCode === 'CA') return 'Letters Testamentary (DE-150)';
+            return 'Letters Testamentary';
     }
 };
 
