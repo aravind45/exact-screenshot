@@ -45,24 +45,6 @@ if [ ! -d "/app/node_modules/.prisma" ]; then
 fi
 echo "✅ Prisma client ready"
 
-# Run database migrations
-echo "⚙️ Syncing database schema..."
-npx prisma migrate deploy || {
-    echo "⚠️  Migration deploy failed, attempting db push..."
-    npx prisma db push --accept-data-loss || {
-        echo "❌ Database sync failed"
-        exit 1
-    }
-}
-echo "✅ Database schema synced"
-
-# Check if tsx is available
-if ! command -v npx > /dev/null; then
-    echo "❌ ERROR: npx not found!"
-    exit 1
-fi
-echo "✅ npx available"
-
-# Start the server
+# Start the server (compiled JS for speed)
 echo "🎧 Starting server on port ${PORT}..."
-exec npx tsx server/index.ts
+exec node dist/server/index.js

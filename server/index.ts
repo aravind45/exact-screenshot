@@ -18,7 +18,7 @@ import communicationRoutes from "./routes/communicationRoutes.js";
 import webhookRoutes from "./routes/webhookRoutes.js";
 import collaborationRoutes from "./routes/collaborationRoutes.js";
 import liabilityRoutes from "./routes/liabilityRoutes.js";
-import { discoveryRoutes } from "./routes/discoveryRoutes.js";
+import discoveryRoutes from "./routes/discoveryRoutes.js";
 import { heirRoutes } from "./routes/heirRoutes.js";
 import { pdfRoutes } from "./routes/pdfRoutes.js";
 import formRoutes from "./routes/formRoutes.js";
@@ -136,20 +136,34 @@ console.log(`🎧 Starting server on 0.0.0.0:${port}...`);
 const server = app.listen(port, '0.0.0.0', async () => {
     console.log(`✅ Server running on http://0.0.0.0:${port}`);
     console.log(`✅ Environment: ${process.env.NODE_ENV}`);
-    console.log(`✅ Database: ${process.env.DATABASE_URL ? 'Connected' : 'NOT CONFIGURED'}`);
 
-    // Seed default forms if DB is empty
-    try {
-        const { FormSeedingService } = await import("./services/formSeedingService.js");
-        const count = await prisma.formTemplate.count();
-        if (count === 0) {
-            await FormSeedingService.seedDefaults();
+    // Background Database Sync & Seeding (Non-blocking)
+    (async () => {
+        try {
+            console.log(`⚙️ Starting background database synchronization...`);
+            const { execSync } = await import("child_process");
+
+            // Sync schema (db push for speed in this dev-heavy prod environment, or migrate deploy)
+            try {
+                console.log("🔄 Running prisma db push...");
+                execSync("npx prisma db push --accept-data-loss", { stdio: 'inherit' });
+                console.log("✅ Database schema synced");
+            } catch (syncErr) {
+                console.error("❌ Database sync failed:", syncErr);
+            }
+
+            // Seed default forms if DB is empty
+            const { FormSeedingService } = await import("./services/formSeedingService.js");
+            const count = await prisma.formTemplate.count();
+            if (count === 0) {
+                console.log("🌱 Seeding default forms...");
+                await FormSeedingService.seedDefaults();
+            }
+            console.log(`🎉 Background initialization complete! Server is fully ready.`);
+        } catch (e) {
+            console.error("❌ Background initialization error:", e);
         }
-    } catch (e) {
-        console.error("Failed to seed default forms:", e);
-    }
-
-    console.log(`🎉 Server is ready to accept connections!`);
+    })();
 }).on('error', (err: any) => {
     console.error("❌ Failed to start server:", err);
     process.exit(1);

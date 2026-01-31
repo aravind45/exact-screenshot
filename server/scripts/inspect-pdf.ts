@@ -17,7 +17,7 @@ async function inspectPdfFields() {
         if (fields.length === 0) {
             console.log("No fields found. This might be a flattened PDF or an XFA form which is not fully supported by pdf-lib mapping.");
             // Check for XFA
-            const xfa = pdfDoc.catalog.get(pdfDoc.context.obj('AcroForm'))?.asDict()?.get(pdfDoc.context.obj('XFA'));
+            const xfa = (pdfDoc.catalog.get(pdfDoc.context.obj('AcroForm')) as any)?.asDict()?.get(pdfDoc.context.obj('XFA'));
             if (xfa) {
                 console.log("XFA data detected. This form uses XML structure for fields.");
             }

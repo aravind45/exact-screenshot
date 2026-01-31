@@ -19,8 +19,8 @@ RUN npx prisma generate
 # Copy source files
 COPY . .
 
-# Build frontend
-RUN npm run build
+# Build server
+RUN npm run build:server
 
 # Production stage
 FROM node:22-slim AS runner
@@ -36,21 +36,19 @@ COPY --from=builder /app/package*.json ./
 # Copy Prisma schema
 COPY --from=builder /app/prisma ./prisma/
 
-# Install production dependencies (this includes @prisma/client)
+# Install production dependencies
 RUN npm install --omit=dev --legacy-peer-deps --ignore-scripts
-
-# Install prisma CLI and tsx for running the server
-RUN npm install prisma tsx --legacy-peer-deps
 
 # Copy the generated Prisma client from builder
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 
-# Copy built frontend
+# Copy built app
 COPY --from=builder /app/dist ./dist
 
-# Copy server source (TypeScript)
-COPY --from=builder /app/server ./server
+# Copy startup script
+COPY --from=builder /app/server/startup.sh ./server/startup.sh
+RUN chmod +x ./server/startup.sh
 
 # Expose port (Cloud Run uses 8080)
 EXPOSE 8080
