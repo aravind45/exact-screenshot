@@ -51,6 +51,7 @@ import { CurrentMilestone } from "@/components/dashboard/CurrentMilestone";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { SETTLEMENT_PHASE_TASKS } from "@/config/settlementPhases";
 import { ProbateChecklistWidget } from "@/components/dashboard/ProbateChecklistWidget";
+import { WorkRemainingWidget } from "@/components/dashboard/WorkRemainingWidget";
 
 const normalize = (str: string | null) => str?.toLowerCase() || '';
 
@@ -316,6 +317,12 @@ export default function Dashboard() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
             {/* Main Content (Left) */}
             <div className="lg:col-span-7 space-y-12">
+              <WorkRemainingWidget
+                currentPhase={currentPhase}
+                completedTaskIds={completedTaskIds}
+                assets={assets}
+              />
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Action Items Column */}
                 <section className="space-y-4">

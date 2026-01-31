@@ -194,8 +194,26 @@ router.get("/my/activities/download", async (req: any, res: Response) => {
             orderBy: { occurredAt: 'asc' }
         });
 
+        // Fetch Data for Gap Analysis
+        const discoveryStatus = await prisma.discoveryCategory.findMany({
+            where: { estateId: estate.id },
+            include: { negativeFindings: true }
+        });
+
+        const negativeFindings = discoveryStatus?.filter((c: any) => c.status === 'NOT_FOUND') || [];
+
+        // Calculate Pending Tasks
+        const { SETTLEMENT_PHASE_TASKS } = await import("../config/settlementPhases.js");
+        const currentPhase = estate.status || 'immediate_actions';
+        const phaseData = SETTLEMENT_PHASE_TASKS.find((p: any) => p.phase === currentPhase);
+        const completedTaskIds = (estate.roadmapProgress as any)?.completedTaskIds || [];
+        const pendingTasks = phaseData?.tasks.filter((t: any) => !completedTaskIds.includes(t.id)) || [];
+
         const { PdfService } = await import("../services/pdfService.js");
-        const pdfBytes = await PdfService.generateActivityLogPdf(estate, activities, req.user.fullName);
+        const pdfBytes = await PdfService.generateActivityLogPdf(estate, activities, req.user.fullName, {
+            pendingTasks,
+            negativeFindings
+        });
 
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `attachment; filename=Settlement_Trail_${estate.deceasedLastName}.pdf`);

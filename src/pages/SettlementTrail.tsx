@@ -14,24 +14,54 @@ import {
     ArrowUpRight,
     FileCheck2,
     Scale,
-    Activity
+    Activity,
+    AlertCircle,
+    CheckCircle2,
+    SearchX,
+    FileSearch2
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Progress } from "@/components/ui/progress";
 import { format } from "date-fns";
 import { Sidebar } from "@/components/Sidebar";
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { SETTLEMENT_PHASE_TASKS } from "@/config/settlementPhases";
 
 export default function SettlementTrail() {
     const [searchQuery, setSearchQuery] = useState("");
+
+    const { data: estate } = useQuery({
+        queryKey: ["estate"],
+        queryFn: api.getMyEstate,
+    });
 
     const { data: activities = [], isLoading } = useQuery({
         queryKey: ["activities"],
         queryFn: api.getActivities,
     });
+
+    const { data: discoveryStatus } = useQuery({
+        queryKey: ["discovery-status", estate?.id],
+        queryFn: () => api.getDiscoveryStatus(estate!.id),
+        enabled: !!estate?.id
+    });
+
+    const { data: assets = [] } = useQuery({
+        queryKey: ["assets"],
+        queryFn: api.getAssets,
+    });
+
+    const completedTaskIds = estate?.roadmapProgress?.completedTaskIds || [];
+    const currentPhase = estate?.status || "immediate_actions";
+
+    const phaseData = SETTLEMENT_PHASE_TASKS.find(p => p.phase === currentPhase);
+    const pendingTasks = phaseData?.tasks.filter(t => !completedTaskIds.includes(t.id)) || [];
+    const pendingAssets = assets.filter((a: any) => !['distributed', 'closed'].includes(a.status?.toLowerCase()));
+    const negativeFindings = discoveryStatus?.categories.filter((c: any) => c.status === 'NOT_FOUND') || [];
 
     const filteredActivities = activities.filter(a =>
         a.notes?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -109,6 +139,77 @@ export default function SettlementTrail() {
                             </div>
                         </div>
                     </header>
+
+                    {/* Diligence Summary & Cognitive Load Reduction */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <Card className="border-indigo-100 bg-white shadow-sm rounded-3xl overflow-hidden">
+                            <CardHeader className="bg-slate-50/50 border-b border-slate-100 pb-4">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <AlertCircle className="w-5 h-5 text-indigo-600" />
+                                        <CardTitle className="text-sm font-black uppercase tracking-tight">Fiduciary Gaps (Pending)</CardTitle>
+                                    </div>
+                                    <Badge variant="outline" className="bg-white text-indigo-600 border-indigo-100 font-black text-[10px]">
+                                        {pendingTasks.length + pendingAssets.length} ACTIONS
+                                    </Badge>
+                                </div>
+                            </CardHeader>
+                            <CardContent className="pt-6 space-y-4">
+                                <div className="space-y-3">
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Roadmap Requirements</p>
+                                    {pendingTasks.length > 0 ? (
+                                        pendingTasks.slice(0, 3).map(task => (
+                                            <div key={task.id} className="flex items-start gap-3 p-3 bg-slate-50 rounded-2xl border border-slate-100">
+                                                <div className="w-4 h-4 rounded-full border-2 border-slate-200 mt-0.5 shrink-0" />
+                                                <div>
+                                                    <p className="text-xs font-bold text-slate-800 leading-tight">{task.title}</p>
+                                                    <p className="text-[10px] text-slate-500 mt-1">{task.description}</p>
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="p-3 bg-emerald-50 text-emerald-700 rounded-2xl text-[10px] font-bold flex items-center gap-2">
+                                            <CheckCircle2 className="w-3.5 h-3.5" /> All roadmap tasks for this phase are documented.
+                                        </div>
+                                    )}
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        <Card className="border-amber-100 bg-white shadow-sm rounded-3xl overflow-hidden">
+                            <CardHeader className="bg-amber-50/50 border-b border-amber-100 pb-4">
+                                <div className="flex items-center gap-2">
+                                    <SearchX className="w-5 h-5 text-amber-600" />
+                                    <CardTitle className="text-sm font-black uppercase tracking-tight">Explicit Negative Findings</CardTitle>
+                                </div>
+                            </CardHeader>
+                            <CardContent className="pt-6">
+                                <div className="space-y-3">
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Proof of search (Absent items)</p>
+                                    {negativeFindings.length > 0 ? (
+                                        negativeFindings.map(cat => (
+                                            <div key={cat.id} className="flex flex-col gap-1 p-3 bg-amber-50/30 rounded-2xl border border-amber-100/50">
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-xs font-bold text-amber-900">{cat.category.replace(/_/g, ' ')}</span>
+                                                    <Badge variant="outline" className="text-[8px] bg-white border-amber-200 text-amber-600 font-black h-4 uppercase">Absent</Badge>
+                                                </div>
+                                                {cat.negativeFindings?.map((f: any) => (
+                                                    <p key={f.id} className="text-[10px] text-amber-700 italic mt-1 bg-white/50 p-2 rounded-lg border border-amber-100/30">
+                                                        "{f.statement}"
+                                                    </p>
+                                                ))}
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="p-12 text-center space-y-2">
+                                            <FileSearch2 className="w-8 h-8 text-slate-200 mx-auto" />
+                                            <p className="text-[10px] text-slate-400 font-medium">No negative findings logged yet.<br />Explicitly documenting "No Assets Found" reduces liability.</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
 
                     {/* Timeline */}
                     <div className="space-y-8 pb-20">

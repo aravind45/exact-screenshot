@@ -527,10 +527,11 @@ export const PdfService = {
     /**
      * Generates a professional chronological Settlement Trail PDF with multi-page support.
      */
-    async generateActivityLogPdf(estate: any, activities: any[], userName: string) {
+    async generateActivityLogPdf(estate: any, activities: any[], userName: string, options?: { pendingTasks?: any[], negativeFindings?: any[] }) {
         const doc = await PDFDocument.create();
         const fontBold = await doc.embedStandardFont(StandardFonts.HelveticaBold);
         const fontRegular = await doc.embedStandardFont(StandardFonts.Helvetica);
+        const fontItalic = await doc.embedStandardFont(StandardFonts.HelveticaOblique);
 
         const margin = 50;
         const pageWidth = 612; // US Letter
@@ -541,7 +542,6 @@ export const PdfService = {
         const addNewPage = () => {
             page = doc.addPage([pageWidth, pageHeight]);
             cursorY = pageHeight - margin;
-            // Add page number or header on sub-pages if desired
             drawText(`(Continued - Page ${doc.getPageCount()})`, 8, fontRegular);
             cursorY -= 10;
         };
@@ -583,14 +583,32 @@ export const PdfService = {
         drawText(`Estate Status: ${estate.probateStatus?.replace(/_/g, ' ') || 'In Progress'}`, 10);
         cursorY -= 15;
 
-        // --- Introduction ---
-        const introLines = [
-            "This document constitutes a timestamped audit trail of fiduciary actions taken in the administration of",
-            "this estate. Each entry represents a verified completion of a statutory or procedural requirement,",
-            "serving as formal evidence of the executor's reasonable care and diligence."
-        ];
-        introLines.forEach(line => drawText(line, 9));
-        cursorY -= 15;
+        // --- FIDUCIARY GAP ANALYSIS (NEW) ---
+        if (options?.pendingTasks?.length || options?.negativeFindings?.length) {
+            drawText("FIDUCIARY GAP ANALYSIS (STATUS OF DILIGENCE)", 12, fontBold);
+            drawLine(1, rgb(0, 0.3, 0.6));
+
+            if (options.pendingTasks?.length) {
+                drawText("PENDING MILESTONES (Current Phase)", 10, fontBold, 5);
+                options.pendingTasks.forEach(task => {
+                    const desc = task.title || task.id;
+                    drawText(`[ ] ${desc}`, 9, fontRegular, 15);
+                });
+                cursorY -= 10;
+            }
+
+            if (options.negativeFindings?.length) {
+                drawText("NEGATIVE ASSURANCE (Explicitly Reviewed & Absent)", 10, fontBold, 5);
+                options.negativeFindings.forEach(cat => {
+                    drawText(`${cat.category.replace(/_/g, ' ')}: ABSENT`, 9, fontBold, 15);
+                    cat.negativeFindings?.forEach((f: any) => {
+                        drawText(`- Diligence Note: "${f.statement}"`, 8, fontItalic, 25);
+                    });
+                });
+                cursorY -= 10;
+            }
+            cursorY -= 10;
+        }
 
         // --- Activity Log ---
         drawText("CHRONOLOGICAL LOG OF ACTIONS", 12, fontBold);
