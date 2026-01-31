@@ -175,7 +175,7 @@ export default function SettlementTrail() {
                                                             'UPLOADED': 'Document Uploaded',
                                                             'CREATED': 'Entry Created',
                                                             'UPDATED': 'Entry Updated',
-                                                            'UNCOMPLETED': 'Task Re-opened'
+                                                            'UNCOMPLETED': 'Re-opened'
                                                         };
                                                         return labels[activity.action] || activity.action;
                                                     };

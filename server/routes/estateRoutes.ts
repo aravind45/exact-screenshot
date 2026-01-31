@@ -144,7 +144,7 @@ router.put("/my/roadmap", async (req: any, res: Response) => {
             const taskTitle = req.body.taskTitle || taskId;
             const phaseName = req.body.phaseName || phase;
             const actionLabel = action === 'COMPLETED' ? 'Completed' :
-                action === 'UNCOMPLETED' ? 'Uncompleted' :
+                action === 'UNCOMPLETED' ? 'Re-opened' :
                     action === 'PHASE_COMPLETED' ? 'Completed Phase' : action;
 
             await prisma.settlementActivity.create({

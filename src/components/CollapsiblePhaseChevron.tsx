@@ -91,7 +91,7 @@ export function CollapsiblePhaseChevron({ onTaskToggle }: CollapsiblePhaseChevro
       for (const p of SETTLEMENT_PHASE_TASKS) {
         const taskWithDoc = p.tasks.find(t => t.requiredDocs?.includes(variables.type));
         if (taskWithDoc) {
-          handleSyncRoadmap(taskWithDoc.id);
+          handleSyncRoadmap(taskWithDoc.id, taskWithDoc.title, p.title);
           break;
         }
       }
