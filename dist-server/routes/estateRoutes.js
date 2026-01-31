@@ -181,14 +181,17 @@ router.get("/my/activities/download", async (req, res) => {
         if (!estate)
             return res.status(404).json({ error: "Estate not found" });
         const activities = await prisma.settlementActivity.findMany({
-            where: { estateId: estate.id },
-            orderBy: { occurredAt: 'desc' }
+            where: {
+                estateId: estate.id,
+                action: { in: ['COMPLETED', 'PHASE_COMPLETED', 'UPLOADED', 'CREATED'] }
+            },
+            orderBy: { occurredAt: 'asc' }
         });
-        const { DossierService } = await import("../services/dossierService.js");
-        const log = DossierService.formatActivityLog(estate, activities);
-        res.setHeader('Content-Type', 'text/plain');
-        res.setHeader('Content-Disposition', `attachment; filename=Settlement_Trail_${estate.deceasedLastName}.txt`);
-        res.send(log);
+        const { PdfService } = await import("../services/pdfService.js");
+        const pdfBytes = await PdfService.generateActivityLogPdf(estate, activities, req.user.fullName);
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename=Settlement_Trail_${estate.deceasedLastName}.pdf`);
+        res.send(Buffer.from(pdfBytes));
     }
     catch (e) {
         console.error("Activity download error:", e);
