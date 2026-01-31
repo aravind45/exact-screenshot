@@ -19,6 +19,9 @@ RUN npx prisma generate
 # Copy source files
 COPY . .
 
+# Build app (frontend)
+RUN npm run build
+
 # Build server
 RUN npm run build:server
 
@@ -43,8 +46,11 @@ RUN npm install --omit=dev --legacy-peer-deps --ignore-scripts
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 
-# Copy built app
+# Copy built frontend
 COPY --from=builder /app/dist ./dist
+
+# Copy built server
+COPY --from=builder /app/dist-server ./dist-server
 
 # Copy startup script
 COPY --from=builder /app/server/startup.sh ./server/startup.sh

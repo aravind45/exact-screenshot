@@ -47,4 +47,4 @@ echo "✅ Prisma client ready"
 
 # Start the server (compiled JS for speed)
 echo "🎧 Starting server on port ${PORT}..."
-exec node dist/server/index.js
+exec node dist-server/index.js
