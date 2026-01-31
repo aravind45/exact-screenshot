@@ -108,8 +108,9 @@ model Estate {
   communications  Communication[]
   deadlines       Deadline[]
   activities      SettlementActivity[]
-  liabilities     Liability[]
-  distributions   Distribution[]
+  liabilities         Liability[]
+  distributions       Distribution[]
+  discoveryCategories DiscoveryCategory[]
 
   @@map("estates")
 }
@@ -489,4 +490,32 @@ model Liability {
 
   @@index([estateId])
   @@map("liabilities")
+}
+
+model DiscoveryCategory {
+  id             String   @id @default(uuid())
+  estateId       String   @map("estate_id")
+  category       String // 'BANK_ACCOUNTS', 'INVESTMENTS', 'REAL_PROPERTY', 'UNCLAIMED_PROPERTY', etc.
+  status         String   @default("NOT_CHECKED") // 'REVIEWED', 'NOT_FOUND', 'NOT_CHECKED', 'NA'
+  evidenceSource String?  @map("evidence_source")
+  reviewDate     DateTime? @map("review_date")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  estate           Estate             @relation(fields: [estateId], references: [id], onDelete: Cascade)
+  negativeFindings NegativeAssurance[]
+
+  @@unique([estateId, category])
+  @@map("discovery_categories")
+}
+
+model NegativeAssurance {
+  id                  String   @id @default(uuid())
+  discoveryCategoryId String   @map("discovery_category_id")
+  statement           String   @db.Text // e.g., "Reviewed 2022-2024 tax returns; no evidence of rental income."
+  createdAt           DateTime @default(now()) @map("created_at")
+
+  category DiscoveryCategory @relation(fields: [discoveryCategoryId], references: [id], onDelete: Cascade)
+
+  @@map("negative_assurance_logs")
 }

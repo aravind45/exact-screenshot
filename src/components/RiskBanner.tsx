@@ -50,7 +50,7 @@ export function AuthorityDecisionGuide({ recommendation }: { recommendation: any
             <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-bold text-indigo-900 flex items-center gap-2">
                     <Scale className="w-4 h-4" />
-                    Compliance Engine: Deterministic Path Selection
+                    Compliance Assistance Monitor: Deterministic Path Logic
                 </CardTitle>
             </CardHeader>
             <CardContent>
@@ -73,9 +73,9 @@ export function AuthorityDecisionGuide({ recommendation }: { recommendation: any
                         </div>
                     )}
 
-                    <div className="text-[11px] text-indigo-400 mt-2">
-                        Logic designed to align with state-specific probate code and fiduciary standards.
-                        Adjusting case parameters will update this determination.
+                    <div className="text-[11px] text-indigo-400 mt-2 font-medium">
+                        Informational Logic: Designed to align with state-specific probate code and fiduciary standards.
+                        This does not constitute legal advice and results should be reviewed by counsel.
                     </div>
                 </div>
             </CardContent>

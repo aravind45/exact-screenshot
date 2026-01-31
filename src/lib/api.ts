@@ -132,6 +132,33 @@ export interface LiabilityStats {
     priorityBreakdown?: Record<string, { total: number, paid: number }>;
 }
 
+export interface DiscoveryCategory {
+    id: string;
+    estateId: string;
+    category: string;
+    status: 'REVIEWED' | 'NOT_FOUND' | 'NOT_CHECKED' | 'NA';
+    evidenceSource?: string;
+    reviewDate?: string;
+    negativeFindings?: NegativeAssurance[];
+}
+
+export interface NegativeAssurance {
+    id: string;
+    discoveryCategoryId: string;
+    statement: string;
+    createdAt: string;
+}
+
+export interface DiscoveryStatus {
+    categories: DiscoveryCategory[];
+    progress: {
+        total: number;
+        completed: number;
+        percentage: number;
+        isComplete: boolean;
+    };
+}
+
 export interface SolvencyAssessment {
     totalDebt: number;
     totalLiquidAssets: number;
@@ -796,6 +823,42 @@ export const api = {
         const response = await fetch(`${API_URL}/estates/${estateId}/deadlines/generate`, {
             method: "POST",
             headers: getHeaders(),
+        });
+        return parseResponse(response);
+    },
+
+    /**
+     * Discovery Methods
+     */
+    getDiscoveryStatus: async (estateId: string): Promise<DiscoveryStatus> => {
+        const response = await fetch(`${API_URL}/discovery/${estateId}`, {
+            headers: getHeaders(),
+        });
+        return parseResponse(response);
+    },
+
+    initializeDiscoveryCategories: async (estateId: string): Promise<DiscoveryCategory[]> => {
+        const response = await fetch(`${API_URL}/discovery/${estateId}/initialize`, {
+            method: "POST",
+            headers: getHeaders(),
+        });
+        return parseResponse(response);
+    },
+
+    updateDiscoveryCategory: async (id: string, data: { status: string, evidenceSource?: string }): Promise<DiscoveryCategory> => {
+        const response = await fetch(`${API_URL}/discovery/category/${id}`, {
+            method: "PATCH",
+            headers: getHeaders(),
+            body: JSON.stringify(data),
+        });
+        return parseResponse(response);
+    },
+
+    addNegativeAssurance: async (categoryId: string, statement: string): Promise<NegativeAssurance> => {
+        const response = await fetch(`${API_URL}/discovery/category/${categoryId}/negative-assurance`, {
+            method: "POST",
+            headers: getHeaders(),
+            body: JSON.stringify({ statement }),
         });
         return parseResponse(response);
     },

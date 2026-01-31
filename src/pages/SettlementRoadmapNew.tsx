@@ -6,7 +6,7 @@ import { useWorkflow } from "@/contexts/WorkflowContext";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { Badge } from "@/components/ui/badge";
-import { Clock, CheckCircle } from "lucide-react";
+import { Clock, CheckCircle, Scale } from "lucide-react";
 import { SettlementPhaseChevron } from "@/components/SettlementPhaseChevron";
 import { type SettlementPhase } from "@/components/SettlementPhaseChevron";
 import { calculateAuthorityRecommendation } from "@/lib/authorityEngine";
@@ -143,6 +143,10 @@ export default function SettlementRoadmapNew() {
                   <Badge variant="secondary" className="bg-white/50 text-indigo-700 border-indigo-200 text-[9px] h-5">
                     Task Tracking
                   </Badge>
+                </div>
+                <div className="mt-3 flex items-start gap-2 text-[10px] text-indigo-400 font-medium">
+                  <Scale className="w-3 h-3 mt-0.5 shrink-0" />
+                  <p>Legal Information Notice: This roadmap is a general workflow assistance tool. It does not constitute legal advice and should be reviewed by legal counsel for specific case compliance.</p>
                 </div>
               </div>
             </div>

@@ -6,6 +6,7 @@ export interface DossierData {
     liabilities: any[];
     activityLogs: any[];
     documents: any[];
+    discoveryCategories: any[];
     summary: {
         totalAssets: number;
         totalDebt: number;
@@ -39,6 +40,10 @@ export class DossierService {
 
         const totalAssets = assets.reduce((sum, a) => sum + (a.value || 0), 0);
         const totalDebt = liabilities.reduce((sum, l) => sum + Number(l.amount), 0);
+        const discoveryCategories = await prisma.discoveryCategory.findMany({
+            where: { estateId },
+            include: { negativeFindings: true }
+        });
 
         const progress = estate.roadmapProgress as any;
 
@@ -48,6 +53,7 @@ export class DossierService {
             liabilities,
             activityLogs,
             documents,
+            discoveryCategories,
             summary: {
                 totalAssets,
                 totalDebt,
@@ -90,6 +96,20 @@ export class DossierService {
         report += `FIDUCIARY ACTIVITY TRAIL\n`;
         activityLogs.slice(0, 10).forEach(log => {
             report += `[${log.occurredAt.toISOString()}] ${log.action} - ${log.notes}\n`;
+        });
+
+        report += `ASSET DISCOVERY & DILIGENCE LOG\n`;
+        data.discoveryCategories.forEach(cat => {
+            if (cat.status === 'NOT_FOUND') {
+                report += `[NOT FOUND] ${cat.category}: Systematically searched. Findings: negative.\n`;
+                cat.negativeFindings?.forEach((f: any) => {
+                    report += `  - Assurance statement: "${f.statement}"\n`;
+                });
+            } else if (cat.status === 'REVIEWED') {
+                report += `[REVIEWED] ${cat.category}: Assets discovered and logged. Evidence: ${cat.evidenceSource || 'Records examined'}\n`;
+            } else if (cat.status === 'NA') {
+                report += `[N/A] ${cat.category}: Not applicable to this estate.\n`;
+            }
         });
 
         report += `\n--- END OF DOSSIER ---`;

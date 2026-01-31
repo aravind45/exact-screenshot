@@ -26,9 +26,9 @@ The onboarding process is designed to be empathetic and efficient, guiding the u
 
 ---
 
-## 2. Settlement Roadmap (6-Phase Guide)
+## 2. Fiduciary Compliance Roadmap (6-Phase Guide)
 
-The Roadmap is the central nervous system of the application, providing a 12-18 month guide to estate settlement.
+The Roadmap is a deterministic workflow assistant designed to help executors document their fiduciary duties and build a record of reasonable care.
 
 ### The Six Phases:
 1.  **Phase 1: Immediate Actions**
@@ -62,20 +62,20 @@ The Roadmap is the central nervous system of the application, providing a 12-18 
 
 ---
 
-## 3. Asset Discovery & AI "Asset Detective"
+## 3. Assisted Discovery Service
 
-Beyond manual entry, ExpectedEstate uses AI to find "lost" assets.
+ExpectedEstate uses deterministic document intelligence to assist executors in identifying potential assets within provided paperwork.
 
 ### Manual Asset Management:
 *   Add asset details: Type, Institution, Account Number, Value.
 *   Track per-asset status: Discovered → Contacted → Documents Submitted → In Review → Approved → Distributed.
 *   **Asset Detail Page**: View specific forms, communication logs, and checklists for each asset.
 
-### AI Asset Detective Flow:
+### Discovery Assistance Flow:
 1.  **Upload**: User drags and drops tax returns, bank statements, or old mail.
-2.  **Analysis**: Backend `AiService` extracts text and uses keyword heuristics/regex to find institution names and account values.
-3.  **Findings Feed**: User reviews discovered assets with a "Confidence Score".
-4.  **Confirmation**: Click "Add to Ledger" to formalize the discovery.
+2.  **Analysis**: Assists in extracting text and using deterministic patterns to find potential institution names and values.
+3.  **Potential Findings**: User reviews potential leads with a "Confidence Score" and source text citations.
+4.  **Confirmation**: Click "Add to Ledger" to formalize the entry.
 
 ---
 
@@ -156,5 +156,21 @@ ExpectedEstate is built for team collaboration, allowing the executor to invite 
     *   **Priority Enforcement**: Uses a state-specific rules engine to prevent premature payment of low-priority debts when high-priority claims (specific to each state's probate code) are still open.
 *   **Frontend**: React + TypeScript + Vite. Uses **Workflow Context** to synchronize roadmap state with asset data.
 *   **Backend**: Node.js + Express. Prisma ORM connects to **Neon (PostgreSQL)**.
-*   **Assisted Discovery & Document Intelligence**: Extracts insights from documents (Regex + deterministic patterns) to assist in systematic review.
 *   **Security**: All sensitive data (SSNs, Account Numbers) is encrypted.
+
+---
+
+## Trust, Limits, and Legal Boundaries
+
+ExpectedEstate is designed to bridge the gap between "DIY" executors and professional legal standards by providing a systematic process monitor.
+
+### What We Guarantee:
+*   **Process Integrity**: We guarantee that the activity logs, timestamped actions, and document discovery results represent a faithful digital record of the executor's diligence.
+*   **Deterministic Logic**: Our notice period clocks and distribution locks follow the exact statutory days (e.g., 120 days for CA, 90 days for FL) as defined in the state probate codes.
+
+### What We Do Not Replace:
+*   **Professional Judgment**: We do not provide legal, tax, or financial advice. The platform does not replace the need for an attorney to review complex estate issues or tax filings.
+*   **Verification Duty**: The platform assists in discovery and tracking, but the executor remains responsible for verifying the accuracy of all account values and creditor claim statuses before distributing funds.
+
+### Court & Attorney Interpretation:
+The **Fiduciary Activity Report** (formerly "Dossier") is designed to be presented to heirs, attorneys, and probate judges as **Evidence of Reasonable Care**. It demonstrates that the executor followed a rigorous, state-specific settlement process, significantly lowering the risk of liability claims.

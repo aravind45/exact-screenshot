@@ -134,8 +134,8 @@ export function WorkflowProvider({ children }: { children: ReactNode }) {
     legalRisks.push({
       id: 'early_distribution',
       level: 'CRITICAL',
-      title: 'Premature Distribution Risk',
-      description: `The statutory ${Math.round(noticePeriodDays / 30)}-month (${noticePeriodDays} days) creditor notice period for ${stateConfig?.state || 'the state'} has not yet expired. Distributing assets now exposes you to personal liability and violates fundamental fiduciary requirements.`,
+      title: 'Potential Premature Distribution',
+      description: `The statutory ${Math.round(noticePeriodDays / 30)}-month (${noticePeriodDays} days) creditor notice period for ${stateConfig?.state || 'the state'} has not yet expired. Distributing assets now may create personal liability risk and conflict with standard fiduciary guidelines.`,
       mitigation: 'Wait for the notice period to expire before final distribution.'
     });
   }
@@ -160,8 +160,8 @@ export function WorkflowProvider({ children }: { children: ReactNode }) {
     legalRisks.push({
       id: 'priority_violation',
       level: 'CRITICAL',
-      title: 'Statutory Priority Violation',
-      description: `Higher priority claims (Rank < ${generalRank}) remain unpaid while lower priority debts have been settled. In ${stateConfig?.state || 'this state'}, this is a breach of fiduciary duty.`,
+      title: 'Potential Statutory Priority conflict',
+      description: `Higher priority claims (Rank < ${generalRank}) remain unpaid while lower priority debts appear to have been settled. In ${stateConfig?.state || 'this state'}, this conflict should be reviewed for fiduciary compliance.`,
       mitigation: 'Stop all payments and re-verify project priority according to state law.'
     });
   }

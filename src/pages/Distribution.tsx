@@ -142,10 +142,10 @@ export default function Distribution() {
                             <div className="pt-4 border-t border-slate-200 mt-4">
                                 <h3 className="text-sm font-bold text-slate-900 mb-2 flex items-center gap-2">
                                     <FileSearch className="w-4 h-4 text-slate-400" />
-                                    Endgame Proof
+                                    Evidence of Reasonable Care
                                 </h3>
                                 <p className="text-xs text-slate-500 mb-4">
-                                    Generate a court-ready Compliance Dossier containing all asset logs, creditor notices, and communication history.
+                                    Generate a Fiduciary Activity Report containing all asset logs, creditor notices, and communication history for court review.
                                 </p>
                                 <Button
                                     variant="outline"
@@ -168,7 +168,7 @@ export default function Distribution() {
                                     }}
                                 >
                                     <Download className="w-4 h-4 mr-2" />
-                                    Download Compliance Dossier
+                                    Download Fiduciary Activity Report
                                 </Button>
                             </div>
                         </div>

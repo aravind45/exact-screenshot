@@ -49,6 +49,7 @@ import Letters from "./pages/probate/Letters";
 import Forms from "./pages/Forms";
 import { HelmetProvider } from "react-helmet-async";
 import { EstateAgentChatWrapper } from "@/components/EstateAgentChatWrapper";
+import { LegalDisclaimer } from "@/components/LegalDisclaimer";
 import CaliforniaProbateGuide from "./pages/guides/CaliforniaProbateGuide";
 
 const queryClient = new QueryClient();
@@ -232,6 +233,7 @@ const App = () => (
                     <Route path="/guides/california-probate" element={<CaliforniaProbateGuide />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
+                  <LegalDisclaimer />
                   <EstateAgentChatWrapper />
                 </WorkflowProvider>
               </AuthProvider>
