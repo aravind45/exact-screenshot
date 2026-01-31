@@ -86,7 +86,7 @@ export default function SettlementTrail() {
                                         const url = window.URL.createObjectURL(blob);
                                         const a = document.createElement('a');
                                         a.href = url;
-                                        a.download = `Settlement_Trail_${new Date().toISOString().split('T')[0]}.txt`;
+                                        a.download = `Settlement_Trail_${new Date().toISOString().split('T')[0]}.pdf`;
                                         document.body.appendChild(a);
                                         a.click();
                                         window.URL.revokeObjectURL(url);
