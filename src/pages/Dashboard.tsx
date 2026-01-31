@@ -159,17 +159,25 @@ export default function Dashboard() {
   // Merge communications and roadmap activities for a unified audit trail
   const unifiedTimeline = [
     ...(recentActivity || []).map((a: any) => ({ ...a, uiType: 'communication' })),
-    ...(activitiesData || []).map((a: any) => ({
-      id: a.id,
-      occurredAt: a.occurredAt,
-      subject: a.action === 'PHASE_COMPLETED'
-        ? `Phase Completed: ${(a.taskId || '').split('_').map((s: any) => s.charAt(0).toUpperCase() + s.slice(1)).join(' ')}`
-        : `Task: ${(a.taskId || 'Unknown Task').split('_').map((s: any) => s.charAt(0).toUpperCase() + s.slice(1)).join(' ')}`,
-      notes: a.action === 'PHASE_COMPLETED' ? `Advanced to next roadmap stage` : `Status changed to ${a.action.toLowerCase()}`,
-      direction: 'system',
-      type: 'roadmap',
-      uiType: 'activity'
-    }))
+    ...(activitiesData || []).map((a: any) => {
+      // Prioritize descriptive notes for the primary subject line
+      const displaySubject = a.notes || (
+        a.action === 'PHASE_COMPLETED'
+          ? `Phase Completed: ${(a.taskId || '').replace(/_/g, ' ')}`
+          : `Task: ${(a.taskId || 'Update').replace(/_/g, ' ')}`
+      );
+
+      return {
+        id: a.id,
+        occurredAt: a.occurredAt,
+        subject: displaySubject,
+        // Secondary description
+        notes: a.action === 'PHASE_COMPLETED' ? `Advanced to next roadmap stage` : `Fiduciary record updated`,
+        direction: 'system',
+        type: a.type || 'roadmap',
+        uiType: 'activity'
+      };
+    })
   ].sort((a, b) => new Date(b.occurredAt).getTime() - new Date(a.occurredAt).getTime()).slice(0, 10);
 
   const queryClient = useQueryClient();
