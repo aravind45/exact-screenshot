@@ -45,4 +45,16 @@ router.post('/category/:id/negative-assurance', async (req: any, res) => {
     }
 });
 
+// Analyze uploaded document
+router.post('/analyze', async (req: any, res) => {
+    try {
+        // Mocked file handling - in real app, use multer middleware
+        const result = await DiscoveryService.analyzeDocument(req.body);
+        res.json(result);
+    } catch (error) {
+        console.error("Discovery Analysis Failed:", error);
+        res.status(500).json({ error: 'Failed to analyze document' });
+    }
+});
+
 export default router;
