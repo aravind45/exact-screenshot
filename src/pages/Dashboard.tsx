@@ -133,12 +133,8 @@ export default function Dashboard() {
   // Ensure assets is always an array
   const assets = Array.isArray(assetsData) ? assetsData : [];
 
-  // Redirect to Onboarding if estate hasn't been set up
-  useEffect(() => {
-    if (!isLoading && estate && estate.deceasedFirstName === "TBD") {
-      navigate("/onboarding");
-    }
-  }, [estate, isLoading, navigate]);
+  // Note: Removed automatic redirect to onboarding to prevent infinite loop
+  // Users can manually navigate to onboarding if needed
 
   const totalValue = assets.reduce((sum: number, asset: any) => sum + (asset.value || 0), 0);
 
