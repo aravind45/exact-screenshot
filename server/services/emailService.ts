@@ -240,8 +240,11 @@ Which asset ID does this email most likely belong to? Return ONLY the ID. If non
 
     static async sendPasswordResetEmail(to: string, resetLink: string) {
         const domain = await ConfigService.get("MAILGUN_DOMAIN") || "mg.pilar.ai";
-        const sender = `ExpectedEstate <noreply@${domain}>`;
         const apiKey = await ConfigService.get("MAILGUN_API_KEY");
+
+        console.log(`[EmailService] Attempting to send reset email to: ${to}`);
+        console.log(`[EmailService] Using domain: ${domain}`);
+        console.log(`[EmailService] API Key Found: ${!!apiKey}`);
 
         if (!apiKey) {
             console.log("-----------------------------------------");
@@ -253,12 +256,16 @@ Which asset ID does this email most likely belong to? Return ONLY the ID. If non
 
         const encodedKey = Buffer.from(`api:${apiKey}`).toString("base64");
         const formData = new URLSearchParams();
+        const sender = `ExpectedEstate <noreply@${domain}>`;
         formData.append("from", sender);
         formData.append("to", to);
         formData.append("subject", "Reset your ExpectedEstate password");
         formData.append("text", `We received a request to reset your password. Click the link below to set a new one:\n\n${resetLink}\n\nIf you did not request this, you can safely ignore this email.\n\nThis link will expire in 1 hour.`);
 
         const baseUrl = process.env.MAILGUN_BASE_URL || "https://api.mailgun.net";
+
+        console.log(`[EmailService] Posting to Mailgun: ${baseUrl}/v3/${domain}/messages`);
+
         const response = await fetch(`${baseUrl}/v3/${domain}/messages`, {
             method: "POST",
             headers: {
@@ -267,10 +274,14 @@ Which asset ID does this email most likely belong to? Return ONLY the ID. If non
             body: formData
         });
 
+        console.log(`[EmailService] Mailgun Response Status: ${response.status}`);
+
         if (!response.ok) {
             const error = await response.text();
             console.error("[EmailService] Password Reset Email Error:", error);
             throw new Error("Failed to send reset email");
         }
+
+        console.log(`[EmailService] Reset email successfully accepted by Mailgun for ${to}`);
     }
 }

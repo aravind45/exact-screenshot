@@ -72,7 +72,8 @@ export default function OnboardingWizard() {
         {
             hasWill: estateData.hasWill,
             isSpouse: estateData.isSpouse,
-            isOutOfState: estateData.isOutOfState
+            isOutOfState: estateData.isOutOfState,
+            estimatedValue: parseFloat(estateData.estimatedValue) || 0
         }
     );
 
@@ -732,7 +733,7 @@ export default function OnboardingWizard() {
                                         <div>
                                             <h1 className="text-3xl font-bold text-slate-900 mb-2">You're all set.</h1>
                                             <p className="text-slate-600">
-                                                We've set up your secure dashboard on the **{parseFloat(estateData.estimatedValue) < 166250 ? 'Small Estate' : 'Full Probate'}** track.
+                                                We've set up your secure dashboard on the **{recommendation.type.replace(/_/g, ' ')}** track.
                                                 <br />
                                                 Welcome to Pilar.
                                             </p>

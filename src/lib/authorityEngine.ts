@@ -35,12 +35,23 @@ export interface AuthorityRecommendation {
 export function calculateAuthorityRecommendation(
     assets: any[],
     state: string,
-    metadata?: { hasWill?: boolean; isSpouse?: boolean; isOutOfState?: boolean }
+    metadata?: {
+        hasWill?: boolean;
+        isSpouse?: boolean;
+        isOutOfState?: boolean;
+        estimatedValue?: number;
+    }
 ): AuthorityRecommendation {
     const threshold = STATE_THRESHOLDS[state] || 50000;
 
     const probateAssets = assets.filter(a => a.ownershipType === "INDIVIDUAL");
-    const probateTotal = probateAssets.reduce((sum, a) => sum + (a.value || 0), 0);
+    let probateTotal = probateAssets.reduce((sum, a) => sum + (a.value || 0), 0);
+
+    // Fallback to estimatedValue if provided and no probate assets exist
+    if (probateTotal === 0 && metadata?.estimatedValue) {
+        probateTotal = metadata.estimatedValue;
+    }
+
     const trustAssets = assets.filter(a => a.ownershipType === "TRUST");
 
     const isEligibleForSmallEstate = probateTotal > 0 && probateTotal <= threshold;
@@ -50,10 +61,7 @@ export function calculateAuthorityRecommendation(
     let legalTerm = "";
     let citations: string[] = [];
 
-    if (assets.length === 0) {
-        type = "UNSET";
-        reason = "Add assets to determine the required legal path.";
-    } else if (metadata?.isOutOfState) {
+    if (metadata?.isOutOfState) {
         type = "ANCILLARY_PROBATE";
         reason = "Property located in another state requires Ancillary Probate.";
         legalTerm = "Ancillary Administration";

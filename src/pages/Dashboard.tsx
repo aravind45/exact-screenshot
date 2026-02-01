@@ -241,7 +241,7 @@ export default function Dashboard() {
                   <div className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
                   Estate Active
                 </div>
-                {estate?.estateType && (
+                {estate?.estateType && estate.estateType !== "UNSET" && (
                   <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-bold uppercase tracking-wider border border-slate-200">
                     {estate.estateType.replace(/_/g, " ")} TRACK
                   </div>
@@ -339,7 +339,7 @@ export default function Dashboard() {
           {/* Probate Roadmap Checklists */}
           <section>
             <ProbateChecklistWidget
-              estateType={estate?.estateType as any || "FORMAL_PROBATE"}
+              estateType={(estate?.estateType && estate.estateType !== "UNSET") ? (estate.estateType as any) : null}
               deceasedState={estate?.deceasedState}
             />
           </section>
