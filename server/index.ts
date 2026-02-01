@@ -136,17 +136,14 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 // Cloud Run expects the server to listen on the PORT environment variable
 console.log(`🎧 Starting server on 0.0.0.0:${port}...`);
 
-const server = app.listen(port, '0.0.0.0', async () => {
-    console.log(`✅ Server running on http://0.0.0.0:${port}`);
-    console.log(`✅ Environment: ${process.env.NODE_ENV}`);
+let server; // Declare server variable outside the conditional block
+if (process.env.VERCEL !== '1') {
+    server = app.listen(port, '0.0.0.0', async () => {
+        console.log(`✅ Server running on http://0.0.0.0:${port}`);
+        console.log(`✅ Environment: ${process.env.NODE_ENV}`);
 
-    // Background Database Sync & Seeding (Non-blocking)
-    (async () => {
-        try {
-            console.log(`⚙️ Starting background database synchronization...`);
-            const { execSync } = await import("child_process");
-
-            // Sync schema (db push for speed in this dev-heavy prod environment, or migrate deploy)
+        // Background Database Sync & Seeding (Non-blocking)
+        (async () => {
             try {
                 console.log("🔄 Running prisma db push...");
                 execSync("npx prisma db push --accept-data-loss", { stdio: 'inherit' });
@@ -171,14 +168,20 @@ const server = app.listen(port, '0.0.0.0', async () => {
     console.error("❌ Failed to start server:", err);
     process.exit(1);
 });
+} else {
+    console.log(`🔧 Running in Vercel serverless mode - app exported for serverless functions`);
+}
 
-// Graceful shutdown
-process.on('SIGTERM', () => {
-    console.log('SIGTERM signal received: closing HTTP server');
-    server.close(() => {
-        console.log('HTTP server closed');
+// Graceful shutdown (only if server is running)
+if (server) {
+    process.on('SIGTERM', () => {
+        console.log('SIGTERM signal received: closing HTTP server');
+        server.close(() => {
+            console.log('HTTP server closed');
+        });
     });
-});
+}
+
 
 // Catch unhandled errors
 process.on('uncaughtException', (err) => {
