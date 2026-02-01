@@ -153,24 +153,25 @@ if (process.env.VERCEL !== '1') {
                 console.error("❌ Database sync failed:", syncErr);
             }
 
-            // Seed default forms if DB is empty
-            const { FormSeedingService } = await import("./services/formSeedingService.js");
-            const count = await prisma.formTemplate.count();
-            if (count === 0) {
-                console.log("🌱 Seeding default forms...");
-                await FormSeedingService.seedDefaults();
+            try {
+                // Seed default forms if DB is empty
+                const { FormSeedingService } = await import("./services/formSeedingService.js");
+                const count = await prisma.formTemplate.count();
+                if (count === 0) {
+                    console.log("🌱 Seeding default forms...");
+                    await FormSeedingService.seedDefaults();
+                }
+                console.log(`🎉 Background initialization complete! Server is fully ready.`);
+            } catch (e) {
+                console.error("❌ Background initialization error:", e);
             }
-            console.log(`🎉 Background initialization complete! Server is fully ready.`);
-        } catch (e) {
-            console.error("❌ Background initialization error:", e);
-        }
-    })();
-});
+        })();
+    });
 
-server.on('error', (err: any) => {
-    console.error("❌ Failed to start server:", err);
-    process.exit(1);
-});
+    server.on('error', (err: any) => {
+        console.error("❌ Failed to start server:", err);
+        process.exit(1);
+    });
 } else {
     console.log(`🔧 Running in Vercel serverless mode - app exported for serverless functions`);
 }
