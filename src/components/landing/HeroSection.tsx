@@ -44,8 +44,8 @@ export function HeroSection() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed"
           >
-            Track every asset, prevent institutional delays, and simplify paperwork. 
-            ExpectedEstate helps executors navigate the settlement process during 
+            Track every asset, prevent institutional delays, and simplify paperwork.
+            ExpectedEstate helps executors navigate the settlement process during
             an already difficult time.
           </motion.p>
 
@@ -77,18 +77,18 @@ export function HeroSection() {
         >
           <FeatureHighlight
             icon={Shield}
-            title="Track Every Asset"
-            description="Individual workflows for each asset - nothing falls through the cracks"
+            title="Document Every Discovery"
+            description="Exhaustive discovery workflows that prove reasonable care for every asset search."
           />
           <FeatureHighlight
             icon={Clock}
-            title="Automatic Follow-ups"
-            description="Never miss a deadline with smart 7, 14, 21, and 30-day reminders"
+            title="Eliminate Fiduciary Gaps"
+            description="Automatic escalation triggers ensure no milestone or institutional deadline is missed."
           />
           <FeatureHighlight
             icon={FileCheck}
-            title="Pre-filled Forms"
-            description="Institution-specific forms auto-filled and ready to send"
+            title="Evidence of Reasonable Care"
+            description="Export court-ready audit trails designed to protect executors from personal liability."
           />
         </motion.div>
       </div>
@@ -96,13 +96,13 @@ export function HeroSection() {
   );
 }
 
-function FeatureHighlight({ 
-  icon: Icon, 
-  title, 
-  description 
-}: { 
-  icon: React.ComponentType<{ className?: string }>; 
-  title: string; 
+function FeatureHighlight({
+  icon: Icon,
+  title,
+  description
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  title: string;
   description: string;
 }) {
   return (

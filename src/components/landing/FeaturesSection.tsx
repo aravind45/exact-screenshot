@@ -1,43 +1,43 @@
-import { 
-  FileText, 
-  MessageSquare, 
-  Bell, 
-  Send, 
-  BarChart3, 
-  Lock 
+import {
+  FileText,
+  MessageSquare,
+  Bell,
+  Send,
+  BarChart3,
+  Lock
 } from "lucide-react";
 import { motion } from "framer-motion";
 
 const features = [
   {
     icon: FileText,
-    title: "Asset Tracking",
-    description: "Track bank accounts, retirement funds, insurance policies, and property all in one place with individual workflows for each asset.",
+    title: "Documented Discovery",
+    description: "Go beyond simple tracking. Use individual workflows for each asset to document every search, finding, and negative discovery for the court.",
   },
   {
     icon: MessageSquare,
-    title: "Communication Logs",
-    description: "Document every call, email, and fax with institutions. Keep a complete audit trail that's always accessible.",
+    title: "Fiduciary Accountability",
+    description: "Document every call, email, and fax with institutions. Maintain a bulletproof audit trail that proves you've met your legal obligations.",
   },
   {
     icon: Bell,
-    title: "Smart Follow-ups",
-    description: "Automatic reminders at 7, 14, 21, and 30 days ensure no institution goes unresponded. Escalate with confidence.",
+    title: "Gap Analysis & Escalation",
+    description: "Automatic monitoring identifies 'Diligence Gaps' and provides escalation triggers for institutions that are slow to respond.",
   },
   {
     icon: Send,
-    title: "Fax Integration",
-    description: "Fill out institution-specific forms and fax directly from the platform. Track delivery confirmations.",
+    title: "Professional Filings",
+    description: "Generate institution-specific notices and fax directly from the platform. Keep delivery confirmations as permanent evidence.",
   },
   {
     icon: BarChart3,
-    title: "Progress Dashboard",
-    description: "See total asset values, settlement status, and what needs attention at a glance. Stay organized effortlessly.",
+    title: "Executive Overview",
+    description: "Surface critical road blockers, unsettled assets, and pending milestones at a glance. Eliminate the cognitive load of estate management.",
   },
   {
     icon: Lock,
-    title: "Secure & Private",
-    description: "Bank-level encryption protects sensitive information. Your data stays private and secure.",
+    title: "Attorney-Safe Vault",
+    description: "Organize records in a way that allows attorneys to review and defend your decisions with minimal overhead.",
   },
 ];
 
@@ -57,7 +57,7 @@ export function FeaturesSection() {
             Everything you need to settle an estate
           </h2>
           <p className="text-lg text-muted-foreground">
-            Purpose-built tools designed with empathy for executors managing 
+            Purpose-built tools designed with empathy for executors managing
             dozens of accounts across multiple institutions.
           </p>
         </motion.div>
