@@ -1,7 +1,10 @@
 import { Router } from 'express';
+import multer from 'multer';
+import pdf from 'pdf-parse';
 import { DiscoveryService } from '../services/discoveryService.js';
 
 const router = Router();
+const upload = multer({ storage: multer.memoryStorage() });
 
 // Get discovery status and categories for an estate
 router.get('/:estateId', async (req, res) => {
@@ -46,10 +49,28 @@ router.post('/category/:id/negative-assurance', async (req: any, res) => {
 });
 
 // Analyze uploaded document
-router.post('/analyze', async (req: any, res) => {
+router.post('/analyze', upload.single('file'), async (req: any, res) => {
     try {
-        // Mocked file handling - in real app, use multer middleware
-        const result = await DiscoveryService.analyzeDocument(req.body);
+        if (!req.file) {
+            return res.status(400).json({ error: "No file uploaded" });
+        }
+
+        let text = "";
+        let imageBase64 = "";
+
+        // Extract content based on file type
+        if (req.file.mimetype === 'application/pdf') {
+            const data = await pdf(req.file.buffer);
+            text = data.text;
+        } else if (req.file.mimetype.startsWith('image/')) {
+            imageBase64 = req.file.buffer.toString('base64');
+        } else {
+            // For other text files, try simple string
+            text = req.file.buffer.toString('utf-8');
+        }
+
+        // Send to DiscoveryService (handling Real AI)
+        const result = await DiscoveryService.analyzeDocument({ text, imageBase64 });
         res.json(result);
     } catch (error) {
         console.error("Discovery Analysis Failed:", error);
