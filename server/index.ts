@@ -4,6 +4,7 @@ import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
+import { execSync } from "child_process";
 import { AuthService } from "./services/authService.js";
 import { prisma } from "./db.js";
 
@@ -136,7 +137,7 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 // Cloud Run expects the server to listen on the PORT environment variable
 console.log(`🎧 Starting server on 0.0.0.0:${port}...`);
 
-let server; // Declare server variable outside the conditional block
+let server: any; // Declare server variable outside the conditional block
 if (process.env.VERCEL !== '1') {
     server = app.listen(port, '0.0.0.0', async () => {
         console.log(`✅ Server running on http://0.0.0.0:${port}`);
@@ -164,7 +165,9 @@ if (process.env.VERCEL !== '1') {
             console.error("❌ Background initialization error:", e);
         }
     })();
-}).on('error', (err: any) => {
+});
+
+server.on('error', (err: any) => {
     console.error("❌ Failed to start server:", err);
     process.exit(1);
 });
