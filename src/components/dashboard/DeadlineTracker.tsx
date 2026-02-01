@@ -123,20 +123,20 @@ export function DeadlineTracker({ estateId }: { estateId: string }) {
             </CardHeader>
             <CardContent className="flex-1 overflow-y-auto pr-1">
                 {!Array.isArray(deadlines) || deadlines.length === 0 ? (
-                    <div className="h-32 flex flex-col items-center justify-center text-center p-4 border-2 border-dashed border-slate-100 rounded-xl">
-                        <Clock className="w-8 h-8 text-slate-300 mb-2" />
+                    <div className="h-32 flex flex-col items-center justify-center text-center p-3 border-2 border-dashed border-slate-100 rounded-xl">
+                        <Clock className="w-6 h-6 text-slate-300 mb-1.5" />
                         <p className="text-sm text-slate-500 font-medium">No deadlines tracked</p>
                         <p className="text-xs text-slate-400">Add key dates to stay compliant</p>
                     </div>
                 ) : (
-                    <div className="space-y-3">
+                    <div className="space-y-2">
                         {deadlines.map((d: Deadline) => {
                             const days = getDaysRemaining(d.dueDate);
                             const overdue = days < 0;
                             const urgent = days <= 30 && !overdue;
 
                             return (
-                                <div key={d.id} className="flex items-start gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100 hover:border-violet-200 transition-colors group">
+                                <div key={d.id} className="flex items-start gap-2 p-2 rounded-xl bg-slate-50 border border-slate-100 hover:border-violet-200 transition-colors group">
                                     <div className={cn(
                                         "mt-1 w-2 h-2 rounded-full shrink-0",
                                         overdue ? "bg-rose-500 shadow-rose-200" : (urgent ? "bg-amber-500 shadow-amber-200" : "bg-emerald-500 shadow-emerald-200"),

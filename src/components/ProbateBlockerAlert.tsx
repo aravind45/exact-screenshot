@@ -70,37 +70,37 @@ export function ProbateBlockerAlert() {
   const config = getBlockerConfig();
 
   return (
-    <Alert variant="destructive" className="border-2 border-rose-300 bg-rose-50 rounded-[20px] py-4">
-      <AlertTriangle className="h-5 w-5 text-rose-600" />
+    <Alert variant="destructive" className="border-2 border-rose-300 bg-rose-50 rounded-2xl py-2.5 px-3">
+      <AlertTriangle className="h-4 w-4 text-rose-600" />
       <div className="ml-2">
-        <AlertTitle className="text-rose-900 font-black text-base tracking-tight">
+        <AlertTitle className="text-rose-900 font-black text-sm tracking-tight">
           {config.title}
         </AlertTitle>
         <AlertDescription className="text-rose-800">
-          <p className="mb-2 text-sm font-medium">
+          <p className="mb-1.5 text-xs font-medium">
             <strong className="font-black">{probateBlockers.length} asset{probateBlockers.length !== 1 ? 's are' : ' is'}</strong> blocked
             until you provide the <strong className="font-black text-rose-900">{config.docName}</strong>.
           </p>
-          <p className="mb-3 text-xs text-rose-600/80 font-medium">
+          <p className="mb-2 text-[11px] text-rose-600/80 font-medium">
             {config.description}
           </p>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1.5">
             <Button
               size="sm"
               variant="default"
               onClick={() => navigate(config.actionRoute)}
-              className="bg-rose-600 hover:bg-rose-700 h-9 font-bold px-4"
+              className="bg-rose-600 hover:bg-rose-700 h-8 font-bold px-3 text-xs"
             >
-              <FileText className="w-4 h-4 mr-2" />
+              <FileText className="w-3 h-3 mr-1.5" />
               {config.actionLabel}
             </Button>
             <Button
               size="sm"
               variant="outline"
               onClick={() => navigate('/assets?filter=blocked')}
-              className="border-rose-300 text-rose-700 hover:bg-rose-100 h-9 font-bold px-4"
+              className="border-rose-300 text-rose-700 hover:bg-rose-100 h-8 font-bold px-3 text-xs"
             >
-              View Blocked Assets <ArrowRight className="w-4 h-4 ml-2" />
+              View Blocked Assets <ArrowRight className="w-3 h-3 ml-1.5" />
             </Button>
           </div>
         </AlertDescription>

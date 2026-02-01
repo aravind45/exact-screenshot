@@ -49,20 +49,20 @@ export function QuickActions({ currentPhase }: { currentPhase?: SettlementPhase 
     ];
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-3">
             <h2 className="text-sm font-black text-slate-400 uppercase tracking-widest px-1">Quick Actions</h2>
-            <div className="grid grid-cols-1 gap-3">
+            <div className="grid grid-cols-1 gap-2">
                 {actions.map((action, i) => (
                     <button
                         key={i}
                         onClick={action.onClick}
                         className={cn(
-                            "flex items-center gap-4 p-4 bg-white border border-slate-200 rounded-3xl text-left transition-all duration-200",
+                            "flex items-center gap-3 p-3 bg-white border border-slate-200 rounded-2xl text-left transition-all duration-200",
                             action.hover
                         )}
                     >
-                        <div className={cn("p-3 rounded-2xl", action.color)}>
-                            <action.icon className="w-5 h-5" />
+                        <div className={cn("p-2 rounded-xl", action.color)}>
+                            <action.icon className="w-4 h-4" />
                         </div>
                         <div className="flex-1">
                             <p className="text-sm font-bold text-slate-900">{action.title}</p>

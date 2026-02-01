@@ -342,7 +342,7 @@ export default function Dashboard() {
 
           {/* Current Mission Banner */}
           <div className={cn(
-            "relative overflow-hidden rounded-[24px] p-5 text-white shadow-xl border transition-all hover:scale-[1.005]",
+            "relative overflow-hidden rounded-2xl p-3 text-white shadow-lg border transition-all hover:scale-[1.002]",
             mission.color === 'amber' ? "bg-gradient-to-br from-amber-500 to-orange-600 border-amber-400" :
               mission.color === 'indigo' ? "bg-gradient-to-br from-indigo-500 to-blue-700 border-indigo-400" :
                 mission.color === 'blue' ? "bg-gradient-to-br from-blue-500 to-cyan-700 border-blue-400" :
@@ -350,26 +350,23 @@ export default function Dashboard() {
                     mission.color === 'emerald' ? "bg-gradient-to-br from-emerald-500 to-teal-700 border-emerald-400" :
                       "bg-gradient-to-br from-purple-500 to-fuchsia-700 border-purple-400"
           )}>
-            <div className="absolute top-0 right-0 p-12 opacity-10 pointer-events-none">
-              <mission.icon className="w-64 h-64" />
-            </div>
-            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5">
-              <div className="space-y-2">
-                <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/20 rounded-full border border-white/20 backdrop-blur-sm">
-                  <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-                  <span className="text-[10px] font-black uppercase tracking-widest">Active Mission</span>
+            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-3">
+              <div className="space-y-1">
+                <div className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-white/20 rounded-full border border-white/20 backdrop-blur-sm">
+                  <div className="w-1 h-1 rounded-full bg-white animate-pulse" />
+                  <span className="text-[9px] font-black uppercase tracking-widest">Active Mission</span>
                 </div>
-                <h1 className="text-3xl font-black tracking-tight">{mission.title}</h1>
-                <p className="text-base font-medium opacity-90 max-w-xl leading-relaxed">
+                <h1 className="text-xl font-black tracking-tight">{mission.title}</h1>
+                <p className="text-sm font-medium opacity-90 max-w-xl leading-snug">
                   {mission.description}
                 </p>
               </div>
               <Button
                 onClick={() => navigate(mission.link)}
-                className="bg-white text-slate-900 hover:bg-slate-100 h-14 px-8 rounded-2xl font-black text-lg group shadow-xl"
+                className="bg-white text-slate-900 hover:bg-slate-100 h-10 px-6 rounded-xl font-black text-sm group shadow-lg"
               >
                 {mission.cta}
-                <ArrowRight className="ml-3 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Button>
             </div>
           </div>

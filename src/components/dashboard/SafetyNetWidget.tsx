@@ -38,19 +38,19 @@ export function SafetyNetWidget({ assets, onNavigate }: SafetyNetWidgetProps) {
     return (
         <Card className="bg-amber-50 border-amber-100 shadow-sm">
             <CardHeader className="flex flex-row items-center gap-2 pb-2">
-                <ShieldCheck className="w-5 h-5 text-amber-600" />
+                <ShieldCheck className="w-4 h-4 text-amber-600" />
                 <CardTitle className="text-sm font-bold text-amber-900 uppercase tracking-wider">Safety Net Active</CardTitle>
             </CardHeader>
             <CardContent>
-                <div className="space-y-4">
+                <div className="space-y-3">
                     <p className="text-xs text-amber-800 font-medium">
                         {stuckAssets.length} asset{stuckAssets.length > 1 ? 's' : ''} haven't had activity in over 2 weeks.
                         Institutions often stall here.
                     </p>
 
-                    <div className="space-y-2">
+                    <div className="space-y-1.5">
                         {stuckAssets.slice(0, 3).map(asset => (
-                            <div key={asset.id} className="flex items-center justify-between p-3 bg-white rounded-xl border border-amber-200">
+                            <div key={asset.id} className="flex items-center justify-between p-2 bg-white rounded-xl border border-amber-200">
                                 <span className="text-sm font-bold text-slate-700">{asset.institution}</span>
                                 <Button
                                     size="sm"

@@ -28,7 +28,7 @@ export function AgentInsights() {
                     <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Monitoring Status</h2>
                 </div>
                 <Card className="border-slate-200 bg-slate-50/50 border-dashed">
-                    <CardContent className="py-6 text-center text-slate-500 text-sm font-medium">
+                    <CardContent className="py-4 text-center text-slate-500 text-sm font-medium">
                         No deadlines or delays detected yet. We are continuously monitoring your estate.
                     </CardContent>
                 </Card>
@@ -57,7 +57,7 @@ export function AgentInsights() {
                                 "border-l-4 shadow-sm hover:shadow-md transition-all group overflow-hidden relative",
                                 insight.priority === "high" ? "border-l-destructive bg-destructive/5" : "border-l-primary bg-primary/5"
                             )}>
-                                <CardHeader className="pb-2 space-y-1">
+                                <CardHeader className="pb-1.5 space-y-1">
                                     <div className="flex items-center justify-between">
                                         <CardTitle className="text-sm font-bold flex items-center gap-2">
                                             {insight.priority === "high" ? <AlertCircle className="w-4 h-4 text-destructive" /> : <Clock className="w-4 h-4 text-primary" />}

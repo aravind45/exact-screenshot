@@ -27,13 +27,13 @@ export function FollowUpWidget({ followUps, onFollowUpClick, className }: Follow
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
         className={cn(
-          'card-elevated p-6 bg-green-50/50 border-green-100',
+          'card-elevated p-4 bg-green-50/50 border-green-100',
           className
         )}
       >
-        <div className="flex items-center gap-3 text-green-600">
-          <div className="p-2 bg-green-100 rounded-lg">
-            <Clock className="w-5 h-5" />
+        <div className="flex items-center gap-2 text-green-600">
+          <div className="p-1.5 bg-green-100 rounded-lg">
+            <Clock className="w-4 h-4" />
           </div>
           <div>
             <h3 className="font-semibold">All caught up!</h3>
@@ -52,11 +52,11 @@ export function FollowUpWidget({ followUps, onFollowUpClick, className }: Follow
       className={cn('card-elevated overflow-hidden bg-white border-slate-200 shadow-sm', className)}
     >
       {/* Header */}
-      <div className="p-5 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
+      <div className="p-3 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-amber-100 rounded-lg">
-              <Bell className="w-5 h-5 text-amber-600" />
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 bg-amber-100 rounded-lg">
+              <Bell className="w-4 h-4 text-amber-600" />
             </div>
             <div>
               <h3 className="font-semibold text-slate-900">Follow-ups Needed</h3>
@@ -77,7 +77,7 @@ export function FollowUpWidget({ followUps, onFollowUpClick, className }: Follow
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.3, delay: index * 0.05 }}
             onClick={() => onFollowUpClick?.(followUp.assetId)}
-            className="w-full text-left p-4 hover:bg-slate-50 transition-colors focus:outline-none focus:bg-slate-50 group"
+            className="w-full text-left p-3 hover:bg-slate-50 transition-colors focus:outline-none focus:bg-slate-50 group"
           >
             <div className="flex items-center gap-3">
               <div className="flex-1 min-w-0">
@@ -105,7 +105,7 @@ export function FollowUpWidget({ followUps, onFollowUpClick, className }: Follow
 
       {/* View All */}
       {followUps.length > 5 && (
-        <div className="p-4 border-t border-slate-100 bg-slate-50/50">
+        <div className="p-3 border-t border-slate-100 bg-slate-50/50">
           <button className="w-full text-center text-sm font-bold text-primary hover:underline">
             View all {followUps.length} follow-ups
           </button>

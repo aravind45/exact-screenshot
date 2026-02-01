@@ -1,0 +1,109 @@
+Test_ID,Module,Title,Preconditions,Steps,Test_Data,Expected_Result,Priority,Type,Automation_Candidate,Notes
+ONB-001,Onboarding,Register new user,None,"1) Open app
+2) Sign up with email/password/name
+3) Submit",email=test+1@example.com,Account created; user lands on role selection; verification flow per design,P1,Functional,Yes,
+ONB-002,Onboarding,Role selection: Executor,User registered,"1) Choose Executor
+2) Continue",role=EXECUTOR,Executor role stored; onboarding continues to Estate Basics,P1,Functional,Yes,
+ONB-003,Onboarding,Role selection: Heir,User registered,"1) Choose Heir
+2) Continue",role=HEIR,Heir role stored; onboarding continues; heir gets viewer experience later,P1,Functional,Yes,
+ONB-004,Estate Setup,Capture estate basics,User registered; role selected,"1) Enter deceased name
+2) Enter date of death
+3) Select state
+4) Enter approx estate value
+5) Save",state=CA; value=500000; dod=2025-12-01,Estate record created; values persisted; next step shown,P1,Functional,Yes,
+ONB-005,Estate Setup,Legal flags stored,Estate basics completed,"1) Set Will exists=Yes
+2) Surviving spouse=No
+3) Out-of-state property=Yes
+4) Save",will=Y; spouse=N; out_of_state=Y,Flags persist and are used by Track Scout and roadmap branching,P1,Functional,Yes,
+TRK-001,Track Scout,Track decision with statute citation,Estate basics+flags set,"1) Complete Track Scout step
+2) View decision rationale panel",state=CA; value=175000,Track chosen; rationale shows threshold inputs + statute citation; decision stored for audit,P1,Functional,Yes,
+TRK-002,Track Scout,Track decision changes when inputs change,Track chosen already,"1) Edit estate value to cross threshold
+2) Re-run / auto-update Track Scout
+3) Review change log",state=CA; value changes 175000->900000,Track re-evaluated; change captured in audit log; user notified of implications,P1,Functional,Yes,
+TRK-003,Track Scout,Unsupported state handling,Estate basics set to non-supported state,"1) Select a state with no rules configured
+2) Run Track Scout",state=XX,App clearly indicates limitation; offers generic guidance + prompt to consult attorney; no misleading track,P0,Negative,No,
+RDM-001,Roadmap,Initialize 6-phase roadmap,Estate setup complete,"1) Navigate to Roadmap
+2) Confirm phases and tasks visible",state=CA,All 6 phases visible; tasks reflect track and flags; progress initially 0%,P1,Functional,Yes,
+RDM-002,Roadmap,Phase gating and completion,Roadmap initialized,"1) Complete a task in Phase 1
+2) Verify progress updates
+3) Mark remaining Phase 1 tasks complete",task=Secure property,Progress updates; next phase becomes available per workflow rules,P2,Functional,Yes,
+ADS-001,Assisted Discovery,Coverage matrix requires review of all asset classes,Estate in Phase 3,"1) Open Coverage Matrix
+2) Attempt to mark discovery complete without reviewing all classes",,Discovery cannot be marked complete; missing classes are listed with required actions,P1,Functional,Yes,
+ADS-002,Assisted Discovery,Negative assurance log creation,Estate in Phase 3; asset class selected,"1) Select Digital Assets class
+2) Add Negative Finding note
+3) Save",note='Searched tax returns and email; no crypto evidence found',"Negative assurance entry stored, timestamped, and linked to class; appears in dossier",P1,Functional,Yes,
+ADS-003,Assisted Discovery,Upload document and extract leads,Estate in Phase 3; user has doc file,"1) Upload tax return PDF
+2) Run analysis
+3) Review potential findings with source snippet citations",file=tax_return_2024.pdf,Potential leads listed with confidence score + source citations; no auto-add without confirmation,P1,Functional,Partial,Automation depends on test fixtures for PDF parsing
+ADS-004,Assisted Discovery,Confirm lead adds to asset ledger,Findings exist,"1) Click 'Add to Ledger' on a finding
+2) Open asset ledger",finding=Fidelity IRA,Asset created with type/institution/value (if present); status=Discovered; back-reference to source doc,P1,Functional,Yes,
+ADS-005,Assisted Discovery,Reject lead does not create asset,Findings exist,"1) Dismiss a finding
+2) Search ledger for it",finding=Spam mail reference,No asset created; dismissal recorded for audit (optional),P2,Functional,Yes,
+AST-001,Assets,Asset status transitions,At least one asset exists,"1) Set status Discovered->Contacted
+2) Add communication log
+3) Set Documents Submitted
+4) Set In Review
+5) Set Approved
+6) Set Distributed",asset=Brokerage,Status transitions persist; timeline/audit reflects changes; invalid transitions blocked per rules (if any),P2,Functional,Yes,
+LIA-001,Liabilities,Add liability and classify priority,Estate exists,"1) Add liability with type=Tax
+2) Save",state=CA; type=Tax; amount=5000,Liability stored; priority class assigned per state rules; visible in claims ledger,P1,Functional,Yes,
+LIA-002,Liabilities,Solvency tracker flags insolvency,Assets total < Liabilities total,"1) Add assets totaling 10,000
+2) Add liabilities totaling 25,000
+3) View solvency indicator",assets=10000; liabilities=25000,Insolvency alert triggers immediately; guidance displayed; recorded in audit log,P1,Functional,Yes,
+RISK-001,Risk Monitor,Premature distribution lock prevents final petition generation,Estate in Phase 6 attempt; creditor period not passed,"1) Set notice clock start date to today
+2) Go to Distribution page
+3) Attempt to generate final petition",state=CA; notice_start=2026-01-31,Generate button disabled; reason shown (days remaining); audit records blocked attempt,P0,Functional,Yes,
+RISK-002,Risk Monitor,Distribution lock auto-unlocks after statutory period,Notice clock started in past beyond threshold,"1) Set notice start date to > statutory period ago
+2) Go to Distribution page",state=CA; notice_start=2025-07-01,Generate button enabled; dossier/petition generation allowed,P1,Functional,Yes,
+RISK-003,Risk Monitor,Priority violation signal on payment,Higher priority unpaid; attempt to pay lower priority,"1) Add unpaid Tax (high priority)
+2) Add general credit card debt
+3) Mark credit card as PAID",tax_unpaid=Y; cc_paid=Y,System flags violation (block or warn per design); logs event; requires resolution/override path if allowed,P0,Functional,Yes,
+DOC-001,Documents,Auto-fill DE-111 from estate data,Estate has required fields,"1) Select form DE-111
+2) Generate
+3) Preview PDF fields",form=DE-111; state=CA,PDF generated; fields pre-filled correctly; no sensitive fields leaked in preview logs,P1,Functional,Partial,Automation depends on deterministic PDF field map fixtures
+DOC-002,Documents,Version history in vault,At least one generated document exists,"1) Generate DE-150 twice with changed data
+2) Open vault version history",form=DE-150; change=address,Two versions stored; diff metadata captured; latest marked current,P2,Functional,Yes,
+DOC-003,Documents,Fax send workflow (PamFax),PamFax configured; doc ready,"1) Choose doc
+2) Send via fax
+3) Attach confirmation to comm log",fax=+12145551212,Fax job created; status tracked; confirmation stored and linkable to asset,P1,Integration,Partial,
+COM-001,Communication,Log communication with attachment,Asset exists,"1) Log Phone call
+2) Add summary
+3) Attach file
+4) Save",method=Phone; attachment=call_recording.mp3,Comm entry stored; attachment encrypted/stored; visible on asset detail,P2,Functional,Yes,
+COM-002,Communication,Follow-up reminders at 7/14/21/30 days,Asset has no response logged,"1) Set last-contact date to 8 days ago
+2) Run scheduler / open reminders
+3) Verify reminder",last_contact=2026-01-23,7-day reminder created; escalates at 14/21/30 if still no response,P1,Functional,Partial,
+COM-003,Communication,Escalation suggestion after non-response,Asset with 30+ days no response,"1) Set last-contact to 31 days ago
+2) Check escalation suggestions",last_contact=2025-12-31,Escalation options shown (letters/complaints) and can be generated/logged,P2,Functional,Partial,
+DOS-001,Dossier,One-click export produces report with all required sections,Estate has activity across modules,"1) Navigate to Distribution
+2) Click 'Export Dossier'
+3) Open generated PDF/text",,"Report includes: coverage matrix, negative assurance, inventory ledger, claims log, activity log; timestamps correct",P0,Functional,Partial,Automation depends on deterministic report generator output checks
+DOS-002,Dossier,Negative assurance included in dossier,Negative assurance exists,"1) Create negative assurance
+2) Export dossier
+3) Search report text",note contains 'no crypto evidence',Negative assurance entry appears in report under correct category with timestamp,P1,Functional,Partial,
+COL-001,Collaboration,Invite heir as VIEWER,Executor account; estate exists,"1) Settings > Team
+2) Invite heir email as VIEWER
+3) Heir accepts
+4) Heir views dashboard",role=VIEWER,Heir can view roadmap/progress and dossier; cannot edit assets/liabilities; access logged,P0,Functional,Partial,
+COL-002,Collaboration,Invite attorney as ATTORNEY role,Executor account; estate exists,"1) Invite attorney
+2) Attorney accepts
+3) Verify permissions",role=ATTORNEY,Attorney can view full records; optionally comment; cannot execute distributions unless allowed,P1,Functional,Partial,
+COL-003,Security/RBAC,Co-executor can edit; viewer cannot,Invited CO_EXECUTOR and VIEWER,"1) Viewer tries to edit asset
+2) Co-executor edits asset
+3) Check audit log",,Viewer denied with clear message; co-executor allowed; both actions logged,P0,Security,Yes,
+SEC-001,Security,Sensitive fields encrypted at rest,DB access available for test env,"1) Create asset with account number
+2) Inspect stored record
+3) Verify ciphertext / envelope encryption",acct=123456789,Account numbers/SSNs not stored in plaintext; key management per design,P0,Security,Partial,
+SEC-002,Security,Access isolation across estates,Two estates; two users,"1) User A creates estate A
+2) User B creates estate B
+3) User A tries to access estate B via ID tampering",,Access denied; event logged; no data leakage in response payload,P0,Security,Yes,
+SEC-003,Security,Audit log immutability,Audit entries exist,"1) Attempt to edit/delete audit entry via API
+2) Verify blocked",,Audit entries cannot be modified; only appended; admin access controlled,P0,Security,Partial,
+LIM-001,Legal Boundaries,Legal boundary notice displayed,None,"1) Open Trust/Limits page
+2) Verify guarantee vs non-guarantee statements present",,Disclaimers present; no UPL language; users can access from footer,P1,Compliance,Yes,
+NEG-001,Assisted Discovery,Upload unsupported file type,User on discovery upload,1) Upload .exe or unknown type,file=malware.exe,Upload rejected; message shown; no processing; security event logged,P0,Negative,Yes,
+NEG-002,Documents,Generate form without required data,Estate missing required fields,"1) Select DE-111
+2) Generate",missing=decedent name,Validation error with missing fields; no partial PDF produced; remediation guidance shown,P1,Negative,Yes,
+NEG-003,Risk Monitor,Manual override flow requires explicit acknowledgment,Violation exists; override enabled by policy,"1) Trigger priority violation
+2) Choose override
+3) Provide reason + acknowledgment",reason='court order',Override requires explicit confirmation; reason stored; shows up in dossier/audit,P0,Compliance,Partial,
