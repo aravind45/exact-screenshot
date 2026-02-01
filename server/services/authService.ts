@@ -1,6 +1,7 @@
 import { prisma } from "../db.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { EmailService } from "./emailService.js";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-this";
 
@@ -72,5 +73,53 @@ export const AuthService = {
             where: { id: userId },
             data
         });
+    },
+
+    async forgotPassword(email: string) {
+        const user = await prisma.user.findUnique({ where: { email } });
+        if (!user) throw new Error("No user found with this email");
+
+        const token = Math.floor(100000 + Math.random() * 900000).toString(); // 6 digits for simplicity
+        const expires = new Date(Date.now() + 3600000); // 1 hour
+
+        await prisma.user.update({
+            where: { id: user.id },
+            data: {
+                resetPasswordToken: token,
+                resetPasswordExpires: expires
+            }
+        });
+
+        const appUrl = process.env.APP_URL || "http://localhost:5173";
+        const resetLink = `${appUrl}/reset-password?email=${encodeURIComponent(email)}&token=${token}`;
+
+        await EmailService.sendPasswordResetEmail(email, resetLink);
+
+        return { message: "Reset code sent successfully" };
+    },
+
+    async resetPassword(data: { email: string, token: string, newPassword: string }) {
+        const { email, token, newPassword } = data;
+
+        const user = await prisma.user.findUnique({
+            where: { email }
+        });
+
+        if (!user || user.resetPasswordToken !== token || !user.resetPasswordExpires || user.resetPasswordExpires < new Date()) {
+            throw new Error("Invalid or expired reset token");
+        }
+
+        const passwordHash = await bcrypt.hash(newPassword, 10);
+
+        await prisma.user.update({
+            where: { id: user.id },
+            data: {
+                passwordHash,
+                resetPasswordToken: null,
+                resetPasswordExpires: null
+            }
+        });
+
+        return { message: "Password updated successfully" };
     }
 };

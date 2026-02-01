@@ -14,6 +14,8 @@ import { StatusBadge, AssetStatus } from "@/components/StatusBadge";
 import { PriorityBadge, Priority } from "@/components/PriorityBadge";
 import { Badge } from "@/components/ui/badge";
 import { CategoryBadge, AssetCategory, getCategoryIcon } from "@/components/CategoryBadge";
+import { AssetTaxonomyBadge } from "@/components/AssetTaxonomyBadge";
+import { getAssetTaxonomyState, getTaxonomyInfo } from "@/lib/taxonomy";
 import {
   ArrowLeft,
   Phone,
@@ -573,48 +575,81 @@ export default function AssetDetail() {
                       <h1 className="text-xl font-black text-slate-900 tracking-tight truncate">{uiAsset.institution}</h1>
                       <div className="flex items-center gap-1.5 flex-shrink-0">
                         <StatusBadge status={uiAsset.status} />
-                        <PriorityBadge priority={uiAsset.priority} />
+                        <AssetTaxonomyBadge state={getAssetTaxonomyState(uiAsset as any, estate as any)} />
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 mt-1">
-                      <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+                    <div className="flex flex-col mt-2">
+                      <p className="text-[11px] font-bold text-slate-800 uppercase tracking-tight">
+                        Status: {getTaxonomyInfo(uiAsset as any, estate as any).label}
+                      </p>
+                      <p className="text-[11px] text-slate-500 font-medium leading-relaxed max-w-md">
+                        <span className="font-bold">What this means:</span> {getTaxonomyInfo(uiAsset as any, estate as any).secondary}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 mt-3">
+                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
                         {uiAsset.type.replace(/_/g, ' ')} • Account {uiAsset.accountNumber}
                       </p>
                       <div className="h-3 w-px bg-slate-200 mx-1" />
                       <button
                         onClick={() => navigate(`/inbox?q=${encodeURIComponent(uiAsset.institution)}`)}
-                        className="text-[10px] font-black uppercase text-indigo-600 hover:text-indigo-700 hover:underline"
+                        className="flex items-center gap-1 text-[10px] font-black uppercase text-indigo-600 hover:text-indigo-700 px-2 py-0.5 bg-indigo-50 rounded border border-indigo-100 transition-all hover:shadow-sm"
                       >
-                        Audit Trail
+                        <HistoryIcon className="w-3 h-3" />
+                        View Settlement Trail
                       </button>
                     </div>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-8">
-                  <div className="hidden sm:block">
-                    <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-0.5">Value at Death</p>
-                    <p className="text-base font-bold text-slate-600">
-                      {formatCurrency(uiAsset.dateOfDeathValue || 0)}
-                    </p>
-                  </div>
-
-                  {uiAsset.settledValue !== undefined && (
-                    <div className="hidden sm:block">
-                      <p className="text-[9px] font-black uppercase tracking-widest text-emerald-500 mb-0.5">Actual Collected</p>
-                      <p className="text-base font-black text-emerald-600">
-                        {formatCurrency(uiAsset.settledValue)}
+                <div className="flex flex-col items-end gap-4">
+                  <div className="flex items-center gap-8">
+                    <div className="hidden sm:block text-right">
+                      <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-0.5">Value at Death</p>
+                      <p className="text-base font-bold text-slate-600">
+                        {(uiAsset.dateOfDeathValue || 0) === 0 ? (
+                          <span className="text-slate-400 italic">Unknown</span>
+                        ) : (
+                          formatCurrency(uiAsset.dateOfDeathValue || 0)
+                        )}
                       </p>
                     </div>
-                  )}
 
-                  <div className="w-px h-10 bg-slate-100 hidden sm:block" />
-                  <div className="text-right">
-                    <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-0.5">Current Value</p>
-                    <p className="text-2xl font-black text-slate-900 tracking-tight">
-                      {formatCurrency(uiAsset.value)}
-                    </p>
+                    {uiAsset.settledValue !== undefined && (
+                      <div className="hidden sm:block text-right">
+                        <p className="text-[9px] font-black uppercase tracking-widest text-emerald-500 mb-0.5">Actual Collected</p>
+                        <p className="text-base font-black text-emerald-600">
+                          {uiAsset.settledValue === 0 ? (
+                            <span className="text-emerald-400/50 italic font-medium">Awaiting response</span>
+                          ) : (
+                            formatCurrency(uiAsset.settledValue)
+                          )}
+                        </p>
+                      </div>
+                    )}
+
+                    <div className="w-px h-10 bg-slate-100 hidden sm:block" />
+                    <div className="text-right">
+                      <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-0.5">Current Value</p>
+                      <p className="text-2xl font-black text-slate-900 tracking-tight">
+                        {uiAsset.value === 0 ? (
+                          <span className="text-slate-400 italic font-medium">Pending</span>
+                        ) : (
+                          formatCurrency(uiAsset.value)
+                        )}
+                      </p>
+                    </div>
                   </div>
+
+                  {/* Primary Action CTA from Taxonomy */}
+                  <Button
+                    variant={getAssetTaxonomyState(uiAsset as any, estate as any) === 'action_required' ? 'default' : 'outline'}
+                    size="sm"
+                    className="h-8 rounded-full text-[10px] font-black uppercase tracking-widest"
+                  >
+                    {getTaxonomyInfo(uiAsset as any, estate as any).cta}
+                    <ArrowRight className="w-3 h-3 ml-2" />
+                  </Button>
                 </div>
               </div>
             )}

@@ -247,6 +247,24 @@ export const api = {
         localStorage.removeItem("auth_token");
     },
 
+    forgotPassword: async (email: string) => {
+        const response = await fetch(`${API_URL}/auth/forgot-password`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email }),
+        });
+        return parseResponse(response);
+    },
+
+    resetPassword: async (data: { email: string, token: string, newPassword: string }) => {
+        const response = await fetch(`${API_URL}/auth/reset-password`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+        });
+        return parseResponse(response);
+    },
+
     admin: {
         getStats: async () => {
             const response = await fetch(`${API_URL}/admin/stats`, { headers: getHeaders() });

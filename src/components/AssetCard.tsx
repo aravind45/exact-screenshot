@@ -2,8 +2,10 @@ import { cn } from "@/lib/utils";
 import { StatusBadge, AssetStatus } from "./StatusBadge";
 import { PriorityBadge, Priority } from "./PriorityBadge";
 import { CategoryBadge, AssetCategory, getCategoryIcon } from "./CategoryBadge";
-import { ChevronRight, Clock, AlertTriangle } from "lucide-react";
+import { ChevronRight, Clock, AlertTriangle, Eye, FileText, Lock, CheckCircle2 } from "lucide-react";
 import { motion } from "framer-motion";
+import { AssetTaxonomyBadge } from "./AssetTaxonomyBadge";
+import { getAssetTaxonomyState, getTaxonomyInfo } from "@/lib/taxonomy";
 
 interface Asset {
   id: string;
@@ -107,8 +109,17 @@ export function AssetCard({ asset, onClick, onSelect, selected, selectable, clas
                   </div>
                 )}
                 <p className="font-semibold text-foreground">
-                  {formatCurrency(asset.value)}
+                  {asset.value === 0 ? (
+                    <span className="text-slate-400 italic text-xs font-medium">Pending</span>
+                  ) : (
+                    formatCurrency(asset.value)
+                  )}
                 </p>
+
+                {/* Taxonomy Signaling */}
+                <div className="mt-1 flex justify-end">
+                  <AssetTaxonomyBadge state={getAssetTaxonomyState(asset as any)} />
+                </div>
               </div>
             </div>
 

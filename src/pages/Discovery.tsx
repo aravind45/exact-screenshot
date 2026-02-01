@@ -154,6 +154,9 @@ export default function Discovery() {
                             <p className="text-slate-500 mt-1">
                                 Systematic protocol for identifying estate assets and documenting a defensible record of reasonable care.
                             </p>
+                            <p className="text-[11px] text-slate-400 italic mt-2">
+                                Note: This tool assists with discovery through forensic scanning. It does not guarantee that all assets will be identified.
+                            </p>
                         </div>
                         <Dialog>
                             <DialogTrigger asChild>

@@ -174,8 +174,9 @@ Which asset ID does this email most likely belong to? Return ONLY the ID. If non
         }
 
         console.log(`[EmailService] Sending email to ${params.to} from ${sender}${ccEmail ? ` (CC: ${ccEmail})` : ''}`);
+        const baseUrl = process.env.MAILGUN_BASE_URL || "https://api.mailgun.net";
 
-        const response = await fetch(`https://api.mailgun.net/v3/${domain}/messages`, {
+        const response = await fetch(`${baseUrl}/v3/${domain}/messages`, {
             method: "POST",
             headers: {
                 "Authorization": `Basic ${encodedKey}`
@@ -220,8 +221,9 @@ Which asset ID does this email most likely belong to? Return ONLY the ID. If non
         formData.append("text", `${data.inviterName} has invited you to collaborate on the estate of ${data.estateName} on Pilar.\n\nClick the link below to accept the invitation:\n${inviteUrl}\n\nThis invitation will expire in 7 days.`);
 
         console.log(`[EmailService] Sending invite to ${to}`);
+        const baseUrl = process.env.MAILGUN_BASE_URL || "https://api.mailgun.net";
 
-        const response = await fetch(`https://api.mailgun.net/v3/${domain}/messages`, {
+        const response = await fetch(`${baseUrl}/v3/${domain}/messages`, {
             method: "POST",
             headers: {
                 "Authorization": `Basic ${encodedKey}`
@@ -233,6 +235,42 @@ Which asset ID does this email most likely belong to? Return ONLY the ID. If non
             const error = await response.text();
             console.error("[EmailService] Invitation Email Error:", error);
             // Don't throw here, just log so the process continues
+        }
+    }
+
+    static async sendPasswordResetEmail(to: string, resetLink: string) {
+        const domain = await ConfigService.get("MAILGUN_DOMAIN") || "mg.pilar.ai";
+        const sender = `ExpectedEstate <noreply@${domain}>`;
+        const apiKey = await ConfigService.get("MAILGUN_API_KEY");
+
+        if (!apiKey) {
+            console.log("-----------------------------------------");
+            console.log(`📧 [SIMULATED] PASSWORD RESET for ${to}`);
+            console.log(`🔗 Link: ${resetLink}`);
+            console.log("-----------------------------------------");
+            return;
+        }
+
+        const encodedKey = Buffer.from(`api:${apiKey}`).toString("base64");
+        const formData = new URLSearchParams();
+        formData.append("from", sender);
+        formData.append("to", to);
+        formData.append("subject", "Reset your ExpectedEstate password");
+        formData.append("text", `We received a request to reset your password. Click the link below to set a new one:\n\n${resetLink}\n\nIf you did not request this, you can safely ignore this email.\n\nThis link will expire in 1 hour.`);
+
+        const baseUrl = process.env.MAILGUN_BASE_URL || "https://api.mailgun.net";
+        const response = await fetch(`${baseUrl}/v3/${domain}/messages`, {
+            method: "POST",
+            headers: {
+                "Authorization": `Basic ${encodedKey}`
+            },
+            body: formData
+        });
+
+        if (!response.ok) {
+            const error = await response.text();
+            console.error("[EmailService] Password Reset Email Error:", error);
+            throw new Error("Failed to send reset email");
         }
     }
 }

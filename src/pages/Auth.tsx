@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { api } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,7 +16,7 @@ const passwordSchema = z.string().min(6, 'Password must be at least 6 characters
 const nameSchema = z.string().trim().min(1, 'Name is required').max(100, 'Name is too long');
 
 export default function Auth() {
-  const [isLogin, setIsLogin] = useState(true);
+  const [authMode, setAuthMode] = useState<'login' | 'signup' | 'forgot-password'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
@@ -34,12 +35,14 @@ export default function Auth() {
       newErrors.email = emailResult.error.errors[0].message;
     }
 
-    const passwordResult = passwordSchema.safeParse(password);
-    if (!passwordResult.success) {
-      newErrors.password = passwordResult.error.errors[0].message;
+    if (authMode !== 'forgot-password') {
+      const passwordResult = passwordSchema.safeParse(password);
+      if (!passwordResult.success) {
+        newErrors.password = passwordResult.error.errors[0].message;
+      }
     }
 
-    if (!isLogin) {
+    if (authMode === 'signup') {
       const nameResult = nameSchema.safeParse(fullName);
       if (!nameResult.success) {
         newErrors.name = nameResult.error.errors[0].message;
@@ -58,7 +61,7 @@ export default function Auth() {
     setLoading(true);
 
     try {
-      if (isLogin) {
+      if (authMode === 'login') {
         const { error } = await signIn(email, password);
         if (error) {
           if (error.message.includes('Invalid login credentials')) {
@@ -81,7 +84,7 @@ export default function Auth() {
           });
           navigate('/dashboard');
         }
-      } else {
+      } else if (authMode === 'signup') {
         const { error } = await signUp(email, password, fullName);
         if (error) {
           if (error.message.includes('User already registered')) {
@@ -103,6 +106,21 @@ export default function Auth() {
             description: 'Welcome to ExpectedEstate. Let\'s get started.',
           });
           navigate('/dashboard');
+        }
+      } else if (authMode === 'forgot-password') {
+        try {
+          await api.forgotPassword(email);
+          toast({
+            title: 'Reset link sent!',
+            description: 'If an account exists with this email, you will receive a reset link shortly.',
+          });
+          setAuthMode('login');
+        } catch (error: any) {
+          toast({
+            title: 'Error',
+            description: error.message || 'Failed to send reset link.',
+            variant: 'destructive',
+          });
         }
       }
     } finally {
@@ -134,18 +152,20 @@ export default function Auth() {
             {/* Header */}
             <div className="text-center mb-8">
               <h1 className="text-2xl font-bold text-foreground mb-2">
-                {isLogin ? 'Welcome back' : 'Create your account'}
+                {authMode === 'login' ? 'Welcome back' : authMode === 'signup' ? 'Create your account' : 'Reset your password'}
               </h1>
               <p className="text-muted-foreground">
-                {isLogin
+                {authMode === 'login'
                   ? 'Sign in to continue managing your estate'
-                  : 'Start tracking your estate settlement today'}
+                  : authMode === 'signup'
+                    ? 'Start tracking your estate settlement today'
+                    : 'Enter your email to receive a password reset link'}
               </p>
             </div>
 
             {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-5">
-              {!isLogin && (
+              {authMode === 'signup' && (
                 <div className="space-y-2">
                   <Label htmlFor="fullName">Full Name</Label>
                   <Input
@@ -177,36 +197,36 @@ export default function Auth() {
                 )}
               </div>
 
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="password">Password</Label>
-                  {isLogin && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        toast({
-                          title: "Reset Functionality",
-                          description: "Password reset is coming soon. Please contact support if you need immediate assistance.",
-                        });
-                      }}
-                      className="text-xs font-medium text-primary hover:underline focus:outline-none"
-                    >
-                      Forgot password?
-                    </button>
+              {authMode !== 'forgot-password' && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="password">Password</Label>
+                    {authMode === 'login' && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAuthMode('forgot-password');
+                          setErrors({});
+                        }}
+                        className="text-xs font-medium text-primary hover:underline focus:outline-none"
+                      >
+                        Forgot password?
+                      </button>
+                    )}
+                  </div>
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className={errors.password ? 'border-destructive' : ''}
+                  />
+                  {errors.password && (
+                    <p className="text-sm text-destructive">{errors.password}</p>
                   )}
                 </div>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className={errors.password ? 'border-destructive' : ''}
-                />
-                {errors.password && (
-                  <p className="text-sm text-destructive">{errors.password}</p>
-                )}
-              </div>
+              )}
 
               <Button
                 type="submit"
@@ -217,7 +237,7 @@ export default function Auth() {
                   <Loader2 className="w-4 h-4 animate-spin" />
                 ) : (
                   <>
-                    {isLogin ? 'Sign In' : 'Create Account'}
+                    {authMode === 'login' ? 'Sign In' : authMode === 'signup' ? 'Create Account' : 'Send Reset Link'}
                     <ArrowRight className="w-4 h-4 ml-2" />
                   </>
                 )}
@@ -227,17 +247,21 @@ export default function Auth() {
             {/* Toggle */}
             <div className="mt-6 text-center">
               <p className="text-sm text-muted-foreground">
-                {isLogin ? "Don't have an account?" : 'Already have an account?'}
+                {authMode === 'login' ? "Don't have an account?" : authMode === 'signup' ? 'Already have an account?' : 'Remembered your password?'}
                 {' '}
                 <button
                   type="button"
                   onClick={() => {
-                    setIsLogin(!isLogin);
+                    if (authMode === 'forgot-password') {
+                      setAuthMode('login');
+                    } else {
+                      setAuthMode(authMode === 'login' ? 'signup' : 'login');
+                    }
                     setErrors({});
                   }}
                   className="font-medium text-primary hover:underline"
                 >
-                  {isLogin ? 'Sign up' : 'Sign in'}
+                  {authMode === 'login' ? 'Sign up' : 'Sign in'}
                 </button>
               </p>
             </div>

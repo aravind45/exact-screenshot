@@ -16,6 +16,10 @@ model User {
   role          String? // 'EXECUTOR', 'ATTORNEY', 'ADMIN'
   state         String?
   personalEmail String?  @map("personal_email")
+  
+  resetPasswordToken   String?   @map("reset_password_token")
+  resetPasswordExpires DateTime? @map("reset_password_expires")
+
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
 

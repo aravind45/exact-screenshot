@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { getAssetTaxonomyState } from "@/lib/taxonomy";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import {
@@ -67,6 +68,26 @@ export default function Assets() {
     });
 
     const assets = Array.isArray(assetsData) ? assetsData : [];
+
+    const sortedAssets = [...assets].sort((a, b) => {
+        const stateOrder: Record<string, number> = {
+            action_required: 0,
+            waiting: 1,
+            blocked: 2,
+            ready: 3,
+            monitoring: 4,
+            resolved: 5
+        };
+
+        const stateA = getAssetTaxonomyState(a as any);
+        const stateB = getAssetTaxonomyState(b as any);
+
+        if (stateOrder[stateA] !== stateOrder[stateB]) {
+            return stateOrder[stateA] - stateOrder[stateB];
+        }
+
+        return (a.institution || "").localeCompare(b.institution || "");
+    });
 
     const normalize = (val: string | undefined) => (val || "").toLowerCase().replace(/ /g, "_");
 
@@ -314,7 +335,7 @@ export default function Assets() {
                                         </div>
                                     </div>
                                 ) : (
-                                    assets.map((asset: any, index: number) => (
+                                    sortedAssets.map((asset: any, index: number) => (
                                         <motion.div
                                             key={asset.id}
                                             initial={{ opacity: 0, y: 10 }}
@@ -357,8 +378,11 @@ export default function Assets() {
                                             </div>
                                             <h2 className="text-xl font-black tracking-tight">Forensic Scan</h2>
                                         </div>
-                                        <p className="text-slate-500 text-sm leading-relaxed mb-8">
+                                        <p className="text-slate-500 text-sm leading-relaxed mb-4">
                                             Upload bank statements, tax returns, or insurance policies. AI will scan for hidden transfers or "Summary of Holdings" that point to other accounts.
+                                        </p>
+                                        <p className="text-[10px] text-slate-400 italic mb-8">
+                                            This tool assists with discovery. It does not guarantee that all assets will be identified.
                                         </p>
 
                                         <DocumentScanner

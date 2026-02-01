@@ -39,6 +39,8 @@ import { cn } from "@/lib/utils";
 import type { AssetCategory } from "@/components/CategoryBadge";
 import type { AssetStatus } from "@/components/StatusBadge";
 import type { Priority } from "@/components/PriorityBadge";
+import { getAssetTaxonomyState, getTaxonomyInfo } from "@/lib/taxonomy";
+import { AssetTaxonomyBadge } from "@/components/AssetTaxonomyBadge";
 import { ProcessFlow } from "@/components/ProcessFlow";
 import { TRACK_STAGES, type SettlementTrack } from "@/config/settlementStages";
 import { Sidebar } from "@/components/Sidebar";
@@ -116,22 +118,17 @@ export default function Dashboard() {
     },
   });
 
-  // Calculate Asset Stats
-  const statsByStatus = {
-    discovered: assets.filter(a => normalize(a.status) === 'discovered').length,
-    contacted: assets.filter(a => ['contacted', 'notified'].includes(normalize(a.status))).length,
-    inReview: assets.filter(a => ['in_review', 'claim_filed'].includes(normalize(a.status))).length,
-    distributed: assets.filter(a => ['distributed', 'closed'].includes(normalize(a.status))).length,
-  };
+  // Calculate Asset Stats via Taxonomy
+  const taxonomyStats = assets.reduce((acc, a) => {
+    const state = getAssetTaxonomyState(a as any, estate as any);
+    acc[state] = (acc[state] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
 
-  // Blockers calculation
-  const blockers = assets.filter(a =>
-    a.ownershipType === 'INDIVIDUAL' &&
-    estate?.probateStatus !== 'EXECUTOR_APPOINTED'
-  ).length;
+  const attentionNeededCount = (taxonomyStats.action_required || 0) + (taxonomyStats.waiting || 0) + (taxonomyStats.blocked || 0);
 
   const progressPercent = assets.length > 0
-    ? Math.round((statsByStatus.distributed / assets.length) * 100)
+    ? Math.round(((taxonomyStats.resolved || 0) / assets.length) * 100)
     : 0;
 
 
@@ -296,28 +293,28 @@ export default function Dashboard() {
             <div
               className={cn(
                 "p-6 rounded-[32px] border shadow-sm flex flex-col justify-between cursor-pointer transition-all group",
-                (realFollowUps.length + blockers) > 0
+                attentionNeededCount > 0
                   ? "bg-amber-50/50 border-amber-200 hover:border-amber-400 hover:shadow-lg"
                   : "bg-white border-slate-200 hover:border-slate-400"
               )}
-              onClick={() => navigate('/follow-ups')}
+              onClick={() => navigate('/assets')}
             >
               <div className="flex justify-between items-start mb-4">
                 <div className={cn(
                   "p-3 rounded-2xl group-hover:scale-110 transition-transform",
-                  (realFollowUps.length + blockers) > 0 ? "bg-amber-100 text-amber-600" : "bg-slate-50 text-slate-600"
+                  attentionNeededCount > 0 ? "bg-amber-100 text-amber-600" : "bg-slate-50 text-slate-600"
                 )}>
                   <Bell className="w-6 h-6" />
                 </div>
-                {blockers > 0 && <Badge variant="destructive" className="animate-pulse text-[10px] font-black">{blockers} Critical</Badge>}
+                {taxonomyStats.action_required > 0 && <Badge variant="destructive" className="animate-pulse text-[10px] font-black">{taxonomyStats.action_required} Urgent</Badge>}
               </div>
               <div>
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-2">
-                  {(realFollowUps.length + blockers) > 0 ? "Attention Needed" : "Next Required Action"}
+                  {attentionNeededCount > 0 ? "Attention Needed" : "Next Required Action"}
                 </p>
                 <div className="flex items-center gap-2">
-                  <p className="text-3xl font-black text-slate-900 leading-none">{realFollowUps.length + blockers}</p>
-                  {(realFollowUps.length + blockers) > 0 && (
+                  <p className="text-3xl font-black text-slate-900 leading-none">{attentionNeededCount}</p>
+                  {attentionNeededCount > 0 && (
                     <ArrowRight className="w-5 h-5 text-amber-500 group-hover:translate-x-1 transition-transform" />
                   )}
                 </div>
@@ -371,20 +368,20 @@ export default function Dashboard() {
                   </div>
 
                   <div className="space-y-3">
-                    {blockers > 0 && (
+                    {taxonomyStats.blocked > 0 && (
                       <div className="p-4 bg-rose-50 border border-rose-100 rounded-2xl flex gap-3 items-start animate-in slide-in-from-left duration-300">
                         <div className="p-2 bg-rose-500 text-white rounded-xl">
                           <X className="w-4 h-4" />
                         </div>
                         <div>
                           <p className="text-sm font-bold text-rose-900">Legal Blockers Detected</p>
-                          <p className="text-[10px] text-rose-700 font-medium">{blockers} assets require Probate Authority DE-150.</p>
+                          <p className="text-[10px] text-rose-700 font-medium">{taxonomyStats.blocked} assets require Probate Authority DE-150.</p>
                           <Button variant="link" className="p-0 h-auto text-[10px] text-rose-800 font-black uppercase mt-1" onClick={() => navigate('/probate')}>Resolve in Probate Hub</Button>
                         </div>
                       </div>
                     )}
                     <FollowUpWidget followUps={realFollowUps as any} onFollowUpClick={handleAssetClick} />
-                    {realFollowUps.length === 0 && blockers === 0 && (
+                    {realFollowUps.length === 0 && attentionNeededCount === 0 && (
                       <div className="p-12 text-center border-2 border-dashed border-slate-100 rounded-3xl">
                         <CheckCircle2 className="w-8 h-8 text-emerald-500 mx-auto mb-2 opacity-20" />
                         <p className="text-xs font-bold text-slate-400">All clear! No pending actions.</p>

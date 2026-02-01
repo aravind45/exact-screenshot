@@ -133,8 +133,20 @@ export function CommunicationLogDialog({
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        // Enrich notes with attachment info if any selected
-        let finalNotes = formData.notes;
+        // 1. Semantic Taxonomy Mapping for Audit Trail
+        const taxonomyHeaders: Record<string, string> = {
+            'contacted': 'WAITING – Institution contacted; response pending',
+            'documents_submitted': 'WAITING – Documentation submitted; in review',
+            'in_review': 'WAITING – Awaiting institution decision',
+            'approved': 'READY – Asset released; documentation obtained'
+        };
+
+        const semanticHeader = formData.statusChange && taxonomyHeaders[formData.statusChange]
+            ? `${taxonomyHeaders[formData.statusChange]}\n\n`
+            : '';
+
+        // 2. Enrich notes with attachment info if any selected
+        let finalNotes = semanticHeader + formData.notes;
         if (selectedDocIds.length > 0) {
             const docNames = availableDocuments
                 .filter(d => selectedDocIds.includes(d.id))

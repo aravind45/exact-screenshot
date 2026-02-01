@@ -28,6 +28,25 @@ router.post("/login", async (req: Request, res: Response) => {
     }
 });
 
+router.post("/forgot-password", async (req: Request, res: Response) => {
+    try {
+        const { email } = req.body;
+        const result = await AuthService.forgotPassword(email);
+        res.json(result);
+    } catch (error: any) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+router.post("/reset-password", async (req: Request, res: Response) => {
+    try {
+        const result = await AuthService.resetPassword(req.body);
+        res.json(result);
+    } catch (error: any) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
 // The /me route requires authentication, which is handled in index.ts for simplicity
 // or we can export a middleware.
 
