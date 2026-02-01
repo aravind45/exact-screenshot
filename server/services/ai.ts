@@ -75,8 +75,8 @@ export async function analyzeDocument(text?: string, imageBase64?: string): Prom
                 { role: "system", content: prompt },
                 { role: "user", content: imageBase64 ? contentMessage : (text || "") },
             ],
-            // Updated to 90b-vision-preview as 11b-vision-preview is decommissioned
-            model: imageBase64 ? "llama-3.2-90b-vision-preview" : "llama-3.3-70b-versatile",
+            // meta-llama/llama-4-maverick-17b-128e-instruct is the active vision model in 2026
+            model: imageBase64 ? "meta-llama/llama-4-maverick-17b-128e-instruct" : "llama-3.3-70b-versatile",
             temperature: 0,
             response_format: { type: "json_object" },
         });
@@ -152,7 +152,7 @@ export async function discoverRelatedAssets(text?: string, imageBase64?: string)
                 { role: "system", content: prompt },
                 { role: "user", content: imageBase64 ? contentMessage : (text || "") }
             ],
-            model: imageBase64 ? "llama-3.2-90b-vision-preview" : "llama-3.3-70b-versatile",
+            model: imageBase64 ? "meta-llama/llama-4-maverick-17b-128e-instruct" : "llama-3.3-70b-versatile",
             response_format: { type: "json_object" },
             temperature: 0,
         });

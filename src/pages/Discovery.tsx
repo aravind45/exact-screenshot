@@ -74,12 +74,17 @@ export default function Discovery() {
         queryFn: async () => {
             const estate = await api.getMyEstate();
             if (!estate) return null;
-            try {
-                return await api.getDiscoveryStatus(estate.id);
-            } catch (e) {
+
+            let status = await api.getDiscoveryStatus(estate.id);
+
+            // If no categories, initialize and fetch again
+            if (!status.categories || status.categories.length === 0) {
+                console.log("Initializing discovery categories...");
                 await api.initializeDiscoveryCategories(estate.id);
-                return await api.getDiscoveryStatus(estate.id);
+                status = await api.getDiscoveryStatus(estate.id);
             }
+
+            return status;
         },
         enabled: !!user?.id
     });
