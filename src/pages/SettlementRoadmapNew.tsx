@@ -97,7 +97,7 @@ export default function SettlementRoadmapNew() {
         </header>
 
         {/* Main Content */}
-        <main className="max-w-[1000px] w-full mx-auto px-8 py-10 space-y-8">
+        <main className="max-w-[1000px] w-full mx-auto px-8 py-8 space-y-5">
           {/* Risk Signaling */}
           <RiskBanner />
 
@@ -131,29 +131,30 @@ export default function SettlementRoadmapNew() {
 
           {/* Info Card - Simplified */}
           <div className="p-4 bg-gradient-to-r from-indigo-50/50 to-blue-50/50 border border-indigo-100/50 rounded-2xl">
-            <div className="flex items-start gap-4">
-              <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm border border-indigo-100 shrink-0">
-                <ShieldCheck className="w-5 h-5 text-indigo-600" />
+            <div className="flex items-start gap-3">
+              <div className="w-9 h-9 bg-white rounded-xl flex items-center justify-center shadow-sm border border-indigo-100 shrink-0">
+                <ShieldCheck className="w-4 h-4 text-indigo-600" />
               </div>
               <div>
                 <h3 className="text-sm font-black text-indigo-900 mb-1">Fiduciary Process & Record System</h3>
-                <p className="text-[11px] text-indigo-800/80 leading-relaxed mb-3">
-                  <strong>ExpectedEstate does not provide legal advice.</strong> It provides a structured, state-aware system for executors to document reasonable diligence and fiduciary compliance, making attorney review faster, cheaper, and more reliable.
+                <p className="text-[11px] text-indigo-800/80 leading-relaxed mb-2">
+                  <strong>ExpectedEstate does not provide legal advice.</strong> It provides a structured, state-aware system for executors to document reasonable diligence and fiduciary compliance.
                 </p>
-                <div className="flex flex-wrap gap-1.5 pb-3 border-b border-indigo-100/30 mb-3">
+                <div className="flex flex-wrap gap-1.5 pb-2 border-b border-indigo-100/30 mb-2">
                   <Badge variant="secondary" className="bg-white/50 text-indigo-700 border-indigo-200 text-[9px] h-5">
-                    State-Specific Discipline
+                    State-Specific
                   </Badge>
                   <Badge variant="secondary" className="bg-white/50 text-indigo-700 border-indigo-200 text-[9px] h-5">
-                    Fiduciary Record Keeping
+                    Fiduciary Records
                   </Badge>
                   <Badge variant="secondary" className="bg-white/50 text-indigo-700 border-indigo-200 text-[9px] h-5">
-                    Attorney-Optimized Review
+                    Attorney-Optimized
                   </Badge>
                 </div>
                 <div className="flex items-start gap-2 text-[10px] text-slate-400 font-medium italic">
                   <Scale className="w-3 h-3 mt-0.5 shrink-0" />
-                  <p>Designed to complement legal counsel by creating a clear, timestamped record of fiduciary actions—asset discovery, creditor handling, and statutory periods—to support defending executor decisions.</p>
+                  <p>Designed to complement legal counsel by creating a clear, timestamped record of fiduciary actions.
+                  </p>
                 </div>
               </div>
             </div>

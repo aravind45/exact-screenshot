@@ -70,16 +70,16 @@ export function AssetCard({ asset, onClick, onSelect, selected, selectable, clas
       <button
         onClick={onClick}
         className={cn(
-          'flex-1 text-left card-elevated p-5 hover-lift group cursor-pointer border-2 transition-all',
+          'flex-1 text-left card-elevated p-4 hover-lift group cursor-pointer border-2 transition-all',
           'focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
           selected ? 'border-primary bg-primary/5' : 'border-transparent',
           className
         )}
       >
-        <div className="flex items-start gap-4">
+        <div className="flex items-start gap-3">
           {/* Category Icon */}
           <div className={cn(
-            'p-3 rounded-xl shrink-0',
+            'p-2.5 rounded-xl shrink-0',
             asset.category === 'financial' && 'bg-primary/10 text-primary',
             asset.category === 'retirement' && 'bg-violet-500/10 text-violet-600',
             asset.category === 'insurance' && 'bg-success/10 text-success',
@@ -91,7 +91,7 @@ export function AssetCard({ asset, onClick, onSelect, selected, selectable, clas
           </div>
 
           {/* Content */}
-          <div className="flex-1 min-w-0 space-y-2">
+          <div className="flex-1 min-w-0 space-y-1.5">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <h3 className="font-semibold text-foreground truncate">

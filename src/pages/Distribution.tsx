@@ -62,7 +62,7 @@ export default function Distribution() {
         <div className="flex bg-slate-50 min-h-screen">
             <Sidebar />
             <main className="flex-1 ml-64 p-8">
-                <div className="max-w-5xl mx-auto space-y-8">
+                <div className="max-w-5xl mx-auto space-y-6">
                     <header className="flex justify-between items-end">
                         <div className="space-y-1">
                             <h1 className="text-3xl font-bold tracking-tight text-slate-900">Final Distribution</h1>
@@ -70,8 +70,8 @@ export default function Distribution() {
                         </div>
                         {readiness && (
                             <Badge variant="outline" className={`py-1 px-3 border-2 ${isSafe ? 'border-emerald-200 text-emerald-700 bg-emerald-50' :
-                                    isRestricted ? 'border-amber-200 text-amber-700 bg-amber-50' :
-                                        'border-rose-200 text-rose-700 bg-rose-50'
+                                isRestricted ? 'border-amber-200 text-amber-700 bg-amber-50' :
+                                    'border-rose-200 text-rose-700 bg-rose-50'
                                 }`}>
                                 <ShieldCheck className="w-3 h-3 mr-1.5" />
                                 Legal Protection Active
@@ -85,38 +85,38 @@ export default function Distribution() {
                             <motion.div
                                 initial={{ opacity: 0, y: -20 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                className={`p-6 rounded-2xl border flex gap-4 ${isSafe ? 'bg-emerald-50 border-emerald-100' :
-                                        isRestricted ? 'bg-amber-50 border-amber-100' :
-                                            'bg-rose-50 border-rose-100'
+                                className={`p-4 rounded-2xl border flex gap-3 ${isSafe ? 'bg-emerald-50 border-emerald-100' :
+                                    isRestricted ? 'bg-amber-50 border-amber-100' :
+                                        'bg-rose-50 border-rose-100'
                                     }`}
                             >
-                                <div className={`mt-1 p-2 rounded-full h-fit ${isSafe ? 'bg-emerald-500 text-white' :
-                                        isRestricted ? 'bg-amber-500 text-white' :
-                                            'bg-rose-500 text-white'
+                                <div className={`mt-0.5 p-2 rounded-full h-fit ${isSafe ? 'bg-emerald-500 text-white' :
+                                    isRestricted ? 'bg-amber-500 text-white' :
+                                        'bg-rose-500 text-white'
                                     }`}>
-                                    {isSafe ? <CheckCircle2 className="w-6 h-6" /> :
-                                        isRestricted ? <AlertCircle className="w-6 h-6" /> :
-                                            <ShieldAlert className="w-6 h-6" />}
+                                    {isSafe ? <CheckCircle2 className="w-5 h-5" /> :
+                                        isRestricted ? <AlertCircle className="w-5 h-5" /> :
+                                            <ShieldAlert className="w-5 h-5" />}
                                 </div>
                                 <div className="space-y-1">
                                     <h3 className={`text-lg font-black tracking-tight ${isSafe ? 'text-emerald-900' :
-                                            isRestricted ? 'text-amber-900' :
-                                                'text-rose-900'
+                                        isRestricted ? 'text-amber-900' :
+                                            'text-rose-900'
                                         }`}>
                                         {isSafe ? "Distribution Allowed" :
                                             isRestricted ? "Distribution Restricted" :
                                                 "Distribution Prohibited"}
                                     </h3>
                                     <p className={`text-sm font-medium ${isSafe ? 'text-emerald-700/80' :
-                                            isRestricted ? 'text-amber-700/80' :
-                                                'text-rose-700/80'
+                                        isRestricted ? 'text-amber-700/80' :
+                                            'text-rose-700/80'
                                         }`}>
                                         {isSafe ? "All required steps have been completed. You may proceed with final distribution, subject to attorney review." :
                                             isRestricted ? "Final distribution is not yet allowed. One or more legal prerequisites are still pending." :
                                                 "Distributing now may expose you to personal liability. Critical safety gates are currently blocked."}
                                     </p>
 
-                                    <div className="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 bg-white/50 p-3 rounded-xl">
+                                    <div className="mt-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 bg-white/50 p-2.5 rounded-xl">
                                         <CheckItem label="Notice Period" done={readiness.checks.noticePeriodClosed} />
                                         <CheckItem label="Priority Claims" done={readiness.checks.allClaimsPaid} />
                                         <CheckItem label="Inventory Filed" done={readiness.checks.inventoryFiled} />
@@ -159,9 +159,9 @@ export default function Distribution() {
                                 </CardHeader>
                                 <CardContent className="pt-6 space-y-4">
                                     {heirs.length > 0 ? heirs.map((heir: any) => (
-                                        <div key={heir.id} className="p-4 border rounded-xl bg-white flex gap-4 items-center">
+                                        <div key={heir.id} className="p-3 border rounded-xl bg-white flex gap-3 items-center">
                                             <div className="p-2 bg-indigo-50 rounded-lg">
-                                                <Users className="w-5 h-5 text-indigo-600" />
+                                                <Users className="w-4 h-4 text-indigo-600" />
                                             </div>
                                             <div className="flex-1">
                                                 <div className="flex justify-between items-center">
@@ -279,8 +279,8 @@ function SummaryCard({ title, value, subtitle, color, onCalc }: { title: string,
             </CardHeader>
             <CardContent>
                 <div className={`text-2xl font-black ${value === 'Pending' ? 'text-slate-300 italic font-medium' :
-                        color === 'emerald' ? 'text-emerald-600' :
-                            color === 'indigo' ? 'text-indigo-600' : 'text-slate-900'
+                    color === 'emerald' ? 'text-emerald-600' :
+                        color === 'indigo' ? 'text-indigo-600' : 'text-slate-900'
                     }`}>
                     {value}
                 </div>

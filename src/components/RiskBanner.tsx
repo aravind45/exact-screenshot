@@ -47,25 +47,25 @@ export function AuthorityDecisionGuide({ recommendation }: { recommendation: any
 
     return (
         <Card className="border-indigo-100 bg-indigo-50/50">
-            <CardHeader className="pb-2">
+            <CardHeader className="pb-2 pt-4 px-4">
                 <CardTitle className="text-sm font-bold text-indigo-900 flex items-center gap-2">
                     <Scale className="w-4 h-4" />
-                    Compliance Assistance Monitor: Deterministic Path Logic
+                    Compliance Assistance Monitor
                 </CardTitle>
             </CardHeader>
-            <CardContent>
-                <div className="space-y-3">
-                    <div className="flex items-start gap-3">
-                        <div className="w-2 h-2 rounded-full bg-indigo-500 mt-1.5 shrink-0" />
-                        <p className="text-sm text-indigo-900 leading-relaxed italic">
+            <CardContent className="px-4 pb-4">
+                <div className="space-y-2">
+                    <div className="flex items-start gap-2">
+                        <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-1.5 shrink-0" />
+                        <p className="text-xs text-indigo-900 leading-relaxed italic">
                             "{recommendation.reason}"
                         </p>
                     </div>
 
                     {recommendation.citations && recommendation.citations.length > 0 && (
-                        <div className="flex flex-wrap gap-2 mt-2">
+                        <div className="flex flex-wrap gap-1.5 mt-2">
                             {recommendation.citations.map((cite: string, idx: number) => (
-                                <div key={idx} className="flex items-center gap-1 bg-white border border-indigo-200 text-indigo-700 px-2 py-1 rounded text-[10px] uppercase font-black">
+                                <div key={idx} className="flex items-center gap-1 bg-white border border-indigo-200 text-indigo-700 px-2 py-0.5 rounded text-[10px] uppercase font-black">
                                     <ExternalLink className="w-3 h-3" />
                                     {cite}
                                 </div>
@@ -73,9 +73,8 @@ export function AuthorityDecisionGuide({ recommendation }: { recommendation: any
                         </div>
                     )}
 
-                    <div className="text-[11px] text-indigo-400 mt-2 font-medium">
-                        Informational Logic: Designed to align with state-specific probate code and fiduciary standards.
-                        This does not constitute legal advice and results should be reviewed by counsel.
+                    <div className="text-[10px] text-indigo-400 mt-2 font-medium">
+                        Informational logic designed to align with state-specific probate code. This does not constitute legal advice.
                     </div>
                 </div>
             </CardContent>
