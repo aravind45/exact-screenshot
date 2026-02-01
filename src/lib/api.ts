@@ -165,6 +165,21 @@ export interface SolvencyAssessment {
     isSolvent: boolean;
     ratio: number;
     countLiquidAssets: number;
+    noticePeriodStatus: 'OPEN' | 'CLOSED' | 'NOT_STARTED';
+    daysRemaining: number;
+}
+
+export interface DistributionReadiness {
+    allowed: boolean;
+    status: 'ALLOWED' | 'RESTRICTED' | 'BLOCKED';
+    reasons: string[];
+    checks: {
+        noticePeriodClosed: boolean;
+        allClaimsPaid: boolean;
+        inventoryFiled: boolean;
+        assetsVerified: boolean;
+    };
+    daysRemaining?: number;
 }
 
 const API_URL = import.meta.env.VITE_API_URL || "/api";
@@ -1027,5 +1042,19 @@ export const api = {
             headers: getHeaders(),
         });
         return parseResponse(response);
-    }
+    },
+
+    getDistributionReadiness: async (): Promise<DistributionReadiness> => {
+        const response = await fetch(`${API_URL}/estates/my/distribution-readiness`, { headers: getHeaders() });
+        return parseResponse(response);
+    },
+
+    logDistributionActivity: async (data: { eventType: string, notes?: string }): Promise<any> => {
+        const response = await fetch(`${API_URL}/estates/my/distribution-activity`, {
+            method: 'POST',
+            headers: { ...getHeaders(), 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        return parseResponse(response);
+    },
 };

@@ -618,4 +618,46 @@ router.get("/my/dossier/download", async (req: any, res: Response) => {
     }
 });
 
+import { DistributionService } from "../services/distributionService.js";
+
+router.get("/my/distribution-readiness", async (req: any, res: Response) => {
+    try {
+        const estate = await prisma.estate.findFirst({ where: { userId: req.user.id } });
+        if (!estate) return res.status(404).json({ error: "Estate not found" });
+
+        const readiness = await DistributionService.checkReadiness(estate.id);
+
+        // Auto-log restricted/allowed status if not already logged recently
+        const lastLog = await prisma.settlementActivity.findFirst({
+            where: { estateId: estate.id, phase: 'DISTRIBUTION', notes: { contains: 'DISTRIBUTION' } },
+            orderBy: { occurredAt: 'desc' }
+        });
+
+        const expectedNotes = readiness.status === 'ALLOWED'
+            ? "DISTRIBUTION ALLOWED – All required prerequisites satisfied"
+            : "DISTRIBUTION RESTRICTED – Legal prerequisites not yet satisfied";
+
+        if (!lastLog || lastLog.notes !== expectedNotes) {
+            await DistributionService.logEvent(estate.id, req.user.id, readiness.status === 'ALLOWED' ? 'DISTRIBUTION_ALLOWED' : 'DISTRIBUTION_RESTRICTED');
+        }
+
+        res.json(readiness);
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+router.post("/my/distribution-activity", async (req: any, res: Response) => {
+    try {
+        const estate = await prisma.estate.findFirst({ where: { userId: req.user.id } });
+        if (!estate) return res.status(404).json({ error: "Estate not found" });
+
+        const { eventType, notes } = req.body;
+        const activity = await DistributionService.logEvent(estate.id, req.user.id, eventType, notes);
+        res.json(activity);
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
 export default router;

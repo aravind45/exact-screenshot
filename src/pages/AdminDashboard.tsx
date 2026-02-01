@@ -495,6 +495,34 @@ function CommunicationsManager() {
             <Card className="card-elevated border-none">
                 <CardHeader>
                     <div className="flex items-center gap-3">
+                        <div className="p-2 bg-slate-100 rounded-lg text-slate-600">
+                            <Building2 className="w-5 h-5" />
+                        </div>
+                        <div>
+                            <CardTitle>Application Settings</CardTitle>
+                            <CardDescription>Global configuration for the application and links.</CardDescription>
+                        </div>
+                    </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                        <label className="text-xs font-black uppercase text-slate-400">Application Base URL</label>
+                        <div className="flex gap-2">
+                            <Input
+                                placeholder="http://localhost:5173"
+                                defaultValue={getVal("APP_URL")}
+                                onBlur={(e) => handleSave("APP_URL", e.target.value)}
+                            />
+                            {saving === "APP_URL" && <Loader2 className="w-4 h-4 animate-spin self-center" />}
+                        </div>
+                        <p className="text-[10px] text-slate-400 italic">Used for password reset links and invitation emails.</p>
+                    </div>
+                </CardContent>
+            </Card>
+
+            <Card className="card-elevated border-none">
+                <CardHeader>
+                    <div className="flex items-center gap-3">
                         <div className="p-2 bg-indigo-100 rounded-lg text-indigo-600">
                             <Mail className="w-5 h-5" />
                         </div>

@@ -95,7 +95,7 @@ router.get("/solvency", async (req: any, res: Response) => {
         const estateId = await getEstateId(req.user.id);
         const estate = await prisma.estate.findUnique({
             where: { id: estateId },
-            select: { authorityType: true }
+            select: { authorityType: true, appointedDate: true, deceasedState: true }
         });
 
         const liabilities = await prisma.liability.findMany({ where: { estateId } });
@@ -125,13 +125,32 @@ router.get("/solvency", async (req: any, res: Response) => {
         const isSolvent = totalLiquidAssets >= totalDebt;
         const ratio = totalDebt > 0 ? (totalLiquidAssets / totalDebt) : 1;
 
+        // Creditor Notice Period Logic (CA default 120 days)
+        const system = PriorityService.getPrioritySystem(estate?.deceasedState || "CA");
+        const noticePeriodDays = system.creditorNoticePeriodDays;
+
+        let noticePeriodStatus: 'OPEN' | 'CLOSED' | 'NOT_STARTED' = 'NOT_STARTED';
+        let daysRemaining = noticePeriodDays;
+
+        if (estate?.appointedDate) {
+            const appointed = new Date(estate.appointedDate);
+            const now = new Date();
+            const diffTime = now.getTime() - appointed.getTime();
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+            daysRemaining = Math.max(0, noticePeriodDays - diffDays);
+            noticePeriodStatus = daysRemaining > 0 ? 'OPEN' : 'CLOSED';
+        }
+
         res.json({
             totalDebt,
             totalLiquidAssets,
             isSolvent,
             ratio: Math.min(ratio, 2), // Cap ratio display for UI
             countLiquidAssets: assets.length,
-            authorityType: estate?.authorityType || "UNKNOWN"
+            authorityType: estate?.authorityType || "UNKNOWN",
+            noticePeriodStatus,
+            daysRemaining
         });
     } catch (e: any) {
         res.status(500).json({ error: e.message });

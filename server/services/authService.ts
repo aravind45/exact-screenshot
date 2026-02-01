@@ -90,7 +90,7 @@ export const AuthService = {
             }
         });
 
-        const appUrl = process.env.APP_URL || "http://localhost:5173";
+        const appUrl = (await EmailService.getAppUrl()).replace(/\/$/, ""); // Ensure no trailing slash
         const resetLink = `${appUrl}/reset-password?email=${encodeURIComponent(email)}&token=${token}`;
 
         await EmailService.sendPasswordResetEmail(email, resetLink);

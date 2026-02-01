@@ -59,7 +59,7 @@ export default function Liabilities() {
                             <SolvencyTracker solvency={solvency} isLoading={solvencyLoading} />
                         )}
                         {stats && (
-                            <ClaimsPriorityEngine stats={stats} isLoading={isLoading} />
+                            <ClaimsPriorityEngine stats={stats} solvency={solvency} isLoading={isLoading} />
                         )}
                     </div>
 

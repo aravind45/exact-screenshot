@@ -205,10 +205,14 @@ Which asset ID does this email most likely belong to? Return ONLY the ID. If non
         return { status: "sent", ccEmail };
     }
 
+    static async getAppUrl() {
+        return await ConfigService.get("APP_URL") || process.env.APP_URL || "http://localhost:5173";
+    }
+
     static async sendInviteEmail(to: string, data: { inviterName: string, estateName: string, token: string }) {
         const domain = await ConfigService.get("MAILGUN_DOMAIN") || "mg.pilar.ai";
         const sender = `Pilar Team <noreply@${domain}>`;
-        const appUrl = process.env.APP_URL || "http://localhost:5173";
+        const appUrl = (await this.getAppUrl()).replace(/\/$/, "");
         const inviteUrl = `${appUrl}/invite/${data.token}`;
 
         const apiKey = await ConfigService.get("MAILGUN_API_KEY") || "";
