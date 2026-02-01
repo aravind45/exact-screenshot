@@ -261,57 +261,7 @@ router.get("/my/activities/download", async (req: any, res: Response) => {
     }
 });
 
-// Heir Management
-router.post("/my/heirs", async (req: any, res: Response) => {
-    try {
-        const estate = await prisma.estate.findFirst({ where: { userId: req.user.id } });
-        if (!estate) return res.status(404).json({ error: "Estate not found" });
-
-        const heir = await prisma.heir.create({
-            data: {
-                ...req.body,
-                estateId: estate.id
-            }
-        });
-        res.json(heir);
-    } catch (error) {
-        res.status(500).json({ error: "Failed to create heir" });
-    }
-});
-
-router.put("/my/heirs/:id", async (req: any, res: Response) => {
-    try {
-        // meaningful security check: ensure heir belongs to user's estate
-        const estate = await prisma.estate.findFirst({ where: { userId: req.user.id } });
-        if (!estate) return res.status(404).json({ error: "Estate not found" });
-
-        const count = await prisma.heir.count({ where: { id: req.params.id, estateId: estate.id } });
-        if (count === 0) return res.status(404).json({ error: "Heir not found" });
-
-        const updated = await prisma.heir.update({
-            where: { id: req.params.id },
-            data: req.body
-        });
-        res.json(updated);
-    } catch (error) {
-        res.status(500).json({ error: "Failed to update heir" });
-    }
-});
-
-router.delete("/my/heirs/:id", async (req: any, res: Response) => {
-    try {
-        const estate = await prisma.estate.findFirst({ where: { userId: req.user.id } });
-        if (!estate) return res.status(404).json({ error: "Estate not found" });
-
-        const count = await prisma.heir.count({ where: { id: req.params.id, estateId: estate.id } });
-        if (count === 0) return res.status(404).json({ error: "Heir not found" });
-
-        await prisma.heir.delete({ where: { id: req.params.id } });
-        res.json({ success: true });
-    } catch (error) {
-        res.status(500).json({ error: "Failed to delete heir" });
-    }
-});
+// [REMOVED DUPLICATE HEIR ROUTES - HANDLED IN heirRoutes.ts]
 
 import { PdfService } from "../services/pdfService.js";
 

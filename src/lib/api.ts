@@ -604,7 +604,7 @@ export const api = {
     },
 
     createHeir: async (data: any) => {
-        const response = await fetch(`${API_URL}/estates/my/heirs`, {
+        const response = await fetch(`${API_URL}/heirs`, {
             method: "POST",
             headers: getHeaders(),
             body: JSON.stringify(data)
@@ -613,7 +613,7 @@ export const api = {
     },
 
     updateHeir: async (id: string, data: any) => {
-        const response = await fetch(`${API_URL}/estates/my/heirs/${id}`, {
+        const response = await fetch(`${API_URL}/heirs/${id}`, {
             method: "PUT",
             headers: getHeaders(),
             body: JSON.stringify(data)
@@ -622,7 +622,7 @@ export const api = {
     },
 
     deleteHeir: async (id: string) => {
-        const response = await fetch(`${API_URL}/estates/my/heirs/${id}`, {
+        const response = await fetch(`${API_URL}/heirs/${id}`, {
             method: "DELETE",
             headers: getHeaders(),
         });
@@ -630,7 +630,7 @@ export const api = {
     },
 
     getHeirs: async () => {
-        const response = await fetch(`${API_URL}/estates/my/heirs`, {
+        const response = await fetch(`${API_URL}/heirs`, {
             headers: getHeaders(),
         });
         return parseResponse(response);
