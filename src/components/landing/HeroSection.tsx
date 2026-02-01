@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Shield, Clock, FileCheck, Heart } from "lucide-react";
+import { ArrowRight, Shield, Clock, FileCheck, Landmark } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 
@@ -21,7 +21,7 @@ export function HeroSection() {
             transition={{ duration: 0.5 }}
           >
             <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
-              <Heart className="w-4 h-4" />
+              <Landmark className="w-4 h-4" />
               Compassionate estate management
             </span>
           </motion.div>
@@ -61,7 +61,12 @@ export function HeroSection() {
                 <ArrowRight className="w-4 h-4" />
               </Button>
             </Link>
-            <Button variant="outline" size="lg" className="h-12 px-8 text-base">
+            <Button
+              variant="outline"
+              size="lg"
+              className="h-12 px-8 text-base"
+              onClick={() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })}
+            >
               See How It Works
             </Button>
           </motion.div>
