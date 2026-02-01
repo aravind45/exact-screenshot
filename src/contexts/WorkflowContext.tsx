@@ -80,10 +80,10 @@ export function WorkflowProvider({ children }: { children: ReactNode }) {
   const phaseLocks: Record<SettlementPhase, PhaseLockStatus> = {
     immediate_actions: { isLocked: false },
     court_filing: { isLocked: false },
-    asset_discovery: getPhaseLocksStatus('asset_discovery', estate, assets, documents),
-    creditor_claims: getPhaseLocksStatus('creditor_claims', estate, assets, documents),
-    asset_liquidation: getPhaseLocksStatus('asset_liquidation', estate, assets, documents),
-    final_distribution: getPhaseLocksStatus('final_distribution', estate, assets, documents)
+    asset_discovery: getPhaseLocksStatus('asset_discovery', estate, assets, documents, liabilities),
+    creditor_claims: getPhaseLocksStatus('creditor_claims', estate, assets, documents, liabilities),
+    asset_liquidation: getPhaseLocksStatus('asset_liquidation', estate, assets, documents, liabilities),
+    final_distribution: getPhaseLocksStatus('final_distribution', estate, assets, documents, liabilities)
   };
 
   // Find probate blockers

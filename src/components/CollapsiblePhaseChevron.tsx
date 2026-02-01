@@ -30,7 +30,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { DOCUMENT_REGISTRY, findCanonicalDoc } from "@/config/documents";
-import { FileUp, FileText, CheckCircle2, Download, Trash2, Loader2 as Spinner, Eye } from "lucide-react";
+import { FileUp, FileText, CheckCircle2, Download, Trash2, Loader2 as Spinner, Eye, CalendarClock, Ban } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface CollapsiblePhaseChevronProps {
   onTaskToggle: (taskId: string, completed: boolean, taskTitle: string, phaseName: string) => void;
@@ -275,6 +276,10 @@ export function CollapsiblePhaseChevron({ onTaskToggle }: CollapsiblePhaseChevro
                       const action = TASK_ACTIONS[task.id];
                       const isNext = isCurrent && !isTaskCompleted && phaseData.tasks.find(t => !completedTaskIds.includes(t.id))?.id === task.id;
 
+                      // Check dependencies
+                      const missingDependencies = task.dependencies?.filter(depId => !completedTaskIds.includes(depId)) || [];
+                      const isLockedByDependency = missingDependencies.length > 0;
+
                       return (
                         <div
                           key={task.id}
@@ -282,31 +287,61 @@ export function CollapsiblePhaseChevron({ onTaskToggle }: CollapsiblePhaseChevro
                             "flex items-start gap-2.5 p-2.5 rounded-lg border transition-all",
                             isTaskCompleted
                               ? "bg-green-50 border-green-200"
-                              : task.category === 'probate'
-                                ? "bg-amber-50 border-amber-200 hover:border-amber-400"
-                                : task.category === 'court-issued'
-                                  ? "bg-violet-50 border-violet-200 hover:border-violet-400"
-                                  : "bg-white border-slate-200 hover:border-primary/30",
-                            isNext && "ring-2 ring-primary/20 border-primary shadow-sm"
+                              : isLockedByDependency
+                                ? "bg-slate-50 border-slate-200 opacity-70"
+                                : task.category === 'probate'
+                                  ? "bg-amber-50 border-amber-200 hover:border-amber-400"
+                                  : task.category === 'court-issued'
+                                    ? "bg-violet-50 border-violet-200 hover:border-violet-400"
+                                    : "bg-white border-slate-200 hover:border-primary/30",
+                            isNext && !isLockedByDependency && "ring-2 ring-primary/20 border-primary shadow-sm"
                           )}
                         >
                           {/* Checkbox */}
-                          <Checkbox
-                            checked={isTaskCompleted}
-                            onCheckedChange={(checked) => onTaskToggle(task.id, !!checked, task.title, phaseData.title)}
-                            className="mt-0.5"
-                          />
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div>
+                                  <Checkbox
+                                    checked={isTaskCompleted}
+                                    onCheckedChange={(checked) => onTaskToggle(task.id, !!checked, task.title, phaseData.title)}
+                                    className="mt-0.5"
+                                    disabled={isLockedByDependency}
+                                  />
+                                </div>
+                              </TooltipTrigger>
+                              {isLockedByDependency && (
+                                <TooltipContent>
+                                  <p>Complete required tasks first</p>
+                                </TooltipContent>
+                              )}
+                            </Tooltip>
+                          </TooltipProvider>
 
                           {/* Task Content */}
                           <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
+                            <div className="flex items-center gap-2 mb-1 flex-wrap">
                               <h4 className={cn(
                                 "text-sm font-semibold",
-                                isTaskCompleted ? "line-through text-slate-500" : "text-slate-900"
+                                isTaskCompleted ? "line-through text-slate-500" : "text-slate-900",
+                                isLockedByDependency && "text-slate-400"
                               )}>
                                 {task.title}
                               </h4>
-                              {isNext && <Badge variant="secondary" className="bg-primary/10 text-primary text-[8px] font-black uppercase h-4 px-1">Next Step</Badge>}
+                              {isNext && !isLockedByDependency && <Badge variant="secondary" className="bg-primary/10 text-primary text-[8px] font-black uppercase h-4 px-1">Next Step</Badge>}
+                              {task.isOptional && <Badge variant="outline" className="text-slate-500 text-[8px] uppercase tracking-wider h-4 px-1 border-slate-300">Optional</Badge>}
+                              {task.deadlineWarningId && (
+                                <Badge variant="destructive" className="bg-red-50 text-red-600 border-red-200 text-[8px] font-bold h-4 px-1 gap-1 hover:bg-red-100">
+                                  <CalendarClock className="w-2.5 h-2.5" />
+                                  Check Deadline
+                                </Badge>
+                              )}
+                              {isLockedByDependency && (
+                                <Badge variant="secondary" className="bg-slate-100 text-slate-500 text-[8px] uppercase tracking-wider h-4 px-1 border-slate-200 gap-1">
+                                  <Ban className="w-2.5 h-2.5" />
+                                  Locked
+                                </Badge>
+                              )}
                             </div>
                             <p className="text-xs text-slate-600 mb-2">{task.description}</p>
 

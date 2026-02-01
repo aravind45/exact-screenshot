@@ -142,35 +142,40 @@ export class DiscoveryService {
             return { findings: [], summary: "No content extracted from document." };
         }
 
-        const clues = await ai.discoverRelatedAssets(text, imageBase64);
+        try {
+            const clues = await ai.discoverRelatedAssets(text, imageBase64);
 
-        const findings = clues.map(clue => {
-            // Map AI category to our internal categories
-            let category = 'INVESTMENTS';
-            const lowerAsset = clue.potentialAsset.toLowerCase();
-            const lowerInst = clue.institution.toLowerCase();
+            const findings = clues.map(clue => {
+                // Map AI category to our internal categories
+                let category = 'INVESTMENTS';
+                const lowerAsset = clue.potentialAsset.toLowerCase();
+                const lowerInst = clue.institution.toLowerCase();
 
-            if (lowerAsset.includes('check') || lowerAsset.includes('saving') || lowerInst.includes('bank')) category = 'BANK_ACCOUNTS';
-            else if (lowerAsset.includes('insurance') || lowerInst.includes('life')) category = 'EMPLOYER_BENEFITS';
-            else if (lowerAsset.includes('crypto')) category = 'DIGITAL_ASSETS';
+                if (lowerAsset.includes('check') || lowerAsset.includes('saving') || lowerInst.includes('bank')) category = 'BANK_ACCOUNTS';
+                else if (lowerAsset.includes('insurance') || lowerInst.includes('life')) category = 'EMPLOYER_BENEFITS';
+                else if (lowerAsset.includes('crypto')) category = 'DIGITAL_ASSETS';
+
+                return {
+                    confidence: clue.confidence,
+                    category,
+                    asset: {
+                        name: `${clue.institution} ${clue.potentialAsset}`,
+                        institution: clue.institution,
+                        assetType: clue.potentialAsset,
+                        value: 0, // AI might not extract value in this specific call, user can edit
+                    },
+                    sourceText: clue.sourceClue,
+                    suggestedAction: `Verify ${clue.institution} holdings`
+                };
+            });
 
             return {
-                confidence: clue.confidence,
-                category,
-                asset: {
-                    name: `${clue.institution} ${clue.potentialAsset}`,
-                    institution: clue.institution,
-                    assetType: clue.potentialAsset,
-                    value: 0, // AI might not extract value in this specific call, user can edit
-                },
-                sourceText: clue.sourceClue,
-                suggestedAction: `Verify ${clue.institution} holdings`
+                findings,
+                summary: `${findings.length} potential assets identified by AI analysis.`
             };
-        });
-
-        return {
-            findings,
-            summary: `${findings.length} potential assets identified by AI analysis.`
-        };
+        } catch (error) {
+            console.error("[DiscoveryService] AI Analysis Error:", error);
+            throw error;
+        }
     }
 }

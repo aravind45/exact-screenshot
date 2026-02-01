@@ -18,6 +18,10 @@ export interface PhaseTask {
     label: string;
     url: string;
   }[];
+  // New features
+  isOptional?: boolean;
+  dependencies?: string[]; // IDs of tasks that must be completed first
+  deadlineWarningId?: string; // ID of the deadline to check for warnings
 }
 
 export interface PhaseTaskList {
@@ -85,7 +89,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
     description: "Critical tasks to complete immediately after death.",
     tasks: [
       {
-        id: "secure_property",
+        id: "secure_property_2", // Deduped ID for second occurrence or handled via UI logic, assuming list structure implies distinct phases
         title: "Secure the Property",
         description: "Change locks, forward mail, and ensure the home is protected from theft or damage.",
         estimatedTime: "1-2 days",
@@ -201,6 +205,8 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         estimatedTime: "1 week",
         requiredDocs: ["Court Case Number", "DE-130"],
         category: "probate",
+        deadlineWarningId: "CREDITOR_NOTICE_DEADLINE", // New deadline link
+        dependencies: ["file_petition"], // New dependency
         alerts: [
           {
             type: "important",
@@ -215,6 +221,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         estimatedTime: "2-3 hours",
         requiredDocs: ["DE-157"],
         category: "probate",
+        dependencies: ["file_petition"],
         alerts: [
           {
             type: "warning",
@@ -228,6 +235,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         description: "Appear in court for the probate hearing (usually 60-90 days after filing).",
         estimatedTime: "2-3 hours",
         requiredDocs: ["Valid ID", "DE-130"],
+        dependencies: ["file_petition"],
         alerts: [
           {
             type: "info",
@@ -242,6 +250,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         estimatedTime: "1-2 weeks after hearing",
         category: "court-issued",
         requiredDocs: ["DE-150"],
+        dependencies: ["attend_hearing"],
         alerts: [
           {
             type: "important",
@@ -257,6 +266,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         estimatedTime: "40 days after death",
         category: "court-issued",
         exclusiveGroup: "filing_path",
+        isOptional: true, // Only if eligible
         requiredDocs: ["DE-310", "Death Certificate"]
       },
       {
@@ -265,6 +275,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         description: "Request court order to transfer property to surviving spouse without full probate.",
         estimatedTime: "4-6 weeks",
         category: "probate",
+        isOptional: true, // Only if spouse
         requiredDocs: ["DE-221", "Death Certificate"]
       },
       {
@@ -273,6 +284,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         description: "Formalize successor trustee authority for trust-held assets.",
         estimatedTime: "1 week",
         category: "court-issued",
+        isOptional: true, // Only if trust
         requiredDocs: ["Trust Agreement"]
       }
     ]
@@ -316,6 +328,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         description: "Court-appointed appraiser must value real estate, business interests, and collectibles.",
         estimatedTime: "2-3 weeks",
         requiredDocs: ["Court Appointment"],
+        isOptional: true, // Only if court probate
         alerts: [
           {
             type: "important",
@@ -330,6 +343,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         estimatedTime: "1-2 weeks",
         requiredDocs: ["All DOD Statements", "Appraisal Reports"],
         category: "court-issued",
+        deadlineWarningId: "INVENTORY_DUE_DATE",
         alerts: [
           {
             type: "warning",
@@ -343,6 +357,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         description: "Submit DE-160 to court and serve copies on all heirs.",
         estimatedTime: "1 day",
         category: "probate",
+        dependencies: ["complete_inventory"],
         alerts: [
           {
             type: "info",
@@ -366,6 +381,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         utility: "Mandatory waiting period to protect you from future debt liability.",
         isLongHorizon: true,
         estimatedTime: "4 months",
+        dependencies: ["publish_notice"],
         alerts: [
           {
             type: "info",
@@ -390,6 +406,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         title: "Reject Invalid Claims",
         description: "File formal rejections for claims that are incorrect, unsupported, or time-barred.",
         estimatedTime: "1 week",
+        isOptional: true, // Only if bad claims exist
         requiredDocs: ["DE-174 Allowance or Rejection"],
         alerts: [
           {
@@ -403,6 +420,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         title: "Pay Approved Claims",
         description: "Pay valid debts in order of priority (funeral, taxes, secured debts, then unsecured).",
         estimatedTime: "2-4 weeks",
+        dependencies: ["review_claims"],
         alerts: [
           {
             type: "important",
@@ -416,6 +434,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         description: "Submit proof that you properly notified all creditors.",
         estimatedTime: "1 day",
         requiredDocs: ["Proof of Publication", "Proof of Mailing"],
+        dependencies: ["publish_notice"],
         alerts: [
           {
             type: "info",
@@ -450,6 +469,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         title: "Transfer Financial Accounts",
         description: "Move stocks, bonds, and cash to estate account or directly to beneficiaries.",
         estimatedTime: "4-8 weeks",
+        dependencies: ["present_letters"],
         alerts: [
           {
             type: "important",
@@ -462,6 +482,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         title: "Sell Real Property (if needed)",
         description: "List and sell real estate if required by Will or to pay debts.",
         estimatedTime: "3-6 months",
+        isOptional: true, // Only if needed/willed
         requiredDocs: ["Court Authorization (if required)"],
         alerts: [
           {
@@ -478,6 +499,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         isLongHorizon: true,
         estimatedTime: "2-4 weeks",
         requiredDocs: ["All Tax Documents"],
+        deadlineWarningId: "TAX_FILING_DEADLINE",
         alerts: [
           {
             type: "important",
@@ -492,6 +514,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         utility: "Required to prove you didn't miss any funds.",
         isLongHorizon: true,
         estimatedTime: "1-2 weeks",
+        dependencies: ["pay_taxes"],
         alerts: [
           {
             type: "info",
@@ -514,6 +537,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         description: "Request court approval to distribute remaining assets to heirs.",
         estimatedTime: "2-4 hours",
         requiredDocs: ["Final Accounting", "Proposed Distribution Plan"],
+        dependencies: ["prepare_accounting"],
         alerts: [
           {
             type: "info",
@@ -526,6 +550,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         title: "Attend Final Hearing",
         description: "Appear in court for approval of final accounting and distribution.",
         estimatedTime: "1-2 hours",
+        dependencies: ["file_final_petition"],
         alerts: [
           {
             type: "important",
@@ -539,6 +564,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         description: "Transfer remaining assets according to Will and court order.",
         estimatedTime: "2-4 weeks",
         requiredDocs: ["Order for Final Distribution"],
+        dependencies: ["attend_final_hearing"],
         alerts: [
           {
             type: "warning",
@@ -551,6 +577,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         title: "File Final Accounting with Court",
         description: "Submit final report showing all transactions and distributions.",
         estimatedTime: "1 day",
+        dependencies: ["distribute_assets"],
         alerts: [
           {
             type: "info",
@@ -564,6 +591,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         description: "File final discharge and close estate bank account.",
         estimatedTime: "1-2 weeks",
         requiredDocs: ["DE-295 Petition for Final Discharge"],
+        dependencies: ["file_final_accounting"],
         alerts: [
           {
             type: "important",

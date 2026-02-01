@@ -20,7 +20,8 @@ export function getPhaseLocksStatus(
   phase: SettlementPhase,
   estate: any,
   assets: any[],
-  documents: any[] = []
+  documents: any[] = [],
+  liabilities: any[] = [] // New parameter
 ): PhaseLockStatus {
   const track = estate?.estateType;
 
@@ -87,7 +88,23 @@ export function getPhaseLocksStatus(
       return { isLocked: false };
 
     case 'asset_liquidation':
-      // For now, always unlocked (TODO: Check if all claims resolved)
+      // 1. Check if all creditor tasks are done (using liabilities status as proxy)
+      // Pending statuses: 'DISCOVERED', 'NOTICE_SENT', 'CLAIM_FILED'
+      // Resolved statuses: 'APPROVED', 'REJECTED', 'PAID', 'BARRED'
+      const liabilitiesPending = liabilities.some((l: any) =>
+        ['DISCOVERED', 'NOTICE_SENT', 'CLAIM_FILED'].includes(l.status)
+      );
+
+      if (liabilitiesPending) {
+        return {
+          isLocked: true,
+          reason: 'Resolve all creditor claims first',
+          unlockAction: {
+            label: 'View Claims',
+            route: '/liabilities'
+          }
+        };
+      }
       return { isLocked: false };
 
     case 'final_distribution':

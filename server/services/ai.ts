@@ -75,7 +75,8 @@ export async function analyzeDocument(text?: string, imageBase64?: string): Prom
                 { role: "system", content: prompt },
                 { role: "user", content: imageBase64 ? contentMessage : (text || "") },
             ],
-            model: imageBase64 ? "llama-3.2-11b-vision-preview" : "llama-3.3-70b-versatile",
+            // Updated to 90b-vision-preview as 11b-vision-preview is decommissioned
+            model: imageBase64 ? "llama-3.2-90b-vision-preview" : "llama-3.3-70b-versatile",
             temperature: 0,
             response_format: { type: "json_object" },
         });
@@ -151,7 +152,7 @@ export async function discoverRelatedAssets(text?: string, imageBase64?: string)
                 { role: "system", content: prompt },
                 { role: "user", content: imageBase64 ? contentMessage : (text || "") }
             ],
-            model: imageBase64 ? "llama-3.2-11b-vision-preview" : "llama-3.3-70b-versatile",
+            model: imageBase64 ? "llama-3.2-90b-vision-preview" : "llama-3.3-70b-versatile",
             response_format: { type: "json_object" },
             temperature: 0,
         });
@@ -243,7 +244,7 @@ export async function generateCommunicationDraft(params: {
  */
 export async function generateText(prompt: string, profile: "fast" | "medium" | "heavy" = "medium"): Promise<string> {
     try {
-        const model = profile === "fast" ? "llama-3.2-3b-preview" :
+        const model = profile === "fast" ? "llama-3.1-8b-instant" :
             profile === "heavy" ? "llama-3.3-70b-versatile" :
                 "llama-3.1-8b-instant";
 
