@@ -18,13 +18,29 @@ export function AgentInsights() {
     // Ensure insights is always an array
     const insights = Array.isArray(insightsData) ? insightsData : [];
 
-    if (isLoading || insights.length === 0) return null;
+    if (isLoading) return null;
+
+    if (insights.length === 0) {
+        return (
+            <section className="space-y-4 mb-8">
+                <div className="flex items-center gap-2 px-1">
+                    <ShieldCheck className="w-5 h-5 text-emerald-500" />
+                    <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Monitoring Status</h2>
+                </div>
+                <Card className="border-slate-200 bg-slate-50/50 border-dashed">
+                    <CardContent className="py-6 text-center text-slate-500 text-sm font-medium">
+                        No deadlines or delays detected yet. We are continuously monitoring your estate.
+                    </CardContent>
+                </Card>
+            </section>
+        );
+    }
 
     return (
         <section className="space-y-4 mb-8">
             <div className="flex items-center gap-2 px-1">
-                <Sparkles className="w-5 h-5 text-primary animate-pulse" />
-                <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Proactive AI Insights</h2>
+                <ShieldCheck className="w-5 h-5 text-emerald-500" />
+                <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Monitoring Status</h2>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

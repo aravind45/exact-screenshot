@@ -5,7 +5,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { CheckCircle2, Circle, Flag } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { CheckCircle2, Circle, Flag, AlertTriangle } from "lucide-react";
 
 interface ProbateChecklistWidgetProps {
     estateType: SettlementTrack | null;
@@ -13,6 +15,7 @@ interface ProbateChecklistWidgetProps {
 }
 
 export function ProbateChecklistWidget({ estateType, deceasedState = "CA" }: ProbateChecklistWidgetProps) {
+    const navigate = useNavigate();
     const [checkedTasks, setCheckedTasks] = useState<Record<string, boolean>>({});
 
     // Load initial state from local storage or props if available
@@ -37,9 +40,23 @@ export function ProbateChecklistWidget({ estateType, deceasedState = "CA" }: Pro
 
     if (!estateType || stages.length === 0) {
         return (
-            <Card className="border-slate-200 shadow-sm">
-                <CardContent className="p-8 text-center text-slate-500">
-                    Probate track not configured for this estate type or state.
+            <Card className="border-slate-200 shadow-sm bg-amber-50/30 border-amber-100">
+                <CardContent className="p-10 text-center space-y-4">
+                    <div className="flex flex-col items-center gap-3">
+                        <AlertTriangle className="w-8 h-8 text-amber-500" />
+                        <h3 className="text-sm font-bold text-amber-900 uppercase tracking-tight">Probate track pending configuration</h3>
+                        <p className="text-xs text-amber-700 max-w-sm mx-auto leading-relaxed">
+                            Based on your estate details, we need one more input to finalize the correct legal track and generate your custom roadmap.
+                        </p>
+                    </div>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="bg-white border-amber-200 text-amber-700 hover:bg-amber-50 hover:text-amber-800 font-bold uppercase text-[10px]"
+                        onClick={() => navigate('/onboarding')}
+                    >
+                        Complete Setup →
+                    </Button>
                 </CardContent>
             </Card>
         );

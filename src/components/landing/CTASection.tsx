@@ -15,20 +15,20 @@ export function CTASection() {
           className="max-w-2xl mx-auto text-center"
         >
           <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-            Protect yourself with professional diligence
+            Defend yourself with proof of diligence
           </h2>
           <p className="text-lg text-muted-foreground mb-8">
-            Start documenting your estate settlement with the same precision
-            used by probate professionals. Build your fiduciary defense today.
+            Start documenting your estate settlement today. Build the fiduciary record
+            that shields you from liability and ensures nothing is missed.
           </p>
           <Link to="/auth">
             <Button size="lg" className="h-12 px-8 text-base gap-2 shadow-soft-lg">
-              Generate My Fiduciary Record
+              Build My Fiduciary Defense
               <ArrowRight className="w-4 h-4" />
             </Button>
           </Link>
           <p className="text-sm text-muted-foreground mt-4 font-medium italic">
-            "The best defense is a documented trail of reasonable care."
+            "The best defense isn't just doing the work—it's proving you did it with reasonable care."
           </p>
         </motion.div>
       </div>

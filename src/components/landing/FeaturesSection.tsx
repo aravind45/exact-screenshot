@@ -11,33 +11,33 @@ import { motion } from "framer-motion";
 const features = [
   {
     icon: FileText,
-    title: "Documented Discovery",
-    description: "Go beyond simple tracking. Use individual workflows for each asset to document every search, finding, and negative discovery for the court.",
+    title: "Self-Tracking Trail",
+    description: "Keep a real-time record of your own actions. Never wonder what you did last Tuesday or waste time repeating a search you already completed.",
   },
   {
     icon: MessageSquare,
-    title: "Fiduciary Accountability",
-    description: "Document every call, email, and fax with institutions. Maintain a bulletproof audit trail that proves you've met your legal obligations.",
+    title: "Proof of Diligence",
+    description: "Document every call, email, and fax. Our system builds your fiduciary defense automatically as you work, proving you met your legal obligations.",
   },
   {
     icon: Bell,
-    title: "Gap Analysis & Escalation",
-    description: "Automatic monitoring identifies 'Diligence Gaps' and provides escalation triggers for institutions that are slow to respond.",
+    title: "Gap Identification",
+    description: "Automatic monitoring flags 'Diligence Gaps'—the quiet areas where silence from an institution could be mistaken for negligence later.",
   },
   {
     icon: Send,
-    title: "Professional Filings",
-    description: "Generate institution-specific notices and fax directly from the platform. Keep delivery confirmations as permanent evidence.",
+    title: "Escalation Tools",
+    description: "Generate institution-specific notices and fax directly from the platform. Keep delivery confirmations as permanent evidence of your reasonable care.",
   },
   {
     icon: BarChart3,
-    title: "Executive Overview",
-    description: "Surface critical road blockers, unsettled assets, and pending milestones at a glance. Eliminate the cognitive load of estate management.",
+    title: "Cognitive Load Relief",
+    description: "Surface critical road blockers and settled assets at a glance. We remember the details so your brain doesn't have to.",
   },
   {
     icon: Lock,
-    title: "Attorney-Safe Vault",
-    description: "Organize records in a way that allows attorneys to review and defend your decisions with minimal overhead.",
+    title: "Institutional Scrutiny",
+    description: "Our audit trails are structured to meet the high standards of banks, courts, and insurance companies, protecting you from personal liability.",
   },
 ];
 

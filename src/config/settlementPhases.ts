@@ -11,6 +11,9 @@ export interface PhaseTask {
     message: string;
   }[];
   category?: "probate" | "court-issued";
+  utility?: string;
+  isLongHorizon?: boolean;
+  exclusiveGroup?: string;
   links?: {
     label: string;
     url: string;
@@ -38,7 +41,9 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         id: "check_small_estate",
         title: "Check Small Estate Eligibility",
         description: "Determine if total California assets are under $184,500. You may be able to avoid probate entirely using an Affidavit (Section 13100).",
+        utility: "Shortcut: Avoid full probate if the estate is small enough.",
         estimatedTime: "1 hour",
+        exclusiveGroup: "filing_path",
         alerts: [
           {
             type: "important",
@@ -172,8 +177,10 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         id: "file_petition",
         title: "File Petition for Probate (DE-111)",
         description: "Submit the probate petition to the Superior Court to open the estate case.",
+        utility: "Required to obtain legal authority to access accounts.",
         estimatedTime: "2-4 hours",
         category: "probate",
+        exclusiveGroup: "filing_path",
         requiredDocs: [
           "Original Will",
           "Death Certificate",
@@ -246,8 +253,10 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         id: "file_affidavit",
         title: "File Small Estate Affidavit (DE-310)",
         description: "For estates under threshold, use this shortcut to bypass court probate.",
+        utility: "Bypass court entirely for estates under $184,500.",
         estimatedTime: "40 days after death",
         category: "court-issued",
+        exclusiveGroup: "filing_path",
         requiredDocs: ["DE-310", "Death Certificate"]
       },
       {
@@ -354,6 +363,8 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         id: "wait_claim_period",
         title: "Wait for 4-Month Claim Period",
         description: "Creditors have 4 months from notice publication to file claims.",
+        utility: "Mandatory waiting period to protect you from future debt liability.",
+        isLongHorizon: true,
         estimatedTime: "4 months",
         alerts: [
           {
@@ -463,6 +474,8 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         id: "pay_taxes",
         title: "Pay Final Taxes",
         description: "File final individual 1040, estate 1041, and any estate tax returns.",
+        utility: "Clears your personal liability with the IRS.",
+        isLongHorizon: true,
         estimatedTime: "2-4 weeks",
         requiredDocs: ["All Tax Documents"],
         alerts: [
@@ -476,6 +489,8 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         id: "prepare_accounting",
         title: "Prepare Final Accounting",
         description: "Document all income, expenses, and distributions for court review.",
+        utility: "Required to prove you didn't miss any funds.",
+        isLongHorizon: true,
         estimatedTime: "1-2 weeks",
         alerts: [
           {

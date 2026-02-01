@@ -1,10 +1,10 @@
 import { motion } from "framer-motion";
 
 const painPoints = [
-  { problem: "Contacting 20-40 institutions", solution: "One centralized discovery console" },
-  { problem: "Different requirements everywhere", solution: "Deterministic, state-specific workflows" },
-  { problem: "6-18 months average settlement", solution: "Watchdog-enforced follow-up logs" },
-  { problem: "Personal liability concerns", solution: "Professional Fiduciary Audit Trail" },
+  { problem: "Personal liability fears", solution: "Instant Fiduciary Audit Trail" },
+  { problem: "Missing hidden assets", solution: "Exhaustive Discovery Logs" },
+  { problem: "Institutions ignoring you", solution: "Watchdog-enforced Escalation" },
+  { problem: "Manual status tracking", solution: "Automated Evidence Collection" },
 ];
 
 export function PainPointsSection() {
@@ -19,11 +19,11 @@ export function PainPointsSection() {
           className="text-center max-w-2xl mx-auto mb-16"
         >
           <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-            The "14-day black hole" ends here
+            Stop wondering: <span className="text-destructive italic">"Did I miss something?"</span>
           </h2>
           <p className="text-lg text-muted-foreground">
-            Financial institutions often don't respond for weeks. We help you
-            track, follow up, and escalate - so nothing falls through the cracks.
+            The fear of missing a deadline or being blamed for a mistake is real.
+            We provide the documented proof you need to settle with confidence.
           </p>
         </motion.div>
 

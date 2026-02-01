@@ -92,8 +92,8 @@ export function WorkRemainingWidget({ currentPhase, completedTaskIds, assets }: 
             </div>
 
             <div className="mt-auto p-4 bg-slate-50/30 border-t border-slate-100">
-                <Button className="w-full bg-slate-900 text-white rounded-xl h-10 font-black text-[10px] uppercase tracking-widest gap-2 hover:bg-slate-800 transition-all shadow-lg shadow-slate-200" onClick={() => navigate('/roadmap')}>
-                    View Full Roadmap <ArrowRight className="w-3.5 h-3.5" />
+                <Button className="w-full bg-indigo-600 text-white rounded-xl h-10 font-black text-[10px] uppercase tracking-widest gap-2 hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200" onClick={() => navigate('/roadmap')}>
+                    Resolve Gaps → <ArrowRight className="w-3.5 h-3.5" />
                 </Button>
             </div>
         </div>

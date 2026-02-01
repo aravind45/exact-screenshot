@@ -10,7 +10,9 @@ import { cn } from "@/lib/utils";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
+import { calculateAuthorityRecommendation } from "@/lib/authorityEngine";
+import { ShieldCheck, Info } from "lucide-react";
 
 export default function SettlementRoadmap() {
   const queryClient = useQueryClient();
@@ -20,6 +22,19 @@ export default function SettlementRoadmap() {
     queryKey: ['estate'],
     queryFn: api.getMyEstate,
   });
+
+  const { data: assets = [] } = useQuery({
+    queryKey: ['assets'],
+    queryFn: api.getAssets,
+  });
+
+  const authorityRec = useMemo(() => {
+    if (!estate) return null;
+    return calculateAuthorityRecommendation(assets, estate.deceasedState || "CA", {
+      hasWill: estate.hasWill,
+      isSpouse: false, // Could be derived if we had more info
+    });
+  }, [estate, assets]);
 
   const [completedPhases, setCompletedPhases] = useState<SettlementPhase[]>([]);
   const [completedTaskIds, setCompletedTaskIds] = useState<string[]>([]);
@@ -194,6 +209,70 @@ export default function SettlementRoadmap() {
                 <p className="text-xl font-black text-amber-900 mt-0.5">{totalTasks - completedTaskIds.length}</p>
               </div>
             </div>
+
+            {/* Authority Logic Banner */}
+            {authorityRec && (
+              <div className="bg-indigo-900 rounded-2xl p-4 text-white shadow-lg border border-indigo-700 overflow-hidden relative">
+                <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
+                  <ShieldCheck className="w-24 h-24" />
+                </div>
+                <div className="flex items-start gap-3 relative z-10">
+                  <div className="bg-indigo-500/30 p-2 rounded-lg backdrop-blur-sm">
+                    <ShieldCheck className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-300">Deterministic Logic Engine</h3>
+                    <p className="text-lg font-bold leading-tight mt-1">
+                      {authorityRec.reason}
+                    </p>
+                    <div className="flex items-center gap-4 mt-3">
+                      <div className="flex items-center gap-1.5 px-2 py-1 bg-white/10 rounded border border-white/20">
+                        <span className="text-[10px] font-black uppercase tracking-tight text-white/70">Legal Track</span>
+                        <span className="text-[10px] font-bold text-white uppercase">{authorityRec.type.replace('_', ' ')}</span>
+                      </div>
+                      {authorityRec.citations && authorityRec.citations.length > 0 && (
+                        <div className="flex items-center gap-1.5">
+                          {authorityRec.citations.map((cite, i) => (
+                            <span key={i} className="text-[11px] font-bold text-indigo-200 italic">
+                              {cite}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Current Focus Section */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 px-1">
+              <div className="w-1.5 h-6 bg-indigo-600 rounded-full" />
+              <h2 className="text-sm font-black uppercase tracking-widest text-slate-900">Current Focus</h2>
+              <Badge variant="outline" className="bg-indigo-50 text-indigo-700 border-indigo-100 text-[9px] font-bold">Acting Executor</Badge>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {phaseData?.tasks.filter(t => !completedTaskIds.includes(t.id)).slice(0, 3).map(task => (
+                <div key={task.id} className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm hover:border-indigo-300 transition-all group">
+                  <div className="flex items-start justify-between mb-2">
+                    <Badge variant="outline" className="text-[8px] font-black uppercase tracking-tight bg-slate-50 border-slate-200 text-slate-500">Next Required</Badge>
+                    <Clock className="w-3.5 h-3.5 text-slate-300 group-hover:text-indigo-400 transition-colors" />
+                  </div>
+                  <h4 className="text-sm font-bold text-slate-900 leading-tight">{task.title}</h4>
+                  <p className="text-[11px] text-slate-500 line-clamp-2 mt-1.5">{task.description}</p>
+                </div>
+              ))}
+              {phaseData?.tasks.filter(t => !completedTaskIds.includes(t.id)).length === 0 && (
+                <div className="col-span-full bg-slate-50 border border-slate-200 rounded-2xl p-6 text-center">
+                  <CheckCircle2 className="w-8 h-8 text-emerald-500 mx-auto mb-2 opacity-50" />
+                  <p className="text-sm font-bold text-slate-900">All current actions are completed</p>
+                  <p className="text-xs text-slate-500 mt-1">You may proceed to the next phase of settlement.</p>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Phase Chevron */}
@@ -209,12 +288,14 @@ export default function SettlementRoadmap() {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <Clock className="w-6 h-6 text-indigo-600" />
+                  <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center">
+                    <Clock className="w-5 h-5 text-indigo-600" />
+                  </div>
                   <div>
-                    <h2 className="text-xl font-bold text-slate-900">
-                      Current Phase: {phaseData.title}
+                    <h2 className="text-lg font-black text-slate-900 tracking-tight leading-none">
+                      Active Phase: {phaseData.title}
                     </h2>
-                    <p className="text-sm text-slate-600">
+                    <p className="text-xs text-slate-500 mt-1">
                       {phaseData.subtitle} • {phaseData.duration}
                     </p>
                   </div>
@@ -222,7 +303,7 @@ export default function SettlementRoadmap() {
                 <Button
                   onClick={() => handlePhaseComplete(currentPhase)}
                   disabled={completedPhases.includes(currentPhase)}
-                  className="bg-indigo-600 hover:bg-indigo-700"
+                  className="bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-200 h-10 px-6 rounded-xl font-bold text-sm"
                 >
                   {completedPhases.includes(currentPhase) ? (
                     <>
@@ -242,12 +323,18 @@ export default function SettlementRoadmap() {
                 phase={currentPhase}
                 completedTaskIds={completedTaskIds}
                 onTaskToggle={handleTaskToggle}
+                className="shadow-md"
               />
             </div>
           )}
 
           {/* All Phases Overview */}
           <div className="space-y-4">
+            <div className="flex items-center gap-2 px-1 pt-4">
+              <div className="w-1.5 h-6 bg-slate-300 rounded-full" />
+              <h2 className="text-sm font-black uppercase tracking-widest text-slate-900">Full Roadmap</h2>
+              <span className="text-[10px] text-slate-400 font-bold uppercase">(Phases 1-6)</span>
+            </div>
             <h2 className="text-xl font-bold text-slate-900">All Phases</h2>
             <div className="grid grid-cols-1 gap-4">
               {SETTLEMENT_PHASE_TASKS.map((phase) => {
@@ -258,14 +345,25 @@ export default function SettlementRoadmap() {
                 const isComplete = completedPhases.includes(phase.phase);
                 const isCurrent = currentPhase === phase.phase;
 
+                // Find if this phase is in the future
+                const phaseOrder = [
+                  "immediate_actions", "court_filing", "asset_discovery",
+                  "creditor_claims", "asset_liquidation", "final_distribution"
+                ];
+                const currentIndex = phaseOrder.indexOf(currentPhase);
+                const thisIndex = phaseOrder.indexOf(phase.phase);
+                const isFuture = thisIndex > currentIndex + 1; // Show current + next, collapse beyond that
+
                 return (
                   <button
                     key={phase.phase}
                     onClick={() => setCurrentPhase(phase.phase)}
+                    disabled={isFuture && !isComplete}
                     className={cn(
                       "group relative bg-white p-5 rounded-[28px] border transition-all text-left overflow-hidden",
                       isCurrent && "border-indigo-500 bg-indigo-50/40 shadow-xl ring-4 ring-indigo-500/5 scale-[1.02] z-10",
-                      !isCurrent && "border-slate-200 hover:border-slate-300 hover:bg-slate-50/50"
+                      !isCurrent && !isFuture && "border-slate-200 hover:border-slate-300 hover:bg-slate-50/50",
+                      isFuture && !isComplete && "border-slate-100 opacity-60 grayscale cursor-not-allowed bg-slate-50/30"
                     )}
                   >
                     {isCurrent && (
@@ -274,13 +372,16 @@ export default function SettlementRoadmap() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div className={cn(
-                          "w-10 h-10 rounded-full flex items-center justify-center",
+                          "w-10 h-10 rounded-full flex items-center justify-center transition-colors",
                           isComplete && "bg-green-100",
                           isCurrent && !isComplete && "bg-indigo-100",
-                          !isCurrent && !isComplete && "bg-slate-100"
+                          !isCurrent && !isFuture && !isComplete && "bg-slate-100",
+                          isFuture && !isComplete && "bg-slate-200/50"
                         )}>
                           {isComplete ? (
                             <CheckCircle2 className="w-5 h-5 text-green-600" />
+                          ) : isFuture && !isComplete ? (
+                            <Clock className="w-5 h-5 text-slate-400" />
                           ) : (
                             <span className={cn(
                               "text-sm font-bold",
@@ -291,30 +392,47 @@ export default function SettlementRoadmap() {
                           )}
                         </div>
                         <div>
-                          <h3 className="text-sm font-bold text-slate-900">{phase.title}</h3>
-                          <p className="text-xs text-slate-500">{phase.subtitle} • {phase.duration}</p>
+                          <div className="flex items-center gap-2">
+                            <h3 className="text-sm font-bold text-slate-900">{phase.title}</h3>
+                            {isFuture && !isComplete && (
+                              <Badge variant="outline" className="h-4 px-1.5 text-[8px] font-black uppercase tracking-widest bg-white border-slate-200 text-slate-400">
+                                Locked
+                              </Badge>
+                            )}
+                          </div>
+                          {!isFuture ? (
+                            <p className="text-xs text-slate-500">{phase.subtitle} • {phase.duration}</p>
+                          ) : (
+                            <p className="text-[10px] text-slate-400 font-medium italic">Unlocks after {phaseOrder[thisIndex - 1].replace('_', ' ')} phase</p>
+                          )}
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
                         {isCurrent && (
-                          <Badge className="bg-indigo-600 text-white border-indigo-600 animate-pulse shadow-sm px-3 py-1">
+                          <Badge className="bg-indigo-600 text-white border-indigo-600 animate-pulse shadow-sm px-3 py-1 text-[10px] font-black uppercase">
                             Currently Active
                           </Badge>
                         )}
-                        <div className="flex items-center gap-2">
-                          <div className="w-32 h-2 bg-slate-100 rounded-full overflow-hidden">
-                            <div
-                              className={cn(
-                                "h-full transition-all duration-500",
-                                isComplete ? "bg-green-600" : "bg-indigo-600"
-                              )}
-                              style={{ width: `${progressPercent}%` }}
-                            />
+                        {!isFuture || isComplete ? (
+                          <div className="flex items-center gap-2">
+                            <div className="w-32 h-2 bg-slate-100 rounded-full overflow-hidden">
+                              <div
+                                className={cn(
+                                  "h-full transition-all duration-500",
+                                  isComplete ? "bg-green-600" : "bg-indigo-600"
+                                )}
+                                style={{ width: `${progressPercent}%` }}
+                              />
+                            </div>
+                            <span className="text-xs font-bold text-slate-600 w-10 text-right">
+                              {progressPercent}%
+                            </span>
                           </div>
-                          <span className="text-xs font-bold text-slate-600 w-10 text-right">
-                            {progressPercent}%
-                          </span>
-                        </div>
+                        ) : (
+                          <div className="text-[10px] font-bold text-slate-300 uppercase tracking-widest pl-8">
+                            Awaiting Progress
+                          </div>
+                        )}
                       </div>
                     </div>
                   </button>

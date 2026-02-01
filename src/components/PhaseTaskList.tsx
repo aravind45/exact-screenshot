@@ -299,11 +299,18 @@ function TaskItem({ task, isCompleted, onToggle, getAlertIcon, getAlertColor, do
     )}>
       {/* Task Header */}
       <div className="flex items-start gap-3">
-        <Checkbox
-          checked={isCompleted}
-          onCheckedChange={(checked) => onToggle(checked === true)}
-          className="mt-1"
-        />
+        {task.isLongHorizon && !isCompleted ? (
+          <div className="mt-1.5 flex flex-col items-center">
+            <Clock className="w-4 h-4 text-amber-500" />
+            <div className="w-0.5 h-full bg-slate-100 min-h-[20px] mt-1" />
+          </div>
+        ) : (
+          <Checkbox
+            checked={isCompleted}
+            onCheckedChange={(checked) => onToggle(checked === true)}
+            className="mt-1"
+          />
+        )}
 
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
@@ -323,6 +330,25 @@ function TaskItem({ task, isCompleted, onToggle, getAlertIcon, getAlertColor, do
               )}>
                 {task.description}
               </p>
+              {task.utility && !isCompleted && (
+                <p className="text-[10px] font-bold text-indigo-600 mt-1.5 flex items-center gap-1">
+                  <Info className="w-3 h-3" />
+                  {task.utility}
+                </p>
+              )}
+              {task.exclusiveGroup && (
+                <div className="mt-2">
+                  <Badge variant="outline" className="text-[9px] font-black uppercase tracking-tight bg-slate-50 border-slate-200 text-slate-500">
+                    Alternative Filing Path
+                  </Badge>
+                </div>
+              )}
+              {task.isLongHorizon && !isCompleted && (
+                <div className="mt-2 flex items-center gap-1.5 px-2 py-1 bg-amber-50 border border-amber-100 rounded-md w-fit">
+                  <Clock className="w-3 h-3 text-amber-600" />
+                  <span className="text-[10px] font-bold text-amber-700 uppercase tracking-widest">Future Phase — Locked</span>
+                </div>
+              )}
             </button>
 
             {task.estimatedTime && (

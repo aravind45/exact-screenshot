@@ -158,10 +158,9 @@ export default function Dashboard() {
   const currentPhase: SettlementPhase = (estate?.status?.toLowerCase() as SettlementPhase) || "immediate_actions";
 
   // Merge communications and roadmap activities for a unified audit trail
-  const unifiedTimeline = [
+  const rawTimeline = [
     ...(recentActivity || []).map((a: any) => ({ ...a, uiType: 'communication' })),
     ...(activitiesData || []).map((a: any) => {
-      // Prioritize descriptive notes for the primary subject line
       const displaySubject = a.notes || (
         a.action === 'PHASE_COMPLETED'
           ? `Phase Completed: ${(a.taskId || '').replace(/_/g, ' ')}`
@@ -172,14 +171,33 @@ export default function Dashboard() {
         id: a.id,
         occurredAt: a.occurredAt,
         subject: displaySubject,
-        // Secondary description
         notes: a.action === 'PHASE_COMPLETED' ? `Advanced to next roadmap stage` : `Fiduciary record updated`,
         direction: 'system',
         type: a.type || 'roadmap',
         uiType: 'activity'
       };
     })
-  ].sort((a, b) => new Date(b.occurredAt).getTime() - new Date(a.occurredAt).getTime()).slice(0, 10);
+  ].sort((a, b) => new Date(b.occurredAt).getTime() - new Date(a.occurredAt).getTime());
+
+  // Compress repeated micro-updates (logic: if subject, notes, type, and day are same, collapse)
+  const unifiedTimeline = rawTimeline.reduce((acc: any[], current) => {
+    const last = acc[acc.length - 1];
+    const isSameDay = last &&
+      new Date(last.occurredAt).toLocaleDateString() === new Date(current.occurredAt).toLocaleDateString();
+
+    // Check for high similarity in subjects (e.g., "Updated asset: Robinhood")
+    const isRepeat = isSameDay && last.subject === current.subject && last.uiType === current.uiType;
+
+    if (isRepeat) {
+      if (!last.count) last.count = 1;
+      last.count += 1;
+      // Keep the most recent timestamp
+      return acc;
+    }
+
+    acc.push(current);
+    return acc;
+  }, []).slice(0, 10);
 
   const queryClient = useQueryClient();
   const roadmapMutation = useMutation({
@@ -276,18 +294,33 @@ export default function Dashboard() {
             </div>
 
             <div
-              className="bg-white p-6 rounded-[32px] border border-slate-200 shadow-sm flex flex-col justify-between cursor-pointer hover:border-amber-400 hover:shadow-lg transition-all group"
+              className={cn(
+                "p-6 rounded-[32px] border shadow-sm flex flex-col justify-between cursor-pointer transition-all group",
+                (realFollowUps.length + blockers) > 0
+                  ? "bg-amber-50/50 border-amber-200 hover:border-amber-400 hover:shadow-lg"
+                  : "bg-white border-slate-200 hover:border-slate-400"
+              )}
               onClick={() => navigate('/follow-ups')}
             >
               <div className="flex justify-between items-start mb-4">
-                <div className="p-3 bg-amber-50 rounded-2xl group-hover:bg-amber-100 transition-colors">
-                  <Bell className="w-6 h-6 text-amber-600" />
+                <div className={cn(
+                  "p-3 rounded-2xl group-hover:scale-110 transition-transform",
+                  (realFollowUps.length + blockers) > 0 ? "bg-amber-100 text-amber-600" : "bg-slate-50 text-slate-600"
+                )}>
+                  <Bell className="w-6 h-6" />
                 </div>
                 {blockers > 0 && <Badge variant="destructive" className="animate-pulse text-[10px] font-black">{blockers} Critical</Badge>}
               </div>
               <div>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-2">Action Items</p>
-                <p className="text-3xl font-black text-slate-900 leading-none">{realFollowUps.length + blockers}</p>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-2">
+                  {(realFollowUps.length + blockers) > 0 ? "Attention Needed" : "Next Required Action"}
+                </p>
+                <div className="flex items-center gap-2">
+                  <p className="text-3xl font-black text-slate-900 leading-none">{realFollowUps.length + blockers}</p>
+                  {(realFollowUps.length + blockers) > 0 && (
+                    <ArrowRight className="w-5 h-5 text-amber-500 group-hover:translate-x-1 transition-transform" />
+                  )}
+                </div>
               </div>
             </div>
 
@@ -392,7 +425,7 @@ export default function Dashboard() {
                               </span>
                               <span className="text-[9px] font-bold text-slate-400 uppercase">{new Date(act.occurredAt).toLocaleDateString()}</span>
                             </div>
-                            <p className="text-xs font-bold text-slate-800 line-clamp-1">{act.subject || act.notes}</p>
+                            <p className="text-xs font-bold text-slate-800 line-clamp-1">{act.subject || act.notes} {act.count > 1 && <span className="text-[10px] text-indigo-500 ml-1">({act.count} updates)</span>}</p>
                             <div className="flex items-center gap-2 mt-2">
                               {act.type && (
                                 <Badge variant="outline" className="h-4 text-[8px] font-black border-slate-200 text-slate-500 uppercase px-1.5">

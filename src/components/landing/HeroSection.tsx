@@ -21,8 +21,8 @@ export function HeroSection() {
             transition={{ duration: 0.5 }}
           >
             <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
-              <Landmark className="w-4 h-4" />
-              Compassionate estate management
+              <Shield className="w-4 h-4" />
+              Built for Fiduciary Protection
             </span>
           </motion.div>
 
@@ -31,10 +31,10 @@ export function HeroSection() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-tight mb-6"
+            className="text-4xl md:text-5xl lg:text-3xl font-bold text-foreground leading-tight mb-6"
           >
-            Settle estates with{" "}
-            <span className="text-primary">clarity and peace of mind</span>
+            The settlement trail that protects you from{" "}
+            <span className="text-destructive">personal liability</span>
           </motion.h1>
 
           {/* Subheadline */}
@@ -45,7 +45,7 @@ export function HeroSection() {
             className="text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed"
           >
             ExpectedEstate helps executors document every action, eliminate diligence gaps,
-            and build a robust fiduciary record that stands up to institutional and legal scrutiny.
+            and build a bulletproof record of <span className="text-foreground font-semibold italic">reasonable care</span>—so you never have to worry about missing a step or being sued later.
           </motion.p>
 
           {/* CTA Buttons */}
@@ -81,18 +81,18 @@ export function HeroSection() {
         >
           <FeatureHighlight
             icon={Shield}
-            title="Document Every Discovery"
-            description="Exhaustive discovery workflows that prove reasonable care for every asset search."
+            title="Defend Your Actions"
+            description="Export court-ready audit trails that prove you fulfilled your duties with reasonable care."
           />
           <FeatureHighlight
             icon={Clock}
-            title="Eliminate Fiduciary Gaps"
-            description="Automatic escalation triggers ensure no milestone or institutional deadline is missed."
+            title="Stop Missing Details"
+            description="Track every call, fax, and search in one centralized place so nothing falls through the cracks."
           />
           <FeatureHighlight
             icon={FileCheck}
-            title="Evidence of Reasonable Care"
-            description="Export court-ready audit trails designed to protect executors from personal liability."
+            title="Reduce Cognitive Load"
+            description="Know exactly what's done and what's left without checking twenty different spreadsheets."
           />
         </motion.div>
       </div>
