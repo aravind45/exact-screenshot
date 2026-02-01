@@ -17,13 +17,13 @@ export function Header() {
 
           {/* Navigation */}
           <nav className="hidden md:flex items-center gap-8">
-            <a href="#features" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+            <a href="/#features" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
               Solutions
             </a>
-            <a href="#how-it-works" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+            <a href="/#how-it-works" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
               Audit Trail
             </a>
-            <a href="#pricing" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+            <a href="/#pricing" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
               Fiduciary Guidance
             </a>
           </nav>

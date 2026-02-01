@@ -43,7 +43,7 @@ const features = [
 
 export function FeaturesSection() {
   return (
-    <section className="py-24 bg-background">
+    <section id="features" className="py-24 bg-background">
       <div className="section-container">
         {/* Section Header */}
         <motion.div
