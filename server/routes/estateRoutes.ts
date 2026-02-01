@@ -1,6 +1,9 @@
 import { Router, Request, Response } from "express";
 import { prisma } from "../db.js";
 import { EmailService } from "../services/emailService.js";
+import { encrypt, decrypt } from "../utils/encryption.js";
+import { AuditService } from "../services/auditService.js";
+import { requireRole } from "../middleware/rbac.js";
 
 const router = Router();
 
@@ -26,6 +29,12 @@ router.get("/my", async (req: any, res: Response) => {
                 where: { id: estate.id },
                 include: { user: true }
             });
+
+            if (updatedEstate) {
+                // Decrypt SSN for display
+                updatedEstate.deceasedSsn = updatedEstate.deceasedSsn ? decrypt(updatedEstate.deceasedSsn) : updatedEstate.deceasedSsn;
+            }
+
             return res.json(updatedEstate);
         }
         res.json(estate);
@@ -54,7 +63,8 @@ router.put("/my", async (req: any, res: Response) => {
             'iaeaType', 'appointedDate', 'probateStatus', 'courtCaseNumber', 'probateCounty', 'status',
             'petitionerPhone', 'petitionerIsAttorney', 'hasWill', 'willDate', 'codicilDates',
             'estimatedPersonalProperty', 'estimatedRealProperty', 'estimatedAnnualIncome',
-            'bondAmount', 'bondWaived', 'probateNotes', 'hearingDate', 'hearingTime', 'hearingDept', 'hearingAddress'
+            'bondAmount', 'bondWaived', 'probateNotes', 'hearingDate', 'hearingTime', 'hearingDept', 'hearingAddress',
+            'deceasedSsn' // Added for SEC-001
         ];
 
         const updateData: any = {};
@@ -83,6 +93,9 @@ router.put("/my", async (req: any, res: Response) => {
                     }
                 } else if (key === 'codicilDates' && typeof req.body[key] === 'string') {
                     updateData[key] = req.body[key].split(',').map((s: string) => s.trim()).filter(Boolean);
+                } else if (key === 'deceasedSsn') {
+                    // SEC-001: Encrypt SSN
+                    updateData[key] = req.body[key] ? encrypt(req.body[key]) : req.body[key];
                 } else {
                     updateData[key] = req.body[key];
                 }
@@ -93,6 +106,11 @@ router.put("/my", async (req: any, res: Response) => {
             where: { id: estate.id },
             data: updateData
         });
+
+        // Decrypt SSN for response
+        if (updated.deceasedSsn) {
+            updated.deceasedSsn = decrypt(updated.deceasedSsn);
+        }
 
         // Log Configuration Activity
         const updatedFields = Object.keys(updateData).length;
@@ -247,9 +265,14 @@ router.get("/my/activities/download", async (req: any, res: Response) => {
         const pendingTasks = phaseData?.tasks.filter((t: any) => !completedTaskIds.includes(t.id)) || [];
 
         const { PdfService } = await import("../services/pdfService.js");
+
+        // SEC-003: Verify Chain Integrity before export
+        const verification = await AuditService.verifyChain(estate.id);
+
         const pdfBytes = await PdfService.generateActivityLogPdf(estate, activities, req.user.fullName, {
             pendingTasks,
-            negativeFindings
+            negativeFindings,
+            verification // Pass verification result to PDF
         });
 
         res.setHeader('Content-Type', 'application/pdf');
@@ -395,15 +418,13 @@ router.post("/my/documents", async (req: any, res: Response) => {
         });
 
         // Log Activity
-        await prisma.settlementActivity.create({
-            data: {
-                estateId: estate.id,
-                userId: req.user.id,
-                type: 'DOCUMENT',
-                action: 'CREATED',
-                notes: `Created document record: ${document.name} (${document.documentType})`
-            }
-        });
+        await AuditService.logActivity(
+            estate.id,
+            req.user.id,
+            'DOCUMENT',
+            'CREATED',
+            `Created document record: ${document.name} (${document.documentType})`
+        );
         res.json(document);
     } catch (error) {
         console.error("Create document error:", error);
@@ -450,15 +471,13 @@ router.delete("/my/documents/:id", async (req: any, res: Response) => {
         const deletedDoc = await prisma.estateDocument.delete({ where: { id: req.params.id } });
 
         // Log Activity
-        await prisma.settlementActivity.create({
-            data: {
-                estateId: estate.id,
-                userId: req.user.id,
-                type: 'DOCUMENT',
-                action: 'DELETED',
-                notes: `Deleted document: ${deletedDoc.name} (${deletedDoc.documentType})`
-            }
-        });
+        await AuditService.logActivity(
+            estate.id,
+            req.user.id,
+            'DOCUMENT',
+            'DELETED',
+            `Deleted document: ${deletedDoc.name} (${deletedDoc.documentType})`
+        );
 
         res.json({ success: true });
     } catch (error) {
@@ -648,13 +667,38 @@ router.get("/my/distribution-readiness", async (req: any, res: Response) => {
     }
 });
 
+// ... imports at top ...
+import { RiskService } from "../services/riskService.js";
+
+// ... existing code ...
+
 router.post("/my/distribution-activity", async (req: any, res: Response) => {
     try {
         const estate = await prisma.estate.findFirst({ where: { userId: req.user.id } });
         if (!estate) return res.status(404).json({ error: "Estate not found" });
 
-        const { eventType, notes } = req.body;
-        const activity = await DistributionService.logEvent(estate.id, req.user.id, eventType, notes);
+        const { eventType, notes, overrideConfirmation } = req.body;
+
+        // RISK MONITOR CHECK (RISK-001)
+        if (eventType === 'AUTHORIZED' || eventType === 'EXECUTED') {
+            const riskReport = await RiskService.assessEstateRisk(estate.id);
+
+            if (riskReport.blockers.length > 0 && !overrideConfirmation) {
+                return res.status(400).json({
+                    error: "Action Blocked by Risk Monitor",
+                    reasons: riskReport.blockers,
+                    riskReport
+                });
+            }
+
+            if (overrideConfirmation && riskReport.blockers.length > 0) {
+                // Determine user intent note
+                const overrideNote = ` [RISK OVERRIDE: ${req.user.firstName} authorized despite ${riskReport.level} risk]`;
+                req.body.notes = (req.body.notes || "") + overrideNote;
+            }
+        }
+
+        const activity = await DistributionService.logEvent(estate.id, req.user.id, eventType, req.body.notes);
         res.json(activity);
     } catch (e: any) {
         res.status(500).json({ error: e.message });

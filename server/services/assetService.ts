@@ -1,9 +1,11 @@
 import { prisma } from "../db.js";
 import { AgentService } from "./agentService.js";
+import { encrypt, decrypt } from "../utils/encryption.js";
+import { AuditService } from "../services/auditService.js";
 
 export const AssetService = {
     async getAll(userId: string) {
-        return await prisma.asset.findMany({
+        const assets = await prisma.asset.findMany({
             where: {
                 OR: [
                     { userId },
@@ -11,10 +13,16 @@ export const AssetService = {
                 ]
             }
         });
+
+        // Decrypt account numbers
+        return assets.map(asset => ({
+            ...asset,
+            accountNumber: asset.accountNumber ? decrypt(asset.accountNumber) : asset.accountNumber
+        }));
     },
 
     async getById(id: string, userId: string) {
-        return await prisma.asset.findFirst({
+        const asset = await prisma.asset.findFirst({
             where: {
                 id,
                 OR: [
@@ -24,6 +32,12 @@ export const AssetService = {
             },
             include: { communications: true, newCommunications: true }
         });
+
+        if (asset) {
+            asset.accountNumber = asset.accountNumber ? decrypt(asset.accountNumber) : asset.accountNumber;
+        }
+
+        return asset;
     },
 
     async create(userId: string, data: any) {
@@ -50,7 +64,10 @@ export const AssetService = {
 
         if (existingAsset) {
             console.log(`Asset already exists: ${institution} (${assetType})`);
-            return existingAsset;
+            return {
+                ...existingAsset,
+                accountNumber: existingAsset.accountNumber ? decrypt(existingAsset.accountNumber) : existingAsset.accountNumber
+            };
         }
 
         const asset = await prisma.asset.create({
@@ -65,7 +82,7 @@ export const AssetService = {
                 dateOfDeathValue: dateOfDeathValue ? parseFloat(dateOfDeathValue) : undefined,
                 priority: priority || 'medium',
                 status: status || 'discovered',
-                accountNumber: data.accountNumber,
+                accountNumber: data.accountNumber ? encrypt(data.accountNumber) : null,
                 institutionPhone: data.institutionPhone,
                 institutionEmail: data.institutionEmail,
                 notes: data.notes
@@ -88,7 +105,10 @@ export const AssetService = {
             }
         });
 
-        return asset;
+        return {
+            ...asset,
+            accountNumber: asset.accountNumber ? decrypt(asset.accountNumber) : asset.accountNumber
+        };
     },
 
     async update(id: string, userId: string, data: any) {
@@ -127,7 +147,7 @@ export const AssetService = {
                 dateOfDeathValue: dateOfDeathValue ? parseFloat(dateOfDeathValue) : undefined,
                 priority,
                 status,
-                accountNumber,
+                accountNumber: accountNumber ? encrypt(accountNumber) : undefined,
                 institutionPhone,
                 institutionEmail,
                 institutionFax,
@@ -160,7 +180,10 @@ export const AssetService = {
             }
         });
 
-        return updated;
+        return {
+            ...updated,
+            accountNumber: updated.accountNumber ? decrypt(updated.accountNumber) : updated.accountNumber
+        };
     },
 
     async delete(id: string, userId: string) {
@@ -172,15 +195,13 @@ export const AssetService = {
         });
 
         // Log Activity
-        await prisma.settlementActivity.create({
-            data: {
-                estateId: existing.estateId,
-                userId,
-                type: 'ASSET',
-                action: 'DELETED',
-                notes: `Removed asset: ${existing.institution} (${existing.assetType})`
-            }
-        });
+        await AuditService.logActivity(
+            existing.estateId,
+            userId,
+            'ASSET',
+            'DELETED',
+            `Removed asset: ${existing.institution} (${existing.assetType})`
+        );
 
         return { success: true };
     },

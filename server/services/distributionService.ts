@@ -1,5 +1,6 @@
 import { prisma } from "../db.js";
 import { PriorityFactory } from "./priority/priorityFactory.js";
+import { AuditService } from "../services/auditService.js";
 
 export interface DistributionReadiness {
     allowed: boolean;
@@ -120,15 +121,13 @@ export class DistributionService {
                 break;
         }
 
-        return await prisma.settlementActivity.create({
-            data: {
-                estateId,
-                userId,
-                type: 'ROADMAP',
-                action: 'UPDATED',
-                phase: 'DISTRIBUTION',
-                notes
-            }
-        });
+        return await AuditService.logActivity(
+            estateId,
+            userId,
+            'ROADMAP',
+            'UPDATED',
+            notes,
+            { phase: 'DISTRIBUTION' }
+        );
     }
 }

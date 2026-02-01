@@ -527,11 +527,12 @@ export const PdfService = {
     /**
      * Generates a professional chronological Settlement Trail PDF with multi-page support.
      */
-    async generateActivityLogPdf(estate: any, activities: any[], userName: string, options?: { pendingTasks?: any[], negativeFindings?: any[] }) {
+    async generateActivityLogPdf(estate: any, activities: any[], userName: string, options?: { pendingTasks?: any[], negativeFindings?: any[], verification?: { valid: boolean, count?: number, error?: string } }) {
         const doc = await PDFDocument.create();
         const fontBold = await doc.embedStandardFont(StandardFonts.HelveticaBold);
         const fontRegular = await doc.embedStandardFont(StandardFonts.Helvetica);
         const fontItalic = await doc.embedStandardFont(StandardFonts.HelveticaOblique);
+        const fontMono = await doc.embedStandardFont(StandardFonts.Courier);
 
         const margin = 50;
         const pageWidth = 612; // US Letter
@@ -546,11 +547,11 @@ export const PdfService = {
             cursorY -= 10;
         };
 
-        const drawText = (text: string, size = 11, font = fontRegular, xOffset = 0) => {
+        const drawText = (text: string, size = 11, font = fontRegular, xOffset = 0, color = rgb(0, 0, 0)) => {
             if (cursorY < margin + 20) {
                 addNewPage();
             }
-            page.drawText(text, { x: margin + xOffset, y: cursorY, size, font });
+            page.drawText(text, { x: margin + xOffset, y: cursorY, size, font, color });
             cursorY -= (size + 5);
         };
 
@@ -571,8 +572,64 @@ export const PdfService = {
         drawText(`EXECUTOR: ${userName || 'Authorized Representative'}`);
         drawText(`JURISDICTION: ${estate.deceasedState || 'N/A'}`);
         drawText(`SYSTEM OF RECORD: ExpectedEstate`);
-        drawText(`EXPORTED ON: ${new Date().toLocaleDateString()}`);
+        drawText(`EXPORTED ON: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`);
         cursorY -= 15;
+
+        // --- Verification Seal (SEC-003) ---
+        if (options?.verification) {
+            cursorY -= 10;
+            if (options.verification.valid) {
+                // Green "Verified" Badge
+                page.drawRectangle({
+                    x: pageWidth - margin - 180,
+                    y: pageHeight - margin - 40,
+                    width: 180,
+                    height: 30,
+                    color: rgb(0.9, 1, 0.9),
+                    borderColor: rgb(0, 0.5, 0),
+                    borderWidth: 1
+                });
+                page.drawText("CRYPTOGRAPHICALLY VERIFIED", {
+                    x: pageWidth - margin - 170,
+                    y: pageHeight - margin - 28,
+                    size: 10,
+                    font: fontBold,
+                    color: rgb(0, 0.5, 0)
+                });
+                page.drawText(`Checked ${options.verification.count} records`, {
+                    x: pageWidth - margin - 170,
+                    y: pageHeight - margin - 38,
+                    size: 8,
+                    font: fontRegular,
+                    color: rgb(0, 0.3, 0)
+                });
+            } else {
+                // Red "Tampered" Warning
+                page.drawRectangle({
+                    x: pageWidth - margin - 180,
+                    y: pageHeight - margin - 40,
+                    width: 180,
+                    height: 40,
+                    color: rgb(1, 0.9, 0.9),
+                    borderColor: rgb(0.8, 0, 0),
+                    borderWidth: 2
+                });
+                page.drawText("INTEGRITY CHECK FAILED", {
+                    x: pageWidth - margin - 170,
+                    y: pageHeight - margin - 25,
+                    size: 10,
+                    font: fontBold,
+                    color: rgb(0.8, 0, 0)
+                });
+                page.drawText("CHAIN BROKEN / TAMPERED", {
+                    x: pageWidth - margin - 170,
+                    y: pageHeight - margin - 35,
+                    size: 8,
+                    font: fontBold,
+                    color: rgb(0.8, 0, 0)
+                });
+            }
+        }
 
         // --- Summary Section ---
         drawText("RECORD SUMMARY", 12, fontBold);
@@ -628,9 +685,16 @@ export const PdfService = {
             // Draw Date/Phase Row
             drawText(`${dateStr} ${timeStr} | ${phaseStr}`, 9, fontBold);
 
-            // Draw Action Description (Handle basic wrapping logic if needed, but for now single line)
+            // Draw Action Description
             const description = log.notes || log.action;
             drawText(description, 10, fontRegular, 10);
+
+            // Draw Hash (SEC-003)
+            if (log.hash) {
+                const hashDisplay = `SHA: ${log.hash.substring(0, 32)}...`; // Truncate for readability
+                drawText(hashDisplay, 7, fontMono, 10, rgb(0.4, 0.4, 0.4));
+            }
+
             cursorY -= 8;
         });
 

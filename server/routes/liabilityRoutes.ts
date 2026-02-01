@@ -1,6 +1,10 @@
 import { Router, Response } from "express";
 import { prisma } from "../db.js";
 import { PriorityService } from "../services/priorityService.js";
+import { encrypt, decrypt } from "../utils/encryption.js";
+import { RiskService } from "../services/riskService.js";
+import { AuditService } from "../services/auditService.js";
+import { requireRole } from "../middleware/rbac.js";
 
 const router = Router();
 
@@ -23,7 +27,14 @@ router.get("/", async (req: any, res: Response) => {
             where: { estateId },
             orderBy: { createdAt: "desc" }
         });
-        res.json(liabilities);
+
+        // Decrypt account numbers
+        const decryptedLiabilities = liabilities.map(l => ({
+            ...l,
+            accountNumber: l.accountNumber ? decrypt(l.accountNumber) : l.accountNumber
+        }));
+
+        res.json(decryptedLiabilities);
     } catch (e: any) {
         res.status(500).json({ error: e.message });
     }
@@ -173,7 +184,7 @@ router.post("/", async (req: any, res: Response) => {
                 status: status || "DISCOVERED",
                 invoiceDate: invoiceDate ? new Date(invoiceDate) : null,
                 dueDate: dueDate ? new Date(dueDate) : null,
-                accountNumber,
+                accountNumber: accountNumber ? encrypt(accountNumber) : null,
                 notes,
                 contactPhone,
                 contactEmail,
@@ -192,6 +203,11 @@ router.post("/", async (req: any, res: Response) => {
                 notes: `Added liability: ${name} ($${amount})`
             }
         });
+
+        // Return decrypted
+        if (liability.accountNumber) {
+            liability.accountNumber = decrypt(liability.accountNumber);
+        }
 
         res.json(liability);
     } catch (e: any) {
@@ -213,12 +229,17 @@ router.put("/:id", async (req: any, res: Response) => {
         if (data.dueDate) data.dueDate = new Date(data.dueDate);
         if (data.amount) data.amount = Number(data.amount);
 
-        // PRIORITY CHECK: If trying to mark as PAID, run the validation
+        // Encrypt Account Number
+        if (data.accountNumber) {
+            data.accountNumber = encrypt(data.accountNumber);
+        }
+
+        // PRIORITY & RISK CHECK: If trying to mark as PAID, run the validation
         if (data.status === "PAID" && !data.forcePay) {
-            const eligibility = await PriorityService.checkPaymentEligibility(estateId, id);
+            const eligibility = await RiskService.validatePayment(estateId, id);
             if (!eligibility.allowed) {
                 return res.status(400).json({
-                    error: "Payment Blocked by Priority Rules",
+                    error: "Payment Blocked by Risk/Priority Rules",
                     details: eligibility
                 });
             }
@@ -231,15 +252,18 @@ router.put("/:id", async (req: any, res: Response) => {
 
         // Log significant status changes
         if (data.status === "PAID") {
-            await prisma.settlementActivity.create({
-                data: {
-                    estateId,
-                    userId: req.user.id,
-                    action: "UPDATED",
-                    type: "LIABILITY",
-                    notes: `Paid liability: ${liability.name}`
-                }
-            });
+            await AuditService.logActivity(
+                estateId,
+                req.user.id,
+                "LIABILITY",
+                "UPDATED",
+                `Paid liability: ${liability.name}`
+            );
+        }
+
+        // Return decrypted
+        if (liability.accountNumber) {
+            liability.accountNumber = decrypt(liability.accountNumber);
         }
 
         res.json(liability);

@@ -447,10 +447,15 @@ model SettlementActivity {
   occurredAt DateTime @default(now()) @map("occurred_at")
   userId     String   @map("user_id")
 
+  // SEC-003: Immutable Audit Log Fields
+  hash         String? // SHA-256 hash of this record
+  previousHash String? @map("previous_hash") // Hash of the preceding record
+
   estate Estate @relation(fields: [estateId], references: [id], onDelete: Cascade)
   user   User   @relation(fields: [userId], references: [id])
 
   @@map("settlement_activities")
+  @@index([estateId, occurredAt]) // Optimize chain verification
 }
 
 model AppSetting {

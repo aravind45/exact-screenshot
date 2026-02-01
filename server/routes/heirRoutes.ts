@@ -1,5 +1,6 @@
 import { Router, Response } from "express";
 import { prisma } from "../db.js";
+import { AuditService } from "../services/auditService.js";
 
 const router = Router();
 
@@ -46,15 +47,13 @@ router.post("/", async (req: any, res: Response) => {
         });
 
         // Log Configuration Activity
-        await prisma.settlementActivity.create({
-            data: {
-                estateId,
-                userId: req.user.id,
-                type: 'CONFIGURATION',
-                action: 'CREATED',
-                notes: `CONFIGURATION – Beneficiary added: ${name} (${relationship})`
-            }
-        });
+        await AuditService.logActivity(
+            estateId,
+            req.user.id,
+            'CONFIGURATION',
+            'CREATED',
+            `CONFIGURATION – Beneficiary added: ${heir.name} (${heir.relationship})`
+        );
 
         res.json(heir);
     } catch (e: any) {

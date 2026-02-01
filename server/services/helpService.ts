@@ -1,19 +1,18 @@
 import { prisma } from "../db.js";
+import { AuditService } from "../services/auditService.js";
 
 export class HelpService {
     /**
      * Log that an executor referenced a specific help topic for defensibility
      */
     static async logHelpReference(estateId: string, userId: string, topic: string) {
-        return prisma.settlementActivity.create({
-            data: {
-                estateId,
-                userId,
-                type: 'HELP_REFERENCED',
-                action: 'VIEWED',
-                notes: `REFERENCED – Knowledge Base: Reviewed documentation regarding \"${topic}\".`
-            }
-        });
+        return AuditService.logActivity(
+            estateId,
+            userId,
+            'HELP_REFERENCED',
+            'VIEWED',
+            `REFERENCED – Knowledge Base: Reviewed documentation regarding \"${topic}\".`
+        );
     }
 
     /**
