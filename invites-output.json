@@ -1,0 +1,30 @@
+[
+  {
+    "id": "349369dc-74cf-4d9a-a865-e01279c66d10",
+    "estateId": "2c276a19-8a6b-40c5-9971-093afe8c1660",
+    "email": "texaszenister@gmail.com",
+    "token": "ba4329fad23efedc57c5d479e8b0b32566a97094041b59251a350c3d6402818a",
+    "role": "VIEWER",
+    "status": "PENDING",
+    "invitedBy": "2d25b558-e67e-4cf5-95f0-fbf74606f05a",
+    "expiresAt": "2026-02-08T16:44:02.434Z",
+    "createdAt": "2026-02-01T16:44:02.435Z",
+    "acceptedAt": null,
+    "paymentId": null,
+    "cost": null
+  },
+  {
+    "id": "20e64ff7-4b12-4715-a450-5917ccb4f24a",
+    "estateId": "2c276a19-8a6b-40c5-9971-093afe8c1660",
+    "email": "texaszenister@gmail.com",
+    "token": "e41740c896539b4304258415a945e160c13ba4e2428b09165c6fdf477c4d7adb",
+    "role": "VIEWER",
+    "status": "PENDING",
+    "invitedBy": "2d25b558-e67e-4cf5-95f0-fbf74606f05a",
+    "expiresAt": "2026-02-08T15:16:00.200Z",
+    "createdAt": "2026-02-01T15:16:00.201Z",
+    "acceptedAt": null,
+    "paymentId": null,
+    "cost": null
+  }
+]

@@ -215,7 +215,24 @@ Which asset ID does this email most likely belong to? Return ONLY the ID. If non
         const appUrl = (await this.getAppUrl()).replace(/\/$/, "");
         const inviteUrl = `${appUrl}/invite/${data.token}`;
 
-        const apiKey = await ConfigService.get("MAILGUN_API_KEY") || "";
+        const apiKey = await ConfigService.get("MAILGUN_API_KEY");
+
+        console.log(`[EmailService] Attempting to send invite to: ${to}`);
+        console.log(`[EmailService] Using domain: ${domain}`);
+        console.log(`[EmailService] API Key Found: ${!!apiKey}`);
+
+        // SIMULATED MODE: Log invitation details if no API key
+        if (!apiKey) {
+            console.log("-----------------------------------------");
+            console.log(`📧 [SIMULATED] COLLABORATION INVITE for ${to}`);
+            console.log(`👤 Inviter: ${data.inviterName}`);
+            console.log(`🏛️  Estate: ${data.estateName}`);
+            console.log(`🔗 Invite Link: ${inviteUrl}`);
+            console.log(`⏰ Expires: 7 days`);
+            console.log("-----------------------------------------");
+            return;
+        }
+
         const encodedKey = Buffer.from(`api:${apiKey}`).toString("base64");
 
         const formData = new URLSearchParams();
@@ -235,11 +252,15 @@ Which asset ID does this email most likely belong to? Return ONLY the ID. If non
             body: formData
         });
 
+        console.log(`[EmailService] Mailgun Response Status: ${response.status}`);
+
         if (!response.ok) {
             const error = await response.text();
             console.error("[EmailService] Invitation Email Error:", error);
-            // Don't throw here, just log so the process continues
+            throw new Error("Failed to send invitation email");
         }
+
+        console.log(`[EmailService] Invitation email successfully sent to ${to}`);
     }
 
     static async sendPasswordResetEmail(to: string, resetLink: string) {
