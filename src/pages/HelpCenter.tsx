@@ -1,5 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import { Sidebar } from "@/components/Sidebar";
+import { useSearchParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { api } from "@/lib/api";
 import {
     BookOpen,
     Search,
@@ -14,7 +17,9 @@ import {
     Info,
     Gavel,
     Heart,
-    FileText
+    FileText,
+    History,
+    Sparkles
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -24,6 +29,44 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { SettlementMindMap } from "@/components/dashboard/SettlementMindMap";
 
 export default function HelpCenter() {
+    const { data: estate } = useQuery({
+        queryKey: ["estate"],
+        queryFn: api.getMyEstate,
+    });
+
+    const estateId = estate?.id;
+
+    // Situational Search Anchors
+    const situationalPrompts = [
+        "Am I allowed to distribute yet?",
+        "What does 'Blocked' mean?",
+        "Why is my task locked?",
+        "Is it safe to pay this creditor?",
+        "How do I avoid liability?"
+    ];
+
+    const { data: recommendations } = useQuery({
+        queryKey: ["help-recommendations", estateId],
+        queryFn: () => fetch(`/api/help/recommendations/${estateId}`).then(res => res.json()),
+        enabled: !!estateId
+    });
+
+    const logReference = async (topic: string) => {
+        if (!estateId) return;
+        try {
+            await fetch("/api/help/log", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${localStorage.getItem("token")}`
+                },
+                body: JSON.stringify({ estateId, topic })
+            });
+        } catch (e) {
+            console.error("Failed to log help ref", e);
+        }
+    };
+
     const faqs = [
         {
             category: "Probate 101: Duties & Steps",
@@ -113,6 +156,17 @@ export default function HelpCenter() {
         }
     ];
 
+    const [searchParams] = useSearchParams();
+    const context = searchParams.get("context");
+    const [searchQuery, setSearchQuery] = useState("");
+
+    const contextualBanner = {
+        distribution: { title: "Viewing Help for: Final Distribution", q: ["Safe to distribute?", "Early distribution risks", "Court approval needed"] },
+        discovery: { title: "Viewing Help for: Asset Discovery", q: ["Finding digital assets", "Safe deposit boxes", "Small estate shortcuts"] },
+        liabilities: { title: "Viewing Help for: Creditor Claims", q: ["Safe to pay creditors?", "Insolvency risks", "Priority of claims"] },
+        accounting: { title: "Viewing Help for: Estate Accounting", q: ["Waiver of accounting", "Record retention", "Proof of value"] }
+    }[context as string];
+
     return (
         <div className="flex bg-slate-50 min-h-screen">
             <Sidebar />
@@ -124,17 +178,72 @@ export default function HelpCenter() {
                             <BookOpen className="w-3 h-3" /> Knowledge Base
                         </div>
                         <h1 className="text-4xl font-black text-slate-900 tracking-tight">How can we help?</h1>
-                        <p className="text-slate-500 max-w-lg mx-auto">
+                        <p className="text-slate-500 max-w-lg mx-auto italic text-sm">
                             Search our library of legal explanations, form guides, and California-specific probate tips.
                         </p>
+
                         <div className="relative max-w-xl mx-auto mt-6">
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                             <Input
                                 className="pl-12 h-14 bg-white border-none shadow-xl shadow-slate-200/50 rounded-2xl text-lg"
-                                placeholder="Search 'Trust', 'DE-310', 'Creditors'..."
+                                placeholder="What are you trying to do right now?"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
                             />
+
+                            {/* Situational Search Chips */}
+                            <div className="flex flex-wrap items-center justify-center gap-2 mt-4">
+                                {situationalPrompts.map(p => (
+                                    <Badge
+                                        key={p}
+                                        variant="outline"
+                                        className="bg-white hover:bg-slate-50 text-[10px] text-slate-500 font-bold border-slate-200 cursor-pointer h-7 px-3 flex items-center gap-1.5 transition-all group"
+                                        onClick={() => {
+                                            setSearchQuery(p);
+                                            logReference(p);
+                                        }}
+                                    >
+                                        <Sparkles className="w-3 h-3 text-amber-400 group-hover:scale-110 transition-transform" />
+                                        {p}
+                                    </Badge>
+                                ))}
+                            </div>
                         </div>
                     </div>
+
+                    {/* Contextual / Recommended Section */}
+                    {(contextualBanner || (recommendations && recommendations.length > 0)) && (
+                        <Card className="border-none shadow-xl bg-indigo-600 text-white overflow-hidden rounded-[32px] relative group transition-all">
+                            <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 blur-[80px] rounded-full -translate-y-1/2 translate-x-1/2 group-hover:bg-white/10 transition-colors" />
+                            <CardContent className="p-8 relative z-10">
+                                <div className="flex items-center gap-3 mb-6">
+                                    <div className="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center backdrop-blur-sm">
+                                        <Zap className="w-5 h-5 text-white animate-pulse" />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-black text-lg uppercase tracking-tight">
+                                            {contextualBanner?.title || "Recommended Focus Right Now"}
+                                        </h3>
+                                        <p className="text-white/60 text-[10px] font-bold uppercase tracking-widest">Based on your current roadmap phase</p>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {(contextualBanner?.q || recommendations || []).map((topic: string) => (
+                                        <Button
+                                            key={topic}
+                                            variant="secondary"
+                                            className="justify-between h-12 bg-white/10 hover:bg-white/20 border-white/5 text-white font-bold rounded-2xl backdrop-blur-sm transition-all text-xs"
+                                            onClick={() => logReference(topic)}
+                                        >
+                                            <span className="truncate">{topic}</span>
+                                            <ArrowRight className="w-4 h-4 shrink-0" />
+                                        </Button>
+                                    ))}
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
 
                     {/* Fast Links */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -245,7 +354,10 @@ export default function HelpCenter() {
                                             </div>
                                             {group.items.map((item, iIdx) => (
                                                 <AccordionItem key={iIdx} value={`item-${gIdx}-${iIdx}`} className="border-slate-100 px-6 last:border-none">
-                                                    <AccordionTrigger className="text-sm font-bold text-left hover:no-underline hover:text-blue-600">
+                                                    <AccordionTrigger
+                                                        className="text-sm font-bold text-left hover:no-underline hover:text-blue-600"
+                                                        onClick={() => logReference(item.q)}
+                                                    >
                                                         {item.q}
                                                     </AccordionTrigger>
                                                     <AccordionContent className="text-slate-600 text-sm leading-relaxed pb-4">

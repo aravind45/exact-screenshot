@@ -48,6 +48,19 @@ export const CommunicationService = {
                 }
             });
 
+            // 4. Log Waiting State if follow-up is pending
+            if (data.direction === 'outbound' && data.followUpDueAt && !data.followUpCompletedAt) {
+                await tx.settlementActivity.create({
+                    data: {
+                        estateId: data.estateId,
+                        userId,
+                        type: 'COMMUNICATION',
+                        action: 'WAITING',
+                        notes: `WAITING – Institution response pending (${data.institutionName}). Follow-up scheduled for ${new Date(data.followUpDueAt).toLocaleDateString()}.`
+                    }
+                });
+            }
+
             return communication;
         });
     },
@@ -178,6 +191,19 @@ export const CommunicationService = {
                 await tx.asset.update({
                     where: { id: updated.assetId },
                     data: { status: data.statusChange }
+                });
+            }
+
+            // Log Waiting State if follow-up is set
+            if (updated.direction === 'outbound' && updated.followUpDueAt && !updated.followUpCompletedAt) {
+                await tx.settlementActivity.create({
+                    data: {
+                        estateId: updated.estateId,
+                        userId,
+                        type: 'COMMUNICATION',
+                        action: 'WAITING',
+                        notes: `WAITING – Response monitoring updated for ${updated.institutionName}. Next check: ${new Date(updated.followUpDueAt).toLocaleDateString()}.`
+                    }
                 });
             }
 

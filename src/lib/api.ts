@@ -182,6 +182,19 @@ export interface DistributionReadiness {
     daysRemaining?: number;
 }
 
+export interface AccountingReadiness {
+    status: 'DRAFT' | 'READY_FOR_REVIEW' | 'INCOMPLETE';
+    checks: {
+        inventoryObtained: boolean;
+        assetsVerified: boolean;
+        noticePeriodClosed: boolean;
+        claimsResolved: boolean;
+    };
+    details: string[];
+}
+
+export type FormReadiness = Record<string, { ready: boolean; reason: string }>;
+
 const API_URL = import.meta.env.VITE_API_URL || "/api";
 
 const getHeaders = () => {
@@ -915,14 +928,21 @@ export const api = {
         return { data };
     },
 
-    getActivities: async () => {
-        const response = await fetch(`${API_URL}/estates/my/activities`, {
+    async getActivities(): Promise<any[]> {
+        const response = await fetch(`${API_URL}/estates/my/activities`, { headers: getHeaders() });
+        return parseResponse(response);
+    },
+
+    async updateActivity(id: string, notes: string): Promise<any> {
+        const response = await fetch(`${API_URL}/estates/my/activities/${id}`, {
+            method: "PUT",
             headers: getHeaders(),
+            body: JSON.stringify({ notes })
         });
         return parseResponse(response);
     },
 
-    downloadActivityLog: async () => {
+    async downloadActivityLog(): Promise<Blob> {
         const response = await fetch(`${API_URL}/estates/my/activities/download?token=${localStorage.getItem("auth_token")}`, {
             headers: getHeaders(),
         });
@@ -936,6 +956,11 @@ export const api = {
             headers: getHeaders(),
             body: JSON.stringify(data),
         });
+        return parseResponse(response);
+    },
+
+    async getFormReadiness(): Promise<FormReadiness> {
+        const response = await fetch(`${API_URL}/forms/readiness`, { headers: getHeaders() });
         return parseResponse(response);
     },
 
@@ -1041,6 +1066,11 @@ export const api = {
             method: "DELETE",
             headers: getHeaders(),
         });
+        return parseResponse(response);
+    },
+
+    async getAccountingReadiness(): Promise<AccountingReadiness> {
+        const response = await fetch(`${API_URL}/estates/my/accounting-readiness`, { headers: getHeaders() });
         return parseResponse(response);
     },
 

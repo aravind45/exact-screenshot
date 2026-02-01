@@ -19,7 +19,13 @@ import {
   X,
   Flag,
   ArrowDownLeft,
-  ArrowUpRight
+  ArrowUpRight,
+  ShieldAlert,
+  Target,
+  FileCheck,
+  FileText,
+  Search,
+  Gavel
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -54,6 +60,57 @@ import { QuickActions } from "@/components/dashboard/QuickActions";
 import { SETTLEMENT_PHASE_TASKS } from "@/config/settlementPhases";
 import { ProbateChecklistWidget } from "@/components/dashboard/ProbateChecklistWidget";
 import { WorkRemainingWidget } from "@/components/dashboard/WorkRemainingWidget";
+
+const MISSION_MAP: Record<string, { title: string; description: string; icon: any; color: string; cta: string; link: string }> = {
+  immediate_actions: {
+    title: "Secure & Notify",
+    description: "Your priority is protecting the estate property and notifying agencies to stop payments.",
+    icon: ShieldAlert,
+    color: "amber",
+    cta: "View Immediate Tasks",
+    link: "/roadmap"
+  },
+  court_filing: {
+    title: "Obtain Letters",
+    description: "You are securing your legal authority (DE-150) to act on behalf of the estate.",
+    icon: FileText,
+    color: "indigo",
+    cta: "Open Probate Hub",
+    link: "/forms"
+  },
+  asset_discovery: {
+    title: "Map the Estate",
+    description: "Identify all accounts, real estate, and digital assets to build the Inventory (DE-160).",
+    icon: Search,
+    color: "blue",
+    cta: "Run Discovery Scan",
+    link: "/discovery"
+  },
+  creditor_claims: {
+    title: "Resolve Liabilities",
+    description: "Review incoming claims and resolve debts in accordance with legal priority rules.",
+    icon: Gavel,
+    color: "rose",
+    cta: "Review Claims",
+    link: "/liabilities"
+  },
+  asset_liquidation: {
+    title: "Consolidate Funds",
+    description: "Transfer assets into the estate account and prepare the final accounting for court.",
+    icon: Landmark,
+    color: "emerald",
+    cta: "Manage Asset Ledger",
+    link: "/assets"
+  },
+  final_distribution: {
+    title: "Closure & Transfer",
+    description: "distributing remaining wealth to beneficiaries and seeking final court discharge.",
+    icon: Target,
+    color: "purple",
+    cta: "Execute Distribution",
+    link: "/distribution"
+  }
+};
 
 const normalize = (str: string | null) => str?.toLowerCase() || '';
 
@@ -196,6 +253,16 @@ export default function Dashboard() {
     return acc;
   }, []).slice(0, 10);
 
+  // Calculate Diligence Score (Simple heuristic)
+  const diligenceScore = Math.min(100, (
+    (activitiesData.length * 5) +
+    (completedTaskIds.length * 2) +
+    (assets.length > 0 ? 20 : 0) +
+    (estate?.courtCaseNumber ? 15 : 0)
+  ));
+
+  const mission = MISSION_MAP[currentPhase] || MISSION_MAP.immediate_actions;
+
   const queryClient = useQueryClient();
   const roadmapMutation = useMutation({
     mutationFn: api.updateRoadmap,
@@ -230,7 +297,7 @@ export default function Dashboard() {
       <div className="flex-1 ml-64 flex flex-col">
         <main className="max-w-[1240px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-10 space-y-10">
           {/* Top Metadata Bar */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-6">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -252,6 +319,58 @@ export default function Dashboard() {
                 Managing: <span className="text-slate-900 font-black">{estate?.deceasedFirstName} {estate?.deceasedLastName}</span>
               </p>
             </motion.div>
+
+            {/* Diligence Meter */}
+            <div className="flex flex-col items-end gap-2">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Diligence Score (Defensibility)</span>
+                <Badge variant="outline" className="h-5 text-[9px] font-black border-emerald-200 text-emerald-700 bg-emerald-50">High Integrity</Badge>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-48 h-2.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200/50">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${diligenceScore}%` }}
+                    className="h-full bg-gradient-to-r from-emerald-400 to-emerald-600 shadow-[0_0_10px_rgba(16,185,129,0.3)]"
+                  />
+                </div>
+                <span className="text-lg font-black text-slate-900 leading-none">{diligenceScore}%</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Current Mission Banner */}
+          <div className={cn(
+            "relative overflow-hidden rounded-[32px] p-8 text-white shadow-2xl border transition-all hover:scale-[1.01]",
+            mission.color === 'amber' ? "bg-gradient-to-br from-amber-500 to-orange-600 border-amber-400" :
+              mission.color === 'indigo' ? "bg-gradient-to-br from-indigo-500 to-blue-700 border-indigo-400" :
+                mission.color === 'blue' ? "bg-gradient-to-br from-blue-500 to-cyan-700 border-blue-400" :
+                  mission.color === 'rose' ? "bg-gradient-to-br from-rose-500 to-red-700 border-rose-400" :
+                    mission.color === 'emerald' ? "bg-gradient-to-br from-emerald-500 to-teal-700 border-emerald-400" :
+                      "bg-gradient-to-br from-purple-500 to-fuchsia-700 border-purple-400"
+          )}>
+            <div className="absolute top-0 right-0 p-12 opacity-10 pointer-events-none">
+              <mission.icon className="w-64 h-64" />
+            </div>
+            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
+              <div className="space-y-3">
+                <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/20 rounded-full border border-white/20 backdrop-blur-sm">
+                  <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                  <span className="text-[10px] font-black uppercase tracking-widest">Active Mission</span>
+                </div>
+                <h1 className="text-4xl font-black tracking-tight">{mission.title}</h1>
+                <p className="text-lg font-medium opacity-90 max-w-xl leading-relaxed">
+                  {mission.description}
+                </p>
+              </div>
+              <Button
+                onClick={() => navigate(mission.link)}
+                className="bg-white text-slate-900 hover:bg-slate-100 h-14 px-8 rounded-2xl font-black text-lg group shadow-xl"
+              >
+                {mission.cta}
+                <ArrowRight className="ml-3 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </Button>
+            </div>
           </div>
 
           <ProbateBlockerAlert />
@@ -395,9 +514,9 @@ export default function Dashboard() {
                   <div className="flex items-center justify-between px-1">
                     <div className="flex items-center gap-2">
                       <HistoryIcon className="w-5 h-5 text-indigo-500" />
-                      <h2 className="text-lg font-bold text-slate-900 tracking-tight">Recent Activity</h2>
+                      <h2 className="text-lg font-bold text-slate-900 tracking-tight">Recent Proof of Work</h2>
                     </div>
-                    <Button variant="ghost" size="sm" className="h-7 text-[10px] uppercase font-black text-indigo-600" onClick={() => navigate('/inbox')}>View All</Button>
+                    <Button variant="ghost" size="sm" className="h-7 text-[10px] uppercase font-black text-indigo-600" onClick={() => navigate('/settlement-trail')}>View Full Trail</Button>
                   </div>
 
                   <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm">
@@ -446,7 +565,7 @@ export default function Dashboard() {
 
             {/* Sidebar (Right) */}
             <div className="lg:col-span-5 space-y-10">
-              <QuickActions />
+              <QuickActions currentPhase={currentPhase} />
 
               <DeadlineTracker estateId={estate?.id || ""} />
 

@@ -8,7 +8,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
-import { Plus, Trash2, Save, User, Gavel, FileText } from "lucide-react";
+import { Plus, Trash2, Save, User, Gavel, FileText, AlertTriangle, ShieldCheck, CheckCircle2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 import {
     Dialog,
     DialogContent,
@@ -69,17 +71,53 @@ export default function Settings() {
 
     if (!estate) return null;
 
+    const isCaseDataComplete = !!(
+        estate.deceasedFirstName &&
+        estate.deceasedLastName &&
+        estate.deceasedDateOfDeath &&
+        estate.deceasedState &&
+        estate.probateCounty &&
+        estate.courtCaseNumber
+    );
+
+    const isConfigurationComplete = isCaseDataComplete && heirs.length > 0;
+
     return (
         <div className="flex bg-slate-50 min-h-screen">
             <Sidebar />
             <main className="flex-1 ml-64 p-8">
                 <div className="max-w-4xl mx-auto space-y-8">
-                    <div>
-                        <h1 className="text-3xl font-bold tracking-tight text-slate-900">Settings & Configuration</h1>
-                        <p className="text-slate-500 mt-1">
-                            Manage case details, beneficiaries, and legal team.
-                        </p>
-                    </div>
+                    <header className="flex items-start justify-between gap-8">
+                        <div>
+                            <h1 className="text-3xl font-bold tracking-tight text-slate-900">Settings & Configuration</h1>
+                            <p className="text-slate-500 mt-1">
+                                Manage case details, beneficiaries, and legal team.
+                            </p>
+                        </div>
+
+                        {/* Readiness Banner */}
+                        <Card className={cn(
+                            "border-none shadow-sm px-6 py-4 flex items-center gap-4 transition-all duration-500",
+                            isConfigurationComplete ? "bg-emerald-50 text-emerald-800" : "bg-amber-50 text-amber-800"
+                        )}>
+                            <div className={cn(
+                                "w-10 h-10 rounded-full flex items-center justify-center",
+                                isConfigurationComplete ? "bg-emerald-100" : "bg-amber-100"
+                            )}>
+                                {isConfigurationComplete ? <CheckCircle2 className="w-6 h-6" /> : <ShieldCheck className="w-6 h-6" />}
+                            </div>
+                            <div>
+                                <h3 className="font-black text-sm uppercase tracking-tight leading-none mb-1">
+                                    {isConfigurationComplete ? "Configuration Complete" : "Incomplete Configuration"}
+                                </h3>
+                                <p className="text-[10px] font-bold opacity-70 leading-none">
+                                    {isConfigurationComplete
+                                        ? "Required case details and beneficiaries are configured."
+                                        : "Beneficiaries must be added before final distribution can proceed."}
+                                </p>
+                            </div>
+                        </Card>
+                    </header>
 
                     <Tabs defaultValue="general" className="w-full">
                         <TabsList className="grid w-full grid-cols-3">
@@ -99,7 +137,7 @@ export default function Settings() {
                                 </CardHeader>
                                 <CardContent>
                                     <form onSubmit={handleEstateSave} className="space-y-4">
-                                        <div className="grid grid-cols-2 gap-4">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div className="space-y-2">
                                                 <Label htmlFor="deceasedFirstName">Deceased First Name</Label>
                                                 <Input id="deceasedFirstName" name="deceasedFirstName" defaultValue={estate.deceasedFirstName} />
@@ -110,14 +148,30 @@ export default function Settings() {
                                             </div>
                                         </div>
 
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                                <Label htmlFor="deceasedDateOfBirth">Date of Birth (Optional)</Label>
+                                                <Input
+                                                    id="deceasedDateOfBirth"
+                                                    name="deceasedDateOfBirth"
+                                                    type="date"
+                                                    defaultValue={estate.deceasedDateOfBirth ? new Date(estate.deceasedDateOfBirth).toISOString().split('T')[0] : ''}
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="deceasedState">Deceased State of Residence</Label>
+                                                <Input id="deceasedState" name="deceasedState" defaultValue={estate.deceasedState} placeholder="e.g. CA" />
+                                            </div>
+                                        </div>
+
                                         <div className="grid grid-cols-2 gap-4">
                                             <div className="space-y-2">
-                                                <Label htmlFor="dateOfDeath">Date of Death</Label>
+                                                <Label htmlFor="deceasedDateOfDeath">Date of Death</Label>
                                                 <Input
-                                                    id="dateOfDeath"
-                                                    name="dateOfDeath"
+                                                    id="deceasedDateOfDeath"
+                                                    name="deceasedDateOfDeath"
                                                     type="date"
-                                                    defaultValue={estate.dateOfDeath ? new Date(estate.dateOfDeath).toISOString().split('T')[0] : ''}
+                                                    defaultValue={estate.deceasedDateOfDeath ? new Date(estate.deceasedDateOfDeath).toISOString().split('T')[0] : ''}
                                                 />
                                             </div>
                                             <div className="space-y-2">
@@ -127,8 +181,15 @@ export default function Settings() {
                                         </div>
 
                                         <div className="space-y-2">
-                                            <Label htmlFor="county">County of Filing</Label>
-                                            <Input id="county" name="county" defaultValue={estate.county} placeholder="e.g. Los Angeles" />
+                                            <Label htmlFor="probateCounty">County of Filing</Label>
+                                            <Input id="probateCounty" name="probateCounty" defaultValue={estate.probateCounty} placeholder="e.g. Los Angeles" />
+                                        </div>
+
+                                        <div className="p-4 bg-amber-50 border border-amber-100 rounded-xl flex items-start gap-3">
+                                            <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5" />
+                                            <p className="text-[11px] text-amber-800 font-medium leading-relaxed">
+                                                <span className="font-black uppercase">Fiduciary Warning:</span> Changes to Case Information affect all generated court documents and the distribution ledger. Ensure accuracy to avoid re-filing fees.
+                                            </p>
                                         </div>
 
                                         <div className="pt-4">
@@ -148,8 +209,8 @@ export default function Settings() {
                                 <CardHeader className="flex flex-row items-center justify-between">
                                     <div>
                                         <CardTitle>Beneficiaries</CardTitle>
-                                        <CardDescription>
-                                            People receiving assets. Required for Final Distribution.
+                                        <CardDescription className="text-slate-500">
+                                            People receiving assets. All updates are recorded in the Settlement Trail for legal defensibility.
                                         </CardDescription>
                                     </div>
                                     <Dialog open={isHeirDialogOpen} onOpenChange={setIsHeirDialogOpen}>
@@ -185,8 +246,14 @@ export default function Settings() {
                                 <CardContent>
                                     <div className="space-y-4">
                                         {heirs.length === 0 && (
-                                            <div className="text-center py-8 text-slate-500 border-2 border-dashed rounded-lg">
-                                                No heirs added yet.
+                                            <div className="text-center py-12 px-6 text-slate-500 border-2 border-dashed border-amber-200 bg-amber-50/30 rounded-2xl">
+                                                <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                                    <AlertTriangle className="w-6 h-6 text-amber-600" />
+                                                </div>
+                                                <h3 className="font-black text-amber-900 uppercase tracking-tight mb-2">No Beneficiaries Added</h3>
+                                                <p className="text-xs text-amber-800/70 max-w-xs mx-auto leading-relaxed">
+                                                    <span className="font-black">Final Distribution cannot be completed</span> until beneficiaries are defined. This is a legally mandatory step.
+                                                </p>
                                             </div>
                                         )}
                                         {heirs.map((heir: any) => (

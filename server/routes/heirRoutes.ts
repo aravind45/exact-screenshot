@@ -44,6 +44,18 @@ router.post("/", async (req: any, res: Response) => {
                 isAdult: isAdult !== undefined ? isAdult : true
             }
         });
+
+        // Log Configuration Activity
+        await prisma.settlementActivity.create({
+            data: {
+                estateId,
+                userId: req.user.id,
+                type: 'CONFIGURATION',
+                action: 'CREATED',
+                notes: `CONFIGURATION – Beneficiary added: ${name} (${relationship})`
+            }
+        });
+
         res.json(heir);
     } catch (e: any) {
         res.status(500).json({ error: e.message });
@@ -77,7 +89,22 @@ router.put("/:id", async (req: any, res: Response) => {
 router.delete("/:id", async (req: any, res: Response) => {
     try {
         const { id } = req.params;
-        await prisma.heir.delete({ where: { id } });
+        const deleted = await prisma.heir.delete({ where: { id } });
+
+        // Log Configuration Activity
+        const estateId = await getEstateId(req);
+        if (estateId) {
+            await prisma.settlementActivity.create({
+                data: {
+                    estateId,
+                    userId: req.user.id,
+                    type: 'CONFIGURATION',
+                    action: 'DELETED',
+                    notes: `CONFIGURATION – Beneficiary removed: ${deleted.name}`
+                }
+            });
+        }
+
         res.json({ success: true });
     } catch (e: any) {
         res.status(500).json({ error: e.message });

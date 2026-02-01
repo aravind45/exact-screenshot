@@ -49,7 +49,7 @@ router.put("/my", async (req: any, res: Response) => {
 
         // Whitelist allowed fields and parse dates
         const allowedFields = [
-            'name', 'deceasedFirstName', 'deceasedLastName', 'deceasedDateOfDeath', 'deceasedState',
+            'name', 'deceasedFirstName', 'deceasedLastName', 'deceasedDateOfBirth', 'deceasedDateOfDeath', 'deceasedState',
             'estateType', 'authorityType', 'authorityStatus', 'certifiedCopies', 'authorityEffectiveDate',
             'iaeaType', 'appointedDate', 'probateStatus', 'courtCaseNumber', 'probateCounty', 'status',
             'petitionerPhone', 'petitionerIsAttorney', 'hasWill', 'willDate', 'codicilDates',
@@ -93,6 +93,20 @@ router.put("/my", async (req: any, res: Response) => {
             where: { id: estate.id },
             data: updateData
         });
+
+        // Log Configuration Activity
+        const updatedFields = Object.keys(updateData).length;
+        if (updatedFields > 0) {
+            await prisma.settlementActivity.create({
+                data: {
+                    estateId: estate.id,
+                    userId: req.user.id,
+                    type: 'CONFIGURATION',
+                    action: 'UPDATED',
+                    notes: `CONFIGURATION – Case information updated (${updatedFields} fields refined).`
+                }
+            });
+        }
 
         // If status changed to EXECUTOR_APPOINTED, auto-sync assets
         if (req.body.probateStatus === 'EXECUTOR_APPOINTED' && estate.probateStatus !== 'EXECUTOR_APPOINTED') {
@@ -147,6 +161,7 @@ router.put("/my/roadmap", async (req: any, res: Response) => {
                 action === 'UNCOMPLETED' ? 'Re-opened' :
                     action === 'PHASE_COMPLETED' ? 'Completed Phase' : action;
 
+            // Log Activity
             await prisma.settlementActivity.create({
                 data: {
                     estateId: estate.id,
@@ -154,7 +169,9 @@ router.put("/my/roadmap", async (req: any, res: Response) => {
                     taskId,
                     phase,
                     action,
-                    notes: `${actionLabel}: ${taskTitle}${phaseName ? ` (${phaseName})` : ''}`
+                    notes: action === 'COMPLETED'
+                        ? `ROADMAP – ${taskTitle} marked as complete`
+                        : `ROADMAP – ${taskTitle} re-opened for refinement`
                 }
             });
         }
@@ -178,6 +195,26 @@ router.get("/my/activities", async (req: any, res: Response) => {
         res.json(activities);
     } catch (e: any) {
         res.status(500).json({ error: "Failed to fetch activities" });
+    }
+});
+
+router.put("/my/activities/:id", async (req: any, res: Response) => {
+    try {
+        const estate = await prisma.estate.findFirst({ where: { userId: req.user.id } });
+        if (!estate) return res.status(404).json({ error: "Estate not found" });
+
+        const activity = await prisma.settlementActivity.findFirst({
+            where: { id: req.params.id, estateId: estate.id }
+        });
+        if (!activity) return res.status(404).json({ error: "Activity not found" });
+
+        const updated = await prisma.settlementActivity.update({
+            where: { id: req.params.id },
+            data: { notes: req.body.notes }
+        });
+        res.json(updated);
+    } catch (e: any) {
+        res.status(500).json({ error: "Failed to update activity" });
     }
 });
 
@@ -615,6 +652,20 @@ router.get("/my/dossier/download", async (req: any, res: Response) => {
     } catch (e: any) {
         console.error("Dossier generation error:", e);
         res.status(500).json({ error: "Failed to generate compliance dossier" });
+    }
+});
+
+import { AccountingService } from "../services/accountingService.js";
+
+router.get("/my/accounting-readiness", async (req: any, res: Response) => {
+    try {
+        const estate = await prisma.estate.findFirst({ where: { userId: req.user.id } });
+        if (!estate) return res.status(404).json({ error: "Estate not found" });
+
+        const readiness = await AccountingService.getReadiness(estate.id);
+        res.json(readiness);
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
     }
 });
 

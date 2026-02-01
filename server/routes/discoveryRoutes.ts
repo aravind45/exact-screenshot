@@ -24,10 +24,10 @@ router.post('/:estateId/initialize', async (req, res) => {
 });
 
 // Update category status
-router.patch('/category/:id', async (req, res) => {
+router.patch('/category/:id', async (req: any, res) => {
     try {
         const { status, evidenceSource } = req.body;
-        const updated = await DiscoveryService.updateCategoryStatus(req.params.id, status, evidenceSource);
+        const updated = await DiscoveryService.updateCategoryStatus(req.params.id, req.user.id, status, evidenceSource);
         res.json(updated);
     } catch (error) {
         res.status(500).json({ error: 'Failed to update category' });
@@ -35,10 +35,10 @@ router.patch('/category/:id', async (req, res) => {
 });
 
 // Add negative assurance log
-router.post('/category/:id/negative-assurance', async (req, res) => {
+router.post('/category/:id/negative-assurance', async (req: any, res) => {
     try {
         const { statement } = req.body;
-        const log = await DiscoveryService.addNegativeAssurance(req.params.id, statement);
+        const log = await DiscoveryService.addNegativeAssurance(req.params.id, req.user.id, statement);
         res.json(log);
     } catch (error) {
         res.status(500).json({ error: 'Failed to add negative assurance' });

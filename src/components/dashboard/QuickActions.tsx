@@ -4,41 +4,47 @@ import { MessageSquare, FileSearch, Plus, FileText, ArrowRight } from "lucide-re
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
-export function QuickActions() {
+import { SettlementPhase } from "@/components/SettlementPhaseChevron";
+
+export function QuickActions({ currentPhase }: { currentPhase?: SettlementPhase }) {
     const navigate = useNavigate();
+
+    const isDiscovery = currentPhase === 'asset_discovery';
+    const isCourt = currentPhase === 'court_filing';
+    const isSettlement = currentPhase === 'asset_liquidation' || currentPhase === 'creditor_claims';
 
     const actions = [
         {
-            title: "Log Communication",
-            desc: "Phone, Email, or Mail",
+            title: "Log Diligence Note",
+            desc: "Add to Settlement Trail",
             icon: MessageSquare,
             color: "bg-indigo-50 text-indigo-600",
             hover: "hover:bg-indigo-100/50 hover:border-indigo-200",
-            onClick: () => navigate("/assets") // User usually logs comms on specific assets
+            onClick: () => navigate("/settlement-trail")
         },
         {
-            title: "Scan Discovery",
-            desc: "Find hidden assets",
+            title: isDiscovery ? "Run Discovery Scan" : "Find Assets",
+            desc: isDiscovery ? "Search for hidden accounts" : "Identify estate holdings",
             icon: FileSearch,
             color: "bg-amber-50 text-amber-600",
             hover: "hover:bg-amber-100/50 hover:border-amber-200",
             onClick: () => navigate("/discovery")
         },
         {
-            title: "Add Asset",
-            desc: "Register account",
+            title: isSettlement ? "Update Asset Status" : "Add New Asset",
+            desc: isSettlement ? "Track liquidation progress" : "Register account or property",
             icon: Plus,
             color: "bg-emerald-50 text-emerald-600",
             hover: "hover:bg-emerald-100/50 hover:border-emerald-200",
             onClick: () => navigate("/assets")
         },
         {
-            title: "Generate Letter",
-            desc: "Notice to creditors",
+            title: isCourt ? "Prepare Petition" : "Generate forms",
+            desc: isCourt ? "Submit DE-111 / DE-150" : "Court-compliant documents",
             icon: FileText,
             color: "bg-violet-50 text-violet-600",
             hover: "hover:bg-violet-100/50 hover:border-violet-200",
-            onClick: () => navigate("/roadmap")
+            onClick: () => navigate("/forms")
         }
     ];
 

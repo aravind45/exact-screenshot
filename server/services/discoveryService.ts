@@ -40,23 +40,75 @@ export class DiscoveryService {
         });
     }
 
-    static async updateCategoryStatus(id: string, status: string, evidenceSource?: string) {
-        return prisma.discoveryCategory.update({
-            where: { id },
-            data: {
-                status,
-                evidenceSource,
-                reviewDate: new Date()
+    static async updateCategoryStatus(id: string, userId: string, status: string, evidenceSource?: string) {
+        return prisma.$transaction(async (tx) => {
+            const updated = await tx.discoveryCategory.update({
+                where: { id },
+                data: {
+                    status,
+                    evidenceSource,
+                    reviewDate: new Date()
+                }
+            });
+
+            // Log activity
+            const catInfo = DISCOVERY_CATEGORIES.find(c => c.id === updated.category);
+            const statusLabel = status === 'REVIEWED' ? 'Assets Found' : status === 'NOT_FOUND' ? 'No Assets Found' : status.replace('_', ' ');
+
+            await tx.settlementActivity.create({
+                data: {
+                    estateId: updated.estateId,
+                    userId,
+                    type: 'DISCOVERY',
+                    action: 'REVIEWED',
+                    notes: `REVIEWED – ${catInfo?.label || updated.category}: ${statusLabel}.`
+                }
+            });
+
+            // Check for phase completion
+            const allCats = await tx.discoveryCategory.findMany({
+                where: { estateId: updated.estateId }
+            });
+            const completed = allCats.filter(c => c.status !== 'NOT_CHECKED').length;
+            if (completed === allCats.length) {
+                await tx.settlementActivity.create({
+                    data: {
+                        estateId: updated.estateId,
+                        userId,
+                        type: 'DISCOVERY',
+                        action: 'COMPLETED',
+                        notes: `COMPLETED – Asset discovery phase completed with systematic review of all categories.`
+                    }
+                });
             }
+
+            return updated;
         });
     }
 
-    static async addNegativeAssurance(discoveryCategoryId: string, statement: string) {
-        return prisma.negativeAssurance.create({
-            data: {
-                discoveryCategoryId,
-                statement
-            }
+    static async addNegativeAssurance(discoveryCategoryId: string, userId: string, statement: string) {
+        return prisma.$transaction(async (tx) => {
+            const log = await tx.negativeAssurance.create({
+                data: {
+                    discoveryCategoryId,
+                    statement
+                },
+                include: { category: true }
+            });
+
+            const catInfo = DISCOVERY_CATEGORIES.find(c => c.id === log.category.category);
+
+            await tx.settlementActivity.create({
+                data: {
+                    estateId: log.category.estateId,
+                    userId,
+                    type: 'DISCOVERY',
+                    action: 'NEGATIVE_FINDING',
+                    notes: `RECORDED – Negative finding for ${catInfo?.label || log.category.category}: "${statement}"`
+                }
+            });
+
+            return log;
         });
     }
 

@@ -2,6 +2,8 @@ import { Router, Request, Response } from "express";
 import { prisma } from "../db.js";
 import { FormService } from "../services/formService.js";
 import { FORM_MAPPINGS } from "../services/formMappings.js";
+import { DistributionService } from "../services/distributionService.js";
+import { AccountingService } from "../services/accountingService.js";
 
 const router = Router();
 
@@ -37,6 +39,40 @@ const getEstateId = async (userId: string) => {
     const estate = await prisma.estate.findFirst({ where: { userId } });
     return estate?.id;
 };
+
+router.get("/readiness", async (req: any, res: Response) => {
+    try {
+        const estateId = await getEstateId(req.user.id);
+        if (!estateId) return res.status(404).json({ error: "Estate not found" });
+
+        const estate = await prisma.estate.findUnique({ where: { id: estateId } });
+        const accountingReadiness = await AccountingService.getReadiness(estateId);
+
+        // Form specific logic
+        const readiness = {
+            'DE-111': {
+                ready: !!(estate?.deceasedFirstName && estate?.deceasedLastName),
+                reason: "Requires decedent name and address."
+            },
+            'DE-121': {
+                ready: !!(estate?.deceasedFirstName && estate?.deceasedLastName),
+                reason: "Requires decedent name and address."
+            },
+            'DE-150': {
+                ready: estate?.status === 'APPOINTED' || estate?.status === 'SETTLEMENT',
+                reason: "Can be prepared once the court has issued appointment orders."
+            },
+            'DE-160': {
+                ready: accountingReadiness.checks.inventoryObtained || estate?.status === 'SETTLEMENT',
+                reason: "Appropriate once assets have been discovered and valued."
+            }
+        };
+
+        res.json(readiness);
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
+});
 
 router.post("/generate", async (req: any, res: Response) => {
     try {
@@ -79,6 +115,10 @@ router.post("/generate", async (req: any, res: Response) => {
         // We use the formId (e.g. DE-111) as the template name.
         const pdfBytes = await FormService.generateOverlayPdf(formId, data, mapping);
 
+        // Audit Trail Logging
+        await DistributionService.logEvent(estateId, req.user.id, isPreview ? 'VIEWED' : 'PREPARED',
+            `${isPreview ? 'PREVIEWED' : 'PREPARED'} – Draft ${formId} generated (auto-fill)`);
+
         res.setHeader('Content-Type', 'application/pdf');
         if (!isPreview) {
             res.setHeader('Content-Disposition', `attachment; filename="${formId}_Generated.pdf"`);
@@ -103,6 +143,13 @@ router.get("/templates/:name/download", async (req: Request, res: Response) => {
 
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `attachment; filename="${name}_Template.pdf"`);
+
+        // Audit Trail Logging
+        const estateId = await getEstateId((req as any).user.id);
+        if (estateId) {
+            await DistributionService.logEvent(estateId, (req as any).user.id, 'VIEWED', `VIEWED – Blank ${name} accessed`);
+        }
+
         res.send(Buffer.from(pdfBytes));
     } catch (e: any) {
         res.status(500).json({ error: e.message });

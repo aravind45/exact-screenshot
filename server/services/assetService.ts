@@ -140,14 +140,23 @@ export const AssetService = {
             }
         });
 
-        // Log Activity
+        // Log Activity with intent and change detection
+        let activityNote = `Updated asset: ${updated.institution} (${updated.assetType})`;
+        if (existing.status !== updated.status) {
+            activityNote = `ASSET – ${updated.institution} status changed from ${existing.status} to ${updated.status}`;
+        }
+
+        if (data.executorNote) {
+            activityNote += ` | Note: ${data.executorNote}`;
+        }
+
         await prisma.settlementActivity.create({
             data: {
                 estateId: existing.estateId,
                 userId,
                 type: 'ASSET',
                 action: 'UPDATED',
-                notes: `Updated asset: ${updated.institution} (${updated.assetType}). Status: ${updated.status || 'N/A'}`
+                notes: activityNote
             }
         });
 

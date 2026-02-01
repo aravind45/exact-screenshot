@@ -1,16 +1,17 @@
-
 import React, { useState, useMemo } from "react";
 import { Sidebar } from "@/components/Sidebar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { SEO } from "@/components/SEO";
-import { FileText, Download, Eye, Gavel, Scale, ScrollText, Loader2, MapPin, Search } from "lucide-react";
+import { FileText, Download, Eye, Gavel, Scale, ScrollText, Loader2, MapPin, Search, ShieldCheck, Lock, AlertCircle, CheckCircle2, Info } from "lucide-react";
 import * as LucideIcons from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { api } from "@/lib/api";
+import { api, FormReadiness } from "@/lib/api";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { useQuery } from "@tanstack/react-query";
+import { cn } from "@/lib/utils";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const STATES = [
     { id: "CA", name: "California", icon: "🌴" },
@@ -18,6 +19,13 @@ const STATES = [
     { id: "TX", name: "Texas", icon: "🤠", disabled: true },
     { id: "FL", name: "Florida", icon: "☀️", disabled: true },
 ];
+
+const FORM_CONTEXTS: Record<string, string> = {
+    'DE-111': "Probate Initialization → Court Filing",
+    'DE-121': "Creditor Notification → Notice Phase",
+    'DE-150': "Probate Hub → Appointment Phase",
+    'DE-160': "Asset Discovery → Inventory Phase"
+};
 
 const DynamicIcon = ({ name, className }: { name: string, className?: string }) => {
     const IconComponent = (LucideIcons as any)[name] || FileText;
@@ -34,6 +42,11 @@ const Forms = () => {
     const { data: templates, isLoading: templatesLoading } = useQuery({
         queryKey: ["forms", "templates"],
         queryFn: api.getFormTemplates
+    });
+
+    const { data: readiness } = useQuery<FormReadiness>({
+        queryKey: ["forms", "readiness"],
+        queryFn: () => api.getFormReadiness()
     });
 
     const handleFormAction = async (formId: string, isPreview: boolean, isBlank: boolean = false) => {
@@ -158,86 +171,142 @@ const Forms = () => {
                                 className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"
                             >
                                 {filteredForms.length > 0 ? (
-                                    filteredForms.map((form: any, index: number) => (
-                                        <motion.div
-                                            key={form.name}
-                                            initial={{ opacity: 0, scale: 0.95 }}
-                                            animate={{ opacity: 1, scale: 1 }}
-                                            transition={{ delay: index * 0.05 }}
-                                        >
-                                            <Card className="bg-slate-900/50 border-slate-800/50 hover:border-primary/30 transition-all group relative overflow-hidden h-full flex flex-col">
-                                                <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                                                    <DynamicIcon name={form.icon} className="w-16 h-16" />
-                                                </div>
+                                    filteredForms.map((form: any, index: number) => {
+                                        const formReady = readiness?.[form.name]?.ready ?? true;
+                                        const reason = readiness?.[form.name]?.reason;
+                                        const context = FORM_CONTEXTS[form.name];
 
-                                                <CardHeader className="pb-4">
-                                                    <div className="flex items-center justify-between mb-4">
-                                                        <div className="flex items-center gap-2 text-[10px] font-black tracking-widest uppercase text-slate-500">
-                                                            <MapPin className="w-3 h-3" />
-                                                            {selectedState} / {form.category}
-                                                        </div>
-                                                        <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-primary uppercase">
-                                                            {form.name}
+                                        return (
+                                            <motion.div
+                                                key={form.name}
+                                                initial={{ opacity: 0, scale: 0.95 }}
+                                                animate={{ opacity: 1, scale: 1 }}
+                                                transition={{ delay: index * 0.05 }}
+                                            >
+                                                <Card className="bg-slate-900/50 border-slate-800/50 hover:border-primary/30 transition-all group relative overflow-hidden h-full flex flex-col rounded-3xl">
+                                                    {/* Readiness Banner */}
+                                                    <div className={cn(
+                                                        "px-4 py-2 border-b flex items-center gap-2",
+                                                        formReady ? "bg-emerald-500/10 border-emerald-500/20" : "bg-amber-500/10 border-amber-500/20"
+                                                    )}>
+                                                        {formReady ? (
+                                                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                                                        ) : (
+                                                            <AlertCircle className="w-3.5 h-3.5 text-amber-500" />
+                                                        )}
+                                                        <span className={cn(
+                                                            "text-[10px] font-black uppercase tracking-widest",
+                                                            formReady ? "text-emerald-500" : "text-amber-500"
+                                                        )}>
+                                                            {formReady ? "Ready for Preparation" : "Not Ready Yet"}
                                                         </span>
                                                     </div>
-                                                    <CardTitle className="text-lg font-bold text-white mb-2 leading-tight">
-                                                        {form.title}
-                                                    </CardTitle>
-                                                    <CardDescription className="text-slate-400 text-xs leading-relaxed min-h-[3rem]">
-                                                        {form.description}
-                                                    </CardDescription>
-                                                </CardHeader>
 
-                                                <div className="mt-auto px-6 pb-6 pt-2">
-                                                    <div className="flex flex-col gap-2 pt-4 border-t border-white/5">
-                                                        <div className="flex gap-2">
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="sm"
-                                                                className="flex-1 bg-white/5 hover:bg-white/10 text-slate-300 border border-white/5"
-                                                                onClick={() => handleFormAction(form.name, true)}
-                                                                disabled={loadingAction !== null}
-                                                            >
-                                                                {loadingAction === `${form.name}-preview` ? (
-                                                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                                                ) : (
-                                                                    <Eye className="w-4 h-4 mr-2" />
-                                                                )}
-                                                                Preview
-                                                            </Button>
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="sm"
-                                                                className="flex-1 bg-white/5 hover:bg-white/10 text-slate-300 border border-white/5"
-                                                                onClick={() => handleFormAction(form.name, false, true)}
-                                                                disabled={loadingAction !== null}
-                                                            >
-                                                                {loadingAction === `${form.name}-blank` ? (
-                                                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                                                ) : (
-                                                                    <Download className="w-4 h-4 mr-2" />
-                                                                )}
-                                                                Blank
-                                                            </Button>
-                                                        </div>
-                                                        <Button
-                                                            size="sm"
-                                                            className="w-full bg-primary/10 hover:bg-primary text-primary hover:text-white transition-all border border-primary/20 font-bold"
-                                                            onClick={() => handleFormAction(form.name, false)}
-                                                            disabled={loadingAction !== null}
-                                                        >
-                                                            {loadingAction === `${form.name}-generate` ? (
-                                                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                                            ) : (
-                                                                <FileText className="w-4 h-4 mr-2" />
-                                                            )}
-                                                            Auto-Fill (Beta)
-                                                        </Button>
+                                                    <div className="absolute top-10 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                                                        <DynamicIcon name={form.icon} className="w-16 h-16" />
                                                     </div>
-                                                </div>
-                                            </Card>
-                                        </motion.div>
-                                    ))
+
+                                                    <CardHeader className="pb-4">
+                                                        <div className="flex items-center justify-between mb-4">
+                                                            <div className="flex items-center gap-2 text-[10px] font-black tracking-widest uppercase text-slate-500">
+                                                                <MapPin className="w-3 h-3" />
+                                                                {selectedState} / {form.category}
+                                                            </div>
+                                                            <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-primary uppercase">
+                                                                {form.name}
+                                                            </span>
+                                                        </div>
+                                                        <CardTitle className="text-lg font-bold text-white mb-2 leading-tight">
+                                                            {form.title}
+                                                        </CardTitle>
+                                                        <CardDescription className="text-slate-400 text-xs leading-relaxed min-h-[3rem]">
+                                                            {form.description}
+                                                        </CardDescription>
+
+                                                        {context && (
+                                                            <div className="mt-3 flex items-center gap-1.5 p-2 bg-white/5 rounded-xl">
+                                                                <Info className="w-3 h-3 text-slate-500" />
+                                                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
+                                                                    Used in: {context}
+                                                                </span>
+                                                            </div>
+                                                        )}
+                                                    </CardHeader>
+
+                                                    <div className="mt-auto px-6 pb-6 pt-2">
+                                                        <div className="flex flex-col gap-2 pt-4 border-t border-white/5">
+                                                            <div className="flex gap-2">
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="sm"
+                                                                    className="flex-1 bg-white/5 hover:bg-white/10 text-slate-300 border border-white/5 rounded-xl"
+                                                                    onClick={() => handleFormAction(form.name, true)}
+                                                                    disabled={loadingAction !== null}
+                                                                >
+                                                                    {loadingAction === `${form.name}-preview` ? (
+                                                                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                                                    ) : (
+                                                                        <Eye className="w-4 h-4 mr-2" />
+                                                                    )}
+                                                                    Preview
+                                                                </Button>
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="sm"
+                                                                    className="flex-1 bg-white/5 hover:bg-white/10 text-slate-300 border border-white/5 rounded-xl"
+                                                                    onClick={() => handleFormAction(form.name, false, true)}
+                                                                    disabled={loadingAction !== null}
+                                                                >
+                                                                    {loadingAction === `${form.name}-blank` ? (
+                                                                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                                                    ) : (
+                                                                        <Download className="w-4 h-4 mr-2" />
+                                                                    )}
+                                                                    Blank
+                                                                </Button>
+                                                            </div>
+
+                                                            <TooltipProvider>
+                                                                <Tooltip>
+                                                                    <TooltipTrigger asChild>
+                                                                        <div className="w-full">
+                                                                            <Button
+                                                                                size="sm"
+                                                                                className={cn(
+                                                                                    "w-full transition-all border font-black uppercase tracking-widest text-[10px] h-10 rounded-xl",
+                                                                                    formReady
+                                                                                        ? "bg-primary/10 hover:bg-primary text-primary hover:text-white border-primary/20"
+                                                                                        : "bg-white/5 text-slate-500 border-white/5 cursor-not-allowed"
+                                                                                )}
+                                                                                onClick={() => formReady && handleFormAction(form.name, false)}
+                                                                                disabled={loadingAction !== null || !formReady}
+                                                                            >
+                                                                                {loadingAction === `${form.name}-generate` ? (
+                                                                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                                                                ) : (
+                                                                                    formReady ? <FileText className="w-4 h-4 mr-2 transition-transform group-hover:scale-110" /> : <Lock className="w-4 h-4 mr-2" />
+                                                                                )}
+                                                                                Auto-Fill (Beta)
+                                                                            </Button>
+                                                                        </div>
+                                                                    </TooltipTrigger>
+                                                                    {!formReady && reason && (
+                                                                        <TooltipContent className="bg-slate-900 border-slate-800 text-slate-300 text-[10px] font-bold uppercase p-3">
+                                                                            {reason}
+                                                                        </TooltipContent>
+                                                                    )}
+                                                                </Tooltip>
+                                                            </TooltipProvider>
+
+                                                            <p className="text-[9px] text-slate-600 font-bold uppercase tracking-tight text-center mt-1">
+                                                                Prepares a draft using your current estate data.
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </Card>
+                                            </motion.div>
+                                        );
+                                    })
                                 ) : (
                                     <div className="col-span-full flex flex-col items-center justify-center py-20 text-slate-500">
                                         <div className="p-4 rounded-full bg-slate-900 border border-slate-800 mb-4">
@@ -252,11 +321,19 @@ const Forms = () => {
                     )}
                 </div>
 
-                {/* Help Banner */}
-                <footer className="p-4 shrink-0 bg-slate-900/30 border-t border-white/5 text-center">
-                    <p className="text-[10px] font-bold text-slate-600 uppercase tracking-widest">
-                        Need help? <span className="text-primary cursor-pointer hover:underline">Contact the Probate Hub Support Team</span>
-                    </p>
+                {/* Legal Footnote */}
+                <footer className="px-8 py-6 shrink-0 bg-slate-950 border-t border-white/5">
+                    <div className="max-w-4xl mx-auto flex gap-6 items-center">
+                        <Scale className="w-8 h-8 text-slate-800 shrink-0" />
+                        <div className="space-y-1">
+                            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest leading-relaxed">
+                                ExpectedEstate is not a law firm and does not provide legal advice. We guarantee the integrity of your activity logs and the deterministic application of statutory notice periods as part of your fiduciary defense.
+                            </p>
+                            <p className="text-[10px] font-bold text-primary cursor-pointer hover:underline uppercase tracking-widest">
+                                Need help? Contact the Probate Hub Support Team
+                            </p>
+                        </div>
+                    </div>
                 </footer>
             </main>
         </div>

@@ -26,6 +26,7 @@ import {
 interface NodeData {
     id: string;
     label: string;
+    description?: string;
     color?: string;
     icon?: any;
     children?: NodeData[];
@@ -39,6 +40,7 @@ const SETTLEMENT_MASTER_TREE: NodeData = {
         {
             id: "entry",
             label: "Entry Conditions (Death Event)",
+            description: "Initial legal triggers that determine which probate path you must follow.",
             color: "#D946EF", // Fuchsia
             icon: zap => <Zap className="w-4 h-4" />,
             children: [
@@ -53,6 +55,7 @@ const SETTLEMENT_MASTER_TREE: NodeData = {
         {
             id: "roles",
             label: "Role Identification",
+            description: "Establishing your legal authority to act on behalf of the deceased.",
             color: "#0EA5E9", // Sky
             icon: users => <Users className="w-4 h-4" />,
             children: [
@@ -66,6 +69,7 @@ const SETTLEMENT_MASTER_TREE: NodeData = {
         {
             id: "classification",
             label: "Asset Classification (Critical Fork)",
+            description: "Determines which assets require court involvement vs. private transfer.",
             color: "#06B6D4", // Cyan
             icon: landmark => <Landmark className="w-4 h-4" />,
             children: [
@@ -97,6 +101,7 @@ const SETTLEMENT_MASTER_TREE: NodeData = {
         {
             id: "paths",
             label: "Process Paths",
+            description: "The primary workflows for shifting ownership to heirs and beneficiaries.",
             color: "#F97316", // Orange
             icon: gav => <Gavel className="w-4 h-4" />,
             children: [
@@ -131,6 +136,7 @@ const SETTLEMENT_MASTER_TREE: NodeData = {
         {
             id: "special",
             label: "Special Procedures (Conditional Branches)",
+            description: "Shortcut procedures for small estates or surviving spouses that bypass full probate.",
             color: "#EAB308", // Yellow
             icon: star => <Zap className="w-4 h-4" />,
             children: [
@@ -146,6 +152,7 @@ const SETTLEMENT_MASTER_TREE: NodeData = {
         {
             id: "ledger",
             label: "Financial Ledger (Always-On Track)",
+            description: "Continuous tracking of estate value, debts, and administrative costs.",
             color: "#EF4444", // Red
             icon: dol => <CreditCard className="w-4 h-4" />,
             children: [
@@ -176,6 +183,7 @@ const SETTLEMENT_MASTER_TREE: NodeData = {
         {
             id: "taxes",
             label: "Tax Traps",
+            description: "Common tax mistakes that can create personal liability for the executor.",
             color: "#8B5CF6", // Violet
             icon: tax => <FileText className="w-4 h-4" />,
             children: [
@@ -189,6 +197,7 @@ const SETTLEMENT_MASTER_TREE: NodeData = {
         {
             id: "distribution",
             label: "Distribution Logic",
+            description: "The final rules for handing property to heirs—requires absolute accuracy.",
             color: "#6366F1", // Indigo
             icon: log => <Scale className="w-4 h-4" />,
             children: [
@@ -202,6 +211,7 @@ const SETTLEMENT_MASTER_TREE: NodeData = {
         {
             id: "closures",
             label: "Closures",
+            description: "Binding legal steps to release you from further liability and close the estate.",
             color: "#10B981", // Emerald
             icon: check => <ClipboardCheck className="w-4 h-4" />,
             children: [
@@ -215,6 +225,7 @@ const SETTLEMENT_MASTER_TREE: NodeData = {
         {
             id: "risks",
             label: "Exception & Risk Branches",
+            description: "High-friction scenarios like family conflict or creditor disputes.",
             color: "#78350F", // Brown
             icon: warn => <AlertTriangle className="w-4 h-4" />,
             children: [
@@ -366,13 +377,19 @@ export function SettlementMindMap() {
                                                     {/* Level 2 Card */}
                                                     <motion.div
                                                         layout
-                                                        className="bg-white/95 backdrop-blur-sm border border-slate-200 p-8 rounded-[48px] shadow-[0_12px_40px_rgba(0,0,0,0.05)] hover:shadow-[0_40px_100px_rgba(0,0,0,0.12)] hover:border-slate-800 transition-all duration-700 min-w-[380px] relative z-30"
+                                                        className="bg-white/95 backdrop-blur-sm border border-slate-200 p-8 rounded-[48px] shadow-[0_12px_40px_rgba(0,0,0,0.05)] hover:shadow-[0_40px_100px_rgba(0,0,0,0.12)] hover:border-slate-800 transition-all duration-700 min-w-[380px] group/card relative z-30"
                                                     >
                                                         <div className="flex items-center gap-5">
                                                             <div className="w-4 h-4 rounded-full border-4 border-white shadow-md ring-1 ring-slate-100" style={{ backgroundColor: branch.color }} />
                                                             <span className="text-[16px] font-black text-slate-900 uppercase tracking-tight leading-none">{child.label}</span>
                                                             <ChevronRight className="w-6 h-6 text-slate-200 ml-auto" />
                                                         </div>
+
+                                                        {(child.description || branch.description) && (
+                                                            <p className="mt-4 text-[11px] font-bold text-slate-400 group-hover/card:text-slate-600 transition-colors leading-relaxed">
+                                                                {child.description || branch.description}
+                                                            </p>
+                                                        )}
 
                                                         {/* Leaf Nodes (Level 3) - Only if expanded? Let's keep these always visible for now if L2 is open */}
                                                         {child.children && (
