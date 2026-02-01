@@ -376,30 +376,30 @@ export default function Dashboard() {
 
           {/* Stat Cards - Full Row */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="bg-white p-6 rounded-[32px] border border-slate-200 shadow-sm flex flex-col justify-between hover:border-emerald-200 transition-colors">
-              <div className="flex justify-between items-start mb-4">
-                <div className="p-3 bg-emerald-50 rounded-2xl">
-                  <DollarSign className="w-6 h-6 text-emerald-600" />
+            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between hover:border-emerald-200 transition-colors">
+              <div className="flex justify-between items-start mb-3">
+                <div className="p-2 bg-emerald-50 rounded-xl">
+                  <DollarSign className="w-5 h-5 text-emerald-600" />
                 </div>
                 <Badge variant="outline" className="text-[10px] font-black text-emerald-600 border-emerald-100 bg-emerald-50/50">+{Math.round(progressPercent / 2)}% Growth</Badge>
               </div>
               <div>
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-2">Estate Value</p>
-                <p className="text-3xl font-black text-slate-900 leading-none">${(totalValue / 1000).toFixed(0)}K</p>
+                <p className="text-2xl font-black text-slate-900 leading-none">${(totalValue / 1000).toFixed(0)}K</p>
               </div>
             </div>
 
-            <div className="bg-white p-6 rounded-[32px] border border-slate-200 shadow-sm flex flex-col justify-between hover:border-indigo-200 transition-colors">
-              <div className="flex justify-between items-start mb-4">
-                <div className="p-3 bg-indigo-50 rounded-2xl">
-                  <CheckCircle2 className="w-6 h-6 text-indigo-600" />
+            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between hover:border-indigo-200 transition-colors">
+              <div className="flex justify-between items-start mb-3">
+                <div className="p-2 bg-indigo-50 rounded-xl">
+                  <CheckCircle2 className="w-5 h-5 text-indigo-600" />
                 </div>
                 <p className="text-[10px] font-black text-indigo-600 uppercase tracking-tighter">{completed}/{assets.length} Done</p>
               </div>
               <div>
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-2">Progress</p>
                 <div className="flex items-center gap-3">
-                  <p className="text-3xl font-black text-slate-900 leading-none">{progressPercent}%</p>
+                  <p className="text-2xl font-black text-slate-900 leading-none">{progressPercent}%</p>
                   <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
                     <div className="h-full bg-indigo-600 transition-all duration-1000" style={{ width: `${progressPercent}%` }} />
                   </div>
@@ -409,19 +409,19 @@ export default function Dashboard() {
 
             <div
               className={cn(
-                "p-6 rounded-[32px] border shadow-sm flex flex-col justify-between cursor-pointer transition-all group",
+                "p-4 rounded-2xl border shadow-sm flex flex-col justify-between cursor-pointer transition-all group",
                 attentionNeededCount > 0
                   ? "bg-amber-50/50 border-amber-200 hover:border-amber-400 hover:shadow-lg"
                   : "bg-white border-slate-200 hover:border-slate-400"
               )}
               onClick={() => navigate('/assets')}
             >
-              <div className="flex justify-between items-start mb-4">
+              <div className="flex justify-between items-start mb-3">
                 <div className={cn(
-                  "p-3 rounded-2xl group-hover:scale-110 transition-transform",
+                  "p-2 rounded-xl group-hover:scale-110 transition-transform",
                   attentionNeededCount > 0 ? "bg-amber-100 text-amber-600" : "bg-slate-50 text-slate-600"
                 )}>
-                  <Bell className="w-6 h-6" />
+                  <Bell className="w-5 h-5" />
                 </div>
                 {taxonomyStats.action_required > 0 && <Badge variant="destructive" className="animate-pulse text-[10px] font-black">{taxonomyStats.action_required} Urgent</Badge>}
               </div>
@@ -430,7 +430,7 @@ export default function Dashboard() {
                   {attentionNeededCount > 0 ? "Attention Needed" : "Next Required Action"}
                 </p>
                 <div className="flex items-center gap-2">
-                  <p className="text-3xl font-black text-slate-900 leading-none">{attentionNeededCount}</p>
+                  <p className="text-2xl font-black text-slate-900 leading-none">{attentionNeededCount}</p>
                   {attentionNeededCount > 0 && (
                     <ArrowRight className="w-5 h-5 text-amber-500 group-hover:translate-x-1 transition-transform" />
                   )}
@@ -438,15 +438,15 @@ export default function Dashboard() {
               </div>
             </div>
 
-            <div className="bg-white p-6 rounded-[32px] border border-slate-200 shadow-sm flex flex-col justify-between hover:border-slate-400 transition-colors">
-              <div className="flex justify-between items-start mb-4">
-                <div className="p-3 bg-slate-50 rounded-2xl">
-                  <Landmark className="w-6 h-6 text-slate-600" />
+            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between hover:border-slate-400 transition-colors">
+              <div className="flex justify-between items-start mb-3">
+                <div className="p-2 bg-slate-50 rounded-xl">
+                  <Landmark className="w-5 h-5 text-slate-600" />
                 </div>
               </div>
               <div>
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-2">Active Tracks</p>
-                <p className="text-3xl font-black text-slate-900 leading-none">{assets.length} Assets</p>
+                <p className="text-2xl font-black text-slate-900 leading-none">{assets.length} Assets</p>
               </div>
             </div>
           </div>
