@@ -453,14 +453,9 @@ export default function Discovery() {
                             </Card>
                         </div>
                     )}
+                </div>
             </main>
         </div>
-    );
-}
-
-                </div >
-            </main >
-        </div >
     );
 }
 
