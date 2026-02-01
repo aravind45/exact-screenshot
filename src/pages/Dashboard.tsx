@@ -25,7 +25,8 @@ import {
   FileCheck,
   FileText,
   Search,
-  Gavel
+  Gavel,
+  AlertTriangle
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -341,7 +342,7 @@ export default function Dashboard() {
 
           {/* Current Mission Banner */}
           <div className={cn(
-            "relative overflow-hidden rounded-[32px] p-8 text-white shadow-2xl border transition-all hover:scale-[1.01]",
+            "relative overflow-hidden rounded-[24px] p-5 text-white shadow-xl border transition-all hover:scale-[1.005]",
             mission.color === 'amber' ? "bg-gradient-to-br from-amber-500 to-orange-600 border-amber-400" :
               mission.color === 'indigo' ? "bg-gradient-to-br from-indigo-500 to-blue-700 border-indigo-400" :
                 mission.color === 'blue' ? "bg-gradient-to-br from-blue-500 to-cyan-700 border-blue-400" :
@@ -352,14 +353,14 @@ export default function Dashboard() {
             <div className="absolute top-0 right-0 p-12 opacity-10 pointer-events-none">
               <mission.icon className="w-64 h-64" />
             </div>
-            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
-              <div className="space-y-3">
+            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5">
+              <div className="space-y-2">
                 <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/20 rounded-full border border-white/20 backdrop-blur-sm">
                   <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
                   <span className="text-[10px] font-black uppercase tracking-widest">Active Mission</span>
                 </div>
-                <h1 className="text-4xl font-black tracking-tight">{mission.title}</h1>
-                <p className="text-lg font-medium opacity-90 max-w-xl leading-relaxed">
+                <h1 className="text-3xl font-black tracking-tight">{mission.title}</h1>
+                <p className="text-base font-medium opacity-90 max-w-xl leading-relaxed">
                   {mission.description}
                 </p>
               </div>
@@ -463,127 +464,156 @@ export default function Dashboard() {
             />
           </section>
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
-            {/* Main Content (Left) */}
-            <div className="lg:col-span-7 space-y-12">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            {/* Main Content (Left Column - 8/12 = 66%) */}
+            <div className="lg:col-span-8 space-y-6">
+              {/* Work Remaining - Full Width */}
               <WorkRemainingWidget
                 currentPhase={currentPhase}
                 completedTaskIds={completedTaskIds}
                 assets={assets}
               />
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Action Items Column */}
-                <section className="space-y-4">
-                  <div className="flex items-center justify-between px-1">
-                    <div className="flex items-center gap-2">
-                      <Bell className="w-5 h-5 text-amber-500" />
-                      <h2 className="text-lg font-bold text-slate-900 tracking-tight">Action Items</h2>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {realFollowUps.length > 0 && <Badge variant="secondary" className="bg-amber-100 text-amber-900 text-[10px] border-none">{realFollowUps.length}</Badge>}
-                      <Button variant="ghost" size="sm" className="h-7 text-[10px] uppercase font-black text-amber-600" onClick={() => navigate('/follow-ups')}>View Hub</Button>
-                    </div>
-                  </div>
+              {/* Urgent Actions Section */}
+              <section className="space-y-4">
+                <div className="flex items-center gap-2 px-1">
+                  <AlertTriangle className="w-5 h-5 text-amber-500" />
+                  <h2 className="text-lg font-bold text-slate-900 tracking-tight">Urgent Actions</h2>
+                  {(realFollowUps.length > 0 || taxonomyStats.blocked > 0) && (
+                    <Badge variant="secondary" className="bg-amber-100 text-amber-900 text-[10px] border-none">
+                      {realFollowUps.length + taxonomyStats.blocked}
+                    </Badge>
+                  )}
+                </div>
 
-                  <div className="space-y-3">
-                    {taxonomyStats.blocked > 0 && (
-                      <div className="p-4 bg-rose-50 border border-rose-100 rounded-2xl flex gap-3 items-start animate-in slide-in-from-left duration-300">
-                        <div className="p-2 bg-rose-500 text-white rounded-xl">
-                          <X className="w-4 h-4" />
+                <div className="space-y-3">
+                  {/* Legal Blockers */}
+                  {taxonomyStats.blocked > 0 && (
+                    <div className="p-4 bg-rose-50 border border-rose-100 rounded-2xl flex gap-3 items-start">
+                      <div className="p-2 bg-rose-500 text-white rounded-xl">
+                        <X className="w-4 h-4" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-bold text-rose-900">Legal Blockers Detected</p>
+                        <p className="text-xs text-rose-700 font-medium mt-0.5">
+                          {taxonomyStats.blocked} assets require Probate Authority (DE-150).
+                        </p>
+                        <Button
+                          variant="link"
+                          className="p-0 h-auto text-xs text-rose-800 font-black uppercase mt-2"
+                          onClick={() => navigate('/probate')}
+                        >
+                          Resolve in Probate Hub →
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Follow-Ups */}
+                  <FollowUpWidget followUps={realFollowUps as any} onFollowUpClick={handleAssetClick} />
+
+                  {/* All Clear State */}
+                  {realFollowUps.length === 0 && taxonomyStats.blocked === 0 && (
+                    <div className="p-8 text-center border-2 border-dashed border-emerald-100 bg-emerald-50/30 rounded-2xl">
+                      <CheckCircle2 className="w-8 h-8 text-emerald-500 mx-auto mb-2" />
+                      <p className="text-sm font-bold text-emerald-700">All caught up!</p>
+                      <p className="text-xs text-emerald-600 mt-1">No pending follow-ups or blockers.</p>
+                    </div>
+                  )}
+                </div>
+              </section>
+
+              {/* Recent Proof of Work */}
+              <section className="space-y-4">
+                <div className="flex items-center justify-between px-1">
+                  <div className="flex items-center gap-2">
+                    <HistoryIcon className="w-5 h-5 text-indigo-500" />
+                    <h2 className="text-lg font-bold text-slate-900 tracking-tight">Recent Proof of Work</h2>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 text-[10px] uppercase font-black text-indigo-600"
+                    onClick={() => navigate('/settlement-trail')}
+                  >
+                    View Full Trail
+                  </Button>
+                </div>
+
+                <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+                  {recentActivity.length === 0 && (
+                    <div className="p-10 text-center">
+                      <p className="text-xs font-medium text-slate-400">No recent activity recorded.</p>
+                    </div>
+                  )}
+                  <div className="divide-y divide-slate-100">
+                    {unifiedTimeline.slice(0, 5).map((act: any) => (
+                      <div
+                        key={act.id}
+                        className="p-3 hover:bg-slate-50 transition-colors cursor-pointer group flex gap-3"
+                        onClick={() => act.uiType === 'communication' ? navigate(`/inbox?selected=${act.id}`) : navigate('/roadmap')}
+                      >
+                        <div className={cn(
+                          "w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-110",
+                          act.uiType === 'activity' ? "bg-amber-100 text-amber-600" : (act.direction === 'inbound' ? "bg-emerald-100 text-emerald-600" : "bg-indigo-100 text-indigo-600")
+                        )}>
+                          {act.uiType === 'activity' ? <Flag className="w-4 h-4" /> : (act.direction === 'inbound' ? <ArrowDownLeft className="w-4 h-4" /> : <ArrowUpRight className="w-4 h-4" />)}
                         </div>
-                        <div>
-                          <p className="text-sm font-bold text-rose-900">Legal Blockers Detected</p>
-                          <p className="text-[10px] text-rose-700 font-medium">{taxonomyStats.blocked} assets require Probate Authority DE-150.</p>
-                          <Button variant="link" className="p-0 h-auto text-[10px] text-rose-800 font-black uppercase mt-1" onClick={() => navigate('/probate')}>Resolve in Probate Hub</Button>
-                        </div>
-                      </div>
-                    )}
-                    <FollowUpWidget followUps={realFollowUps as any} onFollowUpClick={handleAssetClick} />
-                    {realFollowUps.length === 0 && attentionNeededCount === 0 && (
-                      <div className="p-12 text-center border-2 border-dashed border-slate-100 rounded-3xl">
-                        <CheckCircle2 className="w-8 h-8 text-emerald-500 mx-auto mb-2 opacity-20" />
-                        <p className="text-xs font-bold text-slate-400">All clear! No pending actions.</p>
-                      </div>
-                    )}
-                  </div>
-                </section>
-
-                {/* Recent Activity Column */}
-                <section className="space-y-4">
-                  <div className="flex items-center justify-between px-1">
-                    <div className="flex items-center gap-2">
-                      <HistoryIcon className="w-5 h-5 text-indigo-500" />
-                      <h2 className="text-lg font-bold text-slate-900 tracking-tight">Recent Proof of Work</h2>
-                    </div>
-                    <Button variant="ghost" size="sm" className="h-7 text-[10px] uppercase font-black text-indigo-600" onClick={() => navigate('/settlement-trail')}>View Full Trail</Button>
-                  </div>
-
-                  <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm">
-                    {recentActivity.length === 0 && (
-                      <div className="p-10 text-center">
-                        <p className="text-xs font-medium text-slate-400">No recent communications recorded.</p>
-                      </div>
-                    )}
-                    <div className="divide-y divide-slate-100">
-                      {unifiedTimeline.map((act: any) => (
-                        <div key={act.id} className="p-4 hover:bg-slate-50 transition-colors cursor-pointer group flex gap-4" onClick={() => act.uiType === 'communication' ? navigate(`/inbox?selected=${act.id}`) : navigate('/roadmap')}>
-                          <div className={cn(
-                            "w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-110",
-                            act.uiType === 'activity' ? "bg-amber-100 text-amber-600" : (act.direction === 'inbound' ? "bg-emerald-100 text-emerald-600" : "bg-indigo-100 text-indigo-600")
-                          )}>
-                            {act.uiType === 'activity' ? <Flag className="w-5 h-5" /> : (act.direction === 'inbound' ? <ArrowDownLeft className="w-5 h-5" /> : <ArrowUpRight className="w-5 h-5" />)}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex justify-between items-start mb-0.5">
+                            <span className="text-[10px] font-black uppercase text-slate-400">
+                              {act.uiType === 'activity' ? 'Roadmap' : (act.institutionName || 'Message')}
+                            </span>
+                            <span className="text-[9px] font-bold text-slate-400">{new Date(act.occurredAt).toLocaleDateString()}</span>
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex justify-between items-start mb-1">
-                              <span className="text-[10px] font-black uppercase text-slate-400">
-                                {act.uiType === 'activity' ? 'Roadmap Milestone' : (act.institutionName || 'Direct Message')}
-                              </span>
-                              <span className="text-[9px] font-bold text-slate-400 uppercase">{new Date(act.occurredAt).toLocaleDateString()}</span>
-                            </div>
-                            <p className="text-xs font-bold text-slate-800 line-clamp-1">{act.subject || act.notes} {act.count > 1 && <span className="text-[10px] text-indigo-500 ml-1">({act.count} updates)</span>}</p>
-                            <div className="flex items-center gap-2 mt-2">
-                              {act.type && (
-                                <Badge variant="outline" className="h-4 text-[8px] font-black border-slate-200 text-slate-500 uppercase px-1.5">
-                                  {act.type}
-                                </Badge>
-                              )}
-                              {act.method && (
-                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tight">• {act.method}</span>
-                              )}
-                            </div>
-                          </div>
+                          <p className="text-xs font-bold text-slate-800 line-clamp-1">
+                            {act.subject || act.notes} {act.count > 1 && <span className="text-[10px] text-indigo-500 ml-1">({act.count}×)</span>}
+                          </p>
+                          {act.type && (
+                            <Badge variant="outline" className="h-4 text-[8px] font-black border-slate-200 text-slate-500 uppercase px-1.5 mt-1">
+                              {act.type}
+                            </Badge>
+                          )}
                         </div>
-                      ))}
-                    </div>
+                      </div>
+                    ))}
                   </div>
-                </section>
-              </div>
+                </div>
+              </section>
 
+              {/* Agent Insights */}
               <AgentInsights />
             </div>
 
-            {/* Sidebar (Right) */}
-            <div className="lg:col-span-5 space-y-10">
+            {/* Sidebar (Right Column - 4/12 = 33%) */}
+            <div className="lg:col-span-4 space-y-6">
+              {/* Quick Actions */}
               <QuickActions currentPhase={currentPhase} />
 
+              {/* Critical Dates */}
               <DeadlineTracker estateId={estate?.id || ""} />
 
+              {/* Diligence Gaps (if any) */}
               <SafetyNetWidget
                 assets={assets}
                 onNavigate={(id) => navigate(`/asset/${id}`)}
               />
 
-              <div className="p-6 rounded-[32px] bg-slate-900 text-white border border-slate-800 shadow-2xl">
+              {/* Fiduciary Guidelines */}
+              <div className="p-5 rounded-2xl bg-slate-900 text-white border border-slate-800 shadow-xl">
                 <div className="flex items-center gap-2 mb-3 text-indigo-400">
-                  <Flag className="w-5 h-5" />
+                  <Flag className="w-4 h-4" />
                   <span className="font-black text-[10px] uppercase tracking-wider">Fiduciary Guidelines</span>
                 </div>
                 <p className="text-sm font-medium text-slate-300 leading-relaxed">
-                  Maintain your <strong className="text-white">System of Record</strong> by logging all bank communications. Consistent documentation is key to evidence of reasonable care if disputes arise.
+                  Maintain your <strong className="text-white">System of Record</strong> by logging all bank communications. Consistent documentation is key to evidence of reasonable care.
                 </p>
-                <Button variant="link" className="p-0 h-auto text-indigo-400 text-xs font-bold mt-4 hover:text-indigo-300 uppercase tracking-widest">
-                  View Procedural Best Practices <ArrowRight className="w-3 h-3 ml-1" />
+                <Button
+                  variant="link"
+                  className="p-0 h-auto text-indigo-400 text-xs font-bold mt-3 hover:text-indigo-300 uppercase tracking-widest"
+                  onClick={() => navigate('/help')}
+                >
+                  View Best Practices <ArrowRight className="w-3 h-3 ml-1" />
                 </Button>
               </div>
             </div>

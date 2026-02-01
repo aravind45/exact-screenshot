@@ -70,18 +70,18 @@ export function ProbateBlockerAlert() {
   const config = getBlockerConfig();
 
   return (
-    <Alert variant="destructive" className="border-2 border-rose-300 bg-rose-50 rounded-[24px]">
+    <Alert variant="destructive" className="border-2 border-rose-300 bg-rose-50 rounded-[20px] py-4">
       <AlertTriangle className="h-5 w-5 text-rose-600" />
       <div className="ml-2">
         <AlertTitle className="text-rose-900 font-black text-base tracking-tight">
           {config.title}
         </AlertTitle>
         <AlertDescription className="text-rose-800">
-          <p className="mb-3 text-sm font-medium">
+          <p className="mb-2 text-sm font-medium">
             <strong className="font-black">{probateBlockers.length} asset{probateBlockers.length !== 1 ? 's are' : ' is'}</strong> blocked
             until you provide the <strong className="font-black text-rose-900">{config.docName}</strong>.
           </p>
-          <p className="mb-4 text-xs text-rose-600/80 font-medium">
+          <p className="mb-3 text-xs text-rose-600/80 font-medium">
             {config.description}
           </p>
           <div className="flex flex-wrap gap-2">
