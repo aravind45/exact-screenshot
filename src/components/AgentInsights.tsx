@@ -5,8 +5,10 @@ import { Button } from "@/components/ui/button";
 import { ShieldCheck, AlertCircle, Sparkles, ChevronRight, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
 export function AgentInsights() {
+    const navigate = useNavigate();
     const { data: insightsData, isLoading } = useQuery({
         queryKey: ["agent-insights"],
         queryFn: api.getAgentInsights,
@@ -55,6 +57,13 @@ export function AgentInsights() {
                                         variant="ghost"
                                         size="sm"
                                         className="w-full justify-between h-8 text-xs font-bold group-hover:bg-background/80"
+                                        onClick={() => {
+                                            if (insight.assetId && insight.assetId !== 'system') {
+                                                navigate(`/asset/${insight.assetId}`);
+                                            } else {
+                                                navigate('/roadmap');
+                                            }
+                                        }}
                                     >
                                         Take Action
                                         <ChevronRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
