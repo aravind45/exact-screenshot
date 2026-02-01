@@ -15,20 +15,20 @@ export function CTASection() {
           className="max-w-2xl mx-auto text-center"
         >
           <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-            Ready to bring order to the process?
+            Protect yourself with professional diligence
           </h2>
           <p className="text-lg text-muted-foreground mb-8">
-            Start tracking your estate settlement today. Free to try, 
-            no credit card required.
+            Start documenting your estate settlement with the same precision
+            used by probate professionals. Build your fiduciary defense today.
           </p>
           <Link to="/auth">
             <Button size="lg" className="h-12 px-8 text-base gap-2 shadow-soft-lg">
-              Start Free
+              Generate My Fiduciary Record
               <ArrowRight className="w-4 h-4" />
             </Button>
           </Link>
-          <p className="text-sm text-muted-foreground mt-4">
-            Join thousands of executors who've simplified their process
+          <p className="text-sm text-muted-foreground mt-4 font-medium italic">
+            "The best defense is a documented trail of reasonable care."
           </p>
         </motion.div>
       </div>

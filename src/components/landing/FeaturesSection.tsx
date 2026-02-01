@@ -54,11 +54,11 @@ export function FeaturesSection() {
           className="text-center max-w-2xl mx-auto mb-16"
         >
           <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-            Everything you need to settle an estate
+            A comprehensive fiduciary defense system
           </h2>
           <p className="text-lg text-muted-foreground">
-            Purpose-built tools designed with empathy for executors managing
-            dozens of accounts across multiple institutions.
+            Tools designed to simplify estate administration while simultaneously building
+            your documented evidence of reasonable care.
           </p>
         </motion.div>
 

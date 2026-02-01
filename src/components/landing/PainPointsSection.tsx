@@ -1,10 +1,10 @@
 import { motion } from "framer-motion";
 
 const painPoints = [
-  { problem: "Contacting 20-40 institutions", solution: "Track all in one dashboard" },
-  { problem: "Different requirements everywhere", solution: "Pre-filled institution forms" },
-  { problem: "6-18 months average settlement", solution: "Automated follow-up system" },
-  { problem: "No visibility into progress", solution: "Real-time status tracking" },
+  { problem: "Contacting 20-40 institutions", solution: "One centralized discovery console" },
+  { problem: "Different requirements everywhere", solution: "Deterministic, state-specific workflows" },
+  { problem: "6-18 months average settlement", solution: "Watchdog-enforced follow-up logs" },
+  { problem: "Personal liability concerns", solution: "Professional Fiduciary Audit Trail" },
 ];
 
 export function PainPointsSection() {
@@ -22,7 +22,7 @@ export function PainPointsSection() {
             The "14-day black hole" ends here
           </h2>
           <p className="text-lg text-muted-foreground">
-            Financial institutions often don't respond for weeks. We help you 
+            Financial institutions often don't respond for weeks. We help you
             track, follow up, and escalate - so nothing falls through the cracks.
           </p>
         </motion.div>

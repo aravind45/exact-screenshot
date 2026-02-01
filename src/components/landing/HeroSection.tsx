@@ -44,9 +44,8 @@ export function HeroSection() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed"
           >
-            Track every asset, prevent institutional delays, and simplify paperwork.
-            ExpectedEstate helps executors navigate the settlement process during
-            an already difficult time.
+            ExpectedEstate helps executors document every action, eliminate diligence gaps,
+            and build a robust fiduciary record that stands up to institutional and legal scrutiny.
           </motion.p>
 
           {/* CTA Buttons */}

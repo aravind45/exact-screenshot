@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Heart } from "lucide-react";
+import { Landmark } from "lucide-react";
 
 export function Header() {
   return (
@@ -10,7 +10,7 @@ export function Header() {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2">
             <div className="p-1.5 rounded-lg bg-primary text-primary-foreground">
-              <Heart className="w-5 h-5" />
+              <Landmark className="w-5 h-5" />
             </div>
             <span className="font-bold text-lg text-foreground">ExpectedEstate</span>
           </Link>
@@ -18,13 +18,13 @@ export function Header() {
           {/* Navigation */}
           <nav className="hidden md:flex items-center gap-8">
             <a href="#features" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-              Features
+              Solutions
             </a>
             <a href="#how-it-works" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-              How It Works
+              Audit Trail
             </a>
             <a href="#pricing" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-              Pricing
+              Fiduciary Guidance
             </a>
           </nav>
 
