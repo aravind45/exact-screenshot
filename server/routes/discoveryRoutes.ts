@@ -69,8 +69,11 @@ router.post('/analyze', upload.single('file'), async (req: any, res) => {
             text = req.file.buffer.toString('utf-8');
         }
 
+        console.log(`[DiscoveryRoute] Content ready for analysis. Text length: ${text.length}, Image present: ${!!imageBase64}`);
+
         // Send to DiscoveryService (handling Real AI)
         const result = await DiscoveryService.analyzeDocument({ text, imageBase64 });
+        console.log(`[DiscoveryRoute] Analysis result: Found ${result.findings.length} findings.`);
         res.json(result);
     } catch (error) {
         console.error("Discovery Analysis Failed:", error);

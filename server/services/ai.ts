@@ -81,12 +81,13 @@ export async function analyzeDocument(text?: string, imageBase64?: string): Prom
             response_format: { type: "json_object" },
         });
 
-        const content = completion.choices[0]?.message?.content;
-        if (!content) return null;
+        const content = completion.choices[0]?.message?.content || "";
+        console.log(`[AI] analyzeDocument response: ${content.substring(0, 200)}...`);
 
+        if (!content) return null;
         const parsed = JSON.parse(content);
         // Handle cases where AI might wrap the result in a key
-        const result = parsed.result || parsed.asset || parsed.extracted || parsed;
+        const result = parsed.result || parsed.asset || parsed.extracted || parsed.findings?.[0] || parsed;
 
         return {
             institution: result.institution || "Unknown",
@@ -99,6 +100,7 @@ export async function analyzeDocument(text?: string, imageBase64?: string): Prom
         } as ExtractedAsset;
     } catch (error: any) {
         console.error("AI Analysis Error:", error.message);
+        if (error.response?.data) console.error("Groq Error Body:", JSON.stringify(error.response.data));
         return null;
     }
 }
@@ -158,12 +160,27 @@ export async function discoverRelatedAssets(text?: string, imageBase64?: string)
         });
 
         const content = completion.choices[0]?.message?.content;
+        console.log(`[AI] discoverRelatedAssets response content:`, content);
+
         if (!content) return [];
 
         const parsed = JSON.parse(content);
-        return Array.isArray(parsed.clues) ? parsed.clues : (parsed.assets || []);
-    } catch (error) {
+        // Extremely robust parsing for various list formats
+        let clues = [];
+        if (Array.isArray(parsed)) clues = parsed;
+        else if (Array.isArray(parsed.clues)) clues = parsed.clues;
+        else if (Array.isArray(parsed.assets)) clues = parsed.assets;
+        else if (Array.isArray(parsed.findings)) clues = parsed.findings;
+        else if (typeof parsed === 'object' && parsed !== null) {
+            // Check for single object response
+            if (parsed.institution && parsed.potentialAsset) clues = [parsed];
+            else clues = Object.values(parsed).find(v => Array.isArray(v)) || [];
+        }
+
+        return clues;
+    } catch (error: any) {
         console.error("Discovery Agent Error:", error);
+        if (error.response?.data) console.error("Groq Error Detail:", error.response.data);
         return [];
     }
 }
