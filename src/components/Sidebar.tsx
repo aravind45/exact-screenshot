@@ -65,7 +65,7 @@ export function Sidebar() {
             title: "Navigation",
             items: [
                 { label: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
-                { label: "Roadmap", icon: Map, path: "/roadmap" },
+                { label: "Settlement Path", icon: Map, path: "/roadmap" },
             ]
         },
         {
@@ -156,7 +156,7 @@ export function Sidebar() {
                                     </span>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    {item.label === "Roadmap" && !isActive(item.path) && (
+                                    {item.label === "Settlement Path" && !isActive(item.path) && (
                                         <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse shadow-[0_0_10px_rgba(245,158,11,0.5)]" />
                                     )}
                                     {isActive(item.path) && (

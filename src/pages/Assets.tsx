@@ -42,6 +42,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import type { AssetCategory } from "@/components/CategoryBadge";
 import type { AssetStatus } from "@/components/StatusBadge";
 import type { Priority } from "@/components/PriorityBadge";
+import { ClaimsPriorityEngine } from "@/components/liabilities/ClaimsPriorityEngine";
+import { SEO } from "@/components/SEO";
 
 export default function Assets() {
     const navigate = useNavigate();
@@ -239,6 +241,10 @@ export default function Assets() {
 
     return (
         <div className="flex min-h-screen bg-[#F8FAFC]">
+            <SEO
+                title="Asset Ledger"
+                description="Consolidate and track all estate assets, including bank accounts, real estate, and investments, in a secure and auditable ledger."
+            />
             <Sidebar />
 
             <div className="flex-1 ml-64 flex flex-col">

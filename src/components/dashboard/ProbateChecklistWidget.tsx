@@ -14,11 +14,48 @@ interface ProbateChecklistWidgetProps {
     deceasedState?: string;
 }
 
+import { useQuery } from "@tanstack/react-query";
+import { api } from "@/lib/api";
+import { useMemo } from "react";
+import { calculateAuthorityRecommendation } from "@/lib/authorityEngine";
+import { generateRoadmap } from "@/config/roadmapGenerator";
+
 export function ProbateChecklistWidget({ estateType, deceasedState = "CA" }: ProbateChecklistWidgetProps) {
     const navigate = useNavigate();
     const [checkedTasks, setCheckedTasks] = useState<Record<string, boolean>>({});
 
-    // Load initial state from local storage or props if available
+    const { data: estate } = useQuery({
+        queryKey: ['estate'],
+        queryFn: api.getMyEstate,
+    });
+
+    const { data: assets = [] } = useQuery({
+        queryKey: ['assets'],
+        queryFn: api.getAssets,
+    });
+
+    const recommendation = useMemo(() => {
+        if (!estate) return null;
+        return calculateAuthorityRecommendation(assets, estate.deceasedState || deceasedState, {
+            hasWill: estate.hasWill,
+            isSpouse: false, // Fallback
+            isTrustRevocable: estate.isTrustRevocable
+        });
+    }, [estate, assets, deceasedState]);
+
+    const dynamicStages = useMemo(() => {
+        if (!recommendation) return [];
+        return generateRoadmap(recommendation.type, estate?.deceasedState || deceasedState, recommendation.modifiers || []);
+    }, [recommendation, estate?.deceasedState, deceasedState]);
+
+    const stages = dynamicStages.map(s => ({
+        id: s.phase,
+        title: s.title,
+        description: s.subtitle,
+        tasks: s.tasks.map(t => ({ id: t.id, title: t.title }))
+    }));
+
+    // Restore persistence logic
     useEffect(() => {
         const saved = localStorage.getItem("probate_checklist_progress");
         if (saved) {
@@ -35,8 +72,6 @@ export function ProbateChecklistWidget({ estateType, deceasedState = "CA" }: Pro
         setCheckedTasks(newChecked);
         localStorage.setItem("probate_checklist_progress", JSON.stringify(newChecked));
     };
-
-    const stages = estateType ? getTrackStages(estateType, deceasedState) : [];
 
     if (!estateType || stages.length === 0) {
         return (

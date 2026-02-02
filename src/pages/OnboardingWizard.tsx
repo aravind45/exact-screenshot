@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import {
     Heart,
@@ -28,6 +29,7 @@ import { cn } from "@/lib/utils";
 import { InstitutionSelect } from "@/components/InstitutionSelect";
 import { calculateAuthorityRecommendation } from "@/lib/authorityEngine";
 import { useQuery } from "@tanstack/react-query";
+import { IntestacyDistributionPreview } from "@/components/IntestacyDistributionPreview";
 
 const STEPS = [
     { id: "welcome", title: "Welcome" },
@@ -55,10 +57,15 @@ export default function OnboardingWizard() {
         estimatedValue: "",
         hasWill: true,
         isSpouse: false,
-        isOutOfState: false
+        isOutOfState: false,
+        hasUnknownHeirs: false,
+        isTrustRevocable: true,
+        estimatedDebt: "",
+        hasTODDeed: false,
+        hasContest: false
     });
-    const [heirs, setHeirs] = useState<Array<{ name: string; relationship: string; email: string }>>([
-        { name: "", relationship: "", email: "" }
+    const [heirs, setHeirs] = useState<Array<{ name: string; relationship: string; email: string; isMinor: boolean }>>([
+        { name: "", relationship: "", email: "", isMinor: false }
     ]);
     const [uploadedFile, setUploadedFile] = useState<File | null>(null);
     const [assets, setAssets] = useState<Array<{ name: string; type: string; institutionId?: string }>>([
@@ -73,7 +80,10 @@ export default function OnboardingWizard() {
             hasWill: estateData.hasWill,
             isSpouse: estateData.isSpouse,
             isOutOfState: estateData.isOutOfState,
-            estimatedValue: parseFloat(estateData.estimatedValue) || 0
+            estimatedValue: parseFloat(estateData.estimatedValue) || 0,
+            isTrustRevocable: estateData.isTrustRevocable,
+            hasTODDeed: estateData.hasTODDeed,
+            hasContest: estateData.hasContest
         }
     );
 
@@ -91,12 +101,15 @@ export default function OnboardingWizard() {
                     deceasedLastName: lastNameParts.join(" ") || "",
                     deceasedDateOfDeath: new Date(estateData.dateOfDeath),
                     deceasedState: estateData.location,
-                    estimatedPersonalProperty: parseFloat(estateData.estimatedValue) || 0
+                    estimatedPersonalProperty: parseFloat(estateData.estimatedValue) || 0,
+                    estimatedLiabilities: parseFloat(estateData.estimatedDebt) || 0
                 });
             } else if (currentStep === 2) { // Track Scout
                 await api.updateMyEstate({
                     estateType: recommendation.type,
-                    authorityType: recommendation.type
+                    authorityType: recommendation.type,
+                    hasUnknownHeirs: estateData.hasUnknownHeirs,
+                    isTrustRevocable: estateData.isTrustRevocable
                 });
             } else if (currentStep === 3) { // Heirs
                 const validHeirs = heirs.filter(h => h.name.trim() !== "");
@@ -288,6 +301,48 @@ export default function OnboardingWizard() {
                                                 <p className="text-[10px] text-slate-400 mt-1 italic">A rough estimate is fine; we use this to suggest shortcuts.</p>
                                             </div>
 
+                                            <div className="space-y-2">
+                                                <Label className="flex justify-between">
+                                                    Estimated Total Debt
+                                                    <span className="text-[10px] text-slate-400 font-normal">Mortgages, Loans, Credit Cards</span>
+                                                </Label>
+                                                <div className="relative">
+                                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">$</span>
+                                                    <Input
+                                                        type="number"
+                                                        placeholder="e.g. 50000"
+                                                        value={estateData.estimatedDebt}
+                                                        onChange={e => setEstateData({ ...estateData, estimatedDebt: e.target.value })}
+                                                        className="h-12 pl-8 bg-slate-50 border-slate-200"
+                                                    />
+                                                </div>
+                                                <p className="text-[10px] text-slate-400 mt-1 italic">Used to detect potential insolvency risks early.</p>
+                                            </div>
+
+                                            <div className="pt-4 space-y-4 border-t border-slate-100">
+                                                <div className="flex items-center justify-between">
+                                                    <div className="space-y-0.5">
+                                                        <Label className="text-sm font-bold">Transfer-on-Death Deed?</Label>
+                                                        <p className="text-[10px] text-slate-500">Is there a recorded TOD deed for real property?</p>
+                                                    </div>
+                                                    <Checkbox
+                                                        checked={estateData.hasTODDeed}
+                                                        onCheckedChange={(val) => setEstateData({ ...estateData, hasTODDeed: val === true })}
+                                                    />
+                                                </div>
+
+                                                <div className="flex items-center justify-between">
+                                                    <div className="space-y-0.5">
+                                                        <Label className="text-sm font-bold">Is the estate contested?</Label>
+                                                        <p className="text-[10px] text-slate-500">Are there any active disputes or will contests?</p>
+                                                    </div>
+                                                    <Checkbox
+                                                        checked={estateData.hasContest}
+                                                        onCheckedChange={(val) => setEstateData({ ...estateData, hasContest: val === true })}
+                                                    />
+                                                </div>
+                                            </div>
+
                                             <div className="pt-4 space-y-4 border-t border-slate-100">
                                                 <div className="flex items-center justify-between">
                                                     <div className="space-y-0.5">
@@ -320,6 +375,23 @@ export default function OnboardingWizard() {
                                                             onClick={() => setEstateData({ ...estateData, isSpouse: false })}
                                                             className={cn("px-4 py-1.5 text-xs font-bold rounded-md transition-all", !estateData.isSpouse ? "bg-white shadow-sm text-primary" : "text-slate-400")}
                                                         > No </button>
+                                                    </div>
+                                                </div>
+
+                                                <div className="flex items-center justify-between">
+                                                    <div className="space-y-0.5">
+                                                        <Label className="text-sm font-bold">Was there a Trust?</Label>
+                                                        <p className="text-[10px] text-slate-500">Revocable or Irrevocable living trust.</p>
+                                                    </div>
+                                                    <div className="flex bg-slate-100 p-1 rounded-lg">
+                                                        <button
+                                                            onClick={() => setEstateData({ ...estateData, isTrustRevocable: true })}
+                                                            className={cn("px-4 py-1.5 text-xs font-bold rounded-md transition-all", estateData.isTrustRevocable ? "bg-white shadow-sm text-primary" : "text-slate-400")}
+                                                        > Revocable </button>
+                                                        <button
+                                                            onClick={() => setEstateData({ ...estateData, isTrustRevocable: false })}
+                                                            className={cn("px-4 py-1.5 text-xs font-bold rounded-md transition-all", !estateData.isTrustRevocable ? "bg-white shadow-sm text-primary" : "text-slate-400")}
+                                                        > Irrevocable </button>
                                                     </div>
                                                 </div>
 
@@ -443,38 +515,71 @@ export default function OnboardingWizard() {
                                                     <div className="grid grid-cols-2 gap-3">
                                                         <div className="space-y-2">
                                                             <Label className="text-[10px] uppercase font-bold text-slate-400">Relationship</Label>
-                                                            <Input
-                                                                placeholder="e.g. Daughter"
+                                                            <Select
                                                                 value={heir.relationship}
-                                                                onChange={e => {
+                                                                onValueChange={val => {
                                                                     const newHeirs = [...heirs];
-                                                                    newHeirs[idx].relationship = e.target.value;
+                                                                    newHeirs[idx].relationship = val;
                                                                     setHeirs(newHeirs);
                                                                 }}
-                                                                className="h-10 bg-white"
-                                                            />
+                                                            >
+                                                                <SelectTrigger className="h-10 bg-white">
+                                                                    <SelectValue placeholder="Select" />
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                    <SelectItem value="SPOUSE">Spouse</SelectItem>
+                                                                    <SelectItem value="CHILD">Child</SelectItem>
+                                                                    <SelectItem value="PARENT">Parent</SelectItem>
+                                                                    <SelectItem value="SIBLING">Sibling</SelectItem>
+                                                                    <SelectItem value="OTHER">Other</SelectItem>
+                                                                </SelectContent>
+                                                            </Select>
                                                         </div>
                                                         <div className="space-y-2">
-                                                            <Label className="text-[10px] uppercase font-bold text-slate-400">Email (Optional)</Label>
-                                                            <Input
-                                                                placeholder="jane@example.com"
-                                                                value={heir.email}
-                                                                onChange={e => {
-                                                                    const newHeirs = [...heirs];
-                                                                    newHeirs[idx].email = e.target.value;
-                                                                    setHeirs(newHeirs);
-                                                                }}
-                                                                className="h-10 bg-white"
-                                                            />
+                                                            <div className="flex items-center gap-2 mt-6">
+                                                                <Checkbox
+                                                                    id={`minor-${idx}`}
+                                                                    checked={heir.isMinor}
+                                                                    onCheckedChange={(val) => {
+                                                                        const newHeirs = [...heirs];
+                                                                        newHeirs[idx].isMinor = val === true;
+                                                                        setHeirs(newHeirs);
+                                                                    }}
+                                                                />
+                                                                <Label htmlFor={`minor-${idx}`} className="text-[10px] uppercase font-bold text-slate-400 cursor-pointer">Minor Heir?</Label>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
                                             ))}
                                         </div>
 
+                                        <div className="flex items-center gap-2 p-3 rounded-xl bg-slate-50 border border-slate-100 mb-4">
+                                            <Checkbox
+                                                id="unknown_heirs"
+                                                checked={estateData.hasUnknownHeirs}
+                                                onCheckedChange={(val) => setEstateData({ ...estateData, hasUnknownHeirs: val === true })}
+                                            />
+                                            <Label htmlFor="unknown_heirs" className="text-xs font-bold text-slate-600 cursor-pointer">
+                                                I am not sure who all the legal heirs are.
+                                            </Label>
+                                        </div>
+
+                                        {!estateData.hasWill && heirs.some(h => h.name && h.relationship) && (
+                                            <motion.div
+                                                initial={{ opacity: 0, y: 10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                            >
+                                                <IntestacyDistributionPreview
+                                                    state={estateData.location}
+                                                    heirs={heirs.map((h, i) => ({ id: `h-${i}`, name: h.name, relationship: h.relationship }))}
+                                                />
+                                            </motion.div>
+                                        )}
+
                                         <Button
                                             variant="outline"
-                                            onClick={() => setHeirs([...heirs, { name: "", relationship: "", email: "" }])}
+                                            onClick={() => setHeirs([...heirs, { name: "", relationship: "", email: "", isMinor: false }])}
                                             className="w-full border-dashed border-slate-300 text-slate-500 rounded-xl"
                                         >
                                             <Plus className="w-4 h-4 mr-2" /> Add Another Heir
@@ -609,6 +714,7 @@ export default function OnboardingWizard() {
                                                                 <SelectContent>
                                                                     <SelectItem value="financial">Bank Account</SelectItem>
                                                                     <SelectItem value="retirement">Retirement/401k</SelectItem>
+                                                                    <SelectItem value="business">Business / LLC</SelectItem>
                                                                     <SelectItem value="property">Real Estate</SelectItem>
                                                                     <SelectItem value="insurance">Life Insurance</SelectItem>
                                                                     <SelectItem value="crypto">Crypto/Digital</SelectItem>

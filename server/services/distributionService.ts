@@ -54,17 +54,28 @@ export class DistributionService {
         // 4. Assets Verified Check
         const assetsVerified = assets.length > 0 && assets.every(a => a.status !== 'DISCOVERED' && a.status !== 'LOCKED');
 
+        // 5. Minor Beneficiary Check (Gap 11)
+        const heirs = await prisma.heir.findMany({ where: { estateId } });
+        const hasMinors = heirs.some(h => h.isAdult === false);
+        const blockedAccountVerified = documents.some(d => d.documentType === 'BLOCKED_ACCOUNT_PROOF' && d.status === 'OBTAINED');
+
         const reasons: string[] = [];
         if (!noticePeriodClosed) reasons.push(`Creditor notice period is still open (${daysRemaining} days remaining).`);
         if (!allClaimsPaid) reasons.push("There are unpaid liabilities or unresolved claims.");
         if (!inventoryFiled) reasons.push("Final Inventory & Appraisal has not been filed with the court.");
         if (!assetsVerified) reasons.push("Some assets are still in 'Discovered' or 'Locked' status and must be verified.");
 
-        const isAllowed = noticePeriodClosed && allClaimsPaid && inventoryFiled && assetsVerified;
+        let minorCheckPassed = true;
+        if (hasMinors && !blockedAccountVerified) {
+            reasons.push("Minor beneficiary detected. Court-approved BLOCKED ACCOUNT evidence is required before distribution.");
+            minorCheckPassed = false;
+        }
+
+        const isAllowed = noticePeriodClosed && allClaimsPaid && inventoryFiled && assetsVerified && minorCheckPassed;
 
         return {
             allowed: isAllowed,
-            status: isAllowed ? 'ALLOWED' : (noticePeriodClosed ? 'BLOCKED' : 'RESTRICTED'),
+            status: isAllowed ? 'ALLOWED' : (noticePeriodClosed ? (minorCheckPassed ? 'BLOCKED' : 'RESTRICTED') : 'RESTRICTED'),
             reasons,
             checks: {
                 noticePeriodClosed,

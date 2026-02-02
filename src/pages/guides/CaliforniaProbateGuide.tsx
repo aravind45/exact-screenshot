@@ -1,5 +1,6 @@
 import React from "react";
 import { PillarContentTemplate } from "@/components/PillarContentTemplate";
+import { SEO } from "@/components/SEO";
 
 const CaliforniaProbateGuide = () => {
     const guideData = {
@@ -35,36 +36,44 @@ const CaliforniaProbateGuide = () => {
     };
 
     return (
-        <PillarContentTemplate {...guideData}>
-            <section>
-                <h2>Introduction to California Probate</h2>
-                <p>
-                    Settling a loved one's estate in the Golden State can be a daunting task. Between the Judicial Council forms and strict court timelines, many executors feel overwhelmed. This guide simplifies the process into actionable steps.
-                </p>
-
-                <h3>1. Filing the Initial Petition</h3>
-                <p>
-                    The first step is filing form <strong>DE-111</strong>. This officially requests that the court appoint you as the personal representative of the estate.
-                </p>
-
-                <div className="bg-primary/5 p-6 rounded-xl border border-primary/20 my-8">
-                    <h4 className="text-primary font-bold mt-0">Pro Tip:</h4>
-                    <p className="mb-0 text-sm">
-                        Always double-check the Decedent's residence county. You must file the petition in the Superior Court of the county where the decedent resided at the time of death.
+        <div className="min-h-screen">
+            <SEO
+                title={guideData.title}
+                description={guideData.description}
+                canonical="https://expectedestate.com/guides/california-probate"
+                ogType="article"
+            />
+            <PillarContentTemplate {...guideData}>
+                <section>
+                    <h2>Introduction to California Probate</h2>
+                    <p>
+                        Settling a loved one's estate in the Golden State can be a daunting task. Between the Judicial Council forms and strict court timelines, many executors feel overwhelmed. This guide simplifies the process into actionable steps.
                     </p>
-                </div>
 
-                <h3>2. Inventory and Appraisal</h3>
-                <p>
-                    Once appointed, you have 4 months to file the <strong>Inventory and Appraisal (DE-160)</strong>. This document lists every asset owned by the decedent and its value as of the date of death.
-                </p>
+                    <h3>1. Filing the Initial Petition</h3>
+                    <p>
+                        The first step is filing form <strong>DE-111</strong>. This officially requests that the court appoint you as the personal representative of the estate.
+                    </p>
 
-                <h3>3. Final Distribution</h3>
-                <p>
-                    After debts are paid and taxes are filed, you'll submit a Petition for Final Distribution. This is the last major step before assets are transferred to the heirs.
-                </p>
-            </section>
-        </PillarContentTemplate>
+                    <div className="bg-primary/5 p-6 rounded-xl border border-primary/20 my-8">
+                        <h4 className="text-primary font-bold mt-0">Pro Tip:</h4>
+                        <p className="mb-0 text-sm">
+                            Always double-check the Decedent's residence county. You must file the petition in the Superior Court of the county where the decedent resided at the time of death.
+                        </p>
+                    </div>
+
+                    <h3>2. Inventory and Appraisal</h3>
+                    <p>
+                        Once appointed, you have 4 months to file the <strong>Inventory and Appraisal (DE-160)</strong>. This document lists every asset owned by the decedent and its value as of the date of death.
+                    </p>
+
+                    <h3>3. Final Distribution</h3>
+                    <p>
+                        After debts are paid and taxes are filed, you'll submit a Petition for Final Distribution. This is the last major step before assets are transferred to the heirs.
+                    </p>
+                </section>
+            </PillarContentTemplate>
+        </div>
     );
 };
 

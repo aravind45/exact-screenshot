@@ -61,6 +61,11 @@ export interface Estate {
         fullName: string;
         state: string;
     };
+
+    // Paths
+    authorityType?: string;
+    authorityDecision?: any;
+    settlementPath?: string;
 }
 
 export interface Communication {

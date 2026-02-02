@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from "react";
+import { SEO } from "@/components/SEO";
 import { Sidebar } from "@/components/Sidebar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -160,6 +161,10 @@ export default function Discovery() {
 
     return (
         <div className="flex bg-[#F8FAFC] min-h-screen">
+            <SEO
+                title="Discovery Assistant"
+                description="Systematically identify and document estate assets. Build a defensible record of reasonable diligence for probate and fiduciary compliance."
+            />
             <Sidebar />
             <main className="flex-1 ml-64 p-8">
                 <div className="max-w-4xl mx-auto space-y-8 pb-32">

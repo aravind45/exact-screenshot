@@ -10,6 +10,7 @@ import { LiabilityList } from "@/components/liabilities/LiabilityList";
 import { AddLiabilityDialog } from "@/components/liabilities/AddLiabilityDialog";
 import { SolvencyTracker } from "@/components/liabilities/SolvencyTracker";
 import { ClaimsPriorityEngine } from "@/components/liabilities/ClaimsPriorityEngine";
+import { SEO } from "@/components/SEO";
 
 export default function Liabilities() {
     const navigate = useNavigate();
@@ -32,6 +33,10 @@ export default function Liabilities() {
 
     return (
         <div className="flex bg-[#F8FAFC] min-h-screen">
+            <SEO
+                title="Liabilities & Creditors"
+                description="Manage estate debts and creditor claims. Ensure legal payment priority and track solvency to prevent executor liability."
+            />
             <Sidebar />
             <main className="flex-1 ml-64 p-8">
                 <div className="max-w-5xl mx-auto space-y-8">

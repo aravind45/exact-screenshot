@@ -61,6 +61,8 @@ import { QuickActions } from "@/components/dashboard/QuickActions";
 import { SETTLEMENT_PHASE_TASKS } from "@/config/settlementPhases";
 import { ProbateChecklistWidget } from "@/components/dashboard/ProbateChecklistWidget";
 import { WorkRemainingWidget } from "@/components/dashboard/WorkRemainingWidget";
+import { SEO } from "@/components/SEO";
+import { useTerminology } from "@/hooks/use-terminology";
 
 const MISSION_MAP: Record<string, { title: string; description: string; icon: any; color: string; cta: string; link: string }> = {
   immediate_actions: {
@@ -68,7 +70,7 @@ const MISSION_MAP: Record<string, { title: string; description: string; icon: an
     description: "Your priority is protecting the estate property and notifying agencies to stop payments.",
     icon: ShieldAlert,
     color: "amber",
-    cta: "View Immediate Tasks",
+    cta: "Start Settlement Path",
     link: "/roadmap"
   },
   court_filing: {
@@ -76,40 +78,40 @@ const MISSION_MAP: Record<string, { title: string; description: string; icon: an
     description: "You are securing your legal authority (DE-150) to act on behalf of the estate.",
     icon: FileText,
     color: "indigo",
-    cta: "Open Probate Hub",
-    link: "/forms"
+    cta: "Open Settlement Path",
+    link: "/roadmap"
   },
   asset_discovery: {
     title: "Map the Estate",
     description: "Identify all accounts, real estate, and digital assets to build the Inventory (DE-160).",
     icon: Search,
     color: "blue",
-    cta: "Run Discovery Scan",
-    link: "/discovery"
+    cta: "Resume Settlement Path",
+    link: "/roadmap"
   },
   creditor_claims: {
     title: "Resolve Liabilities",
     description: "Review incoming claims and resolve debts in accordance with legal priority rules.",
     icon: Gavel,
     color: "rose",
-    cta: "Review Claims",
-    link: "/liabilities"
+    cta: "Resume Settlement Path",
+    link: "/roadmap"
   },
   asset_liquidation: {
     title: "Consolidate Funds",
     description: "Transfer assets into the estate account and prepare the final accounting for court.",
     icon: Landmark,
     color: "emerald",
-    cta: "Manage Asset Ledger",
-    link: "/assets"
+    cta: "Resume Settlement Path",
+    link: "/roadmap"
   },
   final_distribution: {
     title: "Closure & Transfer",
     description: "distributing remaining wealth to beneficiaries and seeking final court discharge.",
     icon: Target,
     color: "purple",
-    cta: "Execute Distribution",
-    link: "/distribution"
+    cta: "Complete Settlement Path",
+    link: "/roadmap"
   }
 };
 
@@ -118,6 +120,8 @@ const normalize = (str: string | null) => str?.toLowerCase() || '';
 export default function Dashboard() {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
+  const { roleName, estateName, authorityType } = useTerminology();
+  const [viewMode, setViewMode] = useState<'grid' | 'trail'>('grid');
   const { toast } = useToast();
 
   const { data: assetsData, isLoading, error } = useQuery({
@@ -289,6 +293,10 @@ export default function Dashboard() {
 
   return (
     <div className="flex min-h-screen bg-[#F8FAFC]">
+      <SEO
+        title="Executor Dashboard"
+        description="Manage your estate settlement journey. Track probate progress, assets, and liabilities from a single defensible system of record."
+      />
       <Sidebar />
 
       <div className="flex-1 ml-64 flex flex-col">
@@ -442,15 +450,27 @@ export default function Dashboard() {
                 </div>
               </div>
               <div>
-                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1.5">Active Tracks</p>
-                <p className="text-xl font-black text-slate-900 leading-none">{assets.length} Assets</p>
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1.5">Authority Type</p>
+                <p className="text-xl font-black text-slate-900 leading-none truncate">{authorityType.replace(/_/g, " ")}</p>
               </div>
             </div>
           </div>
 
 
-
-          {/* Probate Roadmap Checklists */}
+          {/* Dashboard Title Section (Moved below stats for better flow) */}
+          <div className="flex items-center gap-3 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+            <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center border border-indigo-100">
+              <User className="w-5 h-5 text-indigo-600" />
+            </div>
+            <div>
+              <h2 className="text-xl font-black text-slate-900 tracking-tight">
+                {roleName} Dashboard
+              </h2>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">
+                {estateName}
+              </p>
+            </div>
+          </div>
           <section>
             <ProbateChecklistWidget
               estateType={(estate?.estateType && estate.estateType !== "UNSET") ? (estate.estateType as any) : null}

@@ -152,7 +152,7 @@ export default function SettlementRoadmap() {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-black text-slate-900 tracking-tight">Settlement Roadmap</h1>
+                <h1 className="text-2xl font-black text-slate-900 tracking-tight">Settlement Path</h1>
                 <p className="text-xs text-slate-600 mt-0.5">
                   {authorityRec?.legalTerm} • {getMasterMode(authorityRec?.type || "UNSET").replace('_', ' ')}
                 </p>

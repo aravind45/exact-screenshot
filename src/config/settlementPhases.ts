@@ -141,6 +141,24 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         ]
       },
       {
+        id: "genealogical_search",
+        title: "Conduct Genealogical Search",
+        description: "If heirs are unknown or missing, you must perform a formal search to identify all legal beneficiaries. This is required for your final distribution decree.",
+        estimatedTime: "4-8 weeks",
+        isOptional: true,
+        category: "probate",
+        tags: ["fiduciary", "risk-guardrail"],
+        applicability: {
+          authorityTypes: ["INTESTATE", "FORMAL_PROBATE", "INFORMAL_PROBATE"]
+        },
+        alerts: [
+          {
+            type: "important",
+            message: "Failing to locate all heirs can lead to personal liability and gridlock during distribution."
+          }
+        ]
+      },
+      {
         id: "locate_will",
         title: "Locate Will and Important Documents",
         description: "Find the original Will, trust documents, insurance policies, and account statements.",
@@ -537,6 +555,27 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
             message: "Some sales require court approval. Check with attorney before listing."
           }
         ]
+      },
+      {
+        id: "file_form_1041",
+        title: "File Form 1041 (Fiduciary Income Tax)",
+        description: "Report income, deductions, and credits for a trust or estate that has gross income of $600 or more in a tax year.",
+        estimatedTime: "4-8 hours",
+        tags: ["tax", "statutory"],
+        applicability: {
+          authorityTypes: ["TRUST_ADMIN_IRREVOCABLE", "TRUST_ADMIN_REVOCABLE", "FORMAL_PROBATE", "INFORMAL_PROBATE"]
+        },
+        alerts: [{ type: "important", message: "Required for irrevocable trusts and estates with significant income. Consult a tax professional." }]
+      },
+      {
+        id: "issue_k1",
+        title: "Issue Schedule K-1 to Beneficiaries",
+        description: "Provide beneficiaries with their share of income, deductions, and credits to report on their individual tax returns.",
+        estimatedTime: "2-3 hours",
+        tags: ["tax", "communication"],
+        applicability: {
+          authorityTypes: ["TRUST_ADMIN_IRREVOCABLE", "TRUST_ADMIN_REVOCABLE", "FORMAL_PROBATE", "INFORMAL_PROBATE"]
+        }
       },
       {
         id: "pay_taxes",

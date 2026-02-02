@@ -10,6 +10,7 @@ import { Clock, CheckCircle, Scale, ShieldCheck } from "lucide-react";
 import { SettlementPhaseChevron } from "@/components/SettlementPhaseChevron";
 import { type SettlementPhase } from "@/components/SettlementPhaseChevron";
 import { calculateAuthorityRecommendation } from "@/lib/authorityEngine";
+import { SEO } from "@/components/SEO";
 
 export default function SettlementRoadmapNew() {
   const queryClient = useQueryClient();
@@ -52,6 +53,10 @@ export default function SettlementRoadmapNew() {
 
   return (
     <div className="flex min-h-screen bg-[#F8FAFC]">
+      <SEO
+        title="Probate Roadmap"
+        description="A step-by-step guide to settling your estate. Track your progress through the phases of probate and estate administration."
+      />
       <Sidebar />
 
       <div className="flex-1 ml-64">

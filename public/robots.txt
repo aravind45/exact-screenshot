@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://exact-screenshot-dusky.vercel.app/sitemap.xml
+Sitemap: https://expectedestate.com/sitemap.xml

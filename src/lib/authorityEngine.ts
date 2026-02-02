@@ -94,6 +94,14 @@ export function calculateAuthorityRecommendation(
         isSpouse?: boolean;
         isOutOfState?: boolean;
         estimatedValue?: number;
+        isTrustRevocable?: boolean;
+        hasMinors?: boolean;
+        hasInsolvencyRisk?: boolean;
+        hasBusiness?: boolean;
+        hasContest?: boolean; // PTH-06
+        hasUnclaimedProperty?: boolean; // PTH-18
+        hasTODDeed?: boolean; // PTH-17
+        hasElectiveShare?: boolean; // PTH-20
     }
 ): AuthorityRecommendation {
     const threshold = STATE_THRESHOLDS[state] || 50000;
@@ -118,14 +126,23 @@ export function calculateAuthorityRecommendation(
     let citations: string[] = [];
     let modifiers: string[] = [];
 
+    // Modifiers detection
+    if (metadata?.hasInsolvencyRisk) modifiers.push("INSOLVENT");
+    if (metadata?.hasMinors) modifiers.push("MINOR_HEIRS");
+    if (metadata?.hasBusiness || assets.some(a => a.assetType === "BUSINESS" || a.category === "business")) {
+        modifiers.push("BUSINESS_ESTATE");
+    }
+    if (metadata?.hasContest) modifiers.push("CONTESTED");
+    if (metadata?.hasUnclaimedProperty) modifiers.push("UNCLAIMED_PROPERTY");
+    if (metadata?.hasElectiveShare) modifiers.push("ELECTIVE_SHARE");
+
     // Check for modifiers first
-    // Insolvent? (Simplified check, assuming liabilities exist in a more complex app)
-    // For now, we use metadata or look specifically at asset/liability ratio if we had liabilities
-
-    // Minor heirs? (Pseudo-check)
-    // if (metadata?.hasMinors) modifiers.push("MINOR_HEIRS");
-
-    if (metadata?.isOutOfState) {
+    if (trustAssets.length > 0 && probateTotal > 0) {
+        type = "POUR_OVER_WILL";
+        reason = "Estate involves both Trust assets and Probate assets. A Pour-Over Will likely bridges them.";
+        legalTerm = "Hybrid Administration (Trust + Probate)";
+        citations = ["CA Prob. Code §6300", "Uniform Probate Code §2-511"];
+    } else if (metadata?.isOutOfState) {
         type = "ANCILLARY_PROBATE";
         reason = "Property located in another state requires Ancillary Probate.";
         legalTerm = "Ancillary Administration";
@@ -135,17 +152,16 @@ export function calculateAuthorityRecommendation(
         reason = "As a surviving spouse, you may be eligible for a Spousal Property Petition, which is faster than full probate.";
         legalTerm = state === "CA" ? "DE-221 Spousal Property Petition" : "Spousal Set-Aside";
         citations = state === "CA" ? ["CA Prob. Code §13500"] : ["State Spousal Set-Aside Statute"];
-    } else if (probateAssets.length === 0 && trustAssets.length > 0) {
-        // Distinguish between Revocable and Irrevocable (simplification: assume revocable)
-        type = "TRUST_ADMIN_REVOCABLE";
-        reason = "Assets are held in Trust. No court probate required; proceed with Trust Administration.";
+    } else if (probateTotal === 0 && trustAssets.length > 0) {
+        type = metadata?.isTrustRevocable === false ? "TRUST_ADMIN_IRREVOCABLE" : "TRUST_ADMIN_REVOCABLE";
+        reason = `Assets are held in a ${type === "TRUST_ADMIN_IRREVOCABLE" ? "Irrevocable" : "Revocable"} Trust. No court probate required.`;
         legalTerm = "Trust Administration";
         citations = ["Uniform Trust Code", "State Trust Statute"];
-
-        if (metadata?.hasWill) {
-            type = "POUR_OVER_WILL";
-            reason = "Assets are in Trust, but a Pour-Over Will exists for any assets outside the trust.";
-        }
+    } else if (metadata?.hasTODDeed) {
+        type = "TOD_DEED";
+        reason = "A Transfer-on-Death (TOD) Deed exists for the primary real property, bypassing probate.";
+        legalTerm = "TOD Deed Transfer";
+        citations = ["CA Prob. Code §5600", "State TOD Deed Statutes"];
     } else if (probateAssets.length === 0) {
         if (jointAssets.length > 0) {
             type = "JOINT_TRANSFER";

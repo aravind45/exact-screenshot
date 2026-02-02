@@ -88,6 +88,54 @@ function generateFiduciaryRoadmap(type: AuthorityType, state: string, modifiers:
             });
         }
 
+        if (modifiers.includes("BUSINESS_ESTATE")) {
+            if (p.phase === "immediate_actions") {
+                tasks.push({
+                    id: "business_operating_authority",
+                    title: "Establish Business Operating Authority",
+                    description: "Confirm legal authority to continue business operations to avoid loss of value.",
+                    tags: ["risk-guardrail"]
+                });
+            }
+            if (p.phase === "asset_discovery") {
+                tasks.push({
+                    id: "business_valuation",
+                    title: "Order Professional Business Valuation",
+                    description: "Obtain a formal appraisal of the business interest as of the date of death.",
+                    tags: ["fiduciary"]
+                });
+            }
+        }
+
+        if (modifiers.includes("MINOR_HEIRS")) {
+            if (p.phase === "final_distribution") {
+                tasks.push({
+                    id: "minor_distribution_block",
+                    title: "Establish Blocked Accounts for Minors",
+                    description: "Distributions to minors must be held in court-approved blocked accounts or trusts.",
+                    alerts: [{ type: "important", message: "Do NOT distribute directly to a minor. This is a violation of probate law." }]
+                });
+            }
+        }
+
+        if (modifiers.includes("UNCLAIMED_PROPERTY") && p.phase === "asset_discovery") {
+            tasks.push({
+                id: "search_state_unclaimed",
+                title: "Search State Unclaimed Property",
+                description: "Check state controller databases for forgotten accounts or safe deposit boxes.",
+                tags: ["fiduciary"]
+            });
+        }
+
+        if (modifiers.includes("CONTESTED")) {
+            tasks.unshift({
+                id: "litigation_hold",
+                title: "LITIGATION HOLD: Distribution Freeze",
+                description: "Estate is contested. Do not distribute any assets or pay non-essential claims without court order.",
+                alerts: [{ type: "caution", message: "Personal liability risk: Distributions during a contest may be clawed back or surcharge the fiduciary." }]
+            });
+        }
+
         return { ...p, tasks };
     });
 }
@@ -104,6 +152,24 @@ function generateProbateRoadmap(type: AuthorityType, state: string, modifiers: s
                 return { ...p, tasks: p.tasks.filter(t => !t.id.includes("accounting") && !t.id.includes("letters")) };
             }
             return p;
+        });
+    }
+
+    // FL Summary Administration (Reduced 3-phase path)
+    if (state === "FL" && type === "SMALL_ESTATE") {
+        return roadmap.filter((p: PhaseTaskList) =>
+            ["immediate_actions", "asset_discovery", "final_distribution"].includes(p.phase)
+        ).map((p: PhaseTaskList) => {
+            let tasks = [...p.tasks];
+            if (p.phase === "immediate_actions") {
+                tasks.push({
+                    id: "file_summary_petition",
+                    title: "File Petition for Summary Administration",
+                    description: "For FL estates < $75k, file this petition to bypass full formal probate.",
+                    category: "probate"
+                });
+            }
+            return { ...p, tasks };
         });
     }
 
@@ -141,5 +207,74 @@ function generateProbateRoadmap(type: AuthorityType, state: string, modifiers: s
         }
     }
 
-    return roadmap;
+    // Inject Overlays for Probate
+    return roadmap.map((p: PhaseTaskList) => {
+        let tasks = [...p.tasks];
+
+        if (modifiers.includes("INSOLVENT") && p.phase === "creditor_claims") {
+            tasks.unshift({
+                id: "insolvency_freeze",
+                title: "Insolvency ALERT: Freeze Distributions",
+                description: "Estate liabilities exceed assets. DO NOT pay any debts or distribute any assets.",
+                alerts: [{ type: "caution", message: "Contact legal counsel immediately for a pro-rata distribution plan." }]
+            });
+        }
+
+        if (modifiers.includes("BUSINESS_ESTATE")) {
+            if (p.phase === "court_filing") {
+                tasks.push({
+                    id: "petition_operating_orders",
+                    title: "Petition for Business Operating Orders",
+                    description: "Ask the court for explicit permission to continue decedent's business operations.",
+                    category: "probate"
+                });
+            }
+            if (p.phase === "asset_discovery") {
+                tasks.push({
+                    id: "business_appraisal",
+                    title: "Conduct Business Valuation",
+                    description: "Engage a certified appraiser to determine the value of decedent's business stake.",
+                    tags: ["statutory"]
+                });
+            }
+        }
+
+        if (modifiers.includes("MINOR_HEIRS") && p.phase === "final_distribution") {
+            tasks.unshift({
+                id: "minor_distribution_petition",
+                title: "Petition for Minor Distribution Approval",
+                description: "File to have the court approve the guardian or trustee for minor's inheritance.",
+                alerts: [{ type: "important", message: "Distributions to minors require strict court oversight." }]
+            });
+        }
+
+        if (modifiers.includes("CONTESTED")) {
+            tasks.unshift({
+                id: "litigation_hold_probate",
+                title: "LITIGATION HOLD: Freeze Distributions",
+                description: "Will contest or heirship dispute detected. Assets must remain in the estate account until resolved.",
+                alerts: [{ type: "caution", message: "Consult with estate litigation counsel before taking any non-routine actions." }]
+            });
+        }
+
+        if (modifiers.includes("ELECTIVE_SHARE") && p.phase === "creditor_claims") {
+            tasks.push({
+                id: "elective_share_calc",
+                title: "Spousal Elective Share Calculation",
+                description: "A spouse has asserted an elective share claim. Recalculate distribution priorities accordingly.",
+                tags: ["fiduciary"]
+            });
+        }
+
+        if (modifiers.includes("UNCLAIMED_PROPERTY") && p.phase === "asset_discovery") {
+            tasks.push({
+                id: "search_state_unclaimed_probate",
+                title: "Search State Unclaimed Property",
+                description: "Check state controller databases for dormant accounts or forgotten insurance policies.",
+                tags: ["fiduciary"]
+            });
+        }
+
+        return { ...p, tasks };
+    });
 }
