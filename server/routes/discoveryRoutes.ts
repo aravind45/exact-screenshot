@@ -71,12 +71,18 @@ router.post('/analyze', upload.single('file'), async (req: any, res) => {
         // Extract content based on file type
         if (req.file.mimetype === 'application/pdf') {
             console.log(`[DiscoveryRoute] Processing PDF file`);
-            // pdf-parse import compatibility handle
-            const pdfParse = (pdfLib as any).default || pdfLib;
-            const data = await pdfParse(req.file.buffer);
-            text = data.text;
-            console.log(`[DiscoveryRoute] Extracted ${text.length} characters from PDF`);
-            console.log(`[DiscoveryRoute] PDF text preview:`, text.substring(0, 200));
+            try {
+                // pdf-parse import compatibility handle
+                const pdfParse = (pdfLib as any).default || pdfLib;
+                const data = await pdfParse(req.file.buffer);
+                text = data.text;
+                console.log(`[DiscoveryRoute] Extracted ${text.length} characters from PDF`);
+                console.log(`[DiscoveryRoute] PDF text preview:`, text.substring(0, 200));
+            } catch (pdfErr) {
+                console.error(`[DiscoveryRoute] PDF Parsing Failed:`, pdfErr);
+                // Don't crash, just continue with empty text (or maybe try OCR if available in future)
+                // We rely on user to upload readable PDF
+            }
         } else if (req.file.mimetype.startsWith('image/')) {
             console.log(`[DiscoveryRoute] Processing image file`);
             imageBase64 = req.file.buffer.toString('base64');
