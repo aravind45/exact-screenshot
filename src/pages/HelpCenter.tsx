@@ -216,10 +216,6 @@ export default function HelpCenter() {
         }
     ];
 
-    const [searchParams] = useSearchParams();
-    const context = searchParams.get("context");
-    const [searchQuery, setSearchQuery] = useState("");
-
     const contextualBanner = {
         distribution: { title: "Viewing Help for: Final Distribution", q: ["Safe to distribute?", "Early distribution risks", "Court approval needed"] },
         discovery: { title: "Viewing Help for: Asset Discovery", q: ["Finding digital assets", "Safe deposit boxes", "Small estate shortcuts"] },

@@ -227,6 +227,12 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
             type: "info",
             message: "Filing fee: ~$435 in California. File within 30 days for best practice."
           }
+        ],
+        links: [
+          {
+            label: "Download DE-111",
+            url: "https://www.courts.ca.gov/documents/de111.pdf"
+          }
         ]
       },
       {

@@ -194,10 +194,10 @@ describe("Estate Settlement E2E - Onboarding and Authority", () => {
 
         // Verify E2E-04: Workflow starts correctly
         expect(screen.getByText(/Settlement Action Plan/i)).toBeInTheDocument();
-        expect(screen.getByText(/Step-by-step workflow for closing Chase/i)).toBeInTheDocument();
+        expect(screen.getByText(/Step-by-step track for/i)).toBeInTheDocument();
 
         // Complete first step
-        const doneButton = screen.getByRole("button", { name: /Mark Step Done/i });
+        const doneButton = screen.getByRole("button", { name: /Mark Done/i });
         fireEvent.click(doneButton);
         expect(onStepComplete).toHaveBeenCalledWith("notify");
     });

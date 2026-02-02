@@ -186,7 +186,7 @@ describe("Workflow Clarity Improvements", () => {
         expect(await screen.findByText("Probate Process Roadmap")).toBeInTheDocument();
 
         // Verify Download Action
-        const link = screen.getByText("Download DE-111").closest('a');
+        const link = screen.getByText(/Download DE-111/).closest('a');
         expect(link).toHaveAttribute("href", "https://www.courts.ca.gov/documents/de111.pdf");
 
         // Verify Status Update Button

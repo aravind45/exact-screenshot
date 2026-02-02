@@ -52,7 +52,7 @@ export function ProbateChecklistWidget({ estateType, deceasedState = "CA" }: Pro
         id: s.phase,
         title: s.title,
         description: s.subtitle,
-        tasks: s.tasks.map(t => ({ id: t.id, title: t.title }))
+        tasks: s.tasks.map(t => ({ id: t.id, title: t.title, links: t.links }))
     }));
 
     // Restore persistence logic
@@ -149,73 +149,90 @@ export function ProbateChecklistWidget({ estateType, deceasedState = "CA" }: Pro
                 </div>
             </CardHeader>
             <CardContent className="p-0">
-                <Accordion type="single" collapsible className="w-full">
-                    {stages.map((stage, index) => {
-                        const stageTasks = stage.tasks || [];
-                        const completedStageTasks = stageTasks.filter(t => checkedTasks[t.id]).length;
-                        const isStageComplete = stageTasks.length > 0 && completedStageTasks === stageTasks.length;
+                <CardContent className="p-0">
+                    <Accordion type="multiple" className="w-full" defaultValue={stages.map(s => s.id)}>
+                        {stages.map((stage, index) => {
+                            const stageTasks = stage.tasks || [];
+                            const completedStageTasks = stageTasks.filter(t => checkedTasks[t.id]).length;
+                            const isStageComplete = stageTasks.length > 0 && completedStageTasks === stageTasks.length;
 
-                        return (
-                            <AccordionItem key={stage.id} value={stage.id} className="border-b border-slate-100 last:border-0 px-6">
-                                <AccordionTrigger className="hover:no-underline py-5 group">
-                                    <div className="flex items-center gap-4 text-left w-full">
-                                        <div className={cn(
-                                            "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-colors",
-                                            isStageComplete
-                                                ? "bg-emerald-500 border-emerald-500 text-white"
-                                                : "bg-white border-slate-200 text-slate-500 group-hover:border-indigo-400 group-hover:text-indigo-600"
-                                        )}>
-                                            {isStageComplete ? <CheckCircle2 className="w-5 h-5" /> : index + 1}
-                                        </div>
-                                        <div className="flex-1">
-                                            <h4 className={cn(
-                                                "text-sm font-bold transition-colors",
-                                                isStageComplete ? "text-emerald-700" : "text-slate-900 group-hover:text-indigo-700"
+                            return (
+                                <AccordionItem key={stage.id} value={stage.id} className="border-b border-slate-100 last:border-0 px-6">
+                                    <AccordionTrigger className="hover:no-underline py-5 group">
+                                        <div className="flex items-center gap-4 text-left w-full">
+                                            <div className={cn(
+                                                "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-colors",
+                                                isStageComplete
+                                                    ? "bg-emerald-500 border-emerald-500 text-white"
+                                                    : "bg-white border-slate-200 text-slate-500 group-hover:border-indigo-400 group-hover:text-indigo-600"
                                             )}>
-                                                {stage.title}
-                                            </h4>
-                                            <p className="text-xs text-slate-500 font-medium line-clamp-1">{stage.description}</p>
-                                        </div>
-                                        {stageTasks.length > 0 && (
-                                            <Badge variant="secondary" className="bg-slate-100 text-slate-600 text-[10px] font-bold">
-                                                {completedStageTasks}/{stageTasks.length}
-                                            </Badge>
-                                        )}
-                                    </div>
-                                </AccordionTrigger>
-                                <AccordionContent className="pb-6 pt-2 pl-14 pr-4">
-                                    <div className="space-y-3">
-                                        {stageTasks.map((task) => (
-                                            <div key={task.id} className="flex items-start gap-3 group/task">
-                                                <Checkbox
-                                                    id={task.id}
-                                                    checked={!!checkedTasks[task.id]}
-                                                    onCheckedChange={(c) => handleCheck(task.id, c as boolean)}
-                                                    className="mt-0.5"
-                                                />
-                                                <div className="grid gap-1.5 leading-none">
-                                                    <label
-                                                        htmlFor={task.id}
-                                                        className={cn(
-                                                            "text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer",
-                                                            checkedTasks[task.id] ? "text-slate-400 line-through" : "text-slate-700 group-hover/task:text-indigo-600"
-                                                        )}
-                                                    >
-                                                        {task.title}
-                                                    </label>
-                                                </div>
+                                                {isStageComplete ? <CheckCircle2 className="w-5 h-5" /> : index + 1}
                                             </div>
-                                        ))}
-                                        {stageTasks.length === 0 && (
-                                            <p className="text-xs text-slate-400 italic">No specific subtasks defined for this stage.</p>
-                                        )}
-                                    </div>
-                                </AccordionContent>
-                            </AccordionItem>
-                        );
-                    })}
-                </Accordion>
-            </CardContent>
+                                            <div className="flex-1">
+                                                <h4 className={cn(
+                                                    "text-sm font-bold transition-colors",
+                                                    isStageComplete ? "text-emerald-700" : "text-slate-900 group-hover:text-indigo-700"
+                                                )}>
+                                                    {stage.title}
+                                                </h4>
+                                                <p className="text-xs text-slate-500 font-medium line-clamp-1">{stage.description}</p>
+                                            </div>
+                                            {stageTasks.length > 0 && (
+                                                <Badge variant="secondary" className="bg-slate-100 text-slate-600 text-[10px] font-bold">
+                                                    {completedStageTasks}/{stageTasks.length}
+                                                </Badge>
+                                            )}
+                                        </div>
+                                    </AccordionTrigger>
+                                    <AccordionContent className="pb-6 pt-2 pl-14 pr-4">
+                                        <div className="space-y-3">
+                                            {stageTasks.map((task) => (
+                                                <div key={task.id} className="flex items-start gap-3 group/task">
+                                                    <Checkbox
+                                                        id={task.id}
+                                                        checked={!!checkedTasks[task.id]}
+                                                        onCheckedChange={(c) => handleCheck(task.id, c as boolean)}
+                                                        className="mt-0.5"
+                                                    />
+                                                    <div className="grid gap-1.5 leading-none">
+                                                        <label
+                                                            htmlFor={task.id}
+                                                            className={cn(
+                                                                "text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer",
+                                                                checkedTasks[task.id] ? "text-slate-400 line-through" : "text-slate-700 group-hover/task:text-indigo-600"
+                                                            )}
+                                                        >
+                                                            {task.title}
+                                                        </label>
+                                                        {task.links && task.links.length > 0 && (
+                                                            <div className="flex gap-2 mt-1">
+                                                                {task.links.map((link: any, i: number) => (
+                                                                    <a
+                                                                        key={i}
+                                                                        href={link.url}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        className="text-[10px] text-indigo-600 hover:underline font-bold flex items-center gap-1"
+                                                                        onClick={(e) => e.stopPropagation()}
+                                                                    >
+                                                                        {link.label} ↗
+                                                                    </a>
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                            {stageTasks.length === 0 && (
+                                                <p className="text-xs text-slate-400 italic">No specific subtasks defined for this stage.</p>
+                                            )}
+                                        </div>
+                                    </AccordionContent>
+                                </AccordionItem>
+                            );
+                        })}
+                    </Accordion>
+                </CardContent>
         </Card>
     );
 }

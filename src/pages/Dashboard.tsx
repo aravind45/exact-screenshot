@@ -63,6 +63,7 @@ import { ProbateChecklistWidget } from "@/components/dashboard/ProbateChecklistW
 import { WorkRemainingWidget } from "@/components/dashboard/WorkRemainingWidget";
 import { SEO } from "@/components/SEO";
 import { useTerminology } from "@/hooks/use-terminology";
+import { ProbateStatusUpdater } from "@/components/dashboard/ProbateStatusUpdater";
 
 const MISSION_MAP: Record<string, { title: string; description: string; icon: any; color: string; cta: string; link: string }> = {
   immediate_actions: {
@@ -318,6 +319,10 @@ export default function Dashboard() {
                     {estate.estateType.replace(/_/g, " ")} TRACK
                   </div>
                 )}
+                <ProbateStatusUpdater
+                  currentStatus={estate?.probateStatus || "NOT_STARTED"}
+                  currentCaseNumber={estate?.courtCaseNumber}
+                />
               </div>
               <div className="h-6 w-px bg-slate-200 hidden sm:block" />
               <p className="text-xs font-medium text-slate-500 uppercase tracking-widest hidden sm:block">
