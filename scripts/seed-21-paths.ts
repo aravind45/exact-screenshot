@@ -466,9 +466,14 @@ async function main() {
 
   for (const userData of TEST_USERS) {
     try {
-      // Create user
-      const user = await prisma.user.create({
-        data: {
+      // Create or Update user
+      const user = await prisma.user.upsert({
+        where: { email: userData.email },
+        update: {
+          fullName: userData.fullName,
+          passwordHash: hashedPassword,
+        },
+        create: {
           email: userData.email,
           fullName: userData.fullName,
           passwordHash: hashedPassword,
@@ -476,18 +481,35 @@ async function main() {
         },
       });
 
-      console.log(`✅ Created user: ${userData.email}`);
+      console.log(`✅ Processed user: ${userData.email}`);
 
-      // Create estate
-      const { ...estateData } = userData.estate;
-      const estate = await prisma.estate.create({
-        data: {
-          ...estateData,
-          userId: user.id,
-        },
+      // Create or Update estate
+      let estate = await prisma.estate.findFirst({
+        where: { userId: user.id }
       });
 
-      console.log(`   📋 Created estate: ${userData.estate.name}`);
+      const { ...estateData } = userData.estate;
+
+      if (estate) {
+        // Clear related data for a fresh seed of this path
+        await prisma.asset.deleteMany({ where: { estateId: estate.id } });
+        await prisma.liability.deleteMany({ where: { estateId: estate.id } });
+        await prisma.heir.deleteMany({ where: { estateId: estate.id } });
+
+        estate = await prisma.estate.update({
+          where: { id: estate.id },
+          data: { ...estateData }
+        });
+        console.log(`   📋 Updated existing estate: ${userData.estate.name}`);
+      } else {
+        estate = await prisma.estate.create({
+          data: {
+            ...estateData,
+            userId: user.id,
+          },
+        });
+        console.log(`   📋 Created new estate: ${userData.estate.name}`);
+      }
 
       // Create assets
       if (userData.assets) {
@@ -533,7 +555,7 @@ async function main() {
 
       console.log('');
     } catch (error) {
-      console.error(`❌ Error creating ${userData.email}:`, error);
+      console.error(`❌ Error seeding ${userData.email}:`, error);
     }
   }
 

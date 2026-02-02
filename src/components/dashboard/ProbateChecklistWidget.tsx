@@ -73,7 +73,7 @@ export function ProbateChecklistWidget({ estateType, deceasedState = "CA" }: Pro
         localStorage.setItem("probate_checklist_progress", JSON.stringify(newChecked));
     };
 
-    if (!estateType || stages.length === 0) {
+    if (stages.length === 0) {
         return (
             <Card className="border-slate-200 shadow-sm bg-indigo-50/30 border-indigo-100 overflow-hidden">
                 <CardContent className="p-4 sm:p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -117,7 +117,7 @@ export function ProbateChecklistWidget({ estateType, deceasedState = "CA" }: Pro
                         <div>
                             <CardTitle className="text-lg font-black text-slate-900 tracking-tight">Probate Process Roadmap</CardTitle>
                             <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mt-1">
-                                {estateType.replace(/_/g, " ")} TRACK
+                                {(recommendation?.type || estateType || "ESTATE").replace(/_/g, " ")} TRACK
                             </p>
                         </div>
                     </div>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronDown, ChevronUp, Clock, FileText, AlertTriangle, Info, ExternalLink, CheckCircle2 } from "lucide-react";
+import { ChevronDown, ChevronUp, Clock, FileText, AlertTriangle, Info, ExternalLink, CheckCircle2, HelpCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +13,7 @@ import { Eye, FileUp, Download, Loader2 as Spinner, Trash2 } from "lucide-react"
 import { DOCUMENT_REGISTRY, findCanonicalDoc } from "@/config/documents";
 import { DocumentUploadDialog } from "@/components/documents/DocumentUploadDialog";
 import { Card } from "@/components/ui/card";
+import { useNavigate } from "react-router-dom";
 
 interface PhaseTaskListProps {
   phase: SettlementPhase;
@@ -29,6 +30,7 @@ export function PhaseTaskList({
 }: PhaseTaskListProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const { data: documents = [] } = useQuery({
     queryKey: ["estate-documents"],
@@ -195,6 +197,7 @@ export function PhaseTaskList({
                   onUpload={handleDocumentUpload}
                   onDelete={(id) => deleteMutation.mutate(id)}
                   isUploading={uploadMutation.isPending}
+                  navigate={navigate}
                 />
               );
             })}
@@ -287,10 +290,18 @@ interface TaskItemProps {
   onUpload: (type: string, name: string, file: File) => void;
   onDelete: (id: string) => void;
   isUploading: boolean;
+  navigate: (path: string) => void;
 }
 
-function TaskItem({ task, isCompleted, onToggle, getAlertIcon, getAlertColor, documents, onUpload, onDelete, isUploading }: TaskItemProps) {
+function TaskItem({ task, isCompleted, onToggle, getAlertIcon, getAlertColor, documents, onUpload, onDelete, isUploading, navigate }: TaskItemProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+
+  const handleHelpClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (task.helpArticleId) {
+      navigate(`/help-center?article=${task.helpArticleId}`);
+    }
+  };
 
   return (
     <div className={cn(
@@ -318,12 +329,23 @@ function TaskItem({ task, isCompleted, onToggle, getAlertIcon, getAlertColor, do
               onClick={() => setIsExpanded(!isExpanded)}
               className="flex-1 text-left group"
             >
-              <h4 className={cn(
-                "text-sm font-bold group-hover:text-indigo-600 transition-colors",
-                isCompleted ? "text-slate-500 line-through" : "text-slate-900"
-              )}>
-                {task.title}
-              </h4>
+              <div className="flex items-center gap-2">
+                <h4 className={cn(
+                  "text-sm font-bold group-hover:text-indigo-600 transition-colors",
+                  isCompleted ? "text-slate-500 line-through" : "text-slate-900"
+                )}>
+                  {task.title}
+                </h4>
+                {task.helpArticleId && (
+                  <button
+                    onClick={handleHelpClick}
+                    className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-blue-50 rounded-full"
+                    title="View help article"
+                  >
+                    <HelpCircle className="w-4 h-4 text-blue-600" />
+                  </button>
+                )}
+              </div>
               <p className={cn(
                 "text-xs mt-1",
                 isCompleted ? "text-slate-400" : "text-slate-600"

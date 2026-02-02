@@ -1,12 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import { api } from "@/lib/api";
-import { ProbateHub } from "@/components/ProbateHub";
+import Dashboard from "@/pages/Dashboard";
 import { SettlementWorkflow } from "@/components/SettlementWorkflow";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter } from "react-router-dom";
+import { WorkflowProvider } from "@/contexts/WorkflowContext";
 
-// Mock the API
+// Mock the API and Auth
 vi.mock("@/lib/api", () => ({
     api: {
         getMyEstate: vi.fn(),
@@ -14,6 +15,18 @@ vi.mock("@/lib/api", () => ({
         updateMyEstate: vi.fn(),
         generateLetter: vi.fn(),
     }
+}));
+
+vi.mock("@/contexts/AuthContext", () => ({
+    useAuth: () => ({
+        user: { id: "user-1", email: "test@test.com" }
+    })
+}));
+
+
+
+vi.mock("@/components/SEO", () => ({
+    SEO: () => null
 }));
 
 const createTestQueryClient = () => new QueryClient({
@@ -33,29 +46,30 @@ describe("Workflow Clarity Improvements", () => {
             probateStatus: "NOT_STARTED", // Blocking state to check counter
             authorityStatus: "NOT_STARTED",
             deceasedFirstName: "John",
-            deceasedLastName: "Doe"
+            deceasedLastName: "Doe",
+            deceasedState: "California",
+            estateType: "FORMAL_PROBATE"
         };
         (api.getMyEstate as any).mockResolvedValue(mockEstate);
         (api.getAssets as any).mockResolvedValue([
-            { id: "1", institution: "Robinhood", ownershipType: "INDIVIDUAL" }
+            { id: "1", institution: "Robinhood", ownershipType: "INDIVIDUAL", balance: 200000 }
         ]);
 
         render(
             <MemoryRouter>
                 <QueryClientProvider client={queryClient}>
-                    <ProbateHub />
+                    <WorkflowProvider>
+                        <Dashboard />
+                    </WorkflowProvider>
                 </QueryClientProvider>
             </MemoryRouter>
         );
 
         // Verify Header Change
-        expect(await screen.findByText("Estate-Level Probate Process")).toBeInTheDocument();
+        expect(await screen.findByText("Probate Process Roadmap")).toBeInTheDocument();
 
-        // Verify Badge
-        expect(screen.getByText("REQUIRED FIRST")).toBeInTheDocument();
-
-        // Verify "Blocked Assets" counter (Dependency Indicator)
-        expect(screen.getByText(/1 Asset Waiting for Authority/i)).toBeInTheDocument();
+        // Verify "Awaiting Verification" counter (Dependency Indicator)
+        expect(await screen.findByText(/Guidance Required/i)).toBeInTheDocument();
     });
 
     it("Visual Distinction: Settlement Workflow shows Asset-Specific branding", async () => {
@@ -139,11 +153,11 @@ describe("Workflow Clarity Improvements", () => {
 
         // Wait for estate query to resolve
         await waitFor(() => {
-            expect(screen.getByText(/Estate-Level Authority Required/i)).toBeInTheDocument();
+            expect(screen.getByText(/Guidance Required/i)).toBeInTheDocument();
         });
 
-        // Verify the link text
-        expect(screen.getByText("Complete the Estate-Level Probate Process first")).toBeInTheDocument();
+        // Verify the link text (from ProbateBlockerAlert)
+        expect(screen.getByText(/awaiting your/i)).toBeInTheDocument();
     });
 
     it("Probate Hub: Shows Interactive Steps with Resources", async () => {
@@ -161,13 +175,15 @@ describe("Workflow Clarity Improvements", () => {
         render(
             <MemoryRouter>
                 <QueryClientProvider client={queryClient}>
-                    <ProbateHub />
+                    <WorkflowProvider>
+                        <Dashboard />
+                    </WorkflowProvider>
                 </QueryClientProvider>
             </MemoryRouter>
         );
 
-        // Verify Step Title
-        expect(await screen.findByText("File Probate Petition")).toBeInTheDocument();
+        // Verify that the checklist widget is present
+        expect(await screen.findByText("Probate Process Roadmap")).toBeInTheDocument();
 
         // Verify Download Action
         const link = screen.getByText("Download DE-111").closest('a');

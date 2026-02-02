@@ -1,9 +1,8 @@
 
 [1m[46m RUN [49m[22m [36mv3.2.4 [39m[90mC:/Users/aravi/Documents/AI_LLM/projects/exact-screenshot[39m
 
- [32mΓ£ô[39m src/tests/settlement/negative_cases.test.tsx [2m([22m[2m6 tests[22m[2m)[22m[32m 105[2mms[22m[39m
-stderr | src/tests/settlement/e2e_flows.test.tsx > Estate Settlement E2E - Onboarding and Authority > E2E-03: Asset Discovery + Institution Matching
-Error: Uncaught [Error: useNavigate() may be used only in the context of a <Router> component.]
+stderr | src/tests/settlement/settlement_types.test.tsx > Settlement Type Specific Scenarios > Probate vs Small Estate: Auto-transition logic
+Error: Uncaught [Error: useAuth must be used within an AuthProvider]
     at reportException (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\helpers\runtime-script-errors.js:66:24)
     at innerInvokeEventListeners (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:353:9)
     at invokeEventListeners (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:286:3)
@@ -13,18 +12,18 @@ Error: Uncaught [Error: useNavigate() may be used only in the context of a <Rout
     at Object.invokeGuardedCallbackDev (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:4213:16)
     at invokeGuardedCallback (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:4277:31)
     at beginWork$1 (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:27490:7)
-    at performUnitOfWork (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:26599:12) Error: useNavigate() may be used only in the context of a <Router> component.
-    at Object.invariant [as UNSAFE_invariant] (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\@remix-run\router\history.ts:494:11)
-    at useNavigateUnstable (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-router\lib\hooks.tsx:189:3)
-    at Proxy.useNavigate (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-router\lib\hooks.tsx:185:46)
-    at Discovery (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\src\pages\Discovery.tsx:33:22)
+    at performUnitOfWork (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:26599:12) Error: useAuth must be used within an AuthProvider
+    at Module.useAuth (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\src\contexts\AuthContext.tsx:80:11)
+    at Dashboard (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\src\pages\Dashboard.tsx:122:29)
     at renderWithHooks (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:15486:18)
     at mountIndeterminateComponent (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:20103:13)
     at beginWork (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:21626:16)
     at HTMLUnknownElement.callCallback (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:4164:14)
     at HTMLUnknownElement.callTheUserObjectsOperation (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\generated\EventListener.js:26:30)
     at innerInvokeEventListeners (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:350:25)
-Error: Uncaught [Error: useNavigate() may be used only in the context of a <Router> component.]
+    at invokeEventListeners (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:286:3)
+    at HTMLUnknownElementImpl._dispatch (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:233:9)
+Error: Uncaught [Error: useAuth must be used within an AuthProvider]
     at reportException (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\helpers\runtime-script-errors.js:66:24)
     at innerInvokeEventListeners (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:353:9)
     at invokeEventListeners (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:286:3)
@@ -34,177 +33,394 @@ Error: Uncaught [Error: useNavigate() may be used only in the context of a <Rout
     at Object.invokeGuardedCallbackDev (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:4213:16)
     at invokeGuardedCallback (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:4277:31)
     at beginWork$1 (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:27490:7)
-    at performUnitOfWork (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:26599:12) Error: useNavigate() may be used only in the context of a <Router> component.
-    at Object.invariant [as UNSAFE_invariant] (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\@remix-run\router\history.ts:494:11)
-    at useNavigateUnstable (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-router\lib\hooks.tsx:189:3)
-    at Proxy.useNavigate (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-router\lib\hooks.tsx:185:46)
-    at Discovery (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\src\pages\Discovery.tsx:33:22)
+    at performUnitOfWork (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:26599:12) Error: useAuth must be used within an AuthProvider
+    at Module.useAuth (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\src\contexts\AuthContext.tsx:80:11)
+    at Dashboard (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\src\pages\Dashboard.tsx:122:29)
     at renderWithHooks (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:15486:18)
     at mountIndeterminateComponent (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:20103:13)
     at beginWork (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:21626:16)
     at HTMLUnknownElement.callCallback (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:4164:14)
     at HTMLUnknownElement.callTheUserObjectsOperation (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\generated\EventListener.js:26:30)
     at innerInvokeEventListeners (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:350:25)
-The above error occurred in the <Discovery> component:
+    at invokeEventListeners (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:286:3)
+    at HTMLUnknownElementImpl._dispatch (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:233:9)
+The above error occurred in the <Dashboard> component:
 
-    at Discovery (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\src\pages\Discovery.tsx:22:44)
+    at Dashboard (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\src\pages\Dashboard.tsx:107:45)
     at QueryClientProvider (file:///C:/Users/aravi/Documents/AI_LLM/projects/exact-screenshot/node_modules/@tanstack/react-query/build/modern/QueryClientProvider.js:20:3)
+    at Router (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-router\dist\umd\react-router.development.js:1207:17)
+    at MemoryRouter (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-router\dist\umd\react-router.development.js:1101:7)
 
 Consider adding an error boundary to your tree to customize error handling behavior.
 Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
 
- [31mΓ¥»[39m src/tests/settlement/e2e_flows.test.tsx [2m([22m[2m5 tests[22m[2m | [22m[31m3 failed[39m[2m)[22m[33m 437[2mms[22m[39m
-[31m   [31m├ù[31m Estate Settlement E2E - Onboarding and Authority[2m > [22mE2E-01 & E2E-02: Onboarding and Authority Acquisition Workflow[39m[33m 348[2mms[22m[39m
-[31m     ΓåÆ Unable to find an accessible element with the role "combobox"
+stderr | src/tests/settlement/workflow_clarity.test.tsx > Workflow Clarity Improvements > Visual Distinction: Probate Hub shows explicit Estate-Level branding
+Error: Uncaught [Error: useAuth must be used within an AuthProvider]
+    at reportException (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\helpers\runtime-script-errors.js:66:24)
+    at innerInvokeEventListeners (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:353:9)
+    at invokeEventListeners (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:286:3)
+    at HTMLUnknownElementImpl._dispatch (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:233:9)
+    at HTMLUnknownElementImpl.dispatchEvent (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:104:17)
+    at HTMLUnknownElement.dispatchEvent (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\generated\EventTarget.js:241:34)
+    at Object.invokeGuardedCallbackDev (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:4213:16)
+    at invokeGuardedCallback (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:4277:31)
+    at beginWork$1 (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:27490:7)
+    at performUnitOfWork (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:26599:12) Error: useAuth must be used within an AuthProvider
+    at Module.useAuth (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\src\contexts\AuthContext.tsx:80:11)
+    at Dashboard (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\src\pages\Dashboard.tsx:122:29)
+    at renderWithHooks (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:15486:18)
+    at mountIndeterminateComponent (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:20103:13)
+    at beginWork (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:21626:16)
+    at HTMLUnknownElement.callCallback (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:4164:14)
+    at HTMLUnknownElement.callTheUserObjectsOperation (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\generated\EventListener.js:26:30)
+    at innerInvokeEventListeners (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:350:25)
+    at invokeEventListeners (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:286:3)
+    at HTMLUnknownElementImpl._dispatch (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:233:9)
+Error: Uncaught [Error: useAuth must be used within an AuthProvider]
+    at reportException (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\helpers\runtime-script-errors.js:66:24)
+    at innerInvokeEventListeners (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:353:9)
+    at invokeEventListeners (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:286:3)
+    at HTMLUnknownElementImpl._dispatch (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:233:9)
+    at HTMLUnknownElementImpl.dispatchEvent (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:104:17)
+    at HTMLUnknownElement.dispatchEvent (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\generated\EventTarget.js:241:34)
+    at Object.invokeGuardedCallbackDev (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:4213:16)
+    at invokeGuardedCallback (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:4277:31)
+    at beginWork$1 (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:27490:7)
+    at performUnitOfWork (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:26599:12) Error: useAuth must be used within an AuthProvider
+    at Module.useAuth (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\src\contexts\AuthContext.tsx:80:11)
+    at Dashboard (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\src\pages\Dashboard.tsx:122:29)
+    at renderWithHooks (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:15486:18)
+    at mountIndeterminateComponent (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:20103:13)
+    at beginWork (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:21626:16)
+    at HTMLUnknownElement.callCallback (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:4164:14)
+    at HTMLUnknownElement.callTheUserObjectsOperation (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\generated\EventListener.js:26:30)
+    at innerInvokeEventListeners (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:350:25)
+    at invokeEventListeners (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:286:3)
+    at HTMLUnknownElementImpl._dispatch (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:233:9)
+The above error occurred in the <Dashboard> component:
 
-Here are the accessible roles:
+    at Dashboard (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\src\pages\Dashboard.tsx:107:45)
+    at QueryClientProvider (file:///C:/Users/aravi/Documents/AI_LLM/projects/exact-screenshot/node_modules/@tanstack/react-query/build/modern/QueryClientProvider.js:20:3)
+    at Router (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-router\dist\umd\react-router.development.js:1207:17)
+    at MemoryRouter (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-router\dist\umd\react-router.development.js:1101:7)
 
-  listbox:
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
 
-  Name "":
-  [36m<div[31m
-    [33mclass[31m=[32m"relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1"[31m
-    [33mdata-align[31m=[32m"start"[31m
-    [33mdata-side[31m=[32m"bottom"[31m
-    [33mdata-state[31m=[32m"open"[31m
-    [33mdir[31m=[32m"ltr"[31m
-    [33mid[31m=[32m"radix-:r2:"[31m
-    [33mrole[31m=[32m"listbox"[31m
-    [33mstyle[31m=[32m"box-sizing: border-box; display: flex; flex-direction: column; outline: none; --radix-select-content-transform-origin: var(--radix-popper-transform-origin); --radix-select-content-available-width: var(--radix-popper-available-width); --radix-select-content-available-height: var(--radix-popper-available-height); --radix-select-trigger-width: var(--radix-popper-anchor-width); --radix-select-trigger-height: var(--radix-popper-anchor-height); animation: none; pointer-events: auto;"[31m
-    [33mtabindex[31m=[32m"-1"[31m
-  [36m/>[31m
+stderr | src/tests/settlement/workflow_clarity.test.tsx > Workflow Clarity Improvements > Visual Distinction: Settlement Workflow shows Asset-Specific branding
+ΓÜá∩╕Å React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+ΓÜá∩╕Å React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
 
-  --------------------------------------------------
-  presentation:
+stderr | src/tests/settlement/negative_cases.test.tsx > Institution-specific Negative/Edge Cases > CRT-N02: Small-estate affidavit threshold exceeded
+Error: Uncaught [Error: useAuth must be used within an AuthProvider]
+    at reportException (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\helpers\runtime-script-errors.js:66:24)
+    at innerInvokeEventListeners (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:353:9)
+    at invokeEventListeners (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:286:3)
+    at HTMLUnknownElementImpl._dispatch (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:233:9)
+    at HTMLUnknownElementImpl.dispatchEvent (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:104:17)
+    at HTMLUnknownElement.dispatchEvent (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\generated\EventTarget.js:241:34)
+    at Object.invokeGuardedCallbackDev (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:4213:16)
+    at invokeGuardedCallback (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:4277:31)
+    at beginWork$1 (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:27490:7)
+    at performUnitOfWork (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:26599:12) Error: useAuth must be used within an AuthProvider
+    at Module.useAuth (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\src\contexts\AuthContext.tsx:80:11)
+    at Dashboard (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\src\pages\Dashboard.tsx:122:29)
+    at renderWithHooks (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:15486:18)
+    at mountIndeterminateComponent (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:20103:13)
+    at beginWork (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:21626:16)
+    at HTMLUnknownElement.callCallback (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:4164:14)
+    at HTMLUnknownElement.callTheUserObjectsOperation (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\generated\EventListener.js:26:30)
+    at innerInvokeEventListeners (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:350:25)
+    at invokeEventListeners (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:286:3)
+    at HTMLUnknownElementImpl._dispatch (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:233:9)
+Error: Uncaught [Error: useAuth must be used within an AuthProvider]
+    at reportException (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\helpers\runtime-script-errors.js:66:24)
+    at innerInvokeEventListeners (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:353:9)
+    at invokeEventListeners (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:286:3)
+    at HTMLUnknownElementImpl._dispatch (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:233:9)
+    at HTMLUnknownElementImpl.dispatchEvent (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:104:17)
+    at HTMLUnknownElement.dispatchEvent (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\generated\EventTarget.js:241:34)
+    at Object.invokeGuardedCallbackDev (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:4213:16)
+    at invokeGuardedCallback (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:4277:31)
+    at beginWork$1 (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:27490:7)
+    at performUnitOfWork (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:26599:12) Error: useAuth must be used within an AuthProvider
+    at Module.useAuth (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\src\contexts\AuthContext.tsx:80:11)
+    at Dashboard (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\src\pages\Dashboard.tsx:122:29)
+    at renderWithHooks (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:15486:18)
+    at mountIndeterminateComponent (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:20103:13)
+    at beginWork (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:21626:16)
+    at HTMLUnknownElement.callCallback (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:4164:14)
+    at HTMLUnknownElement.callTheUserObjectsOperation (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\generated\EventListener.js:26:30)
+    at innerInvokeEventListeners (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:350:25)
+    at invokeEventListeners (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:286:3)
+    at HTMLUnknownElementImpl._dispatch (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:233:9)
+The above error occurred in the <Dashboard> component:
 
-  Name "":
-  [36m<div[31m
-    [33mclass[31m=[32m"p-1 h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]"[31m
-    [33mdata-radix-select-viewport[31m=[32m""[31m
-    [33mrole[31m=[32m"presentation"[31m
-    [33mstyle[31m=[32m"position: relative; flex: 1; overflow: hidden auto;"[31m
-  [36m/>[31m
+    at Dashboard (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\src\pages\Dashboard.tsx:107:45)
+    at QueryClientProvider (file:///C:/Users/aravi/Documents/AI_LLM/projects/exact-screenshot/node_modules/@tanstack/react-query/build/modern/QueryClientProvider.js:20:3)
+    at Router (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-router\dist\umd\react-router.development.js:1207:17)
+    at MemoryRouter (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-router\dist\umd\react-router.development.js:1101:7)
 
-  --------------------------------------------------
-  option:
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
 
-  Name "Not Started":
-  [36m<div[31m
-    [33maria-labelledby[31m=[32m"radix-:r8:"[31m
-    [33maria-selected[31m=[32m"false"[31m
-    [33mclass[31m=[32m"relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 focus:bg-accent focus:text-accent-foreground"[31m
-    [33mdata-radix-collection-item[31m=[32m""[31m
-    [33mdata-state[31m=[32m"checked"[31m
-    [33mrole[31m=[32m"option"[31m
-    [33mtabindex[31m=[32m"-1"[31m
-  [36m/>[31m
+stderr | src/tests/settlement/settlement_types.test.tsx > Settlement Type Specific Scenarios > Ancillary Probate: Multi-state case tracking
+Error: Uncaught [Error: useAuth must be used within an AuthProvider]
+    at reportException (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\helpers\runtime-script-errors.js:66:24)
+    at innerInvokeEventListeners (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:353:9)
+    at invokeEventListeners (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:286:3)
+    at HTMLUnknownElementImpl._dispatch (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:233:9)
+    at HTMLUnknownElementImpl.dispatchEvent (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:104:17)
+    at HTMLUnknownElement.dispatchEvent (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\generated\EventTarget.js:241:34)
+    at Object.invokeGuardedCallbackDev (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:4213:16)
+    at invokeGuardedCallback (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:4277:31)
+    at beginWork$1 (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:27490:7)
+    at performUnitOfWork (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:26599:12) Error: useAuth must be used within an AuthProvider
+    at Module.useAuth (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\src\contexts\AuthContext.tsx:80:11)
+    at Dashboard (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\src\pages\Dashboard.tsx:122:29)
+    at renderWithHooks (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:15486:18)
+    at mountIndeterminateComponent (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:20103:13)
+    at beginWork (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:21626:16)
+    at HTMLUnknownElement.callCallback (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:4164:14)
+    at HTMLUnknownElement.callTheUserObjectsOperation (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\generated\EventListener.js:26:30)
+    at innerInvokeEventListeners (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:350:25)
+    at invokeEventListeners (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:286:3)
+    at HTMLUnknownElementImpl._dispatch (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:233:9)
+Error: Uncaught [Error: useAuth must be used within an AuthProvider]
+    at reportException (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\helpers\runtime-script-errors.js:66:24)
+    at innerInvokeEventListeners (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:353:9)
+    at invokeEventListeners (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:286:3)
+    at HTMLUnknownElementImpl._dispatch (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:233:9)
+    at HTMLUnknownElementImpl.dispatchEvent (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:104:17)
+    at HTMLUnknownElement.dispatchEvent (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\generated\EventTarget.js:241:34)
+    at Object.invokeGuardedCallbackDev (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:4213:16)
+    at invokeGuardedCallback (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:4277:31)
+    at beginWork$1 (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:27490:7)
+    at performUnitOfWork (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:26599:12) Error: useAuth must be used within an AuthProvider
+    at Module.useAuth (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\src\contexts\AuthContext.tsx:80:11)
+    at Dashboard (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\src\pages\Dashboard.tsx:122:29)
+    at renderWithHooks (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:15486:18)
+    at mountIndeterminateComponent (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:20103:13)
+    at beginWork (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:21626:16)
+    at HTMLUnknownElement.callCallback (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:4164:14)
+    at HTMLUnknownElement.callTheUserObjectsOperation (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\generated\EventListener.js:26:30)
+    at innerInvokeEventListeners (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:350:25)
+    at invokeEventListeners (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:286:3)
+    at HTMLUnknownElementImpl._dispatch (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:233:9)
+The above error occurred in the <Dashboard> component:
 
-  Name "Case Filed in Court":
-  [36m<div[31m
-    [33maria-labelledby[31m=[32m"radix-:r9:"[31m
-    [33maria-selected[31m=[32m"false"[31m
-    [33mclass[31m=[32m"relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 focus:bg-accent focus:text-accent-foreground"[31m
-    [33mdata-radix-collection-item[31m=[32m""[31m
-    [33mdata-state[31m=[32m"unchecked"[31m
-    [33mrole[31m=[32m"option"[31m
-    [33mtabindex[31m=[32m"-1"[31m
-  [36m/>[31m
+    at Dashboard (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\src\pages\Dashboard.tsx:107:45)
+    at QueryClientProvider (file:///C:/Users/aravi/Documents/AI_LLM/projects/exact-screenshot/node_modules/@tanstack/react-query/build/modern/QueryClientProvider.js:20:3)
+    at Router (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-router\dist\umd\react-router.development.js:1207:17)
+    at MemoryRouter (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-router\dist\umd\react-router.development.js:1101:7)
 
-  Name "Letters Testamentary Issued":
-  [36m<div[31m
-    [33maria-labelledby[31m=[32m"radix-:ra:"[31m
-    [33maria-selected[31m=[32m"false"[31m
-    [33mclass[31m=[32m"relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 focus:bg-accent focus:text-accent-foreground"[31m
-    [33mdata-radix-collection-item[31m=[32m""[31m
-    [33mdata-state[31m=[32m"unchecked"[31m
-    [33mrole[31m=[32m"option"[31m
-    [33mtabindex[31m=[32m"-1"[31m
-  [36m/>[31m
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
 
-  Name "Probate Closed":
-  [36m<div[31m
-    [33maria-labelledby[31m=[32m"radix-:rb:"[31m
-    [33maria-selected[31m=[32m"false"[31m
-    [33mclass[31m=[32m"relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 focus:bg-accent focus:text-accent-foreground"[31m
-    [33mdata-radix-collection-item[31m=[32m""[31m
-    [33mdata-state[31m=[32m"unchecked"[31m
-    [33mrole[31m=[32m"option"[31m
-    [33mtabindex[31m=[32m"-1"[31m
-  [36m/>[31m
+stderr | src/tests/settlement/e2e_flows.test.tsx > Estate Settlement E2E - Onboarding and Authority > E2E-01 & E2E-02: Onboarding and Authority Acquisition Workflow
+Error: Uncaught [Error: useAuth must be used within an AuthProvider]
+    at reportException (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\helpers\runtime-script-errors.js:66:24)
+    at innerInvokeEventListeners (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:353:9)
+    at invokeEventListeners (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:286:3)
+    at HTMLUnknownElementImpl._dispatch (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:233:9)
+    at HTMLUnknownElementImpl.dispatchEvent (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:104:17)
+    at HTMLUnknownElement.dispatchEvent (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\generated\EventTarget.js:241:34)
+    at Object.invokeGuardedCallbackDev (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:4213:16)
+    at invokeGuardedCallback (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:4277:31)
+    at beginWork$1 (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:27490:7)
+    at performUnitOfWork (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:26599:12) Error: useAuth must be used within an AuthProvider
+    at Module.useAuth (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\src\contexts\AuthContext.tsx:80:11)
+    at Dashboard (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\src\pages\Dashboard.tsx:122:29)
+    at renderWithHooks (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:15486:18)
+    at mountIndeterminateComponent (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:20103:13)
+    at beginWork (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:21626:16)
+    at HTMLUnknownElement.callCallback (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:4164:14)
+    at HTMLUnknownElement.callTheUserObjectsOperation (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\generated\EventListener.js:26:30)
+    at innerInvokeEventListeners (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:350:25)
+    at invokeEventListeners (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:286:3)
+    at HTMLUnknownElementImpl._dispatch (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:233:9)
+Error: Uncaught [Error: useAuth must be used within an AuthProvider]
+    at reportException (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\helpers\runtime-script-errors.js:66:24)
+    at innerInvokeEventListeners (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:353:9)
+    at invokeEventListeners (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:286:3)
+    at HTMLUnknownElementImpl._dispatch (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:233:9)
+    at HTMLUnknownElementImpl.dispatchEvent (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:104:17)
+    at HTMLUnknownElement.dispatchEvent (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\generated\EventTarget.js:241:34)
+    at Object.invokeGuardedCallbackDev (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:4213:16)
+    at invokeGuardedCallback (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:4277:31)
+    at beginWork$1 (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:27490:7)
+    at performUnitOfWork (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:26599:12) Error: useAuth must be used within an AuthProvider
+    at Module.useAuth (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\src\contexts\AuthContext.tsx:80:11)
+    at Dashboard (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\src\pages\Dashboard.tsx:122:29)
+    at renderWithHooks (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:15486:18)
+    at mountIndeterminateComponent (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:20103:13)
+    at beginWork (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:21626:16)
+    at HTMLUnknownElement.callCallback (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:4164:14)
+    at HTMLUnknownElement.callTheUserObjectsOperation (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\generated\EventListener.js:26:30)
+    at innerInvokeEventListeners (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:350:25)
+    at invokeEventListeners (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:286:3)
+    at HTMLUnknownElementImpl._dispatch (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:233:9)
+The above error occurred in the <Dashboard> component:
 
-  Name "Not Required for this Estate":
-  [36m<div[31m
-    [33maria-labelledby[31m=[32m"radix-:rc:"[31m
-    [33maria-selected[31m=[32m"false"[31m
-    [33mclass[31m=[32m"relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 focus:bg-accent focus:text-accent-foreground"[31m
-    [33mdata-radix-collection-item[31m=[32m""[31m
-    [33mdata-state[31m=[32m"unchecked"[31m
-    [33mrole[31m=[32m"option"[31m
-    [33mtabindex[31m=[32m"-1"[31m
-  [36m/>[31m
+    at Dashboard (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\src\pages\Dashboard.tsx:107:45)
+    at QueryClientProvider (file:///C:/Users/aravi/Documents/AI_LLM/projects/exact-screenshot/node_modules/@tanstack/react-query/build/modern/QueryClientProvider.js:20:3)
+    at Router (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-router\dist\umd\react-router.development.js:1207:17)
+    at MemoryRouter (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-router\dist\umd\react-router.development.js:1101:7)
 
-  --------------------------------------------------
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+
+stderr | src/tests/settlement/e2e_flows.test.tsx > Estate Settlement E2E - Onboarding and Authority > E2E-03: Asset Discovery + Institution Matching
+Error: Uncaught [Error: useAuth must be used within an AuthProvider]
+    at reportException (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\helpers\runtime-script-errors.js:66:24)
+    at innerInvokeEventListeners (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:353:9)
+    at invokeEventListeners (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:286:3)
+    at HTMLUnknownElementImpl._dispatch (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:233:9)
+    at HTMLUnknownElementImpl.dispatchEvent (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:104:17)
+    at HTMLUnknownElement.dispatchEvent (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\generated\EventTarget.js:241:34)
+    at Object.invokeGuardedCallbackDev (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:4213:16)
+    at invokeGuardedCallback (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:4277:31)
+    at beginWork$1 (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:27490:7)
+    at performUnitOfWork (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:26599:12) Error: useAuth must be used within an AuthProvider
+    at Module.useAuth (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\src\contexts\AuthContext.tsx:80:11)
+    at Discovery (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\src\pages\Discovery.tsx:66:22)
+    at renderWithHooks (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:15486:18)
+    at mountIndeterminateComponent (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:20103:13)
+    at beginWork (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:21626:16)
+    at HTMLUnknownElement.callCallback (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:4164:14)
+    at HTMLUnknownElement.callTheUserObjectsOperation (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\generated\EventListener.js:26:30)
+    at innerInvokeEventListeners (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:350:25)
+    at invokeEventListeners (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:286:3)
+    at HTMLUnknownElementImpl._dispatch (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:233:9)
+Error: Uncaught [Error: useAuth must be used within an AuthProvider]
+    at reportException (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\helpers\runtime-script-errors.js:66:24)
+    at innerInvokeEventListeners (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:353:9)
+    at invokeEventListeners (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:286:3)
+    at HTMLUnknownElementImpl._dispatch (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:233:9)
+    at HTMLUnknownElementImpl.dispatchEvent (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:104:17)
+    at HTMLUnknownElement.dispatchEvent (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\generated\EventTarget.js:241:34)
+    at Object.invokeGuardedCallbackDev (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:4213:16)
+    at invokeGuardedCallback (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:4277:31)
+    at beginWork$1 (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:27490:7)
+    at performUnitOfWork (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:26599:12) Error: useAuth must be used within an AuthProvider
+    at Module.useAuth (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\src\contexts\AuthContext.tsx:80:11)
+    at Discovery (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\src\pages\Discovery.tsx:66:22)
+    at renderWithHooks (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:15486:18)
+    at mountIndeterminateComponent (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:20103:13)
+    at beginWork (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:21626:16)
+    at HTMLUnknownElement.callCallback (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:4164:14)
+    at HTMLUnknownElement.callTheUserObjectsOperation (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\generated\EventListener.js:26:30)
+    at innerInvokeEventListeners (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:350:25)
+    at invokeEventListeners (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:286:3)
+    at HTMLUnknownElementImpl._dispatch (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:233:9)
+The above error occurred in the <Discovery> component:
+
+    at Discovery (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\src\pages\Discovery.tsx:82:45)
+    at QueryClientProvider (file:///C:/Users/aravi/Documents/AI_LLM/projects/exact-screenshot/node_modules/@tanstack/react-query/build/modern/QueryClientProvider.js:20:3)
+    at Router (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-router\dist\umd\react-router.development.js:1207:17)
+    at MemoryRouter (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-router\dist\umd\react-router.development.js:1101:7)
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+
+ [31mΓ¥»[39m src/tests/settlement/negative_cases.test.tsx [2m([22m[2m6 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[32m 121[2mms[22m[39m
+   [32mΓ£ô[39m Institution-specific Negative/Edge Cases[2m > [22mBANK-N01: Missing Letters - Prevents submission[32m 62[2mms[22m[39m
+   [32mΓ£ô[39m Institution-specific Negative/Edge Cases[2m > [22mBRK-N02: TOD Overrides Will - Warning displayed[32m 12[2mms[22m[39m
+[31m   [31m├ù[31m Institution-specific Negative/Edge Cases[2m > [22mCRT-N02: Small-estate affidavit threshold exceeded[39m[32m 17[2mms[22m[39m
+[31m     ΓåÆ useAuth must be used within an AuthProvider[39m
+   [32mΓ£ô[39m Institution-specific Negative/Edge Cases[2m > [22mBANK-N02: Multiple death certificates required[32m 12[2mms[22m[39m
+   [32mΓ£ô[39m Institution-specific Negative/Edge Cases[2m > [22mRET-N01: Beneficiary is minor - Guardianship required[32m 10[2mms[22m[39m
+   [32mΓ£ô[39m Institution-specific Negative/Edge Cases[2m > [22mINS-N01: Contestability investigation[32m 8[2mms[22m[39m
+ [31mΓ¥»[39m src/tests/settlement/settlement_types.test.tsx [2m([22m[2m5 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[32m 105[2mms[22m[39m
+[31m   [31m├ù[31m Settlement Type Specific Scenarios[2m > [22mProbate vs Small Estate: Auto-transition logic[39m[32m 25[2mms[22m[39m
+[31m     ΓåÆ useAuth must be used within an AuthProvider[39m
+   [32mΓ£ô[39m Settlement Type Specific Scenarios[2m > [22mTrust-Based: Distribution without court authority[32m 54[2mms[22m[39m
+   [32mΓ£ô[39m Settlement Type Specific Scenarios[2m > [22mInsolvent Estate: Creditor priority enforcement[32m 12[2mms[22m[39m
+[31m   [31m├ù[31m Settlement Type Specific Scenarios[2m > [22mAncillary Probate: Multi-state case tracking[39m[32m 3[2mms[22m[39m
+[31m     ΓåÆ useAuth must be used within an AuthProvider[39m
+   [32mΓ£ô[39m Settlement Type Specific Scenarios[2m > [22mSpecial Cases: Litigation hold on contested estate[32m 10[2mms[22m[39m
+stderr | src/tests/settlement/e2e_flows.test.tsx > Estate Settlement E2E - Onboarding and Authority > E2E-04: Bank Closure and Disbursement
+ΓÜá∩╕Å React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+ΓÜá∩╕Å React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+stderr | src/tests/settlement/e2e_flows.test.tsx > Estate Settlement E2E - Onboarding and Authority > E2E-08 & E2E-09: Debts, Notices, and Final Distribution
+Error: Uncaught [Error: useAuth must be used within an AuthProvider]
+    at reportException (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\helpers\runtime-script-errors.js:66:24)
+    at innerInvokeEventListeners (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:353:9)
+    at invokeEventListeners (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:286:3)
+    at HTMLUnknownElementImpl._dispatch (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:233:9)
+    at HTMLUnknownElementImpl.dispatchEvent (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:104:17)
+    at HTMLUnknownElement.dispatchEvent (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\generated\EventTarget.js:241:34)
+    at Object.invokeGuardedCallbackDev (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:4213:16)
+    at invokeGuardedCallback (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:4277:31)
+    at beginWork$1 (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:27490:7)
+    at performUnitOfWork (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:26599:12) Error: useAuth must be used within an AuthProvider
+    at Module.useAuth (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\src\contexts\AuthContext.tsx:80:11)
+    at Dashboard (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\src\pages\Dashboard.tsx:122:29)
+    at renderWithHooks (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:15486:18)
+    at mountIndeterminateComponent (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:20103:13)
+    at beginWork (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:21626:16)
+    at HTMLUnknownElement.callCallback (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:4164:14)
+    at HTMLUnknownElement.callTheUserObjectsOperation (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\generated\EventListener.js:26:30)
+    at innerInvokeEventListeners (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:350:25)
+    at invokeEventListeners (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:286:3)
+    at HTMLUnknownElementImpl._dispatch (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:233:9)
+Error: Uncaught [Error: useAuth must be used within an AuthProvider]
+    at reportException (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\helpers\runtime-script-errors.js:66:24)
+    at innerInvokeEventListeners (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:353:9)
+    at invokeEventListeners (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:286:3)
+    at HTMLUnknownElementImpl._dispatch (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:233:9)
+    at HTMLUnknownElementImpl.dispatchEvent (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:104:17)
+    at HTMLUnknownElement.dispatchEvent (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\generated\EventTarget.js:241:34)
+    at Object.invokeGuardedCallbackDev (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:4213:16)
+    at invokeGuardedCallback (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:4277:31)
+    at beginWork$1 (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:27490:7)
+    at performUnitOfWork (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:26599:12) Error: useAuth must be used within an AuthProvider
+    at Module.useAuth (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\src\contexts\AuthContext.tsx:80:11)
+    at Dashboard (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\src\pages\Dashboard.tsx:122:29)
+    at renderWithHooks (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:15486:18)
+    at mountIndeterminateComponent (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:20103:13)
+    at beginWork (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:21626:16)
+    at HTMLUnknownElement.callCallback (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:4164:14)
+    at HTMLUnknownElement.callTheUserObjectsOperation (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\generated\EventListener.js:26:30)
+    at innerInvokeEventListeners (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:350:25)
+    at invokeEventListeners (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:286:3)
+    at HTMLUnknownElementImpl._dispatch (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:233:9)
+The above error occurred in the <Dashboard> component:
+
+    at Dashboard (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\src\pages\Dashboard.tsx:107:45)
+    at QueryClientProvider (file:///C:/Users/aravi/Documents/AI_LLM/projects/exact-screenshot/node_modules/@tanstack/react-query/build/modern/QueryClientProvider.js:20:3)
+    at Router (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-router\dist\umd\react-router.development.js:1207:17)
+    at MemoryRouter (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-router\dist\umd\react-router.development.js:1101:7)
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+
+ [31mΓ¥»[39m src/tests/settlement/e2e_flows.test.tsx [2m([22m[2m5 tests[22m[2m | [22m[31m4 failed[39m[2m)[22m[32m 131[2mms[22m[39m
+[31m   [31m├ù[31m Estate Settlement E2E - Onboarding and Authority[2m > [22mE2E-01 & E2E-02: Onboarding and Authority Acquisition Workflow[39m[32m 26[2mms[22m[39m
+[31m     ΓåÆ useAuth must be used within an AuthProvider[39m
+[31m   [31m├ù[31m Estate Settlement E2E - Onboarding and Authority[2m > [22mE2E-03: Asset Discovery + Institution Matching[39m[32m 5[2mms[22m[39m
+[31m     ΓåÆ useAuth must be used within an AuthProvider[39m
+[31m   [31m├ù[31m Estate Settlement E2E - Onboarding and Authority[2m > [22mE2E-04: Bank Closure and Disbursement[39m[32m 67[2mms[22m[39m
+[31m     ΓåÆ Unable to find an element with the text: /Institution Settlement Guide/i. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
 
 Ignored nodes: comments, script, style
-[36m<body[31m
-  [33mdata-scroll-locked[31m=[32m"1"[31m
-  [33mstyle[31m=[32m"pointer-events: none;"[31m
-[36m>[31m
-  [36m<span[31m
-    [33maria-hidden[31m=[32m"true"[31m
-    [33mdata-aria-hidden[31m=[32m"true"[31m
-    [33mdata-radix-focus-guard[31m=[32m""[31m
-    [33mstyle[31m=[32m"outline: none; opacity: 0; position: fixed; pointer-events: none;"[31m
-    [33mtabindex[31m=[32m"0"[31m
-  [36m/>[31m
-  [36m<div[31m
-    [33maria-hidden[31m=[32m"true"[31m
-    [33mdata-aria-hidden[31m=[32m"true"[31m
-  [36m>[31m
+[36m<body>[31m
+  [36m<div>[31m
     [36m<div[31m
-      [33mclass[31m=[32m"rounded-lg border bg-card text-card-foreground shadow-sm card-elevated border-none overflow-hidden relative"[31m
+      [33mclass[31m=[32m"space-y-6"[31m
     [36m>[31m
       [36m<div[31m
-        [33mclass[31m=[32m"absolute top-0 right-0 p-3 opacity-10"[31m
+        [33mclass[31m=[32m"flex flex-col md:flex-row md:items-center justify-between gap-4 py-2 border-b border-slate-100"[31m
       [36m>[31m
-        [36m<svg[31m
-          [33mclass[31m=[32m"lucide lucide-scale w-16 h-16"[31m
-          [33mfill[31m=[32m"none"[31m
-          [33mheight[31m=[32m"24"[31m
-          [33mstroke[31m=[32m"currentColor"[31m
-          [33mstroke-linecap[31m=[32m"round"[31m
-          [33mstroke-linejoin[31m=[32m"round"[31m
-          [33mstroke-width[31m=[32m"2"[31m
-          [33mviewBox[31m=[32m"0 0 24 24"[31m
-          [33mwidth[31m=[32m"24"[31m
-          [33mxmlns[31m=[32m"http://www.w3.org/2000/svg"[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"flex items-center gap-4"[31m
         [36m>[31m
-          [36m<path[31m
-            [33md[31m=[32m"m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"[31m
-          [36m/>[31m
-          [36m<path[31m
-            [33md[31m=[32m"m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"[31m
-          [36m/>[31m
-          [36m<path[31m
-            [33md[31m=[32m"M7 21h10"[31m
-          [36m/>[31m
-          [36m<path[31m
-            [33md[31m=[32m"M12 3v18"[31m
-          [36m/>[31m
-          [36m<path[31m
-            [33md[31m=[32m"M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"[31m
-          [36m/>[31m
-        [36m</svg>[31m
-      [36m</div>[31m
-      [36m<div[31m
-        [33mclass[31m=[32m"space-y-1.5 p-6 pb-3 flex flex-row items-center justify-between"[31m
-      [36m>[31m
-        [36m<div>[31m
-          [36m<h3[31m
-            [33mclass[31m=[32m"tracking-tight text-xl font-bold flex items-center gap-2"[31m
+          [36m<div[31m
+            [33mclass[31m=[32m"p-2.5 bg-blue-50 text-blue-600 rounded-xl"[31m
           [36m>[31m
             [36m<svg[31m
-              [33mclass[31m=[32m"lucide lucide-gavel w-5 h-5 text-primary"[31m
+              [33mclass[31m=[32m"lucide lucide-square-check-big w-5 h-5"[31m
               [33mfill[31m=[32m"none"[31m
               [33mheight[31m=[32m"24"[31m
               [33mstroke[31m=[32m"currentColor"[31m
@@ -216,66 +432,487 @@ Ignored nodes: comments, script, style
               [33mxmlns[31m=[32m"http://www.w3.org/2000/svg"[31m
             [36m>[31m
               [36m<path[31m
-                [33md[31m=[32m"m14.5 12.5-8 8a2.119 2.119 0 1 1-3-3l8-8"[31m
+                [33md[31m=[32m"M21 10.5V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h12.5"[31m
               [36m/>[31m
               [36m<path[31m
-                [33md[31m=[32m"m16 16 6-6"[31m
-              [36m/>[31m
-              [36m<path[31m
-                [33md[31m=[32m"m8 8 6-6"[31m
-              [36m/>[31m
-              [36m<path[31m
-                [33md[31m=[32m"m9 7 8 8"[31m
-              [36m/>[31m
-              [36m<path[31m
-                [33md[31m=[32m"m21 11-8-8"[31m
+                [33md[31m=[32m"m9 11 3 3L22 4"[31m
               [36m/>[31m
             [36m</svg>[31m
-            [0mProbate Command Center[0m
-          [36m</h3>[31m
-          [36m<p[31m
-            [33mclass[31m=[32m"text-sm text-muted-foreground"[31m
+          [36m</div>[31m
+          [36m<div>[31m
+            [36m<h2[31m
+              [33mclass[31m=[32m"text-lg font-bold text-slate-900 tracking-tight"[31m
+            [36m>[31m
+              [0mSettlement Action Plan[0m
+            [36m</h2>[31m
+            [36m<div[31m
+              [33mclass[31m=[32m"flex items-center gap-2"[31m
+            [36m>[31m
+              [36m<p[31m
+                [33mclass[31m=[32m"text-slate-500 text-xs font-medium"[31m
+              [36m>[31m
+                [0mStep-by-step track for [0m
+                [0mChase[0m
+              [36m</p>[31m
+            [36m</div>[31m
+          [36m</div>[31m
+        [36m</div>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200/60 shadow-sm shrink-0"[31m
+        [36m>[31m
+          [36m<svg[31m
+            [33mclass[31m=[32m"lucide lucide-circle-check w-3.5 h-3.5 text-green-600"[31m
+            [33mfill[31m=[32m"none"[31m
+            [33mheight[31m=[32m"24"[31m
+            [33mstroke[31m=[32m"currentColor"[31m
+            [33mstroke-linecap[31m=[32m"round"[31m
+            [33mstroke-linejoin[31m=[32m"round"[31m
+            [33mstroke-width[31m=[32m"2"[31m
+            [33mviewBox[31m=[32m"0 0 24 24"[31m
+            [33mwidth[31m=[32m"24"[31m
+            [33mxmlns[31m=[32m"http://www.w3.org/2000/svg"[31m
           [36m>[31m
-            [0mManage legal filings and court authority[0m
-          [36m</p>[31m
+            [36m<circle[31m
+              [33mcx[31m=[32m"12"[31m
+              [33mcy[31m=[32m"12"[31m
+              [33mr[31m=[32m"10"[31m
+            [36m/>[31m
+            [36m<path[31m
+              [33md[31m=[32m"m9 12 2 2 4-4"[31m
+            [36m/>[31m
+          [36m</svg>[31m
+          [36m<span[31m
+            [33mclass[31m=[32m"text-[11px] font-black text-slate-600 uppercase tracking-tighter"[31m
+          [36m>[31m
+            [0m0[0m
+            [0m / [0m
+            [0m3[0m
+            [0m Completed[0m
+          [36m</span>[31m
         [36m</div>[31m
       [36m</div>[31m
       [36m<div[31m
-        [33mclass[31m=[32m"p-6 pt-0 space-y-6"[31m
+        [33mclass[31m=[32m"space-y-4"[31m
+        [33mdata-orientation[31m=[32m"vertical"[31m
       [36m>[31m
         [36m<div[31m
-          [33mclass[31m=[32m"bg-muted/30 p-4 rounded-xl border border-border/50 space-y-4"[31m
-          [33mstyle[31m=[32m"opacity: 0; transform: translateY(10px);"[31m
+          [33mclass[31m=[32m"border rounded-2xl transition-all duration-300 overflow-hidden border-slate-300 shadow-md bg-white ring-1 ring-slate-200"[31m
+          [33mdata-orientation[31m=[32m"vertical"[31m
+          [33mdata-state[31m=[32m"open"[31m
+        [36m>[31m
+          [36m<h3[31m
+            [33mclass[31m=[32m"flex"[31m
+            [33mdata-orientation[31m=[32m"vertical"[31m
+            [33mdata-state[31m=[32m"open"[31m
+          [36m>[31m
+            [36m<button[31m
+              [33maria-controls[31m=[32m"radix-:r1:"[31m
+              [33maria-expanded[31m=[32m"true"[31m
+              [33mclass[31m=[32m"flex flex-1 items-center justify-between font-medium transition-all [&[data-state=open]>svg]:rotate-180 hover:no-underline px-5 py-4 group [&[data-state=open]>svg]:hidden"[31m
+              [33mdata-orientation[31m=[32m"vertical"[31m
+              [33mdata-radix-collection-item[31m=[32m""[31m
+              [33mdata-state[31m=[32m"open"[31m
+              [33mid[31m=[32m"radix-:r0:"[31m
+              [33mtype[31m=[32m"button"[31m
+            [36m>[31m
+              [36m<div[31m
+                [33mclass[31m=[32m"flex items-center gap-4 text-left"[31m
+              [36m>[31m
+                [36m<div[31m
+                  [33mclass[31m=[32m"w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs transition-colors bg-slate-900 text-white"[31m
+                [36m>[31m
+                  [0m1[0m
+                [36m</div>[31m
+                [36m<div[31m
+                  [33mclass[31m=[32m"flex-1 min-w-0"[31m
+                [36m>[31m
+                  [36m<div[31m
+                    [33mclass[31m=[32m"flex items-center gap-2"[31m
+                  [36m>[31m
+                    [36m<h3[31m
+                      [33mclass[31m=[32m"font-bold text-base tracking-tight text-slate-900"[31m
+                    [36m>[31m
+                      [0mNotify Bank[0m
+                    [36m</h3>[31m
+                  [36m</div>[31m
+                [36m</div>[31m
+              [36m</div>[31m
+              [36m<svg[31m
+                [33mclass[31m=[32m"lucide lucide-chevron-down h-4 w-4 shrink-0 transition-transform duration-200"[31m
+                [33mfill[31m=[32m"none"[31m
+                [33mheight[31m=[32m"24"[31m
+                [33mstroke[31m=[32m"currentColor"[31m
+                [33mstroke-linecap[31m=[32m"round"[31m
+                [33mstroke-linejoin[31m=[32m"round"[31m
+                [33mstroke-width[31m=[32m"2"[31m
+                [33mviewBox[31m=[32m"0 0 24 24"[31m
+                [33mwidth[31m=[32m"24"[31m
+                [33mxmlns[31m=[32m"http://www.w3.org/2000/svg"[31m
+              [36m>[31m
+                [36m<path[31m
+                  [33md[31m=[32m"m6 9 6 6 6-6"[31m
+                [36m/>[31m
+              [36m</svg>[31m
+            [36m</button>[31m
+          [36m</h3>[31m
+          [36m<div[31m
+            [33maria-labelledby[31m=[32m"radix-:r0:"[31m
+            [33mclass[31m=[32m"overflow-hidden text-sm transition-all data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordi...[39m
+   [32mΓ£ô[39m Estate Settlement E2E - Onboarding and Authority[2m > [22mE2E-05 to E2E-07: Brokerage, Retirement, and Insurance Flows[32m 29[2mms[22m[39m
+[31m   [31m├ù[31m Estate Settlement E2E - Onboarding and Authority[2m > [22mE2E-08 & E2E-09: Debts, Notices, and Final Distribution[39m[32m 2[2mms[22m[39m
+[31m     ΓåÆ useAuth must be used within an AuthProvider[39m
+stderr | src/tests/settlement/workflow_clarity.test.tsx > Workflow Clarity Improvements > Probate Hub: Shows Interactive Steps with Resources
+Error: Uncaught [Error: useAuth must be used within an AuthProvider]
+    at reportException (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\helpers\runtime-script-errors.js:66:24)
+    at innerInvokeEventListeners (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:353:9)
+    at invokeEventListeners (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:286:3)
+    at HTMLUnknownElementImpl._dispatch (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:233:9)
+    at HTMLUnknownElementImpl.dispatchEvent (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:104:17)
+    at HTMLUnknownElement.dispatchEvent (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\generated\EventTarget.js:241:34)
+    at Object.invokeGuardedCallbackDev (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:4213:16)
+    at invokeGuardedCallback (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:4277:31)
+    at beginWork$1 (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:27490:7)
+    at performUnitOfWork (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:26599:12) Error: useAuth must be used within an AuthProvider
+    at Module.useAuth (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\src\contexts\AuthContext.tsx:80:11)
+    at Dashboard (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\src\pages\Dashboard.tsx:122:29)
+    at renderWithHooks (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:15486:18)
+    at mountIndeterminateComponent (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:20103:13)
+    at beginWork (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:21626:16)
+    at HTMLUnknownElement.callCallback (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:4164:14)
+    at HTMLUnknownElement.callTheUserObjectsOperation (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\generated\EventListener.js:26:30)
+    at innerInvokeEventListeners (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:350:25)
+    at invokeEventListeners (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:286:3)
+    at HTMLUnknownElementImpl._dispatch (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:233:9)
+Error: Uncaught [Error: useAuth must be used within an AuthProvider]
+    at reportException (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\helpers\runtime-script-errors.js:66:24)
+    at innerInvokeEventListeners (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:353:9)
+    at invokeEventListeners (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:286:3)
+    at HTMLUnknownElementImpl._dispatch (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:233:9)
+    at HTMLUnknownElementImpl.dispatchEvent (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:104:17)
+    at HTMLUnknownElement.dispatchEvent (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\generated\EventTarget.js:241:34)
+    at Object.invokeGuardedCallbackDev (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:4213:16)
+    at invokeGuardedCallback (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:4277:31)
+    at beginWork$1 (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:27490:7)
+    at performUnitOfWork (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:26599:12) Error: useAuth must be used within an AuthProvider
+    at Module.useAuth (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\src\contexts\AuthContext.tsx:80:11)
+    at Dashboard (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\src\pages\Dashboard.tsx:122:29)
+    at renderWithHooks (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:15486:18)
+    at mountIndeterminateComponent (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:20103:13)
+    at beginWork (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:21626:16)
+    at HTMLUnknownElement.callCallback (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-dom\cjs\react-dom.development.js:4164:14)
+    at HTMLUnknownElement.callTheUserObjectsOperation (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\generated\EventListener.js:26:30)
+    at innerInvokeEventListeners (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:350:25)
+    at invokeEventListeners (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:286:3)
+    at HTMLUnknownElementImpl._dispatch (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\jsdom\lib\jsdom\living\events\EventTarget-impl.js:233:9)
+The above error occurred in the <Dashboard> component:
+
+    at Dashboard (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\src\pages\Dashboard.tsx:107:45)
+    at QueryClientProvider (file:///C:/Users/aravi/Documents/AI_LLM/projects/exact-screenshot/node_modules/@tanstack/react-query/build/modern/QueryClientProvider.js:20:3)
+    at Router (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-router\dist\umd\react-router.development.js:1207:17)
+    at MemoryRouter (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\react-router\dist\umd\react-router.development.js:1101:7)
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+
+ [31mΓ¥»[39m src/tests/settlement/workflow_clarity.test.tsx [2m([22m[2m4 tests[22m[2m | [22m[31m3 failed[39m[2m)[22m[33m 1115[2mms[22m[39m
+[31m   [31m├ù[31m Workflow Clarity Improvements[2m > [22mVisual Distinction: Probate Hub shows explicit Estate-Level branding[39m[32m 27[2mms[22m[39m
+[31m     ΓåÆ useAuth must be used within an AuthProvider[39m
+   [32mΓ£ô[39m Workflow Clarity Improvements[2m > [22mVisual Distinction: Settlement Workflow shows Asset-Specific branding[32m 57[2mms[22m[39m
+[31m   [31m├ù[31m Workflow Clarity Improvements[2m > [22mDependency Indicator: Shows Alert when Probate is not done[39m[33m 1025[2mms[22m[39m
+[31m     ΓåÆ Unable to find an element with the text: /Estate-Level Authority Required/i. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[31m
+  [36m<div>[31m
+    [36m<div[31m
+      [33mclass[31m=[32m"space-y-6"[31m
+    [36m>[31m
+      [36m<div[31m
+        [33mclass[31m=[32m"flex flex-col md:flex-row md:items-center justify-between gap-4 py-2 border-b border-slate-100"[31m
+      [36m>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"flex items-center gap-4"[31m
         [36m>[31m
           [36m<div[31m
-            [33mclass[31m=[32m"grid grid-cols-1 md:grid-cols-2 gap-4"[31m
+            [33mclass[31m=[32m"p-2.5 bg-blue-50 text-blue-600 rounded-xl"[31m
+          [36m>[31m
+            [36m<svg[31m
+              [33mclass[31m=[32m"lucide lucide-square-check-big w-5 h-5"[31m
+              [33mfill[31m=[32m"none"[31m
+              [33mheight[31m=[32m"24"[31m
+              [33mstroke[31m=[32m"currentColor"[31m
+              [33mstroke-linecap[31m=[32m"round"[31m
+              [33mstroke-linejoin[31m=[32m"round"[31m
+              [33mstroke-width[31m=[32m"2"[31m
+              [33mviewBox[31m=[32m"0 0 24 24"[31m
+              [33mwidth[31m=[32m"24"[31m
+              [33mxmlns[31m=[32m"http://www.w3.org/2000/svg"[31m
+            [36m>[31m
+              [36m<path[31m
+                [33md[31m=[32m"M21 10.5V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h12.5"[31m
+              [36m/>[31m
+              [36m<path[31m
+                [33md[31m=[32m"m9 11 3 3L22 4"[31m
+              [36m/>[31m
+            [36m</svg>[31m
+          [36m</div>[31m
+          [36m<div>[31m
+            [36m<h2[31m
+              [33mclass[31m=[32m"text-lg font-bold text-slate-900 tracking-tight"[31m
+            [36m>[31m
+              [0mSettlement Action Plan[0m
+            [36m</h2>[31m
+            [36m<div[31m
+              [33mclass[31m=[32m"flex items-center gap-2"[31m
+            [36m>[31m
+              [36m<p[31m
+                [33mclass[31m=[32m"text-slate-500 text-xs font-medium"[31m
+              [36m>[31m
+                [0mStep-by-step track for [0m
+                [0mRobinhood[0m
+              [36m</p>[31m
+            [36m</div>[31m
+          [36m</div>[31m
+        [36m</div>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200/60 shadow-sm shrink-0"[31m
+        [36m>[31m
+          [36m<svg[31m
+            [33mclass[31m=[32m"lucide lucide-circle-check w-3.5 h-3.5 text-green-600"[31m
+            [33mfill[31m=[32m"none"[31m
+            [33mheight[31m=[32m"24"[31m
+            [33mstroke[31m=[32m"currentColor"[31m
+            [33mstroke-linecap[31m=[32m"round"[31m
+            [33mstroke-linejoin[31m=[32m"round"[31m
+            [33mstroke-width[31m=[32m"2"[31m
+            [33mviewBox[31m=[32m"0 0 24 24"[31m
+            [33mwidth[31m=[32m"24"[31m
+            [33mxmlns[31m=[32m"http://www.w3.org/2000/svg"[31m
+          [36m>[31m
+            [36m<circle[31m
+              [33mcx[31m=[32m"12"[31m
+              [33mcy[31m=[32m"12"[31m
+              [33mr[31m=[32m"10"[31m
+            [36m/>[31m
+            [36m<path[31m
+              [33md[31m=[32m"m9 12 2 2 4-4"[31m
+            [36m/>[31m
+          [36m</svg>[31m
+          [36m<span[31m
+            [33mclass[31m=[32m"text-[11px] font-black text-slate-600 uppercase tracking-tighter"[31m
+          [36m>[31m
+            [0m0[0m
+            [0m / [0m
+            [0m1[0m
+            [0m Completed[0m
+          [36m</span>[31m
+        [36m</div>[31m
+      [36m</div>[31m
+      [36m<div[31m
+        [33mclass[31m=[32m"space-y-4"[31m
+        [33mdata-orientation[31m=[32m"vertical"[31m
+      [36m>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"border rounded-2xl transition-all duration-300 overflow-hidden border-slate-300 shadow-md bg-white ring-1 ring-slate-200"[31m
+          [33mdata-orientation[31m=[32m"vertical"[31m
+          [33mdata-state[31m=[32m"open"[31m
+        [36m>[31m
+          [36m<h3[31m
+            [33mclass[31m=[32m"flex"[31m
+            [33mdata-orientation[31m=[32m"vertical"[31m
+            [33mdata-state[31m=[32m"open"[31m
+          [36m>[31m
+            [36m<button[31m
+              [33maria-controls[31m=[32m"radix-:r6:"[31m
+              [33maria-expanded[31m=[32m"true"[31m
+              [33mclass[31m=[32m"flex flex-1 items-center justify-between font-medium transition-all [&[data-state=open]>svg]:rotate-180 hover:no-underline px-5 py-4 group [&[data-state=open]>svg]:hidden"[31m
+              [33mdata-orientation[31m=[32m"vertical"[31m
+              [33mdata-radix-collection-item[31m=[32m""[31m
+              [33mdata-state[31m=[32m"open"[31m
+              [33mid[31m=[32m"radix-:r5:"[31m
+              [33mtype[31m=[32m"button"[31m
+            [36m>[31m
+              [36m<div[31m
+                [33mclass[31m=[32m"flex items-center gap-4 text-left"[31m
+              [36m>[31m
+                [36m<div[31m
+                  [33mclass[31m=[32m"w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs transition-colors bg-slate-900 text-white"[31m
+                [36m>[31m
+                  [0m1[0m
+                [36m</div>[31m
+                [36m<div[31m
+                  [33mclass[31m=[32m"flex-1 min-w-0"[31m
+                [36m>[31m
+                  [36m<div[31m
+                    [33mclass[31m=[32m"flex items-center gap-2"[31m
+                  [36m>[31m
+                    [36m<h3[31m
+                      [33mclass[31m=[32m"font-bold text-base tracking-tight text-slate-900"[31m
+                    [36m>[31m
+                      [0mClaim[0m
+                    [36m</h3>[31m
+                  [36m</div>[31m
+                [36m</div>[31m
+              [36m</div>[31m
+              [36m<svg[31m
+                [33mclass[31m=[32m"lucide lucide-chevron-down h-4 w-4 shrink-0 transition-transform duration-200"[31m
+                [33mfill[31m=[32m"none"[31m
+                [33mheight[31m=[32m"24"[31m
+                [33mstroke[31m=[32m"currentColor"[31m
+                [33mstroke-linecap[31m=[32m"round"[31m
+                [33mstroke-linejoin[31m=[32m"round"[31m
+                [33mstroke-width[31m=[32m"2"[31m
+                [33mviewBox[31m=[32m"0 0 24 24"[31m
+                [33mwidth[31m=[32m"24"[31m
+                [33mxmlns[31m=[32m"http://www.w3.org/2000/svg"[31m
+              [36m>[31m
+                [36m<path[31m
+                  [33md[31m=[32m"m6 9 6 6 6-6"[31m
+                [36m/>[31m
+              [36m</svg>[31m
+            [36m</button>[31m
+          [36m</h3>[31m
+          [36m<div[31m
+            [33maria-labelledby[31m=[32m"radix-:r5:"[31m
+            [33mclass[31m=[32m"overflow-hidden text-sm transition-all data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion...
+
+Ignored nodes: comments, script, style
+[36m<html>[31m
+  [36m<head />[31m
+  [36m<body>[31m
+    [36m<div>[31m
+      [36m<div[31m
+        [33mclass[31m=[32m"space-y-6"[31m
+      [36m>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"flex flex-col md:flex-row md:items-center justify-between gap-4 py-2 border-b border-slate-100"[31m
+        [36m>[31m
+          [36m<div[31m
+            [33mclass[31m=[32m"flex items-center gap-4"[31m
           [36m>[31m
             [36m<div[31m
-              [33mclass[31m=[32m"space-y-2"[31m
+              [33mclass[31m=[32m"p-2.5 bg-blue-50 text-blue-600 rounded-xl"[31m
             [36m>[31m
-              [36m<label[31m
-                [33mclass[31m=[32m"text-xs font-bold uppercase text-muted-foreground"[31m
+              [36m<svg[31m
+                [33mclass[31m=[32m"lucide lucide-square-check-big w-5 h-5"[31m
+                [33mfill[31m=[32m"none"[31m
+                [33mheight[31m=[32m"24"[31m
+                [33mstroke[31m=[32m"currentColor"[31m
+                [33mstroke-linecap[31m=[32m"round"[31m
+                [33mstroke-linejoin[31m=[32m"round"[31m
+                [33mstroke-width[31m=[32m"2"[31m
+                [33mviewBox[31m=[32m"0 0 24 24"[31m
+                [33mwidth[31m=[32m"24"[31m
+                [33mxmlns[31m=[32m"http://www.w3.org/2000/svg"[31m
               [36m>[31m
-                [0mProbate Status[0m
-              [36m</label>[31m
+                [36m<path[31m
+                  [33md[31m=[32m"M21 10.5V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h12.5"[31m
+                [36m/>[31m
+                [36m<path[31m
+                  [33md[31m=[32m"m9 11 3 3L22 4"[31m
+                [36m/>[31m
+              [36m</svg>[31m
+            [36m</div>[31m
+            [36m<div>[31m
+              [36m<h2[31m
+                [33mclass[31m=[32m"text-lg font-bold text-slate-900 tracking-tight"[31m
+              [36m>[31m
+                [0mSettlement Action Plan[0m
+              [36m</h2>[31m
+              [36m<div[31m
+                [33mclass[31m=[32m"flex items-center gap-2"[31m
+              [36m>[31m
+                [36m<p[31m
+                  [33mclass[31m=[32m"text-slate-500 text-xs font-medium"[31m
+                [36m>[31m
+                  [0mStep-by-step track for [0m
+                  [0mRobinhood[0m
+                [36m</p>[31m
+              [36m</div>[31m
+            [36m</div>[31m
+          [36m</div>[31m
+          [36m<div[31m
+            [33mclass[31m=[32m"flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200/60 shadow-sm shrink-0"[31m
+          [36m>[31m
+            [36m<svg[31m
+              [33mclass[31m=[32m"lucide lucide-circle-check w-3.5 h-3.5 text-green-600"[31m
+              [33mfill[31m=[32m"none"[31m
+              [33mheight[31m=[32m"24"[31m
+              [33mstroke[31m=[32m"currentColor"[31m
+              [33mstroke-linecap[31m=[32m"round"[31m
+              [33mstroke-linejoin[31m=[32m"round"[31m
+              [33mstroke-width[31m=[32m"2"[31m
+              [33mviewBox[31m=[32m"0 0 24 24"[31m
+              [33mwidth[31m=[32m"24"[31m
+              [33mxmlns[31m=[32m"http://www.w3.org/2000/svg"[31m
+            [36m>[31m
+              [36m<circle[31m
+                [33mcx[31m=[32m"12"[31m
+                [33mcy[31m=[32m"12"[31m
+                [33mr[31m=[32m"10"[31m
+              [36m/>[31m
+              [36m<path[31m
+                [33md[31m=[32m"m9 12 2 2 4-4"[31m
+              [36m/>[31m
+            [36m</svg>[31m
+            [36m<span[31m
+              [33mclass[31m=[32m"text-[11px] font-black text-slate-600 uppercase tracking-tighter"[31m
+            [36m>[31m
+              [0m0[0m
+              [0m / [0m
+              [0m1[0m
+              [0m Completed[0m
+            [36m</span>[31m
+          [36m</div>[31m
+        [36m</div>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"space-y-4"[31m
+          [33mdata-orientation[31m=[32m"vertical"[31m
+        [36m>[31m
+          [36m<div[31m
+            [33mclass[31m=[32m"border rounded-2xl transition-all duration-300 overflow-hidden border-slate-300 shadow-md bg-white ring-1 ring-slate-200"[31m
+            [33mdata-orientation[31m=[32m"vertical"[31m
+            [33mdata-state[31m=[32m"open"[31m
+          [36m>[31m
+            [36m<h3[31m
+              [33mclass[31m=[32m"flex"[31m
+              [33mdata-orientation[31m=[32m"vertical"[31m
+              [33mdata-state[31m=[32m"open"[31m
+            [36m>[31m
               [36m<button[31m
-                [33maria-autocomplete[31m=[32m"none"[31m
-                [33maria-controls[31m=[32m"radix-:r2:"[31m
+                [33maria-controls[31m=[32m"radix-:r6:"[31m
                 [33maria-expanded[31m=[32m"true"[31m
-                [33mclass[31m=[32m"flex h-10 w-full items-center justify-between rounded-md border border-input px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 bg-white"[31m
+                [33mclass[31m=[32m"flex flex-1 items-center justify-between font-medium transition-all [&[data-state=open]>svg]:rotate-180 hover:no-underline px-5 py-4 group [&[data-state=open]>svg]:hidden"[31m
+                [33mdata-orientation[31m=[32m"vertical"[31m
+                [33mdata-radix-collection-item[31m=[32m""[31m
                 [33mdata-state[31m=[32m"open"[31m
-                [33mdir[31m=[32m"ltr"[31m
-                [33mrole[31m=[32m"combobox"[31m
+                [33mid[31m=[32m"radix-:r5:"[31m
                 [33mtype[31m=[32m"button"[31m
               [36m>[31m
-                [36m<span[31m
-                  [33mstyle[31m=[32m"pointer-events: none;"[31m
+                [36m<div[31m
+                  [33mclass[31m=[32m"flex items-center gap-4 text-left"[31m
                 [36m>[31m
-                  [0mNot Started[0m
-                [36m</span>[31m
+                  [36m<div[31m
+                    [33mclass[31m=[32m"w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs transition-colors bg-slate-900 text-white"[31m
+                  [36m>[31m
+                    [0m1[0m
+                  [36m</div>[31m
+                  [36m<div[31m
+                    [33mclass[31m=[32m"flex-1 min-w-0"[31m
+                  [36m>[31m
+                    [36m<div[31m
+                      [33mclass[31m=[32m"flex items-center gap-2"[31m
+                    [36m>[31m
+                      [36m<h3[31m
+                        [33mclass[31m=[32m"font-bold text-base tracking-tight text-slate-900"[31m
+                      [36m>[31m
+                        [0mClaim[0m
+                      [36m</h3>[31m
+                    [36m</div>[31m
+                  [36m</div>[31m
+                [36m</div>[31m
                 [36m<svg[31m
-                  [33maria-hidden[31m=[32m"true"[31m
-                  [33mclass[31m=[32m"lucide lucide-chevron-down h-4 w-4 opacity-50"[31m
+                  [33mclass[31m=[32m"lucide lucide-chevron-down h-4 w-4 shrink-0 transition-transform duration-200"[31m
                   [33mfill[31m=[32m"none"[31m
                   [33mheight[31m=[32m"24"[31m
                   [33mstroke[31m=[32m"currentColor"[31m
@@ -288,193 +925,80 @@ Ignored nodes: comments, script, style
                 [36m>[31m
                   [36m<path[31m
                     [33md[31m=[32m"m6 9 6 6 6-6"[31m
-                  [36m/>[31m
-                [36m</svg>[31m
-              [36m</button>[31m
-            [36m</div>[31m
-            [36m<div[31m
-              [33mclass[31m=[32m"space-y-2"[31m
-            [36m>[31m
-              [36m<label[31m
-                [33mclass[31m=[32m"text-xs font-bold uppercase text-muted-foreground"[31m
-              [36m>[31m
-                [0mCourt Case Number[0m
-              [36m</label>[31m
-              [36m<input[31m
-                [33mclass[31m=[32m"flex h-10 w-full rounded-md border border-input p...[39m
-[31m   [31m├ù[31m Estate Settlement E2E - Onboarding and Authority[2m > [22mE2E-03: Asset Discovery + Institution Matching[39m[32m 16[2mms[22m[39m
-[31m     ΓåÆ useNavigate() may be used only in the context of a <Router> component.[39m
-   [32mΓ£ô[39m Estate Settlement E2E - Onboarding and Authority[2m > [22mE2E-04: Bank Closure and Disbursement[32m 51[2mms[22m[39m
-   [32mΓ£ô[39m Estate Settlement E2E - Onboarding and Authority[2m > [22mE2E-05 to E2E-07: Brokerage, Retirement, and Insurance Flows[32m 17[2mms[22m[39m
-[31m   [31m├ù[31m Estate Settlement E2E - Onboarding and Authority[2m > [22mE2E-08 & E2E-09: Debts, Notices, and Final Distribution[39m[32m 2[2mms[22m[39m
-[31m     ΓåÆ Unable to find an element with the text: /Critical Authorization/i. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+                  [36m...[39m
+[31m   [31m├ù[31m Workflow Clarity Improvements[2m > [22mProbate Hub: Shows Interactive Steps with Resources[39m[32m 4[2mms[22m[39m
+[31m     ΓåÆ useAuth must be used within an AuthProvider[39m
 
-Ignored nodes: comments, script, style
-[36m<body[31m
-  [33mstyle[31m=[32m""[31m
-[36m>[31m
-  [36m<div>[31m
-    [36m<div[31m
-      [33mclass[31m=[32m"h-40 flex items-center justify-center"[31m
-    [36m>[31m
-      [0mLoading legal status...[0m
-    [36m</div>[31m
-  [36m</div>[31m
-[36m</body>[31m[39m
-
-ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 3 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 10 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
 
  FAIL  src/tests/settlement/e2e_flows.test.tsx > Estate Settlement E2E - Onboarding and Authority > E2E-01 & E2E-02: Onboarding and Authority Acquisition Workflow
-TestingLibraryElementError: Unable to find an accessible element with the role "combobox"
+ FAIL  src/tests/settlement/e2e_flows.test.tsx > Estate Settlement E2E - Onboarding and Authority > E2E-08 & E2E-09: Debts, Notices, and Final Distribution
+ FAIL  src/tests/settlement/negative_cases.test.tsx > Institution-specific Negative/Edge Cases > CRT-N02: Small-estate affidavit threshold exceeded
+ FAIL  src/tests/settlement/settlement_types.test.tsx > Settlement Type Specific Scenarios > Probate vs Small Estate: Auto-transition logic
+ FAIL  src/tests/settlement/settlement_types.test.tsx > Settlement Type Specific Scenarios > Ancillary Probate: Multi-state case tracking
+ FAIL  src/tests/settlement/workflow_clarity.test.tsx > Workflow Clarity Improvements > Visual Distinction: Probate Hub shows explicit Estate-Level branding
+ FAIL  src/tests/settlement/workflow_clarity.test.tsx > Workflow Clarity Improvements > Probate Hub: Shows Interactive Steps with Resources
+Error: useAuth must be used within an AuthProvider
+ Γ¥» Module.useAuth src/contexts/AuthContext.tsx:80:11
+     78|   const context = useContext(AuthContext);
+     79|   if (context === undefined) {
+     80|     throw new Error('useAuth must be used within an AuthProvider');
+       |           ^
+     81|   }
+     82|   return context;
+ Γ¥» Dashboard src/pages/Dashboard.tsx:122:29
+ Γ¥» renderWithHooks node_modules/react-dom/cjs/react-dom.development.js:15486:18
+ Γ¥» mountIndeterminateComponent node_modules/react-dom/cjs/react-dom.development.js:20103:13
+ Γ¥» beginWork node_modules/react-dom/cjs/react-dom.development.js:21626:16
+ Γ¥» beginWork$1 node_modules/react-dom/cjs/react-dom.development.js:27465:14
+ Γ¥» performUnitOfWork node_modules/react-dom/cjs/react-dom.development.js:26599:12
+ Γ¥» workLoopSync node_modules/react-dom/cjs/react-dom.development.js:26505:5
+ Γ¥» renderRootSync node_modules/react-dom/cjs/react-dom.development.js:26473:7
+ Γ¥» recoverFromConcurrentError node_modules/react-dom/cjs/react-dom.development.js:25889:20
 
-Here are the accessible roles:
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/10]ΓÄ»
 
-  listbox:
+ FAIL  src/tests/settlement/e2e_flows.test.tsx > Estate Settlement E2E - Onboarding and Authority > E2E-03: Asset Discovery + Institution Matching
+Error: useAuth must be used within an AuthProvider
+ Γ¥» Module.useAuth src/contexts/AuthContext.tsx:80:11
+     78|   const context = useContext(AuthContext);
+     79|   if (context === undefined) {
+     80|     throw new Error('useAuth must be used within an AuthProvider');
+       |           ^
+     81|   }
+     82|   return context;
+ Γ¥» Discovery src/pages/Discovery.tsx:66:22
+ Γ¥» renderWithHooks node_modules/react-dom/cjs/react-dom.development.js:15486:18
+ Γ¥» mountIndeterminateComponent node_modules/react-dom/cjs/react-dom.development.js:20103:13
+ Γ¥» beginWork node_modules/react-dom/cjs/react-dom.development.js:21626:16
+ Γ¥» beginWork$1 node_modules/react-dom/cjs/react-dom.development.js:27465:14
+ Γ¥» performUnitOfWork node_modules/react-dom/cjs/react-dom.development.js:26599:12
+ Γ¥» workLoopSync node_modules/react-dom/cjs/react-dom.development.js:26505:5
+ Γ¥» renderRootSync node_modules/react-dom/cjs/react-dom.development.js:26473:7
+ Γ¥» recoverFromConcurrentError node_modules/react-dom/cjs/react-dom.development.js:25889:20
 
-  Name "":
-  <div
-    class="relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1"
-    data-align="start"
-    data-side="bottom"
-    data-state="open"
-    dir="ltr"
-    id="radix-:r2:"
-    role="listbox"
-    style="box-sizing: border-box; display: flex; flex-direction: column; outline: none; --radix-select-content-transform-origin: var(--radix-popper-transform-origin); --radix-select-content-available-width: var(--radix-popper-available-width); --radix-select-content-available-height: var(--radix-popper-available-height); --radix-select-trigger-width: var(--radix-popper-anchor-width); --radix-select-trigger-height: var(--radix-popper-anchor-height); animation: none; pointer-events: auto;"
-    tabindex="-1"
-  />
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[2/10]ΓÄ»
 
-  --------------------------------------------------
-  presentation:
-
-  Name "":
-  <div
-    class="p-1 h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]"
-    data-radix-select-viewport=""
-    role="presentation"
-    style="position: relative; flex: 1; overflow: hidden auto;"
-  />
-
-  --------------------------------------------------
-  option:
-
-  Name "Not Started":
-  <div
-    aria-labelledby="radix-:r8:"
-    aria-selected="false"
-    class="relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 focus:bg-accent focus:text-accent-foreground"
-    data-radix-collection-item=""
-    data-state="checked"
-    role="option"
-    tabindex="-1"
-  />
-
-  Name "Case Filed in Court":
-  <div
-    aria-labelledby="radix-:r9:"
-    aria-selected="false"
-    class="relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 focus:bg-accent focus:text-accent-foreground"
-    data-radix-collection-item=""
-    data-state="unchecked"
-    role="option"
-    tabindex="-1"
-  />
-
-  Name "Letters Testamentary Issued":
-  <div
-    aria-labelledby="radix-:ra:"
-    aria-selected="false"
-    class="relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 focus:bg-accent focus:text-accent-foreground"
-    data-radix-collection-item=""
-    data-state="unchecked"
-    role="option"
-    tabindex="-1"
-  />
-
-  Name "Probate Closed":
-  <div
-    aria-labelledby="radix-:rb:"
-    aria-selected="false"
-    class="relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 focus:bg-accent focus:text-accent-foreground"
-    data-radix-collection-item=""
-    data-state="unchecked"
-    role="option"
-    tabindex="-1"
-  />
-
-  Name "Not Required for this Estate":
-  <div
-    aria-labelledby="radix-:rc:"
-    aria-selected="false"
-    class="relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 focus:bg-accent focus:text-accent-foreground"
-    data-radix-collection-item=""
-    data-state="unchecked"
-    role="option"
-    tabindex="-1"
-  />
-
-  --------------------------------------------------
+ FAIL  src/tests/settlement/e2e_flows.test.tsx > Estate Settlement E2E - Onboarding and Authority > E2E-04: Bank Closure and Disbursement
+TestingLibraryElementError: Unable to find an element with the text: /Institution Settlement Guide/i. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
 
 Ignored nodes: comments, script, style
-<body
-  data-scroll-locked="1"
-  style="pointer-events: none;"
->
-  <span
-    aria-hidden="true"
-    data-aria-hidden="true"
-    data-radix-focus-guard=""
-    style="outline: none; opacity: 0; position: fixed; pointer-events: none;"
-    tabindex="0"
-  />
-  <div
-    aria-hidden="true"
-    data-aria-hidden="true"
-  >
+<body>
+  <div>
     <div
-      class="rounded-lg border bg-card text-card-foreground shadow-sm card-elevated border-none overflow-hidden relative"
+      class="space-y-6"
     >
       <div
-        class="absolute top-0 right-0 p-3 opacity-10"
+        class="flex flex-col md:flex-row md:items-center justify-between gap-4 py-2 border-b border-slate-100"
       >
-        <svg
-          class="lucide lucide-scale w-16 h-16"
-          fill="none"
-          height="24"
-          stroke="currentColor"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          viewBox="0 0 24 24"
-          width="24"
-          xmlns="http://www.w3.org/2000/svg"
+        <div
+          class="flex items-center gap-4"
         >
-          <path
-            d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"
-          />
-          <path
-            d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"
-          />
-          <path
-            d="M7 21h10"
-          />
-          <path
-            d="M12 3v18"
-          />
-          <path
-            d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"
-          />
-        </svg>
-      </div>
-      <div
-        class="space-y-1.5 p-6 pb-3 flex flex-row items-center justify-between"
-      >
-        <div>
-          <h3
-            class="tracking-tight text-xl font-bold flex items-center gap-2"
+          <div
+            class="p-2.5 bg-blue-50 text-blue-600 rounded-xl"
           >
             <svg
-              class="lucide lucide-gavel w-5 h-5 text-primary"
+              class="lucide lucide-square-check-big w-5 h-5"
               fill="none"
               height="24"
               stroke="currentColor"
@@ -486,66 +1010,441 @@ Ignored nodes: comments, script, style
               xmlns="http://www.w3.org/2000/svg"
             >
               <path
-                d="m14.5 12.5-8 8a2.119 2.119 0 1 1-3-3l8-8"
+                d="M21 10.5V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h12.5"
               />
               <path
-                d="m16 16 6-6"
-              />
-              <path
-                d="m8 8 6-6"
-              />
-              <path
-                d="m9 7 8 8"
-              />
-              <path
-                d="m21 11-8-8"
+                d="m9 11 3 3L22 4"
               />
             </svg>
-            Probate Command Center
-          </h3>
-          <p
-            class="text-sm text-muted-foreground"
+          </div>
+          <div>
+            <h2
+              class="text-lg font-bold text-slate-900 tracking-tight"
+            >
+              Settlement Action Plan
+            </h2>
+            <div
+              class="flex items-center gap-2"
+            >
+              <p
+                class="text-slate-500 text-xs font-medium"
+              >
+                Step-by-step track for 
+                Chase
+              </p>
+            </div>
+          </div>
+        </div>
+        <div
+          class="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200/60 shadow-sm shrink-0"
+        >
+          <svg
+            class="lucide lucide-circle-check w-3.5 h-3.5 text-green-600"
+            fill="none"
+            height="24"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+            width="24"
+            xmlns="http://www.w3.org/2000/svg"
           >
-            Manage legal filings and court authority
-          </p>
+            <circle
+              cx="12"
+              cy="12"
+              r="10"
+            />
+            <path
+              d="m9 12 2 2 4-4"
+            />
+          </svg>
+          <span
+            class="text-[11px] font-black text-slate-600 uppercase tracking-tighter"
+          >
+            0
+             / 
+            3
+             Completed
+          </span>
         </div>
       </div>
       <div
-        class="p-6 pt-0 space-y-6"
+        class="space-y-4"
+        data-orientation="vertical"
       >
         <div
-          class="bg-muted/30 p-4 rounded-xl border border-border/50 space-y-4"
-          style="opacity: 0; transform: translateY(10px);"
+          class="border rounded-2xl transition-all duration-300 overflow-hidden border-slate-300 shadow-md bg-white ring-1 ring-slate-200"
+          data-orientation="vertical"
+          data-state="open"
+        >
+          <h3
+            class="flex"
+            data-orientation="vertical"
+            data-state="open"
+          >
+            <button
+              aria-controls="radix-:r1:"
+              aria-expanded="true"
+              class="flex flex-1 items-center justify-between font-medium transition-all [&[data-state=open]>svg]:rotate-180 hover:no-underline px-5 py-4 group [&[data-state=open]>svg]:hidden"
+              data-orientation="vertical"
+              data-radix-collection-item=""
+              data-state="open"
+              id="radix-:r0:"
+              type="button"
+            >
+              <div
+                class="flex items-center gap-4 text-left"
+              >
+                <div
+                  class="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs transition-colors bg-slate-900 text-white"
+                >
+                  1
+                </div>
+                <div
+                  class="flex-1 min-w-0"
+                >
+                  <div
+                    class="flex items-center gap-2"
+                  >
+                    <h3
+                      class="font-bold text-base tracking-tight text-slate-900"
+                    >
+                      Notify Bank
+                    </h3>
+                  </div>
+                </div>
+              </div>
+              <svg
+                class="lucide lucide-chevron-down h-4 w-4 shrink-0 transition-transform duration-200"
+                fill="none"
+                height="24"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="m6 9 6 6 6-6"
+                />
+              </svg>
+            </button>
+          </h3>
+          <div
+            aria-labelledby="radix-:r0:"
+            class="overflow-hidden text-sm transition-all data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordi...
+ Γ¥» Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ Γ¥» node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ Γ¥» node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ Γ¥» getByText node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ Γ¥» src/tests/settlement/e2e_flows.test.tsx:179:23
+    177| 
+    178|         // Verify E2E-04: Workflow starts correctly
+    179|         expect(screen.getByText(/Institution Settlement Guide/i)).toBeΓÇª
+       |                       ^
+    180|         expect(screen.getByText(/Step-by-step workflow for closing ChaΓÇª
+    181| 
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[3/10]ΓÄ»
+
+ FAIL  src/tests/settlement/workflow_clarity.test.tsx > Workflow Clarity Improvements > Dependency Indicator: Shows Alert when Probate is not done
+TestingLibraryElementError: Unable to find an element with the text: /Estate-Level Authority Required/i. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="space-y-6"
+    >
+      <div
+        class="flex flex-col md:flex-row md:items-center justify-between gap-4 py-2 border-b border-slate-100"
+      >
+        <div
+          class="flex items-center gap-4"
         >
           <div
-            class="grid grid-cols-1 md:grid-cols-2 gap-4"
+            class="p-2.5 bg-blue-50 text-blue-600 rounded-xl"
+          >
+            <svg
+              class="lucide lucide-square-check-big w-5 h-5"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M21 10.5V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h12.5"
+              />
+              <path
+                d="m9 11 3 3L22 4"
+              />
+            </svg>
+          </div>
+          <div>
+            <h2
+              class="text-lg font-bold text-slate-900 tracking-tight"
+            >
+              Settlement Action Plan
+            </h2>
+            <div
+              class="flex items-center gap-2"
+            >
+              <p
+                class="text-slate-500 text-xs font-medium"
+              >
+                Step-by-step track for 
+                Robinhood
+              </p>
+            </div>
+          </div>
+        </div>
+        <div
+          class="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200/60 shadow-sm shrink-0"
+        >
+          <svg
+            class="lucide lucide-circle-check w-3.5 h-3.5 text-green-600"
+            fill="none"
+            height="24"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+            width="24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <circle
+              cx="12"
+              cy="12"
+              r="10"
+            />
+            <path
+              d="m9 12 2 2 4-4"
+            />
+          </svg>
+          <span
+            class="text-[11px] font-black text-slate-600 uppercase tracking-tighter"
+          >
+            0
+             / 
+            1
+             Completed
+          </span>
+        </div>
+      </div>
+      <div
+        class="space-y-4"
+        data-orientation="vertical"
+      >
+        <div
+          class="border rounded-2xl transition-all duration-300 overflow-hidden border-slate-300 shadow-md bg-white ring-1 ring-slate-200"
+          data-orientation="vertical"
+          data-state="open"
+        >
+          <h3
+            class="flex"
+            data-orientation="vertical"
+            data-state="open"
+          >
+            <button
+              aria-controls="radix-:r6:"
+              aria-expanded="true"
+              class="flex flex-1 items-center justify-between font-medium transition-all [&[data-state=open]>svg]:rotate-180 hover:no-underline px-5 py-4 group [&[data-state=open]>svg]:hidden"
+              data-orientation="vertical"
+              data-radix-collection-item=""
+              data-state="open"
+              id="radix-:r5:"
+              type="button"
+            >
+              <div
+                class="flex items-center gap-4 text-left"
+              >
+                <div
+                  class="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs transition-colors bg-slate-900 text-white"
+                >
+                  1
+                </div>
+                <div
+                  class="flex-1 min-w-0"
+                >
+                  <div
+                    class="flex items-center gap-2"
+                  >
+                    <h3
+                      class="font-bold text-base tracking-tight text-slate-900"
+                    >
+                      Claim
+                    </h3>
+                  </div>
+                </div>
+              </div>
+              <svg
+                class="lucide lucide-chevron-down h-4 w-4 shrink-0 transition-transform duration-200"
+                fill="none"
+                height="24"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="m6 9 6 6 6-6"
+                />
+              </svg>
+            </button>
+          </h3>
+          <div
+            aria-labelledby="radix-:r5:"
+            class="overflow-hidden text-sm transition-all data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion...
+
+Ignored nodes: comments, script, style
+<html>
+  <head />
+  <body>
+    <div>
+      <div
+        class="space-y-6"
+      >
+        <div
+          class="flex flex-col md:flex-row md:items-center justify-between gap-4 py-2 border-b border-slate-100"
+        >
+          <div
+            class="flex items-center gap-4"
           >
             <div
-              class="space-y-2"
+              class="p-2.5 bg-blue-50 text-blue-600 rounded-xl"
             >
-              <label
-                class="text-xs font-bold uppercase text-muted-foreground"
+              <svg
+                class="lucide lucide-square-check-big w-5 h-5"
+                fill="none"
+                height="24"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
               >
-                Probate Status
-              </label>
+                <path
+                  d="M21 10.5V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h12.5"
+                />
+                <path
+                  d="m9 11 3 3L22 4"
+                />
+              </svg>
+            </div>
+            <div>
+              <h2
+                class="text-lg font-bold text-slate-900 tracking-tight"
+              >
+                Settlement Action Plan
+              </h2>
+              <div
+                class="flex items-center gap-2"
+              >
+                <p
+                  class="text-slate-500 text-xs font-medium"
+                >
+                  Step-by-step track for 
+                  Robinhood
+                </p>
+              </div>
+            </div>
+          </div>
+          <div
+            class="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200/60 shadow-sm shrink-0"
+          >
+            <svg
+              class="lucide lucide-circle-check w-3.5 h-3.5 text-green-600"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <circle
+                cx="12"
+                cy="12"
+                r="10"
+              />
+              <path
+                d="m9 12 2 2 4-4"
+              />
+            </svg>
+            <span
+              class="text-[11px] font-black text-slate-600 uppercase tracking-tighter"
+            >
+              0
+               / 
+              1
+               Completed
+            </span>
+          </div>
+        </div>
+        <div
+          class="space-y-4"
+          data-orientation="vertical"
+        >
+          <div
+            class="border rounded-2xl transition-all duration-300 overflow-hidden border-slate-300 shadow-md bg-white ring-1 ring-slate-200"
+            data-orientation="vertical"
+            data-state="open"
+          >
+            <h3
+              class="flex"
+              data-orientation="vertical"
+              data-state="open"
+            >
               <button
-                aria-autocomplete="none"
-                aria-controls="radix-:r2:"
+                aria-controls="radix-:r6:"
                 aria-expanded="true"
-                class="flex h-10 w-full items-center justify-between rounded-md border border-input px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 bg-white"
+                class="flex flex-1 items-center justify-between font-medium transition-all [&[data-state=open]>svg]:rotate-180 hover:no-underline px-5 py-4 group [&[data-state=open]>svg]:hidden"
+                data-orientation="vertical"
+                data-radix-collection-item=""
                 data-state="open"
-                dir="ltr"
-                role="combobox"
+                id="radix-:r5:"
                 type="button"
               >
-                <span
-                  style="pointer-events: none;"
+                <div
+                  class="flex items-center gap-4 text-left"
                 >
-                  Not Started
-                </span>
+                  <div
+                    class="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs transition-colors bg-slate-900 text-white"
+                  >
+                    1
+                  </div>
+                  <div
+                    class="flex-1 min-w-0"
+                  >
+                    <div
+                      class="flex items-center gap-2"
+                    >
+                      <h3
+                        class="font-bold text-base tracking-tight text-slate-900"
+                      >
+                        Claim
+                      </h3>
+                    </div>
+                  </div>
+                </div>
                 <svg
-                  aria-hidden="true"
-                  class="lucide lucide-chevron-down h-4 w-4 opacity-50"
+                  class="lucide lucide-chevron-down h-4 w-4 shrink-0 transition-transform duration-200"
                   fill="none"
                   height="24"
                   stroke="currentColor"
@@ -558,87 +1457,21 @@ Ignored nodes: comments, script, style
                 >
                   <path
                     d="m6 9 6 6 6-6"
-                  />
-                </svg>
-              </button>
-            </div>
-            <div
-              class="space-y-2"
-            >
-              <label
-                class="text-xs font-bold uppercase text-muted-foreground"
-              >
-                Court Case Number
-              </label>
-              <input
-                class="flex h-10 w-full rounded-md border border-input p...
- Γ¥» Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
- Γ¥» node_modules/@testing-library/dom/dist/query-helpers.js:76:38
- Γ¥» node_modules/@testing-library/dom/dist/query-helpers.js:52:17
- Γ¥» getByRole node_modules/@testing-library/dom/dist/query-helpers.js:95:19
- Γ¥» src/tests/settlement/e2e_flows.test.tsx:80:37
-     78|         // Trigger update mutation manually to simulate selecting an oΓÇª
-     79|         // In a real test, we'd interact with the Radix Select options
-     80|         const statusSelect = screen.getByRole("combobox");
-       |                                     ^
-     81|         fireEvent.change(statusSelect, { target: { value: "EXECUTOR_APΓÇª
-     82| 
+                  ...
+ Γ¥» Proxy.waitFor node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ Γ¥» src/tests/settlement/workflow_clarity.test.tsx:138:15
+    136| 
+    137|         // Wait for estate query to resolve
+    138|         await waitFor(() => {
+       |               ^
+    139|             expect(screen.getByText(/Estate-Level Authority Required/iΓÇª
+    140|         });
 
-ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/3]ΓÄ»
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[4/10]ΓÄ»
 
- FAIL  src/tests/settlement/e2e_flows.test.tsx > Estate Settlement E2E - Onboarding and Authority > E2E-03: Asset Discovery + Institution Matching
-Error: useNavigate() may be used only in the context of a <Router> component.
- Γ¥» Object.invariant [as UNSAFE_invariant] node_modules/@remix-run/router/history.ts:494:11
- Γ¥» useNavigateUnstable node_modules/react-router/lib/hooks.tsx:189:3
- Γ¥» Proxy.useNavigate node_modules/react-router/lib/hooks.tsx:185:46
- Γ¥» Discovery src/pages/Discovery.tsx:33:22
-     31| 
 
-     32| export default function Discovery() {
-     33|     const navigate = useNavigate();
-       |                      ^
-     34|     const { toast } = useToast();
-     35|     const [clues, setClues] = useState<DiscoveredClue[]>([]);
-[2m Test Files [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m1 passed[39m[22m[90m (2)[39m
-[2m      Tests [22m [1m[31m3 failed[39m[22m[2m | [22m[1m[32m8 passed[39m[22m[90m (11)[39m
-[2m   Start at [22m 07:31:38
-[2m   Duration [22m 2.22s[2m (transform 179ms, setup 205ms, collect 1.36s, tests 542ms, environment 1.23s, prepare 234ms)[22m
-
- Γ¥» renderWithHooks node_modules/react-dom/cjs/react-dom.development.js:15486:18
- Γ¥» mountIndeterminateComponent node_modules/react-dom/cjs/react-dom.development.js:20103:13
- Γ¥» beginWork node_modules/react-dom/cjs/react-dom.development.js:21626:16
- Γ¥» beginWork$1 node_modules/react-dom/cjs/react-dom.development.js:27465:14
- Γ¥» performUnitOfWork node_modules/react-dom/cjs/react-dom.development.js:26599:12
- Γ¥» workLoopSync node_modules/react-dom/cjs/react-dom.development.js:26505:5
-
-ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[2/3]ΓÄ»
-
- FAIL  src/tests/settlement/e2e_flows.test.tsx > Estate Settlement E2E - Onboarding and Authority > E2E-08 & E2E-09: Debts, Notices, and Final Distribution
-TestingLibraryElementError: Unable to find an element with the text: /Critical Authorization/i. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
-
-Ignored nodes: comments, script, style
-<body
-  style=""
->
-  <div>
-    <div
-      class="h-40 flex items-center justify-center"
-    >
-      Loading legal status...
-    </div>
-  </div>
-</body>
- Γ¥» Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
- Γ¥» node_modules/@testing-library/dom/dist/query-helpers.js:76:38
- Γ¥» node_modules/@testing-library/dom/dist/query-helpers.js:52:17
- Γ¥» getByText node_modules/@testing-library/dom/dist/query-helpers.js:95:19
- Γ¥» src/tests/settlement/e2e_flows.test.tsx:231:23
-    229| 
-    230|         // Verify "Critical Authorization" section (E2E-09 prerequisitΓÇª
-    231|         expect(screen.getByText(/Critical Authorization/i)).toBeInTheDΓÇª
-       |                       ^
-    232|         expect(screen.getByText(/Letters Testamentary/i)).toBeInTheDocΓÇª
-    233|     });
-
-ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[3/3]ΓÄ»
+[2m Test Files [22m [1m[31m4 failed[39m[22m[90m (4)[39m
+[2m      Tests [22m [1m[31m10 failed[39m[22m[2m | [22m[1m[32m10 passed[39m[22m[90m (20)[39m
+[2m   Start at [22m 09:48:44
+[2m   Duration [22m 3.49s[2m (transform 530ms, setup 474ms, collect 4.71s, tests 1.47s, environment 2.75s, prepare 530ms)[22m
 

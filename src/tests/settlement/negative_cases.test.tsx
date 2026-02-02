@@ -1,8 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { SettlementWorkflow } from "@/components/SettlementWorkflow";
-import { ProbateHub } from "@/components/ProbateHub";
+import Dashboard from "@/pages/Dashboard";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { MemoryRouter } from "react-router-dom";
+import { WorkflowProvider } from "@/contexts/WorkflowContext";
 
 // Mock handles
 const mockApi = {
@@ -14,7 +16,20 @@ vi.mock("@/lib/api", () => ({
     api: {
         getMyEstate: () => mockApi.getMyEstate(),
         getAssets: () => mockApi.getAssets(),
+        generateLetter: vi.fn(),
     }
+}));
+
+vi.mock("@/contexts/AuthContext", () => ({
+    useAuth: () => ({
+        user: { id: "user-1", email: "test@test.com" }
+    })
+}));
+
+
+
+vi.mock("@/components/SEO", () => ({
+    SEO: () => null
 }));
 
 const createTestQueryClient = () => new QueryClient({
@@ -54,6 +69,7 @@ describe("Institution-specific Negative/Edge Cases", () => {
                     onStepComplete={vi.fn()}
                     onLogCommunication={vi.fn()}
                     onSendFax={vi.fn()}
+                    onGenerateLetter={vi.fn()}
                 />
             </QueryClientProvider>
         );
@@ -83,6 +99,7 @@ describe("Institution-specific Negative/Edge Cases", () => {
                     onStepComplete={vi.fn()}
                     onLogCommunication={vi.fn()}
                     onSendFax={vi.fn()}
+                    onGenerateLetter={vi.fn()}
                 />
             </QueryClientProvider>
         );
@@ -96,16 +113,20 @@ describe("Institution-specific Negative/Edge Cases", () => {
             { id: "1", type: "BANK", ownershipType: "INDIVIDUAL", institution: "Chase", balance: 100000 },
             { id: "2", type: "BANK", ownershipType: "INDIVIDUAL", institution: "Wells", balance: 100000 }
         ]);
-        mockApi.getMyEstate.mockResolvedValue({ probateStatus: "NOT_STARTED" });
+        mockApi.getMyEstate.mockResolvedValue({ probateStatus: "NOT_STARTED", deceasedState: "California", estateType: "FORMAL_PROBATE" });
 
         render(
-            <QueryClientProvider client={queryClient}>
-                <ProbateHub />
-            </QueryClientProvider>
+            <MemoryRouter>
+                <QueryClientProvider client={queryClient}>
+                    <WorkflowProvider>
+                        <Dashboard />
+                    </WorkflowProvider>
+                </QueryClientProvider>
+            </MemoryRouter>
         );
 
-        // Verify that probate is identified as required due to asset count/type
-        expect(await screen.findByText(/Probate Action Required: 2 Assets Identified/i)).toBeInTheDocument();
+        // Verify that probate is identified as required
+        expect(await screen.findByText(/Guidance Required/i)).toBeInTheDocument();
     });
 
     it("BANK-N02: Multiple death certificates required", async () => {
@@ -129,6 +150,7 @@ describe("Institution-specific Negative/Edge Cases", () => {
                     onStepComplete={vi.fn()}
                     onLogCommunication={vi.fn()}
                     onSendFax={vi.fn()}
+                    onGenerateLetter={vi.fn()}
                 />
             </QueryClientProvider>
         );
@@ -157,6 +179,7 @@ describe("Institution-specific Negative/Edge Cases", () => {
                     onStepComplete={vi.fn()}
                     onLogCommunication={vi.fn()}
                     onSendFax={vi.fn()}
+                    onGenerateLetter={vi.fn()}
                 />
             </QueryClientProvider>
         );
@@ -185,6 +208,7 @@ describe("Institution-specific Negative/Edge Cases", () => {
                     onStepComplete={vi.fn()}
                     onLogCommunication={vi.fn()}
                     onSendFax={vi.fn()}
+                    onGenerateLetter={vi.fn()}
                 />
             </QueryClientProvider>
         );

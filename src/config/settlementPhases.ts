@@ -23,6 +23,7 @@ export interface PhaseTask {
   isOptional?: boolean;
   dependencies?: string[]; // IDs of tasks that must be completed first
   deadlineWarningId?: string; // ID of the deadline to check for warnings
+  helpArticleId?: string; // ID of the help article/section to link to
 
   // Semantic Categories (Gap D)
   tags?: ("statutory" | "fiduciary" | "communication" | "tax" | "court-order" | "risk-guardrail")[];
@@ -57,6 +58,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         utility: "Shortcut: Avoid full probate if the estate is small enough.",
         estimatedTime: "1 hour",
         exclusiveGroup: "filing_path",
+        helpArticleId: "small-estate-affidavit",
         alerts: [
           {
             type: "important",
@@ -69,6 +71,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         title: "Confirm Executor/Trustee Role",
         description: "Review the Will or Trust to confirm your appointment and willingness to serve.",
         estimatedTime: "2 hours",
+        helpArticleId: "executor-duties",
         alerts: [
           {
             type: "info",
@@ -212,6 +215,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         estimatedTime: "2-4 hours",
         category: "probate",
         exclusiveGroup: "filing_path",
+        helpArticleId: "probate-steps",
         requiredDocs: [
           "Original Will",
           "Death Certificate",
@@ -234,6 +238,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         category: "probate",
         deadlineWarningId: "CREDITOR_NOTICE_DEADLINE", // New deadline link
         dependencies: ["file_petition"], // New dependency
+        helpArticleId: "creditor-notice",
         alerts: [
           {
             type: "important",
@@ -294,6 +299,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         category: "court-issued",
         exclusiveGroup: "filing_path",
         isOptional: true, // Only if eligible
+        helpArticleId: "small-estate-affidavit",
         requiredDocs: ["DE-310", "Death Certificate"]
       },
       {
@@ -303,6 +309,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         estimatedTime: "4-6 weeks",
         category: "probate",
         isOptional: true, // Only if spouse
+        helpArticleId: "spousal-property",
         requiredDocs: ["DE-221", "Death Certificate"]
       },
       {
@@ -312,6 +319,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         estimatedTime: "1 week",
         category: "court-issued",
         isOptional: true, // Only if trust
+        helpArticleId: "trust-administration",
         requiredDocs: ["Trust Agreement"]
       },
       {
@@ -337,6 +345,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         title: "Search State Unclaimed Property",
         description: "Check state databases for dormant accounts, uncashed checks, or forgotten insurance policies.",
         estimatedTime: "1 hour",
+        helpArticleId: "asset-discovery",
         links: [{ label: "Search CA Unclaimed Property", url: "https://www.sco.ca.gov/up.html" }]
       },
       {
@@ -394,6 +403,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         requiredDocs: ["All DOD Statements", "Appraisal Reports"],
         category: "court-issued",
         deadlineWarningId: "INVENTORY_DUE_DATE",
+        helpArticleId: "inventory-appraisal",
         alerts: [
           {
             type: "warning",
@@ -451,6 +461,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         title: "Review Submitted Claims",
         description: "Examine each creditor claim for validity, amount, and supporting documentation.",
         estimatedTime: "1-2 weeks",
+        helpArticleId: "creditor-claims",
         alerts: [
           {
             type: "caution",
@@ -586,6 +597,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         estimatedTime: "2-4 weeks",
         requiredDocs: ["All Tax Documents"],
         deadlineWarningId: "TAX_FILING_DEADLINE",
+        helpArticleId: "tax-returns",
         alerts: [
           {
             type: "important",

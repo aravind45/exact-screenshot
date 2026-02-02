@@ -35,6 +35,11 @@ export default function HelpCenter() {
     });
 
     const estateId = estate?.id;
+    const [searchParams] = useSearchParams();
+    const context = searchParams.get("context");
+    const articleId = searchParams.get("article");
+    const [searchQuery, setSearchQuery] = useState("");
+    const [openAccordionItem, setOpenAccordionItem] = useState<string | undefined>();
 
     // Situational Search Anchors
     const situationalPrompts = [
@@ -50,6 +55,32 @@ export default function HelpCenter() {
         queryFn: () => fetch(`/api/help/recommendations/${estateId}`).then(res => res.json()),
         enabled: !!estateId
     });
+
+    // Scroll to article if specified in URL
+    React.useEffect(() => {
+        if (articleId) {
+            // Find which accordion item contains this article
+            let foundItemValue: string | undefined;
+            faqs.forEach((group, gIdx) => {
+                group.items.forEach((item, iIdx) => {
+                    if (item.id === articleId) {
+                        foundItemValue = `item-${gIdx}-${iIdx}`;
+                    }
+                });
+            });
+
+            if (foundItemValue) {
+                setOpenAccordionItem(foundItemValue);
+                // Small delay to ensure DOM is ready
+                setTimeout(() => {
+                    const element = document.getElementById(`article-${articleId}`);
+                    if (element) {
+                        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }, 300);
+            }
+        }
+    }, [articleId]);
 
     const logReference = async (topic: string) => {
         if (!estateId) return;
@@ -72,14 +103,17 @@ export default function HelpCenter() {
             category: "Probate 101: Duties & Steps",
             items: [
                 {
+                    id: "probate-needed",
                     q: "When is full probate actually needed?",
                     a: "Probate is required when a deceased person owned assets in their name alone (no beneficiary, no joint owner) that exceed the state's 'Small Estate' threshold. In California, this is currently $184,500 for assets not in a trust or joint tenancy."
                 },
                 {
+                    id: "executor-duties",
                     q: "What are the core duties of an Executor?",
                     a: "Your 'Fiduciary Duty' involves four main pillars: 1. Gathering and protecting assets. 2. Notifying creditors and heirs. 3. Paying valid debts and taxes from estate funds. 4. Distributing remaining property exactly as the Will specifies."
                 },
                 {
+                    id: "probate-steps",
                     q: "What are the standard steps in a California probate case?",
                     a: "1. File Petition (DE-111) to open the case. 2. Publish Notice in a local paper. 3. Attend Hearing to get 'Letters (DE-150)'. 4. File Inventory (DE-160). 5. Pay Creditors/Taxes. 6. File Final Petition for Distribution. 7. Distribute assets and close the case."
                 }
@@ -89,10 +123,12 @@ export default function HelpCenter() {
             category: "Avoiding & Minimizing Probate",
             items: [
                 {
+                    id: "avoid-probate",
                     q: "How can I avoid court probate entirely?",
                     a: "Common 'Probate Shortcuts' include: 1. Small Estate Affidavits (for estates under threshold). 2. Living Trusts (assets move privately). 3. Joint Tenancy (survivor takes title). 4. POD/TOD designation (transfers on death). 5. Spousal Property Petitions (simplified court order for surviving spouses)."
                 },
                 {
+                    id: "spousal-property",
                     q: "What is the benefit of a Spousal Property Petition (DE-221)?",
                     a: "This is a streamlined court process that transfers property to a surviving spouse without full probate. It's faster (weeks instead of months), costs less, and doesn't require the full 'Executor' checklist."
                 }
@@ -102,10 +138,12 @@ export default function HelpCenter() {
             category: "Trust Administration",
             items: [
                 {
+                    id: "trust-administration",
                     q: "How do I administer a Living Trust?",
                     a: "1. Read the Trust document carefully. 2. Sign an 'Affidavit of Assumption' to take over as Trustee. 3. Notify beneficiaries. 4. Collect and value trust assets. 5. Pay trust-related debts and taxes. 6. Distribute property according to the trust's instructions—usually without any court involvement."
                 },
                 {
+                    id: "executor-vs-trustee",
                     q: "What is the difference between an Executor and a Successor Trustee?",
                     a: "An Executor handles property in the Will (monitored by a judge). A Successor Trustee handles property inside a Living Trust (handled privately). Often, the same person does both if some assets were left out of the trust."
                 }
@@ -115,14 +153,17 @@ export default function HelpCenter() {
             category: "Asset Mastery: Locate, Value, Manage",
             items: [
                 {
+                    id: "asset-discovery",
                     q: "How do I find all the assets?",
                     a: "Search through: 1. Physical mail/statements. 2. Tax returns (look for 1099s). 3. Digital accounts/email. 4. Real estate records in the county. 5. Unclaimed property databases. Our 'Discovery' hub helps automate this forensic search."
                 },
                 {
+                    id: "inventory-appraisal",
                     q: "How are assets valued for the court?",
                     a: "You must use the 'Date of Death' market value. For cash/bank accounts, you list the balance. For real estate, vehicles, or jewelry, a court-appointed 'Probate Referee' must perform an official appraisal (DE-160)."
                 },
                 {
+                    id: "asset-management",
                     q: "What are my duties for managing property?",
                     a: "You must safeguard assets: Change locks on empty houses, ensure vehicles are insured/garaged, keep estate cash in a separate 'Estate Bank Account', and avoid mixing estate money with your own."
                 }
@@ -132,10 +173,17 @@ export default function HelpCenter() {
             category: "Creditors, Taxes & Closing",
             items: [
                 {
+                    id: "creditor-claims",
                     q: "How do I handle creditors?",
                     a: "You must send a formal Notice to Creditors (DE-157). They generally have 4 months to file a claim. You pay valid bills in a specific legal order: Admin expenses first, then funeral costs, then taxes, then general debts."
                 },
                 {
+                    id: "creditor-notice",
+                    q: "What is the creditor notice requirement?",
+                    a: "You must publish notice in a local newspaper for 3 consecutive weeks and mail notice to all known creditors. This starts the 4-month creditor claim period and protects you from late claims after distribution."
+                },
+                {
+                    id: "tax-returns",
                     q: "What tax returns are required?",
                     a: "1. The final 'Individual Income Tax' (Form 1040) for the deceased. 2. The 'Estate Income Tax' (Form 1041) if the estate generates income while probate is open. 3. Estate Tax (Form 706) only if the total value exceeds the multi-million dollar federal limit."
                 }
@@ -145,12 +193,24 @@ export default function HelpCenter() {
             category: "Wills vs. No-Will (Intestacy)",
             items: [
                 {
+                    id: "no-will",
                     q: "What if there is no Will?",
                     a: "This is called 'Intestacy'. The state's 'Intestate Succession' laws decide who inherits (usually spouse, then children, then parents). You are appointed as an 'Administrator' instead of an 'Executor', but the process is mostly the same."
                 },
                 {
+                    id: "administrator-vs-executor",
                     q: "Is an 'Administrator' different from an 'Executor'?",
                     a: "Only in how you are named. An Executor is chosen by the deceased in a Will. An Administrator is chosen by the Judge. Both have the same 'Personal Representative' authority once they receive their Letters."
+                }
+            ]
+        },
+        {
+            category: "Small Estate Affidavit",
+            items: [
+                {
+                    id: "small-estate-affidavit",
+                    q: "How does the Small Estate Affidavit work?",
+                    a: "For estates under $184,500 in California, you can use a Small Estate Affidavit (Section 13100) to claim assets without going through court probate. You must wait 40 days after death, then present the notarized affidavit directly to financial institutions. This is the fastest way to settle a small estate."
                 }
             ]
         }
@@ -514,14 +574,25 @@ export default function HelpCenter() {
                         <h2 className="text-xl font-bold text-slate-900 px-1">Common Questions</h2>
                         <Card className="border-none shadow-sm bg-white overflow-hidden">
                             <CardContent className="p-0">
-                                <Accordion type="single" collapsible className="w-full">
+                                <Accordion 
+                                    type="single" 
+                                    collapsible 
+                                    className="w-full"
+                                    value={openAccordionItem}
+                                    onValueChange={setOpenAccordionItem}
+                                >
                                     {faqs.map((group, gIdx) => (
                                         <div key={gIdx}>
                                             <div className="bg-slate-50 px-6 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400 border-y border-slate-100">
                                                 {group.category}
                                             </div>
                                             {group.items.map((item, iIdx) => (
-                                                <AccordionItem key={iIdx} value={`item-${gIdx}-${iIdx}`} className="border-slate-100 px-6 last:border-none">
+                                                <AccordionItem 
+                                                    key={iIdx} 
+                                                    value={`item-${gIdx}-${iIdx}`} 
+                                                    className="border-slate-100 px-6 last:border-none"
+                                                    id={`article-${item.id}`}
+                                                >
                                                     <AccordionTrigger
                                                         className="text-sm font-bold text-left hover:no-underline hover:text-blue-600"
                                                         onClick={() => logReference(item.q)}

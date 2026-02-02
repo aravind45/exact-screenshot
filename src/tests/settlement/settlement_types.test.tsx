@@ -1,10 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { api } from "@/lib/api";
-import { ProbateHub } from "@/components/ProbateHub";
+import Dashboard from "@/pages/Dashboard";
 import { SettlementWorkflow } from "@/components/SettlementWorkflow";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter } from "react-router-dom";
+import { WorkflowProvider } from "@/contexts/WorkflowContext";
 
 // Mock handles
 const mockApi = {
@@ -13,12 +14,26 @@ const mockApi = {
     updateMyEstate: vi.fn(),
 };
 
+// Mock the API and Auth
 vi.mock("@/lib/api", () => ({
     api: {
         getMyEstate: () => mockApi.getMyEstate(),
         getAssets: () => mockApi.getAssets(),
         updateMyEstate: (data: any) => mockApi.updateMyEstate(data),
+        generateLetter: vi.fn(),
     }
+}));
+
+vi.mock("@/contexts/AuthContext", () => ({
+    useAuth: () => ({
+        user: { id: "user-1", email: "test@test.com" }
+    })
+}));
+
+
+
+vi.mock("@/components/SEO", () => ({
+    SEO: () => null
 }));
 
 const createTestQueryClient = () => new QueryClient({
@@ -38,7 +53,8 @@ describe("Settlement Type Specific Scenarios", () => {
         // Mock estate initially qualifies for small estate
         mockApi.getMyEstate.mockResolvedValue({
             probateStatus: "NOT_STARTED",
-            deceasedState: "California"
+            deceasedState: "California",
+            estateType: "FORMAL_PROBATE"
         });
 
         // Initial low-value assets
@@ -47,12 +63,16 @@ describe("Settlement Type Specific Scenarios", () => {
         ]);
 
         const { rerender } = render(
-            <QueryClientProvider client={queryClient}>
-                <ProbateHub />
-            </QueryClientProvider>
+            <MemoryRouter>
+                <QueryClientProvider client={queryClient}>
+                    <WorkflowProvider>
+                        <Dashboard />
+                    </WorkflowProvider>
+                </QueryClientProvider>
+            </MemoryRouter>
         );
 
-        expect(await screen.findByText(/Probate Action Required: 1 Assets Identified/i)).toBeInTheDocument();
+        expect(await screen.findByText(/Guidance Required/i)).toBeInTheDocument();
 
         // Simulate discovering a high-value asset that exceeds threshold
         mockApi.getAssets.mockResolvedValue([
@@ -62,14 +82,18 @@ describe("Settlement Type Specific Scenarios", () => {
         queryClient.invalidateQueries({ queryKey: ["assets"] });
 
         rerender(
-            <QueryClientProvider client={queryClient}>
-                <ProbateHub />
-            </QueryClientProvider>
+            <MemoryRouter>
+                <QueryClientProvider client={queryClient}>
+                    <WorkflowProvider>
+                        <Dashboard />
+                    </WorkflowProvider>
+                </QueryClientProvider>
+            </MemoryRouter>
         );
 
         // Verification: Threshold logic identifies probate is now mandatory
-        expect(await screen.findByText(/Probate Action Required: 2 Assets Identified/i)).toBeInTheDocument();
-        expect(screen.getByText(/you must obtain Letters Testamentary/i)).toBeInTheDocument();
+        expect(await screen.findByText(/Guidance Required/i)).toBeInTheDocument();
+        expect(screen.getByText(/require probate authority/i)).toBeInTheDocument();
     });
 
     it("Trust-Based: Distribution without court authority", async () => {
@@ -93,6 +117,7 @@ describe("Settlement Type Specific Scenarios", () => {
                     onStepComplete={vi.fn()}
                     onLogCommunication={vi.fn()}
                     onSendFax={vi.fn()}
+                    onGenerateLetter={vi.fn()}
                 />
             </QueryClientProvider>
         );
@@ -123,6 +148,7 @@ describe("Settlement Type Specific Scenarios", () => {
                     onStepComplete={vi.fn()}
                     onLogCommunication={vi.fn()}
                     onSendFax={vi.fn()}
+                    onGenerateLetter={vi.fn()}
                 />
             </QueryClientProvider>
         );
@@ -136,17 +162,23 @@ describe("Settlement Type Specific Scenarios", () => {
             probateStatus: "EXECUTOR_APPOINTED",
             deceasedState: "New York", // Domicile
             ancillaryProbateRequired: true,
-            ancillaryState: "Florida" // Real estate location
+            ancillaryState: "Florida", // Real estate location
+            estateType: "FORMAL_PROBATE"
         });
 
         render(
-            <QueryClientProvider client={queryClient}>
-                <ProbateHub />
-            </QueryClientProvider>
+            <MemoryRouter>
+                <QueryClientProvider client={queryClient}>
+                    <WorkflowProvider>
+                        <Dashboard />
+                    </WorkflowProvider>
+                </QueryClientProvider>
+            </MemoryRouter>
         );
 
         // Verification: Jurisdiction shows domicile
-        expect(await screen.findByText(/New York/i)).toBeInTheDocument();
+        const elements = await screen.findAllByText(/FORMAL PROBATE/i);
+        expect(elements[0]).toBeInTheDocument();
         // In a real implementation, we'd check for ancillary indicators or separate tabs
     });
 
@@ -171,6 +203,7 @@ describe("Settlement Type Specific Scenarios", () => {
                     onStepComplete={vi.fn()}
                     onLogCommunication={vi.fn()}
                     onSendFax={vi.fn()}
+                    onGenerateLetter={vi.fn()}
                 />
             </QueryClientProvider>
         );

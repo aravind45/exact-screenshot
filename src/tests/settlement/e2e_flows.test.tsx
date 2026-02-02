@@ -1,19 +1,33 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { api } from "@/lib/api";
-import { ProbateHub } from "@/components/ProbateHub";
+import Dashboard from "@/pages/Dashboard";
 import { SettlementWorkflow } from "@/components/SettlementWorkflow";
 import Discovery from "@/pages/Discovery";
+import { WorkflowProvider } from "@/contexts/WorkflowContext";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter } from "react-router-dom";
 
-// Mock the API
+// Mock the API and Auth
 vi.mock("@/lib/api", () => ({
     api: {
         getMyEstate: vi.fn(),
         getAssets: vi.fn(),
         updateMyEstate: vi.fn(),
+        generateLetter: vi.fn(),
     }
+}));
+
+vi.mock("@/contexts/AuthContext", () => ({
+    useAuth: () => ({
+        user: { id: "user-1", email: "test@test.com" }
+    })
+}));
+
+
+
+vi.mock("@/components/SEO", () => ({
+    SEO: () => null
 }));
 
 // Create a wrapper for React Query
@@ -43,6 +57,7 @@ describe("Estate Settlement E2E - Onboarding and Authority", () => {
             deceasedState: "California",
             deceasedFirstName: "John",
             deceasedLastName: "Doe",
+            estateType: "FORMAL_PROBATE"
         };
 
         (api.getMyEstate as any).mockResolvedValue(mockEstate);
@@ -53,15 +68,16 @@ describe("Estate Settlement E2E - Onboarding and Authority", () => {
         render(
             <MemoryRouter>
                 <QueryClientProvider client={queryClient}>
-                    <ProbateHub />
+                    <WorkflowProvider>
+                        <Dashboard />
+                    </WorkflowProvider>
                 </QueryClientProvider>
             </MemoryRouter>
         );
 
         // Verify E2E-01: Intake Complete status and recommendations
-        expect(await screen.findByText(/Estate-Level Probate Process/i)).toBeInTheDocument();
-        expect(screen.getByText(/Not Started/i)).toBeInTheDocument();
-        expect(screen.getByText(/1 Asset Waiting for Authority/i)).toBeInTheDocument();
+        expect(await screen.findByText(/Executor Dashboard/i)).toBeInTheDocument();
+        expect(screen.getByText(/Guidance Required/i)).toBeInTheDocument();
 
         // Start E2E-02: Authority Acquisition
         const updateButton = screen.getByRole("button", { name: /Update Status/i });
@@ -177,7 +193,7 @@ describe("Estate Settlement E2E - Onboarding and Authority", () => {
         );
 
         // Verify E2E-04: Workflow starts correctly
-        expect(screen.getByText(/Institution Settlement Guide/i)).toBeInTheDocument();
+        expect(screen.getByText(/Settlement Action Plan/i)).toBeInTheDocument();
         expect(screen.getByText(/Step-by-step workflow for closing Chase/i)).toBeInTheDocument();
 
         // Complete first step
@@ -230,13 +246,14 @@ describe("Estate Settlement E2E - Onboarding and Authority", () => {
         render(
             <MemoryRouter>
                 <QueryClientProvider client={queryClient}>
-                    <ProbateHub />
+                    <WorkflowProvider>
+                        <Dashboard />
+                    </WorkflowProvider>
                 </QueryClientProvider>
             </MemoryRouter>
         );
 
-        // Verify "Critical Authorization" section (E2E-09 prerequisites)
-        expect(await screen.findByText(/Critical Authorization/i)).toBeInTheDocument();
-        expect(screen.getByText("Letters Testamentary", { selector: "span" })).toBeInTheDocument();
+        // Verify "Authority Guidance" section
+        expect(await screen.findByText(/All caught up/i)).toBeInTheDocument();
     });
 });

@@ -1,0 +1,1272 @@
+
+[1m[46m RUN [49m[22m [36mv3.2.4 [39m[90mC:/Users/aravi/Documents/AI_LLM/projects/exact-screenshot[39m
+
+[90mstdout[2m | src/tests/settlement/debug_phases.test.ts[2m > [22m[2mDebug Phases[2m > [22m[2mshould calculate recommendation correctly
+[22m[39mRec Type: FORMAL_PROBATE
+
+[90mstdout[2m | src/tests/settlement/debug_phases.test.ts[2m > [22m[2mDebug Phases[2m > [22m[2mshould have populated SETTLEMENT_PHASE_TASKS
+[22m[39mTasks Length: [33m7[39m
+
+[90mstdout[2m | src/tests/settlement/debug_phases.test.ts[2m > [22m[2mDebug Phases[2m > [22m[2mshould generate roadmap for FORMAL_PROBATE CA
+[22m[39mRoadmap Length: [33m7[39m
+
+ [32mΓ£ô[39m src/tests/settlement/debug_phases.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 17[2mms[22m[39m
+ [32mΓ£ô[39m src/tests/settlement/negative_cases.test.tsx [2m([22m[2m6 tests[22m[2m)[22m[32m 147[2mms[22m[39m
+ [32mΓ£ô[39m src/tests/settlement/settlement_types.test.tsx [2m([22m[2m5 tests[22m[2m)[22m[33m 347[2mms[22m[39m
+ [31mΓ¥»[39m src/tests/settlement/workflow_clarity.test.tsx [2m([22m[2m4 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[33m 1535[2mms[22m[39m
+   [32mΓ£ô[39m Workflow Clarity Improvements[2m > [22mVisual Distinction: Probate Hub shows explicit Estate-Level branding[32m 224[2mms[22m[39m
+   [32mΓ£ô[39m Workflow Clarity Improvements[2m > [22mVisual Distinction: Settlement Workflow shows Asset-Specific branding[32m 12[2mms[22m[39m
+[31m   [31m├ù[31m Workflow Clarity Improvements[2m > [22mDependency Indicator: Shows Alert when Probate is not done[39m[33m 1029[2mms[22m[39m
+[31m     ΓåÆ Unable to find an element with the text: /Guidance Required/i. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[31m
+  [36m<div>[31m
+    [36m<div[31m
+      [33mclass[31m=[32m"space-y-6"[31m
+    [36m>[31m
+      [36m<div[31m
+        [33mclass[31m=[32m"flex flex-col md:flex-row md:items-center justify-between gap-4 py-2 border-b border-slate-100"[31m
+      [36m>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"flex items-center gap-4"[31m
+        [36m>[31m
+          [36m<div[31m
+            [33mclass[31m=[32m"p-2.5 bg-blue-50 text-blue-600 rounded-xl"[31m
+          [36m>[31m
+            [36m<svg[31m
+              [33mclass[31m=[32m"lucide lucide-square-check-big w-5 h-5"[31m
+              [33mfill[31m=[32m"none"[31m
+              [33mheight[31m=[32m"24"[31m
+              [33mstroke[31m=[32m"currentColor"[31m
+              [33mstroke-linecap[31m=[32m"round"[31m
+              [33mstroke-linejoin[31m=[32m"round"[31m
+              [33mstroke-width[31m=[32m"2"[31m
+              [33mviewBox[31m=[32m"0 0 24 24"[31m
+              [33mwidth[31m=[32m"24"[31m
+              [33mxmlns[31m=[32m"http://www.w3.org/2000/svg"[31m
+            [36m>[31m
+              [36m<path[31m
+                [33md[31m=[32m"M21 10.5V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h12.5"[31m
+              [36m/>[31m
+              [36m<path[31m
+                [33md[31m=[32m"m9 11 3 3L22 4"[31m
+              [36m/>[31m
+            [36m</svg>[31m
+          [36m</div>[31m
+          [36m<div>[31m
+            [36m<h2[31m
+              [33mclass[31m=[32m"text-lg font-bold text-slate-900 tracking-tight"[31m
+            [36m>[31m
+              [0mSettlement Action Plan[0m
+            [36m</h2>[31m
+            [36m<div[31m
+              [33mclass[31m=[32m"flex items-center gap-2"[31m
+            [36m>[31m
+              [36m<p[31m
+                [33mclass[31m=[32m"text-slate-500 text-xs font-medium"[31m
+              [36m>[31m
+                [0mStep-by-step track for [0m
+                [0mRobinhood[0m
+              [36m</p>[31m
+            [36m</div>[31m
+          [36m</div>[31m
+        [36m</div>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200/60 shadow-sm shrink-0"[31m
+        [36m>[31m
+          [36m<svg[31m
+            [33mclass[31m=[32m"lucide lucide-circle-check w-3.5 h-3.5 text-green-600"[31m
+            [33mfill[31m=[32m"none"[31m
+            [33mheight[31m=[32m"24"[31m
+            [33mstroke[31m=[32m"currentColor"[31m
+            [33mstroke-linecap[31m=[32m"round"[31m
+            [33mstroke-linejoin[31m=[32m"round"[31m
+            [33mstroke-width[31m=[32m"2"[31m
+            [33mviewBox[31m=[32m"0 0 24 24"[31m
+            [33mwidth[31m=[32m"24"[31m
+            [33mxmlns[31m=[32m"http://www.w3.org/2000/svg"[31m
+          [36m>[31m
+            [36m<circle[31m
+              [33mcx[31m=[32m"12"[31m
+              [33mcy[31m=[32m"12"[31m
+              [33mr[31m=[32m"10"[31m
+            [36m/>[31m
+            [36m<path[31m
+              [33md[31m=[32m"m9 12 2 2 4-4"[31m
+            [36m/>[31m
+          [36m</svg>[31m
+          [36m<span[31m
+            [33mclass[31m=[32m"text-[11px] font-black text-slate-600 uppercase tracking-tighter"[31m
+          [36m>[31m
+            [0m0[0m
+            [0m / [0m
+            [0m1[0m
+            [0m Completed[0m
+          [36m</span>[31m
+        [36m</div>[31m
+      [36m</div>[31m
+      [36m<div[31m
+        [33mclass[31m=[32m"space-y-4"[31m
+        [33mdata-orientation[31m=[32m"vertical"[31m
+      [36m>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"border rounded-2xl transition-all duration-300 overflow-hidden border-slate-300 shadow-md bg-white ring-1 ring-slate-200"[31m
+          [33mdata-orientation[31m=[32m"vertical"[31m
+          [33mdata-state[31m=[32m"open"[31m
+        [36m>[31m
+          [36m<h3[31m
+            [33mclass[31m=[32m"flex"[31m
+            [33mdata-orientation[31m=[32m"vertical"[31m
+            [33mdata-state[31m=[32m"open"[31m
+          [36m>[31m
+            [36m<button[31m
+              [33maria-controls[31m=[32m"radix-:rn:"[31m
+              [33maria-expanded[31m=[32m"true"[31m
+              [33mclass[31m=[32m"flex flex-1 items-center justify-between font-medium transition-all [&[data-state=open]>svg]:rotate-180 hover:no-underline px-5 py-4 group [&[data-state=open]>svg]:hidden"[31m
+              [33mdata-orientation[31m=[32m"vertical"[31m
+              [33mdata-radix-collection-item[31m=[32m""[31m
+              [33mdata-state[31m=[32m"open"[31m
+              [33mid[31m=[32m"radix-:rm:"[31m
+              [33mtype[31m=[32m"button"[31m
+            [36m>[31m
+              [36m<div[31m
+                [33mclass[31m=[32m"flex items-center gap-4 text-left"[31m
+              [36m>[31m
+                [36m<div[31m
+                  [33mclass[31m=[32m"w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs transition-colors bg-slate-900 text-white"[31m
+                [36m>[31m
+                  [0m1[0m
+                [36m</div>[31m
+                [36m<div[31m
+                  [33mclass[31m=[32m"flex-1 min-w-0"[31m
+                [36m>[31m
+                  [36m<div[31m
+                    [33mclass[31m=[32m"flex items-center gap-2"[31m
+                  [36m>[31m
+                    [36m<h3[31m
+                      [33mclass[31m=[32m"font-bold text-base tracking-tight text-slate-900"[31m
+                    [36m>[31m
+                      [0mClaim[0m
+                    [36m</h3>[31m
+                  [36m</div>[31m
+                [36m</div>[31m
+              [36m</div>[31m
+              [36m<svg[31m
+                [33mclass[31m=[32m"lucide lucide-chevron-down h-4 w-4 shrink-0 transition-transform duration-200"[31m
+                [33mfill[31m=[32m"none"[31m
+                [33mheight[31m=[32m"24"[31m
+                [33mstroke[31m=[32m"currentColor"[31m
+                [33mstroke-linecap[31m=[32m"round"[31m
+                [33mstroke-linejoin[31m=[32m"round"[31m
+                [33mstroke-width[31m=[32m"2"[31m
+                [33mviewBox[31m=[32m"0 0 24 24"[31m
+                [33mwidth[31m=[32m"24"[31m
+                [33mxmlns[31m=[32m"http://www.w3.org/2000/svg"[31m
+              [36m>[31m
+                [36m<path[31m
+                  [33md[31m=[32m"m6 9 6 6 6-6"[31m
+                [36m/>[31m
+              [36m</svg>[31m
+            [36m</button>[31m
+          [36m</h3>[31m
+          [36m<div[31m
+            [33maria-labelledby[31m=[32m"radix-:rm:"[31m
+            [33mclass[31m=[32m"overflow-hidden text-sm transition-all data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion...
+
+Ignored nodes: comments, script, style
+[36m<html>[31m
+  [36m<head />[31m
+  [36m<body>[31m
+    [36m<div>[31m
+      [36m<div[31m
+        [33mclass[31m=[32m"space-y-6"[31m
+      [36m>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"flex flex-col md:flex-row md:items-center justify-between gap-4 py-2 border-b border-slate-100"[31m
+        [36m>[31m
+          [36m<div[31m
+            [33mclass[31m=[32m"flex items-center gap-4"[31m
+          [36m>[31m
+            [36m<div[31m
+              [33mclass[31m=[32m"p-2.5 bg-blue-50 text-blue-600 rounded-xl"[31m
+            [36m>[31m
+              [36m<svg[31m
+                [33mclass[31m=[32m"lucide lucide-square-check-big w-5 h-5"[31m
+                [33mfill[31m=[32m"none"[31m
+                [33mheight[31m=[32m"24"[31m
+                [33mstroke[31m=[32m"currentColor"[31m
+                [33mstroke-linecap[31m=[32m"round"[31m
+                [33mstroke-linejoin[31m=[32m"round"[31m
+                [33mstroke-width[31m=[32m"2"[31m
+                [33mviewBox[31m=[32m"0 0 24 24"[31m
+                [33mwidth[31m=[32m"24"[31m
+                [33mxmlns[31m=[32m"http://www.w3.org/2000/svg"[31m
+              [36m>[31m
+                [36m<path[31m
+                  [33md[31m=[32m"M21 10.5V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h12.5"[31m
+                [36m/>[31m
+                [36m<path[31m
+                  [33md[31m=[32m"m9 11 3 3L22 4"[31m
+                [36m/>[31m
+              [36m</svg>[31m
+            [36m</div>[31m
+            [36m<div>[31m
+              [36m<h2[31m
+                [33mclass[31m=[32m"text-lg font-bold text-slate-900 tracking-tight"[31m
+              [36m>[31m
+                [0mSettlement Action Plan[0m
+              [36m</h2>[31m
+              [36m<div[31m
+                [33mclass[31m=[32m"flex items-center gap-2"[31m
+              [36m>[31m
+                [36m<p[31m
+                  [33mclass[31m=[32m"text-slate-500 text-xs font-medium"[31m
+                [36m>[31m
+                  [0mStep-by-step track for [0m
+                  [0mRobinhood[0m
+                [36m</p>[31m
+              [36m</div>[31m
+            [36m</div>[31m
+          [36m</div>[31m
+          [36m<div[31m
+            [33mclass[31m=[32m"flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200/60 shadow-sm shrink-0"[31m
+          [36m>[31m
+            [36m<svg[31m
+              [33mclass[31m=[32m"lucide lucide-circle-check w-3.5 h-3.5 text-green-600"[31m
+              [33mfill[31m=[32m"none"[31m
+              [33mheight[31m=[32m"24"[31m
+              [33mstroke[31m=[32m"currentColor"[31m
+              [33mstroke-linecap[31m=[32m"round"[31m
+              [33mstroke-linejoin[31m=[32m"round"[31m
+              [33mstroke-width[31m=[32m"2"[31m
+              [33mviewBox[31m=[32m"0 0 24 24"[31m
+              [33mwidth[31m=[32m"24"[31m
+              [33mxmlns[31m=[32m"http://www.w3.org/2000/svg"[31m
+            [36m>[31m
+              [36m<circle[31m
+                [33mcx[31m=[32m"12"[31m
+                [33mcy[31m=[32m"12"[31m
+                [33mr[31m=[32m"10"[31m
+              [36m/>[31m
+              [36m<path[31m
+                [33md[31m=[32m"m9 12 2 2 4-4"[31m
+              [36m/>[31m
+            [36m</svg>[31m
+            [36m<span[31m
+              [33mclass[31m=[32m"text-[11px] font-black text-slate-600 uppercase tracking-tighter"[31m
+            [36m>[31m
+              [0m0[0m
+              [0m / [0m
+              [0m1[0m
+              [0m Completed[0m
+            [36m</span>[31m
+          [36m</div>[31m
+        [36m</div>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"space-y-4"[31m
+          [33mdata-orientation[31m=[32m"vertical"[31m
+        [36m>[31m
+          [36m<div[31m
+            [33mclass[31m=[32m"border rounded-2xl transition-all duration-300 overflow-hidden border-slate-300 shadow-md bg-white ring-1 ring-slate-200"[31m
+            [33mdata-orientation[31m=[32m"vertical"[31m
+            [33mdata-state[31m=[32m"open"[31m
+          [36m>[31m
+            [36m<h3[31m
+              [33mclass[31m=[32m"flex"[31m
+              [33mdata-orientation[31m=[32m"vertical"[31m
+              [33mdata-state[31m=[32m"open"[31m
+            [36m>[31m
+              [36m<button[31m
+                [33maria-controls[31m=[32m"radix-:rn:"[31m
+                [33maria-expanded[31m=[32m"true"[31m
+                [33mclass[31m=[32m"flex flex-1 items-center justify-between font-medium transition-all [&[data-state=open]>svg]:rotate-180 hover:no-underline px-5 py-4 group [&[data-state=open]>svg]:hidden"[31m
+                [33mdata-orientation[31m=[32m"vertical"[31m
+                [33mdata-radix-collection-item[31m=[32m""[31m
+                [33mdata-state[31m=[32m"open"[31m
+                [33mid[31m=[32m"radix-:rm:"[31m
+                [33mtype[31m=[32m"button"[31m
+              [36m>[31m
+                [36m<div[31m
+                  [33mclass[31m=[32m"flex items-center gap-4 text-left"[31m
+                [36m>[31m
+                  [36m<div[31m
+                    [33mclass[31m=[32m"w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs transition-colors bg-slate-900 text-white"[31m
+                  [36m>[31m
+                    [0m1[0m
+                  [36m</div>[31m
+                  [36m<div[31m
+                    [33mclass[31m=[32m"flex-1 min-w-0"[31m
+                  [36m>[31m
+                    [36m<div[31m
+                      [33mclass[31m=[32m"flex items-center gap-2"[31m
+                    [36m>[31m
+                      [36m<h3[31m
+                        [33mclass[31m=[32m"font-bold text-base tracking-tight text-slate-900"[31m
+                      [36m>[31m
+                        [0mClaim[0m
+                      [36m</h3>[31m
+                    [36m</div>[31m
+                  [36m</div>[31m
+                [36m</div>[31m
+                [36m<svg[31m
+                  [33mclass[31m=[32m"lucide lucide-chevron-down h-4 w-4 shrink-0 transition-transform duration-200"[31m
+                  [33mfill[31m=[32m"none"[31m
+                  [33mheight[31m=[32m"24"[31m
+                  [33mstroke[31m=[32m"currentColor"[31m
+                  [33mstroke-linecap[31m=[32m"round"[31m
+                  [33mstroke-linejoin[31m=[32m"round"[31m
+                  [33mstroke-width[31m=[32m"2"[31m
+                  [33mviewBox[31m=[32m"0 0 24 24"[31m
+                  [33mwidth[31m=[32m"24"[31m
+                  [33mxmlns[31m=[32m"http://www.w3.org/2000/svg"[31m
+                [36m>[31m
+                  [36m<path[31m
+                    [33md[31m=[32m"m6 9 6 6 6-6"[31m
+                  [36m...[39m
+[31m   [31m├ù[31m Workflow Clarity Improvements[2m > [22mProbate Hub: Shows Interactive Steps with Resources[39m[32m 268[2mms[22m[39m
+[31m     ΓåÆ Unable to find an element with the text: Download DE-111. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body[31m
+  [33mdata-scroll-locked[31m=[32m"1"[31m
+  [33mstyle[31m=[32m"pointer-events: none;"[31m
+[36m>[31m
+  [36m<span[31m
+    [33maria-hidden[31m=[32m"true"[31m
+    [33mdata-aria-hidden[31m=[32m"true"[31m
+    [33mdata-radix-focus-guard[31m=[32m""[31m
+    [33mstyle[31m=[32m"outline: none; opacity: 0; position: fixed; pointer-events: none;"[31m
+    [33mtabindex[31m=[32m"0"[31m
+  [36m/>[31m
+  [36m<div[31m
+    [33maria-hidden[31m=[32m"true"[31m
+    [33mdata-aria-hidden[31m=[32m"true"[31m
+  [36m>[31m
+    [36m<div[31m
+      [33mclass[31m=[32m"flex min-h-screen bg-[#F8FAFC]"[31m
+    [36m>[31m
+      [36m<div[31m
+        [33mclass[31m=[32m"w-64 h-screen bg-slate-900 text-slate-300 flex flex-col fixed left-0 top-0 z-50 border-r border-slate-800"[31m
+      [36m>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"p-6"[31m
+        [36m>[31m
+          [36m<div[31m
+            [33mclass[31m=[32m"flex items-center gap-3 mb-2"[31m
+          [36m>[31m
+            [36m<div[31m
+              [33mclass[31m=[32m"p-2 rounded-xl bg-primary text-primary-foreground shadow-[0_0_20px_rgba(var(--primary-rgb),0.3)]"[31m
+            [36m>[31m
+              [36m<svg[31m
+                [33mclass[31m=[32m"lucide lucide-landmark w-6 h-6"[31m
+                [33mfill[31m=[32m"none"[31m
+                [33mheight[31m=[32m"24"[31m
+                [33mstroke[31m=[32m"currentColor"[31m
+                [33mstroke-linecap[31m=[32m"round"[31m
+                [33mstroke-linejoin[31m=[32m"round"[31m
+                [33mstroke-width[31m=[32m"2"[31m
+                [33mviewBox[31m=[32m"0 0 24 24"[31m
+                [33mwidth[31m=[32m"24"[31m
+                [33mxmlns[31m=[32m"http://www.w3.org/2000/svg"[31m
+              [36m>[31m
+                [36m<line[31m
+                  [33mx1[31m=[32m"3"[31m
+                  [33mx2[31m=[32m"21"[31m
+                  [33my1[31m=[32m"22"[31m
+                  [33my2[31m=[32m"22"[31m
+                [36m/>[31m
+                [36m<line[31m
+                  [33mx1[31m=[32m"6"[31m
+                  [33mx2[31m=[32m"6"[31m
+                  [33my1[31m=[32m"18"[31m
+                  [33my2[31m=[32m"11"[31m
+                [36m/>[31m
+                [36m<line[31m
+                  [33mx1[31m=[32m"10"[31m
+                  [33mx2[31m=[32m"10"[31m
+                  [33my1[31m=[32m"18"[31m
+                  [33my2[31m=[32m"11"[31m
+                [36m/>[31m
+                [36m<line[31m
+                  [33mx1[31m=[32m"14"[31m
+                  [33mx2[31m=[32m"14"[31m
+                  [33my1[31m=[32m"18"[31m
+                  [33my2[31m=[32m"11"[31m
+                [36m/>[31m
+                [36m<line[31m
+                  [33mx1[31m=[32m"18"[31m
+                  [33mx2[31m=[32m"18"[31m
+                  [33my1[31m=[32m"18"[31m
+                  [33my2[31m=[32m"11"[31m
+                [36m/>[31m
+                [36m<polygon[31m
+                  [33mpoints[31m=[32m"12 2 20 7 4 7"[31m
+                [36m/>[31m
+              [36m</svg>[31m
+            [36m</div>[31m
+            [36m<span[31m
+              [33mclass[31m=[32m"font-bold text-xl tracking-tight text-white"[31m
+            [36m>[31m
+              [0mExpectedEstate[0m
+            [36m</span>[31m
+          [36m</div>[31m
+        [36m</div>[31m
+        [36m<nav[31m
+          [33mclass[31m=[32m"flex-1 px-4 space-y-8 overflow-y-auto pb-4 custom-scrollbar"[31m
+        [36m>[31m
+          [36m<div[31m
+            [33mclass[31m=[32m"space-y-1"[31m
+          [36m>[31m
+            [36m<p[31m
+              [33mclass[31m=[32m"px-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-3 opacity-60"[31m
+            [36m>[31m
+              [0mNavigation[0m
+            [36m</p>[31m
+            [36m<button[31m
+              [33mclass[31m=[32m"
+                                    w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all group
+                                    hover:bg-white/5
+                                "[31m
+            [36m>[31m
+              [36m<div[31m
+                [33mclass[31m=[32m"flex items-center gap-3"[31m
+              [36m>[31m
+                [36m<svg[31m
+                  [33mclass[31m=[32m"lucide lucide-layout-dashboard w-4 h-4 text-slate-500 group-hover:text-slate-300"[31m
+                  [33mfill[31m=[32m"none"[31m
+                  [33mheight[31m=[32m"24"[31m
+                  [33mstroke[31m=[32m"currentColor"[31m
+                  [33mstroke-linecap[31m=[32m"round"[31m
+                  [33mstroke-linejoin[31m=[32m"round"[31m
+                  [33mstroke-width[31m=[32m"2"[31m
+                  [33mviewBox[31m=[32m"0 0 24 24"[31m
+                  [33mwidth[31m=[32m"24"[31m
+                  [33mxmlns[31m=[32m"http://www.w3.org/2000/svg"[31m
+                [36m>[31m
+                  [36m<rect[31m
+                    [33mheight[31m=[32m"9"[31m
+                    [33mrx[31m=[32m"1"[31m
+                    [33mwidth[31m=[32m"7"[31m
+                    [33mx[31m=[32m"3"[31m
+                    [33my[31m=[32m"3"[31m
+                  [36m/>[31m
+                  [36m<rect[31m
+                    [33mheight[31m=[32m"5"[31m
+                    [33mrx[31m=[32m"1"[31m
+                    [33mwidth[31m=[32m"7"[31m
+                    [33mx[31m=[32m"14"[31m
+                    [33my[31m=[32m"3"[31m
+                  [36m/>[31m
+                  [36m<rect[31m
+                    [33mheight[31m=[32m"9"[31m
+                    [33mrx[31m=[32m"1"[31m
+                    [33mwidth[31m=[32m"7"[31m
+                    [33mx[31m=[32m"14"[31m
+                    [33my[31m=[32m"12"[31m
+                  [36m/>[31m
+                  [36m<rect[31m
+                    [33mheight[31m=[32m"5"[31m
+                    [33mrx[31m=[32m"1"[31m
+                    [33mwidth[31m=[32m"7"[31m
+                    [33mx[31m=[32m"3"[31m
+                    [33my[31m=[32m"16"[31m
+                  [36m/>[31m
+                [36m</svg>[31m
+                [36m<span[31m
+                  [33mclass[31m=[32m"text-[13px] font-semibold text-slate-400 group-hover:text-slate-200"[31m
+                [36m>[31m
+                  [0mDashboard[0m
+                [36m</span>[31m
+              [36m</div>[31m
+              [36m<div[31m
+                [33mclass[31m=[32m"flex items-center gap-2"[31m
+              [36m/>[31m
+            [36m</button>[31m
+            [36m<button[31m
+              [33mclass[31m=[32m"
+                                    w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all group
+...[39m
+ [31mΓ¥»[39m src/tests/settlement/e2e_flows.test.tsx [2m([22m[2m5 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[33m 5685[2mms[22m[39m
+[31m   [31m├ù[31m Estate Settlement E2E - Onboarding and Authority[2m > [22mE2E-01 & E2E-02: Onboarding and Authority Acquisition Workflow[39m[33m 5510[2mms[22m[39m
+[31m     ΓåÆ Unable to find an accessible element with the role "button" and name `/Update Status/i`
+
+Here are the accessible roles:
+
+  navigation:
+
+  Name "":
+  [36m<nav[31m
+    [33mclass[31m=[32m"flex-1 px-4 space-y-8 overflow-y-auto pb-4 custom-scrollbar"[31m
+  [36m/>[31m
+
+  --------------------------------------------------
+  paragraph:
+
+  Name "":
+  [36m<p[31m
+    [33mclass[31m=[32m"px-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-3 opacity-60"[31m
+  [36m/>[31m
+
+  Name "":
+  [36m<p[31m
+    [33mclass[31m=[32m"px-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-3 opacity-60"[31m
+  [36m/>[31m
+
+  Name "":
+  [36m<p[31m
+    [33mclass[31m=[32m"px-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-3 opacity-60"[31m
+  [36m/>[31m
+
+  Name "":
+  [36m<p[31m
+    [33mclass[31m=[32m"px-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-3 opacity-60"[31m
+  [36m/>[31m
+
+  Name "":
+  [36m<p[31m
+    [33mclass[31m=[32m"px-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-3 opacity-60"[31m
+  [36m/>[31m
+
+  Name "":
+  [36m<p[31m
+    [33mclass[31m=[32m"text-xs font-medium text-slate-500 uppercase tracking-widest hidden sm:block"[31m
+  [36m/>[31m
+
+  Name "":
+  [36m<p[31m
+    [33mclass[31m=[32m"text-[11px] font-medium opacity-90 max-w-2xl leading-tight"[31m
+  [36m/>[31m
+
+  Name "":
+  [36m<p[31m
+    [33mclass[31m=[32m"text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1.5"[31m
+  [36m/>[31m
+
+  Name "":
+  [36m<p[31m
+    [33mclass[31m=[32m"text-xl font-black text-slate-900 leading-none"[31m
+  [36m/>[31m
+
+  Name "":
+  [36m<p[31m
+    [33mclass[31m=[32m"text-[8px] font-black text-indigo-600 uppercase tracking-tighter"[31m
+  [36m/>[31m
+
+  Name "":
+  [36m<p[31m
+    [33mclass[31m=[32m"text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1.5"[31m
+  [36m/>[31m
+
+  Name "":
+  [36m<p[31m
+    [33mclass[31m=[32m"text-xl font-black text-slate-900 leading-none"[31m
+  [36m/>[31m
+
+  Name "":
+  [36m<p[31m
+    [33mclass[31m=[32m"text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1.5"[31m
+  [36m/>[31m
+
+  Name "":
+  [36m<p[31m
+    [33mclass[31m=[32m"text-xl font-black text-slate-900 leading-none"[31m
+  [36m/>[31m
+
+  Name "":
+  [36m<p[31m
+    [33mclass[31m=[32m"text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1.5"[31m
+  [36m/>[31m
+
+  Name "":
+  [36m<p[31m
+    [33mclass[31m=[32m"text-xl font-black text-slate-900 leading-none truncate"[31m
+  [36m/>[31m
+
+  Name "":
+  [36m<p[31m
+    [33mclass[31m=[32m"text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]"[31m
+  [36m/>[31m
+
+  Name "":
+  [36m<p[31m
+    [33mclass[31m=[32m"text-[11px] text-indigo-700 leading-relaxed max-w-lg mt-0.5"[31m
+  [36m/>[31m
+
+  Name "":
+  [36m<p[31m
+    [33mclass[31m=[32m"px-1 text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2"[31m
+  [36m/>[31m
+
+  Name "":
+  [36m<p[31m
+    [33mclass[31m=[32m"text-xs font-bold text-slate-800 leading-tight"[31m
+  [36m/>[31m
+
+  Name "":
+  [36m<p[31m
+    [33mclass[31m=[32m"text-[10px] text-slate-500 line-clamp-1 mt-0.5"[31m
+  [36m/>[31m
+
+  Name "":
+  [36m<p[31m
+    [33mclass[31m=[32m"text-xs font-bold text-slate-800 leading-tight"[31m
+  [36m/>[31m
+
+  Name "":
+  [36m<p[31m
+    [33mclass[31m=[32m"text-[10px] text-slate-500 line-clamp-1 mt-0.5"[31m
+  [36m/>[31m
+
+  Name "":
+  [36m<p[31m
+    [33mclass[31m=[32m"text-xs font-bold text-slate-800 leading-tight"[31m
+  [36m/>[31m
+
+  Name "":
+  [36m<p[31m
+    [33mclass[31m=[32m"text-[10px] text-slate-500 line-clamp-1 mt-0.5"[31m
+  [36m/>[31m
+
+  Name "":
+  [36m<p[31m
+    [33mclass[31m=[32m"text-sm text-slate-500"[31m
+  [36m/>[31m
+
+  Name "":
+  [36m<p[31m
+    [33mclass[31m=[32m"text-xs font-medium text-slate-400"[31m
+  [36m/>[31m
+
+  Name "":
+  [36m<p[31m
+    [33mclass[31m=[32m"text-sm font-bold text-slate-900"[31m
+  [36m/>[31m
+
+  Name "":
+  [36m<p[31m
+    [33mclass[31m=[32m"text-[10px] font-medium text-slate-500 uppercase tracking-wider"[31m
+  [36m/>[31m
+
+  Name "":
+  [36m<p[31m
+    [33mclass[31m=[32m"text-sm font-bold text-slate-900"[31m
+  [36m/>[31m
+
+  Name "":
+  [36m<p[31m
+    [33mclass[31m=[32m"text-[10px] font-medium text-slate-500 uppercase tracking-wider"[31m
+  [36m/>[31m
+
+  Name "":
+  [36m<p[31m
+    [33mclass[31m=[32m"text-sm font-bold text-slate-900"[31m
+  [36m/>[31m
+
+  Name "":
+  [36m<p[31m
+    [33mclass[31m=[32m"text-[10px] font-medium text-slate-500 uppercase tracking-wider"[31m
+  [36m/>[31m
+
+  Name "":
+  [36m<p[31m
+    [33mclass[31m=[32m"text-sm font-bold text-slate-900"[31m
+  [36m/>[31m
+
+  Name "":
+  [36m<p[31m
+    [33mclass[31m=[32m"text-[10px] font-medium text-slate-500 uppercase tracking-wider"[31m
+  [36m/>[31m
+
+  Name "":
+  [36m<p[31m
+    [33mclass[31m=[32m"text-sm text-slate-500 font-medium"[31m
+  [36m/>[31m
+
+  Name "":
+  [36m<p[31m
+    [33mclass[31m=[32m"text-xs text-slate-400"[31m
+  [36m/>[31m
+
+  Name "":
+  [36m<p[31m
+    [33mclass[31m=[32m"text-sm font-medium text-slate-300 leading-relaxed"[31m
+  [36m/>[31m
+
+  --------------------------------------------------
+  button:
+
+  Name "Dashboard":
+  [36m<button[31m
+    [33mclass[31m=[32m"
+                                      w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all group
+                                      hover:bg-white/5
+                                  "[31m
+  [36m/>[31m
+
+  Name "Settlement Path":
+  [36m<button[31m
+    [33mclass[31m=[32m"
+                                      w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all group
+                                      hover:bg-white/5
+                                  "[31m
+  [36m/>[31m
+
+  Name "Asset Ledger":
+  [36m<button[31m
+    [33mclass[31m=[32m"
+                                      w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all group
+                                      hover:bg-white/5
+                                  "[31m
+  [36m/>[31m
+
+  Name "Liabilities":
+  [36m<button[31m
+    [33mclass[31m=[32m"
+                                      w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all group
+                                      hover:bg-white/5
+                                  "[31m
+  [36m/>[31m
+
+  Name "Final Distribution":
+  [36m<button[31m
+    [33mclass[31m=[32m"
+                                      w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all group
+                                      hover:bg-white/5
+                                  "[31m
+  [36m/>[31m
+
+  Name "Accounting":
+  [36m<button[31m
+    [33mclass[31m=[32m"
+                                      w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all group
+                                      hover:bg-white/5
+                                  "[31m
+  [36m/>[31m
+
+  Name "Official Forms":
+  [36m<button[31m
+    [33mclass[31m=[32m"
+                                      w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all group
+                                      hover:bg-white/5
+                                  "[31m
+  [36m/>[31m
+
+  Name "Discovery Assistant":
+  [36m<button[31m
+    [33mclass[31m=[32m"
+                                      w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all group
+                                      hover:bg-white/5
+                                  "[31m
+  [36m/>[31m
+
+  Name "Document Vault":
+  [36m<button[31m
+    [33mclass[31m=[32m"
+                                      w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all group
+                                      hover:bg-white/5
+                                  "[31m
+  [36m/>[31m
+
+  Name "Settlement Trail":
+  [36m<button[31m
+    [33mclass[31m=[32m"
+                                      w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all group
+                                      hover:bg-white/5
+                                  "[31m
+  [36m/>[31m
+
+  Name "Follow-Ups":
+  [36m<button[31m
+    [33mclass[31m=[32m"
+                                      w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all group
+                                      hover:bg-white/5
+                                  "[31m
+  [36m/>[31m
+
+  Name "Help Center":
+  [36m<button[31m
+    [33mclass[31m=[32m"
+                                      w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all group
+                                      hover:bg-white/5
+                                  "[31m
+  [36m/>[31m
+
+  Name "Settings":
+  [36m<button[31m
+    [33mclass[31m=[32m"
+                                      w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all group
+                                      hover:bg-white/5
+                                  "[31m
+  [36m/>[31m
+
+  Name "Profile":
+  [36m<button[31m
+    [33mclass[31m=[32m"
+                                      w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all group
+                                      hover:bg-white/5
+                                  "[31m
+  [36m/>[31m
+
+  Name "Admin Console":
+  [36m<button[31m
+    [33mclass[31m=[32m"
+                                      w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all group
+                                      hover:bg-white/5
+                                  "[31m
+  [36m/>[31m
+
+  Name "Sign Out":
+  [36m<button[31m
+    [33mclass[31m=[32m"w-full flex items-center gap-3 px-3 py-2 rounded-xl text-slate-500 hover:text-red-400 hover:bg-red-400/10 transition-all font-medium text-sm"[31m
+  [36m/>[31m
+
+  Name "Start Settlement Path":
+  [36m<button[31m
+    [33mclass[31m=[32m"inline-flex items-center justify-center gap-2 whitespace-nowrap ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 py-2 bg-white text-slate-900 hover:bg-slate-100 h-7 px-4 rounded-lg font-black text-[10px] uppercase group shadow-md shrink-0 border-none"[31m
+  [36m/>[31m
+
+  Name "Finish Setup ΓåÆ":
+  [36m<button[31m
+    [33mclass[31m=[32m"inline-flex items-center justify-center gap-2 whitespace-nowrap ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 rounded-md bg-white border border-indigo-200 text-indigo-700 hover:bg-indigo-50 hover:text-indigo-800 font-black uppercase text-[9px] h-8 px-4 shrink-0 shadow-sm"[31m
+  [36m/>[31m
+
+  Name "Finish Items ΓåÆ":
+  [36m<button[31m
+    [33mclass[31m=[32m"inline-flex items-center justify-center whitespace-nowrap ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 px-4 py-2 w-full bg-indigo-600 text-white rounded-xl h-8 font-black text-[10px] uppercase tracking-widest gap-2 hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200"[31m
+  [36m/>[31m
+
+  Name "View Full Trail":
+  [36m<button[31m
+    [33mclass[31m=[32m"inline-flex items-center justify-center gap-2 whitespace-nowrap ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-accent hover:text-accent-foreground rounded-md px-3 h-7 text-[10px] uppercase font-black text-indigo-600"[31m
+  [36m/>[31m
+
+  Name "Log Diligence Note Add to Settlement Trail":
+  [36m<button[31m
+    [33mclass[31m=[32m"flex items-center gap-3 p-3 bg-white border border-slate-200 rounded-2xl text-left transition-all duration-200 hover:bg-indigo-100/50 hover:border-indigo-200"[31m
+  [36m/>[31m
+
+  Name "Find Assets Identify estate holdings":
+  [36m<button[31m
+    [33mclass[31m=[32m"flex items-center gap-3 p-3 bg-white border border-slate-200 rounded-2xl text-left transition-all duration-200 hover:bg-amber-100/50 hover:border-amber-200"[31m
+  [36m/>[31m
+
+  Name "Add New Asset Register account or property":
+  [36m<button[31m
+    [33mclass[31m=[32m"flex items-center gap-3 p-3 bg-white border border-slate-200 rounded-2xl text-left transition-all duration-200 hover:bg-emerald-100/50 hover:border-emerald-200"[31m
+  [36m/>[31m
+
+  Name "Generate forms Court-compliant documents":
+  [36m<button[31m
+    [33mclass[31m=[32m"flex items-center gap-3 p-3 bg-white border border-slate-200 rounded-2xl text-left transition-all duration-200 hover:bg-violet-100/50 hover:border-violet-200"[31m
+  [36m/>[31m
+
+  Name "Auto-Generate":
+  [36m<button[31m
+    [33mclass[31m=[32m"inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-accent hover:text-accent-foreground rounded-md px-3 h-7 text-[10px] text-violet-600"[31m
+  [36m/>[31m
+
+  Name "":
+  [36m<button[31m
+    [33maria-controls[31m=[32m"radix-:r0:"[31m
+    [33maria-expanded[31m=[32m"false"[31m
+    [33maria-haspopup[31m=[32m"dialog"[31m
+    [33mclass[31m=[32m"inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-accent hover:text-accent-foreground h-7 w-7"[31m
+    [33mdata-state[31m=[32m"closed"[31m
+    [33mtype[31m=[32m"button"[31m
+  [36m/>[31m
+
+  Name "View Best Practices":
+  [36m<button[31m
+    [33mclass[31m=[32m"inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 underline-offset-4 hover:underline p-0 h-auto text-indigo-400 text-xs font-bold mt-3 hover:text-indigo-300 uppercase tracking-widest"[31m
+  [36m/>[31m
+
+  --------------------------------------------------
+  main:
+
+  Name "":
+  [36m<main[31m
+    [33mclass[31m=[32m"max-w-[1240px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8 space-y-6"[31m
+  [36m/>[31m
+
+  --------------------------------------------------
+  heading:
+
+  Name "Secure & Notify":
+  [36m<h1[31m
+    [33mclass[31m=[32m"text-sm font-black tracking-tight"[31m
+  [36m/>[31m
+
+  Name "Executor Dashboard":
+  [36m<h2[31m
+    [33mclass[31m=[32m"text-xl font-black text-slate-900 tracking-tight"[31m
+  [36m/>[31m
+
+  Name "Finalizing Your Settlement Path":
+  [36m<h3[31m
+    [33mclass[31m=[32m"text-xs font-black text-indigo-900 uppercase tracking-tight"[31m
+  [36m/>[31m
+
+  Name "Path To-Do List":
+  [36m<h2[31m
+    [33mclass[31m=[32m"text-sm font-black text-slate-900 tracking-tight uppercase"[31m
+  [36m/>[31m
+
+  Name "Support Requested":
+  [36m<h2[31m
+    [33mclass[31m=[32m"text-lg font-bold text-slate-900 tracking-tight"[31m
+  [36m/>[31m
+
+  Name "All caught up!":
+  [36m<h3[31m
+    [33mclass[31m=[32m"font-semibold"[31m
+  [36m/>[31m
+
+  Name "Recent Proof of Work":
+  [36m<h2[31m
+    [33mclass[31m=[32m"text-lg font-bold text-slate-900 tracking-tight"[31m
+  [36m/>[31m
+
+  Name "Quick Actions":
+  [36m<h2[31m
+    [33mclass[31m=[32m"text-sm font-black text-slate-400 uppercase tracking-widest px-1"[31m
+  [36m/>[31m
+
+  Name "Critical Dates":
+  [36m<h3[31m
+    [33mclass[31m=[32m"text-sm font-bold text-slate-700 uppercase tracking-wider"[31m
+  [36m/>[31m
+
+  --------------------------------------------------
+  strong:
+
+  Name "":
+  [36m<strong[31m
+    [33mclass[31m=[32m"text-white"[31m
+  [36m/>[31m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<body>[31m
+  [36m<div>[31m
+    [36m<div[31m
+      [33mclass[31m=[32m"flex min-h-screen bg-[#F8FAFC]"[31m
+    [36m>[31m
+      [36m<div[31m
+        [33mclass[31m=[32m"w-64 h-screen bg-slate-900 text-slate-300 flex flex-col fixed left-0 top-0 z-50 border-r border-slate-800"[31m
+      [36m>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"p-6"[31m
+        [36m>[31m
+          [36m<div[31m
+            [33mclass[31m=[32m"flex items-center gap-3 mb-2"[31m
+          [36m>[31m
+            [36m<div[31m
+              [33mclass[31m=[32m"p-2 rounded-xl bg-primary text-primary-foreground shadow-[0_0_20px_rgba(var(--primary-rgb),0.3)]"[31m
+            [36m>[31m
+              [36m<svg[31m
+                [33mclass[31m=[32m"lucide lucide-landmark w-6 h-6"[31m
+                [33mfill[31m=[32m"none"[31m
+                [33mheight[31m=[32m"24"[31m
+                [33mstroke[31m=[32m"currentColor"[31m
+                [33mstroke-linecap[31m=[32m"round"[31m
+                [33mstroke-linejoin[31m=[32m"round"[31m
+                [33mstroke-width[31m=[32m"2"[31m
+                [33mviewBox[31m=[32m"0 0 24 24"[31m
+                [33mwidth[31m=[32m"24"[31m
+                [33mxmlns[31m=[32m"http://www.w3.org/2000/svg"[31m
+              [36m>[31m
+                [36m<line[31m
+                  [33mx1[31m=[32m"3"[31m
+                  [33mx2[31m=[32m"21"[31m
+                  [33my1[31m=[32m"22"[31m
+                  [33my2[31m=[32m"22"[31m
+                [36m/>[31m
+                [36m<line[31m
+                  [33mx1[31m=[32m"6"[31m
+                  [33mx2[31m=[32m"6"[31m
+                  [33my1[31m=[32m"18"[31m
+                  [33my2[31m=[32m"11"[31m
+                [36m/>[31m
+                [36m<line[31m
+                  [33mx1[31m=[32m"10"[31m
+                  [33mx2[31m=[32m"10"[31m
+                  [33my1[31m=[32m"18"[31m
+                  [33my2[31m=[32m"11"[31m
+                [36m/>[31m
+                [36m<line[31m
+                  [33mx1[31m=[32m"14"[31m
+                  [33mx2[31m=[32m"14"[31m
+                  [33my1[31m=[32m"18"[31m
+                  [33my2[31m=[32m"11"[31m
+                [36m/>[31m
+                [36m<line[31m
+                  [33mx1[31m=[32m"18"[31m
+                  [33mx2[31m=[32m"18"[31m
+                  [33my1[31m=[32m"18"[31m
+                  [33my2[31m=[32m"11"[31m
+                [36m/>[31m
+                [36m<polygon[31m
+                  [33mpoints[31m=[32m"12 2 20 7 4 7"[31m
+                [36m/>[31m
+              [36m</svg>[31m
+            [36m</div>[31m
+            [36m<span[31m
+              [33mclass[31m=[32m"font-bold text-xl tracking-tight text-white"[31m
+            [36m>[31m
+              [0mExpectedEstate[0m
+            [36m</span>[31m
+          [36m</div>[31m
+        [36m</div>[31m
+        [36m<nav[31m
+          [33mclass[31m=[32m"flex-1 px-4 space-y-8 overflow-y-auto pb-4 custom-scrollbar"[31m
+        [36m>[31m
+          [36m<div[31m
+            [33mclass[31m=[32m"space-y-1"[31m
+          [36m>[31m
+            [36m<p[31m
+              [33mclass[31m=[32m"px-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-3 opacity-60"[31m
+            [36m>[31m
+              [0mNavigation[0m
+            [36m</p>[31m
+            [36m<button[31m
+              [33mclass[31m=[32m"
+                                    w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all group
+                                    hover:bg-white/5
+                                "[31m
+            [36m>[31m
+              [36m<div[31m
+                [33mclass[31m=[32m"flex items-center gap-3"[31m
+              [36m>[31m
+                [36m<svg[31m
+                  [33mclass[31m=[32m"lucide lucide-layout-dashboard w-4 h-4 text-slate-500 group-hover:text-slate-300"[31m
+                  [33mfill[31m=[32m"none"[31m
+                  [33mheight[31m=[32m"24"[31m
+                  [33mstroke[31m=[32m"currentColor"[31m
+                  [33mstroke-linecap[31m=[32m"round"[31m
+                  [33mstroke-linejoin[31m=[32m"round"[31m
+                  [33mstroke-width[31m=[32m"2"[31m
+                  [33mviewBox[31m=[32m"0 0 24 24"[31m
+                  [33mwidth[31m=[32m"24"[31m
+                  [33mxmlns[31m=[32m"http://www.w3.org/2000/svg"[31m
+                [36m>[31m
+                  [36m<rect[31m
+                    [33mheight[31m=[32m"9"[31m
+                    [33mrx[31m=[32m"1"[31m
+                    [33mwidth[31m=[32m"7"[31m
+                    [33mx[31m=[32m"3"[31m
+                    [33my[31m=[32m"3"[31m
+                  [36m/>[31m
+                  [36m<rect[31m
+                    [33mheight[31m=[32m"5"[31m
+                    [33mrx[31m=[32m"1"[31m
+                    [33mwidth[31m=[32m"7"[31m
+                    [33mx[31m=[32m"14"[31m
+                    [33my[31m=[32m"3"[31m
+                  [36m/>[31m
+                  [36m<rect[31m
+                    [33mheight[31m=[32m"9"[31m
+                    [33mrx[31m=[32m"1"[31m
+                    [33mwidth[31m=[32m"7"[31m
+                    [33mx[31m=[32m"14"[31m
+                    [33my[31m=[32m"12"[31m
+                  [36m/>[31m
+                  [36m<rect[31m
+                    [33mheight[31m=[32m"5"[31m
+                    [33mrx[31m=[32m"1"[31m
+                    [33mwidth[31m=[32m"7"[31m
+                    [33mx[31m=[32m"3"[31m
+                    [33my[31m=[32m"16"[31m
+                  [36m/>[31m
+                [36m</svg>[31m
+                [36m<span[31m
+                  [33mclass[31m=[32m"text-[13px] font-semibold text-slate-400 group-hover:text-slate-200"[31m
+                [36m>[31m
+                  [0mDashboard[0m
+                [36m</span>[31m
+              [36m</div>[31m
+              [36m<div[31m
+                [33mclass[31m=[32m"flex items-center gap-2"[31m
+              [36m/>[31m
+            [36m</button>[31m
+            [36m<button[31m
+              [33mclass[31m=[32m"
+                                    w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all group
+                                    hover:bg-white/5
+                                "[31m
+            [36m>[31m
+              [36m<div[31m
+                [33mclass[31m=[32m"flex items-center gap-3"[31m
+              [36m>[31m
+                [36m<svg[31m
+                  [33mclass[31m=[32m"lucide lucide-map w-4 h-4 text-slate-500 group-hover:text-slate-300"[31m
+                  [33mfill[31m=[32m"none"[31m
+                  [33mheight[31m=[32m"24"[31m
+                  [33mstroke[31m=[...[39m
+   [32mΓ£ô[39m Estate Settlement E2E - Onboarding and Authority[2m > [22mE2E-03: Asset Discovery + Institution Matching[32m 32[2mms[22m[39m
+[31m   [31m├ù[31m Estate Settlement E2E - Onboarding and Authority[2m > [22mE2E-04: Bank Closure and Disbursement[39m[32m 40[2mms[22m[39m
+[31m     ΓåÆ Unable to find an element with the text: /Step-by-step workflow for closing Chase/i. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[31m
+  [36m<div>[31m
+    [36m<div[31m
+      [33mclass[31m=[32m"space-y-6"[31m
+    [36m>[31m
+      [36m<div[31m
+        [33mclass[31m=[32m"flex flex-col md:flex-row md:items-center justify-between gap-4 py-2 border-b border-slate-100"[31m
+      [36m>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"flex items-center gap-4"[31m
+        [36m>[31m
+          [36m<div[31m
+            [33mclass[31m=[32m"p-2.5 bg-blue-50 text-blue-600 rounded-xl"[31m
+          [36m>[31m
+            [36m<svg[31m
+              [33mclass[31m=[32m"lucide lucide-square-check-big w-5 h-5"[31m
+              [33mfill[31m=[32m"none"[31m
+              [33mheight[31m=[32m"24"[31m
+              [33mstroke[31m=[32m"currentColor"[31m
+              [33mstroke-linecap[31m=[32m"round"[31m
+              [33mstroke-linejoin[31m=[32m"round"[31m
+              [33mstroke-width[31m=[32m"2"[31m
+              [33mviewBox[31m=[32m"0 0 24 24"[31m
+              [33mwidth[31m=[32m"24"[31m
+              [33mxmlns[31m=[32m"http://www.w3.org/2000/svg"[31m
+            [36m>[31m
+              [36m<path[31m
+                [33md[31m=[32m"M21 10.5V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h12.5"[31m
+              [36m/>[31m
+              [36m<path[31m
+                [33md[31m=[32m"m9 11 3 3L22 4"[31m
+              [36m/>[31m
+            [36m</svg>[31m
+          [36m</div>[31m
+          [36m<div>[31m
+            [36m<h2[31m
+              [33mclass[31m=[32m"text-lg font-bold text-slate-900 tracking-tight"[31m
+            [36m>[31m
+              [0mSettlement Action Plan[0m
+            [36m</h2>[31m
+            [36m<div[31m
+              [33mclass[31m=[32m"flex items-center gap-2"[31m
+            [36m>[31m
+              [36m<p[31m
+                [33mclass[31m=[32m"text-slate-500 text-xs font-medium"[31m
+              [36m>[31m
+                [0mStep-by-step track for [0m
+                [0mChase[0m
+              [36m</p>[31m
+            [36m</div>[31m
+          [36m</div>[31m
+        [36m</div>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200/60 shadow-sm shrink-0"[31m
+        [36m>[31m
+          [36m<svg[31m
+            [33mclass[31m=[32m"lucide lucide-circle-check w-3.5 h-3.5 text-green-600"[31m
+            [33mfill[31m=[32m"none"[31m
+            [33mheight[31m=[32m"24"[31m
+            [33mstroke[31m=[32m"currentColor"[31m
+            [33mstroke-linecap[31m=[32m"round"[31m
+            [33mstroke-linejoin[31m=[32m"round"[31m
+            [33mstroke-width[31m=[32m"2"[31m
+            [33mviewBox[31m=[32m"0 0 24 24"[31m
+            [33mwidth[31m=[32m"24"[31m
+            [33mxmlns[31m=[32m"http://www.w3.org/2000/svg"[31m
+          [36m>[31m
+            [36m<circle[31m
+              [33mcx[31m=[32m"12"[31m
+              [33mcy[31m=[32m"12"[31m
+              [33mr[31m=[32m"10"[31m
+            [36m/>[31m
+            [36m<path[31m
+              [33md[31m=[32m"m9 12 2 2 4-4"[31m
+            [36m/>[31m
+          [36m</svg>[31m
+          [36m<span[31m
+            [33mclass[31m=[32m"text-[11px] font-black text-slate-600 uppercase tracking-tighter"[31m
+          [36m>[31m
+            [0m0[0m
+            [0m / [0m
+            [0m3[0m
+            [0m Completed[0m
+          [36m</span>[31m
+        [36m</div>[31m
+      [36m</div>[31m
+      [36m<div[31m
+        [33mclass[31m=[32m"space-y-4"[31m
+        [33mdata-orientation[31m=[32m"vertical"[31m
+      [36m>[31m
+        [36m<div[31m
+          [33mclass[31m=[32m"border rounded-2xl transition-all duration-300 overflow-hidden border-slate-300 shadow-md bg-white ring-1 ring-slate-200"[31m
+          [33mdata-orientation[31m=[32m"vertical"[31m
+          [33mdata-state[31m=[32m"open"[31m
+        [36m>[31m
+          [36m<h3[31m
+            [33mclass[31m=[32m"flex"[31m
+            [33mdata-orientation[31m=[32m"vertical"[31m
+            [33mdata-state[31m=[32m"open"[31m
+          [36m>[31m
+            [36m<button[31m
+              [33maria-controls[31m=[32m"radix-:r7:"[31m
+              [33maria-expanded[31m=[32m"true"[31m
+              [33mclass[31m=[32m"flex flex-1 items-center justify-between font-medium transition-all [&[data-state=open]>svg]:rotate-180 hover:no-underline px-5 py-4 group [&[data-state=open]>svg]:hidden"[31m
+              [33mdata-orientation[31m=[32m"vertical"[31m
+              [33mdata-radix-collection-item[31m=[32m""[31m
+              [33mdata-state[31m=[32m"open"[31m
+              [33mid[31m=[32m"radix-:r6:"[31m
+              [33mtype[31m=[32m"button"[31m
+            [36m>[31m
+              [36m<div[31m
+                [33mclass[31m=[32m"flex items-center gap-4 text-left"[31m
+              [36m>[31m
+                [36m<div[31m
+                  [33mclass[31m=[32m"w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs transition-colors bg-slate-900 text-white"[31m
+                [36m>[31m
+                  [0m1[0m
+                [36m</div>[31m
+                [36m<div[31m
+                  [33mclass[31m=[32m"flex-1 min-w-0"[31m
+                [36m>[31m
+                  [36m<div[31m
+                    [33mclass[31m=[32m"flex items-center gap-2"[31m
+                  [36m>[31m
+                    [36m<h3[31m
+                      [33mclass[31m=[32m"font-bold text-base tracking-tight text-slate-900"[31m
+                    [36m>[31m
+                      [0mNotify Bank[0m
+                    [36m</h3>[31m
+                  [36m</div>[31m
+                [36m</div>[31m
+              [36m</div>[31m
+              [36m<svg[31m
+                [33mclass[31m=[32m"lucide lucide-chevron-down h-4 w-4 shrink-0 transition-transform duration-200"[31m
+                [33mfill[31m=[32m"none"[31m
+                [33mheight[31m=[32m"24"[31m
+                [33mstroke[31m=[32m"currentColor"[31m
+                [33mstroke-linecap[31m=[32m"round"[31m
+                [33mstroke-linejoin[31m=[32m"round"[31m
+                [33mstroke-width[31m=[32m"2"[31m
+                [33mviewBox[31m=[32m"0 0 24 24"[31m
+                [33mwidth[31m=[32m"24"[31m
+                [33mxmlns[31m=[32m"http://www.w3.org/2000/svg"[31m
+              [36m>[31m
+                [36m<path[31m
+                  [33md[31m=[32m"m6 9 6 6 6-6"[31m
+                [36m/>[31m
+              [36m</svg>[31m
+            [36m</button>[31m
+          [36m</h3>[31m
+          [36m<div[31m
+            [33maria-labelledby[31m=[32m"radix-:r6:"[31m
+            [33mclass[31m=[32m"overflow-hidden text-sm transition-all data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordi...[39m
+   [32mΓ£ô[39m Estate Settlement E2E - Onboarding and Authority[2m > [22mE2E-05 to E2E-07: Brokerage, Retirement, and Insurance Flows[32m 48[2mms[22m[39m
+   [32mΓ£ô[39m Estate Settlement E2E - Onboarding and Authority[2m > [22mE2E-08 & E2E-09: Debts, Notices, and Final Distribution[32m 52[2mms[22m[39m
+
+[2m Test Files [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m3 passed[39m[22m[90m (5)[39m
+[2m      Tests [22m [1m[31m4 failed[39m[22m[2m | [22m[1m[32m19 passed[39m[22m[90m (23)[39m
+[2m   Start at [22m 10:25:15
+[2m   Duration [22m 8.45s[2m (transform 626ms, setup 589ms, collect 4.64s, tests 7.73s, environment 3.62s, prepare 677ms)[22m
+
