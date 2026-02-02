@@ -52,10 +52,11 @@ router.post('/category/:id/negative-assurance', async (req: any, res) => {
 // Analyze uploaded document
 router.post('/analyze', upload.single('file'), async (req: any, res) => {
     try {
-        console.log(`[DiscoveryRoute] Received file upload request`);
+        console.log(`[DiscoveryRoute] ========== NEW UPLOAD REQUEST ==========`);
+        console.log(`[DiscoveryRoute] Timestamp:`, new Date().toISOString());
 
         if (!req.file) {
-            console.log(`[DiscoveryRoute] No file in request`);
+            console.log(`[DiscoveryRoute] ERROR: No file in request`);
             return res.status(400).json({ error: "No file uploaded" });
         }
 
@@ -78,8 +79,13 @@ router.post('/analyze', upload.single('file'), async (req: any, res) => {
                 text = data.text;
                 console.log(`[DiscoveryRoute] Extracted ${text.length} characters from PDF`);
                 console.log(`[DiscoveryRoute] PDF text preview:`, text.substring(0, 200));
+                
+                if (text.length === 0) {
+                    console.log(`[DiscoveryRoute] WARNING: PDF text extraction returned 0 characters. PDF might be image-based or encrypted.`);
+                }
             } catch (pdfErr) {
                 console.error(`[DiscoveryRoute] PDF Parsing Failed:`, pdfErr);
+                console.error(`[DiscoveryRoute] PDF Error stack:`, pdfErr instanceof Error ? pdfErr.stack : 'No stack');
                 // Don't crash, just continue with empty text (or maybe try OCR if available in future)
                 // We rely on user to upload readable PDF
             }
@@ -91,22 +97,37 @@ router.post('/analyze', upload.single('file'), async (req: any, res) => {
             console.log(`[DiscoveryRoute] Processing as text file`);
             // For other text files, try simple string
             text = req.file.buffer.toString('utf-8');
+            console.log(`[DiscoveryRoute] Text file length: ${text.length}`);
         }
 
         console.log(`[DiscoveryRoute] Content ready for analysis. Text length: ${text.length}, Image present: ${!!imageBase64}`);
 
         // Send to DiscoveryService (handling Real AI)
+        console.log(`[DiscoveryRoute] Calling DiscoveryService.analyzeDocument...`);
         const result = await DiscoveryService.analyzeDocument({ text, imageBase64 });
-        console.log(`[DiscoveryRoute] Analysis result: Found ${result.findings.length} findings.`);
+        console.log(`[DiscoveryRoute] Analysis complete. Found ${result.findings.length} findings.`);
 
         if (result.findings.length > 0) {
             console.log(`[DiscoveryRoute] Findings:`, JSON.stringify(result.findings, null, 2));
+        } else {
+            console.log(`[DiscoveryRoute] No findings returned. This could mean:`);
+            console.log(`[DiscoveryRoute]   1. The document doesn't contain financial institution names`);
+            console.log(`[DiscoveryRoute]   2. The AI service is not working correctly`);
+            console.log(`[DiscoveryRoute]   3. The text extraction failed`);
         }
 
+        console.log(`[DiscoveryRoute] ========== REQUEST COMPLETE ==========`);
         res.json(result);
     } catch (error) {
+        console.error("[DiscoveryRoute] ========== REQUEST FAILED ==========");
         console.error("[DiscoveryRoute] Discovery Analysis Failed:", error);
-        res.status(500).json({ error: 'Failed to analyze document', details: error instanceof Error ? error.message : 'Unknown error' });
+        console.error("[DiscoveryRoute] Error stack:", error instanceof Error ? error.stack : 'No stack trace');
+        console.error("[DiscoveryRoute] ========================================");
+        res.status(500).json({ 
+            error: 'Failed to analyze document', 
+            details: error instanceof Error ? error.message : 'Unknown error',
+            stack: error instanceof Error ? error.stack : undefined
+        });
     }
 });
 

@@ -151,10 +151,18 @@ export class DiscoveryService {
         }
 
         try {
+            console.log(`[DiscoveryService] Calling ai.discoverRelatedAssets...`);
             const clues = await ai.discoverRelatedAssets(text, imageBase64);
             console.log(`[DiscoveryService] AI returned ${clues.length} clues`);
+            
+            if (clues.length === 0) {
+                console.log(`[DiscoveryService] WARNING: AI returned 0 clues. This might indicate an issue with the AI service or the document content.`);
+                console.log(`[DiscoveryService] Text sample for debugging:`, text?.substring(0, 200));
+            }
 
             const findings = clues.map(clue => {
+                console.log(`[DiscoveryService] Processing clue:`, JSON.stringify(clue, null, 2));
+                
                 // Map AI category to our internal categories
                 let category = 'INVESTMENTS';
                 const lowerAsset = (clue.potentialAsset || '').toLowerCase();
@@ -182,12 +190,15 @@ export class DiscoveryService {
             });
 
             console.log(`[DiscoveryService] Returning ${findings.length} findings`);
+            console.log(`[DiscoveryService] Findings:`, JSON.stringify(findings, null, 2));
+            
             return {
                 findings,
                 summary: `${findings.length} potential assets identified by AI analysis.`
             };
         } catch (error) {
             console.error("[DiscoveryService] AI Analysis Error:", error);
+            console.error("[DiscoveryService] Error stack:", error instanceof Error ? error.stack : 'No stack trace');
             throw error;
         }
     }

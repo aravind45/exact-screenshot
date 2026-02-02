@@ -70,6 +70,20 @@ export function HeroSection() {
               See How It Works
             </Button>
           </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+            className="mt-16 relative mx-auto max-w-5xl rounded-xl border border-border/50 bg-background/50 shadow-2xl overflow-hidden"
+          >
+            <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent z-10" />
+            <img
+              src="/modern_roadmap_illustration.png"
+              alt="ExpectedEstate Roadmap Timeline"
+              className="w-full h-auto object-cover"
+            />
+          </motion.div>
         </div>
 
         {/* Feature highlights */}
