@@ -138,22 +138,34 @@ export class DiscoveryService {
      * Analyze uploaded document for assets using Real AI
      */
     static async analyzeDocument({ text, imageBase64 }: { text?: string, imageBase64?: string }) {
+        console.log(`[DiscoveryService] Starting analysis. Text length: ${text?.length || 0}, Image: ${!!imageBase64}`);
+        
         if (!text && !imageBase64) {
+            console.log(`[DiscoveryService] No content provided`);
             return { findings: [], summary: "No content extracted from document." };
+        }
+
+        // Log first 500 chars of text for debugging
+        if (text) {
+            console.log(`[DiscoveryService] Text preview:`, text.substring(0, 500));
         }
 
         try {
             const clues = await ai.discoverRelatedAssets(text, imageBase64);
+            console.log(`[DiscoveryService] AI returned ${clues.length} clues`);
 
             const findings = clues.map(clue => {
                 // Map AI category to our internal categories
                 let category = 'INVESTMENTS';
-                const lowerAsset = clue.potentialAsset.toLowerCase();
-                const lowerInst = clue.institution.toLowerCase();
+                const lowerAsset = (clue.potentialAsset || '').toLowerCase();
+                const lowerInst = (clue.institution || '').toLowerCase();
 
                 if (lowerAsset.includes('check') || lowerAsset.includes('saving') || lowerInst.includes('bank')) category = 'BANK_ACCOUNTS';
                 else if (lowerAsset.includes('insurance') || lowerInst.includes('life')) category = 'EMPLOYER_BENEFITS';
-                else if (lowerAsset.includes('crypto')) category = 'DIGITAL_ASSETS';
+                else if (lowerAsset.includes('crypto') || lowerInst.includes('coinbase') || lowerInst.includes('binance')) category = 'DIGITAL_ASSETS';
+                else if (lowerAsset.includes('brokerage') || lowerAsset.includes('investment') || lowerInst.includes('robinhood') || lowerInst.includes('fidelity') || lowerInst.includes('vanguard')) category = 'INVESTMENTS';
+
+                console.log(`[DiscoveryService] Mapped clue: ${clue.institution} ${clue.potentialAsset} -> ${category}`);
 
                 return {
                     confidence: clue.confidence,
@@ -169,6 +181,7 @@ export class DiscoveryService {
                 };
             });
 
+            console.log(`[DiscoveryService] Returning ${findings.length} findings`);
             return {
                 findings,
                 summary: `${findings.length} potential assets identified by AI analysis.`

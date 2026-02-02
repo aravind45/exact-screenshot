@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <rect width="32" height="32" fill="#4F46E5" rx="6"/>
+  <g transform="translate(6, 8)" fill="white" stroke="white" stroke-width="1.5" stroke-linecap="round">
+    <!-- Courthouse columns -->
+    <line x1="2" y1="14" x2="2" y2="8"/>
+    <line x1="7" y1="14" x2="7" y2="8"/>
+    <line x1="12" y1="14" x2="12" y2="8"/>
+    <line x1="17" y1="14" x2="17" y2="8"/>
+    <!-- Base -->
+    <line x1="0" y1="15" x2="20" y2="15" stroke-width="2"/>
+    <!-- Roof -->
+    <path d="M 10,3 L 0,7 L 20,7 Z" fill="white" stroke="none"/>
+  </g>
+</svg>

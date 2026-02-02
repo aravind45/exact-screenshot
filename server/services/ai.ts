@@ -112,34 +112,44 @@ export async function discoverRelatedAssets(text?: string, imageBase64?: string)
     const prompt = `You are a forensic "Detective Agent" for the ExpectedEstate platform. 
     Your mission is to find hidden financial assets by scanning the document text for "clues".
     
-    CRITICAL: You are specialized in TAX DOCUMENTS (W-2, 1099-INT, 1099-DIV, 1040) and BANK STATEMENTS.
-    - If you see a 1099-B / Brokerage Statement: Look for "Robinhood", "Public", "Coinbase", or "ETrade". This proves an active trading account.
-    - If you see a W-2: Look at the "Employer" section. If "Retirement Plan" (Box 13) is checked, there IS a 401k/403b/Pension.
-    - If you see a 1099-INT: It proves an account at the specified bank exists.
-    - If you see a 1099-DIV: It proves a brokerage account or specific stock holdings exist.
+    CRITICAL INSTRUCTIONS:
+    1. ALWAYS look for institution names in headers, footers, and letterheads
+    2. Common brokerage firms: Robinhood, Fidelity, Vanguard, Charles Schwab, ETrade, TD Ameritrade, Webull, Public, M1 Finance
+    3. Common banks: Wells Fargo, Bank of America, Chase, Citibank, US Bank, Capital One
+    4. Crypto platforms: Coinbase, Binance, Kraken, Gemini, Crypto.com
     
-    Also look for:
-    - Cryptocurrency keywords (BTC, ETH, Coinbase, Binance).
-    - Transfers to/from other wealth managers (Vanguard, Fidelity, Charles Schwab, TD Ameritrade).
-    - Mentions of "Consolidated" accounts or "Summary of other holdings" (often found on page 1 or 2).
-    - Multiple account types listed in one statement (e.g. "Your IRA ending in 4455" mentioned in a checking statement).
-    - Dividends and Capital Gains reported on 1099-DIV.
-    - Life Insurance premiums paid or proceeds mentioned.
-
-    Return JSON list of objects:
+    DOCUMENT TYPES TO DETECT:
+    - Brokerage Statements: Look for "Account Summary", "Holdings", "Portfolio Value", "Positions"
+    - 1099-B: Brokerage proceeds - institution name is in "PAYER" field
+    - 1099-INT: Interest income - proves bank account exists
+    - 1099-DIV: Dividend income - proves investment account exists
+    - 1099-R: Retirement distribution - proves 401k/IRA exists
+    - W-2: Check Box 13 for "Retirement Plan" checkbox
+    - Bank Statements: Look for account numbers, balances, transactions
+    
+    SPECIFIC PATTERNS:
+    - "Robinhood" anywhere in document = Robinhood Brokerage Account
+    - "Account ending in XXXX" = Active account
+    - "Total Portfolio Value" = Investment account
+    - "Available Balance" = Bank account
+    - "Cryptocurrency" or "BTC" or "ETH" = Crypto holdings
+    
+    Return JSON with this EXACT structure:
     {
       "clues": [
         {
-          "potentialAsset": "Brokerage, 401k, Checking, or Crypto",
-          "institution": "Robinhood, Vanguard, Coinbase, Wells Fargo, etc.",
-          "sourceClue": "Direct evidence text (e.g. 'ACH Transfer from Fidelity' or 'Payer is Robinhood')",
-          "confidence": 0.98
+          "potentialAsset": "Brokerage Account" or "Bank Account" or "401k" or "IRA" or "Crypto Wallet",
+          "institution": "Exact institution name found in document",
+          "sourceClue": "Exact text snippet that proves this asset exists",
+          "confidence": 0.95
         }
       ]
     }
     
-    If no clear clues are found, still attempt to return the PRIMARY institution mentioned in the text as a clue.
-    Only return clues with confidence (0.5+).`;
+    IMPORTANT: 
+    - If you see ANY institution name, return it with at least 0.6 confidence
+    - Be generous with confidence scores for clear institution names
+    - Return empty array ONLY if absolutely no financial institutions are mentioned`;
 
     try {
         const contentMessage: any[] = [];
@@ -161,10 +171,16 @@ export async function discoverRelatedAssets(text?: string, imageBase64?: string)
 
         const content = completion.choices[0]?.message?.content;
         console.log(`[AI] discoverRelatedAssets response content:`, content);
+        console.log(`[AI] Input text length: ${text?.length || 0}, Image provided: ${!!imageBase64}`);
 
-        if (!content) return [];
+        if (!content) {
+            console.log(`[AI] No content returned from AI`);
+            return [];
+        }
 
         const parsed = JSON.parse(content);
+        console.log(`[AI] Parsed response:`, JSON.stringify(parsed, null, 2));
+        
         // Extremely robust parsing for various list formats
         let clues = [];
         if (Array.isArray(parsed)) clues = parsed;
@@ -177,6 +193,7 @@ export async function discoverRelatedAssets(text?: string, imageBase64?: string)
             else clues = Object.values(parsed).find(v => Array.isArray(v)) || [];
         }
 
+        console.log(`[AI] Extracted ${clues.length} clues from response`);
         return clues;
     } catch (error: any) {
         console.error("Discovery Agent Error:", error);
