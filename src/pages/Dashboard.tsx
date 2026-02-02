@@ -328,8 +328,8 @@ export default function Dashboard() {
             {/* Diligence Meter */}
             <div className="flex flex-col items-end gap-2">
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Diligence Score (Defensibility)</span>
-                <Badge variant="outline" className="h-5 text-[9px] font-black border-emerald-200 text-emerald-700 bg-emerald-50">High Integrity</Badge>
+                <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Settlement Integrity</span>
+                <Badge variant="outline" className="h-5 text-[9px] font-black border-emerald-200 text-emerald-700 bg-emerald-50">Calm & Comprehensive</Badge>
               </div>
               <div className="flex items-center gap-3">
                 <div className="w-48 h-2.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200/50">
@@ -432,7 +432,7 @@ export default function Dashboard() {
               </div>
               <div>
                 <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1.5">
-                  Action Items
+                  Guidance Required
                 </p>
                 <div className="flex items-center gap-1.5">
                   <p className="text-xl font-black text-slate-900 leading-none">{attentionNeededCount}</p>
@@ -491,8 +491,8 @@ export default function Dashboard() {
               {/* Urgent Actions Section */}
               <section className="space-y-4">
                 <div className="flex items-center gap-2 px-1">
-                  <AlertTriangle className="w-5 h-5 text-amber-500" />
-                  <h2 className="text-lg font-bold text-slate-900 tracking-tight">Urgent Actions</h2>
+                  <Lightbulb className="w-5 h-5 text-indigo-500" />
+                  <h2 className="text-lg font-bold text-slate-900 tracking-tight">Support Requested</h2>
                   {(realFollowUps.length > 0 || taxonomyStats.blocked > 0) && (
                     <Badge variant="secondary" className="bg-amber-100 text-amber-900 text-[10px] border-none">
                       {realFollowUps.length + taxonomyStats.blocked}
@@ -503,21 +503,21 @@ export default function Dashboard() {
                 <div className="space-y-3">
                   {/* Legal Blockers */}
                   {taxonomyStats.blocked > 0 && (
-                    <div className="p-4 bg-rose-50 border border-rose-100 rounded-2xl flex gap-3 items-start">
-                      <div className="p-2 bg-rose-500 text-white rounded-xl">
-                        <X className="w-4 h-4" />
+                    <div className="p-4 bg-indigo-50 border border-indigo-100 rounded-2xl flex gap-3 items-start">
+                      <div className="p-2 bg-indigo-500 text-white rounded-xl">
+                        <FileText className="w-4 h-4" />
                       </div>
                       <div className="flex-1">
-                        <p className="text-sm font-bold text-rose-900">Legal Blockers Detected</p>
-                        <p className="text-xs text-rose-700 font-medium mt-0.5">
-                          {taxonomyStats.blocked} assets require Probate Authority (DE-150).
+                        <p className="text-sm font-bold text-indigo-900">Authority Guidance</p>
+                        <p className="text-xs text-indigo-700 font-medium mt-0.5">
+                          {taxonomyStats.blocked} assets are awaiting verification of your local court authority.
                         </p>
                         <Button
                           variant="link"
-                          className="p-0 h-auto text-xs text-rose-800 font-black uppercase mt-2"
+                          className="p-0 h-auto text-xs text-indigo-800 font-black uppercase mt-2"
                           onClick={() => navigate('/probate')}
                         >
-                          Resolve in Probate Hub →
+                          Review Authority Requirements →
                         </Button>
                       </div>
                     </div>

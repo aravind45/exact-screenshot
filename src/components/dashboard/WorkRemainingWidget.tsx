@@ -37,8 +37,8 @@ export function WorkRemainingWidget({ currentPhase, completedTaskIds, assets }: 
         <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm flex flex-col h-full hover:border-indigo-200 transition-all">
             <div className="p-3 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                    <AlertTriangle className="w-5 h-5 text-indigo-600" />
-                    <h2 className="text-sm font-black text-slate-900 tracking-tight uppercase">Diligence Gaps</h2>
+                    <CheckCircle2 className="w-5 h-5 text-indigo-600" />
+                    <h2 className="text-sm font-black text-slate-900 tracking-tight uppercase">Path To-Do List</h2>
                 </div>
                 <Badge variant="outline" className="text-[10px] bg-white border-slate-200 text-slate-500 font-black">
                     {pendingTasks.length + pendingAssets.length} REMAINING
@@ -49,7 +49,7 @@ export function WorkRemainingWidget({ currentPhase, completedTaskIds, assets }: 
                 {/* Roadmap Gaps */}
                 {pendingTasks.length > 0 && (
                     <div>
-                        <p className="px-1 text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Roadmap Gaps (Current Phase)</p>
+                        <p className="px-1 text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Upcoming Tasks</p>
                         <div className="space-y-1.5">
                             {pendingTasks.slice(0, 3).map(task => (
                                 <div key={task.id} className="p-2 bg-slate-50 border border-slate-100 rounded-xl flex items-start gap-2 hover:bg-slate-100 transition-colors cursor-pointer" onClick={() => navigate('/roadmap')}>
@@ -93,7 +93,7 @@ export function WorkRemainingWidget({ currentPhase, completedTaskIds, assets }: 
 
             <div className="mt-auto p-3 bg-slate-50/30 border-t border-slate-100">
                 <Button className="w-full bg-indigo-600 text-white rounded-xl h-8 font-black text-[10px] uppercase tracking-widest gap-2 hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200" onClick={() => navigate('/roadmap')}>
-                    Resolve Gaps → <ArrowRight className="w-3.5 h-3.5" />
+                    Finish Items → <ArrowRight className="w-3.5 h-3.5" />
                 </Button>
             </div>
         </div>

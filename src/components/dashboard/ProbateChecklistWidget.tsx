@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, Circle, Flag, AlertTriangle } from "lucide-react";
+import { CheckCircle2, Circle, Flag, AlertTriangle, Info } from "lucide-react";
 
 interface ProbateChecklistWidgetProps {
     estateType: SettlementTrack | null;
@@ -75,26 +75,26 @@ export function ProbateChecklistWidget({ estateType, deceasedState = "CA" }: Pro
 
     if (!estateType || stages.length === 0) {
         return (
-            <Card className="border-slate-200 shadow-sm bg-amber-50/20 border-amber-100 overflow-hidden">
+            <Card className="border-slate-200 shadow-sm bg-indigo-50/30 border-indigo-100 overflow-hidden">
                 <CardContent className="p-4 sm:p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
                     <div className="flex items-center gap-4 text-left">
-                        <div className="p-2.5 bg-amber-100 rounded-xl text-amber-600 shrink-0">
-                            <AlertTriangle className="w-5 h-5" />
+                        <div className="p-2.5 bg-indigo-100 rounded-xl text-indigo-600 shrink-0">
+                            <Info className="w-5 h-5" />
                         </div>
                         <div>
-                            <h3 className="text-xs font-black text-amber-900 uppercase tracking-tight">Probate track pending configuration</h3>
-                            <p className="text-[11px] text-amber-700 leading-relaxed max-w-lg mt-0.5">
-                                Based on your estate details, we need one more input to finalize the correct legal track and generate your custom roadmap.
+                            <h3 className="text-xs font-black text-indigo-900 uppercase tracking-tight">Finalizing Your Settlement Path</h3>
+                            <p className="text-[11px] text-indigo-700 leading-relaxed max-w-lg mt-0.5">
+                                We just need a few more details to calibrate your personalized settlement track and ensure everything is documented correctly.
                             </p>
                         </div>
                     </div>
                     <Button
                         variant="ghost"
                         size="sm"
-                        className="bg-white border border-amber-200 text-amber-700 hover:bg-amber-50 hover:text-amber-800 font-black uppercase text-[9px] h-8 px-4 shrink-0 shadow-sm"
+                        className="bg-white border border-indigo-200 text-indigo-700 hover:bg-indigo-50 hover:text-indigo-800 font-black uppercase text-[9px] h-8 px-4 shrink-0 shadow-sm"
                         onClick={() => navigate('/onboarding')}
                     >
-                        Complete Setup →
+                        Finish Setup →
                     </Button>
                 </CardContent>
             </Card>
