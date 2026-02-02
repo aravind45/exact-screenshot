@@ -169,16 +169,16 @@ export default function Discovery() {
                                 <Sparkles className="w-3.5 h-3.5" />
                                 Forensic Diligence Protocol
                             </div>
-                            <h1 className="text-3xl font-black text-slate-900 tracking-tight">Discovery Assistant</h1>
-                            <p className="text-sm font-medium text-slate-500 leading-relaxed">
-                                A systematic protocol for identifying estate assets and documenting a defensible record of reasonable care.
+                            <h1 className="text-xl font-black text-slate-900 tracking-tight">Discovery Assistant</h1>
+                            <p className="text-[10px] font-medium text-slate-500 leading-tight">
+                                Forensic protocol for identifying estate assets.
                             </p>
                         </div>
                         <Dialog>
                             <DialogTrigger asChild>
-                                <Button variant="outline" className="rounded-2xl border-slate-200 bg-white shadow-sm font-bold text-slate-600 hover:bg-slate-50 px-6 h-12">
-                                    <AlertCircle className="w-4 h-4 mr-2" />
-                                    Review Standards
+                                <Button variant="outline" className="rounded-xl border-slate-200 bg-white shadow-sm font-bold text-slate-600 hover:bg-slate-50 px-4 h-9 text-[10px]">
+                                    <AlertCircle className="w-3.5 h-3.5 mr-1.5" />
+                                    Standards
                                 </Button>
                             </DialogTrigger>
                             <DialogContent className="max-w-md rounded-[2rem]">
@@ -216,7 +216,7 @@ export default function Discovery() {
                             onDragLeave={() => setIsDragging(false)}
                             onDrop={handleDrop}
                             className={cn(
-                                "border-3 border-dashed rounded-[3rem] p-12 text-center transition-all cursor-pointer relative",
+                                "border-2 border-dashed rounded-[2rem] p-6 text-center transition-all cursor-pointer relative",
                                 isDragging ? 'border-indigo-500 bg-indigo-50/50 scale-[1.01]' : 'border-slate-200 bg-white hover:border-indigo-300 hover:bg-slate-50/30'
                             )}
                         >
@@ -238,14 +238,14 @@ export default function Discovery() {
                                         <Upload className="w-8 h-8 text-indigo-600" />
                                     </div>
                                     <div>
-                                        <h3 className="text-2xl font-black text-slate-900 mb-2 tracking-tight">
-                                            Drag & Drop Evidence
+                                        <h3 className="text-lg font-black text-slate-900 mb-1 tracking-tight">
+                                            Evidence Upload
                                         </h3>
-                                        <p className="text-sm font-medium text-slate-400 max-w-lg mb-4">
-                                            Upload statements or tax returns to auto-detect assets.
+                                        <p className="text-[10px] font-medium text-slate-400 max-w-lg mb-3">
+                                            Auto-detect assets from tax returns or statements.
                                         </p>
                                         <div className="flex items-center gap-4">
-                                            <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700 rounded-xl h-10 px-6 font-black text-[10px] uppercase tracking-widest shadow-lg shadow-indigo-100">
+                                            <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700 rounded-lg h-8 px-4 font-black text-[9px] uppercase tracking-widest shadow-lg shadow-indigo-100">
                                                 Select File
                                             </Button>
                                             <p className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">
@@ -330,10 +330,10 @@ export default function Discovery() {
                             <motion.div
                                 initial={{ opacity: 0, height: 0 }}
                                 animate={{ opacity: 1, height: 'auto' }}
-                                className="bg-emerald-50 rounded-2xl p-4 border border-emerald-100 flex items-center gap-4"
+                                className="bg-emerald-50 rounded-xl p-3 border border-emerald-100 flex items-center gap-3"
                             >
-                                <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center shrink-0">
-                                    <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                                <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center shrink-0">
+                                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                                 </div>
                                 <div className="flex-1">
                                     <h3 className="text-sm font-black text-emerald-900">Discovery Phase Complete</h3>

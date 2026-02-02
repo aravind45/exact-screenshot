@@ -40,7 +40,7 @@ export function AssetTaxonomyBadge({ state, className, showIcon = true }: AssetT
 
     return (
         <div className={cn(
-            "inline-flex items-center gap-1.5 px-2 py-1 rounded-lg border text-[10px] uppercase font-black tracking-tight",
+            "inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md border text-[9px] uppercase font-bold tracking-tight",
             stateStyles[state],
             className
         )}>

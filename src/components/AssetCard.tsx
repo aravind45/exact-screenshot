@@ -102,12 +102,6 @@ export function AssetCard({ asset, onClick, onSelect, selected, selectable, clas
                 </p>
               </div>
               <div className="text-right shrink-0">
-                {asset.status === 'discovered' && (
-                  <div className="flex items-center gap-1 text-[10px] font-bold text-primary uppercase bg-primary/10 px-2 py-1 rounded-lg mb-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                    Action Required
-                  </div>
-                )}
                 <p className="font-semibold text-foreground">
                   {asset.value === 0 ? (
                     <span className="text-slate-400 italic text-xs font-medium">Pending</span>

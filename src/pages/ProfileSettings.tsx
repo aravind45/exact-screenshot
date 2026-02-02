@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,7 +14,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/lib/api";
-import { ArrowLeft, Save, User, UserCircle, Briefcase, MapPin, Mail, Loader2, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Save, User, UserCircle, Briefcase, MapPin, Mail, Loader2, ShieldCheck, Share2, Copy, Check } from "lucide-react";
 import { motion } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Sidebar } from "@/components/Sidebar";
@@ -243,6 +244,40 @@ export default function ProfileSettings() {
                                 </Card>
                             </motion.div>
 
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.1 }}
+                            >
+                                <Card className="border-indigo-100 bg-indigo-50/20 overflow-hidden relative group">
+                                    <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
+                                        <Share2 className="w-24 h-24 text-indigo-600 rotate-12" />
+                                    </div>
+                                    <CardHeader>
+                                        <div className="flex items-center gap-3 mb-2">
+                                            <div className="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center text-indigo-600">
+                                                <Share2 className="w-5 h-5" />
+                                            </div>
+                                            <CardTitle className="text-indigo-900">Refer a Friend</CardTitle>
+                                        </div>
+                                        <CardDescription className="text-indigo-700/70 max-w-md">
+                                            Know someone else navigating the probate process? Share ExpectedEstate to help them simplify their estate settlement protocol.
+                                        </CardDescription>
+                                    </CardHeader>
+                                    <CardContent className="space-y-4">
+                                        <div className="flex items-center gap-2">
+                                            <div className="flex-1 bg-white border border-indigo-100 rounded-xl h-11 flex items-center px-4 font-mono text-[10px] text-indigo-900/60 overflow-hidden select-all">
+                                                {window.location.origin}/join?ref={profile?.id?.substring(0, 8)}
+                                            </div>
+                                            <ReferralCopyButton referralLink={`${window.location.origin}/join?ref=${profile?.id?.substring(0, 8)}`} />
+                                        </div>
+                                        <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest">
+                                            Empowering heirs through forensic diligence
+                                        </p>
+                                    </CardContent>
+                                </Card>
+                            </motion.div>
+
                             {profile?.role === "ADMIN" && (
                                 <Card className="border-amber-500/20 bg-amber-500/5">
                                     <CardHeader>
@@ -270,5 +305,37 @@ export default function ProfileSettings() {
                 </main>
             </div>
         </div>
+    );
+}
+
+function ReferralCopyButton({ referralLink }: { referralLink: string }) {
+    const [copied, setCopied] = useState(false);
+
+    const handleCopy = () => {
+        navigator.clipboard.writeText(referralLink);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
+
+    return (
+        <Button
+            onClick={handleCopy}
+            className={cn(
+                "rounded-xl h-11 px-6 font-black text-[10px] uppercase tracking-widest transition-all",
+                copied ? "bg-emerald-600 hover:bg-emerald-600" : "bg-indigo-600 hover:bg-indigo-700"
+            )}
+        >
+            {copied ? (
+                <>
+                    <Check className="w-3.5 h-3.5 mr-2" />
+                    Copied!
+                </>
+            ) : (
+                <>
+                    <Copy className="w-3.5 h-3.5 mr-2" />
+                    Copy Link
+                </>
+            )}
+        </Button>
     );
 }
