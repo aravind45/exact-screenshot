@@ -190,6 +190,6 @@ describe("Workflow Clarity Improvements", () => {
         expect(link).toHaveAttribute("href", "https://www.courts.ca.gov/documents/de111.pdf");
 
         // Verify Status Update Button
-        expect(screen.getByText("Mark Filed")).toBeInTheDocument();
+        expect(screen.getByText(/File Petition/i)).toBeInTheDocument();
     });
 });
