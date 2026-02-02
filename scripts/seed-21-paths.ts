@@ -1,6 +1,11 @@
 import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
+
+// Hash password once for all users
+const PASSWORD = 'Test123!';
+let hashedPassword: string;
 
 const TEST_USERS = [
   {
@@ -454,6 +459,11 @@ const TEST_USERS = [
 async function main() {
   console.log('🌱 Seeding 21 test paths...\n');
 
+  // Hash password once for all users
+  console.log('🔐 Hashing password...');
+  hashedPassword = await bcrypt.hash(PASSWORD, 10);
+  console.log('✅ Password hashed\n');
+
   for (const userData of TEST_USERS) {
     try {
       // Create user
@@ -461,7 +471,7 @@ async function main() {
         data: {
           email: userData.email,
           fullName: userData.fullName,
-          passwordHash: '$2a$10$YourHashedPasswordHere', // You'll need to hash this properly
+          passwordHash: hashedPassword,
           role: 'EXECUTOR',
         },
       });
@@ -469,9 +479,10 @@ async function main() {
       console.log(`✅ Created user: ${userData.email}`);
 
       // Create estate
+      const { ...estateData } = userData.estate;
       const estate = await prisma.estate.create({
         data: {
-          ...userData.estate,
+          ...estateData,
           userId: user.id,
         },
       });

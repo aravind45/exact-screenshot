@@ -114,7 +114,10 @@ export default function OnboardingWizard() {
             } else if (currentStep === 3) { // Heirs
                 const validHeirs = heirs.filter(h => h.name.trim() !== "");
                 for (const heir of validHeirs) {
-                    await api.createHeir(heir);
+                    await api.createHeir({
+                        ...heir,
+                        isAdult: !heir.isMinor
+                    });
                 }
             } else if (currentStep === 4) { // Documents
                 if (uploadedFile) {
@@ -125,10 +128,10 @@ export default function OnboardingWizard() {
                 for (const asset of validAssets) {
                     await api.createAsset({
                         institution: asset.name,
-                        category: asset.type,
+                        category: asset.type, // 'financial', 'retirement', etc.
+                        assetType: asset.type === 'real_estate' ? 'real_estate' : 'bank_account', // Basic mapping
                         status: "discovered",
-                        priority: "medium",
-                        assetType: "bank_account"
+                        priority: "medium"
                     });
                 }
             } else if (currentStep === 6) { // Team
