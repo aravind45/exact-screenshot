@@ -349,6 +349,70 @@ export default function Dashboard() {
             </div>
           </div>
 
+          {/* Current Mission Banner */}
+          <div className={cn(
+            "relative overflow-hidden rounded-xl p-2.5 text-white shadow-md border transition-all hover:scale-[1.001]",
+            mission.color === 'amber' ? "bg-gradient-to-br from-amber-500 to-orange-600 border-amber-400" :
+              mission.color === 'indigo' ? "bg-gradient-to-br from-indigo-500 to-blue-700 border-indigo-400" :
+                mission.color === 'blue' ? "bg-gradient-to-br from-blue-500 to-cyan-700 border-blue-400" :
+                  mission.color === 'rose' ? "bg-gradient-to-br from-rose-500 to-red-700 border-rose-400" :
+                    mission.color === 'emerald' ? "bg-gradient-to-br from-emerald-500 to-teal-700 border-emerald-400" :
+                      "bg-gradient-to-br from-purple-500 to-fuchsia-700 border-purple-400"
+          )}>
+            <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-1">
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-0.5">
+                  <div className="inline-flex items-center gap-1.5 px-1.5 py-0.5 bg-white/20 rounded-full border border-white/20 backdrop-blur-sm">
+                    <span className="text-[8px] font-black uppercase tracking-widest text-white/90">Current Track</span>
+                  </div>
+                  <h1 className="text-sm font-black tracking-tight">{mission.title}</h1>
+                </div>
+                <p className="text-[11px] font-medium opacity-90 max-w-2xl leading-tight">
+                  {mission.description}
+                </p>
+              </div>
+              <Button
+                onClick={() => navigate(mission.link)}
+                className="bg-white text-slate-900 hover:bg-slate-100 h-7 px-4 rounded-lg font-black text-[10px] uppercase group shadow-md shrink-0 border-none"
+              >
+                {mission.cta}
+                <ArrowRight className="ml-1.5 w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+              </Button>
+            </div>
+          </div>
+
+          {/* Current Mission Banner */}
+          <div className={cn(
+            "relative overflow-hidden rounded-xl p-2.5 text-white shadow-md border transition-all hover:scale-[1.001]",
+            mission.color === 'amber' ? "bg-gradient-to-br from-amber-500 to-orange-600 border-amber-400" :
+              mission.color === 'indigo' ? "bg-gradient-to-br from-indigo-500 to-blue-700 border-indigo-400" :
+                mission.color === 'blue' ? "bg-gradient-to-br from-blue-500 to-cyan-700 border-blue-400" :
+                  mission.color === 'rose' ? "bg-gradient-to-br from-rose-500 to-red-700 border-rose-400" :
+                    mission.color === 'emerald' ? "bg-gradient-to-br from-emerald-500 to-teal-700 border-emerald-400" :
+                      "bg-gradient-to-br from-purple-500 to-fuchsia-700 border-purple-400"
+          )}>
+            <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-1">
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-0.5">
+                  <div className="inline-flex items-center gap-1.5 px-1.5 py-0.5 bg-white/20 rounded-full border border-white/20 backdrop-blur-sm">
+                    <span className="text-[8px] font-black uppercase tracking-widest text-white/90">Current Track</span>
+                  </div>
+                  <h1 className="text-sm font-black tracking-tight">{mission.title}</h1>
+                </div>
+                <p className="text-[11px] font-medium opacity-90 max-w-2xl leading-tight">
+                  {mission.description}
+                </p>
+              </div>
+              <Button
+                onClick={() => navigate(mission.link)}
+                className="bg-white text-slate-900 hover:bg-slate-100 h-7 px-4 rounded-lg font-black text-[10px] uppercase group shadow-md shrink-0 border-none"
+              >
+                {mission.cta}
+                <ArrowRight className="ml-1.5 w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+              </Button>
+            </div>
+          </div>
+
           <ProbateBlockerAlert />
 
 
@@ -430,20 +494,6 @@ export default function Dashboard() {
           </div>
 
 
-          {/* Dashboard Title Section (Moved below stats for better flow) */}
-          <div className="flex items-center gap-3 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-            <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center border border-indigo-100">
-              <User className="w-5 h-5 text-indigo-600" />
-            </div>
-            <div>
-              <h2 className="text-xl font-black text-slate-900 tracking-tight">
-                {roleName} Dashboard
-              </h2>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">
-                {estateName}
-              </p>
-            </div>
-          </div>
           <section>
             <ProbateChecklistWidget
               estateType={(estate?.estateType && estate.estateType !== "UNSET") ? (estate.estateType as any) : null}
