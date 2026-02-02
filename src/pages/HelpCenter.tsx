@@ -25,8 +25,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { SettlementMindMap } from "@/components/dashboard/SettlementMindMap";
 
 export default function HelpCenter() {
     const { data: estate } = useQuery({
@@ -273,16 +273,184 @@ export default function HelpCenter() {
                         </Card>
                     </div>
 
-                    {/* Visual Roadmap */}
+                    {/* Strategic Settlement Paths */}
                     <div className="space-y-6">
                         <div className="flex items-center justify-between px-1">
-                            <h2 className="text-xl font-bold text-slate-900">Interactive Settlement Map</h2>
-                            <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-100 text-[10px] uppercase font-black tracking-widest px-2 py-0.5">
-                                Visual Aid
+                            <h2 className="text-xl font-bold text-slate-900">Strategic Settlement Paths</h2>
+                            <Badge variant="outline" className="bg-indigo-50 text-indigo-700 border-indigo-100 text-[10px] uppercase font-black tracking-widest px-2 py-0.5">
+                                Strategy Guide
                             </Badge>
                         </div>
-                        <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden p-8">
-                            <SettlementMindMap />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {/* Full Probate */}
+                            <Card className="border-none shadow-sm bg-white overflow-hidden group hover:shadow-md transition-all rounded-[2rem]">
+                                <CardHeader className="pb-2">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <div className="w-10 h-10 rounded-xl bg-rose-50 flex items-center justify-center text-rose-600">
+                                            <Gavel className="w-5 h-5" />
+                                        </div>
+                                        <Badge variant="outline" className="bg-rose-50 text-rose-700 border-rose-100 text-[9px] font-black tracking-widest uppercase">Required</Badge>
+                                    </div>
+                                    <CardTitle className="text-base font-bold">Full Probate Flow</CardTitle>
+                                    <CardDescription className="text-[10px] font-bold text-rose-600 uppercase tracking-wider">Estate {">"} $184,500</CardDescription>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                                        Formal court process required when assets exceed the state threshold. Involves a judge's oversight, public notice, and a formal appointment of a Personal Representative.
+                                    </p>
+                                    <div className="space-y-2">
+                                        <Label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Key Milestones</Label>
+                                        <div className="grid grid-cols-1 gap-1.5">
+                                            {[
+                                                "File Petition (DE-111)",
+                                                "Letters of Authority (DE-150)",
+                                                "Final Distribution Order"
+                                            ].map((m, i) => (
+                                                <div key={i} className="flex items-center gap-2 text-[10px] font-bold text-slate-500">
+                                                    <div className="w-1 h-1 rounded-full bg-rose-400" />
+                                                    {m}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+
+                            {/* Small Estate */}
+                            <Card className="border-none shadow-sm bg-white overflow-hidden group hover:shadow-md transition-all rounded-[2rem]">
+                                <CardHeader className="pb-2">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600">
+                                            <Zap className="w-5 h-5" />
+                                        </div>
+                                        <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-100 text-[9px] font-black tracking-widest uppercase">Streamlined</Badge>
+                                    </div>
+                                    <CardTitle className="text-base font-bold">Small Estate Affidavit</CardTitle>
+                                    <CardDescription className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">Estate ≤ $184,500</CardDescription>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                                        A simplified non-court process for smaller estates. Allows heirs to claim assets by presenting a notarized affidavit directly to financial institutions.
+                                    </p>
+                                    <div className="space-y-2">
+                                        <Label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Key Milestones</Label>
+                                        <div className="grid grid-cols-1 gap-1.5">
+                                            {[
+                                                "40-Day Waiting Period",
+                                                "Notarized §13100 Affidavit",
+                                                "Instant Asset Transfer"
+                                            ].map((m, i) => (
+                                                <div key={i} className="flex items-center gap-2 text-[10px] font-bold text-slate-500">
+                                                    <div className="w-1 h-1 rounded-full bg-emerald-400" />
+                                                    {m}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+
+                            {/* Spousal Property */}
+                            <Card className="border-none shadow-sm bg-white overflow-hidden group hover:shadow-md transition-all rounded-[2rem]">
+                                <CardHeader className="pb-2">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
+                                            <Heart className="w-5 h-5" />
+                                        </div>
+                                        <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-100 text-[9px] font-black tracking-widest uppercase">Spousal</Badge>
+                                    </div>
+                                    <CardTitle className="text-base font-bold">Spousal Property Flow</CardTitle>
+                                    <CardDescription className="text-[10px] font-bold text-blue-600 uppercase tracking-wider">Surviving Spouses</CardDescription>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                                        A streamlined court order (DE-221) designed specifically for property passing to a surviving spouse or domestic partner. Much faster than full probate.
+                                    </p>
+                                    <div className="space-y-2">
+                                        <Label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Key Milestones</Label>
+                                        <div className="grid grid-cols-1 gap-1.5">
+                                            {[
+                                                "File Petition (DE-221)",
+                                                "Court Order for Transfer",
+                                                "Title Re-registration"
+                                            ].map((m, i) => (
+                                                <div key={i} className="flex items-center gap-2 text-[10px] font-bold text-slate-500">
+                                                    <div className="w-1 h-1 rounded-full bg-blue-400" />
+                                                    {m}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+
+                            {/* Trust Administration */}
+                            <Card className="border-none shadow-sm bg-white overflow-hidden group hover:shadow-md transition-all rounded-[2rem]">
+                                <CardHeader className="pb-2">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600">
+                                            <Shield className="w-5 h-5" />
+                                        </div>
+                                        <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-100 text-[9px] font-black tracking-widest uppercase">Private</Badge>
+                                    </div>
+                                    <CardTitle className="text-base font-bold">Trust Administration</CardTitle>
+                                    <CardDescription className="text-[10px] font-bold text-amber-600 uppercase tracking-wider">Assets in Living Trust</CardDescription>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                                        A private process where the Successor Trustee manages and distributes assets according to the terms of the Living Trust. Usually involves zero court filings.
+                                    </p>
+                                    <div className="space-y-2">
+                                        <Label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Key Milestones</Label>
+                                        <div className="grid grid-cols-1 gap-1.5">
+                                            {[
+                                                "Successor Trustee Notice",
+                                                "Asset Certification",
+                                                "Private Distribution"
+                                            ].map((m, i) => (
+                                                <div key={i} className="flex items-center gap-2 text-[10px] font-bold text-slate-500">
+                                                    <div className="w-1 h-1 rounded-full bg-amber-400" />
+                                                    {m}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+
+                            {/* Joint / POD-TOD */}
+                            <Card className="border-none shadow-sm bg-white overflow-hidden group hover:shadow-md transition-all rounded-[2rem] md:col-span-2">
+                                <CardHeader className="pb-2">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600">
+                                            <History className="w-5 h-5" />
+                                        </div>
+                                        <Badge variant="outline" className="bg-indigo-50 text-indigo-700 border-indigo-100 text-[9px] font-black tracking-widest uppercase">Automatic</Badge>
+                                    </div>
+                                    <CardTitle className="text-base font-bold">Joint Transfer / POD-TOD Flow</CardTitle>
+                                    <CardDescription className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider">Operation of Law</CardDescription>
+                                </CardHeader>
+                                <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                                        Assets with named beneficiaries or joint owners transfer automatically ("By Operation of Law"). This is the fastest way to settle an asset and requires no probate or trust work.
+                                    </p>
+                                    <div className="space-y-2">
+                                        <Label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Key Milestones</Label>
+                                        <div className="grid grid-cols-1 gap-1.5">
+                                            {[
+                                                "Death Certificate Submission",
+                                                "Institution Claims Forms",
+                                                "Direct Payout to Beneficiary"
+                                            ].map((m, i) => (
+                                                <div key={i} className="flex items-center gap-2 text-[10px] font-bold text-slate-500">
+                                                    <div className="w-1 h-1 rounded-full bg-indigo-400" />
+                                                    {m}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
                         </div>
                     </div>
 
