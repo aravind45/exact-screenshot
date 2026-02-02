@@ -32,6 +32,11 @@ function generateTransferOnlyRoadmap(type: AuthorityType, state: string): PhaseT
     return baseline.map(p => {
         let tasks = [...p.tasks];
 
+        // Filter out international tasks if modifier is not present
+        if (!modifiers.includes("INTERNATIONAL_MODE")) {
+            tasks = tasks.filter(t => !t.isInternationalOnly);
+        }
+
         // Filter tasks that are purely probate-related
         tasks = tasks.filter(t => t.category !== "probate");
 
@@ -66,6 +71,11 @@ function generateFiduciaryRoadmap(type: AuthorityType, state: string, modifiers:
 
     return baseline.map(p => {
         let tasks = [...p.tasks];
+
+        // Filter out international tasks if modifier is not present
+        if (!modifiers.includes("INTERNATIONAL_MODE")) {
+            tasks = tasks.filter(t => !t.isInternationalOnly);
+        }
 
         // Remove court-filing specific tasks
         tasks = tasks.filter(t => t.category !== "probate" && t.category !== "court-issued");
@@ -210,6 +220,11 @@ function generateProbateRoadmap(type: AuthorityType, state: string, modifiers: s
     // Inject Overlays for Probate
     return roadmap.map((p: PhaseTaskList) => {
         let tasks = [...p.tasks];
+
+        // Filter out international tasks if modifier is not present
+        if (!modifiers.includes("INTERNATIONAL_MODE")) {
+            tasks = tasks.filter(t => !t.isInternationalOnly);
+        }
 
         if (modifiers.includes("INSOLVENT") && p.phase === "creditor_claims") {
             tasks.unshift({

@@ -32,6 +32,7 @@ export interface PhaseTask {
     authorityTypes?: AuthorityType[];
     states?: string[];
   };
+  isInternationalOnly?: boolean; // New flag for International Mode
 }
 
 export interface PhaseTaskList {
@@ -195,6 +196,33 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
           {
             type: "warning",
             message: "Use estate funds only. Keep receipts for court accounting."
+          }
+        ]
+      },
+      // International Mode Tasks - Group 1: Representation
+      {
+        id: "confirm_us_rep",
+        title: "Confirm U.S. Legal Representative",
+        description: "Decide if you will hire a U.S. probate attorney or appoint a local co-executor/agent to handle on-the-ground tasks.",
+        estimatedTime: "1 week",
+        isInternationalOnly: true,
+        alerts: [
+          {
+            type: "important",
+            message: "Most U.S. institutions will not coordinate directly with foreign executors without U.S. counsel or agent."
+          }
+        ]
+      },
+      {
+        id: "check_apostille",
+        title: "Check Apostille Requirements",
+        description: "Determine if your country is part of the Hague Apostille Convention for notarizing documents.",
+        estimatedTime: "1 hour",
+        isInternationalOnly: true,
+        alerts: [
+          {
+            type: "warning",
+            message: "Foreign notarization without apostille is frequently rejected by U.S. banks."
           }
         ]
       }
@@ -417,6 +445,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
           }
         ]
       },
+
       {
         id: "file_inventory",
         title: "File Inventory with Court",
@@ -428,6 +457,20 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
           {
             type: "info",
             message: "Keep proof of service. This becomes the official estate value."
+          }
+        ]
+      },
+      // International Mode - Tax
+      {
+        id: "tax_withholding_review",
+        title: "International Tax Withholding Review",
+        description: "Identify beneficiary residency and citizenship to determine if 30% withholding applies.",
+        estimatedTime: "1-2 weeks",
+        isInternationalOnly: true,
+        alerts: [
+          {
+            type: "caution",
+            message: "Institutions may over-withhold by default for foreign beneficiaries. Review treaty benefits before distribution."
           }
         ]
       }
@@ -696,6 +739,21 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
           }
         ]
       },
+      // International Mode - Distribution
+      {
+        id: "international_distribution_prep",
+        title: "Prepare International Distribution",
+        description: "Collect exact beneficiary bank details, Swift codes, and pre-validate wire requirements.",
+        estimatedTime: "2-3 weeks",
+        isInternationalOnly: true,
+        dependencies: ["pay_taxes"],
+        alerts: [
+          {
+            type: "warning",
+            message: "International wires are strictly scrutinized. Ensure 'Exact Name Match' on all accounts."
+          }
+        ]
+      },
       {
         id: "close_estate",
         title: "Close Estate",
@@ -713,3 +771,4 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
     ]
   }
 ];
+

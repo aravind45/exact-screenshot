@@ -102,6 +102,10 @@ model Estate {
 
   probateNotes String? @map("probate_notes")
 
+  // International Mode (Overlay)
+  isInternational      Boolean  @default(false) @map("is_international")
+  internationalReasons String[] @map("international_reasons")
+
   heirs Heir[]
 
   roadmapProgress Json? @map("roadmap_progress") // { completedTaskIds: string[], completedPhases: string[] }

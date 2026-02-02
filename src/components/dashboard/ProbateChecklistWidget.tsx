@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, Circle, Flag, AlertTriangle, Info } from "lucide-react";
+import { InternationalHelpSection } from "@/components/InternationalHelpSection";
 
 interface ProbateChecklistWidgetProps {
     estateType: SettlementTrack | null;
@@ -45,8 +46,12 @@ export function ProbateChecklistWidget({ estateType, deceasedState = "CA" }: Pro
 
     const dynamicStages = useMemo(() => {
         if (!recommendation) return [];
-        return generateRoadmap(recommendation.type, estate?.deceasedState || deceasedState, recommendation.modifiers || []);
-    }, [recommendation, estate?.deceasedState, deceasedState]);
+        const modifiers = [...(recommendation.modifiers || [])];
+        if (estate?.isInternational) {
+            modifiers.push("INTERNATIONAL_MODE");
+        }
+        return generateRoadmap(recommendation.type, estate?.deceasedState || deceasedState, modifiers);
+    }, [recommendation, estate?.deceasedState, deceasedState, estate?.isInternational]);
 
     const stages = dynamicStages.map(s => ({
         id: s.phase,
@@ -119,6 +124,11 @@ export function ProbateChecklistWidget({ estateType, deceasedState = "CA" }: Pro
                             <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mt-1">
                                 {(recommendation?.type || estateType || "ESTATE").replace(/_/g, " ")} TRACK
                             </p>
+                            {estate?.isInternational && (
+                                <div className="mt-2">
+                                    <InternationalHelpSection />
+                                </div>
+                            )}
                         </div>
                     </div>
                     <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-full border border-slate-200 shadow-sm">

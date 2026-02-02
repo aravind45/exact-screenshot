@@ -107,6 +107,61 @@ router.put("/my", async (req: any, res: Response) => {
             data: updateData
         });
 
+        // International Executor Mode Trigger (Overlay)
+        const US_STATES = [
+            'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD',
+            'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ', 'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC',
+            'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY', 'DC',
+            'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut', 'Delaware', 'Florida', 'Georgia',
+            'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa', 'Kansas', 'Kentucky', 'Louisiana', 'Maine', 'Maryland',
+            'Massachusetts', 'Michigan', 'Minnesota', 'Mississippi', 'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire', 'New Jersey',
+            'New Mexico', 'New York', 'North Carolina', 'North Dakota', 'Ohio', 'Oklahoma', 'Oregon', 'Pennsylvania', 'Rhode Island', 'South Carolina',
+            'South Dakota', 'Tennessee', 'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington', 'West Virginia', 'Wisconsin', 'Wyoming', 'District of Columbia'
+        ];
+
+        // Check Triggers
+        const newReasons: string[] = [];
+        let shouldEnableInternational = false;
+
+        // 1. Executor Residence Check
+        if (req.user.state && !US_STATES.includes(req.user.state)) {
+            shouldEnableInternational = true;
+            newReasons.push("EXECUTOR_RESIDENCE");
+        }
+
+        // 2. Deceased State Check (Ancillary indication)
+        // If deceasedState is updated and NOT in US_STATES (assuming it might store country if freely entered, though typically it's restricted)
+        // For now, we trust the frontend dropdowns, but if we later capture "Country", checking here is good.
+
+        // 3. User Citizenship (if tracked) or Mailing Address
+        // (Assuming we might check specific other fields if they existed)
+
+        if (shouldEnableInternational) {
+            // Only update if not already set or if adding new reasons
+            const currentReasons = estate.internationalReasons || [];
+            if (!estate.isInternational || !newReasons.every(r => currentReasons.includes(r))) {
+                updateData.isInternational = true;
+                // Merge unique reasons
+                updateData.internationalReasons = [...new Set([...currentReasons, ...newReasons])];
+
+                // Log High-Signal Event
+                await prisma.settlementActivity.create({
+                    data: {
+                        estateId: estate.id,
+                        userId: req.user.id,
+                        type: 'CONFIGURATION',
+                        action: 'UPDATED',
+                        notes: `INTERNATIONAL MODE ENABLED – Detected: ${newReasons.join(", ")}`
+                    }
+                });
+            }
+        }
+
+        const updated = await prisma.estate.update({
+            where: { id: estate.id },
+            data: updateData
+        });
+
         // Decrypt SSN for response
         if (updated.deceasedSsn) {
             updated.deceasedSsn = decrypt(updated.deceasedSsn);
