@@ -40,19 +40,23 @@ export function ProbateChecklistWidget({ estateType, deceasedState = "CA" }: Pro
 
     if (!estateType || stages.length === 0) {
         return (
-            <Card className="border-slate-200 shadow-sm bg-amber-50/30 border-amber-100">
-                <CardContent className="p-10 text-center space-y-4">
-                    <div className="flex flex-col items-center gap-3">
-                        <AlertTriangle className="w-8 h-8 text-amber-500" />
-                        <h3 className="text-sm font-bold text-amber-900 uppercase tracking-tight">Probate track pending configuration</h3>
-                        <p className="text-xs text-amber-700 max-w-sm mx-auto leading-relaxed">
-                            Based on your estate details, we need one more input to finalize the correct legal track and generate your custom roadmap.
-                        </p>
+            <Card className="border-slate-200 shadow-sm bg-amber-50/20 border-amber-100 overflow-hidden">
+                <CardContent className="p-4 sm:p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div className="flex items-center gap-4 text-left">
+                        <div className="p-2.5 bg-amber-100 rounded-xl text-amber-600 shrink-0">
+                            <AlertTriangle className="w-5 h-5" />
+                        </div>
+                        <div>
+                            <h3 className="text-xs font-black text-amber-900 uppercase tracking-tight">Probate track pending configuration</h3>
+                            <p className="text-[11px] text-amber-700 leading-relaxed max-w-lg mt-0.5">
+                                Based on your estate details, we need one more input to finalize the correct legal track and generate your custom roadmap.
+                            </p>
+                        </div>
                     </div>
                     <Button
-                        variant="outline"
+                        variant="ghost"
                         size="sm"
-                        className="bg-white border-amber-200 text-amber-700 hover:bg-amber-50 hover:text-amber-800 font-bold uppercase text-[10px]"
+                        className="bg-white border border-amber-200 text-amber-700 hover:bg-amber-50 hover:text-amber-800 font-black uppercase text-[9px] h-8 px-4 shrink-0 shadow-sm"
                         onClick={() => navigate('/onboarding')}
                     >
                         Complete Setup →

@@ -292,7 +292,7 @@ export default function Dashboard() {
       <Sidebar />
 
       <div className="flex-1 ml-64 flex flex-col">
-        <main className="max-w-[1240px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-10 space-y-10">
+        <main className="max-w-[1240px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8 space-y-6">
           {/* Top Metadata Bar */}
           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-6">
             <motion.div
@@ -338,7 +338,7 @@ export default function Dashboard() {
 
           {/* Current Mission Banner */}
           <div className={cn(
-            "relative overflow-hidden rounded-2xl p-3 text-white shadow-lg border transition-all hover:scale-[1.002]",
+            "relative overflow-hidden rounded-xl p-2.5 text-white shadow-md border transition-all hover:scale-[1.001]",
             mission.color === 'amber' ? "bg-gradient-to-br from-amber-500 to-orange-600 border-amber-400" :
               mission.color === 'indigo' ? "bg-gradient-to-br from-indigo-500 to-blue-700 border-indigo-400" :
                 mission.color === 'blue' ? "bg-gradient-to-br from-blue-500 to-cyan-700 border-blue-400" :
@@ -346,23 +346,24 @@ export default function Dashboard() {
                     mission.color === 'emerald' ? "bg-gradient-to-br from-emerald-500 to-teal-700 border-emerald-400" :
                       "bg-gradient-to-br from-purple-500 to-fuchsia-700 border-purple-400"
           )}>
-            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-3">
-              <div className="space-y-1">
-                <div className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-white/20 rounded-full border border-white/20 backdrop-blur-sm">
-                  <div className="w-1 h-1 rounded-full bg-white animate-pulse" />
-                  <span className="text-[9px] font-black uppercase tracking-widest">Active Mission</span>
+            <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-1">
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-0.5">
+                  <div className="inline-flex items-center gap-1.5 px-1.5 py-0.5 bg-white/20 rounded-full border border-white/20 backdrop-blur-sm">
+                    <span className="text-[8px] font-black uppercase tracking-widest text-white/90">Current Track</span>
+                  </div>
+                  <h1 className="text-sm font-black tracking-tight">{mission.title}</h1>
                 </div>
-                <h1 className="text-xl font-black tracking-tight">{mission.title}</h1>
-                <p className="text-sm font-medium opacity-90 max-w-xl leading-snug">
+                <p className="text-[11px] font-medium opacity-90 max-w-2xl leading-tight">
                   {mission.description}
                 </p>
               </div>
               <Button
                 onClick={() => navigate(mission.link)}
-                className="bg-white text-slate-900 hover:bg-slate-100 h-10 px-6 rounded-xl font-black text-sm group shadow-lg"
+                className="bg-white text-slate-900 hover:bg-slate-100 h-7 px-4 rounded-lg font-black text-[10px] uppercase group shadow-md shrink-0 border-none"
               >
                 {mission.cta}
-                <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                <ArrowRight className="ml-1.5 w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
               </Button>
             </div>
           </div>
@@ -371,32 +372,32 @@ export default function Dashboard() {
 
 
           {/* Stat Cards - Full Row */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between hover:border-emerald-200 transition-colors">
-              <div className="flex justify-between items-start mb-3">
-                <div className="p-2 bg-emerald-50 rounded-xl">
-                  <DollarSign className="w-5 h-5 text-emerald-600" />
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between hover:border-emerald-200 transition-colors">
+              <div className="flex justify-between items-start mb-2">
+                <div className="p-1.5 bg-emerald-50 rounded-lg">
+                  <DollarSign className="w-4 h-4 text-emerald-600" />
                 </div>
-                <Badge variant="outline" className="text-[10px] font-black text-emerald-600 border-emerald-100 bg-emerald-50/50">+{Math.round(progressPercent / 2)}% Growth</Badge>
+                <Badge variant="outline" className="text-[8px] font-black text-emerald-600 border-emerald-100 bg-emerald-50/50 px-1 h-4">+{Math.round(progressPercent / 2)}%</Badge>
               </div>
               <div>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-2">Estate Value</p>
-                <p className="text-2xl font-black text-slate-900 leading-none">${(totalValue / 1000).toFixed(0)}K</p>
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1.5">Estate Value</p>
+                <p className="text-xl font-black text-slate-900 leading-none">${(totalValue / 1000).toFixed(0)}K</p>
               </div>
             </div>
 
-            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between hover:border-indigo-200 transition-colors">
-              <div className="flex justify-between items-start mb-3">
-                <div className="p-2 bg-indigo-50 rounded-xl">
-                  <CheckCircle2 className="w-5 h-5 text-indigo-600" />
+            <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between hover:border-indigo-200 transition-colors">
+              <div className="flex justify-between items-start mb-2">
+                <div className="p-1.5 bg-indigo-50 rounded-lg">
+                  <CheckCircle2 className="w-4 h-4 text-indigo-600" />
                 </div>
-                <p className="text-[10px] font-black text-indigo-600 uppercase tracking-tighter">{completed}/{assets.length} Done</p>
+                <p className="text-[8px] font-black text-indigo-600 uppercase tracking-tighter">{completed}/{assets.length}</p>
               </div>
               <div>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-2">Progress</p>
-                <div className="flex items-center gap-3">
-                  <p className="text-2xl font-black text-slate-900 leading-none">{progressPercent}%</p>
-                  <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1.5">Progress</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-xl font-black text-slate-900 leading-none">{progressPercent}%</p>
+                  <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden max-w-[60px]">
                     <div className="h-full bg-indigo-600 transition-all duration-1000" style={{ width: `${progressPercent}%` }} />
                   </div>
                 </div>
@@ -405,44 +406,44 @@ export default function Dashboard() {
 
             <div
               className={cn(
-                "p-4 rounded-2xl border shadow-sm flex flex-col justify-between cursor-pointer transition-all group",
+                "p-3 rounded-xl border shadow-sm flex flex-col justify-between cursor-pointer transition-all group",
                 attentionNeededCount > 0
-                  ? "bg-amber-50/50 border-amber-200 hover:border-amber-400 hover:shadow-lg"
+                  ? "bg-amber-50/50 border-amber-200 hover:border-amber-400 shadow-amber-100/20"
                   : "bg-white border-slate-200 hover:border-slate-400"
               )}
               onClick={() => navigate('/assets')}
             >
-              <div className="flex justify-between items-start mb-3">
+              <div className="flex justify-between items-start mb-2">
                 <div className={cn(
-                  "p-2 rounded-xl group-hover:scale-110 transition-transform",
+                  "p-1.5 rounded-lg group-hover:scale-105 transition-transform",
                   attentionNeededCount > 0 ? "bg-amber-100 text-amber-600" : "bg-slate-50 text-slate-600"
                 )}>
-                  <Bell className="w-5 h-5" />
+                  <Bell className="w-4 h-4" />
                 </div>
-                {taxonomyStats.action_required > 0 && <Badge variant="destructive" className="animate-pulse text-[10px] font-black">{taxonomyStats.action_required} Urgent</Badge>}
+                {taxonomyStats.action_required > 0 && <Badge variant="destructive" className="animate-pulse text-[8px] font-black px-1 h-4">{taxonomyStats.action_required} Urgent</Badge>}
               </div>
               <div>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-2">
-                  {attentionNeededCount > 0 ? "Attention Needed" : "Next Required Action"}
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1.5">
+                  Action Items
                 </p>
-                <div className="flex items-center gap-2">
-                  <p className="text-2xl font-black text-slate-900 leading-none">{attentionNeededCount}</p>
+                <div className="flex items-center gap-1.5">
+                  <p className="text-xl font-black text-slate-900 leading-none">{attentionNeededCount}</p>
                   {attentionNeededCount > 0 && (
-                    <ArrowRight className="w-5 h-5 text-amber-500 group-hover:translate-x-1 transition-transform" />
+                    <ArrowRight className="w-4 h-4 text-amber-500 group-hover:translate-x-0.5 transition-transform" />
                   )}
                 </div>
               </div>
             </div>
 
-            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between hover:border-slate-400 transition-colors">
-              <div className="flex justify-between items-start mb-3">
-                <div className="p-2 bg-slate-50 rounded-xl">
-                  <Landmark className="w-5 h-5 text-slate-600" />
+            <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between hover:border-slate-400 transition-colors">
+              <div className="flex justify-between items-start mb-2">
+                <div className="p-1.5 bg-slate-50 rounded-lg">
+                  <Landmark className="w-4 h-4 text-slate-600" />
                 </div>
               </div>
               <div>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-2">Active Tracks</p>
-                <p className="text-2xl font-black text-slate-900 leading-none">{assets.length} Assets</p>
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1.5">Active Tracks</p>
+                <p className="text-xl font-black text-slate-900 leading-none">{assets.length} Assets</p>
               </div>
             </div>
           </div>

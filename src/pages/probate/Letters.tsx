@@ -60,22 +60,21 @@ export default function Letters() {
             <Sidebar />
             <main className="flex-1 ml-64 p-8">
                 <div className="max-w-4xl mx-auto space-y-6">
-                    <div>
-                        <h1 className="text-3xl font-bold tracking-tight">Letters (DE-150)</h1>
-                        <p className="text-slate-500 mt-1">
+                    <div className="space-y-1">
+                        <h1 className="text-xl font-bold tracking-tight">Letters (DE-150)</h1>
+                        <p className="text-slate-500 text-xs">
                             The official court order granting you authority to act.
                         </p>
                     </div>
 
                     {!isProbatePath && (
-                        <Card className="bg-amber-50 border-amber-200">
-                            <CardContent className="p-4 flex gap-4">
-                                <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0" />
+                        <Card className="bg-amber-50/50 border-amber-200 shadow-none">
+                            <CardContent className="p-3 flex gap-3">
+                                <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
                                 <div>
-                                    <h4 className="text-sm font-bold text-amber-900">Path Not Applicable</h4>
-                                    <p className="text-xs text-amber-700 leading-relaxed">
+                                    <h4 className="text-[11px] font-black text-amber-900 uppercase">Path Not Applicable</h4>
+                                    <p className="text-[10px] text-amber-700 leading-tight">
                                         Your current settlement path (<strong>{estate.authorityType}</strong>) typically does not require formal Letters of Administration.
-                                        This form is for court-supervised probate cases.
                                     </p>
                                 </div>
                             </CardContent>

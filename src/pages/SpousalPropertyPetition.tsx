@@ -60,32 +60,30 @@ export default function SpousalPropertyPetition() {
             <Sidebar />
             <div className="flex-1 ml-64 min-h-screen bg-gradient-to-br from-slate-50 via-rose-50/20 to-slate-50 p-6 pl-4">
                 <div className="max-w-4xl mx-auto space-y-6">
-                    {/* Header */}
-                    <header>
-                        <div className="flex items-center gap-2 mb-1">
-                            <div className="p-1.5 bg-rose-600 rounded-md">
-                                <Heart className="w-4 h-4 text-white" />
+                    <header className="space-y-1">
+                        <div className="flex items-center gap-2">
+                            <div className="p-1 bg-rose-600 rounded">
+                                <Heart className="w-3.5 h-3.5 text-white" />
                             </div>
-                            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Spousal Property Petition (DE-221)</h1>
-                            <Badge variant="outline" className="bg-rose-50 text-rose-700 border-rose-200 uppercase text-[10px] font-bold">
-                                California Shortcut
+                            <h1 className="text-xl font-bold text-slate-900 tracking-tight">Spousal Property Petition (DE-221)</h1>
+                            <Badge variant="outline" className="bg-rose-50 text-rose-700 border-rose-200 uppercase text-[9px] font-bold h-4">
+                                Shortcut
                             </Badge>
                         </div>
-                        <p className="text-slate-500 text-sm max-w-2xl">
-                            A streamlined process for surviving spouses to take legal title to property without a
-                            full probate court case.
+                        <p className="text-slate-500 text-xs max-w-2xl">
+                            A streamlined process for surviving spouses to take legal title to assets without full probate.
                         </p>
                     </header>
 
                     {!isSpousalPath && (
-                        <Card className="bg-amber-50 border-amber-200">
-                            <CardContent className="p-4 flex gap-4">
-                                <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0" />
+                        <Card className="bg-amber-50/50 border-amber-200 shadow-none">
+                            <CardContent className="p-3 flex gap-3">
+                                <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
                                 <div>
-                                    <h4 className="text-sm font-bold text-amber-900">Path Not Applicable</h4>
-                                    <p className="text-xs text-amber-700 leading-relaxed">
+                                    <h4 className="text-[11px] font-black text-amber-900 uppercase">Path Not Applicable</h4>
+                                    <p className="text-[10px] text-amber-700 leading-tight">
                                         Your current settlement path (<strong>{estate?.authorityType}</strong>) is not a dedicated Spousal Property Petition.
-                                        Using this form may be incorrect if a full probate or trust administration is required.
+                                        Using this form may be incorrect.
                                     </p>
                                 </div>
                             </CardContent>
