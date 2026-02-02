@@ -6,8 +6,8 @@ import { EmailService } from "./emailService.js";
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-this";
 
 export const AuthService = {
-    async register(data: { email: string, password: string, fullName: string, state: string }) {
-        const { email, password, fullName, state } = data;
+    async register(data: { email: string, password: string, fullName: string, state: string, ip?: string }) {
+        const { email, password, fullName, state, ip } = data;
 
         const existingUser = await prisma.user.findUnique({ where: { email } });
         if (existingUser) throw new Error("Email already registered");
@@ -20,7 +20,9 @@ export const AuthService = {
                 passwordHash,
                 fullName,
                 state,
-                role: 'EXECUTOR'
+                role: 'EXECUTOR',
+                lastIp: ip,
+                lastLoginAt: new Date()
             }
         });
 
@@ -41,7 +43,7 @@ export const AuthService = {
         return { user, token };
     },
 
-    async login(email: string, password: string) {
+    async login(email: string, password: string, ip?: string) {
         const user = await prisma.user.findUnique({ where: { email } }) as any;
         if (!user || !user.passwordHash) {
             throw new Error("Invalid email or password");
@@ -50,15 +52,24 @@ export const AuthService = {
         const valid = await bcrypt.compare(password, user.passwordHash);
         if (!valid) throw new Error("Invalid email or password");
 
+        // Update Audit Info
+        await prisma.user.update({
+            where: { id: user.id },
+            data: {
+                lastIp: ip,
+                lastLoginAt: new Date()
+            }
+        });
+
         const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: "30d" });
         return { user, token };
     },
 
     async verifyToken(token: string) {
         try {
-            console.log("🔑 Verifying token...");
+            // console.log("🔑 Verifying token...");
             const decoded: any = jwt.verify(token, JWT_SECRET);
-            console.log(`👤 Token decoded for user: ${decoded.userId}`);
+            // console.log(`👤 Token decoded for user: ${decoded.userId}`);
             const user = await prisma.user.findUnique({ where: { id: decoded.userId } });
             if (!user) console.log("👤 User not found in database");
             return user;
@@ -68,7 +79,7 @@ export const AuthService = {
         }
     },
 
-    async updateProfile(userId: string, data: { fullName?: string, state?: string, role?: string, personalEmail?: string }) {
+    async updateProfile(userId: string, data: { fullName?: string, state?: string, role?: string, personalEmail?: string, address?: string, city?: string, zip?: string, country?: string, phoneNumber?: string }) {
         return await prisma.user.update({
             where: { id: userId },
             data

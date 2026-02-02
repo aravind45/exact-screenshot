@@ -9,7 +9,8 @@ const router = Router();
 
 router.post("/register", async (req: Request, res: Response) => {
     try {
-        const result = await AuthService.register(req.body);
+        const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+        const result = await AuthService.register({ ...req.body, ip: Array.isArray(ip) ? ip[0] : ip });
         res.json(result);
     } catch (error: any) {
         console.error("Register Error:", error);
@@ -20,7 +21,8 @@ router.post("/register", async (req: Request, res: Response) => {
 router.post("/login", async (req: Request, res: Response) => {
     try {
         const { email, password } = req.body;
-        const result = await AuthService.login(email, password);
+        const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+        const result = await AuthService.login(email, password, Array.isArray(ip) ? ip[0] : ip);
         res.json(result);
     } catch (error: any) {
         console.error("Login Error:", error);

@@ -23,6 +23,17 @@ model User {
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
 
+  // Contact Info
+  address       String?
+  city          String?
+  zip           String?
+  country       String?
+  phoneNumber   String? @map("phone_number")
+
+  // Security Audit
+  lastIp        String?   @map("last_ip")
+  lastLoginAt   DateTime? @map("last_login_at")
+
   estates     Estate[]
   grants      EstateGrant[]
   invitations Invitation[] // Invitations sent by this user

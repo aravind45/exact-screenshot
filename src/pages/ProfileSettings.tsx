@@ -50,7 +50,12 @@ export default function ProfileSettings() {
                 state: profile.state || "",
                 role: profile.role || "EXECUTOR",
                 personalEmail: profile.personalEmail || "",
-            });
+                address: profile.address || "",
+                city: profile.city || "",
+                zip: profile.zip || "",
+                country: profile.country || "",
+                phoneNumber: profile.phoneNumber || "",
+            } as any);
         }
     }, [profile]);
 
@@ -128,6 +133,25 @@ export default function ProfileSettings() {
                                         <span className="text-muted-foreground">Location</span>
                                         <span>{formData.state || "Not set"}</span>
                                     </div>
+                                    {profile?.lastLoginAt && (
+                                        <div className="pt-2 mt-2 border-t border-dashed">
+                                            <div className="flex items-center justify-between text-xs">
+                                                <div className="flex items-center gap-1 text-muted-foreground">
+                                                    <ShieldCheck className="w-3 h-3" />
+                                                    <span>Last Login</span>
+                                                </div>
+                                                <span className="text-muted-foreground font-mono bg-muted px-1 rounded">
+                                                    {new Date(profile.lastLoginAt).toLocaleString()}
+                                                </span>
+                                            </div>
+                                            {profile.lastIp && (
+                                                <div className="flex items-center justify-between text-xs mt-1">
+                                                    <span className="text-muted-foreground ml-4">IP Address</span>
+                                                    <span className="font-mono text-[10px] text-muted-foreground">{profile.lastIp}</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -177,6 +201,58 @@ export default function ProfileSettings() {
                                                         </SelectContent>
                                                     </Select>
                                                 </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-4 pt-4 border-t">
+                                            <h3 className="font-semibold text-sm text-foreground">Contact Details</h3>
+
+                                            <div className="space-y-2">
+                                                <Label htmlFor="address">Street Address</Label>
+                                                <Input
+                                                    id="address"
+                                                    value={(formData as any).address || ""}
+                                                    onChange={(e) => setFormData({ ...formData, address: e.target.value } as any)}
+                                                    placeholder="123 Main St"
+                                                />
+                                            </div>
+
+                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                                <div className="col-span-1 md:col-span-2 space-y-2">
+                                                    <Label htmlFor="city">City</Label>
+                                                    <Input
+                                                        id="city"
+                                                        value={(formData as any).city || ""}
+                                                        onChange={(e) => setFormData({ ...formData, city: e.target.value } as any)}
+                                                    />
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="zip">Zip Code</Label>
+                                                    <Input
+                                                        id="zip"
+                                                        value={(formData as any).zip || ""}
+                                                        onChange={(e) => setFormData({ ...formData, zip: e.target.value } as any)}
+                                                    />
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="country">Country</Label>
+                                                    <Input
+                                                        id="country"
+                                                        value={(formData as any).country || "USA"}
+                                                        onChange={(e) => setFormData({ ...formData, country: e.target.value } as any)}
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <Label htmlFor="phoneNumber">Phone Number</Label>
+                                                <Input
+                                                    id="phoneNumber"
+                                                    type="tel"
+                                                    value={(formData as any).phoneNumber || ""}
+                                                    onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value } as any)}
+                                                    placeholder="+1 (555) 000-0000"
+                                                />
                                             </div>
                                         </div>
 
