@@ -1,4 +1,5 @@
 import { SettlementPhase } from "@/components/SettlementPhaseChevron";
+import { AuthorityType, MasterMode } from "@/lib/authorityEngine";
 
 export interface PhaseTask {
   id: string;
@@ -22,6 +23,14 @@ export interface PhaseTask {
   isOptional?: boolean;
   dependencies?: string[]; // IDs of tasks that must be completed first
   deadlineWarningId?: string; // ID of the deadline to check for warnings
+
+  // Semantic Categories (Gap D)
+  tags?: ("statutory" | "fiduciary" | "communication" | "tax" | "court-order" | "risk-guardrail")[];
+  applicability?: {
+    masterModes?: MasterMode[];
+    authorityTypes?: AuthorityType[];
+    states?: string[];
+  };
 }
 
 export interface PhaseTaskList {
@@ -286,6 +295,15 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         category: "court-issued",
         isOptional: true, // Only if trust
         requiredDocs: ["Trust Agreement"]
+      },
+      {
+        id: "manage_business_authority",
+        title: "Obtain Business Operating Authority",
+        description: "If the decedent owned a business, you may need a court order to continue operations and pay employees.",
+        estimatedTime: "1-2 weeks",
+        category: "probate",
+        isOptional: true,
+        alerts: [{ type: "important", message: "Do not let business operations lapse; it can severely devalue the estate." }]
       }
     ]
   },
@@ -296,6 +314,20 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
     duration: "Month 2-4",
     description: "Identify all assets, obtain date-of-death values, and file Inventory & Appraisal.",
     tasks: [
+      {
+        id: "check_unclaimed_property",
+        title: "Search State Unclaimed Property",
+        description: "Check state databases for dormant accounts, uncashed checks, or forgotten insurance policies.",
+        estimatedTime: "1 hour",
+        links: [{ label: "Search CA Unclaimed Property", url: "https://www.sco.ca.gov/up.html" }]
+      },
+      {
+        id: "business_valuation",
+        title: "Hire Business Valuation Expert",
+        description: "If the estate includes an ongoing business, a professional valuation is required for tax and distribution purposes.",
+        estimatedTime: "2-4 weeks",
+        isOptional: true
+      },
       {
         id: "freeze_accounts",
         title: "Freeze All Financial Accounts",
@@ -375,6 +407,13 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
     description: "Wait for creditor claim period, review claims, and pay approved debts.",
     tasks: [
       {
+        id: "evaluate_solvency",
+        title: "Evaluate Estate Solvency",
+        description: "Compare total assets to total liabilities and funeral/admin expenses.",
+        estimatedTime: "2-3 hours",
+        alerts: [{ type: "caution", message: "If liabilities exceed assets, the estate is insolvent. Different rules apply." }]
+      },
+      {
         id: "wait_claim_period",
         title: "Wait for 4-Month Claim Period",
         description: "Creditors have 4 months from notice publication to file claims.",
@@ -451,6 +490,14 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
     duration: "Month 6-12",
     description: "Present Letters to institutions, transfer or sell assets, and pay final bills.",
     tasks: [
+      {
+        id: "minor_beneficiary_court_approval",
+        title: "Obtain Court Approval for Minor Distributions",
+        description: "Distributions to minors usually require a guardianship or court order to be placed in a blocked account.",
+        estimatedTime: "4-8 weeks",
+        isOptional: true,
+        category: "probate"
+      },
       {
         id: "present_letters",
         title: "Present Letters to All Institutions",
@@ -531,6 +578,13 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
     duration: "Month 12-18",
     description: "File petition for final distribution, distribute assets to heirs, and close estate.",
     tasks: [
+      {
+        id: "blocked_account_minors",
+        title: "Setup Blocked Accounts for Minors",
+        description: "Ensure funds for minor beneficiaries are placed in court-approved blocked accounts.",
+        estimatedTime: "2 weeks",
+        isOptional: true
+      },
       {
         id: "file_final_petition",
         title: "File Petition for Final Distribution",

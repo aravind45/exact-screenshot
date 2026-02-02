@@ -9,15 +9,15 @@ export type SettlementPhase =
   | "asset_liquidation"
   | "final_distribution";
 
-interface PhaseConfig {
+export interface PhaseConfig {
   id: SettlementPhase;
   title: string;
   subtitle: string;
   duration: string;
-  color: string;
+  color?: string;
 }
 
-const PHASES: PhaseConfig[] = [
+const DEFAULT_PHASES: PhaseConfig[] = [
   {
     id: "immediate_actions",
     title: "Immediate Actions",
@@ -65,15 +65,17 @@ const PHASES: PhaseConfig[] = [
 interface SettlementPhaseChevronProps {
   currentPhase: SettlementPhase;
   completedPhases: SettlementPhase[];
+  phases?: PhaseConfig[];
   className?: string;
 }
 
 export function SettlementPhaseChevron({
   currentPhase,
   completedPhases,
+  phases = DEFAULT_PHASES,
   className
 }: SettlementPhaseChevronProps) {
-  const currentIndex = PHASES.findIndex(p => p.id === currentPhase);
+  const currentIndex = phases.findIndex(p => p.id === currentPhase);
 
   const getPhaseStatus = (phase: PhaseConfig, index: number) => {
     if (completedPhases.includes(phase.id)) return "completed";
@@ -85,7 +87,7 @@ export function SettlementPhaseChevron({
   return (
     <div className={cn("w-full overflow-x-auto pb-4", className)}>
       <div className="flex items-center min-w-max">
-        {PHASES.map((phase, index) => {
+        {phases.map((phase, index) => {
           const status = getPhaseStatus(phase, index);
           const isCompleted = status === "completed";
           const isCurrent = status === "current";
@@ -164,7 +166,7 @@ export function SettlementPhaseChevron({
               </div>
 
               {/* Connector (hidden for last item) */}
-              {index < PHASES.length - 1 && (
+              {index < phases.length - 1 && (
                 <div className="w-0 h-0" /> // Overlap handled by clip-path
               )}
             </div>
@@ -174,7 +176,7 @@ export function SettlementPhaseChevron({
 
       {/* Mobile: Vertical Stack */}
       <div className="md:hidden mt-4 space-y-2">
-        {PHASES.map((phase, index) => {
+        {phases.map((phase, index) => {
           const status = getPhaseStatus(phase, index);
           const isCompleted = status === "completed";
           const isCurrent = status === "current";

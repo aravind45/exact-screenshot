@@ -14,6 +14,9 @@ import { useEffect, useMemo } from "react";
 import { calculateAuthorityRecommendation } from "@/lib/authorityEngine";
 import { ShieldCheck, Info } from "lucide-react";
 
+import { generateRoadmap } from "@/config/roadmapGenerator";
+import { getMasterMode } from "@/lib/authorityEngine";
+
 export default function SettlementRoadmap() {
   const queryClient = useQueryClient();
   const [currentPhase, setCurrentPhase] = useState<SettlementPhase>("immediate_actions");
@@ -36,6 +39,12 @@ export default function SettlementRoadmap() {
     });
   }, [estate, assets]);
 
+  // Generate dynamic roadmap based on authority recommendation
+  const dynamicRoadmap = useMemo(() => {
+    if (!authorityRec) return SETTLEMENT_PHASE_TASKS;
+    return generateRoadmap(authorityRec.type, estate?.deceasedState || "CA", authorityRec.modifiers || []);
+  }, [authorityRec, estate?.deceasedState]);
+
   const [completedPhases, setCompletedPhases] = useState<SettlementPhase[]>([]);
   const [completedTaskIds, setCompletedTaskIds] = useState<string[]>([]);
 
@@ -49,16 +58,16 @@ export default function SettlementRoadmap() {
   useEffect(() => {
     if (estate?.status) {
       const statusLower = estate.status.toLowerCase() as SettlementPhase;
-      // Basic validation that it matches one of our phases
-      const validPhases: SettlementPhase[] = [
-        "immediate_actions", "court_filing", "asset_discovery",
-        "creditor_claims", "asset_liquidation", "final_distribution"
-      ];
+      // Basic validation that it matches one of our phases in the dynamic roadmap
+      const validPhases = dynamicRoadmap.map(p => p.phase);
       if (validPhases.includes(statusLower)) {
         setCurrentPhase(statusLower);
+      } else if (validPhases.length > 0 && currentPhase === "immediate_actions" && !validPhases.includes("immediate_actions")) {
+        // Fallback if immediate_actions isn't in this roadmap
+        setCurrentPhase(validPhases[0]);
       }
     }
-  }, [estate?.status]);
+  }, [estate?.status, dynamicRoadmap]);
 
   const roadmapMutation = useMutation({
     mutationFn: api.updateRoadmap,
@@ -76,7 +85,7 @@ export default function SettlementRoadmap() {
 
     // Find the task title for better logging
     let taskTitle = taskId;
-    for (const phase of SETTLEMENT_PHASE_TASKS) {
+    for (const phase of dynamicRoadmap) {
       const task = phase.tasks.find(t => t.id === taskId);
       if (task) {
         taskTitle = task.title;
@@ -95,7 +104,7 @@ export default function SettlementRoadmap() {
 
   const handlePhaseComplete = (phase: SettlementPhase) => {
     // Mark all tasks in this phase as complete
-    const phaseTasks = SETTLEMENT_PHASE_TASKS.find(p => p.phase === phase);
+    const phaseTasks = dynamicRoadmap.find(p => p.phase === phase);
     let newCompletedIds = [...completedTaskIds];
     if (phaseTasks) {
       const taskIds = phaseTasks.tasks.map(t => t.id);
@@ -116,14 +125,7 @@ export default function SettlementRoadmap() {
     });
 
     // Move to next phase
-    const phases: SettlementPhase[] = [
-      "immediate_actions",
-      "court_filing",
-      "asset_discovery",
-      "creditor_claims",
-      "asset_liquidation",
-      "final_distribution"
-    ];
+    const phases = dynamicRoadmap.map(p => p.phase);
     const currentIndex = phases.indexOf(phase);
     if (currentIndex < phases.length - 1) {
       setCurrentPhase(phases[currentIndex + 1]);
@@ -131,11 +133,11 @@ export default function SettlementRoadmap() {
   };
 
   const getCurrentPhaseData = () => {
-    return SETTLEMENT_PHASE_TASKS.find(p => p.phase === currentPhase);
+    return dynamicRoadmap.find(p => p.phase === currentPhase);
   };
 
   const phaseData = getCurrentPhaseData();
-  const totalTasks = SETTLEMENT_PHASE_TASKS.reduce((sum, p) => sum + p.tasks.length, 0);
+  const totalTasks = dynamicRoadmap.reduce((sum, p) => sum + p.tasks.length, 0);
   const overallProgress = totalTasks > 0
     ? Math.round((completedTaskIds.length / totalTasks) * 100)
     : 0;
@@ -152,7 +154,7 @@ export default function SettlementRoadmap() {
               <div>
                 <h1 className="text-2xl font-black text-slate-900 tracking-tight">Settlement Roadmap</h1>
                 <p className="text-xs text-slate-600 mt-0.5">
-                  Complete guide to settling an estate in California
+                  {authorityRec?.legalTerm} • {getMasterMode(authorityRec?.type || "UNSET").replace('_', ' ')}
                 </p>
               </div>
               <div className="flex items-center gap-3">
@@ -194,7 +196,7 @@ export default function SettlementRoadmap() {
             <div className="grid grid-cols-4 gap-3">
               <div className="bg-white p-3 rounded-xl border border-slate-200">
                 <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Total Phases</p>
-                <p className="text-xl font-black text-slate-900 mt-0.5">6</p>
+                <p className="text-xl font-black text-slate-900 mt-0.5">{dynamicRoadmap.length}</p>
               </div>
               <div className="bg-white p-3 rounded-xl border border-slate-200">
                 <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Total Tasks</p>
@@ -280,6 +282,12 @@ export default function SettlementRoadmap() {
             <SettlementPhaseChevron
               currentPhase={currentPhase}
               completedPhases={completedPhases}
+              phases={dynamicRoadmap.map(p => ({
+                id: p.phase,
+                title: p.title,
+                subtitle: p.subtitle,
+                duration: p.duration
+              }))}
             />
           </div>
 
@@ -337,7 +345,7 @@ export default function SettlementRoadmap() {
             </div>
             <h2 className="text-xl font-bold text-slate-900">All Phases</h2>
             <div className="grid grid-cols-1 gap-4">
-              {SETTLEMENT_PHASE_TASKS.map((phase) => {
+              {dynamicRoadmap.map((phase) => {
                 const phaseTaskIds = phase.tasks.map(t => t.id);
                 const completedCount = phaseTaskIds.filter(id => completedTaskIds.includes(id)).length;
                 const totalCount = phaseTaskIds.length;
@@ -346,10 +354,7 @@ export default function SettlementRoadmap() {
                 const isCurrent = currentPhase === phase.phase;
 
                 // Find if this phase is in the future
-                const phaseOrder = [
-                  "immediate_actions", "court_filing", "asset_discovery",
-                  "creditor_claims", "asset_liquidation", "final_distribution"
-                ];
+                const phaseOrder = dynamicRoadmap.map(p => p.phase);
                 const currentIndex = phaseOrder.indexOf(currentPhase);
                 const thisIndex = phaseOrder.indexOf(phase.phase);
                 const isFuture = thisIndex > currentIndex + 1; // Show current + next, collapse beyond that

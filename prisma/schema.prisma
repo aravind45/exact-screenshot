@@ -103,6 +103,7 @@ model Estate {
   heirs Heir[]
 
   roadmapProgress Json? @map("roadmap_progress") // { completedTaskIds: string[], completedPhases: string[] }
+  authorityDecision Json? @map("authority_decision") // Latest decision snapshot (Gap A)
 
   user            User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
   grants          EstateGrant[]
@@ -115,8 +116,22 @@ model Estate {
   liabilities         Liability[]
   distributions       Distribution[]
   discoveryCategories DiscoveryCategory[]
+  authorityDecisions  AuthorityDecision[]
 
   @@map("estates")
+}
+
+model AuthorityDecision {
+  id              String   @id @default(uuid())
+  estateId        String   @map("estate_id")
+  inputs          Json     // snapshot of assets, state, metadata
+  decision        Json     // snapshot of the AuthorityRecommendation
+  ruleVersion     String   @map("rule_version")
+  recalcReason    String?  @map("recalc_reason") // Why was it recomputed? (Gap B)
+  createdAt       DateTime @default(now()) @map("created_at")
+  
+  estate Estate @relation(fields: [estateId], references: [id], onDelete: Cascade)
+  @@map("authority_decisions")
 }
 
 model EstateGrant {

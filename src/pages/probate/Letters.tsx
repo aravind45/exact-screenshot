@@ -49,7 +49,9 @@ export default function Letters() {
         previewMutation.mutate();
     };
 
-    if (!estate) return <div className="p-8">Loading...</div>;
+    const isProbatePath = estate.authorityType === "FORMAL_PROBATE" ||
+        estate.authorityType === "INFORMAL_PROBATE" ||
+        estate.authorityType === "SUMMARY_ADMINISTRATION";
 
     const hasBond = !estate.bondWaived && (estate.bondAmount || 0) > 0;
 
@@ -64,6 +66,21 @@ export default function Letters() {
                             The official court order granting you authority to act.
                         </p>
                     </div>
+
+                    {!isProbatePath && (
+                        <Card className="bg-amber-50 border-amber-200">
+                            <CardContent className="p-4 flex gap-4">
+                                <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0" />
+                                <div>
+                                    <h4 className="text-sm font-bold text-amber-900">Path Not Applicable</h4>
+                                    <p className="text-xs text-amber-700 leading-relaxed">
+                                        Your current settlement path (<strong>{estate.authorityType}</strong>) typically does not require formal Letters of Administration.
+                                        This form is for court-supervised probate cases.
+                                    </p>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {/* 1. Authority Configuration */}
@@ -135,7 +152,7 @@ export default function Letters() {
                                 <Button
                                     className="w-full bg-purple-500 hover:bg-purple-600 text-white font-bold"
                                     onClick={handlePreview}
-                                    disabled={!formData.appointedDate}
+                                    disabled={!formData.appointedDate || !isProbatePath}
                                 >
                                     <Eye className="w-4 h-4 mr-2" />
                                     Preview Letters

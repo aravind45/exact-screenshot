@@ -105,6 +105,20 @@ export const AssetService = {
             }
         });
 
+        // Trigger Authority Re-assessment (Gap B)
+        try {
+            const { AuthorityService } = await import("./authorityService.js");
+            const allAssets = await this.getAll(userId); // Get all to re-calculate
+            const { calculateAuthorityRecommendation } = await import("../../src/lib/authorityEngine.js");
+            const newRec = calculateAuthorityRecommendation(allAssets, estate.deceasedState || "CA", {
+                hasWill: estate.hasWill,
+                isSpouse: false // TODO: derive from session
+            });
+            await AuthorityService.handleReclassification(estate.id, userId, newRec);
+        } catch (authErr) {
+            console.warn("Authority re-assessment failed (non-fatal):", authErr);
+        }
+
         return {
             ...asset,
             accountNumber: asset.accountNumber ? decrypt(asset.accountNumber) : asset.accountNumber
@@ -179,6 +193,23 @@ export const AssetService = {
                 notes: activityNote
             }
         });
+
+        // Trigger Authority Re-assessment (Gap B)
+        try {
+            const { AuthorityService } = await import("./authorityService.js");
+            const estate = await prisma.estate.findUnique({ where: { id: existing.estateId } });
+            const allAssets = await this.getAll(userId);
+            const { calculateAuthorityRecommendation } = await import("../../src/lib/authorityEngine.js");
+            if (estate) {
+                const newRec = calculateAuthorityRecommendation(allAssets, estate.deceasedState || "CA", {
+                    hasWill: estate.hasWill,
+                    isSpouse: false
+                });
+                await AuthorityService.handleReclassification(estate.id, userId, newRec);
+            }
+        } catch (authErr) {
+            console.warn("Authority re-assessment failed (non-fatal):", authErr);
+        }
 
         return {
             ...updated,

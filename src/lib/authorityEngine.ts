@@ -8,28 +8,82 @@ export const STATE_THRESHOLDS: Record<string, number> = {
     "PA": 50000,
 };
 
+export type MasterMode =
+    | "COURT_SUPERVISED"
+    | "FIDUCIARY_ADMINISTERED"
+    | "TRANSFER_ONLY";
+
 export type AuthorityType =
     | "FORMAL_PROBATE"
     | "INFORMAL_PROBATE"
     | "SMALL_ESTATE"
-    | "SUMMARY_ADMINISTRATION" // Florida specific
-    | "VOLUNTARY_ADMINISTRATION" // New York specific
-    | "TRUST_ADMIN"
-    | "INTESTATE"
+    | "SUMMARY_ADMINISTRATION" // e.g. Florida, California variants
+    | "VOLUNTARY_ADMINISTRATION" // New York
+    | "MUNIMENT_OF_TITLE" // Texas
+    | "ANCILLARY_PROBATE" // Secondary state
+    | "SPOUSAL_PETITION"
+    | "ELECTIVE_SHARE" // Spousal claim
+    | "FAMILY_ALLOWANCE" // Interim support
+    | "TRUST_ADMIN_REVOCABLE"
+    | "TRUST_ADMIN_IRREVOCABLE"
+    | "POUR_OVER_WILL" // Hybrid
     | "JOINT_TRANSFER"
     | "POD_TOD_TRANSFER"
-    | "SPOUSAL_PETITION"
-    | "ANCILLARY_PROBATE"
+    | "BENEFICIARY_DESIGNATED"
+    | "TOD_DEED" // Real estate deed
+    | "INTESTATE"
+    | "INSOLVENT_ESTATE"
+    | "ESTATE_WITH_MINORS"
+    | "BUSINESS_ESTATE"
+    | "CONTESTED_ESTATE"
+    | "UNCLAIMED_ESTATE"
     | "UNSET";
 
 export interface AuthorityRecommendation {
     type: AuthorityType;
+    masterMode: MasterMode;
     threshold: number;
     probateTotal: number;
     isEligibleForSmallEstate: boolean;
     reason: string;
     legalTerm?: string;
     citations?: string[];
+    modifiers?: string[]; // e.g. "INSOLVENT", "MINOR_HEIRS"
+}
+
+export function getMasterMode(type: AuthorityType): MasterMode {
+    switch (type) {
+        case "FORMAL_PROBATE":
+        case "INFORMAL_PROBATE":
+        case "SUMMARY_ADMINISTRATION":
+        case "VOLUNTARY_ADMINISTRATION":
+        case "MUNIMENT_OF_TITLE":
+        case "ANCILLARY_PROBATE":
+        case "SPOUSAL_PETITION":
+        case "ELECTIVE_SHARE":
+        case "FAMILY_ALLOWANCE":
+        case "INTESTATE":
+        case "CONTESTED_ESTATE":
+            return "COURT_SUPERVISED";
+
+        case "TRUST_ADMIN_REVOCABLE":
+        case "TRUST_ADMIN_IRREVOCABLE":
+        case "POUR_OVER_WILL":
+        case "INSOLVENT_ESTATE":
+        case "BUSINESS_ESTATE":
+            return "FIDUCIARY_ADMINISTERED";
+
+        case "SMALL_ESTATE": // Often affidavit-only
+        case "JOINT_TRANSFER":
+        case "POD_TOD_TRANSFER":
+        case "BENEFICIARY_DESIGNATED":
+        case "TOD_DEED":
+        case "UNCLAIMED_ESTATE":
+            return "TRANSFER_ONLY";
+
+        default:
+            return "COURT_SUPERVISED";
+    }
 }
 
 export function calculateAuthorityRecommendation(
@@ -53,6 +107,8 @@ export function calculateAuthorityRecommendation(
     }
 
     const trustAssets = assets.filter(a => a.ownershipType === "TRUST");
+    const jointAssets = assets.filter(a => a.ownershipType === "JOINT");
+    const beneficiaryAssets = assets.filter(a => a.ownershipType === "BENEFICIARY");
 
     const isEligibleForSmallEstate = probateTotal > 0 && probateTotal <= threshold;
 
@@ -60,6 +116,14 @@ export function calculateAuthorityRecommendation(
     let reason = "";
     let legalTerm = "";
     let citations: string[] = [];
+    let modifiers: string[] = [];
+
+    // Check for modifiers first
+    // Insolvent? (Simplified check, assuming liabilities exist in a more complex app)
+    // For now, we use metadata or look specifically at asset/liability ratio if we had liabilities
+
+    // Minor heirs? (Pseudo-check)
+    // if (metadata?.hasMinors) modifiers.push("MINOR_HEIRS");
 
     if (metadata?.isOutOfState) {
         type = "ANCILLARY_PROBATE";
@@ -72,16 +136,27 @@ export function calculateAuthorityRecommendation(
         legalTerm = state === "CA" ? "DE-221 Spousal Property Petition" : "Spousal Set-Aside";
         citations = state === "CA" ? ["CA Prob. Code §13500"] : ["State Spousal Set-Aside Statute"];
     } else if (probateAssets.length === 0 && trustAssets.length > 0) {
-        type = "TRUST_ADMIN";
+        // Distinguish between Revocable and Irrevocable (simplification: assume revocable)
+        type = "TRUST_ADMIN_REVOCABLE";
         reason = "Assets are held in Trust. No court probate required; proceed with Trust Administration.";
         legalTerm = "Trust Administration";
         citations = ["Uniform Trust Code", "State Trust Statute"];
+
+        if (metadata?.hasWill) {
+            type = "POUR_OVER_WILL";
+            reason = "Assets are in Trust, but a Pour-Over Will exists for any assets outside the trust.";
+        }
     } else if (probateAssets.length === 0) {
-        const hasJoint = assets.some(a => a.ownershipType === "JOINT");
-        type = hasJoint ? "JOINT_TRANSFER" : "POD_TOD_TRANSFER";
-        reason = hasJoint
-            ? "Assets pass automatically to the surviving joint owner."
-            : "Assets pass directly to named beneficiaries via POD/TOD designations.";
+        if (jointAssets.length > 0) {
+            type = "JOINT_TRANSFER";
+            reason = "Assets pass automatically to the surviving joint owner.";
+        } else if (beneficiaryAssets.length > 0) {
+            type = "BENEFICIARY_DESIGNATED";
+            reason = "Assets pass directly to named beneficiaries.";
+        } else {
+            type = "POD_TOD_TRANSFER";
+            reason = "Assets pass directly via POD/TOD designations.";
+        }
         legalTerm = "Non-Probate Transfer";
         citations = ["Right of Survivorship Laws"];
     } else if (isEligibleForSmallEstate) {
@@ -108,23 +183,35 @@ export function calculateAuthorityRecommendation(
         }
     } else {
         type = metadata?.hasWill === false ? "INTESTATE" : "FORMAL_PROBATE";
+
+        // Texas Muniment of Title Check
+        if (state === "TX" && metadata?.hasWill) {
+            type = "MUNIMENT_OF_TITLE";
+            reason = "Texas allows admitting a Will to probate as a 'Muniment of Title' when no executor administration is needed.";
+            legalTerm = "Muniment of Title";
+        }
+
         const stateTerm = state === "NY" ? "Formal Administration" : state === "FL" ? "Formal Administration" : "Formal Probate";
 
-        reason = metadata?.hasWill === false
-            ? `No Will found and assets exceed the ${state} threshold. Formal Intestate Succession is required.`
-            : `Assets exceed the ${state} threshold ($${threshold.toLocaleString()}). ${stateTerm} is required.`;
-        legalTerm = metadata?.hasWill === false ? "Intestate Administration" : stateTerm;
-        citations = state === "CA" ? ["CA Prob. Code §7000"] : ["Uniform Probate Code §III"];
+        if (type !== "MUNIMENT_OF_TITLE") {
+            reason = metadata?.hasWill === false
+                ? `No Will found and assets exceed the ${state} threshold. Formal Intestate Succession is required.`
+                : `Assets exceed the ${state} threshold ($${threshold.toLocaleString()}). ${stateTerm} is required.`;
+            legalTerm = metadata?.hasWill === false ? "Intestate Administration" : stateTerm;
+            citations = state === "CA" ? ["CA Prob. Code §7000"] : ["Uniform Probate Code §III"];
+        }
     }
 
     return {
         type,
+        masterMode: getMasterMode(type),
         threshold,
         probateTotal,
         isEligibleForSmallEstate,
         reason,
         legalTerm,
-        citations
+        citations,
+        modifiers
     };
 }
 

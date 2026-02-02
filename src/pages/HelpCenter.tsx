@@ -541,39 +541,23 @@ export default function HelpCenter() {
                     </div>
 
                     {/* Still Need Help? */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-12">
+                    <div className="pb-12">
                         <Card className="border-none shadow-xl bg-slate-900 text-white overflow-hidden">
-                            <CardContent className="p-6 space-y-4">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
-                                        <MessageCircle className="w-5 h-5 text-blue-400" />
+                            <CardContent className="p-8 flex flex-col md:flex-row items-center gap-8">
+                                <div className="flex-1 space-y-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-12 h-12 rounded-full bg-blue-500/20 flex items-center justify-center">
+                                            <MessageCircle className="w-6 h-6 text-blue-400" />
+                                        </div>
+                                        <h3 className="text-xl font-bold">Chat with our AI Agent</h3>
                                     </div>
-                                    <h3 className="font-bold">Chat with our AI Agent</h3>
+                                    <p className="text-slate-400 text-sm leading-relaxed max-w-lg">
+                                        Our AI agent is trained on California probate code and can answer specific questions
+                                        about your case 24/7. Get instant clarity on complex legal protocols.
+                                    </p>
                                 </div>
-                                <p className="text-slate-400 text-xs leading-relaxed">
-                                    Our AI agent is trained on California probate code and can answer specific questions
-                                    about your case 24/7.
-                                </p>
-                                <Button className="w-full bg-blue-600 hover:bg-blue-500 font-bold border-none">
+                                <Button className="w-full md:w-auto px-12 h-14 bg-blue-600 hover:bg-blue-500 font-black text-xs uppercase tracking-widest border-none rounded-2xl">
                                     Start Chatting
-                                </Button>
-                            </CardContent>
-                        </Card>
-
-                        <Card className="border-none shadow-md bg-white border-l-4 border-l-rose-500">
-                            <CardContent className="p-6 space-y-4">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-full bg-rose-50 flex items-center justify-center">
-                                        <Gavel className="w-5 h-5 text-rose-600" />
-                                    </div>
-                                    <h3 className="font-bold text-slate-900">Legal Consultation</h3>
-                                </div>
-                                <p className="text-slate-500 text-xs leading-relaxed">
-                                    Sometimes you need a human. We can connect you with California-licensed probate
-                                    attorneys for a flat-fee review.
-                                </p>
-                                <Button variant="outline" className="w-full border-slate-200 text-slate-700 font-bold">
-                                    Browse Attorneys <ExternalLink className="w-3 h-3 ml-2" />
                                 </Button>
                             </CardContent>
                         </Card>

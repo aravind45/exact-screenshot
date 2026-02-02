@@ -10,7 +10,8 @@ import {
     ExternalLink,
     ArrowRight,
     Info,
-    AlertCircle
+    AlertCircle,
+    AlertTriangle
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,8 @@ export default function SpousalPropertyPetition() {
         queryKey: ["estate"],
         queryFn: api.getMyEstate,
     });
+
+    const isSpousalPath = estate?.authorityType === "SPOUSAL_PETITION";
 
     const steps = [
         {
@@ -74,6 +77,21 @@ export default function SpousalPropertyPetition() {
                         </p>
                     </header>
 
+                    {!isSpousalPath && (
+                        <Card className="bg-amber-50 border-amber-200">
+                            <CardContent className="p-4 flex gap-4">
+                                <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0" />
+                                <div>
+                                    <h4 className="text-sm font-bold text-amber-900">Path Not Applicable</h4>
+                                    <p className="text-xs text-amber-700 leading-relaxed">
+                                        Your current settlement path (<strong>{estate?.authorityType}</strong>) is not a dedicated Spousal Property Petition.
+                                        Using this form may be incorrect if a full probate or trust administration is required.
+                                    </p>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
+
                     {/* Eligibility Alert */}
                     <Card className="border-none shadow-md bg-white border-l-4 border-l-rose-500">
                         <CardContent className="p-4 flex gap-4">
@@ -116,12 +134,23 @@ export default function SpousalPropertyPetition() {
 
                                                 {step.status === 'ready' && (
                                                     <div className="flex gap-2">
-                                                        <Button variant="outline" size="sm" className="h-8 text-[10px] font-bold uppercase tracking-tight" asChild>
-                                                            <a href={step.link} target="_blank">
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            className="h-8 text-[10px] font-bold uppercase tracking-tight"
+                                                            asChild
+                                                            disabled={!isSpousalPath}
+                                                        >
+                                                            <a href={isSpousalPath ? step.link : "#"} target={isSpousalPath ? "_blank" : undefined}>
                                                                 <Download className="w-3 h-3 mr-2" /> Download PDF
                                                             </a>
                                                         </Button>
-                                                        <Button variant="default" size="sm" className="h-8 text-[10px] font-bold uppercase tracking-tight bg-slate-900 border-none">
+                                                        <Button
+                                                            variant="default"
+                                                            size="sm"
+                                                            className="h-8 text-[10px] font-bold uppercase tracking-tight bg-slate-900 border-none"
+                                                            disabled={!isSpousalPath}
+                                                        >
                                                             Mark as Filed
                                                         </Button>
                                                     </div>
