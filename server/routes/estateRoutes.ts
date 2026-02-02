@@ -102,10 +102,7 @@ router.put("/my", async (req: any, res: Response) => {
             }
         }
 
-        const updated = await prisma.estate.update({
-            where: { id: estate.id },
-            data: updateData
-        });
+
 
         // International Executor Mode Trigger (Overlay)
         const US_STATES = [
