@@ -521,6 +521,11 @@ export default function OnboardingWizard() {
                                                                     const newHeirs = [...heirs];
                                                                     newHeirs[idx].relationship = val;
                                                                     setHeirs(newHeirs);
+
+                                                                    // Spousal Sync (PTH-20)
+                                                                    if (val === "SPOUSE") {
+                                                                        setEstateData(prev => ({ ...prev, isSpouse: true }));
+                                                                    }
                                                                 }}
                                                             >
                                                                 <SelectTrigger className="h-10 bg-white">
