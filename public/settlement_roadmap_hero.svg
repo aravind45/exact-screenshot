@@ -1,0 +1,44 @@
+<svg width="1200" height="180" viewBox="0 0 1200 180" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="1200" height="180" fill="#F8FAFC" rx="12"/>
+  
+  <!-- Phase 1: Immediate Actions (Red) -->
+  <path d="M 20 30 L 180 30 L 205 90 L 180 150 L 20 150 Z" fill="#EF4444" stroke="#FFFFFF" stroke-width="2"/>
+  <text x="100" y="80" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#FFFFFF" text-anchor="middle">Immediate</text>
+  <text x="100" y="96" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#FFFFFF" text-anchor="middle">Actions</text>
+  <text x="100" y="115" font-family="Arial, sans-serif" font-size="11" fill="#FFFFFF" text-anchor="middle">Week 1-2</text>
+  
+  <!-- Phase 2: Court Filing (Orange) -->
+  <path d="M 190 30 L 350 30 L 375 90 L 350 150 L 190 150 L 215 90 Z" fill="#F97316" stroke="#FFFFFF" stroke-width="2"/>
+  <text x="282" y="80" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#FFFFFF" text-anchor="middle">Court</text>
+  <text x="282" y="96" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#FFFFFF" text-anchor="middle">Filing</text>
+  <text x="282" y="115" font-family="Arial, sans-serif" font-size="11" fill="#FFFFFF" text-anchor="middle">Week 3-8</text>
+  
+  <!-- Phase 3: Asset Discovery (Yellow) -->
+  <path d="M 360 30 L 520 30 L 545 90 L 520 150 L 360 150 L 385 90 Z" fill="#EAB308" stroke="#FFFFFF" stroke-width="2"/>
+  <text x="452" y="80" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#FFFFFF" text-anchor="middle">Asset</text>
+  <text x="452" y="96" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#FFFFFF" text-anchor="middle">Discovery</text>
+  <text x="452" y="115" font-family="Arial, sans-serif" font-size="11" fill="#FFFFFF" text-anchor="middle">Month 2-4</text>
+  
+  <!-- Phase 4: Creditor Claims (Blue) -->
+  <path d="M 530 30 L 690 30 L 715 90 L 690 150 L 530 150 L 555 90 Z" fill="#3B82F6" stroke="#FFFFFF" stroke-width="2"/>
+  <text x="622" y="80" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#FFFFFF" text-anchor="middle">Creditor</text>
+  <text x="622" y="96" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#FFFFFF" text-anchor="middle">Claims</text>
+  <text x="622" y="115" font-family="Arial, sans-serif" font-size="11" fill="#FFFFFF" text-anchor="middle">Month 4-8</text>
+  
+  <!-- Phase 5: Asset Liquidation (Indigo) -->
+  <path d="M 700 30 L 860 30 L 885 90 L 860 150 L 700 150 L 725 90 Z" fill="#6366F1" stroke="#FFFFFF" stroke-width="2"/>
+  <text x="792" y="80" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#FFFFFF" text-anchor="middle">Asset</text>
+  <text x="792" y="96" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#FFFFFF" text-anchor="middle">Liquidation</text>
+  <text x="792" y="115" font-family="Arial, sans-serif" font-size="11" fill="#FFFFFF" text-anchor="middle">Month 6-12</text>
+  
+  <!-- Phase 6: Final Distribution (Green) -->
+  <path d="M 870 30 L 1030 30 L 1055 90 L 1030 150 L 870 150 L 895 90 Z" fill="#10B981" stroke="#FFFFFF" stroke-width="2"/>
+  <text x="962" y="80" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#FFFFFF" text-anchor="middle">Final</text>
+  <text x="962" y="96" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#FFFFFF" text-anchor="middle">Distribution</text>
+  <text x="962" y="115" font-family="Arial, sans-serif" font-size="11" fill="#FFFFFF" text-anchor="middle">Month 12-18</text>
+  
+  <!-- Completion Badge -->
+  <circle cx="1120" cy="90" r="28" fill="#10B981" stroke="#FFFFFF" stroke-width="3"/>
+  <path d="M 1106 90 L 1115 99 L 1134 76" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+</svg>
