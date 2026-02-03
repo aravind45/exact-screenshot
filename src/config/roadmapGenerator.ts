@@ -19,6 +19,11 @@ export function generateRoadmap(
         return generateFiduciaryRoadmap(authorityType, state, modifiers);
     }
 
+    // Discovery mode
+    if (authorityType === "DISCOVERY") {
+        return generateDiscoveryRoadmap(authorityType, state);
+    }
+
     // Default: Court Supervised (Full Probate / Intestate / etc.)
     return generateProbateRoadmap(authorityType, state, modifiers);
 }
@@ -290,6 +295,25 @@ function generateProbateRoadmap(type: AuthorityType, state: string, modifiers: s
             });
         }
 
+        return { ...p, tasks };
+    });
+}
+
+function generateDiscoveryRoadmap(type: AuthorityType, state: string): PhaseTaskList[] {
+    const baseline = SETTLEMENT_PHASE_TASKS.filter(p =>
+        ["immediate_actions", "asset_discovery"].includes(p.phase)
+    );
+
+    return baseline.map(p => {
+        let tasks = [...p.tasks];
+        if (p.phase === "immediate_actions") {
+            tasks.unshift({
+                id: "initial_search_protocol",
+                title: "Initialize Forensic Discovery Protocol",
+                description: "Estate track is unknown. Begin systematic asset search to calibrate the correct legal path.",
+                category: "probate"
+            });
+        }
         return { ...p, tasks };
     });
 }

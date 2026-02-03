@@ -9,7 +9,8 @@ export type SettlementTrack =
     | "SPOUSAL_PETITION"
     | "ANCILLARY_PROBATE"
     | "INSOLVENT"
-    | "SPECIAL";
+    | "SPECIAL"
+    | "DISCOVERY";
 
 export interface ProcessStage {
     id: string;
@@ -179,6 +180,36 @@ export const TRACK_STAGES: Record<SettlementTrack, ProcessStage[]> = {
         { id: "litigation", title: "Litigation", description: "Coordinate with specialized legal counsel." },
         { id: "stay", title: "Hold", description: "Estate assets may be frozen during the contest." },
         { id: "settlement", title: "Mediation", description: "Reach legally binding agreement or judgment." }
+    ],
+    DISCOVERY: [
+        {
+            id: "initial_search", title: "Initial Search", description: "Review physical mail, records, and digital trails.",
+            tasks: [
+                { id: "review_mail", title: "Review Physical Mail (Last 3 Months)" },
+                { id: "check_statements", title: "Check Bank & Credit Statements" },
+                { id: "digital_sweep", title: "Sweep Emails & Digital Accounts" }
+            ]
+        },
+        {
+            id: "valuation_sweep", title: "Valuation Sweep", description: "Estimate total probate value across all identified accounts.",
+            tasks: [
+                { id: "list_individuals", title: "Identify Solely-Owned Assets" },
+                { id: "check_thresholds", title: "Compare to State Small Estate Limits" }
+            ]
+        },
+        {
+            id: "heirship_search", title: "Heirship Search", description: "Identify legal heirs and find any original Will/Trust.",
+            tasks: [
+                { id: "locate_will", title: "Locate Original Will/Trust" },
+                { id: "verify_heirs", title: "Verify Legal Heir Contact Info" }
+            ]
+        },
+        {
+            id: "select_track", title: "Track Selection", description: "Commit to the correct legal path based on findings.",
+            tasks: [
+                { id: "finalize_track", title: "Finalize Settlement Track" }
+            ]
+        }
     ]
 };
 // State-specific form names and deadlines
@@ -346,6 +377,8 @@ export const getPrimaryAuthorityDocName = (stateCode: string, track: SettlementT
         case 'SPOUSAL_PETITION':
             if (stateCode === 'CA') return 'Spousal Property Order (DE-226)';
             return 'Spousal Property Order';
+        case 'DISCOVERY':
+            return 'Preliminary Asset Log';
         default:
             if (stateCode === 'FL') return 'Letters of Administration';
             if (stateCode === 'TX') return 'Letters Testamentary';

@@ -146,7 +146,7 @@ export function WelcomeModal() {
                 <div className="flex justify-end pt-4 gap-3">
                     <Button
                         variant="ghost"
-                        onClick={() => updateMutation.mutate("PROBATE")}
+                        onClick={() => updateMutation.mutate("DISCOVERY")}
                     >
                         I'm not sure yet
                     </Button>

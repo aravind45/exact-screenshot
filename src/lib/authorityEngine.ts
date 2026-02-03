@@ -37,6 +37,7 @@ export type AuthorityType =
     | "BUSINESS_ESTATE"
     | "CONTESTED_ESTATE"
     | "UNCLAIMED_ESTATE"
+    | "DISCOVERY"
     | "UNSET";
 
 export interface AuthorityRecommendation {
@@ -64,6 +65,7 @@ export function getMasterMode(type: AuthorityType): MasterMode {
         case "FAMILY_ALLOWANCE":
         case "INTESTATE":
         case "CONTESTED_ESTATE":
+        case "DISCOVERY":
             return "COURT_SUPERVISED";
 
         case "TRUST_ADMIN_REVOCABLE":
