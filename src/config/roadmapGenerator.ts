@@ -11,7 +11,7 @@ export function generateRoadmap(
 
     // For simplest cases (Transfer Only), we use a reduced phase set
     if (masterMode === "TRANSFER_ONLY") {
-        return generateTransferOnlyRoadmap(authorityType, state);
+        return generateTransferOnlyRoadmap(authorityType, state, modifiers);
     }
 
     // For Trust Admin, we use a specialized workflow
@@ -23,7 +23,7 @@ export function generateRoadmap(
     return generateProbateRoadmap(authorityType, state, modifiers);
 }
 
-function generateTransferOnlyRoadmap(type: AuthorityType, state: string): PhaseTaskList[] {
+function generateTransferOnlyRoadmap(type: AuthorityType, state: string, modifiers: string[] = []): PhaseTaskList[] {
     // Simplified 3-phase roadmap
     const baseline = SETTLEMENT_PHASE_TASKS.filter(p =>
         ["immediate_actions", "asset_discovery", "final_distribution"].includes(p.phase)
