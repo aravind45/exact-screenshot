@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settlement Roadmap Generator</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 40px;
+      background: #ffffff;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+    }
+    
+    .roadmap-container {
+      width: 1200px;
+      height: 180px;
+      background: #F8FAFC;
+      border-radius: 12px;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .phases {
+      display: flex;
+      align-items: center;
+      height: 100%;
+      padding: 0 20px;
+    }
+    
+    .phase {
+      position: relative;
+      height: 120px;
+      width: 160px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: -10px;
+      clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 50%, calc(100% - 20px) 100%, 0 100%, 15px 50%);
+    }
+    
+    .phase:first-child {
+      clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 50%, calc(100% - 20px) 100%, 0 100%);
+    }
+    
+    .phase-content {
+      text-align: center;
+      color: white;
+      z-index: 1;
+    }
+    
+    .phase-title {
+      font-size: 14px;
+      font-weight: bold;
+      line-height: 1.2;
+      margin-bottom: 4px;
+    }
+    
+    .phase-duration {
+      font-size: 11px;
+      opacity: 0.9;
+    }
+    
+    .phase-1 { background: #EF4444; }
+    .phase-2 { background: #F97316; }
+    .phase-3 { background: #EAB308; }
+    .phase-4 { background: #3B82F6; }
+    .phase-5 { background: #6366F1; }
+    .phase-6 { background: #10B981; }
+    
+    .completion-badge {
+      position: absolute;
+      right: 40px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 56px;
+      height: 56px;
+      background: #10B981;
+      border-radius: 50%;
+      border: 3px solid white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .checkmark {
+      width: 24px;
+      height: 24px;
+      border: 3px solid white;
+      border-top: none;
+      border-right: none;
+      transform: rotate(-45deg);
+      margin-top: -6px;
+      margin-left: 3px;
+    }
+  </style>
+</head>
+<body>
+  <div class="roadmap-container">
+    <div class="phases">
+      <div class="phase phase-1">
+        <div class="phase-content">
+          <div class="phase-title">Immediate<br>Actions</div>
+          <div class="phase-duration">Week 1-2</div>
+        </div>
+      </div>
+      
+      <div class="phase phase-2">
+        <div class="phase-content">
+          <div class="phase-title">Court<br>Filing</div>
+          <div class="phase-duration">Week 3-8</div>
+        </div>
+      </div>
+      
+      <div class="phase phase-3">
+        <div class="phase-content">
+          <div class="phase-title">Asset<br>Discovery</div>
+          <div class="phase-duration">Month 2-4</div>
+        </div>
+      </div>
+      
+      <div class="phase phase-4">
+        <div class="phase-content">
+          <div class="phase-title">Creditor<br>Claims</div>
+          <div class="phase-duration">Month 4-8</div>
+        </div>
+      </div>
+      
+      <div class="phase phase-5">
+        <div class="phase-content">
+          <div class="phase-title">Asset<br>Liquidation</div>
+          <div class="phase-duration">Month 6-12</div>
+        </div>
+      </div>
+      
+      <div class="phase phase-6">
+        <div class="phase-content">
+          <div class="phase-title">Final<br>Distribution</div>
+          <div class="phase-duration">Month 12-18</div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="completion-badge">
+      <div class="checkmark"></div>
+    </div>
+  </div>
+  
+  <div style="margin-top: 20px; padding: 20px; background: #f0f0f0; border-radius: 8px;">
+    <h3>Instructions:</h3>
+    <ol>
+      <li>Open this HTML file in your browser</li>
+      <li>Take a screenshot of the roadmap (use browser dev tools or screenshot tool)</li>
+      <li>Save as <code>public/settlement_roadmap_hero.png</code></li>
+      <li>Update HeroSection.tsx to use the PNG instead of SVG</li>
+    </ol>
+    <p><strong>Or</strong> use the SVG file which should now work properly with polygon elements.</p>
+  </div>
+</body>
+</html>
