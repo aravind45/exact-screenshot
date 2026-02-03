@@ -75,13 +75,12 @@ export function HeroSection() {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, delay: 0.4 }}
-            className="mt-10 relative mx-auto max-w-4xl rounded-xl border border-border/50 bg-background/50 shadow-xl overflow-hidden"
+            className="mt-12 relative mx-auto max-w-5xl rounded-xl border border-border/50 bg-white shadow-xl overflow-hidden p-6"
           >
-            <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent z-10 opacity-30" />
             <img
-              src="/premium_roadmap_slim.png"
-              alt="ExpectedEstate Roadmap Timeline"
-              className="w-full max-h-[180px] object-cover"
+              src="/professional_roadmap_hero.svg"
+              alt="ExpectedEstate Settlement Roadmap - 5 Phase Process"
+              className="w-full h-auto"
             />
           </motion.div>
         </div>

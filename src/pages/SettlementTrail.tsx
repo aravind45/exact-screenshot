@@ -176,99 +176,102 @@ export default function SettlementTrail() {
     };
 
     return (
-        <div className="flex min-h-screen bg-slate-50/50">
+        <div className="flex min-h-screen bg-slate-50/50 selection:bg-indigo-100 selection:text-indigo-900">
             <Sidebar />
-            <main className="flex-1 pl-64">
-                <div className="p-8 max-w-5xl mx-auto space-y-8 pb-32">
-                    {/* Header */}
-                    <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-                        <div className="space-y-1">
-                            <div className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-[0.2em]">
-                                <History className="w-3.5 h-3.5" />
-                                Fiduciary Record
-                            </div>
-                            <h1 className="text-3xl font-black text-slate-900 tracking-tight">Settlement Trail</h1>
-                            <p className="text-slate-500 font-medium max-w-2xl">
-                                Defensive chronological journal of every legal action and asset determination.
-                            </p>
-                        </div>
-                        <div className="flex items-center gap-3 w-full md:w-auto">
-                            <Button
-                                variant="outline"
-                                className="h-11 rounded-xl bg-white border-slate-200 text-slate-600 font-bold hover:bg-slate-50 relative overflow-hidden group/btn px-6 shadow-sm"
-                                onClick={async () => {
-                                    try {
-                                        const blob = await api.downloadActivityLog();
-                                        const url = window.URL.createObjectURL(blob);
-                                        const a = document.createElement('a');
-                                        a.href = url;
-                                        a.download = `Settlement_Trail_${new Date().toISOString().split('T')[0]}.pdf`;
-                                        document.body.appendChild(a);
-                                        a.click();
-                                        window.URL.revokeObjectURL(url);
-                                    } catch (e) {
-                                        console.error("Download failed:", e);
-                                    }
-                                }}
-                            >
-                                <ArrowUpRight className="w-4 h-4 mr-2 text-slate-400 group-hover/btn:text-primary transition-colors" />
-                                Export Ledger
-                            </Button>
-                            <div className="relative w-full md:w-72">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                                <Input
-                                    placeholder="Search actions..."
-                                    className="pl-10 h-11 bg-white border-slate-200 rounded-xl shadow-sm"
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                />
-                            </div>
-                        </div>
-                    </header>
+            <main className="flex-1 pl-64 relative">
 
-                    {/* Cockpit - Orientation Tools */}
+                {/* Sleek Glassmorphic Header */}
+                <div className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-slate-200/60 shadow-sm transition-all duration-200">
+                    <div className="max-w-5xl mx-auto px-8 py-5">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                                <div className="p-2.5 bg-gradient-to-br from-indigo-50 to-slate-50 rounded-xl border border-indigo-100 shadow-inner">
+                                    <History className="w-5 h-5 text-indigo-900" />
+                                </div>
+                                <div>
+                                    <h1 className="text-xl font-bold text-slate-900 tracking-tight">Settlement Trail</h1>
+                                    <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
+                                        <Scale className="w-3 h-3" />
+                                        <span>Fiduciary Audit Log</span>
+                                        <span className="text-slate-300">•</span>
+                                        <span className="text-emerald-600 flex items-center gap-1">
+                                            <CheckCircle2 className="w-3 h-3" />
+                                            Live & Verified
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center gap-3">
+                                <div className="relative group">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 group-hover:text-indigo-500 transition-colors" />
+                                    <Input
+                                        placeholder="Search trail..."
+                                        className="pl-9 h-9 w-64 bg-slate-50 border-slate-200 rounded-lg text-sm focus:bg-white transition-all"
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                    />
+                                </div>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-9 rounded-lg border-slate-200 bg-white hover:bg-slate-50 text-slate-600 font-semibold shadow-sm"
+                                    onClick={async () => {
+                                        try {
+                                            const blob = await api.downloadActivityLog();
+                                            const url = window.URL.createObjectURL(blob);
+                                            const a = document.createElement('a');
+                                            a.href = url;
+                                            a.download = `Settlement_Trail_${new Date().toISOString().split('T')[0]}.pdf`;
+                                            document.body.appendChild(a);
+                                            a.click();
+                                            window.URL.revokeObjectURL(url);
+                                        } catch (e) {
+                                            console.error("Download failed:", e);
+                                        }
+                                    }}
+                                >
+                                    <ArrowUpRight className="w-3.5 h-3.5 mr-2 text-slate-400" />
+                                    Export PDF
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="p-8 max-w-5xl mx-auto space-y-10 pb-32">
+                    {/* Cockpit - Orientation Tools (Refined) */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <Card className="md:col-span-2 border-indigo-100 bg-indigo-50/30 rounded-3xl overflow-hidden shadow-sm">
-                            <CardContent className="p-6">
+                        <Card className="md:col-span-2 border-indigo-100 bg-gradient-to-br from-indigo-50/50 via-white to-white rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+                            <CardContent className="p-5">
                                 <div className="flex items-start gap-4">
-                                    <div className="p-3 bg-indigo-100 rounded-2xl">
-                                        <Zap className="w-5 h-5 text-indigo-600" />
+                                    <div className="p-2.5 bg-indigo-100/50 rounded-xl">
+                                        <Zap className="w-4 h-4 text-indigo-600" />
                                     </div>
-                                    <div className="space-y-3 flex-1">
-                                        <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Last Meaningful Action</p>
-                                        <div className="space-y-1">
-                                            <h4 className="text-base font-bold text-slate-900 leading-tight">
-                                                {orientationStats.lastAction}
-                                            </h4>
-                                            <p className="text-xs text-indigo-600 font-medium">
-                                                {orientationStats.lastActionTime ? format(new Date(orientationStats.lastActionTime), "MMMM d 'at' h:mm a") : "Just now"}
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div className="p-3 bg-white border border-indigo-100 rounded-2xl text-center hidden sm:block">
-                                        <p className="text-[8px] font-black text-slate-400 uppercase tracking-tighter">Fidelity Score</p>
-                                        <p className="text-lg font-black text-indigo-600">9.5</p>
+                                    <div className="space-y-1 flex-1">
+                                        <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest">Latest Action</p>
+                                        <h4 className="text-sm font-semibold text-slate-900 leading-snug">
+                                            {orientationStats.lastAction}
+                                        </h4>
+                                        <p className="text-xs text-slate-500 font-medium pt-1">
+                                            {orientationStats.lastActionTime ? format(new Date(orientationStats.lastActionTime), "MMMM d • h:mm a") : "Just now"}
+                                        </p>
                                     </div>
                                 </div>
                             </CardContent>
                         </Card>
 
-                        <Card className="border-emerald-100 bg-emerald-50/30 rounded-3xl overflow-hidden shadow-sm">
-                            <CardContent className="p-6">
+                        <Card className="border-emerald-100 bg-gradient-to-br from-emerald-50/50 via-white to-white rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+                            <CardContent className="p-5">
                                 <div className="flex items-start gap-4">
-                                    <div className="p-3 bg-emerald-100 rounded-2xl">
-                                        <Flag className="w-5 h-5 text-emerald-600" />
+                                    <div className="p-2.5 bg-emerald-100/50 rounded-xl">
+                                        <Flag className="w-4 h-4 text-emerald-600" />
                                     </div>
-                                    <div className="space-y-3">
-                                        <p className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Next Attention Area</p>
-                                        <div className="space-y-1">
-                                            <h4 className="text-sm font-bold text-slate-900 leading-tight">
-                                                {orientationStats.nextTask}
-                                            </h4>
-                                            <p className="text-[10px] font-medium text-emerald-600 bg-white border border-emerald-100 px-2 py-0.5 rounded-full w-fit">
-                                                Priority Action
-                                            </p>
-                                        </div>
+                                    <div className="space-y-1">
+                                        <p className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">Recommended Next</p>
+                                        <h4 className="text-sm font-semibold text-slate-900 leading-snug">
+                                            {orientationStats.nextTask}
+                                        </h4>
                                     </div>
                                 </div>
                             </CardContent>
@@ -276,211 +279,173 @@ export default function SettlementTrail() {
                     </div>
 
                     {/* Timeline */}
-                    <div className="space-y-8">
-                        {isLoading ? (
-                            <div className="h-40 flex items-center justify-center text-slate-400 font-medium">
-                                Syncing fiduciary records...
-                            </div>
-                        ) : filteredActivities.length === 0 ? (
-                            <div className="bg-white p-12 rounded-3xl border border-slate-200 text-center space-y-3">
-                                <Search className="w-6 h-6 text-slate-200 mx-auto" />
-                                <p className="text-slate-600 font-bold uppercase text-[10px] tracking-widest">No activities found</p>
-                            </div>
-                        ) : (
-                            // Group by date
-                            Object.entries(
-                                filteredActivities.reduce((groups: any, activity) => {
-                                    const dateKey = format(new Date(activity.occurredAt), "yyyy-MM-dd");
-                                    if (!groups[dateKey]) groups[dateKey] = [];
-                                    groups[dateKey].push(activity);
-                                    return groups;
-                                }, {})
-                            ).sort((a: any, b: any) => b[0].localeCompare(a[0]))
-                                .map(([dateKey, groupActivities]: [string, any]) => {
-                                    const groupDate = new Date(dateKey + 'T12:00:00');
-                                    let dateLabel = format(groupDate, "MMMM d, yyyy");
+                    <div className="relative pl-4">
+                        {/* Continuous Vertical Line */}
+                        <div className="absolute left-[39px] top-6 bottom-0 w-px bg-slate-200" />
 
-                                    const todayStr = format(new Date(), "yyyy-MM-dd");
-                                    const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
-                                    const yesterdayStr = format(yesterday, "yyyy-MM-dd");
+                        <div className="space-y-10">
+                            {isLoading ? (
+                                <div className="h-40 flex items-center justify-center text-slate-400 font-medium text-sm">
+                                    Reading ledger...
+                                </div>
+                            ) : filteredActivities.length === 0 ? (
+                                <div className="bg-white p-8 rounded-2xl border border-slate-100 text-center space-y-2 shadow-sm">
+                                    <SearchX className="w-8 h-8 text-slate-200 mx-auto" />
+                                    <p className="text-slate-500 font-medium text-sm">No recorded activities found</p>
+                                </div>
+                            ) : (
+                                Object.entries(
+                                    filteredActivities.reduce((groups: any, activity) => {
+                                        const dateKey = format(new Date(activity.occurredAt), "yyyy-MM-dd");
+                                        if (!groups[dateKey]) groups[dateKey] = [];
+                                        groups[dateKey].push(activity);
+                                        return groups;
+                                    }, {})
+                                ).sort((a: any, b: any) => b[0].localeCompare(a[0]))
+                                    .map(([dateKey, groupActivities]: [string, any]) => {
+                                        const groupDate = new Date(dateKey + 'T12:00:00');
+                                        let dateLabel = format(groupDate, "MMMM d, yyyy");
 
-                                    if (dateKey === todayStr) dateLabel = "Today";
-                                    else if (dateKey === yesterdayStr) dateLabel = "Yesterday";
+                                        const todayStr = format(new Date(), "yyyy-MM-dd");
+                                        const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
+                                        const yesterdayStr = format(yesterday, "yyyy-MM-dd");
 
-                                    return (
-                                        <div key={dateKey} className="space-y-6">
-                                            <div className="sticky top-0 z-20 py-2 bg-slate-50/95 backdrop-blur-sm -mx-4 px-4">
-                                                <div className="flex items-center gap-4">
-                                                    <span className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 flex-shrink-0">
+                                        if (dateKey === todayStr) dateLabel = "Today";
+                                        else if (dateKey === yesterdayStr) dateLabel = "Yesterday";
+
+                                        return (
+                                            <div key={dateKey} className="relative z-10">
+                                                {/* Date Header Node */}
+                                                <div className="flex items-center gap-6 mb-6">
+                                                    <div className="w-[50px] flex justify-center shrink-0">
+                                                        <div className="w-2.5 h-2.5 rounded-full bg-slate-200 ring-4 ring-slate-50" />
+                                                    </div>
+                                                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
                                                         {dateLabel}
                                                     </span>
-                                                    <div className="h-px w-full bg-slate-200" />
                                                 </div>
-                                            </div>
 
-                                            <div className="relative border-l-2 border-slate-200 ml-4 pl-10 space-y-6">
-                                                {groupActivities.map((activity: any, idx: number) => {
-                                                    const activityType = activity.type || 'ROADMAP';
-                                                    const Icon = getActivityIcon(activityType);
-                                                    const colorClasses = getActivityColor(activityType);
-                                                    const isAggregated = activity.count > 1;
-                                                    const parts = activity.notes.split('| Note:');
-                                                    const hasExistingNote = parts.length > 1;
-                                                    const existingNote = hasExistingNote ? parts[1].trim() : "";
+                                                <div className="space-y-4">
+                                                    {groupActivities.map((activity: any, idx: number) => {
+                                                        const activityType = activity.type || 'ROADMAP';
+                                                        const Icon = getActivityIcon(activityType);
+                                                        const colorClasses = getActivityColor(activityType);
+                                                        const isAggregated = activity.count > 1;
+                                                        const parts = activity.notes.split('| Note:');
+                                                        const hasExistingNote = parts.length > 1;
+                                                        const existingNote = hasExistingNote ? parts[1].trim() : "";
 
-                                                    return (
-                                                        <motion.div
-                                                            key={activity.id}
-                                                            initial={{ opacity: 0, x: -10 }}
-                                                            animate={{ opacity: 1, x: 0 }}
-                                                            transition={{ delay: idx * 0.05 }}
-                                                            className="relative"
-                                                        >
-                                                            {/* Timeline Dot */}
-                                                            <div className={cn(
-                                                                "absolute -left-[51px] top-1 p-1.5 rounded-full border-2 border-white shadow-sm z-10 transition-transform group-hover:scale-110",
-                                                                colorClasses.split(' ')[1]
-                                                            )}>
-                                                                <div className={cn(
-                                                                    "w-3 h-3 rounded-full",
-                                                                    colorClasses.split(' ')[0].replace('text-', 'bg-')
-                                                                )} />
-                                                            </div>
-
-                                                            <div className="bg-white rounded-3xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-all group relative overflow-hidden hover:border-slate-300">
-                                                                {isAggregated && (
-                                                                    <div className="absolute right-0 top-0 bg-indigo-50 border-l border-b border-indigo-100 px-3 py-1 rounded-bl-xl">
-                                                                        <p className="text-[9px] font-bold text-indigo-600 uppercase tracking-tighter">
-                                                                            {activity.count} Repeated Events Compressed
-                                                                        </p>
+                                                        return (
+                                                            <motion.div
+                                                                key={activity.id}
+                                                                initial={{ opacity: 0, y: 10 }}
+                                                                animate={{ opacity: 1, y: 0 }}
+                                                                transition={{ delay: idx * 0.03 }}
+                                                                className="group relative flex gap-6"
+                                                            >
+                                                                {/* Time & Node Column */}
+                                                                <div className="w-[50px] flex flex-col items-center shrink-0 pt-1">
+                                                                    <div className="text-[10px] font-semibold text-slate-400 mb-1">
+                                                                        {format(new Date(activity.occurredAt), "h:mm a")}
                                                                     </div>
-                                                                )}
-
-                                                                <div className="flex items-start justify-between gap-4">
-                                                                    <div className="space-y-3 flex-1 min-w-0">
-                                                                        <div className="flex items-center gap-3 flex-wrap">
-                                                                            <Badge className={cn("rounded-lg px-2 py-0.5 text-[10px] font-black uppercase tracking-widest border", colorClasses)}>
-                                                                                {activityType}
-                                                                            </Badge>
-                                                                            <div className="text-[10px] font-bold text-slate-400 flex items-center gap-1.5">
-                                                                                <Clock className="w-3 h-3" />
-                                                                                {format(new Date(activity.occurredAt), "h:mm a")}
-                                                                            </div>
-                                                                        </div>
-
-                                                                        <div className="space-y-2">
-                                                                            <h3 className="font-bold text-slate-900 text-[16px] leading-snug group-hover:text-primary transition-colors pr-8">
-                                                                                {getActionDisplay(activity)}
-                                                                            </h3>
-
-                                                                            {activity.phase && (
-                                                                                <div className="flex items-center gap-2">
-                                                                                    <span className="text-[9px] font-black text-slate-400 uppercase bg-slate-100 px-2 py-0.5 rounded-md">
-                                                                                        PHASE: {activity.phase.replace(/_/g, ' ')}
-                                                                                    </span>
-                                                                                </div>
-                                                                            )}
-                                                                        </div>
-                                                                    </div>
-
-                                                                    <div className="flex-shrink-0">
-                                                                        <div className={cn("p-3 rounded-2xl transition-transform group-hover:rotate-12", colorClasses.split(' ')[1])}>
-                                                                            <Icon className={cn("w-5 h-5", colorClasses.split(' ')[0])} />
-                                                                        </div>
-                                                                    </div>
+                                                                    <div className={cn(
+                                                                        "w-2 h-2 rounded-full border-2 border-white shadow-sm z-20 transition-all duration-300 group-hover:scale-125 group-hover:ring-2",
+                                                                        colorClasses.split(' ')[1], // Border/Ring Color
+                                                                        colorClasses.split(' ')[0].replace('text-', 'bg-') // Bg Color
+                                                                    )} />
                                                                 </div>
 
-                                                                {/* Executor Intent Note Display/Edit */}
-                                                                <div className="mt-4 pt-4 border-t border-slate-50">
-                                                                    {editingActivityId === activity.id ? (
-                                                                        <div className="space-y-3 animate-in fade-in slide-in-from-top-1">
-                                                                            <div className="relative">
-                                                                                <MessageSquare className="absolute left-3 top-3 w-4 h-4 text-primary opacity-50" />
-                                                                                <textarea
-                                                                                    autoFocus
-                                                                                    className="w-full bg-slate-50 border border-primary/20 rounded-xl p-3 pl-10 text-sm font-medium focus:ring-0 focus:border-primary transition-all min-h-[80px]"
-                                                                                    placeholder="Why was this action taken? (e.g., Followed up due to no response)"
-                                                                                    value={intentNote}
-                                                                                    onChange={(e) => setIntentNote(e.target.value)}
-                                                                                />
+                                                                {/* Content Card */}
+                                                                <div className="flex-1 min-w-0">
+                                                                    <div className="bg-white rounded-xl border border-slate-200/60 p-4 shadow-sm hover:shadow-md transition-all duration-200 relative overflow-hidden group-hover:border-slate-300">
+                                                                        {isAggregated && (
+                                                                            <div className="absolute top-0 right-0 p-1.5 bg-slate-50 rounded-bl-lg border-b border-l border-slate-100">
+                                                                                <span className="text-[9px] font-bold text-slate-500 px-1">×{activity.count}</span>
                                                                             </div>
-                                                                            <div className="flex gap-2 justify-end">
-                                                                                <Button
-                                                                                    variant="ghost"
-                                                                                    size="sm"
-                                                                                    className="rounded-lg h-8 text-[11px] font-bold uppercase"
-                                                                                    onClick={() => setEditingActivityId(null)}
-                                                                                >
-                                                                                    <X className="w-3 h-3 mr-1.5" /> Cancel
-                                                                                </Button>
-                                                                                <Button
-                                                                                    size="sm"
-                                                                                    className="rounded-lg h-8 text-[11px] font-bold uppercase bg-primary hover:bg-primary/90"
-                                                                                    disabled={updateNoteMutation.isPending}
-                                                                                    onClick={() => updateNoteMutation.mutate({
-                                                                                        id: activity.id,
-                                                                                        notes: `${parts[0].trim()} | Note: ${intentNote}`
-                                                                                    })}
-                                                                                >
-                                                                                    <Save className="w-3 h-3 mr-1.5" /> Save Intent
-                                                                                </Button>
+                                                                        )}
+
+                                                                        <div className="flex items-start gap-4">
+                                                                            <div className={cn("p-2 rounded-lg bg-opacity-10 shrink-0 mt-0.5", colorClasses.split(' ')[1], colorClasses.split(' ')[2].replace('border-', 'bg-'))}>
+                                                                                <Icon className={cn("w-4 h-4", colorClasses.split(' ')[0])} />
                                                                             </div>
-                                                                        </div>
-                                                                    ) : (
-                                                                        <div className="flex items-center justify-between group/note">
-                                                                            <div className="space-y-1">
-                                                                                {hasExistingNote ? (
-                                                                                    <div className="flex items-start gap-2 p-3 bg-emerald-50/50 rounded-2xl border border-emerald-100/50 max-w-xl">
-                                                                                        <PencilLine className="w-3.5 h-3.5 text-emerald-600 mt-0.5 shrink-0" />
-                                                                                        <p className="text-xs font-bold text-emerald-900 italic leading-relaxed">
-                                                                                            "{existingNote}"
-                                                                                        </p>
+
+                                                                            <div className="flex-1 space-y-1">
+                                                                                <div className="flex items-center gap-2 mb-0.5">
+                                                                                    <span className={cn("text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-opacity-20", colorClasses.split(' ')[1], colorClasses.split(' ')[0].replace('text-', 'bg-').replace('600', '100'))}>
+                                                                                        {activityType}
+                                                                                    </span>
+                                                                                </div>
+                                                                                <h3 className="text-sm font-semibold text-slate-900 group-hover:text-primary transition-colors leading-snug">
+                                                                                    {getActionDisplay(activity)}
+                                                                                </h3>
+
+                                                                                {/* Intent Note / Actions */}
+                                                                                {editingActivityId === activity.id ? (
+                                                                                    <div className="mt-3 bg-slate-50 p-3 rounded-lg border border-slate-100 animate-in fade-in slide-in-from-top-1">
+                                                                                        <textarea
+                                                                                            autoFocus
+                                                                                            className="w-full bg-transparent border-0 p-0 text-xs font-medium focus:ring-0 text-slate-700 placeholder:text-slate-400"
+                                                                                            rows={2}
+                                                                                            placeholder="Add context..."
+                                                                                            value={intentNote}
+                                                                                            onChange={(e) => setIntentNote(e.target.value)}
+                                                                                        />
+                                                                                        <div className="flex justify-end gap-2 mt-2 pt-2 border-t border-slate-200/50">
+                                                                                            <button onClick={() => setEditingActivityId(null)} className="text-[10px] font-bold text-slate-400 hover:text-slate-600 uppercase">Cancel</button>
+                                                                                            <button
+                                                                                                onClick={() => updateNoteMutation.mutate({ id: activity.id, notes: `${parts[0].trim()} | Note: ${intentNote}` })}
+                                                                                                className="text-[10px] font-bold text-primary uppercase hover:text-primary/80"
+                                                                                            >
+                                                                                                Save
+                                                                                            </button>
+                                                                                        </div>
                                                                                     </div>
                                                                                 ) : (
-                                                                                    <div className="flex items-center gap-2 text-[10px] text-slate-400 font-medium italic">
-                                                                                        <User className="w-3 h-3" />
-                                                                                        Executor action recorded by {activity.user?.fullName || "System"}
+                                                                                    <div className="mt-1 flex items-center justify-between group/audit">
+                                                                                        <div>
+                                                                                            {hasExistingNote && (
+                                                                                                <div className="flex items-center gap-2 text-xs text-slate-600 italic bg-amber-50/50 px-2 py-1 rounded-md border border-amber-100/50 inline-flex mt-1">
+                                                                                                    <PencilLine className="w-3 h-3 text-amber-500" />
+                                                                                                    "{existingNote}"
+                                                                                                </div>
+                                                                                            )}
+                                                                                        </div>
+
+                                                                                        <button
+                                                                                            onClick={() => {
+                                                                                                setEditingActivityId(activity.id);
+                                                                                                setIntentNote(existingNote);
+                                                                                            }}
+                                                                                            className="opacity-0 group-hover/audit:opacity-100 transition-opacity text-[10px] font-bold text-slate-400 hover:text-indigo-600 uppercase mb-[-4px]"
+                                                                                        >
+                                                                                            {hasExistingNote ? "Edit" : "Annotate"}
+                                                                                        </button>
                                                                                     </div>
                                                                                 )}
                                                                             </div>
-                                                                            <Button
-                                                                                variant="ghost"
-                                                                                className="h-7 px-2 text-[10px] font-bold text-slate-500 hover:text-primary gap-1.5 opacity-0 group-hover/note:opacity-100 transition-opacity"
-                                                                                onClick={() => {
-                                                                                    setEditingActivityId(activity.id);
-                                                                                    setIntentNote(existingNote);
-                                                                                }}
-                                                                            >
-                                                                                {hasExistingNote ? <PencilLine className="w-3 h-3" /> : <MessageSquare className="w-3 h-3" />}
-                                                                                {hasExistingNote ? "Edit Note" : "Add Intent Note"}
-                                                                            </Button>
                                                                         </div>
-                                                                    )}
+                                                                    </div>
                                                                 </div>
-                                                            </div>
-                                                        </motion.div>
-                                                    );
-                                                })}
+                                                            </motion.div>
+                                                        );
+                                                    })}
+                                                </div>
                                             </div>
-                                        </div>
-                                    );
-                                })
-                        )}
+                                        );
+                                    })
+                            )}
+                        </div>
                     </div>
                 </div>
 
-                {/* Defense Footer */}
-                <footer className="fixed bottom-0 right-0 left-64 bg-white/80 backdrop-blur-md border-t border-slate-200 p-4 z-50">
-                    <div className="max-w-4xl mx-auto flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <Scale className="w-5 h-5 text-slate-400" />
-                            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                                This trail serves as your primary evidence of fiduciary diligence. All timestamps are UTC-linked and tamper-evident.
-                            </p>
-                        </div>
-                        <Badge className="bg-emerald-50 text-emerald-600 border-emerald-100 font-black text-[10px]">VERIFIED RECORD</Badge>
+                {/* Defense Footer (Minimalist) */}
+                <div className="fixed bottom-6 right-6 z-50">
+                    <div className="bg-slate-900/90 backdrop-blur-md text-white px-4 py-2 rounded-full shadow-2xl border border-slate-700 flex items-center gap-3 hover:scale-105 transition-transform cursor-default">
+                        <Scale className="w-4 h-4 text-emerald-400" />
+                        <span className="text-[10px] font-bold uppercase tracking-wider">Immutable Ledger Active</span>
+                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                     </div>
-                </footer>
+                </div>
             </main>
         </div>
     );
