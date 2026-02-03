@@ -16,6 +16,9 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 const STATES = [
     // Fully Supported States
     { id: "CA", name: "California", icon: "🌴", supported: true },
+    { id: "FL", name: "Florida", icon: "☀️", supported: true },
+    { id: "NY", name: "New York", icon: "🗽", supported: true },
+    { id: "TX", name: "Texas", icon: "🤠", supported: true },
     
     // Coming Soon States (alphabetical)
     { id: "AL", name: "Alabama", icon: "🏛️", supported: false },
@@ -25,7 +28,6 @@ const STATES = [
     { id: "CO", name: "Colorado", icon: "⛰️", supported: false },
     { id: "CT", name: "Connecticut", icon: "⚓", supported: false },
     { id: "DE", name: "Delaware", icon: "🦅", supported: false },
-    { id: "FL", name: "Florida", icon: "☀️", supported: false },
     { id: "GA", name: "Georgia", icon: "🍑", supported: false },
     { id: "HI", name: "Hawaii", icon: "🌺", supported: false },
     { id: "ID", name: "Idaho", icon: "🥔", supported: false },
@@ -48,7 +50,6 @@ const STATES = [
     { id: "NH", name: "New Hampshire", icon: "🍁", supported: false },
     { id: "NJ", name: "New Jersey", icon: "🏖️", supported: false },
     { id: "NM", name: "New Mexico", icon: "🌶️", supported: false },
-    { id: "NY", name: "New York", icon: "🗽", supported: false },
     { id: "NC", name: "North Carolina", icon: "🏔️", supported: false },
     { id: "ND", name: "North Dakota", icon: "🦬", supported: false },
     { id: "OH", name: "Ohio", icon: "🌰", supported: false },
@@ -59,7 +60,6 @@ const STATES = [
     { id: "SC", name: "South Carolina", icon: "🌴", supported: false },
     { id: "SD", name: "South Dakota", icon: "🗿", supported: false },
     { id: "TN", name: "Tennessee", icon: "🎵", supported: false },
-    { id: "TX", name: "Texas", icon: "🤠", supported: false },
     { id: "UT", name: "Utah", icon: "🏜️", supported: false },
     { id: "VT", name: "Vermont", icon: "🍁", supported: false },
     { id: "VA", name: "Virginia", icon: "🏛️", supported: false },

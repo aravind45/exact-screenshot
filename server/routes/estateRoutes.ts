@@ -759,3 +759,119 @@ router.post("/my/distribution-activity", async (req: any, res: Response) => {
 });
 
 export default router;
+
+// Roadmap endpoints
+import { getEstateRoadmap, completeTask, uncompleteTask, getTaskCompletions } from "../services/roadmapService.js";
+
+router.get("/:id/roadmap", async (req: any, res: Response) => {
+    try {
+        const { id } = req.params;
+
+        // Verify user has access to this estate
+        const estate = await prisma.estate.findFirst({
+            where: {
+                id,
+                OR: [
+                    { userId: req.user.id },
+                    { grants: { some: { userId: req.user.id } } }
+                ]
+            }
+        });
+
+        if (!estate) {
+            return res.status(404).json({ error: "Estate not found or access denied" });
+        }
+
+        // Get personalized roadmap
+        const roadmap = await getEstateRoadmap(id);
+        res.json(roadmap);
+    } catch (error: any) {
+        console.error("Error fetching roadmap:", error);
+        res.status(500).json({ error: "Failed to fetch roadmap", message: error.message });
+    }
+});
+
+router.get("/:id/tasks", async (req: any, res: Response) => {
+    try {
+        const { id } = req.params;
+
+        // Verify user has access to this estate
+        const estate = await prisma.estate.findFirst({
+            where: {
+                id,
+                OR: [
+                    { userId: req.user.id },
+                    { grants: { some: { userId: req.user.id } } }
+                ]
+            }
+        });
+
+        if (!estate) {
+            return res.status(404).json({ error: "Estate not found or access denied" });
+        }
+
+        // Get task completions
+        const completions = await getTaskCompletions(id);
+        res.json(completions);
+    } catch (error: any) {
+        console.error("Error fetching task completions:", error);
+        res.status(500).json({ error: "Failed to fetch task completions", message: error.message });
+    }
+});
+
+router.post("/:id/tasks/:taskId/complete", async (req: any, res: Response) => {
+    try {
+        const { id, taskId } = req.params;
+        const { notes } = req.body;
+
+        // Verify user has access to this estate
+        const estate = await prisma.estate.findFirst({
+            where: {
+                id,
+                OR: [
+                    { userId: req.user.id },
+                    { grants: { some: { userId: req.user.id } } }
+                ]
+            }
+        });
+
+        if (!estate) {
+            return res.status(404).json({ error: "Estate not found or access denied" });
+        }
+
+        // Complete task
+        const result = await completeTask(id, taskId, req.user.id, notes);
+        res.json(result);
+    } catch (error: any) {
+        console.error("Error completing task:", error);
+        res.status(500).json({ error: "Failed to complete task", message: error.message });
+    }
+});
+
+router.delete("/:id/tasks/:taskId/complete", async (req: any, res: Response) => {
+    try {
+        const { id, taskId } = req.params;
+
+        // Verify user has access to this estate
+        const estate = await prisma.estate.findFirst({
+            where: {
+                id,
+                OR: [
+                    { userId: req.user.id },
+                    { grants: { some: { userId: req.user.id } } }
+                ]
+            }
+        });
+
+        if (!estate) {
+            return res.status(404).json({ error: "Estate not found or access denied" });
+        }
+
+        // Uncomplete task
+        const result = await uncompleteTask(id, taskId, req.user.id);
+        res.json(result);
+    } catch (error: any) {
+        console.error("Error uncompleting task:", error);
+        res.status(500).json({ error: "Failed to uncomplete task", message: error.message });
+    }
+});

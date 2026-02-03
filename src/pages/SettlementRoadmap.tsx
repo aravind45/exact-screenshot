@@ -39,11 +39,15 @@ export default function SettlementRoadmap() {
     });
   }, [estate, assets]);
 
-  // Generate dynamic roadmap based on authority recommendation
+  const { data: roadmapData, isLoading: isLoadingRoadmap } = useQuery({
+    queryKey: ['roadmap', estate?.id],
+    queryFn: () => api.getEstateRoadmap(estate!.id),
+    enabled: !!estate?.id,
+  });
+
   const dynamicRoadmap = useMemo(() => {
-    if (!authorityRec) return SETTLEMENT_PHASE_TASKS;
-    return generateRoadmap(authorityRec.type, estate?.deceasedState || "CA", authorityRec.modifiers || []);
-  }, [authorityRec, estate?.deceasedState]);
+    return roadmapData?.phases || SETTLEMENT_PHASE_TASKS;
+  }, [roadmapData]);
 
   const [completedPhases, setCompletedPhases] = useState<SettlementPhase[]>([]);
   const [completedTaskIds, setCompletedTaskIds] = useState<string[]>([]);
@@ -69,60 +73,44 @@ export default function SettlementRoadmap() {
     }
   }, [estate?.status, dynamicRoadmap]);
 
-  const roadmapMutation = useMutation({
-    mutationFn: api.updateRoadmap,
+  const completeMutation = useMutation({
+    mutationFn: ({ taskId, notes }: { taskId: string; notes?: string }) =>
+      api.completeTask(estate!.id, taskId, notes),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['estate'] });
+      queryClient.invalidateQueries({ queryKey: ['roadmap', estate?.id] });
+    }
+  });
+
+  const uncompleteMutation = useMutation({
+    mutationFn: (taskId: string) => api.uncompleteTask(estate!.id, taskId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['estate'] });
+      queryClient.invalidateQueries({ queryKey: ['roadmap', estate?.id] });
     }
   });
 
   const handleTaskToggle = (taskId: string, completed: boolean) => {
-    const newCompletedIds = completed
-      ? [...new Set([...completedTaskIds, taskId])]
-      : completedTaskIds.filter(id => id !== taskId);
-
-    setCompletedTaskIds(newCompletedIds);
-
-    // Find the task title for better logging
-    let taskTitle = taskId;
-    for (const phase of dynamicRoadmap) {
-      const task = phase.tasks.find(t => t.id === taskId);
-      if (task) {
-        taskTitle = task.title;
-        break;
-      }
+    if (completed) {
+      completeMutation.mutate({ taskId });
+    } else {
+      uncompleteMutation.mutate(taskId);
     }
-
-    roadmapMutation.mutate({
-      completedTaskIds: newCompletedIds,
-      completedPhases,
-      taskId,
-      taskTitle, // Pass title for logging
-      action: completed ? 'COMPLETED' : 'UNCOMPLETED'
-    });
   };
 
   const handlePhaseComplete = (phase: SettlementPhase) => {
     // Mark all tasks in this phase as complete
     const phaseTasks = dynamicRoadmap.find(p => p.phase === phase);
-    let newCompletedIds = [...completedTaskIds];
     if (phaseTasks) {
-      const taskIds = phaseTasks.tasks.map(t => t.id);
-      newCompletedIds = [...new Set([...newCompletedIds, ...taskIds])];
-      setCompletedTaskIds(newCompletedIds);
+      // For now, we'll just track phase completion in the estate object via updateRoadmap or similar
+      // But the new design suggests task-by-task completion.
+      // We can iterate and complete all tasks.
+      phaseTasks.tasks.forEach(task => {
+        if (!completedTaskIds.includes(task.id)) {
+          completeMutation.mutate({ taskId: task.id });
+        }
+      });
     }
-
-    // Mark phase as complete
-    const newCompletedPhases = [...new Set([...completedPhases, phase])];
-    setCompletedPhases(newCompletedPhases);
-
-    roadmapMutation.mutate({
-      completedTaskIds: newCompletedIds,
-      completedPhases: newCompletedPhases,
-      taskId: phase,
-      action: 'PHASE_COMPLETED',
-      phase
-    });
 
     // Move to next phase
     const phases = dynamicRoadmap.map(p => p.phase);
@@ -329,6 +317,7 @@ export default function SettlementRoadmap() {
 
               <PhaseTaskList
                 phase={currentPhase}
+                phaseData={phaseData}
                 completedTaskIds={completedTaskIds}
                 onTaskToggle={handleTaskToggle}
                 className="shadow-md"

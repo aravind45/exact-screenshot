@@ -200,6 +200,20 @@ export interface AccountingReadiness {
 
 export type FormReadiness = Record<string, { ready: boolean; reason: string }>;
 
+export interface RoadmapResponse {
+    estateId: string;
+    phases: any[]; // PhaseTaskList[] from settlementPhases
+    triggers: {
+        hasMinors: boolean;
+        isSmallEstate: boolean;
+        isPrimaryResidence: boolean;
+        isContested: boolean;
+        showBondWaiver: boolean;
+        showSpecialNotice: boolean;
+    };
+    profile: any;
+}
+
 const API_URL = import.meta.env.VITE_API_URL || "/api";
 
 const getHeaders = () => {
@@ -1123,6 +1137,38 @@ export const api = {
             method: 'POST',
             headers: getHeaders(),
             body: JSON.stringify({ assetId, attachedDocumentIds }),
+        });
+        return parseResponse(response);
+    },
+
+    // Roadmap Methods
+    getEstateRoadmap: async (id: string): Promise<RoadmapResponse> => {
+        const response = await fetch(`${API_URL}/estates/${id}/roadmap`, {
+            headers: getHeaders(),
+        });
+        return parseResponse(response);
+    },
+
+    getTaskCompletions: async (id: string) => {
+        const response = await fetch(`${API_URL}/estates/${id}/tasks`, {
+            headers: getHeaders(),
+        });
+        return parseResponse(response);
+    },
+
+    completeTask: async (id: string, taskId: string, notes?: string) => {
+        const response = await fetch(`${API_URL}/estates/${id}/tasks/${taskId}/complete`, {
+            method: "POST",
+            headers: getHeaders(),
+            body: JSON.stringify({ notes }),
+        });
+        return parseResponse(response);
+    },
+
+    uncompleteTask: async (id: string, taskId: string) => {
+        const response = await fetch(`${API_URL}/estates/${id}/tasks/${taskId}/complete`, {
+            method: "DELETE",
+            headers: getHeaders(),
         });
         return parseResponse(response);
     },

@@ -122,6 +122,16 @@ model Estate {
   roadmapProgress Json? @map("roadmap_progress") // { completedTaskIds: string[], completedPhases: string[] }
   authorityDecision Json? @map("authority_decision") // Latest decision snapshot (Gap A)
 
+  // Roadmap Triggers & Process State
+  hasMinorBeneficiaries Boolean @default(false) @map("has_minor_beneficiaries")
+  hasContest            Boolean @default(false) @map("has_contest")
+  hasPrimaryResidence   Boolean @default(false) @map("has_primary_residence")
+  bondWaiverStatus      String  @default("NOT_STARTED") @map("bond_waiver_status") // NOT_STARTED, REQUESTED, OBTAINED, DENIED
+  
+  guardianAdLitemId     String? @map("guardian_ad_litem_id")
+  guardianAdLitemStatus String? @map("guardian_ad_litem_status") // NOT_NEEDED, PETITIONED, APPOINTED
+  specialNoticeParties  Json?   @map("special_notice_parties") // Array of { name, address, requestDate }
+
   user            User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
   grants          EstateGrant[]
   invitations     Invitation[]
@@ -134,6 +144,7 @@ model Estate {
   distributions       Distribution[]
   discoveryCategories DiscoveryCategory[]
   authorityDecisions  AuthorityDecision[]
+  taskCompletions     TaskCompletion[]
 
   @@map("estates")
 }
@@ -559,4 +570,21 @@ model NegativeAssurance {
   category DiscoveryCategory @relation(fields: [discoveryCategoryId], references: [id], onDelete: Cascade)
 
   @@map("negative_assurance_logs")
+}
+
+model TaskCompletion {
+  id          String   @id @default(uuid())
+  estateId    String   @map("estate_id")
+  taskId      String   @map("task_id")
+  phase       String?
+  completed   Boolean  @default(false)
+  completedAt DateTime? @map("completed_at")
+  completedBy String?  @map("completed_by")
+  notes       String?
+  attachments String[] // Array of storage keys/URLs
+
+  estate Estate @relation(fields: [estateId], references: [id], onDelete: Cascade)
+
+  @@unique([estateId, taskId])
+  @@map("task_completions")
 }

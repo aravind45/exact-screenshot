@@ -17,6 +17,7 @@ import { useNavigate } from "react-router-dom";
 
 interface PhaseTaskListProps {
   phase: SettlementPhase;
+  phaseData?: any; // From roadmap API
   completedTaskIds?: string[];
   onTaskToggle?: (taskId: string, completed: boolean) => void;
   className?: string;
@@ -24,6 +25,7 @@ interface PhaseTaskListProps {
 
 export function PhaseTaskList({
   phase,
+  phaseData: propPhaseData,
   completedTaskIds = [],
   onTaskToggle,
   className
@@ -42,21 +44,13 @@ export function PhaseTaskList({
     queryFn: api.getMyEstate,
   });
 
-  const handleSyncRoadmap = async (roadmapId: string, taskTitle?: string, phaseName?: string) => {
+  const handleSyncRoadmap = async (roadmapId: string) => {
     try {
       if (!estate) return;
-      const completedTaskIds = estate.roadmapProgress?.completedTaskIds || [];
       if (!completedTaskIds.includes(roadmapId)) {
-        const newIds = [...completedTaskIds, roadmapId];
-        await api.updateRoadmap({
-          completedTaskIds: newIds,
-          completedPhases: estate.roadmapProgress?.completedPhases || [],
-          taskId: roadmapId,
-          action: 'COMPLETED',
-          taskTitle,
-          phaseName
-        });
+        await api.completeTask(estate.id, roadmapId);
         queryClient.invalidateQueries({ queryKey: ["estate"] });
+        queryClient.invalidateQueries({ queryKey: ["roadmap", estate.id] });
         toast.info(`Automatically marked roadmap task as "Complete".`);
       }
     } catch (err) {
@@ -99,7 +93,7 @@ export function PhaseTaskList({
     uploadMutation.mutate({ type, name, file });
   };
 
-  const phaseData = SETTLEMENT_PHASE_TASKS.find(p => p.phase === phase);
+  const phaseData = propPhaseData || SETTLEMENT_PHASE_TASKS.find(p => p.phase === phase);
 
   if (!phaseData) return null;
 

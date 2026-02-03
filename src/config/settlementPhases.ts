@@ -91,6 +91,31 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
             message: "Vacant homes are high-risk. Contact insurance to ensure coverage remains active."
           }
         ]
+      },
+      {
+        id: "identify_minor_beneficiaries",
+        title: "Identify Minor Beneficiaries",
+        description: "Review all heirs and identify any beneficiaries under age 18. Minors require special court protection through a guardian ad litem.",
+        estimatedTime: "30 minutes",
+        isOptional: true, // Controlled by filtering logic based on profile
+        alerts: [{
+          type: "important",
+          message: "Estates with minor beneficiaries require additional court oversight and blocked accounts."
+        }]
+      },
+      {
+        id: "check_primary_residence_succession",
+        title: "Check Primary Residence Succession Eligibility",
+        description: "If the estate consists primarily of a primary residence valued under $100,000, you may qualify for simplified succession process (DE-310/315).",
+        utility: "Shortcut: Avoid full probate for qualifying primary residences.",
+        estimatedTime: "1 hour",
+        exclusiveGroup: "filing_path",
+        isOptional: true,
+        helpArticleId: "primary-residence-succession",
+        alerts: [{
+          type: "important",
+          message: "This process is ONLY for primary residences. Other assets require different procedures."
+        }]
       }
     ]
   },
@@ -342,9 +367,23 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         description: "Request court order to transfer property to surviving spouse without full probate.",
         estimatedTime: "4-6 weeks",
         category: "probate",
-        isOptional: true, // Only if spouse
+        isOptional: true,
         helpArticleId: "spousal-property",
         requiredDocs: ["DE-221", "Death Certificate"]
+      },
+      {
+        id: "obtain_spousal_order",
+        title: "Obtain Spousal Property Order (DE-226)",
+        description: "Receive signed court order confirming property ownership transfer to spouse. Record with county recorder if real estate is involved.",
+        estimatedTime: "1-2 weeks after hearing",
+        category: "court-issued",
+        isOptional: true,
+        dependencies: ["file_spousal_petition"],
+        requiredDocs: ["DE-226"],
+        alerts: [{
+          type: "important",
+          message: "A certified copy of this order serves as the new deed for real property."
+        }]
       },
       {
         id: "issue_cert_trust",
@@ -364,6 +403,200 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         category: "probate",
         isOptional: true,
         alerts: [{ type: "important", message: "Do not let business operations lapse; it can severely devalue the estate." }]
+      },
+      {
+        id: "petition_guardian_ad_litem",
+        title: "File Petition for Guardian Ad Litem (DE-350)",
+        description: "Request court appointment of a guardian ad litem to represent minor beneficiaries' interests throughout probate.",
+        estimatedTime: "2-4 hours",
+        category: "probate",
+        isOptional: true,
+        requiredDocs: ["DE-350", "Death Certificate"],
+        dependencies: ["file_petition"],
+        links: [{
+          label: "Download DE-350",
+          url: "https://www.courts.ca.gov/documents/de350.pdf"
+        }],
+        alerts: [{
+          type: "important",
+          message: "Guardian ad litem must approve all actions affecting minors' inheritance."
+        }]
+      },
+      {
+        id: "obtain_guardian_order",
+        title: "Obtain Guardian Ad Litem Order (DE-351)",
+        description: "Receive court order appointing guardian ad litem. Provide guardian with all estate information.",
+        estimatedTime: "2-3 weeks",
+        category: "court-issued",
+        isOptional: true,
+        requiredDocs: ["DE-351"],
+        dependencies: ["petition_guardian_ad_litem"],
+        links: [{
+          label: "Download DE-351",
+          url: "https://www.courts.ca.gov/documents/de351.pdf"
+        }],
+        alerts: [{
+          type: "info",
+          message: "Guardian ad litem fees are paid by the estate, typically $150-300/hour."
+        }]
+      },
+      {
+        id: "file_succession_petition",
+        title: "File Petition to Determine Succession (DE-310)",
+        description: "File petition with court to determine who inherits the primary residence without full probate.",
+        estimatedTime: "2-4 hours",
+        category: "probate",
+        exclusiveGroup: "filing_path",
+        isOptional: true,
+        requiredDocs: ["DE-310", "Death Certificate", "Property Deed"],
+        links: [{
+          label: "Download DE-310",
+          url: "https://www.courts.ca.gov/documents/de310.pdf"
+        }],
+        alerts: [{
+          type: "info",
+          message: "Filing fee: ~$435. Hearing typically scheduled 30-45 days after filing."
+        }]
+      },
+      {
+        id: "obtain_succession_order",
+        title: "Obtain Order Determining Succession (DE-315)",
+        description: "Receive court order determining property succession. Record order with county recorder.",
+        estimatedTime: "1-2 weeks after hearing",
+        category: "court-issued",
+        isOptional: true,
+        requiredDocs: ["DE-315"],
+        dependencies: ["file_succession_petition"],
+        links: [{
+          label: "Download DE-315",
+          url: "https://www.courts.ca.gov/documents/de315.pdf"
+        }],
+        alerts: [{
+          type: "important",
+          message: "Record certified copy of order with county recorder to transfer title."
+        }]
+      },
+      {
+        id: "track_special_notice_requests",
+        title: "Track Special Notice Requests (DE-154)",
+        description: "Maintain list of all parties who have requested special notice. You must serve them copies of ALL court filings.",
+        estimatedTime: "Ongoing",
+        isLongHorizon: true,
+        category: "probate",
+        isOptional: true,
+        dependencies: ["file_petition"],
+        requiredDocs: ["DE-154", "DE-130"],
+        links: [{
+          label: "Download DE-154",
+          url: "https://www.courts.ca.gov/documents/de154.pdf"
+        }],
+        alerts: [{
+          type: "warning",
+          message: "Failure to serve special notice can invalidate court orders. Keep meticulous records."
+        }]
+      },
+      {
+        id: "serve_special_notice_parties",
+        title: "Serve All Special Notice Recipients",
+        description: "Each time you file a document with the court, serve copies on all parties who requested special notice.",
+        estimatedTime: "1-2 hours per filing",
+        isLongHorizon: true,
+        isOptional: true,
+        dependencies: ["track_special_notice_requests"],
+        alerts: [{
+          type: "important",
+          message: "Service must be by mail with proof of service filed with court."
+        }]
+      },
+      {
+        id: "request_bond_waiver",
+        title: "Request Bond Waiver from Heirs (DE-142)",
+        description: "Ask all heirs to sign waivers of bond requirement. Bond costs 0.5-1% of estate value annually.",
+        utility: "Cost Savings: Eliminate bond premium (typically $500-$5,000/year).",
+        estimatedTime: "1-2 weeks",
+        category: "probate",
+        isOptional: true,
+        requiredDocs: ["DE-142"],
+        dependencies: ["file_petition"],
+        links: [{
+          label: "Download DE-142",
+          url: "https://www.courts.ca.gov/documents/de142.pdf"
+        }],
+        alerts: [{
+          type: "info",
+          message: "ALL heirs must sign. If even one refuses, bond is required."
+        }]
+      },
+      {
+        id: "file_bond_waiver",
+        title: "File Waiver of Bond (DE-142)",
+        description: "Submit signed waivers to court and request order waiving bond requirement.",
+        estimatedTime: "1 day",
+        category: "probate",
+        isOptional: true,
+        requiredDocs: ["DE-142"],
+        dependencies: ["request_bond_waiver"],
+        alerts: [{
+          type: "important",
+          message: "File before probate hearing to avoid bond requirement in initial order."
+        }]
+      },
+      {
+        id: "obtain_bond_waiver_order",
+        title: "Obtain Order Waiving Bond (DE-143)",
+        description: "Verify that the court has officially waived the bond requirement, typically reflected in a separate Order (DE-143) or the Order for Probate.",
+        estimatedTime: "At hearing",
+        category: "court-issued",
+        isOptional: true,
+        requiredDocs: ["DE-143", "DE-140"],
+        dependencies: ["file_bond_waiver"],
+        alerts: [{
+          type: "info",
+          message: "The bond waiver is officially granted within the Order for Probate (DE-140) or a specific Bond Order (DE-143)."
+        }]
+      },
+      {
+        id: "respond_to_objections",
+        title: "Respond to Objections (DE-115/116)",
+        description: "If someone files an objection to the petition or will, you must respond formally and prepare for contest hearing.",
+        estimatedTime: "2-4 weeks",
+        category: "probate",
+        isOptional: true,
+        requiredDocs: ["DE-115", "DE-116"],
+        dependencies: ["file_petition"],
+        links: [{
+          label: "Download DE-115",
+          url: "https://www.courts.ca.gov/documents/de115.pdf"
+        }],
+        alerts: [{
+          type: "warning",
+          message: "Hire an attorney immediately. Will contests are complex and high-stakes."
+        }]
+      },
+      {
+        id: "attend_contest_hearing",
+        title: "Attend Will Contest Hearing",
+        description: "Appear in court for hearing on objection. Be prepared to present evidence supporting will validity.",
+        estimatedTime: "4-8 hours",
+        isOptional: true,
+        dependencies: ["respond_to_objections"],
+        alerts: [{
+          type: "important",
+          message: "Bring all witnesses who can testify to decedent's mental capacity and lack of undue influence."
+        }]
+      },
+      {
+        id: "resolve_contest",
+        title: "Resolve Will Contest",
+        description: "Obtain court ruling on objection. If will is upheld, proceed with probate. If invalidated, estate becomes intestate.",
+        estimatedTime: "Varies (can take 6-24 months)",
+        isLongHorizon: true,
+        isOptional: true,
+        dependencies: ["attend_contest_hearing"],
+        alerts: [{
+          type: "caution",
+          message: "Contested probate significantly extends timeline and increases costs. Consider settlement."
+        }]
       }
     ]
   },
@@ -473,6 +706,19 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
             message: "Institutions may over-withhold by default for foreign beneficiaries. Review treaty benefits before distribution."
           }
         ]
+      },
+      {
+        id: "coordinate_with_guardian",
+        title: "Coordinate with Guardian Ad Litem",
+        description: "Keep guardian informed of all estate actions. Obtain guardian's approval before major decisions affecting minors.",
+        estimatedTime: "Ongoing",
+        isLongHorizon: true,
+        isOptional: true,
+        dependencies: ["obtain_guardian_order"],
+        alerts: [{
+          type: "caution",
+          message: "Guardian must review and approve inventory, accounting, and distribution plans."
+        }]
       }
     ]
   },
@@ -603,18 +849,66 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         ]
       },
       {
+        id: "prepare_notice_proposed_action",
+        title: "Prepare Notice of Proposed Action (DE-165)",
+        description: "If you have Independent Administration of Estates Act (IAEA) authority, you must notify heirs of your intent to sell real property.",
+        estimatedTime: "1 week",
+        category: "probate",
+        isOptional: true,
+        requiredDocs: ["DE-165"],
+        links: [{
+          label: "Download DE-165",
+          url: "https://www.courts.ca.gov/documents/de165.pdf"
+        }],
+        alerts: [{
+          type: "info",
+          message: "Heirs have 15 days to object. If no one objects, you can proceed without a court hearing."
+        }]
+      },
+      {
+        id: "wait_proposed_action_period",
+        title: "Wait for 15-Day Objection Period",
+        description: "Mandatory waiting period after serving Notice of Proposed Action to allow heirs to respond or object.",
+        estimatedTime: "15 days",
+        isLongHorizon: true,
+        isOptional: true,
+        dependencies: ["prepare_notice_proposed_action"]
+      },
+      {
+        id: "petition_confirm_sale",
+        title: "File Petition to Confirm Sale (DE-260)",
+        description: "If you do NOT have IAEA authority, or if someone objects, you must petition the court to confirm the sale of real property.",
+        estimatedTime: "2-4 hours",
+        category: "probate",
+        isOptional: true,
+        requiredDocs: ["DE-260"],
+        links: [{
+          label: "Download DE-260",
+          url: "https://www.courts.ca.gov/documents/de260.pdf"
+        }],
+        alerts: [{
+          type: "warning",
+          message: "Court-confirmed sales include an 'overbid' process where others can outbid the buyer at the hearing."
+        }]
+      },
+      {
+        id: "obtain_sale_confirmation_order",
+        title: "Obtain Sale Confirmation Order (DE-265)",
+        description: "Receive signed court order confirming the real estate sale and allowing the close of escrow.",
+        estimatedTime: "1-2 weeks after hearing",
+        category: "court-issued",
+        isOptional: true,
+        dependencies: ["petition_confirm_sale"],
+        requiredDocs: ["DE-265"]
+      },
+      {
         id: "sell_property",
-        title: "Sell Real Property (if needed)",
-        description: "List and sell real estate if required by Will or to pay debts.",
-        estimatedTime: "3-6 months",
-        isOptional: true, // Only if needed/willed
-        requiredDocs: ["Court Authorization (if required)"],
-        alerts: [
-          {
-            type: "warning",
-            message: "Some sales require court approval. Check with attorney before listing."
-          }
-        ]
+        title: "Complete Property Sale & Close Escrow",
+        description: "Finalize the sale of real estate, sign closing documents, and receive sale proceeds into the estate account.",
+        estimatedTime: "4-8 weeks",
+        isOptional: true,
+        dependencies: ["obtain_sale_confirmation_order", "wait_proposed_action_period"],
+        requiredDocs: ["Final Hud-1/Closing Statement"]
       },
       {
         id: "file_form_1041",
@@ -679,11 +973,27 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
     description: "File petition for final distribution, distribute assets to heirs, and close estate.",
     tasks: [
       {
+        id: "guardian_distribution_approval",
+        title: "Obtain Guardian Approval for Distribution",
+        description: "Present final distribution plan to guardian ad litem for review and approval before court hearing.",
+        estimatedTime: "1-2 weeks",
+        isOptional: true,
+        dependencies: ["file_final_petition"],
+        alerts: [{
+          type: "important",
+          message: "Guardian will verify that minors' shares are properly protected in blocked accounts."
+        }]
+      },
+      {
         id: "blocked_account_minors",
         title: "Setup Blocked Accounts for Minors",
         description: "Ensure funds for minor beneficiaries are placed in court-approved blocked accounts.",
         estimatedTime: "2 weeks",
-        isOptional: true
+        isOptional: true,
+        alerts: [{
+          type: "important",
+          message: "Required by court if distributions are made directly to minors."
+        }]
       },
       {
         id: "file_final_petition",

@@ -9,9 +9,11 @@ interface DefaultTemplate {
     description: string;
     category: string;
     icon: string;
+    state?: string;
 }
 
-const DEFAULT_TEMPLATES: DefaultTemplate[] = [
+// California Forms
+const CA_TEMPLATES: DefaultTemplate[] = [
     {
         name: "DE-110",
         filename: "DE-110.pdf",
@@ -190,6 +192,404 @@ const DEFAULT_TEMPLATES: DefaultTemplate[] = [
     }
 ];
 
+// New York Forms
+const NY_TEMPLATES: DefaultTemplate[] = [
+    {
+        name: "ET-1",
+        filename: "NY-ET-1.pdf",
+        title: "Petition for Probate",
+        description: "Petition to admit will to probate and appoint executor.",
+        category: "Probate Initialization",
+        icon: "FileText",
+        state: "NY"
+    },
+    {
+        name: "ET-2",
+        filename: "NY-ET-2.pdf",
+        title: "Petition for Administration",
+        description: "Petition for letters of administration when there is no will.",
+        category: "Probate Initialization",
+        icon: "ScrollText",
+        state: "NY"
+    },
+    {
+        name: "ET-3",
+        filename: "NY-ET-3.pdf",
+        title: "Petition for Ancillary Probate",
+        description: "Petition for ancillary probate of foreign will.",
+        category: "Probate Initialization",
+        icon: "FileText",
+        state: "NY"
+    },
+    {
+        name: "ET-4",
+        filename: "NY-ET-4.pdf",
+        title: "Citation",
+        description: "Notice to interested parties of probate proceeding.",
+        category: "Notices",
+        icon: "Bell",
+        state: "NY"
+    },
+    {
+        name: "ET-5",
+        filename: "NY-ET-5.pdf",
+        title: "Waiver and Consent",
+        description: "Waiver of citation and consent to probate.",
+        category: "Notices",
+        icon: "CheckSquare",
+        state: "NY"
+    },
+    {
+        name: "ET-6",
+        filename: "NY-ET-6.pdf",
+        title: "Letters Testamentary",
+        description: "Official authority for executor to act.",
+        category: "Authority",
+        icon: "ShieldCheck",
+        state: "NY"
+    },
+    {
+        name: "ET-7",
+        filename: "NY-ET-7.pdf",
+        title: "Letters of Administration",
+        description: "Official authority for administrator to act.",
+        category: "Authority",
+        icon: "ShieldCheck",
+        state: "NY"
+    },
+    {
+        name: "ET-8",
+        filename: "NY-ET-8.pdf",
+        title: "Inventory",
+        description: "List of estate assets and values.",
+        category: "Assets",
+        icon: "Scale",
+        state: "NY"
+    },
+    {
+        name: "ET-9",
+        filename: "NY-ET-9.pdf",
+        title: "Account",
+        description: "Accounting of estate receipts and disbursements.",
+        category: "Accounting",
+        icon: "FileText",
+        state: "NY"
+    },
+    {
+        name: "ET-10",
+        filename: "NY-ET-10.pdf",
+        title: "Petition for Judicial Settlement",
+        description: "Petition for court approval of accounting.",
+        category: "Accounting",
+        icon: "Gavel",
+        state: "NY"
+    },
+    {
+        name: "ET-11",
+        filename: "NY-ET-11.pdf",
+        title: "Decree",
+        description: "Court order approving accounting and distribution.",
+        category: "Court Orders",
+        icon: "Gavel",
+        state: "NY"
+    },
+    {
+        name: "ET-12",
+        filename: "NY-ET-12.pdf",
+        title: "Receipt and Release",
+        description: "Beneficiary acknowledgment of distribution.",
+        category: "Distribution",
+        icon: "Users",
+        state: "NY"
+    },
+    {
+        name: "ET-13",
+        filename: "NY-ET-13.pdf",
+        title: "Petition for Final Distribution",
+        description: "Request for court approval of final distribution.",
+        category: "Distribution",
+        icon: "Users",
+        state: "NY"
+    },
+    {
+        name: "ET-14",
+        filename: "NY-ET-14.pdf",
+        title: "Affidavit of Heirship",
+        description: "Sworn statement identifying heirs.",
+        category: "Small Estate",
+        icon: "FileText",
+        state: "NY"
+    },
+    {
+        name: "ET-15",
+        filename: "NY-ET-15.pdf",
+        title: "Voluntary Administration Affidavit",
+        description: "Simplified procedure for small estates.",
+        category: "Small Estate",
+        icon: "FileText",
+        state: "NY"
+    }
+];
+
+// Texas Forms
+const TX_TEMPLATES: DefaultTemplate[] = [
+    {
+        name: "TX-1",
+        filename: "TX-1.pdf",
+        title: "Application for Probate of Will",
+        description: "Application to admit will to probate and appoint executor.",
+        category: "Probate Initialization",
+        icon: "FileText",
+        state: "TX"
+    },
+    {
+        name: "TX-2",
+        filename: "TX-2.pdf",
+        title: "Application for Letters of Administration",
+        description: "Application for letters when there is no will.",
+        category: "Probate Initialization",
+        icon: "ScrollText",
+        state: "TX"
+    },
+    {
+        name: "TX-3",
+        filename: "TX-3.pdf",
+        title: "Application for Independent Administration",
+        description: "Application for independent administration (unique to Texas).",
+        category: "Probate Initialization",
+        icon: "FileText",
+        state: "TX"
+    },
+    {
+        name: "TX-4",
+        filename: "TX-4.pdf",
+        title: "Order Admitting Will to Probate",
+        description: "Court order admitting will to probate.",
+        category: "Court Orders",
+        icon: "Gavel",
+        state: "TX"
+    },
+    {
+        name: "TX-5",
+        filename: "TX-5.pdf",
+        title: "Letters Testamentary",
+        description: "Official authority for executor to act.",
+        category: "Authority",
+        icon: "ShieldCheck",
+        state: "TX"
+    },
+    {
+        name: "TX-6",
+        filename: "TX-6.pdf",
+        title: "Letters of Administration",
+        description: "Official authority for administrator to act.",
+        category: "Authority",
+        icon: "ShieldCheck",
+        state: "TX"
+    },
+    {
+        name: "TX-7",
+        filename: "TX-7.pdf",
+        title: "Inventory, Appraisement and List of Claims",
+        description: "Complete inventory of estate assets and claims.",
+        category: "Assets",
+        icon: "Scale",
+        state: "TX"
+    },
+    {
+        name: "TX-8",
+        filename: "TX-8.pdf",
+        title: "Annual Account",
+        description: "Annual accounting of estate receipts and disbursements.",
+        category: "Accounting",
+        icon: "FileText",
+        state: "TX"
+    },
+    {
+        name: "TX-9",
+        filename: "TX-9.pdf",
+        title: "Application to Close Estate",
+        description: "Application to close and distribute estate.",
+        category: "Estate Closing",
+        icon: "CheckCircle2",
+        state: "TX"
+    },
+    {
+        name: "TX-10",
+        filename: "TX-10.pdf",
+        title: "Final Account",
+        description: "Final accounting before estate closure.",
+        category: "Accounting",
+        icon: "FileText",
+        state: "TX"
+    },
+    {
+        name: "TX-11",
+        filename: "TX-11.pdf",
+        title: "Small Estate Affidavit",
+        description: "Simplified procedure for small estates under $75,000.",
+        category: "Small Estate",
+        icon: "FileText",
+        state: "TX"
+    },
+    {
+        name: "TX-12",
+        filename: "TX-12.pdf",
+        title: "Muniment of Title",
+        description: "Simplified probate process unique to Texas.",
+        category: "Small Estate",
+        icon: "ScrollText",
+        state: "TX"
+    }
+];
+
+// Florida Forms
+const FL_TEMPLATES: DefaultTemplate[] = [
+    {
+        name: "FL-1",
+        filename: "FL-1.pdf",
+        title: "Petition for Administration",
+        description: "Petition to open formal probate administration.",
+        category: "Probate Initialization",
+        icon: "FileText",
+        state: "FL"
+    },
+    {
+        name: "FL-2",
+        filename: "FL-2.pdf",
+        title: "Petition for Summary Administration",
+        description: "Simplified procedure for estates under $75,000.",
+        category: "Small Estate",
+        icon: "ScrollText",
+        state: "FL"
+    },
+    {
+        name: "FL-3",
+        filename: "FL-3.pdf",
+        title: "Notice of Administration",
+        description: "Notice to interested parties of probate proceeding.",
+        category: "Notices",
+        icon: "Bell",
+        state: "FL"
+    },
+    {
+        name: "FL-4",
+        filename: "FL-4.pdf",
+        title: "Oath of Personal Representative",
+        description: "Sworn oath of personal representative duties.",
+        category: "Authority",
+        icon: "ShieldCheck",
+        state: "FL"
+    },
+    {
+        name: "FL-5",
+        filename: "FL-5.pdf",
+        title: "Letters of Administration",
+        description: "Official authority for personal representative to act.",
+        category: "Authority",
+        icon: "ShieldCheck",
+        state: "FL"
+    },
+    {
+        name: "FL-6",
+        filename: "FL-6.pdf",
+        title: "Inventory",
+        description: "Complete inventory of estate assets and values.",
+        category: "Assets",
+        icon: "Scale",
+        state: "FL"
+    },
+    {
+        name: "FL-7",
+        filename: "FL-7.pdf",
+        title: "Notice to Creditors",
+        description: "Published notice to creditors of the estate.",
+        category: "Notices",
+        icon: "Bell",
+        state: "FL"
+    },
+    {
+        name: "FL-8",
+        filename: "FL-8.pdf",
+        title: "Proof of Claim",
+        description: "Form for creditors to file claims against estate.",
+        category: "Creditor Claims",
+        icon: "FileWarning",
+        state: "FL"
+    },
+    {
+        name: "FL-9",
+        filename: "FL-9.pdf",
+        title: "Objection to Claim",
+        description: "Personal representative's objection to creditor claim.",
+        category: "Creditor Claims",
+        icon: "CheckSquare",
+        state: "FL"
+    },
+    {
+        name: "FL-10",
+        filename: "FL-10.pdf",
+        title: "Accounting",
+        description: "Accounting of estate receipts and disbursements.",
+        category: "Accounting",
+        icon: "FileText",
+        state: "FL"
+    },
+    {
+        name: "FL-11",
+        filename: "FL-11.pdf",
+        title: "Petition for Discharge",
+        description: "Request to close estate and discharge representative.",
+        category: "Estate Closing",
+        icon: "CheckCircle2",
+        state: "FL"
+    },
+    {
+        name: "FL-12",
+        filename: "FL-12.pdf",
+        title: "Final Accounting",
+        description: "Final accounting before estate closure.",
+        category: "Accounting",
+        icon: "FileText",
+        state: "FL"
+    },
+    {
+        name: "FL-13",
+        filename: "FL-13.pdf",
+        title: "Receipt and Release",
+        description: "Beneficiary acknowledgment of distribution.",
+        category: "Distribution",
+        icon: "Users",
+        state: "FL"
+    },
+    {
+        name: "FL-14",
+        filename: "FL-14.pdf",
+        title: "Disposition Without Administration",
+        description: "Simplified procedure for very small estates.",
+        category: "Small Estate",
+        icon: "FileText",
+        state: "FL"
+    },
+    {
+        name: "FL-15",
+        filename: "FL-15.pdf",
+        title: "Homestead Property Petition",
+        description: "Petition regarding homestead property rights.",
+        category: "Spousal Property",
+        icon: "Home",
+        state: "FL"
+    }
+];
+
+// Combine all templates
+const DEFAULT_TEMPLATES: DefaultTemplate[] = [
+    ...CA_TEMPLATES,
+    ...NY_TEMPLATES,
+    ...TX_TEMPLATES,
+    ...FL_TEMPLATES
+];
+
 export class FormSeedingService {
     private static TEMPLATES_DIR = path.join(process.cwd(), 'server', 'templates');
 
@@ -213,7 +613,8 @@ export class FormSeedingService {
                         description: t.description,
                         category: t.category,
                         icon: t.icon,
-                        data: fileData
+                        data: fileData,
+                        state: t.state || "CA"
                     },
                     create: {
                         name: t.name,
@@ -222,10 +623,10 @@ export class FormSeedingService {
                         category: t.category,
                         icon: t.icon,
                         data: fileData,
-                        state: "CA"
+                        state: t.state || "CA"
                     }
                 });
-                console.log(`✅ Seeded template: ${t.name}`);
+                console.log(`✅ Seeded template: ${t.name} (${t.state || "CA"})`);
             } catch (error) {
                 console.error(`❌ Failed to seed template ${t.name}:`, error);
             }

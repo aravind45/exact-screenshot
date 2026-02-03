@@ -102,17 +102,26 @@ export default function OnboardingWizard() {
                     deceasedDateOfDeath: new Date(estateData.dateOfDeath),
                     deceasedState: estateData.location,
                     estimatedPersonalProperty: parseFloat(estateData.estimatedValue) || 0,
-                    estimatedLiabilities: parseFloat(estateData.estimatedDebt) || 0
+                    estimatedLiabilities: parseFloat(estateData.estimatedDebt) || 0,
+                    hasContest: estateData.hasContest
                 });
             } else if (currentStep === 2) { // Track Scout
                 await api.updateMyEstate({
                     estateType: recommendation.type,
                     authorityType: recommendation.type,
                     hasUnknownHeirs: estateData.hasUnknownHeirs,
-                    isTrustRevocable: estateData.isTrustRevocable
+                    isTrustRevocable: estateData.isTrustRevocable,
+                    hasContest: estateData.hasContest
                 });
             } else if (currentStep === 3) { // Heirs
                 const validHeirs = heirs.filter(h => h.name.trim() !== "");
+                const hasMinors = validHeirs.some(h => h.isMinor);
+
+                // Persist the explicit flag too
+                await api.updateMyEstate({
+                    hasMinorBeneficiaries: hasMinors
+                });
+
                 for (const heir of validHeirs) {
                     await api.createHeir({
                         ...heir,

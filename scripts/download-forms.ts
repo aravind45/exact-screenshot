@@ -203,19 +203,163 @@ const FORMS_TO_DOWNLOAD: FormDefinition[] = [
         code: "DE-310",
         filename: "DE-310.pdf",
         url: "https://www.courts.ca.gov/documents/de310.pdf",
-        title: "Petition for Final Distribution",
-        description: "Request to distribute remaining assets to beneficiaries.",
-        category: "Distribution",
-        icon: "Users"
+        title: "Petition to Determine Succession to Real Property",
+        description: "Petition to determine who inherits real property in estates under $184,500.",
+        category: "Succession",
+        icon: "FileSignature"
     },
     {
         code: "DE-315",
         filename: "DE-315.pdf",
         url: "https://www.courts.ca.gov/documents/de315.pdf",
+        title: "Order Determining Succession to Real Property",
+        description: "Court order determining succession to real property.",
+        category: "Court Orders",
+        icon: "Gavel"
+    },
+    {
+        code: "DE-350",
+        filename: "DE-350.pdf",
+        url: "https://www.courts.ca.gov/documents/de350.pdf",
+        title: "Petition for Appointment of Guardian Ad Litem—Probate",
+        description: "Petition to appoint a guardian ad litem for a minor or incapacitated person.",
+        category: "Guardian Ad Litem",
+        icon: "UserPlus"
+    },
+    {
+        code: "DE-351",
+        filename: "DE-351.pdf",
+        url: "https://www.courts.ca.gov/documents/de351.pdf",
+        title: "Order Appointing Guardian Ad Litem—Probate",
+        description: "Court order appointing a guardian ad litem.",
+        category: "Court Orders",
+        icon: "ShieldCheck"
+    },
+    {
+        code: "DE-154",
+        filename: "DE-154.pdf",
+        url: "https://www.courts.ca.gov/documents/de154.pdf",
+        title: "Request for Special Notice",
+        description: "Request to receive notice of all filings in a probate case.",
+        category: "Notices",
+        icon: "MailSearch"
+    },
+    {
+        code: "DE-226",
+        filename: "DE-226.pdf",
+        url: "https://www.courts.ca.gov/documents/de226.pdf",
+        title: "Spousal or Domestic Partner Property Order",
+        description: "Court order confirming property passing to surviving spouse.",
+        category: "Court Orders",
+        icon: "HeartHandshake"
+    },
+    {
+        code: "DE-142",
+        filename: "DE-142.pdf",
+        url: "https://www.courts.ca.gov/documents/de142.pdf",
+        title: "Waiver of Bond by Heir or Beneficiary",
+        description: "Form for heirs to waive the requirement for executor bond.",
+        category: "Bond Waiver",
+        icon: "UserMinus"
+    },
+    {
+        code: "DE-115",
+        filename: "DE-115.pdf",
+        url: "https://www.courts.ca.gov/documents/de115.pdf",
+        title: "Objection to Probate of Will",
+        description: "Formal objection filed to contest the validity of a will.",
+        category: "Contest",
+        icon: "XCircle"
+    },
+    {
+        code: "DE-200",
+        filename: "DE-200.pdf",
+        url: "https://www.courts.ca.gov/documents/de200.pdf",
+        title: "Order Prescribing Notice",
+        description: "Court order determining the notice required for a specific hearing.",
+        category: "Court Orders",
+        icon: "BellRing"
+    },
+    {
+        code: "DE-166",
+        filename: "DE-166.pdf",
+        url: "https://www.courts.ca.gov/documents/de166.pdf",
+        title: "Waiver of Notice of Proposed Action",
+        description: "Heir's waiver of the 15-day notice period for IAEA actions.",
+        category: "Asset Sales",
+        icon: "UserCheck"
+    },
+    {
+        code: "DE-143",
+        filename: "DE-143.pdf",
+        url: "", // Placeholder
+        title: "Order Waiving Bond (Custom/DE-143)",
+        description: "Placeholder for the court order waiving bond requirement.",
+        category: "Court Orders",
+        icon: "Gavel"
+    },
+    {
+        code: "DE-116",
+        filename: "DE-116.pdf",
+        url: "", // Placeholder
+        title: "Petition for Determination of Will Validity",
+        description: "Placeholder for contested will validity petition.",
+        category: "Contest",
+        icon: "FileQuestion"
+    },
+    {
+        code: "DE-130",
+        filename: "DE-130.pdf",
+        url: "https://www.courts.ca.gov/documents/de130.pdf",
+        title: "Proof of Publication (DE-130)",
+        description: "Affidavit from newspaper proving notice publication.",
+        category: "Notices",
+        icon: "Newspaper"
+    },
+    {
+        code: "FINAL_ORDER",
+        filename: "FINAL_ORDER.pdf",
+        url: "", // Template needed
         title: "Order for Final Distribution",
-        description: "Court order approving final distribution of assets.",
+        description: "Court order approving the final distribution of assets.",
         category: "Distribution",
+        icon: "Gavel"
+    },
+    {
+        code: "DE-275",
+        filename: "DE-275.pdf",
+        url: "https://www.courts.ca.gov/documents/de275.pdf",
+        title: "Order Confirming Sale of Securities",
+        description: "Court order approving the sale of stocks or bonds.",
+        category: "Court Orders",
         icon: "CheckCircle"
+    },
+    {
+        code: "DE-147S",
+        filename: "DE-147s.pdf",
+        url: "https://www.courts.ca.gov/documents/de147s.pdf",
+        title: "Confidential Supplement to Duties and Liabilities",
+        description: "Confidential social security and driver's license info for PR.",
+        category: "Authority",
+        icon: "Lock"
+    },
+    {
+        code: "SECTION_13100",
+        filename: "Section_13100_Affidavit.pdf",
+        url: "", // Template needed
+        title: "Affidavit for Collection of Personal Property",
+        description: "13100 Affidavit for small estates without real property.",
+        category: "Small Estate",
+        icon: "FileText"
+    },
+    {
+        code: "DE-120A",
+        filename: "DE-120A.pdf",
+        url: "https://www.courts.ca.gov/documents/de120a.pdf",
+        title: "Attachment to Notice of Hearing",
+        description: "Additional persons to be served with notice.",
+        category: "Notices",
+        icon: "Users"
     }
 ];
 
@@ -297,7 +441,7 @@ class FormDownloader {
         try {
             console.log(`⬇️  Downloading ${form.code}: ${form.title}...`);
             await this.downloadFile(form.url, destination);
-            
+
             const stats = fs.statSync(destination);
             console.log(`✅ Downloaded ${form.code}: ${(stats.size / 1024).toFixed(1)} KB`);
             this.downloadedCount++;
@@ -355,7 +499,7 @@ class FormDownloader {
 
     generateFormsList() {
         console.log('\n📝 Generating forms list for formSeedingService.ts...\n');
-        
+
         const formsList = FORMS_TO_DOWNLOAD.map(form => {
             return `    {
         name: "${form.code}",

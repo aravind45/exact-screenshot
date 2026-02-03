@@ -45,10 +45,10 @@ export const DOCUMENT_REGISTRY: DocumentEntry[] = [
     },
     {
         code: "DE-310",
-        name: "Small Estate Affidavit",
-        aliases: ["Affidavit", "Small Estate", "DE310", "Affidavit for Collection"],
-        roadmapTaskId: "file_affidavit",
-        category: "court-issued"
+        name: "Petition to Determine Succession to Real Property",
+        aliases: ["Succession Petition", "DE310", "Petition to Determine Succession"],
+        roadmapTaskId: "file_succession_petition",
+        category: "prep"
     },
     {
         code: "DE-221",
@@ -96,10 +96,108 @@ export const DOCUMENT_REGISTRY: DocumentEntry[] = [
     },
     {
         code: "DE-315",
-        name: "Inventory & Appraisal (Small Estate)",
-        aliases: ["Small Estate I&A", "DE315"],
-        roadmapTaskId: "complete_inventory",
+        name: "Order Determining Succession to Real Property",
+        aliases: ["Succession Order", "DE315", "Order Determining Succession"],
+        roadmapTaskId: "obtain_succession_order",
+        category: "court-issued"
+    },
+    {
+        code: "DE-350",
+        name: "Petition for Appointment of Guardian Ad Litem—Probate",
+        aliases: ["Guardian Ad Litem Petition", "DE350"],
+        roadmapTaskId: "petition_guardian_ad_litem",
         category: "prep"
+    },
+    {
+        code: "DE-351",
+        name: "Order Appointing Guardian Ad Litem—Probate",
+        aliases: ["Guardian Ad Litem Order", "DE351"],
+        roadmapTaskId: "obtain_guardian_order",
+        category: "court-issued"
+    },
+    {
+        code: "DE-154",
+        name: "Request for Special Notice",
+        aliases: ["Special Notice Request", "DE154"],
+        roadmapTaskId: "track_special_notice_requests",
+        category: "prep"
+    },
+    {
+        code: "DE-226",
+        name: "Spousal or Domestic Partner Property Order",
+        aliases: ["Spousal Order", "DE226", "Spousal Property Order"],
+        roadmapTaskId: "obtain_spousal_order",
+        category: "court-issued"
+    },
+    {
+        code: "DE-142",
+        name: "Waiver of Bond by Heir or Beneficiary",
+        aliases: ["Bond Waiver", "DE142"],
+        roadmapTaskId: "request_bond_waiver",
+        category: "prep"
+    },
+    {
+        code: "DE-143",
+        name: "Order Waiving Bond",
+        aliases: ["Bond Waiver Order", "DE143", "Bond Order"],
+        roadmapTaskId: "obtain_bond_waiver_order",
+        category: "court-issued"
+    },
+    {
+        code: "DE-166",
+        name: "Waiver of Notice of Proposed Action",
+        aliases: ["IAEA Waiver", "DE166", "Waiver of Notice"],
+        roadmapTaskId: "prepare_notice_proposed_action",
+        category: "prep"
+    },
+    {
+        code: "DE-116",
+        name: "Petition for Determination of Will Validity",
+        aliases: ["Will Validity", "DE116", "Contest Petition"],
+        roadmapTaskId: "respond_to_objections",
+        category: "prep"
+    },
+    {
+        code: "DE-130",
+        name: "Proof of Publication (Probate)",
+        aliases: ["Proof of Publication", "DE130", "Publication Receipt"],
+        roadmapTaskId: "publish_notice",
+        category: "prep"
+    },
+    {
+        code: "DE-165",
+        name: "Notice of Proposed Action",
+        aliases: ["Notice of Proposed Action", "DE165", "IAEA Notice"],
+        roadmapTaskId: "prepare_notice_proposed_action",
+        category: "prep"
+    },
+    {
+        code: "DE-260",
+        name: "Report of Sale and Petition for Order Confirming Sale of Real Property",
+        aliases: ["Petition to Confirm Sale", "DE260", "Sale Confirmation Petition"],
+        roadmapTaskId: "petition_confirm_sale",
+        category: "prep"
+    },
+    {
+        code: "DE-265",
+        name: "Order Confirming Sale of Real Property",
+        aliases: ["Order Confirming Sale", "DE265", "Sale Confirmation Order"],
+        roadmapTaskId: "obtain_sale_confirmation_order",
+        category: "court-issued"
+    },
+    {
+        code: "DE-115",
+        name: "Objection to Probate of Will",
+        aliases: ["Objection", "Will Contest", "DE115"],
+        roadmapTaskId: "respond_to_objections",
+        category: "prep"
+    },
+    {
+        code: "DE-200",
+        name: "Order Prescribing Notice",
+        aliases: ["Notice Order", "DE200"],
+        roadmapTaskId: "resolve_contest", // Often used in complex/contested notice issues
+        category: "court-issued"
     },
 
     // --- Phase 3: Creditor Claims ---
@@ -131,6 +229,27 @@ export const DOCUMENT_REGISTRY: DocumentEntry[] = [
         name: "Receipt of Beneficiary",
         aliases: ["Receipt", "Beneficiary Receipt", "Distribution Receipt"],
         roadmapTaskId: "distribute_assets",
+        category: "prep"
+    },
+    {
+        code: "DE-275",
+        name: "Order Confirming Sale of Securities",
+        aliases: ["Securities Order", "DE275"],
+        roadmapTaskId: "sell_securities",
+        category: "court-issued"
+    },
+    {
+        code: "DE-147S",
+        name: "Confidential Supplement to Duties and Liabilities",
+        aliases: ["Confidential Supplement", "DE147S"],
+        roadmapTaskId: "confirm_executor_role",
+        category: "prep"
+    },
+    {
+        code: "SECTION_13100",
+        name: "Affidavit for Collection of Personal Property",
+        aliases: ["Small Estate Affidavit", "13100 Affidavit"],
+        roadmapTaskId: "file_affidavit",
         category: "prep"
     },
     {
