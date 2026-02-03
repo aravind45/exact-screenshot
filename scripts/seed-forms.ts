@@ -1,17 +1,19 @@
-import "dotenv/config";
-import { FormSeedingService } from "../server/services/formSeedingService.js";
-import { prisma } from "../server/db.js";
+import { PrismaClient } from '@prisma/client';
+import { FormSeedingService } from '../server/services/formSeedingService.js';
 
-async function run() {
-    try {
-        console.log("Starting manual seed...");
-        await FormSeedingService.seedDefaults();
-        console.log("Seeding successful.");
-    } catch (e) {
-        console.error("Seeding failed:", e);
-    } finally {
-        await prisma.$disconnect();
-    }
+const prisma = new PrismaClient();
+
+async function main() {
+    console.log('🌱 Starting form template seeding...');
+    await FormSeedingService.seedDefaults();
+    console.log('✅ Form templates seeded successfully!');
 }
 
-run();
+main()
+    .catch((e) => {
+        console.error('❌ Error seeding forms:', e);
+        process.exit(1);
+    })
+    .finally(async () => {
+        await prisma.$disconnect();
+    });

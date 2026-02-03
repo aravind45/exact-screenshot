@@ -1,5 +1,6 @@
 
 import { PrismaClient } from '@prisma/client'
+import { FormSeedingService } from '../server/services/formSeedingService.js'
 
 const prisma = new PrismaClient()
 
@@ -111,6 +112,10 @@ async function main() {
     } else {
         console.log('Seed: Primary estate already exists.')
     }
+
+    console.log('Seed: Starting form template seeding...')
+    await FormSeedingService.seedDefaults()
+    console.log('Seed: Form templates seeded!')
 }
 
 main()

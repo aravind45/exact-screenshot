@@ -14,10 +14,59 @@ import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const STATES = [
-    { id: "CA", name: "California", icon: "🌴" },
-    { id: "NY", name: "New York", icon: "🗽", disabled: true },
-    { id: "TX", name: "Texas", icon: "🤠", disabled: true },
-    { id: "FL", name: "Florida", icon: "☀️", disabled: true },
+    // Fully Supported States
+    { id: "CA", name: "California", icon: "🌴", supported: true },
+    
+    // Coming Soon States (alphabetical)
+    { id: "AL", name: "Alabama", icon: "🏛️", supported: false },
+    { id: "AK", name: "Alaska", icon: "🏔️", supported: false },
+    { id: "AZ", name: "Arizona", icon: "🌵", supported: false },
+    { id: "AR", name: "Arkansas", icon: "💎", supported: false },
+    { id: "CO", name: "Colorado", icon: "⛰️", supported: false },
+    { id: "CT", name: "Connecticut", icon: "⚓", supported: false },
+    { id: "DE", name: "Delaware", icon: "🦅", supported: false },
+    { id: "FL", name: "Florida", icon: "☀️", supported: false },
+    { id: "GA", name: "Georgia", icon: "🍑", supported: false },
+    { id: "HI", name: "Hawaii", icon: "🌺", supported: false },
+    { id: "ID", name: "Idaho", icon: "🥔", supported: false },
+    { id: "IL", name: "Illinois", icon: "🌆", supported: false },
+    { id: "IN", name: "Indiana", icon: "🏁", supported: false },
+    { id: "IA", name: "Iowa", icon: "🌽", supported: false },
+    { id: "KS", name: "Kansas", icon: "🌻", supported: false },
+    { id: "KY", name: "Kentucky", icon: "🐴", supported: false },
+    { id: "LA", name: "Louisiana", icon: "🎺", supported: false },
+    { id: "ME", name: "Maine", icon: "🦞", supported: false },
+    { id: "MD", name: "Maryland", icon: "🦀", supported: false },
+    { id: "MA", name: "Massachusetts", icon: "⛵", supported: false },
+    { id: "MI", name: "Michigan", icon: "🚗", supported: false },
+    { id: "MN", name: "Minnesota", icon: "❄️", supported: false },
+    { id: "MS", name: "Mississippi", icon: "🎸", supported: false },
+    { id: "MO", name: "Missouri", icon: "🎭", supported: false },
+    { id: "MT", name: "Montana", icon: "🦬", supported: false },
+    { id: "NE", name: "Nebraska", icon: "🌾", supported: false },
+    { id: "NV", name: "Nevada", icon: "🎰", supported: false },
+    { id: "NH", name: "New Hampshire", icon: "🍁", supported: false },
+    { id: "NJ", name: "New Jersey", icon: "🏖️", supported: false },
+    { id: "NM", name: "New Mexico", icon: "🌶️", supported: false },
+    { id: "NY", name: "New York", icon: "🗽", supported: false },
+    { id: "NC", name: "North Carolina", icon: "🏔️", supported: false },
+    { id: "ND", name: "North Dakota", icon: "🦬", supported: false },
+    { id: "OH", name: "Ohio", icon: "🌰", supported: false },
+    { id: "OK", name: "Oklahoma", icon: "🤠", supported: false },
+    { id: "OR", name: "Oregon", icon: "🌲", supported: false },
+    { id: "PA", name: "Pennsylvania", icon: "🔔", supported: false },
+    { id: "RI", name: "Rhode Island", icon: "⚓", supported: false },
+    { id: "SC", name: "South Carolina", icon: "🌴", supported: false },
+    { id: "SD", name: "South Dakota", icon: "🗿", supported: false },
+    { id: "TN", name: "Tennessee", icon: "🎵", supported: false },
+    { id: "TX", name: "Texas", icon: "🤠", supported: false },
+    { id: "UT", name: "Utah", icon: "🏜️", supported: false },
+    { id: "VT", name: "Vermont", icon: "🍁", supported: false },
+    { id: "VA", name: "Virginia", icon: "🏛️", supported: false },
+    { id: "WA", name: "Washington", icon: "🌲", supported: false },
+    { id: "WV", name: "West Virginia", icon: "⛰️", supported: false },
+    { id: "WI", name: "Wisconsin", icon: "🧀", supported: false },
+    { id: "WY", name: "Wyoming", icon: "🦌", supported: false },
 ];
 
 const FORM_CONTEXTS: Record<string, string> = {
@@ -125,32 +174,38 @@ const Forms = () => {
                     </div>
 
                     {/* State Selector */}
-                    <div className="flex gap-2 p-1 bg-slate-800/30 rounded-2xl w-fit">
-                        {STATES.map((s) => (
-                            <button
-                                key={s.id}
-                                disabled={s.disabled}
-                                onClick={() => setSelectedState(s.id)}
-                                className={`
-                  flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all relative
-                  ${selectedState === s.id ? "text-white" : "text-slate-500 hover:text-slate-300"}
-                  ${s.disabled ? "opacity-30 cursor-not-allowed" : "cursor-pointer"}
-                `}
-                            >
-                                {selectedState === s.id && (
-                                    <motion.div
-                                        layoutId="active-state"
-                                        className="absolute inset-0 bg-slate-800 rounded-xl border border-white/10"
-                                        transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                                    />
-                                )}
-                                <span className="relative z-10">{s.icon}</span>
-                                <span className="relative z-10">{s.name}</span>
-                                {s.disabled && (
-                                    <span className="relative z-10 text-[8px] uppercase tracking-tighter px-1.5 py-0.5 rounded-full bg-slate-800 text-slate-500 border border-slate-700 ml-1">Coming Soon</span>
-                                )}
-                            </button>
-                        ))}
+                    <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2 text-slate-400">
+                            <MapPin className="w-4 h-4" />
+                            <span className="text-xs font-bold uppercase tracking-widest">Select State:</span>
+                        </div>
+                        <select
+                            value={selectedState}
+                            onChange={(e) => setSelectedState(e.target.value)}
+                            className="px-4 py-2 bg-slate-800/50 border border-slate-700 rounded-xl text-white font-bold text-sm focus:outline-none focus:border-primary/50 transition-all cursor-pointer"
+                        >
+                            <optgroup label="✓ Fully Supported">
+                                {STATES.filter(s => s.supported).map(s => (
+                                    <option key={s.id} value={s.id}>
+                                        {s.icon} {s.name}
+                                    </option>
+                                ))}
+                            </optgroup>
+                            <optgroup label="⏳ Coming Soon">
+                                {STATES.filter(s => !s.supported).map(s => (
+                                    <option key={s.id} value={s.id} disabled>
+                                        {s.icon} {s.name} (Coming Soon)
+                                    </option>
+                                ))}
+                            </optgroup>
+                        </select>
+                        
+                        {!STATES.find(s => s.id === selectedState)?.supported && (
+                            <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+                                <AlertCircle className="w-3.5 h-3.5 text-amber-500" />
+                                <span className="text-xs font-bold text-amber-500">Forms not yet available for this state</span>
+                            </div>
+                        )}
                     </div>
                 </header>
 
@@ -160,6 +215,25 @@ const Forms = () => {
                         <div className="flex flex-col items-center justify-center py-20 text-slate-500">
                             <Loader2 className="w-12 h-12 mb-4 animate-spin opacity-20" />
                             <p className="font-bold uppercase tracking-widest text-[10px]">Cataloging Forms...</p>
+                        </div>
+                    ) : !STATES.find(s => s.id === selectedState)?.supported ? (
+                        <div className="flex flex-col items-center justify-center py-20 text-slate-500">
+                            <div className="p-6 rounded-full bg-slate-900 border border-slate-800 mb-6">
+                                <MapPin className="w-12 h-12 opacity-20" />
+                            </div>
+                            <h3 className="text-xl font-bold text-white mb-2">
+                                {STATES.find(s => s.id === selectedState)?.name} Forms Coming Soon
+                            </h3>
+                            <p className="text-sm text-slate-400 mb-6 max-w-md text-center">
+                                We're working on adding official probate forms for {STATES.find(s => s.id === selectedState)?.name}. 
+                                Currently, only California forms are available.
+                            </p>
+                            <Button
+                                onClick={() => setSelectedState("CA")}
+                                className="bg-primary hover:bg-primary/90 text-white font-bold"
+                            >
+                                View California Forms
+                            </Button>
                         </div>
                     ) : (
                         <AnimatePresence mode="wait">

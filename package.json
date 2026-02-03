@@ -14,6 +14,10 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "seed": "tsx prisma/seed.ts",
+    "seed-forms": "tsx scripts/seed-forms.ts",
+    "download-forms": "tsx scripts/download-forms.ts",
+    "download-forms:force": "tsx scripts/download-forms.ts --force",
+    "download-forms:list": "tsx scripts/download-forms.ts --list",
     "postinstall": "prisma generate",
     "start": "NODE_ENV=production tsx server/index.ts"
   },
