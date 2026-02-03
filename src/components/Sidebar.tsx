@@ -73,8 +73,8 @@ export function Sidebar() {
             items: [
                 { label: "Asset Ledger", icon: Landmark, path: "/assets" },
                 { label: "Liabilities", icon: AlertCircle, path: "/liabilities" },
-                { label: "Final Distribution", icon: CheckCircle2, path: "/distribution" },
                 { label: "Accounting", icon: Calculator, path: "/accounting" },
+                { label: "Final Distribution", icon: CheckCircle2, path: "/distribution" },
                 { label: "Official Forms", icon: ScrollText, path: "/forms" },
             ]
         },

@@ -37,6 +37,7 @@ export default function Accounting() {
         queryKey: ["accounting-readiness"],
         queryFn: () => api.getAccountingReadiness()
     });
+    const { data: estate } = useQuery({ queryKey: ["estate"], queryFn: api.getMyEstate });
 
     const assets = Array.isArray(assetsData) ? assetsData : [];
     const liabilities = Array.isArray(liabilitiesData) ? liabilitiesData : [];
@@ -55,6 +56,48 @@ export default function Accounting() {
     const isReady = readiness?.status === 'READY_FOR_REVIEW';
     const isDraft = readiness?.status === 'DRAFT';
     const isIncomplete = readiness?.status === 'INCOMPLETE';
+
+    const handleExportReport = () => {
+        // Generate CSV content
+        const estateName = estate?.name || 'Estate';
+        const date = new Date().toLocaleDateString();
+        
+        let csvContent = `Estate Accounting Report\n`;
+        csvContent += `Estate: ${estateName}\n`;
+        csvContent += `Generated: ${date}\n`;
+        csvContent += `Status: ${readiness?.status || 'UNKNOWN'}\n\n`;
+        
+        csvContent += `SUMMARY\n`;
+        csvContent += `Total Charges (Assets):,$${totalCharges.toLocaleString()}\n`;
+        csvContent += `Total Credits (Disbursements):,$${disbursementsTotal.toLocaleString()}\n`;
+        csvContent += `Net Property on Hand:,$${propertyOnHand.toLocaleString()}\n`;
+        csvContent += `Estimated Remaining Debts:,$${estimatedDebts.toLocaleString()}\n`;
+        csvContent += `Solvency Ratio:,${solvencyRatio.toFixed(1)}%\n\n`;
+        
+        csvContent += `SCHEDULE A & B - INVENTORY & RECEIPTS\n`;
+        csvContent += `Asset Name,Institution,Category,Value\n`;
+        assets.forEach((asset: any) => {
+            csvContent += `"${asset.name || 'Unnamed'}","${asset.institution || 'N/A'}","${asset.category || 'N/A'}",$${(Number(asset.value) || 0).toFixed(2)}\n`;
+        });
+        
+        csvContent += `\nSCHEDULE C & D - DISBURSEMENTS (PAID DEBTS)\n`;
+        csvContent += `Liability Name,Amount,Status,Date Paid\n`;
+        paidLiabilities.forEach((liability: any) => {
+            const datePaid = liability.updatedAt ? new Date(liability.updatedAt).toLocaleDateString() : 'N/A';
+            csvContent += `"${liability.name || 'Unnamed'}",$${(Number(liability.amount) || 0).toFixed(2)},"${liability.status}","${datePaid}"\n`;
+        });
+        
+        // Create download link
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `accounting-report-${date.replace(/\//g, '-')}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
 
     return (
         <div className="flex bg-slate-50 min-h-screen">
@@ -90,7 +133,10 @@ export default function Accounting() {
                                 </Button>
                                 <p className="text-[9px] text-slate-400 font-bold mt-1 uppercase tracking-tighter">Requires all-heir consent</p>
                             </div>
-                            <Button className="h-10 bg-slate-900 hover:bg-slate-800 text-white font-bold px-6 shadow-lg shadow-slate-200 rounded-xl">
+                            <Button 
+                                onClick={handleExportReport}
+                                className="h-10 bg-slate-900 hover:bg-slate-800 text-white font-bold px-6 shadow-lg shadow-slate-200 rounded-xl"
+                            >
                                 <FileText className="w-4 h-4 mr-2" /> Export Report
                             </Button>
                         </div>
