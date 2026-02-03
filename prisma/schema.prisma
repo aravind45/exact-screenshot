@@ -1,164 +1,126 @@
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
-
 generator client {
   provider      = "prisma-client-js"
   binaryTargets = ["native", "debian-openssl-3.0.x"]
 }
 
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
 model User {
-  id            String   @id @default(uuid())
-  email         String   @unique
-  fullName      String?  @map("full_name")
-  passwordHash  String?  @map("password_hash")
-  role          String? // 'EXECUTOR', 'ATTORNEY', 'ADMIN'
-  state         String?
-  personalEmail String?  @map("personal_email")
-  
-  resetPasswordToken   String?   @map("reset_password_token")
-  resetPasswordExpires DateTime? @map("reset_password_expires")
-
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
-
-  // Contact Info
-  address       String?
-  city          String?
-  zip           String?
-  country       String?
-  phoneNumber   String? @map("phone_number")
-
-  // Security Audit
-  lastIp        String?   @map("last_ip")
-  lastLoginAt   DateTime? @map("last_login_at")
-
-  estates     Estate[]
-  grants      EstateGrant[]
-  invitations Invitation[] // Invitations sent by this user
-
-  communications  AssetCommunication[]
-  documents       Document[]
-  estateDocuments EstateDocument[]
-
-  // New Communication Log relations
+  id                      String                    @id @default(uuid())
+  email                   String                    @unique
+  fullName                String?                   @map("full_name")
+  passwordHash            String?                   @map("password_hash")
+  role                    String?
+  state                   String?
+  personalEmail           String?                   @map("personal_email")
+  resetPasswordToken      String?                   @map("reset_password_token")
+  resetPasswordExpires    DateTime?                 @map("reset_password_expires")
+  createdAt               DateTime                  @default(now()) @map("created_at")
+  updatedAt               DateTime                  @updatedAt @map("updated_at")
+  address                 String?
+  city                    String?
+  zip                     String?
+  country                 String?
+  phoneNumber             String?                   @map("phone_number")
+  lastIp                  String?                   @map("last_ip")
+  lastLoginAt             DateTime?                 @map("last_login_at")
+  communications          AssetCommunication[]
+  uploadedAttachments     CommunicationAttachment[]
   createdCommunications   Communication[]           @relation("CommunicationCreator")
   completedCommunications Communication[]           @relation("CommunicationCompletedBy")
-  uploadedAttachments     CommunicationAttachment[]
+  documents               Document[]
+  estateDocuments         EstateDocument[]
+  grants                  EstateGrant[]
+  invitations             Invitation[]
+  estates                 Estate[]
   settlementActivities    SettlementActivity[]
 
   @@map("profiles")
 }
 
 model Estate {
-  id                  String    @id @default(uuid())
-  userId              String    @map("user_id")
-  name                String
-  deceasedFirstName   String    @map("deceased_first_name")
-  deceasedLastName    String    @map("deceased_last_name")
-  deceasedSsn         String?   @map("deceased_ssn")
-  deceasedDateOfBirth DateTime? @map("deceased_date_of_birth")
-  deceasedDateOfDeath DateTime  @map("deceased_date_of_death")
-  deceasedState       String    @map("deceased_state")
-  estateType          String?   @map("estate_type")
-
-  // Authority Tracking
-  authorityType          String    @default("UNSET") @map("authority_type") // 'PROBATE', 'SMALL_ESTATE', 'TRUST', 'UNSET'
-  authorityStatus        String    @default("NOT_STARTED") @map("authority_status") // 'NOT_STARTED', 'IN_PROGRESS', 'GRANTED', 'EXPIRED'
-  certifiedCopies        Int       @default(0) @map("certified_copies")
-  authorityEffectiveDate DateTime? @map("authority_effective_date")
-
-  // DE-150 Letters Info
-  iaeaType      String?   @map("iaea_type") // 'FULL', 'LIMITED'
-  appointedDate DateTime? @map("appointed_date")
-
-  // Hearing Info
-  hearingDate    DateTime? @map("hearing_date")
-  hearingTime    String?   @map("hearing_time")
-  hearingDept    String?   @map("hearing_dept")
-  hearingAddress String?   @map("hearing_address")
-
-  // Probate Tracking
-  probateStatus   String  @default("NOT_STARTED") @map("probate_status") // 'NOT_REQUIRED', 'NOT_STARTED', 'FILED', 'EXECUTOR_APPOINTED', 'CLOSED'
-  courtCaseNumber String? @map("court_case_number")
-  probateCounty   String? @map("probate_county")
-
-  status String? // 'INITIATION', 'DISCOVERY', 'SETTLEMENT', etc.
-
-  inboundEmail String? @unique @map("inbound_email")
-  handle       String? @unique @map("handle") // short unique id for cleaner emails
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  // Petitioner Info
-  petitionerPhone      String? @map("petitioner_phone")
-  petitionerIsAttorney Boolean @default(false) @map("petitioner_is_attorney")
-
-  // Will Info
-  hasWill      Boolean   @default(false) @map("has_will")
-  willDate     DateTime? @map("will_date")
-  codicilDates String[]  @map("codicil_dates")
-
-  // Financials
-  estimatedPersonalProperty Decimal? @map("est_personal_property") @db.Decimal(12, 2)
-  estimatedRealProperty     Decimal? @map("est_real_property") @db.Decimal(12, 2)
-  estimatedAnnualIncome     Decimal? @map("est_annual_income") @db.Decimal(12, 2)
-
-  bondAmount Decimal? @map("bond_amount") @db.Decimal(12, 2)
-  bondWaived Boolean  @default(false) @map("bond_waived")
-
-  settlementPath String? @map("settlement_path")
-
-  probateNotes String? @map("probate_notes")
-
-  // International Mode (Overlay)
-  isInternational      Boolean  @default(false) @map("is_international")
-  internationalReasons String[] @map("international_reasons")
-
-  heirs Heir[]
-
-  roadmapProgress Json? @map("roadmap_progress") // { completedTaskIds: string[], completedPhases: string[] }
-  authorityDecision Json? @map("authority_decision") // Latest decision snapshot (Gap A)
-
-  // Roadmap Triggers & Process State
-  hasMinorBeneficiaries Boolean @default(false) @map("has_minor_beneficiaries")
-  hasContest            Boolean @default(false) @map("has_contest")
-  hasPrimaryResidence   Boolean @default(false) @map("has_primary_residence")
-  bondWaiverStatus      String  @default("NOT_STARTED") @map("bond_waiver_status") // NOT_STARTED, REQUESTED, OBTAINED, DENIED
-  
-  guardianAdLitemId     String? @map("guardian_ad_litem_id")
-  guardianAdLitemStatus String? @map("guardian_ad_litem_status") // NOT_NEEDED, PETITIONED, APPOINTED
-  specialNoticeParties  Json?   @map("special_notice_parties") // Array of { name, address, requestDate }
-
-  user            User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
-  grants          EstateGrant[]
-  invitations     Invitation[]
-  assets          Asset[]
-  estateDocuments EstateDocument[]
-  communications  Communication[]
-  deadlines       Deadline[]
-  activities      SettlementActivity[]
-  liabilities         Liability[]
-  distributions       Distribution[]
-  discoveryCategories DiscoveryCategory[]
-  authorityDecisions  AuthorityDecision[]
-  taskCompletions     TaskCompletion[]
+  id                        String               @id @default(uuid())
+  userId                    String               @map("user_id")
+  name                      String
+  deceasedFirstName         String               @map("deceased_first_name")
+  deceasedLastName          String               @map("deceased_last_name")
+  deceasedSsn               String?              @map("deceased_ssn")
+  deceasedDateOfBirth       DateTime?            @map("deceased_date_of_birth")
+  deceasedDateOfDeath       DateTime             @map("deceased_date_of_death")
+  deceasedState             String               @map("deceased_state")
+  estateType                String?              @map("estate_type")
+  authorityType             String               @default("UNSET") @map("authority_type")
+  authorityStatus           String               @default("NOT_STARTED") @map("authority_status")
+  certifiedCopies           Int                  @default(0) @map("certified_copies")
+  authorityEffectiveDate    DateTime?            @map("authority_effective_date")
+  iaeaType                  String?              @map("iaea_type")
+  appointedDate             DateTime?            @map("appointed_date")
+  hearingDate               DateTime?            @map("hearing_date")
+  hearingTime               String?              @map("hearing_time")
+  hearingDept               String?              @map("hearing_dept")
+  hearingAddress            String?              @map("hearing_address")
+  probateStatus             String               @default("NOT_STARTED") @map("probate_status")
+  courtCaseNumber           String?              @map("court_case_number")
+  probateCounty             String?              @map("probate_county")
+  status                    String?
+  inboundEmail              String?              @unique @map("inbound_email")
+  handle                    String?              @unique @map("handle")
+  createdAt                 DateTime             @default(now()) @map("created_at")
+  updatedAt                 DateTime             @updatedAt @map("updated_at")
+  petitionerPhone           String?              @map("petitioner_phone")
+  petitionerIsAttorney      Boolean              @default(false) @map("petitioner_is_attorney")
+  hasWill                   Boolean              @default(false) @map("has_will")
+  willDate                  DateTime?            @map("will_date")
+  codicilDates              String[]             @map("codicil_dates")
+  estimatedPersonalProperty Decimal?             @map("est_personal_property") @db.Decimal(12, 2)
+  estimatedRealProperty     Decimal?             @map("est_real_property") @db.Decimal(12, 2)
+  estimatedAnnualIncome     Decimal?             @map("est_annual_income") @db.Decimal(12, 2)
+  bondAmount                Decimal?             @map("bond_amount") @db.Decimal(12, 2)
+  bondWaived                Boolean              @default(false) @map("bond_waived")
+  settlementPath            String?              @map("settlement_path")
+  probateNotes              String?              @map("probate_notes")
+  isInternational           Boolean              @default(false) @map("is_international")
+  internationalReasons      String[]             @map("international_reasons")
+  roadmapProgress           Json?                @map("roadmap_progress")
+  authorityDecision         Json?                @map("authority_decision")
+  hasMinorBeneficiaries     Boolean              @default(false) @map("has_minor_beneficiaries")
+  hasContest                Boolean              @default(false) @map("has_contest")
+  hasPrimaryResidence       Boolean              @default(false) @map("has_primary_residence")
+  bondWaiverStatus          String               @default("NOT_STARTED") @map("bond_waiver_status")
+  guardianAdLitemId         String?              @map("guardian_ad_litem_id")
+  guardianAdLitemStatus     String?              @map("guardian_ad_litem_status")
+  specialNoticeParties      Json?                @map("special_notice_parties")
+  assets                    Asset[]
+  authorityDecisions        AuthorityDecision[]
+  communications            Communication[]
+  deadlines                 Deadline[]
+  discoveryCategories       DiscoveryCategory[]
+  distributions             Distribution[]
+  estateDocuments           EstateDocument[]
+  grants                    EstateGrant[]
+  invitations               Invitation[]
+  user                      User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  heirs                     Heir[]
+  liabilities               Liability[]
+  activities                SettlementActivity[]
+  taskCompletions           TaskCompletion[]
 
   @@map("estates")
 }
 
 model AuthorityDecision {
-  id              String   @id @default(uuid())
-  estateId        String   @map("estate_id")
-  inputs          Json     // snapshot of assets, state, metadata
-  decision        Json     // snapshot of the AuthorityRecommendation
-  ruleVersion     String   @map("rule_version")
-  recalcReason    String?  @map("recalc_reason") // Why was it recomputed? (Gap B)
-  createdAt       DateTime @default(now()) @map("created_at")
-  
-  estate Estate @relation(fields: [estateId], references: [id], onDelete: Cascade)
+  id           String   @id @default(uuid())
+  estateId     String   @map("estate_id")
+  inputs       Json
+  decision     Json
+  ruleVersion  String   @map("rule_version")
+  recalcReason String?  @map("recalc_reason")
+  createdAt    DateTime @default(now()) @map("created_at")
+  estate       Estate   @relation(fields: [estateId], references: [id], onDelete: Cascade)
+
   @@map("authority_decisions")
 }
 
@@ -166,13 +128,12 @@ model EstateGrant {
   id          String   @id @default(uuid())
   estateId    String   @map("estate_id")
   userId      String   @map("user_id")
-  role        String // 'OWNER', 'CO_EXECUTOR', 'ATTORNEY', 'VIEWER'
-  permissions Json? // Fine-grained permissions if needed
+  role        String
+  permissions Json?
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
-
-  estate Estate @relation(fields: [estateId], references: [id], onDelete: Cascade)
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  estate      Estate   @relation(fields: [estateId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([estateId, userId])
   @@map("estate_grants")
@@ -183,18 +144,16 @@ model Invitation {
   estateId   String    @map("estate_id")
   email      String
   token      String    @unique
-  role       String    @default("VIEWER") // 'CO_EXECUTOR', 'ATTORNEY', 'VIEWER'
-  status     String    @default("PENDING") // 'PENDING', 'ACCEPTED', 'EXPIRED', 'REVOKED'
+  role       String    @default("VIEWER")
+  status     String    @default("PENDING")
   invitedBy  String    @map("invited_by")
   expiresAt  DateTime  @map("expires_at")
   createdAt  DateTime  @default(now()) @map("created_at")
   acceptedAt DateTime? @map("accepted_at")
-  
-  paymentId String?   @map("payment_id")
-  cost      Decimal?  @db.Decimal(10, 2)
-
-  estate  Estate @relation(fields: [estateId], references: [id], onDelete: Cascade)
-  inviter User   @relation(fields: [invitedBy], references: [id], onDelete: Cascade)
+  paymentId  String?   @map("payment_id")
+  cost       Decimal?  @db.Decimal(10, 2)
+  estate     Estate    @relation(fields: [estateId], references: [id], onDelete: Cascade)
+  inviter    User      @relation(fields: [invitedBy], references: [id], onDelete: Cascade)
 
   @@map("estate_invitations")
 }
@@ -204,180 +163,155 @@ model Deadline {
   estateId    String   @map("estate_id")
   title       String
   dueDate     DateTime @map("due_date")
-  status      String   @default("PENDING") // PENDING, COMPLETED, OVERDUE
+  status      String   @default("PENDING")
   isStatutory Boolean  @default(false) @map("is_statutory")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
-
-  estate Estate @relation(fields: [estateId], references: [id], onDelete: Cascade)
+  estate      Estate   @relation(fields: [estateId], references: [id], onDelete: Cascade)
 
   @@index([estateId])
   @@map("deadlines")
 }
 
 model Asset {
-  id       String @id @default(uuid())
-  estateId String @map("estate_id")
-  userId   String @map("user_id") // Redundant but good for RLS/Query ease
-
-  institution      String
-  assetType        String    @map("asset_type") // 'checking', '401k'
-  category         String // 'financial', 'retirement'
-  ownershipType    String    @default("INDIVIDUAL") @map("ownership_type") // 'BENEFICIARY', 'JOINT', 'TRUST', 'INDIVIDUAL'
-  accountNumber    String?   @map("account_number")
-  value            Float?
-  dateOfDeathValue Float?    @map("date_of_death_value")
-  settledValue     Float?    @map("settled_value")
-  settledAt        DateTime? @map("settled_at")
-
-  status   String? // 'DISCOVERED', 'CONTACTED'
-  priority String? // 'low', 'medium', 'high', 'urgent'
-
-  lastContactDate  DateTime? @map("last_contact_date")
-  nextFollowUpDate DateTime? @map("next_follow_up_date")
-
-  institutionPhone   String? @map("institution_phone")
-  institutionEmail   String? @map("institution_email")
-  institutionFax     String? @map("institution_fax")
-  institutionUrl     String? @map("institution_url")
-  institutionAddress String? @map("institution_address")
-  contactPerson      String? @map("contact_person")
+  id                 String               @id @default(uuid())
+  estateId           String               @map("estate_id")
+  userId             String               @map("user_id")
+  institution        String
+  assetType          String               @map("asset_type")
+  category           String
+  ownershipType      String               @default("INDIVIDUAL") @map("ownership_type")
+  accountNumber      String?              @map("account_number")
+  value              Float?
+  dateOfDeathValue   Float?               @map("date_of_death_value")
+  settledValue       Float?               @map("settled_value")
+  settledAt          DateTime?            @map("settled_at")
+  status             String?
+  priority           String?
+  lastContactDate    DateTime?            @map("last_contact_date")
+  nextFollowUpDate   DateTime?            @map("next_follow_up_date")
+  institutionPhone   String?              @map("institution_phone")
+  institutionEmail   String?              @map("institution_email")
+  institutionFax     String?              @map("institution_fax")
+  institutionUrl     String?              @map("institution_url")
+  institutionAddress String?              @map("institution_address")
+  contactPerson      String?              @map("contact_person")
   notes              String?
-
-  workflowState Json? @map("workflow_state") // Stores { currentStep, completedSteps[], lastUpdated }
-
-  // DE-160 Inventory Fields
-  inventoryValue    Decimal? @map("inventory_value") @db.Decimal(12, 2) // Date of Death Value
-  inventoryNote     String?  @map("inventory_note")
-  inventoryCategory String?  @map("inventory_category") // 'ATTACHMENT_1' (Real) or 'ATTACHMENT_2' (Personal)
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  estate            Estate               @relation(fields: [estateId], references: [id], onDelete: Cascade)
-  communications    AssetCommunication[]
-  documents         Document[]
-  newCommunications Communication[]      @relation("CommunicationToAsset")
-  distributions     Distribution[]
+  workflowState      Json?                @map("workflow_state")
+  inventoryValue     Decimal?             @map("inventory_value") @db.Decimal(12, 2)
+  inventoryNote      String?              @map("inventory_note")
+  inventoryCategory  String?              @map("inventory_category")
+  createdAt          DateTime             @default(now()) @map("created_at")
+  updatedAt          DateTime             @updatedAt @map("updated_at")
+  communications     AssetCommunication[]
+  estate             Estate               @relation(fields: [estateId], references: [id], onDelete: Cascade)
+  newCommunications  Communication[]      @relation("CommunicationToAsset")
+  distributions      Distribution[]
+  documents          Document[]
 
   @@map("assets")
 }
 
-// Legacy communication model - to be deprecated
 model AssetCommunication {
-  id      String @id @default(uuid())
-  assetId String @map("asset_id")
-  userId  String @map("user_id")
-
-  communicationDate DateTime @map("communication_date")
-  type              String   @map("communication_type") // 'initial_contact', 'follow_up'
-  method            String // 'email', 'phone', 'fax'
-  direction         String // 'inbound', 'outbound'
-
-  subject String
-  content String?
-
-  response     String?
-  responseDate DateTime? @map("response_date")
-
-  nextActionDate DateTime? @map("next_action_date")
-  nextActionType String?   @map("next_action_type")
-  contactPerson  String?   @map("contact_person")
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  asset Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
-  user  User  @relation(fields: [userId], references: [id])
+  id                String    @id @default(uuid())
+  assetId           String    @map("asset_id")
+  userId            String    @map("user_id")
+  communicationDate DateTime  @map("communication_date")
+  type              String    @map("communication_type")
+  method            String
+  direction         String
+  subject           String
+  content           String?
+  response          String?
+  responseDate      DateTime? @map("response_date")
+  nextActionDate    DateTime? @map("next_action_date")
+  nextActionType    String?   @map("next_action_type")
+  contactPerson     String?   @map("contact_person")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+  asset             Asset     @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  user              User      @relation(fields: [userId], references: [id])
 
   @@map("asset_communications")
 }
 
-// New Communication Log model (spec-compliant)
 model Communication {
-  id                      String    @id @default(uuid())
-  estateId                String    @map("estate_id")
-  assetId                 String    @map("asset_id")
-  type                    String    @db.VarChar(20) // 'call', 'email', 'letter', 'fax', 'in-person'
-  direction               String    @db.VarChar(10) // 'inbound', 'outbound'
-  occurredAt              DateTime  @map("occurred_at") @db.Timestamptz(6)
-  institutionName         String?   @map("institution_name") @db.VarChar(255)
-  contactName             String?   @map("contact_name") @db.VarChar(255)
-  contactChannel          String?   @map("contact_channel") @db.VarChar(255) // Email or phone
-  subject                 String?   @db.VarChar(500)
-  notes                   String    @db.Text
-  followUpDueAt           DateTime? @map("follow_up_due_at") @db.Timestamptz(6)
-  followUpCompletedAt     DateTime? @map("follow_up_completed_at") @db.Timestamptz(6)
-  followUpCompletedBy     String?   @map("follow_up_completed_by")
-  statusChange            String?   @map("status_change") @db.VarChar(50)
-  statusChangeEffectiveAt DateTime? @map("status_change_effective_at") @db.Timestamptz(6)
-  createdAt               DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt               DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
-  createdBy               String    @map("created_by")
+  id                      String                    @id @default(uuid())
+  estateId                String                    @map("estate_id")
+  assetId                 String                    @map("asset_id")
+  type                    String                    @db.VarChar(20)
+  direction               String                    @db.VarChar(10)
+  occurredAt              DateTime                  @map("occurred_at") @db.Timestamptz(6)
+  institutionName         String?                   @map("institution_name") @db.VarChar(255)
+  contactName             String?                   @map("contact_name") @db.VarChar(255)
+  contactChannel          String?                   @map("contact_channel") @db.VarChar(255)
+  subject                 String?                   @db.VarChar(500)
+  notes                   String
+  followUpDueAt           DateTime?                 @map("follow_up_due_at") @db.Timestamptz(6)
+  followUpCompletedAt     DateTime?                 @map("follow_up_completed_at") @db.Timestamptz(6)
+  followUpCompletedBy     String?                   @map("follow_up_completed_by")
+  statusChange            String?                   @map("status_change") @db.VarChar(50)
+  statusChangeEffectiveAt DateTime?                 @map("status_change_effective_at") @db.Timestamptz(6)
+  createdAt               DateTime                  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt               DateTime                  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  createdBy               String                    @map("created_by")
+  attachments             CommunicationAttachment[]
+  asset                   Asset                     @relation("CommunicationToAsset", fields: [assetId], references: [id], onDelete: Cascade)
+  creator                 User                      @relation("CommunicationCreator", fields: [createdBy], references: [id])
+  estate                  Estate                    @relation(fields: [estateId], references: [id], onDelete: Cascade)
+  completedBy             User?                     @relation("CommunicationCompletedBy", fields: [followUpCompletedBy], references: [id])
 
-  estate      Estate                    @relation(fields: [estateId], references: [id], onDelete: Cascade)
-  asset       Asset                     @relation("CommunicationToAsset", fields: [assetId], references: [id], onDelete: Cascade)
-  creator     User                      @relation("CommunicationCreator", fields: [createdBy], references: [id])
-  completedBy User?                     @relation("CommunicationCompletedBy", fields: [followUpCompletedBy], references: [id])
-  attachments CommunicationAttachment[]
-
-  @@index([estateId], name: "idx_communications_estate_id")
-  @@index([assetId], name: "idx_communications_asset_id")
-  @@index([occurredAt(sort: Desc)], name: "idx_communications_occurred_at")
-  @@index([followUpDueAt], name: "idx_communications_follow_up")
-  @@index([estateId, occurredAt(sort: Desc)], name: "idx_communications_estate_occurred")
-  @@index([assetId, occurredAt(sort: Desc)], name: "idx_communications_asset_occurred")
+  @@index([estateId], map: "idx_communications_estate_id")
+  @@index([assetId], map: "idx_communications_asset_id")
+  @@index([occurredAt(sort: Desc)], map: "idx_communications_occurred_at")
+  @@index([followUpDueAt], map: "idx_communications_follow_up")
+  @@index([estateId, occurredAt(sort: Desc)], map: "idx_communications_estate_occurred")
+  @@index([assetId, occurredAt(sort: Desc)], map: "idx_communications_asset_occurred")
   @@map("communications")
 }
 
 model CommunicationAttachment {
-  id              String   @id @default(uuid())
-  communicationId String   @map("communication_id")
-  storageKey      String   @map("storage_key") @db.VarChar(500)
-  fileName        String   @map("file_name") @db.VarChar(255)
-  mimeType        String   @map("mime_type") @db.VarChar(100)
-  sizeBytes       Int      @map("size_bytes")
-  uploadedBy      String   @map("uploaded_by")
-  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  id              String        @id @default(uuid())
+  communicationId String        @map("communication_id")
+  storageKey      String        @map("storage_key") @db.VarChar(500)
+  fileName        String        @map("file_name") @db.VarChar(255)
+  mimeType        String        @map("mime_type") @db.VarChar(100)
+  sizeBytes       Int           @map("size_bytes")
+  uploadedBy      String        @map("uploaded_by")
+  createdAt       DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  communication   Communication @relation(fields: [communicationId], references: [id], onDelete: Cascade)
+  uploader        User          @relation(fields: [uploadedBy], references: [id])
 
-  communication Communication @relation(fields: [communicationId], references: [id], onDelete: Cascade)
-  uploader      User          @relation(fields: [uploadedBy], references: [id])
-
-  @@index([communicationId], name: "idx_communication_attachments_communication_id")
+  @@index([communicationId], map: "idx_communication_attachments_communication_id")
   @@map("communication_attachments")
 }
 
 model Document {
-  id      String @id @default(uuid())
-  assetId String @map("asset_id")
-  userId  String @map("user_id")
-
+  id         String   @id @default(uuid())
+  assetId    String   @map("asset_id")
+  userId     String   @map("user_id")
   name       String
-  type       String // 'DEATH_CERTIFICATE', 'CLAIM_FORM', 'OTHER'
-  fileUrl    String? @map("file_url") // Null if not yet uploaded (just a placeholder requirement)
-  status     String // 'MISSING', 'UPLOADED', 'VERIFIED'
-  isRequired Boolean @default(false) @map("is_required")
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  asset Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
-  user  User  @relation(fields: [userId], references: [id])
+  type       String
+  fileUrl    String?  @map("file_url")
+  status     String
+  isRequired Boolean  @default(false) @map("is_required")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+  asset      Asset    @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id])
 
   @@map("documents")
 }
 
 model Institution {
-  id   String @id @default(uuid())
-  name String @unique
-
-  phone   String?
-  email   String?
-  fax     String?
-  website String?
-  address String?
-  logoUrl String? @map("logo_url")
-
+  id        String   @id @default(uuid())
+  name      String   @unique
+  phone     String?
+  email     String?
+  fax       String?
+  website   String?
+  address   String?
+  logoUrl   String?  @map("logo_url")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -385,81 +319,63 @@ model Institution {
 }
 
 model EstateDocument {
-  id       String @id @default(uuid())
-  estateId String @map("estate_id")
-  userId   String @map("user_id")
-
-  // Document Classification
-  documentType String @map("document_type") // 'DEATH_CERTIFICATE', 'LETTERS_TESTAMENTARY', 'SMALL_ESTATE_AFFIDAVIT', 'EIN_LETTER', 'TRUST_CERTIFICATION', 'WILL'
-
-  // File Storage
-  name    String
-  fileUrl String? @map("file_url")
-  content Bytes?  @map("content")
-
-  // Quantity Tracking (for physical documents)
-  totalCopies     Int @default(0) @map("total_copies") // Total certified copies obtained
-  copiesUsed      Int @default(0) @map("copies_used") // How many have been sent to institutions
-  copiesRemaining Int @default(0) @map("copies_remaining") // Calculated: total - used
-
-  // Status Tracking
-  status         String    @default("NOT_STARTED") @map("status") // 'NOT_STARTED', 'PENDING', 'OBTAINED', 'EXPIRED'
-  obtainedDate   DateTime? @map("obtained_date")
-  expirationDate DateTime? @map("expiration_date")
-
-  // Metadata
-  issuingAuthority String? @map("issuing_authority") // e.g., "Los Angeles County Superior Court"
-  referenceNumber  String? @map("reference_number") // e.g., Court Case Number for Letters
+  id               String    @id @default(uuid())
+  estateId         String    @map("estate_id")
+  userId           String    @map("user_id")
+  documentType     String    @map("document_type")
+  name             String
+  fileUrl          String?   @map("file_url")
+  content          Bytes?    @map("content")
+  totalCopies      Int       @default(0) @map("total_copies")
+  copiesUsed       Int       @default(0) @map("copies_used")
+  copiesRemaining  Int       @default(0) @map("copies_remaining")
+  status           String    @default("NOT_STARTED") @map("status")
+  obtainedDate     DateTime? @map("obtained_date")
+  expirationDate   DateTime? @map("expiration_date")
+  issuingAuthority String?   @map("issuing_authority")
+  referenceNumber  String?   @map("reference_number")
   notes            String?
-  clues            Json? // Discovery clues found in this document
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  estate Estate @relation(fields: [estateId], references: [id], onDelete: Cascade)
-  user   User   @relation(fields: [userId], references: [id])
+  clues            Json?
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+  estate           Estate    @relation(fields: [estateId], references: [id], onDelete: Cascade)
+  user             User      @relation(fields: [userId], references: [id])
 
   @@index([estateId, documentType])
   @@map("estate_documents")
 }
 
 model Heir {
-  id           String  @id @default(uuid())
-  estateId     String  @map("estate_id")
-  name         String
-  relationship String
-  isAdult      Boolean @default(true) @map("is_adult")
-  address      String?
-  email        String?
-  phone        String?
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  estate        Estate         @relation(fields: [estateId], references: [id], onDelete: Cascade)
+  id            String         @id @default(uuid())
+  estateId      String         @map("estate_id")
+  name          String
+  relationship  String
+  isAdult       Boolean        @default(true) @map("is_adult")
+  address       String?
+  email         String?
+  phone         String?
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
   distributions Distribution[]
+  estate        Estate         @relation(fields: [estateId], references: [id], onDelete: Cascade)
 
   @@map("heirs")
 }
 
 model Distribution {
-  id       String @id @default(uuid())
-  estateId String @map("estate_id")
-  heirId   String @map("heir_id")
-
-  assetId     String?  @map("asset_id") // Optional link to specific asset
-  description String? // "100 shares of Apple", "All residue", "$50,000 cash"
-  amount      Decimal? @db.Decimal(12, 2) // Estimated value distributed
-  percentage  Float? // If percentage based (e.g. 50% of residue)
-
-  isPreliminary Boolean @default(false) @map("is_preliminary")
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  estate Estate @relation(fields: [estateId], references: [id], onDelete: Cascade)
-  heir   Heir   @relation(fields: [heirId], references: [id])
-  asset  Asset? @relation(fields: [assetId], references: [id])
+  id            String   @id @default(uuid())
+  estateId      String   @map("estate_id")
+  heirId        String   @map("heir_id")
+  assetId       String?  @map("asset_id")
+  description   String?
+  amount        Decimal? @db.Decimal(12, 2)
+  percentage    Float?
+  isPreliminary Boolean  @default(false) @map("is_preliminary")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+  asset         Asset?   @relation(fields: [assetId], references: [id])
+  estate        Estate   @relation(fields: [estateId], references: [id], onDelete: Cascade)
+  heir          Heir     @relation(fields: [heirId], references: [id])
 
   @@map("distributions")
 }
@@ -480,30 +396,27 @@ model FormTemplate {
 }
 
 model SettlementActivity {
-  id         String   @id @default(uuid())
-  estateId   String   @map("estate_id")
-  taskId     String?  @map("task_id")
-  phase      String?
-  type       String   @default("ROADMAP") // 'ROADMAP', 'DOCUMENT', 'ASSET', 'COMMUNICATION'
-  action     String // 'COMPLETED', 'UNCOMPLETED', 'PHASE_COMPLETED', 'UPLOADED', 'UPDATED', 'CREATED'
-  notes      String?
-  occurredAt DateTime @default(now()) @map("occurred_at")
-  userId     String   @map("user_id")
+  id           String   @id @default(uuid())
+  estateId     String   @map("estate_id")
+  taskId       String?  @map("task_id")
+  phase        String?
+  type         String   @default("ROADMAP")
+  action       String
+  notes        String?
+  occurredAt   DateTime @default(now()) @map("occurred_at")
+  userId       String   @map("user_id")
+  hash         String?
+  previousHash String?  @map("previous_hash")
+  estate       Estate   @relation(fields: [estateId], references: [id], onDelete: Cascade)
+  user         User     @relation(fields: [userId], references: [id])
 
-  // SEC-003: Immutable Audit Log Fields
-  hash         String? // SHA-256 hash of this record
-  previousHash String? @map("previous_hash") // Hash of the preceding record
-
-  estate Estate @relation(fields: [estateId], references: [id], onDelete: Cascade)
-  user   User   @relation(fields: [userId], references: [id])
-
+  @@index([estateId, occurredAt])
   @@map("settlement_activities")
-  @@index([estateId, occurredAt]) // Optimize chain verification
 }
 
 model AppSetting {
   key       String   @id
-  value     String   @db.Text
+  value     String
   isSecret  Boolean  @default(false) @map("is_secret")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -511,50 +424,40 @@ model AppSetting {
 }
 
 model Liability {
-  id       String @id @default(uuid())
-  estateId String @map("estate_id")
-
-  name   String // Creditor Name
-  amount Decimal @db.Decimal(12, 2)
-  status String  @default("DISCOVERED") // DISCOVERED, NOTICE_SENT, CLAIM_FILED, APPROVED, REJECTED, PAID, DISPUTED
-
-  // Claims Workflow
+  id              String    @id @default(uuid())
+  estateId        String    @map("estate_id")
+  name            String
+  amount          Decimal   @db.Decimal(12, 2)
+  status          String    @default("DISCOVERED")
   dateClaimFiled  DateTime? @map("date_claim_filed")
   rejectionReason String?   @map("rejection_reason")
   allowedAmount   Decimal?  @map("allowed_amount") @db.Decimal(12, 2)
-
-  invoiceDate DateTime? @map("invoice_date")
-  dueDate     DateTime? @map("due_date")
-
-  accountNumber String? @map("account_number")
-  notes         String?
-
-  contactPhone String? @map("contact_phone")
-  contactEmail String? @map("contact_email")
-
-  priority      String @default("MEDIUM") // HIGH, MEDIUM, LOW (User preference)
-  priorityClass String @default("GENERAL_DEBTS") @map("priority_class") // Legal classification (e.g. FUNERAL_EXPENSES)
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  estate Estate @relation(fields: [estateId], references: [id], onDelete: Cascade)
+  invoiceDate     DateTime? @map("invoice_date")
+  dueDate         DateTime? @map("due_date")
+  accountNumber   String?   @map("account_number")
+  notes           String?
+  contactPhone    String?   @map("contact_phone")
+  contactEmail    String?   @map("contact_email")
+  priority        String    @default("MEDIUM")
+  priorityClass   String    @default("GENERAL_DEBTS") @map("priority_class")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  estate          Estate    @relation(fields: [estateId], references: [id], onDelete: Cascade)
 
   @@index([estateId])
   @@map("liabilities")
 }
 
 model DiscoveryCategory {
-  id             String   @id @default(uuid())
-  estateId       String   @map("estate_id")
-  category       String // 'BANK_ACCOUNTS', 'INVESTMENTS', 'REAL_PROPERTY', 'UNCLAIMED_PROPERTY', etc.
-  status         String   @default("NOT_CHECKED") // 'REVIEWED', 'NOT_FOUND', 'NOT_CHECKED', 'NA'
-  evidenceSource String?  @map("evidence_source")
-  reviewDate     DateTime? @map("review_date")
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @updatedAt @map("updated_at")
-
-  estate           Estate             @relation(fields: [estateId], references: [id], onDelete: Cascade)
+  id               String              @id @default(uuid())
+  estateId         String              @map("estate_id")
+  category         String
+  status           String              @default("NOT_CHECKED")
+  evidenceSource   String?             @map("evidence_source")
+  reviewDate       DateTime?           @map("review_date")
+  createdAt        DateTime            @default(now()) @map("created_at")
+  updatedAt        DateTime            @updatedAt @map("updated_at")
+  estate           Estate              @relation(fields: [estateId], references: [id], onDelete: Cascade)
   negativeFindings NegativeAssurance[]
 
   @@unique([estateId, category])
@@ -562,28 +465,26 @@ model DiscoveryCategory {
 }
 
 model NegativeAssurance {
-  id                  String   @id @default(uuid())
-  discoveryCategoryId String   @map("discovery_category_id")
-  statement           String   @db.Text // e.g., "Reviewed 2022-2024 tax returns; no evidence of rental income."
-  createdAt           DateTime @default(now()) @map("created_at")
-
-  category DiscoveryCategory @relation(fields: [discoveryCategoryId], references: [id], onDelete: Cascade)
+  id                  String            @id @default(uuid())
+  discoveryCategoryId String            @map("discovery_category_id")
+  statement           String
+  createdAt           DateTime          @default(now()) @map("created_at")
+  category            DiscoveryCategory @relation(fields: [discoveryCategoryId], references: [id], onDelete: Cascade)
 
   @@map("negative_assurance_logs")
 }
 
 model TaskCompletion {
-  id          String   @id @default(uuid())
-  estateId    String   @map("estate_id")
-  taskId      String   @map("task_id")
+  id          String    @id @default(uuid())
+  estateId    String    @map("estate_id")
+  taskId      String    @map("task_id")
   phase       String?
-  completed   Boolean  @default(false)
+  completed   Boolean   @default(false)
   completedAt DateTime? @map("completed_at")
-  completedBy String?  @map("completed_by")
+  completedBy String?   @map("completed_by")
   notes       String?
-  attachments String[] // Array of storage keys/URLs
-
-  estate Estate @relation(fields: [estateId], references: [id], onDelete: Cascade)
+  attachments String[]
+  estate      Estate    @relation(fields: [estateId], references: [id], onDelete: Cascade)
 
   @@unique([estateId, taskId])
   @@map("task_completions")

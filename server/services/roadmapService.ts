@@ -1,6 +1,5 @@
-import { SETTLEMENT_PHASE_TASKS, PhaseTaskList, PhaseTask } from "@/config/settlementPhases";
-import { db } from "../db";
-
+import { SETTLEMENT_PHASE_TASKS, PhaseTaskList, PhaseTask } from "../../src/config/settlementPhases.js";
+import { prisma as db } from "../db.js";
 /**
  * Estate Profile for Task Filtering
  */

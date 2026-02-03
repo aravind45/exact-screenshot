@@ -42,7 +42,6 @@ export const PdfService = {
         // --- MAPPING LOGIC ---
 
         // 1. Petitioner (Header)
-        // Access user details from relation if available, otherwise fallback
         const petitionerName = estate.user?.fullName || "Petitioner";
         safeSetText(form, 'PetitionerName', petitionerName);
         safeSetText(form, 'PetitionerPhone', estate.petitionerPhone || "");
@@ -210,16 +209,16 @@ export const PdfService = {
      */
     async generateDE160(estate: any, assets: any[]) {
         const doc = await PDFDocument.create();
-        const page = doc.addPage();
-        const { width, height } = page.getSize();
+        const firstPage = doc.addPage();
+        const { height } = firstPage.getSize();
         let y = height - 50;
 
         // Title
-        page.drawText('INVENTORY AND APPRAISAL (DE-160 Placeholder)', { x: 50, y, size: 18 });
+        firstPage.drawText('INVENTORY AND APPRAISAL (DE-160 Placeholder)', { x: 50, y, size: 18 });
         y -= 30;
 
-        page.drawText(`Estate of: ${String(estate.deceasedFirstName || '')} ${String(estate.deceasedLastName || '')}`, { x: 50, y, size: 12 });
-        page.drawText(`Case Number: ${String(estate.courtCaseNumber || 'N/A')}`, { x: 400, y, size: 12 });
+        firstPage.drawText(`Estate of: ${String(estate.deceasedFirstName || '')} ${String(estate.deceasedLastName || '')}`, { x: 50, y, size: 12 });
+        firstPage.drawText(`Case Number: ${String(estate.courtCaseNumber || 'N/A')}`, { x: 400, y, size: 12 });
         y -= 40;
 
         // Categorization
@@ -231,58 +230,44 @@ export const PdfService = {
         const total = totalReal + totalPersonal;
 
         // Summary Table
-        page.drawText('SUMMARY', { x: 50, y, size: 14 });
+        firstPage.drawText('SUMMARY', { x: 50, y, size: 14 });
         y -= 25;
-        page.drawText(`1. Real Property (Attachment 1):`, { x: 50, y });
-        page.drawText(`$${totalReal.toFixed(2)}`, { x: 400, y });
+        firstPage.drawText(`1. Real Property (Attachment 1):`, { x: 50, y });
+        firstPage.drawText(`$${totalReal.toFixed(2)}`, { x: 400, y });
         y -= 20;
-        page.drawText(`2. Personal Property (Attachment 2):`, { x: 50, y });
-        page.drawText(`$${totalPersonal.toFixed(2)}`, { x: 400, y });
+        firstPage.drawText(`2. Personal Property (Attachment 2):`, { x: 50, y });
+        firstPage.drawText(`$${totalPersonal.toFixed(2)}`, { x: 400, y });
         y -= 20;
-        page.drawText(`TOTAL VALUE:`, { x: 50, y, size: 12 });
-        page.drawText(`$${total.toFixed(2)}`, { x: 400, y, size: 12 });
+        firstPage.drawText(`TOTAL VALUE:`, { x: 50, y, size: 12 });
+        firstPage.drawText(`$${total.toFixed(2)}`, { x: 400, y, size: 12 });
         y -= 40;
 
         // Listings
-        const drawAsset = (a: any) => {
-            if (y < 50) {
-                const newPage = doc.addPage();
-                y = height - 50;
-                // Note: 'page' variable in closure is stale, but we only drawText on 'page' which refers to the first page.
-                // We need to update 'page' reference or just use 'newPage' for subsequent draws.
-                // Simpler: just use 'doc.getPages()[doc.getPageCount()-1]' or reassign if let.
-                // Since 'page' is const, I can't reassign.
-                // Strategy: Use a helper that takes the current page as arg?
-                // For now, let's just assume 1 page for MVP or fix properly.
-                // Fixing properly:
-            }
-            // Implementation: To support multi-page, we need a mutable page reference.
-            // But 'page' is const.
-            // Short-term fix: Just draw on the current page (ignore overflow) or refactor.
-            // Refactoring to use iteration with mutable page variable.
-
-            // Let's rewrite the loop instead of this closure if possible.
-            // Or just allow overflow for now.
+        const drawAssetRow = (a: any) => {
             const currentPage = doc.getPages()[doc.getPageCount() - 1];
-
             const desc = `${String(a.institution || 'Unknown')} - ${String(a.assetType || 'Asset')} ${a.inventoryNote ? `(${String(a.inventoryNote)})` : ''}`;
             const val = `$${Number(a.inventoryValue || a.value || 0).toFixed(2)}`;
             currentPage.drawText(desc, { x: 50, y, size: 10 });
             currentPage.drawText(val, { x: 450, y, size: 10 });
             y -= 15;
+            if (y < 50) {
+                doc.addPage();
+                y = height - 50;
+            }
         };
 
         if (realAssets.length > 0) {
-            page.drawText('Attachment 1: Real Property', { x: 50, y, size: 12 });
+            firstPage.drawText('Attachment 1: Real Property', { x: 50, y, size: 12 });
             y -= 20;
-            realAssets.forEach(drawAsset);
+            realAssets.forEach(drawAssetRow);
             y -= 20;
         }
 
         if (personalAssets.length > 0) {
-            page.drawText('Attachment 2: Personal Property', { x: 50, y, size: 12 });
+            const currentPage = doc.getPages()[doc.getPageCount() - 1];
+            currentPage.drawText('Attachment 2: Personal Property', { x: 50, y, size: 12 });
             y -= 20;
-            personalAssets.forEach(drawAsset);
+            personalAssets.forEach(drawAssetRow);
         }
 
         return await doc.save();
@@ -294,7 +279,7 @@ export const PdfService = {
     async generateDE121(estate: any) {
         const doc = await PDFDocument.create();
         const page = doc.addPage();
-        const { width, height } = page.getSize();
+        const { height } = page.getSize();
         let y = height - 50;
 
         // Header
@@ -315,7 +300,7 @@ export const PdfService = {
         // 2. Hearing Info
         page.drawText('THE PETITION requests authority to administer the estate.', { x: 50, y, size: 10 });
         y -= 30;
-        page.drawText('NOTICE OF HEARING:', { x: 50, y, size: 12, opacity: 1 }); // Opacity is fine, but drawText expects string for content
+        page.drawText('NOTICE OF HEARING:', { x: 50, y, size: 12 });
         y -= 20;
 
         if (estate.hearingDate) {
@@ -341,7 +326,7 @@ export const PdfService = {
     async generateDE150(estate: any) {
         const doc = await PDFDocument.create();
         const page = doc.addPage();
-        const { width, height } = page.getSize();
+        const { height } = page.getSize();
         let y = height - 50;
         const fontBold = await doc.embedStandardFont(StandardFonts.HelveticaBold);
         const fontRegular = await doc.embedStandardFont(StandardFonts.Helvetica);
@@ -395,7 +380,7 @@ export const PdfService = {
     async generateDE174(estate: any, liability: any) {
         const doc = await PDFDocument.create();
         const page = doc.addPage();
-        const { width, height } = page.getSize();
+        const { height } = page.getSize();
         let y = height - 50;
         const fontBold = await doc.embedStandardFont(StandardFonts.HelveticaBold);
 
@@ -457,8 +442,8 @@ export const PdfService = {
      */
     async generateDE310(estate: any, distributions: any[], inventoryValue: number) {
         const doc = await PDFDocument.create();
-        const page = doc.addPage();
-        const { width, height } = page.getSize();
+        let page = doc.addPage();
+        const { height } = page.getSize();
         let y = height - 50;
         const fontBold = await doc.embedStandardFont(StandardFonts.HelveticaBold);
 
@@ -490,9 +475,13 @@ export const PdfService = {
         y -= 25;
 
         distributions.forEach((dist) => {
+            if (y < 100) {
+                page = doc.addPage();
+                y = height - 50;
+            }
             const heirName = dist.heir?.name || "Unknown Heir";
-            const desc = dist.asset ? (dist.asset.name + (dist.amount ? ` ($${dist.amount})` : '')) : (dist.description || "Residue");
-            const amount = dist.amount ? `$${Number(dist.amount).toLocaleString()}` : (dist.percentage ? `${dist.percentage}%` : 'Specific Gift');
+            const desc = dist.asset ? (dist.asset.name + (dist.amount ? ` ($${dist.amount})` : "")) : (dist.description || "Residue");
+            const amount = dist.amount ? `$${Number(dist.amount).toLocaleString()}` : (dist.percentage ? `${dist.percentage}%` : "Specific Gift");
 
             page.drawText(`   Beneficiary: ${String(heirName)}`, { x: 70, y, size: 10, font: fontBold });
             y -= 15;
@@ -500,30 +489,11 @@ export const PdfService = {
             y -= 15;
             page.drawText(`   Value/Share: ${String(amount)}`, { x: 90, y, size: 10 });
             y -= 25;
-
-            if (y < 50) {
-                doc.addPage();
-                y = height - 50;
-            }
         });
-
-        y -= 20;
-
-        // Signature
-        page.drawText(`Date: ${new Date().toLocaleDateString()}`, { x: 50, y });
-        y -= 30;
-        page.drawText('___________________________________________________', { x: 50, y });
-        y -= 15;
-        page.drawText(`${String(estate.user?.fullName || 'Executor')}`, { x: 50, y });
-        page.drawText('Petitioner', { x: 50, y: y - 15 });
 
         return await doc.save();
     },
 
-    /**
-     * Generates a professional chronological Settlement Trail PDF.
-     * Filters for completed actions and adds a fiduciary affirmation.
-     */
     /**
      * Generates a professional chronological Settlement Trail PDF with multi-page support.
      */
@@ -543,11 +513,11 @@ export const PdfService = {
         const addNewPage = () => {
             page = doc.addPage([pageWidth, pageHeight]);
             cursorY = pageHeight - margin;
-            drawText(`(Continued - Page ${doc.getPageCount()})`, 8, fontRegular);
-            cursorY -= 10;
+            page.drawText(`(Continued - Page ${doc.getPageCount()})`, { x: margin, y: cursorY, size: 8, font: fontRegular });
+            cursorY -= 15;
         };
 
-        const drawText = (text: string, size = 11, font = fontRegular, xOffset = 0, color = rgb(0, 0, 0)) => {
+        const drawTextRow = (text: string, size = 11, font = fontRegular, xOffset = 0, color = rgb(0, 0, 0)) => {
             if (cursorY < margin + 20) {
                 addNewPage();
             }
@@ -555,7 +525,7 @@ export const PdfService = {
             cursorY -= (size + 5);
         };
 
-        const drawLine = (thickness = 1, color = rgb(0.8, 0.8, 0.8)) => {
+        const drawDash = (thickness = 1, color = rgb(0.8, 0.8, 0.8)) => {
             page.drawLine({
                 start: { x: margin, y: cursorY + 5 },
                 end: { x: pageWidth - margin, y: cursorY + 5 },
@@ -566,20 +536,19 @@ export const PdfService = {
         };
 
         // --- Header Section ---
-        drawText("SETTLEMENT TRAIL: OFFICIAL FIDUCIARY RECORD", 16, fontBold);
+        drawTextRow("SETTLEMENT TRAIL: OFFICIAL FIDUCIARY RECORD", 16, fontBold);
         cursorY -= 5;
-        drawText(`ESTATE: ${String(estate.deceasedFirstName || 'Unknown')} ${String(estate.deceasedLastName || 'Estate').toUpperCase()}`, 12, fontBold);
-        drawText(`EXECUTOR: ${userName || 'Authorized Representative'}`);
-        drawText(`JURISDICTION: ${estate.deceasedState || 'N/A'}`);
-        drawText(`SYSTEM OF RECORD: ExpectedEstate`);
-        drawText(`EXPORTED ON: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`);
+        drawTextRow(`ESTATE: ${String(estate.deceasedFirstName || 'Unknown')} ${String(estate.deceasedLastName || 'Estate').toUpperCase()}`, 12, fontBold);
+        drawTextRow(`EXECUTOR: ${userName || 'Authorized Representative'}`);
+        drawTextRow(`JURISDICTION: ${estate.deceasedState || 'N/A'}`);
+        drawTextRow(`SYSTEM OF RECORD: ExpectedEstate`);
+        drawTextRow(`EXPORTED ON: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`);
         cursorY -= 15;
 
         // --- Verification Seal (SEC-003) ---
         if (options?.verification) {
             cursorY -= 10;
             if (options.verification.valid) {
-                // Green "Verified" Badge
                 page.drawRectangle({
                     x: pageWidth - margin - 180,
                     y: pageHeight - margin - 40,
@@ -604,7 +573,6 @@ export const PdfService = {
                     color: rgb(0, 0.3, 0)
                 });
             } else {
-                // Red "Tampered" Warning
                 page.drawRectangle({
                     x: pageWidth - margin - 180,
                     y: pageHeight - margin - 40,
@@ -632,34 +600,33 @@ export const PdfService = {
         }
 
         // --- Summary Section ---
-        drawText("RECORD SUMMARY", 12, fontBold);
-        drawLine(1.5, rgb(0.4, 0.4, 0.4));
+        drawTextRow("RECORD SUMMARY", 12, fontBold);
+        drawDash(1.5, rgb(0.4, 0.4, 0.4));
         const completedCount = activities.filter(a => a.action === 'COMPLETED' || a.action === 'PHASE_COMPLETED').length;
-        drawText(`Total Verified Actions: ${activities.length}`, 10);
-        drawText(`Milestones Reached: ${completedCount}`, 10);
-        drawText(`Estate Status: ${estate.probateStatus?.replace(/_/g, ' ') || 'In Progress'}`, 10);
+        drawTextRow(`Total Verified Actions: ${activities.length}`, 10);
+        drawTextRow(`Milestones Reached: ${completedCount}`, 10);
+        drawTextRow(`Estate Status: ${estate.probateStatus?.replace(/_/g, ' ') || 'In Progress'}`, 10);
         cursorY -= 15;
 
-        // --- FIDUCIARY GAP ANALYSIS (NEW) ---
+        // --- FIDUCIARY GAP ANALYSIS ---
         if (options?.pendingTasks?.length || options?.negativeFindings?.length) {
-            drawText("FIDUCIARY GAP ANALYSIS (STATUS OF DILIGENCE)", 12, fontBold);
-            drawLine(1, rgb(0, 0.3, 0.6));
+            drawTextRow("FIDUCIARY GAP ANALYSIS (STATUS OF DILIGENCE)", 12, fontBold);
+            drawDash(1, rgb(0, 0.3, 0.6));
 
             if (options.pendingTasks?.length) {
-                drawText("PENDING MILESTONES (Current Phase)", 10, fontBold, 5);
+                drawTextRow("PENDING MILESTONES (Current Phase)", 10, fontBold, 5);
                 options.pendingTasks.forEach(task => {
-                    const desc = task.title || task.id;
-                    drawText(`[ ] ${desc}`, 9, fontRegular, 15);
+                    drawTextRow(`[ ] ${task.title || task.id}`, 9, fontRegular, 15);
                 });
                 cursorY -= 10;
             }
 
             if (options.negativeFindings?.length) {
-                drawText("NEGATIVE ASSURANCE (Explicitly Reviewed & Absent)", 10, fontBold, 5);
+                drawTextRow("NEGATIVE ASSURANCE (Explicitly Reviewed & Absent)", 10, fontBold, 5);
                 options.negativeFindings.forEach(cat => {
-                    drawText(`${cat.category.replace(/_/g, ' ')}: ABSENT`, 9, fontBold, 15);
+                    drawTextRow(`${cat.category.replace(/_/g, ' ')}: ABSENT`, 9, fontBold, 15);
                     cat.negativeFindings?.forEach((f: any) => {
-                        drawText(`- Diligence Note: "${f.statement}"`, 8, fontItalic, 25);
+                        drawTextRow(`- Diligence Note: "${f.statement}"`, 8, fontItalic, 25);
                     });
                 });
                 cursorY -= 10;
@@ -668,11 +635,10 @@ export const PdfService = {
         }
 
         // --- Activity Log ---
-        drawText("CHRONOLOGICAL LOG OF ACTIONS", 12, fontBold);
-        drawLine(1, rgb(0.6, 0.6, 0.6));
+        drawTextRow("CHRONOLOGICAL LOG OF ACTIONS", 12, fontBold);
+        drawDash(1, rgb(0.6, 0.6, 0.6));
         cursorY -= 5;
 
-        // Sort Ascending (Earliest First)
         const sorted = [...activities].sort((a, b) =>
             new Date(a.occurredAt).getTime() - new Date(b.occurredAt).getTime()
         );
@@ -681,30 +647,19 @@ export const PdfService = {
             const dateStr = new Date(log.occurredAt).toLocaleDateString();
             const timeStr = new Date(log.occurredAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             const phaseStr = log.phase ? `${log.phase.replace(/_/g, ' ')}` : 'GENERAL';
-
-            // Draw Date/Phase Row
-            drawText(`${dateStr} ${timeStr} | ${phaseStr}`, 9, fontBold);
-
-            // Draw Action Description
-            const description = log.notes || log.action;
-            drawText(description, 10, fontRegular, 10);
-
-            // Draw Hash (SEC-003)
+            drawTextRow(`${dateStr} ${timeStr} | ${phaseStr}`, 9, fontBold);
+            drawTextRow(log.notes || log.action, 10, fontRegular, 10);
             if (log.hash) {
-                const hashDisplay = `SHA: ${log.hash.substring(0, 32)}...`; // Truncate for readability
-                drawText(hashDisplay, 7, fontMono, 10, rgb(0.4, 0.4, 0.4));
+                drawTextRow(`SHA: ${log.hash.substring(0, 32)}...`, 7, fontMono, 10, rgb(0.4, 0.4, 0.4));
             }
-
             cursorY -= 8;
         });
 
-        // --- Fiduciary Affirmation Section ---
-        // Ensure affirmation is on the same page or at least not cut off
         if (cursorY < 180) addNewPage();
         cursorY -= 20;
 
-        drawLine(1, rgb(0, 0, 0));
-        drawText("DECLARATION & AFFIRMATION", 12, fontBold);
+        drawDash(1, rgb(0, 0, 0));
+        drawTextRow("DECLARATION & AFFIRMATION", 12, fontBold);
         cursorY -= 5;
 
         const affirmationLines = [
@@ -713,25 +668,16 @@ export const PdfService = {
             "complete, and accurate record of the actions performed in the administration of this estate to the",
             "best of my knowledge and belief."
         ];
-        affirmationLines.forEach(line => drawText(line, 9));
+        affirmationLines.forEach(line => drawTextRow(line, 9));
 
         cursorY -= 30;
-        page.drawLine({
-            start: { x: margin, y: cursorY },
-            end: { x: margin + 250, y: cursorY },
-            thickness: 1
-        });
-        page.drawLine({
-            start: { x: pageWidth - margin - 150, y: cursorY },
-            end: { x: pageWidth - margin, y: cursorY },
-            thickness: 1
-        });
+        page.drawLine({ start: { x: margin, y: cursorY }, end: { x: margin + 250, y: cursorY }, thickness: 1 });
+        page.drawLine({ start: { x: pageWidth - margin - 150, y: cursorY }, end: { x: pageWidth - margin, y: cursorY }, thickness: 1 });
 
         cursorY -= 12;
         page.drawText("Signature of Executor / Administrator", { x: margin, y: cursorY, size: 8, font: fontRegular });
         page.drawText("Date Signed", { x: pageWidth - margin - 150, y: cursorY, size: 8, font: fontRegular });
 
-        // Footer with Page Numbers
         const pages = doc.getPages();
         pages.forEach((p, i) => {
             p.drawText(`Page ${i + 1} of ${pages.length} - ExpectedEstate Fiduciary Record`, {
@@ -751,9 +697,7 @@ function safeSetText(form: any, name: string, value: string | undefined) {
     try {
         const field = form.getTextField(name);
         if (value) field.setText(value);
-    } catch (e) {
-        // Field might not exist in template
-    }
+    } catch (e) { }
 }
 
 function safeSetCheckbox(form: any, name: string, checked: boolean) {
@@ -761,7 +705,5 @@ function safeSetCheckbox(form: any, name: string, checked: boolean) {
         const field = form.getCheckBox(name);
         if (checked) field.check();
         else field.uncheck();
-    } catch (e) {
-        // Field might not exist
-    }
+    } catch (e) { }
 }
