@@ -139,7 +139,7 @@ const Forms = () => {
     }, [templates, selectedState, searchQuery]);
 
     return (
-        <div className="flex min-h-screen bg-slate-950 text-white font-sans">
+        <div className="flex min-h-screen bg-gray-50 text-gray-900 font-sans">
             <SEO
                 title={`${stateName} Probate Forms`}
                 description={`Access official ${stateName} Judicial Council and Probate forms. Pre-filled, blank download, and auto-fill (Beta) support.`}
@@ -147,27 +147,27 @@ const Forms = () => {
             <Sidebar />
             <main className="flex-1 ml-64 flex flex-col h-screen overflow-hidden">
                 {/* Header Section */}
-                <header className="p-8 border-b border-white/5 bg-slate-900/50 backdrop-blur-xl shrink-0">
+                <header className="p-8 border-b border-gray-200 bg-white shrink-0">
                     <div className="flex items-center justify-between mb-8">
                         <div>
                             <motion.h1
                                 initial={{ opacity: 0, x: -20 }}
                                 animate={{ opacity: 1, x: 0 }}
-                                className="text-3xl font-black tracking-tighter text-white"
+                                className="text-3xl font-black tracking-tighter text-gray-900"
                             >
                                 PRO <span className="text-primary italic">FORMS</span>
                             </motion.h1>
-                            <p className="text-slate-500 text-sm font-medium">Official Judicial Council Templates</p>
+                            <p className="text-gray-500 text-sm font-medium">Official Judicial Council Templates</p>
                         </div>
 
                         <div className="flex items-center gap-4">
                             <div className="relative w-64 group">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-primary transition-colors" />
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-primary transition-colors" />
                                 <Input
                                     placeholder="Search forms..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="pl-10 bg-slate-800/50 border-slate-700 focus:border-primary/50 transition-all rounded-xl"
+                                    className="pl-10 bg-white border-gray-300 focus:border-primary/50 transition-all rounded-xl"
                                 />
                             </div>
                         </div>
@@ -175,14 +175,14 @@ const Forms = () => {
 
                     {/* State Selector */}
                     <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-2 text-slate-400">
+                        <div className="flex items-center gap-2 text-gray-600">
                             <MapPin className="w-4 h-4" />
                             <span className="text-xs font-bold uppercase tracking-widest">Select State:</span>
                         </div>
                         <select
                             value={selectedState}
                             onChange={(e) => setSelectedState(e.target.value)}
-                            className="px-4 py-2 bg-slate-800/50 border border-slate-700 rounded-xl text-white font-bold text-sm focus:outline-none focus:border-primary/50 transition-all cursor-pointer"
+                            className="px-4 py-2 bg-white border border-gray-300 rounded-xl text-gray-900 font-bold text-sm focus:outline-none focus:border-primary/50 transition-all cursor-pointer"
                         >
                             <optgroup label="✓ Fully Supported">
                                 {STATES.filter(s => s.supported).map(s => (
@@ -201,30 +201,30 @@ const Forms = () => {
                         </select>
                         
                         {!STATES.find(s => s.id === selectedState)?.supported && (
-                            <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-500/10 border border-amber-500/20 rounded-lg">
-                                <AlertCircle className="w-3.5 h-3.5 text-amber-500" />
-                                <span className="text-xs font-bold text-amber-500">Forms not yet available for this state</span>
+                            <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-lg">
+                                <AlertCircle className="w-3.5 h-3.5 text-amber-600" />
+                                <span className="text-xs font-bold text-amber-700">Forms not yet available for this state</span>
                             </div>
                         )}
                     </div>
                 </header>
 
                 {/* Content Area */}
-                <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
+                <div className="flex-1 overflow-y-auto p-8 custom-scrollbar bg-gray-50">
                     {templatesLoading ? (
-                        <div className="flex flex-col items-center justify-center py-20 text-slate-500">
+                        <div className="flex flex-col items-center justify-center py-20 text-gray-400">
                             <Loader2 className="w-12 h-12 mb-4 animate-spin opacity-20" />
                             <p className="font-bold uppercase tracking-widest text-[10px]">Cataloging Forms...</p>
                         </div>
                     ) : !STATES.find(s => s.id === selectedState)?.supported ? (
-                        <div className="flex flex-col items-center justify-center py-20 text-slate-500">
-                            <div className="p-6 rounded-full bg-slate-900 border border-slate-800 mb-6">
+                        <div className="flex flex-col items-center justify-center py-20 text-gray-500">
+                            <div className="p-6 rounded-full bg-gray-100 border border-gray-200 mb-6">
                                 <MapPin className="w-12 h-12 opacity-20" />
                             </div>
-                            <h3 className="text-xl font-bold text-white mb-2">
+                            <h3 className="text-xl font-bold text-gray-900 mb-2">
                                 {STATES.find(s => s.id === selectedState)?.name} Forms Coming Soon
                             </h3>
-                            <p className="text-sm text-slate-400 mb-6 max-w-md text-center">
+                            <p className="text-sm text-gray-600 mb-6 max-w-md text-center">
                                 We're working on adding official probate forms for {STATES.find(s => s.id === selectedState)?.name}. 
                                 Currently, only California forms are available.
                             </p>
@@ -257,50 +257,50 @@ const Forms = () => {
                                                 animate={{ opacity: 1, scale: 1 }}
                                                 transition={{ delay: index * 0.05 }}
                                             >
-                                                <Card className="bg-slate-900/50 border-slate-800/50 hover:border-primary/30 transition-all group relative overflow-hidden h-full flex flex-col rounded-3xl">
+                                                <Card className="bg-white border-gray-200 hover:border-primary/30 transition-all group relative overflow-hidden h-full flex flex-col rounded-3xl shadow-sm">
                                                     {/* Readiness Banner */}
                                                     <div className={cn(
                                                         "px-4 py-2 border-b flex items-center gap-2",
-                                                        formReady ? "bg-emerald-500/10 border-emerald-500/20" : "bg-amber-500/10 border-amber-500/20"
+                                                        formReady ? "bg-emerald-50 border-emerald-200" : "bg-amber-50 border-amber-200"
                                                     )}>
                                                         {formReady ? (
-                                                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                                                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                                                         ) : (
-                                                            <AlertCircle className="w-3.5 h-3.5 text-amber-500" />
+                                                            <AlertCircle className="w-3.5 h-3.5 text-amber-600" />
                                                         )}
                                                         <span className={cn(
                                                             "text-[10px] font-black uppercase tracking-widest",
-                                                            formReady ? "text-emerald-500" : "text-amber-500"
+                                                            formReady ? "text-emerald-600" : "text-amber-600"
                                                         )}>
                                                             {formReady ? "Ready for Preparation" : "Not Ready Yet"}
                                                         </span>
                                                     </div>
 
                                                     <div className="absolute top-10 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                                                        <DynamicIcon name={form.icon} className="w-16 h-16" />
+                                                        <DynamicIcon name={form.icon} className="w-16 h-16 text-gray-400" />
                                                     </div>
 
                                                     <CardHeader className="pb-4">
                                                         <div className="flex items-center justify-between mb-4">
-                                                            <div className="flex items-center gap-2 text-[10px] font-black tracking-widest uppercase text-slate-500">
+                                                            <div className="flex items-center gap-2 text-[10px] font-black tracking-widest uppercase text-gray-500">
                                                                 <MapPin className="w-3 h-3" />
                                                                 {selectedState} / {form.category}
                                                             </div>
-                                                            <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-primary uppercase">
+                                                            <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-gray-100 border border-gray-200 text-primary uppercase">
                                                                 {form.name}
                                                             </span>
                                                         </div>
-                                                        <CardTitle className="text-lg font-bold text-white mb-2 leading-tight">
+                                                        <CardTitle className="text-lg font-bold text-gray-900 mb-2 leading-tight">
                                                             {form.title}
                                                         </CardTitle>
-                                                        <CardDescription className="text-slate-400 text-xs leading-relaxed min-h-[3rem]">
+                                                        <CardDescription className="text-gray-600 text-xs leading-relaxed min-h-[3rem]">
                                                             {form.description}
                                                         </CardDescription>
 
                                                         {context && (
-                                                            <div className="mt-3 flex items-center gap-1.5 p-2 bg-white/5 rounded-xl">
-                                                                <Info className="w-3 h-3 text-slate-500" />
-                                                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
+                                                            <div className="mt-3 flex items-center gap-1.5 p-2 bg-gray-50 rounded-xl border border-gray-100">
+                                                                <Info className="w-3 h-3 text-gray-500" />
+                                                                <span className="text-[10px] font-bold text-gray-600 uppercase tracking-tighter">
                                                                     Used in: {context}
                                                                 </span>
                                                             </div>
@@ -308,12 +308,12 @@ const Forms = () => {
                                                     </CardHeader>
 
                                                     <div className="mt-auto px-6 pb-6 pt-2">
-                                                        <div className="flex flex-col gap-2 pt-4 border-t border-white/5">
+                                                        <div className="flex flex-col gap-2 pt-4 border-t border-gray-100">
                                                             <div className="flex gap-2">
                                                                 <Button
                                                                     variant="ghost"
                                                                     size="sm"
-                                                                    className="flex-1 bg-white/5 hover:bg-white/10 text-slate-300 border border-white/5 rounded-xl"
+                                                                    className="flex-1 bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200 rounded-xl"
                                                                     onClick={() => handleFormAction(form.name, true)}
                                                                     disabled={loadingAction !== null}
                                                                 >
@@ -327,7 +327,7 @@ const Forms = () => {
                                                                 <Button
                                                                     variant="ghost"
                                                                     size="sm"
-                                                                    className="flex-1 bg-white/5 hover:bg-white/10 text-slate-300 border border-white/5 rounded-xl"
+                                                                    className="flex-1 bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200 rounded-xl"
                                                                     onClick={() => handleFormAction(form.name, false, true)}
                                                                     disabled={loadingAction !== null}
                                                                 >
@@ -350,7 +350,7 @@ const Forms = () => {
                                                                                     "w-full transition-all border font-black uppercase tracking-widest text-[10px] h-10 rounded-xl",
                                                                                     formReady
                                                                                         ? "bg-primary/10 hover:bg-primary text-primary hover:text-white border-primary/20"
-                                                                                        : "bg-white/5 text-slate-500 border-white/5 cursor-not-allowed"
+                                                                                        : "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
                                                                                 )}
                                                                                 onClick={() => formReady && handleFormAction(form.name, false)}
                                                                                 disabled={loadingAction !== null || !formReady}
@@ -365,14 +365,14 @@ const Forms = () => {
                                                                         </div>
                                                                     </TooltipTrigger>
                                                                     {!formReady && reason && (
-                                                                        <TooltipContent className="bg-slate-900 border-slate-800 text-slate-300 text-[10px] font-bold uppercase p-3">
+                                                                        <TooltipContent className="bg-gray-900 border-gray-800 text-gray-100 text-[10px] font-bold uppercase p-3">
                                                                             {reason}
                                                                         </TooltipContent>
                                                                     )}
                                                                 </Tooltip>
                                                             </TooltipProvider>
 
-                                                            <p className="text-[9px] text-slate-600 font-bold uppercase tracking-tight text-center mt-1">
+                                                            <p className="text-[9px] text-gray-400 font-bold uppercase tracking-tight text-center mt-1">
                                                                 Prepares a draft using your current estate data.
                                                             </p>
                                                         </div>
@@ -382,8 +382,8 @@ const Forms = () => {
                                         );
                                     })
                                 ) : (
-                                    <div className="col-span-full flex flex-col items-center justify-center py-20 text-slate-500">
-                                        <div className="p-4 rounded-full bg-slate-900 border border-slate-800 mb-4">
+                                    <div className="col-span-full flex flex-col items-center justify-center py-20 text-gray-500">
+                                        <div className="p-4 rounded-full bg-gray-100 border border-gray-200 mb-4">
                                             <Search className="w-8 h-8 opacity-20" />
                                         </div>
                                         <p className="font-bold">No forms found for "{searchQuery}"</p>
@@ -396,10 +396,10 @@ const Forms = () => {
                 </div>
 
                 {/* Legal Footnote */}
-                <footer className="px-8 py-4 shrink-0 bg-slate-950 border-t border-white/5">
+                <footer className="px-8 py-4 shrink-0 bg-white border-t border-gray-200">
                     <div className="max-w-4xl mx-auto flex gap-4 items-center">
-                        <Scale className="w-6 h-6 text-slate-800 shrink-0" />
-                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wide leading-relaxed">
+                        <Scale className="w-6 h-6 text-gray-300 shrink-0" />
+                        <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wide leading-relaxed">
                             ExpectedEstate is not a law firm. We provide recordkeeping tools to help executors document fiduciary actions for attorney review. Use does not create an attorney-client relationship.
                         </p>
                     </div>
