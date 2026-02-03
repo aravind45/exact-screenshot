@@ -396,17 +396,12 @@ const Forms = () => {
                 </div>
 
                 {/* Legal Footnote */}
-                <footer className="px-8 py-6 shrink-0 bg-slate-950 border-t border-white/5">
-                    <div className="max-w-4xl mx-auto flex gap-6 items-center">
-                        <Scale className="w-8 h-8 text-slate-800 shrink-0" />
-                        <div className="space-y-1">
-                            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest leading-relaxed">
-                                ExpectedEstate is not a law firm and does not provide legal advice. We guarantee the integrity of your activity logs and the deterministic application of statutory notice periods as part of your fiduciary defense.
-                            </p>
-                            <p className="text-[10px] font-bold text-primary cursor-pointer hover:underline uppercase tracking-widest">
-                                Need help? Contact the Probate Hub Support Team
-                            </p>
-                        </div>
+                <footer className="px-8 py-4 shrink-0 bg-slate-950 border-t border-white/5">
+                    <div className="max-w-4xl mx-auto flex gap-4 items-center">
+                        <Scale className="w-6 h-6 text-slate-800 shrink-0" />
+                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wide leading-relaxed">
+                            ExpectedEstate is not a law firm. We provide recordkeeping tools to help executors document fiduciary actions for attorney review. Use does not create an attorney-client relationship.
+                        </p>
                     </div>
                 </footer>
             </main>
