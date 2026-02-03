@@ -1,14 +1,15 @@
 import { useState, useEffect } from "react";
 import { api } from "@/lib/api";
-import { Sparkles } from "lucide-react";
+import { Sparkles, AlertCircle, CheckCircle2, FileText } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Phone, Mail, Printer, FileText, ExternalLink, Loader2 } from "lucide-react";
+import { Phone, Mail, Printer, FileText as FileTextIcon, ExternalLink, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface CommunicationLogDialogProps {
     open: boolean;
@@ -41,9 +42,26 @@ const methodIcons: Record<string, any> = {
     phone: Phone,
     email: Mail,
     fax: Printer,
-    mail: FileText,
+    mail: FileTextIcon,
     portal: ExternalLink,
 };
+
+interface DocumentRecommendation {
+    required: Array<{
+        documentType: string;
+        required: boolean;
+        reason: string;
+        priority: 'high' | 'medium' | 'low';
+    }>;
+    suggested: Array<{
+        documentType: string;
+        required: boolean;
+        reason: string;
+        priority: 'high' | 'medium' | 'low';
+    }>;
+    missing: string[];
+    completeness: number;
+}
 
 export function CommunicationLogDialog({
     open,
@@ -58,6 +76,8 @@ export function CommunicationLogDialog({
 }: CommunicationLogDialogProps) {
     const [isGenerating, setIsGenerating] = useState(false);
     const [selectedDocIds, setSelectedDocIds] = useState<string[]>([]);
+    const [recommendations, setRecommendations] = useState<DocumentRecommendation | null>(null);
+    const [loadingRecommendations, setLoadingRecommendations] = useState(false);
     const [formData, setFormData] = useState<CommunicationData>({
         method: "email",
         subject: "",
@@ -97,12 +117,39 @@ export function CommunicationLogDialog({
         }
     };
 
+    const loadDocumentRecommendations = async () => {
+        if (!assetId) return;
+        
+        setLoadingRecommendations(true);
+        try {
+            const recs = await api.getDocumentRecommendations(assetId, {
+                workflowStep: formData.type,
+                communicationType: formData.method
+            });
+            setRecommendations(recs);
+            
+            // Auto-select required documents that are available
+            if (recs.required.length > 0) {
+                const requiredTypes = recs.required.map((r: any) => r.documentType);
+                const autoSelectIds = availableDocuments
+                    .filter((doc: any) => requiredTypes.includes(doc.documentType))
+                    .map((doc: any) => doc.id);
+                setSelectedDocIds(autoSelectIds);
+            }
+        } catch (error) {
+            console.error("Failed to load document recommendations:", error);
+        } finally {
+            setLoadingRecommendations(false);
+        }
+    };
+
     useEffect(() => {
         if (open && !initialData && assetId) {
             console.log("Dialog opened, triggering auto-generation for asset:", assetId);
             // Small delay to ensure dialog is fully mounted
             setTimeout(() => {
                 handleGenerateDraft();
+                loadDocumentRecommendations();
             }, 100);
         } else if (open && initialData) {
             setFormData({
@@ -352,6 +399,130 @@ export function CommunicationLogDialog({
                                 </SelectContent>
                             </Select>
                         </div>
+
+                        {/* Smart Document Recommendations */}
+                        {assetId && recommendations && (formData.method === "email" || formData.method === "fax" || formData.method === "mail") && (
+                            <div className="space-y-3 p-4 bg-blue-50/50 border border-blue-200 rounded-xl">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <Sparkles className="w-4 h-4 text-blue-600" />
+                                        <Label className="text-[10px] font-bold uppercase tracking-widest text-blue-600">
+                                            Smart Recommendations
+                                        </Label>
+                                    </div>
+                                    {loadingRecommendations ? (
+                                        <Loader2 className="w-3 h-3 animate-spin text-blue-600" />
+                                    ) : (
+                                        <span className="text-[9px] text-blue-600 font-bold">
+                                            {recommendations.completeness}% Complete
+                                        </span>
+                                    )}
+                                </div>
+
+                                {/* Completeness Alert */}
+                                {recommendations.missing.length > 0 && (
+                                    <Alert variant="destructive" className="py-2">
+                                        <AlertCircle className="h-4 w-4" />
+                                        <AlertTitle className="text-xs font-bold">Missing Required Documents</AlertTitle>
+                                        <AlertDescription className="text-[10px]">
+                                            You're missing {recommendations.missing.length} required document(s). This may delay approval.
+                                        </AlertDescription>
+                                    </Alert>
+                                )}
+
+                                {recommendations.completeness === 100 && (
+                                    <Alert className="py-2 bg-green-50 border-green-200">
+                                        <CheckCircle2 className="h-4 w-4 text-green-600" />
+                                        <AlertTitle className="text-xs font-bold text-green-700">All Required Documents Ready</AlertTitle>
+                                        <AlertDescription className="text-[10px] text-green-600">
+                                            You have all required documents for this communication.
+                                        </AlertDescription>
+                                    </Alert>
+                                )}
+
+                                {/* Required Documents */}
+                                {recommendations.required.length > 0 && (
+                                    <div className="space-y-2">
+                                        <Label className="text-[9px] font-bold uppercase tracking-wider text-slate-600">
+                                            Required Documents
+                                        </Label>
+                                        <div className="space-y-1">
+                                            {recommendations.required.map((req: any) => {
+                                                const hasDoc = availableDocuments.some((doc: any) => 
+                                                    doc.documentType === req.documentType
+                                                );
+                                                return (
+                                                    <div 
+                                                        key={req.documentType}
+                                                        className={cn(
+                                                            "flex items-start gap-2 p-2 rounded-lg text-[10px]",
+                                                            hasDoc ? "bg-green-50 border border-green-200" : "bg-red-50 border border-red-200"
+                                                        )}
+                                                    >
+                                                        {hasDoc ? (
+                                                            <CheckCircle2 className="w-3 h-3 text-green-600 mt-0.5 shrink-0" />
+                                                        ) : (
+                                                            <AlertCircle className="w-3 h-3 text-red-600 mt-0.5 shrink-0" />
+                                                        )}
+                                                        <div className="flex-1 min-w-0">
+                                                            <p className={cn(
+                                                                "font-bold",
+                                                                hasDoc ? "text-green-700" : "text-red-700"
+                                                            )}>
+                                                                {req.documentType.replace(/_/g, ' ')}
+                                                            </p>
+                                                            <p className={cn(
+                                                                "text-[9px]",
+                                                                hasDoc ? "text-green-600" : "text-red-600"
+                                                            )}>
+                                                                {req.reason}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Suggested Documents */}
+                                {recommendations.suggested.length > 0 && (
+                                    <div className="space-y-2">
+                                        <Label className="text-[9px] font-bold uppercase tracking-wider text-slate-600">
+                                            Suggested Documents (Optional)
+                                        </Label>
+                                        <div className="space-y-1">
+                                            {recommendations.suggested.map((sug: any) => {
+                                                const hasDoc = availableDocuments.some((doc: any) => 
+                                                    doc.documentType === sug.documentType
+                                                );
+                                                return (
+                                                    <div 
+                                                        key={sug.documentType}
+                                                        className="flex items-start gap-2 p-2 rounded-lg bg-slate-50 border border-slate-200 text-[10px]"
+                                                    >
+                                                        <FileText className="w-3 h-3 text-slate-500 mt-0.5 shrink-0" />
+                                                        <div className="flex-1 min-w-0">
+                                                            <p className="font-bold text-slate-700">
+                                                                {sug.documentType.replace(/_/g, ' ')}
+                                                            </p>
+                                                            <p className="text-[9px] text-slate-600">
+                                                                {sug.reason}
+                                                            </p>
+                                                            {hasDoc && (
+                                                                <p className="text-[8px] text-green-600 font-bold mt-0.5">
+                                                                    ✓ Available in vault
+                                                                </p>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
 
                         {/* Attachments Section */}
                         {(formData.method === "email" || formData.method === "fax" || formData.method === "mail") && availableDocuments.length > 0 && (

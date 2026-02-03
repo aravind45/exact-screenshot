@@ -1092,4 +1092,38 @@ export const api = {
         });
         return parseResponse(response);
     },
+
+    // Document Recommendations
+    getDocumentRecommendations: async (assetId: string, params?: {
+        workflowStep?: string;
+        communicationType?: string;
+        institution?: string;
+    }) => {
+        const queryParams = new URLSearchParams();
+        if (params?.workflowStep) queryParams.append('workflowStep', params.workflowStep);
+        if (params?.communicationType) queryParams.append('communicationType', params.communicationType);
+        if (params?.institution) queryParams.append('institution', params.institution);
+
+        const response = await fetch(
+            `${API_URL}/communications/asset/${assetId}/document-recommendations?${queryParams.toString()}`,
+            { headers: getHeaders() }
+        );
+        return parseResponse(response);
+    },
+
+    getAvailableDocuments: async () => {
+        const response = await fetch(`${API_URL}/communications/estate/available-documents`, {
+            headers: getHeaders(),
+        });
+        return parseResponse(response);
+    },
+
+    validateDocumentCompleteness: async (assetId: string, attachedDocumentIds: string[]) => {
+        const response = await fetch(`${API_URL}/communications/validate-completeness`, {
+            method: 'POST',
+            headers: getHeaders(),
+            body: JSON.stringify({ assetId, attachedDocumentIds }),
+        });
+        return parseResponse(response);
+    },
 };

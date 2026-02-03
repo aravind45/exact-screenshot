@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import { CommunicationService } from "../services/communicationService.js";
 import { EmailService } from "../services/emailService.js";
+import { DocumentRecommendationService } from "../services/documentRecommendationService.js";
 import { prisma } from "../db.js";
 import { fileUpload, FileService } from "../services/fileService.js";
 
@@ -191,6 +192,69 @@ router.get("/timeline", async (req: any, res: Response) => {
         const timeline = await CommunicationService.getTimelineByEstate(estate.id);
         res.json(timeline);
     } catch (error: any) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Get document recommendations for an asset
+router.get("/asset/:assetId/document-recommendations", async (req: any, res: Response) => {
+    try {
+        const { assetId } = req.params;
+        const { workflowStep, communicationType, institution } = req.query;
+
+        // Verify asset belongs to user
+        const asset = await prisma.asset.findFirst({
+            where: { id: assetId, userId: req.user.id }
+        });
+        if (!asset) return res.status(403).json({ error: "Access denied" });
+
+        const recommendations = await DocumentRecommendationService.getRecommendations({
+            assetId,
+            workflowStep: workflowStep as string,
+            communicationType: communicationType as string,
+            institution: institution as string
+        });
+
+        res.json(recommendations);
+    } catch (error: any) {
+        console.error("Get Document Recommendations Error:", error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Get available documents for an estate
+router.get("/estate/available-documents", async (req: any, res: Response) => {
+    try {
+        const estate = await prisma.estate.findFirst({ where: { userId: req.user.id } });
+        if (!estate) return res.status(404).json({ error: "Estate not found" });
+
+        const documents = await DocumentRecommendationService.getAvailableDocuments(estate.id);
+        res.json(documents);
+    } catch (error: any) {
+        console.error("Get Available Documents Error:", error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Validate document completeness
+router.post("/validate-completeness", async (req: any, res: Response) => {
+    try {
+        const { assetId, attachedDocumentIds } = req.body;
+
+        // Verify asset belongs to user
+        const asset = await prisma.asset.findFirst({
+            where: { id: assetId, userId: req.user.id }
+        });
+        if (!asset) return res.status(403).json({ error: "Access denied" });
+
+        const validation = await DocumentRecommendationService.validateCompleteness(
+            assetId,
+            attachedDocumentIds
+        );
+
+        res.json(validation);
+    } catch (error: any) {
+        console.error("Validate Completeness Error:", error);
         res.status(500).json({ error: error.message });
     }
 });
