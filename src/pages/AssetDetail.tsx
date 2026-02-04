@@ -579,6 +579,25 @@ export default function AssetDetail() {
                     </Select>
                   </div>
                 </div>
+
+                <div className="flex justify-end gap-2 pt-4 border-t border-slate-50">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="rounded-lg h-8 px-4 font-bold text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-all"
+                    onClick={() => setIsEditing(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    size="sm"
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg h-8 px-5 font-bold shadow-sm hover:shadow-md transition-all active:scale-95"
+                    onClick={handleSave}
+                  >
+                    <Save className="w-3.5 h-3.5 mr-1.5" />
+                    Save Changes
+                  </Button>
+                </div>
               </div>
             ) : (
               <div className="flex items-center justify-between gap-6">
