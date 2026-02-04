@@ -107,16 +107,164 @@ export const TASK_ACTIONS: Record<string, TaskAction> = {
     icon: 'Upload'
   },
   'file_spousal_petition': {
-    type: 'modal',
-    target: 'none',
-    label: 'Upload Required',
-    icon: 'Upload'
+    type: 'navigate',
+    target: '/probate/spousal-petition',
+    label: 'Open Workbook',
+    icon: 'Heart',
+    variant: 'primary'
+  },
+  'file_succession_petition': {
+    type: 'navigate',
+    target: '/probate/succession-petition',
+    label: 'Open Workbook',
+    icon: 'Home',
+    variant: 'primary'
+  },
+  'check_primary_residence_succession': {
+    type: 'navigate',
+    target: '/probate/succession-petition',
+    label: 'Check Eligibility',
+    icon: 'Search'
   },
   'issue_cert_trust': {
     type: 'modal',
     target: 'none',
     label: 'Upload Required',
     icon: 'Upload'
+  },
+  'identify_minor_beneficiaries': {
+    type: 'navigate',
+    target: '/probate/guardian-ad-litem',
+    label: 'Open Workbook',
+    icon: 'Baby',
+    variant: 'primary'
+  },
+  'petition_guardian_ad_litem': {
+    type: 'navigate',
+    target: '/probate/guardian-ad-litem',
+    label: 'Open Workbook',
+    icon: 'ShieldCheck',
+    variant: 'primary'
+  },
+  'obtain_guardian_order': {
+    type: 'navigate',
+    target: '/probate/guardian-ad-litem',
+    label: 'Open Workbook',
+    icon: 'Gavel',
+    variant: 'primary'
+  },
+  'coordinate_with_guardian': {
+    type: 'navigate',
+    target: '/probate/guardian-ad-litem',
+    label: 'Open Workbook',
+    icon: 'Users'
+  },
+  'request_bond_waiver': {
+    type: 'navigate',
+    target: '/probate/bond-waiver',
+    label: 'Open Workbook',
+    icon: 'ShieldCheck',
+    variant: 'primary'
+  },
+  'file_bond_waiver': {
+    type: 'navigate',
+    target: '/probate/bond-waiver',
+    label: 'Open Workbook',
+    icon: 'Upload'
+  },
+  'obtain_bond_waiver_order': {
+    type: 'navigate',
+    target: '/probate/bond-waiver',
+    label: 'Open Workbook',
+    icon: 'Gavel'
+  },
+  'track_special_notice_requests': {
+    type: 'navigate',
+    target: '/probate/special-notice',
+    label: 'Open Registry',
+    icon: 'Bell',
+    variant: 'primary'
+  },
+  'serve_special_notice_parties': {
+    type: 'navigate',
+    target: '/probate/special-notice',
+    label: 'Service Tracker',
+    icon: 'Mail'
+  },
+  'respond_to_objections': {
+    type: 'navigate',
+    target: '/probate/contested-probate',
+    label: 'Open Workbook',
+    icon: 'Gavel',
+    variant: 'primary'
+  },
+  'attend_contest_hearing': {
+    type: 'navigate',
+    target: '/probate/contested-probate',
+    label: 'Hearing Plan',
+    icon: 'Users'
+  },
+  'resolve_contest': {
+    type: 'navigate',
+    target: '/probate/contested-probate',
+    label: 'View Outcome',
+    icon: 'Scale'
+  },
+  'prepare_notice_proposed_action': {
+    type: 'navigate',
+    target: '/probate/asset-sale',
+    label: 'Authorization',
+    icon: 'ShoppingCart',
+    variant: 'primary'
+  },
+  'wait_proposed_action_period': {
+    type: 'navigate',
+    target: '/probate/asset-sale',
+    label: 'Track Notice',
+    icon: 'Clock'
+  },
+  'petition_confirm_sale': {
+    type: 'navigate',
+    target: '/probate/asset-sale',
+    label: 'File Petition',
+    icon: 'FileText'
+  },
+  'obtain_sale_confirmation_order': {
+    type: 'navigate',
+    target: '/probate/asset-sale',
+    label: 'Obtain Order',
+    icon: 'Download'
+  },
+  'sell_property': {
+    type: 'navigate',
+    target: '/probate/asset-sale',
+    label: 'Finalize Sale',
+    icon: 'Building2'
+  },
+  'prepare_accounting': {
+    type: 'navigate',
+    target: '/probate/final-distribution',
+    label: 'Open Workbook',
+    icon: 'Calculator',
+    variant: 'primary'
+  },
+  'file_final_petition': {
+    type: 'navigate',
+    target: '/probate/final-distribution',
+    label: 'File Petition',
+    icon: 'FileText'
+  },
+  'distribute_assets': {
+    type: 'navigate',
+    target: '/probate/final-distribution',
+    label: 'Track Shares',
+    icon: 'Banknote'
+  },
+  'close_estate': {
+    type: 'navigate',
+    target: '/probate/final-distribution',
+    label: 'Get Discharge',
+    icon: 'Lock'
   },
 
   // Phase 2: Asset Discovery
@@ -226,7 +374,7 @@ export const TASK_ACTIONS: Record<string, TaskAction> = {
     icon: 'FileText',
     variant: 'primary'
   },
-  'distribute_assets': {
+  'distribute_assets_legacy': {
     type: 'navigate',
     target: '/distribution',
     label: 'Track Distribution',

@@ -1,4 +1,7 @@
-import React from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { api } from "@/lib/api";
+import { toast } from "sonner";
+import { useState } from "react";
 import { Sidebar } from "@/components/Sidebar";
 import {
     Heart,
@@ -17,46 +20,120 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { useQuery } from "@tanstack/react-query";
-import { api } from "@/lib/api";
 
 export default function SpousalPropertyPetition() {
+    const queryClient = useQueryClient();
+    const [downloadingForm, setDownloadingForm] = useState<string | null>(null);
+
     const { data: estate } = useQuery({
         queryKey: ["estate"],
         queryFn: api.getMyEstate,
     });
 
+    const completeTaskMutation = useMutation({
+        mutationFn: ({ taskId }: { taskId: string }) =>
+            api.completeTask(estate?.id || "", taskId),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["estate"] });
+            toast.success("Progress updated successfully");
+        },
+        onError: (err: any) => {
+            toast.error(`Error updating progress: ${err.message}`);
+        }
+    });
+
+    const generatePdfMutation = useMutation({
+        mutationFn: (formType: string) => api.previewPetition({ formType }),
+        onSuccess: (data: any, formType) => {
+            if (data.pdfBase64) {
+                const blob = b64toBlob(data.pdfBase64, 'application/pdf');
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${formType}_PreFilled.pdf`;
+                a.click();
+                toast.success(`${formType} downloaded successfully`);
+            }
+        },
+        onSettled: () => setDownloadingForm(null),
+        onError: (err: any) => {
+            toast.error(`Error generating PDF: ${err.message}`);
+        }
+    });
+
+    // Helper to convert base64 to Blob
+    const b64toBlob = (b64Data: string, contentType = '', sliceSize = 512) => {
+        const byteCharacters = atob(b64Data);
+        const byteArrays = [];
+        for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
+            const slice = byteCharacters.slice(offset, offset + sliceSize);
+            const byteNumbers = new Array(slice.length);
+            for (let i = 0; i < slice.length; i++) {
+                byteNumbers[i] = slice.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNumbers);
+            byteArrays.push(byteArray);
+        }
+        return new Blob(byteArrays, { type: contentType });
+    };
+
     const isSpousalPath = estate?.authorityType === "SPOUSAL_PETITION";
+    const completedTaskIds = estate?.roadmapProgress?.completedTaskIds || [];
+
+    const handleDownload = (form: string) => {
+        setDownloadingForm(form);
+        generatePdfMutation.mutate(form);
+    };
+
+    const handleMarkAsFiled = async (taskId: string) => {
+        completeTaskMutation.mutate({ taskId }, {
+            onSuccess: async () => {
+                if (taskId === "file_spousal_petition") {
+                    try {
+                        await api.updateMyEstate({
+                            authorityType: "SPOUSAL_PETITION_FILED",
+                            probateStatus: "PETITION_FILED"
+                        });
+                        queryClient.invalidateQueries({ queryKey: ["estate"] });
+                    } catch (err) {
+                        console.error("Failed to update estate status:", err);
+                    }
+                }
+            }
+        });
+    };
 
     const steps = [
         {
-            id: "petition",
+            id: "file_spousal_petition",
             title: "File Spousal Property Petition",
             form: "DE-221",
             desc: "Request that property pass to you without full probate.",
-            status: "ready",
+            status: completedTaskIds.includes("file_spousal_petition") ? "completed" : "ready",
             link: "https://www.courts.ca.gov/documents/de221.pdf"
         },
         {
-            id: "notice",
+            id: "give_spousal_notice",
             title: "Give Notice of Hearing",
             form: "DE-120",
             desc: "Notify all interested parties about the court hearing date.",
-            status: "locked",
+            status: completedTaskIds.includes("give_spousal_notice") ? "completed" :
+                (completedTaskIds.includes("file_spousal_petition") ? "ready" : "locked"),
             link: "https://www.courts.ca.gov/documents/de120.pdf"
         },
         {
-            id: "order",
+            id: "obtain_spousal_order",
             title: "Final Spousal Property Order",
             form: "DE-226",
             desc: "The judge signs the order transferring the property to you.",
-            status: "locked",
+            status: completedTaskIds.includes("obtain_spousal_order") ? "completed" :
+                (completedTaskIds.includes("give_spousal_notice") ? "ready" : "locked"),
             link: "https://www.courts.ca.gov/documents/de226.pdf"
         }
     ];
 
     return (
-        <div className="flex">
+        <div className="flex min-h-screen bg-slate-50/50">
             <Sidebar />
             <div className="flex-1 ml-64 min-h-screen bg-gradient-to-br from-slate-50 via-rose-50/20 to-slate-50 p-6 pl-4">
                 <div className="max-w-4xl mx-auto space-y-6">
@@ -111,16 +188,23 @@ export default function SpousalPropertyPetition() {
                             {steps.map((step, idx) => (
                                 <Card key={step.id} className={cn(
                                     "border-none shadow-sm transition-all overflow-hidden",
-                                    step.status === 'ready' ? "bg-white shadow-md shadow-slate-200/50" : "bg-slate-50 opacity-60"
+                                    step.status === 'ready' ? "bg-white shadow-md shadow-slate-200/50" :
+                                        (step.status === 'completed' ? "bg-white border-l-4 border-l-emerald-500 shadow-md" : "bg-slate-50 opacity-60")
                                 )}>
                                     <CardContent className="p-0">
                                         <div className="p-5 flex items-start gap-4">
-                                            <div className={cn(
-                                                "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0",
-                                                step.status === 'ready' ? "bg-rose-100 text-rose-600" : "bg-slate-200 text-slate-400"
-                                            )}>
-                                                {idx + 1}
-                                            </div>
+                                            {step.status === 'completed' ? (
+                                                <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
+                                                    <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                                                </div>
+                                            ) : (
+                                                <div className={cn(
+                                                    "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0",
+                                                    step.status === 'ready' ? "bg-rose-100 text-rose-600" : "bg-slate-200 text-slate-400"
+                                                )}>
+                                                    {idx + 1}
+                                                </div>
+                                            )}
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center justify-between mb-1">
                                                     <h3 className="text-sm font-bold text-slate-900 truncate">{step.title}</h3>
@@ -130,29 +214,46 @@ export default function SpousalPropertyPetition() {
                                                 </div>
                                                 <p className="text-xs text-slate-500 mb-4">{step.desc}</p>
 
-                                                {step.status === 'ready' && (
-                                                    <div className="flex gap-2">
-                                                        <Button
-                                                            variant="outline"
-                                                            size="sm"
-                                                            className="h-8 text-[10px] font-bold uppercase tracking-tight"
-                                                            asChild
-                                                            disabled={!isSpousalPath}
-                                                        >
-                                                            <a href={isSpousalPath ? step.link : "#"} target={isSpousalPath ? "_blank" : undefined}>
-                                                                <Download className="w-3 h-3 mr-2" /> Download PDF
-                                                            </a>
-                                                        </Button>
+                                                <div className="flex gap-2">
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="h-8 text-[10px] font-bold uppercase tracking-tight"
+                                                        onClick={() => handleDownload(step.form)}
+                                                        disabled={!isSpousalPath || downloadingForm === step.form || step.status === 'locked'}
+                                                    >
+                                                        {downloadingForm === step.form ? "Generating..." : "Auto-Fill (Beta)"}
+                                                    </Button>
+
+                                                    {step.status === 'ready' && (
                                                         <Button
                                                             variant="default"
                                                             size="sm"
-                                                            className="h-8 text-[10px] font-bold uppercase tracking-tight bg-slate-900 border-none"
-                                                            disabled={!isSpousalPath}
+                                                            className="h-8 text-[10px] font-bold uppercase tracking-tight bg-slate-900 border-none hover:bg-slate-800"
+                                                            onClick={() => handleMarkAsFiled(step.id)}
+                                                            disabled={!isSpousalPath || completeTaskMutation.isPending}
                                                         >
                                                             Mark as Filed
                                                         </Button>
-                                                    </div>
-                                                )}
+                                                    )}
+
+                                                    {step.status === 'completed' && (
+                                                        <Badge className="h-8 flex items-center gap-1.5 bg-emerald-50 text-emerald-700 border-emerald-100 px-3">
+                                                            <CheckCircle2 className="w-3 h-3" /> Filed
+                                                        </Badge>
+                                                    )}
+
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className="h-8 text-[10px] font-bold uppercase tracking-tight text-slate-400 hover:text-slate-600"
+                                                        asChild
+                                                    >
+                                                        <a href={step.link} target="_blank">
+                                                            Blank PDF
+                                                        </a>
+                                                    </Button>
+                                                </div>
                                             </div>
                                         </div>
                                     </CardContent>

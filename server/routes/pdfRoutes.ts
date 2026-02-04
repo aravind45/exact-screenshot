@@ -34,6 +34,42 @@ router.post("/preview", async (req: any, res: Response) => {
             pdfBytes = await PdfService.generateDE121(mergedData);
         } else if (req.body.formType === "DE-150") {
             pdfBytes = await PdfService.generateDE150(mergedData);
+        } else if (req.body.formType === "DE-221") {
+            pdfBytes = await PdfService.generateDE221(mergedData);
+        } else if (req.body.formType === "DE-120") {
+            pdfBytes = await PdfService.generateDE120(mergedData);
+        } else if (req.body.formType === "DE-226") {
+            pdfBytes = await PdfService.generateDE226(mergedData);
+        } else if (req.body.formType === "DE-310") {
+            const assets = await prisma.asset.findMany({ where: { estateId } });
+            const total = assets.reduce((sum, a) => sum + Number(a.inventoryValue || 0), 0);
+            pdfBytes = await PdfService.generateDE310(mergedData, total);
+        } else if (req.body.formType === "DE-315") {
+            pdfBytes = await PdfService.generateDE315(mergedData);
+        } else if (req.body.formType === "DE-350") {
+            pdfBytes = await PdfService.generateDE350(mergedData);
+        } else if (req.body.formType === "DE-351") {
+            pdfBytes = await PdfService.generateDE351(mergedData);
+        } else if (req.body.formType === "DE-142") {
+            pdfBytes = await PdfService.generateDE142(mergedData);
+        } else if (req.body.formType === "DE-143") {
+            pdfBytes = await PdfService.generateDE143(mergedData);
+        } else if (req.body.formType === "DE-154") {
+            pdfBytes = await PdfService.generateDE154(mergedData);
+        } else if (req.body.formType === "DE-115") {
+            pdfBytes = await PdfService.generateDE115(mergedData);
+        } else if (req.body.formType === "DE-116") {
+            pdfBytes = await PdfService.generateDE116(mergedData);
+        } else if (req.body.formType === "DE-165") {
+            pdfBytes = await PdfService.generateDE165(mergedData);
+        } else if (req.body.formType === "DE-260") {
+            pdfBytes = await PdfService.generateDE260(mergedData);
+        } else if (req.body.formType === "DE-265") {
+            pdfBytes = await PdfService.generateDE265(mergedData);
+        } else if (req.body.formType === "DE-295") {
+            pdfBytes = await PdfService.generateDE295(mergedData);
+        } else if (req.body.formType === "RECEIPT_DISTRIBUTION") {
+            pdfBytes = await PdfService.generateReceiptOfDistribution(mergedData, req.body.beneficiaryName);
         } else {
             // Default to DE-111
             pdfBytes = await PdfService.generateDE111(mergedData);

@@ -53,8 +53,10 @@ describe("Roadmap Filtering Logic", () => {
             state: "CA",
         });
 
-        const successionTasks = filtered.flatMap(p => p.tasks).filter(t => t.id === "file_succession_petition");
-        expect(successionTasks).toHaveLength(1);
+        const tasks = filtered.flatMap(p => p.tasks);
+        expect(tasks.filter(t => t.id === "file_succession_petition")).toHaveLength(1);
+        expect(tasks.filter(t => t.id === "give_succession_notice")).toHaveLength(1);
+        expect(tasks.filter(t => t.id === "obtain_succession_order")).toHaveLength(1);
     });
 
     it("should show contest tasks only when estate is contested", () => {
@@ -75,5 +77,18 @@ describe("Roadmap Filtering Logic", () => {
         const filtered = filterTasksForEstate(SETTLEMENT_PHASE_TASKS, mockProfile);
         const noticeTasks = filtered.flatMap(p => p.tasks).filter(t => t.id === "track_special_notice_requests");
         expect(noticeTasks).toHaveLength(1);
+    });
+
+    it("should always show bond waiver tasks as they offer cost savings", () => {
+        const filtered = filterTasksForEstate(SETTLEMENT_PHASE_TASKS, mockProfile);
+        const tasks = filtered.flatMap(p => p.tasks);
+        expect(tasks.filter(t => t.id === "request_bond_waiver")).toHaveLength(1);
+        expect(tasks.filter(t => t.id === "obtain_bond_waiver_order")).toHaveLength(1);
+    });
+
+    it("should show asset sale tasks as they are optional by default", () => {
+        const filtered = filterTasksForEstate(SETTLEMENT_PHASE_TASKS, mockProfile);
+        const saleTasks = filtered.flatMap(p => p.tasks).filter(t => t.id === "prepare_notice_proposed_action");
+        expect(saleTasks).toHaveLength(1);
     });
 });

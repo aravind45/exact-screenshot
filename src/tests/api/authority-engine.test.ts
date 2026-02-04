@@ -24,9 +24,9 @@ describe('Authority Engine - Path Detection', () => {
         { value: 50000, ownershipType: 'INDIVIDUAL', assetType: 'CHECKING', category: 'financial' },
         { value: 200000, ownershipType: 'INDIVIDUAL', assetType: 'REAL_ESTATE', category: 'real_estate' },
       ];
-      
+
       const result = calculateAuthorityRecommendation(assets, 'CA', { hasWill: true });
-      
+
       expect(result.type).toBe('FORMAL_PROBATE');
       expect(result.masterMode).toBe('COURT_SUPERVISED');
       expect(result.probateTotal).toBe(500000);
@@ -40,9 +40,9 @@ describe('Authority Engine - Path Detection', () => {
         { value: 100000, ownershipType: 'INDIVIDUAL', assetType: 'CHECKING', category: 'financial' },
         { value: 300000, ownershipType: 'INDIVIDUAL', assetType: 'BROKERAGE', category: 'financial' },
       ];
-      
+
       const result = calculateAuthorityRecommendation(assets, 'CA', { hasWill: false });
-      
+
       expect(result.type).toBe('INTESTATE');
       expect(result.masterMode).toBe('COURT_SUPERVISED');
       expect(result.probateTotal).toBe(400000);
@@ -55,9 +55,9 @@ describe('Authority Engine - Path Detection', () => {
         { value: 40000, ownershipType: 'INDIVIDUAL', assetType: 'CHECKING', category: 'financial' },
         { value: 20000, ownershipType: 'INDIVIDUAL', assetType: 'BROKERAGE', category: 'financial' },
       ];
-      
+
       const result = calculateAuthorityRecommendation(assets, 'FL', { hasWill: true });
-      
+
       expect(result.type).toBe('SUMMARY_ADMINISTRATION');
       expect(result.masterMode).toBe('COURT_SUPERVISED');
       expect(result.isEligibleForSmallEstate).toBe(true);
@@ -71,12 +71,12 @@ describe('Authority Engine - Path Detection', () => {
         { value: 200000, ownershipType: 'INDIVIDUAL', assetType: 'REAL_ESTATE', category: 'real_estate' },
         { value: 300000, ownershipType: 'INDIVIDUAL', assetType: 'REAL_ESTATE', category: 'real_estate' },
       ];
-      
+
       const result = calculateAuthorityRecommendation(assets, 'CA', {
         hasWill: true,
         isOutOfState: true,
       });
-      
+
       expect(result.type).toBe('ANCILLARY_PROBATE');
       expect(result.masterMode).toBe('COURT_SUPERVISED');
     });
@@ -88,12 +88,12 @@ describe('Authority Engine - Path Detection', () => {
         { value: 500000, ownershipType: 'TRUST', assetType: 'REAL_ESTATE', category: 'real_estate' },
         { value: 300000, ownershipType: 'TRUST', assetType: 'BROKERAGE', category: 'financial' },
       ];
-      
+
       const result = calculateAuthorityRecommendation(assets, 'CA', {
         hasWill: true,
         isTrustRevocable: true,
       });
-      
+
       expect(result.type).toBe('TRUST_ADMIN_REVOCABLE');
       expect(result.masterMode).toBe('FIDUCIARY_ADMINISTERED');
       expect(result.probateTotal).toBe(0);
@@ -105,12 +105,12 @@ describe('Authority Engine - Path Detection', () => {
       const assets = [
         { value: 1200000, ownershipType: 'TRUST', assetType: 'BROKERAGE', category: 'financial' },
       ];
-      
+
       const result = calculateAuthorityRecommendation(assets, 'CA', {
         hasWill: false,
         isTrustRevocable: false,
       });
-      
+
       expect(result.type).toBe('TRUST_ADMIN_IRREVOCABLE');
       expect(result.masterMode).toBe('FIDUCIARY_ADMINISTERED');
     });
@@ -123,9 +123,9 @@ describe('Authority Engine - Path Detection', () => {
         { value: 400000, ownershipType: 'INDIVIDUAL', assetType: 'BROKERAGE', category: 'financial' },
         { value: 50000, ownershipType: 'BENEFICIARY', assetType: 'CHECKING', category: 'financial' },
       ];
-      
+
       const result = calculateAuthorityRecommendation(assets, 'CA', { hasWill: true });
-      
+
       expect(result.type).toBe('POUR_OVER_WILL');
       expect(result.masterMode).toBe('FIDUCIARY_ADMINISTERED');
       expect(result.probateTotal).toBe(400000);
@@ -138,9 +138,9 @@ describe('Authority Engine - Path Detection', () => {
         { value: 80000, ownershipType: 'INDIVIDUAL', assetType: 'CHECKING', category: 'financial' },
         { value: 40000, ownershipType: 'INDIVIDUAL', assetType: 'BROKERAGE', category: 'financial' },
       ];
-      
+
       const result = calculateAuthorityRecommendation(assets, 'CA', { hasWill: true });
-      
+
       expect(result.type).toBe('SMALL_ESTATE');
       expect(result.masterMode).toBe('TRANSFER_ONLY');
       expect(result.isEligibleForSmallEstate).toBe(true);
@@ -154,9 +154,9 @@ describe('Authority Engine - Path Detection', () => {
       const assets = [
         { value: 400000, ownershipType: 'JOINT', assetType: 'REAL_ESTATE', category: 'real_estate' },
       ];
-      
+
       const result = calculateAuthorityRecommendation(assets, 'CA', { hasWill: false });
-      
+
       expect(result.type).toBe('JOINT_TRANSFER');
       expect(result.masterMode).toBe('TRANSFER_ONLY');
       expect(result.probateTotal).toBe(0);
@@ -169,9 +169,9 @@ describe('Authority Engine - Path Detection', () => {
         { value: 100000, ownershipType: 'BENEFICIARY', assetType: 'CHECKING', category: 'financial' },
         { value: 150000, ownershipType: 'BENEFICIARY', assetType: 'BROKERAGE', category: 'financial' },
       ];
-      
+
       const result = calculateAuthorityRecommendation(assets, 'CA', { hasWill: false });
-      
+
       // Authority engine returns BENEFICIARY_DESIGNATED for beneficiary assets
       expect(result.type).toBe('BENEFICIARY_DESIGNATED');
       expect(result.masterMode).toBe('TRANSFER_ONLY');
@@ -185,27 +185,41 @@ describe('Authority Engine - Path Detection', () => {
         { value: 250000, ownershipType: 'BENEFICIARY', assetType: 'LIFE_INSURANCE', category: 'financial' },
         { value: 350000, ownershipType: 'BENEFICIARY', assetType: '401K', category: 'retirement' },
       ];
-      
+
       const result = calculateAuthorityRecommendation(assets, 'CA', { hasWill: false });
-      
+
       expect(result.type).toBe('BENEFICIARY_DESIGNATED');
       expect(result.masterMode).toBe('TRANSFER_ONLY');
     });
   });
-
-  describe('PTH-17: TOD Deed', () => {
-    it('Should recommend TOD_DEED when metadata indicates TOD deed', () => {
+  describe('PTH-24: Spousal Property Petition', () => {
+    it('Should recommend SPOUSAL_PETITION for spouse with individual assets', () => {
       const assets = [
-        { value: 550000, ownershipType: 'BENEFICIARY', assetType: 'REAL_ESTATE', category: 'real_estate' },
+        { value: 500000, ownershipType: 'INDIVIDUAL', assetType: 'REAL_ESTATE', category: 'real_estate' },
       ];
-      
+
       const result = calculateAuthorityRecommendation(assets, 'CA', {
-        hasWill: false,
-        hasTODDeed: true,
+        hasWill: true,
+        isSpouse: true,
       });
-      
-      expect(result.type).toBe('TOD_DEED');
-      expect(result.masterMode).toBe('TRANSFER_ONLY');
+
+      expect(result.type).toBe('SPOUSAL_PETITION');
+      expect(result.masterMode).toBe('COURT_SUPERVISED');
+      expect(result.probateTotal).toBe(500000);
+      expect(result.legalTerm).toBe('DE-221 Spousal Property Petition');
+    });
+
+    it('Should prioritize SPOUSAL_PETITION over FORMAL_PROBATE', () => {
+      const assets = [
+        { value: 1000000, ownershipType: 'INDIVIDUAL', assetType: 'REAL_ESTATE', category: 'real_estate' },
+      ];
+
+      const result = calculateAuthorityRecommendation(assets, 'CA', {
+        hasWill: true,
+        isSpouse: true,
+      });
+
+      expect(result.type).toBe('SPOUSAL_PETITION');
     });
   });
 });
@@ -296,12 +310,12 @@ describe('Modifiers Detection', () => {
     const assets = [
       { value: 50000, ownershipType: 'INDIVIDUAL', assetType: 'CHECKING', category: 'financial' },
     ];
-    
+
     const result = calculateAuthorityRecommendation(assets, 'CA', {
       hasWill: true,
       hasInsolvencyRisk: true,
     });
-    
+
     expect(result.modifiers).toContain('INSOLVENT');
   });
 
@@ -309,12 +323,12 @@ describe('Modifiers Detection', () => {
     const assets = [
       { value: 300000, ownershipType: 'INDIVIDUAL', assetType: 'BROKERAGE', category: 'financial' },
     ];
-    
+
     const result = calculateAuthorityRecommendation(assets, 'CA', {
       hasWill: true,
       hasMinors: true,
     });
-    
+
     expect(result.modifiers).toContain('MINOR_HEIRS');
   });
 
@@ -322,12 +336,12 @@ describe('Modifiers Detection', () => {
     const assets = [
       { value: 500000, ownershipType: 'INDIVIDUAL', assetType: 'BUSINESS', category: 'business' },
     ];
-    
+
     const result = calculateAuthorityRecommendation(assets, 'CA', {
       hasWill: true,
       hasBusiness: true,
     });
-    
+
     expect(result.modifiers).toContain('BUSINESS_ESTATE');
   });
 
@@ -335,12 +349,12 @@ describe('Modifiers Detection', () => {
     const assets = [
       { value: 500000, ownershipType: 'INDIVIDUAL', assetType: 'BROKERAGE', category: 'financial' },
     ];
-    
+
     const result = calculateAuthorityRecommendation(assets, 'CA', {
       hasWill: true,
       hasContest: true,
     });
-    
+
     expect(result.modifiers).toContain('CONTESTED');
   });
 });
@@ -348,7 +362,7 @@ describe('Modifiers Detection', () => {
 describe('Edge Cases', () => {
   it('Should handle empty asset array', () => {
     const result = calculateAuthorityRecommendation([], 'CA', { hasWill: true, estimatedValue: 100000 });
-    
+
     expect(result.probateTotal).toBe(100000);
     // With no assets, authority engine defaults to POD_TOD_TRANSFER
     // In practice, estimatedValue would trigger SMALL_ESTATE if assets were present
@@ -359,9 +373,9 @@ describe('Edge Cases', () => {
     const assets = [
       { value: 40000, ownershipType: 'INDIVIDUAL', assetType: 'CHECKING', category: 'financial' },
     ];
-    
+
     const result = calculateAuthorityRecommendation(assets, 'UNKNOWN', { hasWill: true });
-    
+
     expect(result.threshold).toBe(50000);
     expect(result.isEligibleForSmallEstate).toBe(true);
   });
@@ -370,9 +384,9 @@ describe('Edge Cases', () => {
     const assets = [
       { value: 184500, ownershipType: 'INDIVIDUAL', assetType: 'CHECKING', category: 'financial' },
     ];
-    
+
     const result = calculateAuthorityRecommendation(assets, 'CA', { hasWill: true });
-    
+
     expect(result.isEligibleForSmallEstate).toBe(true);
     expect(result.type).toBe('SMALL_ESTATE');
   });
@@ -381,9 +395,9 @@ describe('Edge Cases', () => {
     const assets = [
       { value: 184501, ownershipType: 'INDIVIDUAL', assetType: 'CHECKING', category: 'financial' },
     ];
-    
+
     const result = calculateAuthorityRecommendation(assets, 'CA', { hasWill: true });
-    
+
     expect(result.isEligibleForSmallEstate).toBe(false);
     expect(result.type).toBe('FORMAL_PROBATE');
   });

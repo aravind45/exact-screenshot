@@ -123,6 +123,65 @@ export const PdfService = {
     },
 
     /**
+     * Generates a filled DE-221 Spousal Property Petition
+     */
+    async generateDE221(estate: any) {
+        let pdfBytes: Buffer;
+
+        const dbTemplate = await prisma.formTemplate.findUnique({ where: { name: "DE-221" } });
+
+        if (dbTemplate) {
+            pdfBytes = dbTemplate.data as any;
+        } else {
+            const templatePath = path.join(process.cwd(), 'server', 'templates', 'DE-221.pdf');
+            if (fs.existsSync(templatePath)) {
+                pdfBytes = fs.readFileSync(templatePath);
+            } else {
+                console.warn("Template DE-221.pdf not found. Creating a blank form for testing purposes.");
+                const doc = await PDFDocument.create();
+                const page = doc.addPage();
+                const form = doc.getForm();
+                form.createTextField('PetitionerName').setText('Petitioner Name');
+                form.createTextField('DecedentName').setText('Decedent Name');
+                page.drawText('DE-221 PLACESHOST (Real form not found)', { x: 50, y: 700 });
+                pdfBytes = Buffer.from(await doc.save());
+            }
+        }
+
+        const pdfDoc = await PDFDocument.load(pdfBytes);
+        const form = pdfDoc.getForm();
+
+        const petitionerName = estate.user?.fullName || "Petitioner";
+        safeSetText(form, 'PetitionerName', petitionerName);
+        safeSetText(form, 'PetitionerPhone', estate.petitionerPhone || "");
+        safeSetText(form, 'PetitionerEmail', estate.petitionerEmail || "");
+
+        if (!estate.petitionerIsAttorney) {
+            safeSetText(form, 'AttorneyName', `${petitionerName} (In Pro Per)`);
+        } else if (estate.attorneyName) {
+            safeSetText(form, 'AttorneyName', estate.attorneyName);
+            safeSetText(form, 'AttorneyFirm', estate.attorneyFirm || "");
+            safeSetText(form, 'AttorneyBarNumber', estate.attorneyBarNumber || "");
+        }
+
+        const decedentName = `${estate.deceasedFirstName} ${estate.deceasedLastName}`;
+        safeSetText(form, 'DecedentName', decedentName);
+        if (estate.deceasedDateOfDeath) {
+            safeSetText(form, 'DeathDate', new Date(estate.deceasedDateOfDeath).toLocaleDateString());
+        }
+
+        // California Specifics
+        if (estate.probateCounty) {
+            safeSetText(form, 'County', estate.probateCounty);
+        }
+
+        // Checkbox for spouse/partner
+        safeSetCheckbox(form, 'SpouseBox', estate.isSpouse);
+
+        return await pdfDoc.save();
+    },
+
+    /**
      * Generates a formal "Notification of Death" letter for a specific asset.
      */
     async generateLetter(asset: any, estate: any, overrides?: any) {
@@ -321,6 +380,74 @@ export const PdfService = {
     },
 
     /**
+     * Generates DE-120 Notice of Hearing (Probate)
+     */
+    async generateDE120(estate: any) {
+        const doc = await PDFDocument.create();
+        const page = doc.addPage();
+        const { height } = page.getSize();
+        let y = height - 50;
+
+        page.drawText('NOTICE OF HEARING—GUARDIANSHIP OR CONSERVATORSHIP / PROBATE (DE-120)', { x: 50, y, size: 14 });
+        y -= 30;
+        page.drawText(`Estate of: ${String(estate.deceasedFirstName || '')} ${String(estate.deceasedLastName || '')}`, { x: 50, y, size: 12 });
+        page.drawText(`Case Number: ${String(estate.courtCaseNumber || 'Pending')}`, { x: 400, y, size: 12 });
+        y -= 40;
+
+        page.drawText('1. NOTICE IS GIVEN that:', { x: 50, y, size: 12 });
+        y -= 20;
+        page.drawText(`   ${String(estate.user?.fullName || 'Petitioner')} has filed a Spousal Property Petition.`, { x: 50, y, size: 10 });
+        y -= 40;
+
+        page.drawText('2. A HEARING on the matter will be held as follows:', { x: 50, y, size: 12 });
+        y -= 30;
+
+        if (estate.hearingDate) {
+            const date = new Date(estate.hearingDate).toLocaleDateString();
+            const time = String(estate.hearingTime || "TBD");
+            const dept = String(estate.hearingDept || "TBD");
+            page.drawText(`Date: ${date}   Time: ${time}   Dept: ${dept}`, { x: 70, y, size: 12 });
+            y -= 20;
+            page.drawText(`Address: ${String(estate.hearingAddress || 'See Court Website')}`, { x: 70, y, size: 10 });
+        } else {
+            page.drawText('[ ] Hearing date not yet set', { x: 70, y, size: 12 });
+        }
+
+        return await doc.save();
+    },
+
+    /**
+     * Generates DE-226 Spousal Property Order
+     */
+    async generateDE226(estate: any) {
+        const doc = await PDFDocument.create();
+        const page = doc.addPage();
+        const { height } = page.getSize();
+        let y = height - 50;
+
+        page.drawText('SPOUSAL OR DOMESTIC PARTNER PROPERTY ORDER (DE-226)', { x: 50, y, size: 16 });
+        y -= 30;
+        page.drawText(`Estate of: ${String(estate.deceasedFirstName || '')} ${String(estate.deceasedLastName || '')}`, { x: 50, y, size: 12 });
+        page.drawText(`Case Number: ${String(estate.courtCaseNumber || 'Varies')}`, { x: 400, y, size: 12 });
+        y -= 40;
+
+        page.drawText('1. THE COURT FINDS:', { x: 50, y, size: 12 });
+        y -= 20;
+        page.drawText('   a. All notices required by law have been given.', { x: 70, y, size: 10 });
+        y -= 20;
+        page.drawText(`   b. The decedent was a resident of California at the time of death.`, { x: 70, y, size: 10 });
+        y -= 40;
+
+        page.drawText('2. THE COURT ORDERS:', { x: 50, y, size: 12 });
+        y -= 20;
+        page.drawText(`   a. Property described in the petition belongs to the surviving spouse/partner.`, { x: 70, y, size: 10 });
+        y -= 20;
+        page.drawText(`   b. No probate administration is necessary for said property.`, { x: 70, y, size: 10 });
+
+        return await doc.save();
+    },
+
+    /**
      * Generates DE-150 Letters
      */
     async generateDE150(estate: any) {
@@ -438,9 +565,9 @@ export const PdfService = {
     },
 
     /**
-     * Generates DE-310 Petition for Final Distribution
+     * Generates DE-310 Petition to Determine Succession to Real Property
      */
-    async generateDE310(estate: any, distributions: any[], inventoryValue: number) {
+    async generateDE310(estate: any, inventoryValue: number) {
         const doc = await PDFDocument.create();
         let page = doc.addPage();
         const { height } = page.getSize();
@@ -448,7 +575,7 @@ export const PdfService = {
         const fontBold = await doc.embedStandardFont(StandardFonts.HelveticaBold);
 
         // Header
-        page.drawText('PETITION FOR FINAL DISTRIBUTION (DE-310)', { x: 50, y, size: 14, font: fontBold });
+        page.drawText('PETITION TO DETERMINE SUCCESSION TO REAL PROPERTY (DE-310)', { x: 50, y, size: 14, font: fontBold });
         y -= 30;
 
         page.drawText(`Estate of: ${String(estate.deceasedFirstName || '')} ${String(estate.deceasedLastName || '')}`, { x: 50, y, size: 12 });
@@ -470,30 +597,226 @@ export const PdfService = {
         page.drawText(`   Attorney Fees: $${fee.toLocaleString()}`, { x: 70, y: y - 30 });
         y -= 60;
 
-        // 3. Plan of Distribution
-        page.drawText('3. The Petitioner requests that the estate be distributed as follows:', { x: 50, y, size: 12, font: fontBold });
+        // 3. Petitioner Information
+        page.drawText('3. Petitioner Information:', { x: 50, y, size: 12, font: fontBold });
+        y -= 20;
+        page.drawText(`   Petitioner Name: ${String(estate.user?.fullName || '')}`, { x: 70, y });
+        y -= 20;
+        page.drawText('   The decedent died on ' + (estate.deceasedDateOfDeath ? new Date(estate.deceasedDateOfDeath).toLocaleDateString() : '[Date]'), { x: 70, y });
+        y -= 30;
+
+        // 4. Property Description
+        page.drawText('4. Description of Property:', { x: 50, y, size: 12, font: fontBold });
         y -= 25;
+        page.drawText('[Real Property Description Placeholder - DE-310 Requirement]', { x: 70, y, size: 10 });
+        y -= 40;
 
-        distributions.forEach((dist) => {
-            if (y < 100) {
-                page = doc.addPage();
-                y = height - 50;
-            }
-            const heirName = dist.heir?.name || "Unknown Heir";
-            const desc = dist.asset ? (dist.asset.name + (dist.amount ? ` ($${dist.amount})` : "")) : (dist.description || "Residue");
-            const amount = dist.amount ? `$${Number(dist.amount).toLocaleString()}` : (dist.percentage ? `${dist.percentage}%` : "Specific Gift");
-
-            page.drawText(`   Beneficiary: ${String(heirName)}`, { x: 70, y, size: 10, font: fontBold });
-            y -= 15;
-            page.drawText(`   Property: ${String(desc)}`, { x: 90, y, size: 10 });
-            y -= 15;
-            page.drawText(`   Value/Share: ${String(amount)}`, { x: 90, y, size: 10 });
-            y -= 25;
-        });
+        // Signature
+        page.drawText(`Date: ${new Date().toLocaleDateString()}`, { x: 50, y });
+        y -= 30;
+        page.drawText('___________________________________________________', { x: 50, y });
+        y -= 15;
+        page.drawText(`${String(estate.user?.fullName || 'Petitioner')}`, { x: 50, y });
 
         return await doc.save();
     },
 
+    /**
+     * Generates DE-315 Order Determining Succession to Real Property
+     */
+    async generateDE315(estate: any) {
+        const doc = await PDFDocument.create();
+        let page = doc.addPage();
+        const { height } = page.getSize();
+        let y = height - 50;
+        const fontBold = await doc.embedStandardFont(StandardFonts.HelveticaBold);
+
+        // Header
+        page.drawText('ORDER DETERMINING SUCCESSION TO REAL PROPERTY (DE-315)', { x: 50, y, size: 14, font: fontBold });
+        y -= 30;
+
+        page.drawText(`Estate of: ${String(estate.deceasedFirstName || '')} ${String(estate.deceasedLastName || '')}`, { x: 50, y, size: 12 });
+        page.drawText(`Case Number: ${String(estate.courtCaseNumber || 'Pending')}`, { x: 400, y, size: 12 });
+        y -= 40;
+
+        // Findings
+        page.drawText('THE COURT FINDS:', { x: 50, y, size: 12, font: fontBold });
+        y -= 25;
+        page.drawText('1. All notices required by law have been given.', { x: 70, y });
+        y -= 20;
+        page.drawText('2. The decedent died on ' + (estate.deceasedDateOfDeath ? new Date(estate.deceasedDateOfDeath).toLocaleDateString() : '[Date]'), { x: 70, y });
+        y -= 20;
+        page.drawText('   and was a resident of the county named above.', { x: 70, y });
+        y -= 40;
+
+        // Orders
+        page.drawText('THE COURT ORDERS:', { x: 50, y, size: 12, font: fontBold });
+        y -= 25;
+        page.drawText('1. No administration of the decedent\'s estate is necessary.', { x: 70, y });
+        y -= 20;
+        page.drawText('2. The following property is property of the estate passing to', { x: 70, y });
+        y -= 15;
+        page.drawText('   the named beneficiaries/heirs:', { x: 70, y });
+        y -= 30;
+
+        page.drawText('[Real Property Description Placeholder]', { x: 90, y, size: 10 });
+        y -= 50;
+
+        // Judge Signature area
+        page.drawText('Date: ________________________', { x: 50, y });
+        y -= 30;
+        page.drawText('___________________________________________________', { x: 300, y });
+        y -= 15;
+        page.drawText('JUDGE OF THE SUPERIOR COURT', { x: 350, y, size: 8 });
+
+        return await doc.save();
+    },
+
+    async generateDE350(estate: any) {
+        const doc = await PDFDocument.create();
+        let page = doc.addPage();
+        const { height } = page.getSize();
+        let y = height - 50;
+        const fontBold = await doc.embedStandardFont(StandardFonts.HelveticaBold);
+
+        page.drawText('PETITION FOR APPOINTMENT OF GUARDIAN AD LITEM (DE-350)', { x: 50, y, size: 14, font: fontBold });
+        y -= 30;
+
+        page.drawText(`Estate of: ${String(estate.deceasedFirstName || '')} ${String(estate.deceasedLastName || '')}`, { x: 50, y, size: 12 });
+        page.drawText(`Case Number: ${String(estate.courtCaseNumber || 'Pending')}`, { x: 400, y, size: 12 });
+        y -= 40;
+
+        page.drawText('1. Petitioner requests that a guardian ad litem be appointed for:', { x: 50, y, size: 12, font: fontBold });
+        y -= 25;
+        page.drawText('[Minor Beneficiary Name Placeholder]', { x: 70, y });
+        y -= 30;
+
+        page.drawText('2. Reason for appointment:', { x: 50, y, size: 12, font: fontBold });
+        y -= 20;
+        page.drawText('   The person named above is a minor beneficiary of the estate and', { x: 70, y });
+        y -= 15;
+        page.drawText('   requires representation in these proceedings.', { x: 70, y });
+        y -= 40;
+
+        // Signature
+        page.drawText(`Date: ${new Date().toLocaleDateString()}`, { x: 50, y });
+        y -= 30;
+        page.drawText('___________________________________________________', { x: 50, y });
+        y -= 15;
+        page.drawText(`${String(estate.user?.fullName || 'Petitioner')}`, { x: 50, y });
+
+        return await doc.save();
+    },
+
+    async generateDE351(estate: any) {
+        const doc = await PDFDocument.create();
+        let page = doc.addPage();
+        const { height } = page.getSize();
+        let y = height - 50;
+        const fontBold = await doc.embedStandardFont(StandardFonts.HelveticaBold);
+
+        page.drawText('ORDER APPOINTING GUARDIAN AD LITEM (DE-351)', { x: 50, y, size: 14, font: fontBold });
+        y -= 30;
+
+        page.drawText(`Estate of: ${String(estate.deceasedFirstName || '')} ${String(estate.deceasedLastName || '')}`, { x: 50, y, size: 12 });
+        page.drawText(`Case Number: ${String(estate.courtCaseNumber || 'Pending')}`, { x: 400, y, size: 12 });
+        y -= 40;
+
+        page.drawText('THE COURT FINDS:', { x: 50, y, size: 12, font: fontBold });
+        y -= 25;
+        page.drawText('1. [Guardian Name Placeholder] is appointed guardian ad litem for:', { x: 70, y });
+        y -= 20;
+        page.drawText('   [Minor Beneficiary Name Placeholder]', { x: 70, y });
+        y -= 30;
+
+        page.drawText('2. The guardian ad litem is authorized to represent the interests', { x: 70, y });
+        y -= 15;
+        page.drawText('   of the minor in this proceeding.', { x: 70, y });
+        y -= 50;
+
+        // Judge Signature area
+        page.drawText('Date: ________________________', { x: 50, y });
+        y -= 30;
+        page.drawText('___________________________________________________', { x: 300, y });
+        y -= 15;
+        page.drawText('JUDGE OF THE SUPERIOR COURT', { x: 350, y, size: 8 });
+
+        return await doc.save();
+    },
+
+    async generateDE142(estate: any) {
+        const doc = await PDFDocument.create();
+        let page = doc.addPage();
+        const { height } = page.getSize();
+        let y = height - 50;
+        const fontBold = await doc.embedStandardFont(StandardFonts.HelveticaBold);
+
+        page.drawText('WAIVER OF BOND BY HEIR OR BENEFICIARY (DE-142)', { x: 50, y, size: 14, font: fontBold });
+        y -= 30;
+
+        page.drawText(`Estate of: ${String(estate.deceasedFirstName || '')} ${String(estate.deceasedLastName || '')}`, { x: 50, y, size: 12 });
+        page.drawText(`Case Number: ${String(estate.courtCaseNumber || 'Pending')}`, { x: 400, y, size: 12 });
+        y -= 40;
+
+        page.drawText('1. I am an heir or beneficiary of the estate of the decedent named above.', { x: 50, y, size: 11 });
+        y -= 20;
+        page.drawText('2. I understand that the court would otherwise require the personal', { x: 50, y, size: 11 });
+        y -= 15;
+        page.drawText('   representative to post a bond for my protection.', { x: 50, y, size: 11 });
+        y -= 25;
+        page.drawText('3. I freely and voluntarily waive the requirement of a bond.', { x: 50, y, size: 11, font: fontBold });
+        y -= 40;
+
+        // Signature area
+        page.drawText(`Date: ${new Date().toLocaleDateString()}`, { x: 50, y });
+        y -= 30;
+        page.drawText('___________________________________________________', { x: 50, y });
+        y -= 15;
+        page.drawText('Signature of Heir or Beneficiary', { x: 50, y, size: 10 });
+        y -= 20;
+        page.drawText(`[Name of Heir Placeholder]`, { x: 50, y, size: 10 });
+
+        return await doc.save();
+    },
+
+    async generateDE143(estate: any) {
+        const doc = await PDFDocument.create();
+        let page = doc.addPage();
+        const { height } = page.getSize();
+        let y = height - 50;
+        const fontBold = await doc.embedStandardFont(StandardFonts.HelveticaBold);
+
+        page.drawText('ORDER WAIVING BOND (DE-143)', { x: 50, y, size: 14, font: fontBold });
+        y -= 30;
+
+        page.drawText(`Estate of: ${String(estate.deceasedFirstName || '')} ${String(estate.deceasedLastName || '')}`, { x: 50, y, size: 12 });
+        page.drawText(`Case Number: ${String(estate.courtCaseNumber || 'Pending')}`, { x: 400, y, size: 12 });
+        y -= 40;
+
+        page.drawText('THE COURT FINDS:', { x: 50, y, size: 12, font: fontBold });
+        y -= 25;
+        page.drawText('1. All heirs and beneficiaries have signed waivers of bond (DE-142).', { x: 70, y });
+        y -= 20;
+        page.drawText('2. The estate is solvent and no creditors will be harmed by the waiver.', { x: 70, y });
+        y -= 40;
+
+        page.drawText('THE COURT ORDERS:', { x: 50, y, size: 12, font: fontBold });
+        y -= 25;
+        page.drawText('1. The requirement of a bond is waived for the personal representative.', { x: 70, y });
+        y -= 30;
+
+        page.drawText('2. Letters of Administration/Testamentary shall issue without bond.', { x: 70, y });
+        y -= 50;
+
+        // Judge Signature area
+        page.drawText('Date: ________________________', { x: 50, y });
+        y -= 30;
+        page.drawText('___________________________________________________', { x: 300, y });
+        y -= 15;
+        page.drawText('JUDGE OF THE SUPERIOR COURT', { x: 350, y, size: 8 });
+
+        return await doc.save();
+    },
     /**
      * Generates a professional chronological Settlement Trail PDF with multi-page support.
      */
@@ -690,7 +1013,357 @@ export const PdfService = {
         });
 
         return await doc.save();
-    }
+    },
+
+    async generateDE154(estate: any) {
+        const doc = await PDFDocument.create();
+        let page = doc.addPage();
+        const { height } = page.getSize();
+        let y = height - 50;
+        const fontBold = await doc.embedStandardFont(StandardFonts.HelveticaBold);
+
+        page.drawText('REQUEST FOR SPECIAL NOTICE (DE-154)', { x: 50, y, size: 14, font: fontBold });
+        y -= 30;
+
+        page.drawText(`Estate of: ${String(estate.deceasedFirstName || '')} ${String(estate.deceasedLastName || '')}`, { x: 50, y, size: 12 });
+        page.drawText(`Case Number: ${String(estate.courtCaseNumber || 'Pending')}`, { x: 400, y, size: 12 });
+        y -= 40;
+
+        page.drawText('1. I am a person interested in this estate.', { x: 50, y, size: 11 });
+        y -= 20;
+        page.drawText('2. I request special notice of the following matters:', { x: 50, y, size: 11 });
+        y -= 15;
+        page.drawText('   (Check all that apply)', { x: 70, y, size: 9, font: fontBold });
+        y -= 25;
+
+        page.drawText('[ ] All matters for which special notice may be requested', { x: 70, y, size: 10 });
+        y -= 20;
+        page.drawText('[ ] Inventory and Appraisal', { x: 70, y, size: 10 });
+        y -= 20;
+        page.drawText('[ ] Petitions for Distribution', { x: 70, y, size: 10 });
+        y -= 20;
+        page.drawText('[ ] Reports of Administration and Accountings', { x: 70, y, size: 10 });
+        y -= 40;
+
+        page.drawText('3. Notice should be sent to:', { x: 50, y, size: 11, font: fontBold });
+        y -= 25;
+        page.drawText(`Name: ${String(estate.user?.fullName || '[Requestor Name]')}`, { x: 70, y });
+        y -= 20;
+        page.drawText(`Address: [Mailing Address Placeholder]`, { x: 70, y });
+        y -= 50;
+
+        // Signature
+        page.drawText(`Date: ${new Date().toLocaleDateString()}`, { x: 50, y });
+        y -= 30;
+        page.drawText('___________________________________________________', { x: 50, y });
+        y -= 15;
+        page.drawText('Signature of Requestor or Attorney', { x: 50, y, size: 10 });
+
+        return await doc.save();
+    },
+
+    async generateDE115(estate: any) {
+        const doc = await PDFDocument.create();
+        let page = doc.addPage();
+        const { height } = page.getSize();
+        let y = height - 50;
+        const fontBold = await doc.embedStandardFont(StandardFonts.HelveticaBold);
+
+        page.drawText('OBJECTION TO PROBATE OF WILL (DE-115)', { x: 50, y, size: 14, font: fontBold });
+        y -= 30;
+
+        page.drawText(`Estate of: ${String(estate.deceasedFirstName || '')} ${String(estate.deceasedLastName || '')}`, { x: 50, y, size: 12 });
+        page.drawText(`Case Number: ${String(estate.courtCaseNumber || 'Pending')}`, { x: 400, y, size: 12 });
+        y -= 40;
+
+        page.drawText('1. I object to the petition for probate of the will dated:', { x: 50, y, size: 11 });
+        y -= 25;
+        page.drawText('2. Grounds for objection (check all that apply):', { x: 50, y, size: 11, font: fontBold });
+        y -= 20;
+        page.drawText('[ ] Lack of testamentary capacity', { x: 70, y, size: 10 });
+        y -= 15;
+        page.drawText('[ ] Undue influence', { x: 70, y, size: 10 });
+        y -= 15;
+        page.drawText('[ ] Fraud', { x: 70, y, size: 10 });
+        y -= 15;
+        page.drawText('[ ] Improper execution', { x: 70, y, size: 10 });
+        y -= 15;
+        page.drawText('[ ] Revocation', { x: 70, y, size: 10 });
+        y -= 40;
+
+        page.drawText('3. Supporting Facts:', { x: 50, y, size: 11, font: fontBold });
+        y -= 20;
+        page.drawText('___________________________________________________', { x: 50, y });
+        y -= 15;
+        page.drawText('___________________________________________________', { x: 50, y });
+        y -= 15;
+        page.drawText('___________________________________________________', { x: 50, y });
+        y -= 40;
+
+        // Signature
+        page.drawText(`Date: ${new Date().toLocaleDateString()}`, { x: 50, y });
+        y -= 30;
+        page.drawText('___________________________________________________', { x: 50, y });
+        y -= 15;
+        page.drawText('Signature of Objector or Attorney', { x: 50, y, size: 10 });
+
+        return await doc.save();
+    },
+
+    async generateDE116(estate: any) {
+        const doc = await PDFDocument.create();
+        let page = doc.addPage();
+        const { height } = page.getSize();
+        let y = height - 50;
+        const fontBold = await doc.embedStandardFont(StandardFonts.HelveticaBold);
+
+        page.drawText('ANSWER TO OBJECTION TO PROBATE OF WILL (DE-116)', { x: 50, y, size: 14, font: fontBold });
+        y -= 30;
+
+        page.drawText(`Estate of: ${String(estate.deceasedFirstName || '')} ${String(estate.deceasedLastName || '')}`, { x: 50, y, size: 12 });
+        page.drawText(`Case Number: ${String(estate.courtCaseNumber || 'Pending')}`, { x: 400, y, size: 12 });
+        y -= 40;
+
+        page.drawText('1. I am the petitioner for probate of the will.', { x: 50, y, size: 11 });
+        y -= 25;
+        page.drawText('2. I deny the allegations in the Objection to Probate of Will.', { x: 50, y, size: 11 });
+        y -= 25;
+        page.drawText('3. Affirmative Defenses/Support for Validity:', { x: 50, y, size: 11, font: fontBold });
+        y -= 20;
+        page.drawText('___________________________________________________', { x: 50, y });
+        y -= 15;
+        page.drawText('___________________________________________________', { x: 50, y });
+        y -= 40;
+
+        // Signature
+        page.drawText(`Date: ${new Date().toLocaleDateString()}`, { x: 50, y });
+        y -= 30;
+        page.drawText('___________________________________________________', { x: 50, y });
+        y -= 15;
+        page.drawText('Signature of Petitioner or Attorney', { x: 50, y, size: 10 });
+
+        return await doc.save();
+    },
+
+    async generateDE295(estate: any) {
+        const doc = await PDFDocument.create();
+        let page = doc.addPage();
+        const { height } = page.getSize();
+        let y = height - 50;
+        const fontBold = await doc.embedStandardFont(StandardFonts.HelveticaBold);
+
+        page.drawText('EX PARTE PETITION FOR FINAL DISCHARGE AND ORDER (DE-295)', { x: 50, y, size: 14, font: fontBold });
+        y -= 30;
+
+        page.drawText(`Estate of: ${String(estate.deceasedFirstName || '')} ${String(estate.deceasedLastName || '')}`, { x: 50, y, size: 12 });
+        page.drawText(`Case Number: ${String(estate.courtCaseNumber || 'Pending')}`, { x: 400, y, size: 12 });
+        y -= 40;
+
+        page.drawText('1. I am the personal representative of the estate.', { x: 50, y, size: 11 });
+        y -= 25;
+        page.drawText('2. All acts required of me as personal representative have been performed.', { x: 50, y, size: 11 });
+        y -= 25;
+        page.drawText('3. All assets of the estate have been distributed to the persons entitled to them.', { x: 50, y, size: 11 });
+        y -= 25;
+        page.drawText('4. Receipts for distribution are filed with this petition.', { x: 50, y, size: 11 });
+        y -= 40;
+
+        page.drawText('I declare under penalty of perjury that the foregoing is true.', { x: 50, y, size: 10 });
+        y -= 40;
+
+        // Signature
+        page.drawText(`Date: ${new Date().toLocaleDateString()}`, { x: 50, y });
+        y -= 30;
+        page.drawText('___________________________________________________', { x: 50, y });
+        y -= 15;
+        page.drawText('Signature of Personal Representative', { x: 50, y, size: 10 });
+        y -= 50;
+
+        page.drawText('ORDER FOR FINAL DISCHARGE', { x: 50, y, size: 12, font: fontBold });
+        y -= 25;
+        page.drawText('THE COURT ORDERS the personal representative is discharged and released.', { x: 50, y, size: 11 });
+        y -= 40;
+
+        // Judge Signature area
+        page.drawText('Date: ________________________', { x: 50, y });
+        y -= 30;
+        page.drawText('___________________________________________________', { x: 300, y });
+        y -= 15;
+        page.drawText('JUDGE OF THE SUPERIOR COURT', { x: 350, y, size: 8 });
+
+        return await doc.save();
+    },
+
+    async generateReceiptOfDistribution(estate: any, beneficiaryName: string = "[Beneficiary Name]") {
+        const doc = await PDFDocument.create();
+        let page = doc.addPage();
+        const { height } = page.getSize();
+        let y = height - 50;
+        const fontBold = await doc.embedStandardFont(StandardFonts.HelveticaBold);
+
+        page.drawText('RECEIPT OF DISTRIBUTION', { x: 50, y, size: 16, font: fontBold });
+        y -= 40;
+
+        page.drawText(`Estate of: ${String(estate.deceasedFirstName || '')} ${String(estate.deceasedLastName || '')}`, { x: 50, y, size: 12 });
+        page.drawText(`Case Number: ${String(estate.courtCaseNumber || 'Pending')}`, { x: 400, y, size: 12 });
+        y -= 50;
+
+        page.drawText(`I, ${beneficiaryName}, hereby acknowledge receipt from the personal representative`, { x: 50, y, size: 11 });
+        y -= 15;
+        page.drawText('of the following sum or property as full or partial distribution of my share of the estate:', { x: 50, y, size: 11 });
+        y -= 30;
+
+        page.drawText('DESCRIPTION OF PROPERTY:', { x: 50, y, size: 11, font: fontBold });
+        y -= 25;
+        page.drawText('____________________________________________________________________', { x: 50, y });
+        y -= 25;
+        page.drawText('____________________________________________________________________', { x: 50, y });
+        y -= 50;
+
+        // Signature
+        page.drawText(`Date: ________________________`, { x: 50, y });
+        y -= 30;
+        page.drawText('___________________________________________________', { x: 50, y });
+        y -= 15;
+        page.drawText(`Signature of ${beneficiaryName}`, { x: 50, y, size: 10 });
+
+        return await doc.save();
+    },
+
+    async generateDE165(estate: any) {
+        const doc = await PDFDocument.create();
+        let page = doc.addPage();
+        const { height } = page.getSize();
+        let y = height - 50;
+        const fontBold = await doc.embedStandardFont(StandardFonts.HelveticaBold);
+
+        page.drawText('NOTICE OF PROPOSED ACTION (DE-165)', { x: 50, y, size: 14, font: fontBold });
+        y -= 30;
+
+        page.drawText(`Estate of: ${String(estate.deceasedFirstName || '')} ${String(estate.deceasedLastName || '')}`, { x: 50, y, size: 12 });
+        page.drawText(`Case Number: ${String(estate.courtCaseNumber || 'Pending')}`, { x: 400, y, size: 12 });
+        y -= 40;
+
+        page.drawText('1. The personal representative of the estate of the decedent is:', { x: 50, y, size: 11 });
+        y -= 20;
+        page.drawText(`${String(estate.user?.fullName || '[Personal Representative Name]')}`, { x: 70, y, size: 11, font: fontBold });
+        y -= 30;
+
+        page.drawText('2. The personal representative has authority to administer the estate without', { x: 50, y, size: 11 });
+        y -= 15;
+        page.drawText('   court supervision under the Independent Administration of Estates Act.', { x: 50, y, size: 11 });
+        y -= 30;
+
+        page.drawText('3. ON OR AFTER [Date of Proposed Action], THE PERSONAL REPRESENTATIVE', { x: 50, y, size: 11, font: fontBold });
+        y -= 15;
+        page.drawText('   WILL TAKE THE FOLLOWING ACTION:', { x: 50, y, size: 11, font: fontBold });
+        y -= 25;
+        page.drawText('   [ ] Sale of Real Property', { x: 70, y, size: 11 });
+        y -= 20;
+        page.drawText('   [ ] Other (specify): ________________________________________', { x: 70, y, size: 11 });
+        y -= 40;
+
+        page.drawText('4. IF YOU OBJECT TO THE PROPOSED ACTION:', { x: 50, y, size: 11, font: fontBold });
+        y -= 20;
+        page.drawText('   a. Sign the enclosed objection form and deliver it to the representative.', { x: 70, y, size: 10 });
+        y -= 15;
+        page.drawText('   b. OR send a written objection to the court and the representative.', { x: 70, y, size: 10 });
+        y -= 40;
+
+        // Signature
+        page.drawText(`Date: ${new Date().toLocaleDateString()}`, { x: 50, y });
+        y -= 30;
+        page.drawText('___________________________________________________', { x: 50, y });
+        y -= 15;
+        page.drawText('Signature of Personal Representative', { x: 50, y, size: 10 });
+
+        return await doc.save();
+    },
+
+    async generateDE260(estate: any) {
+        const doc = await PDFDocument.create();
+        let page = doc.addPage();
+        const { height } = page.getSize();
+        let y = height - 50;
+        const fontBold = await doc.embedStandardFont(StandardFonts.HelveticaBold);
+
+        page.drawText('REPORT OF SALE AND PETITION FOR ORDER (DE-260)', { x: 50, y, size: 14, font: fontBold });
+        y -= 15;
+        page.drawText('CONFIRMING SALE OF REAL PROPERTY', { x: 50, y, size: 14, font: fontBold });
+        y -= 30;
+
+        page.drawText(`Estate of: ${String(estate.deceasedFirstName || '')} ${String(estate.deceasedLastName || '')}`, { x: 50, y, size: 12 });
+        page.drawText(`Case Number: ${String(estate.courtCaseNumber || 'Pending')}`, { x: 400, y, size: 12 });
+        y -= 40;
+
+        page.drawText('1. Petitioner (name): ___________________________________________', { x: 50, y, size: 11 });
+        y -= 25;
+        page.drawText('2. Petitioner requests an order confirming the sale of real property.', { x: 50, y });
+        y -= 25;
+        page.drawText('3. Property description (address or legal):', { x: 50, y, font: fontBold });
+        y -= 20;
+        page.drawText('   _________________________________________________________', { x: 70, y });
+        y -= 20;
+        page.drawText('   _________________________________________________________', { x: 70, y });
+        y -= 30;
+
+        page.drawText('4. Sale price: $____________________', { x: 50, y });
+        y -= 25;
+        page.drawText('5. Buyer (name): _______________________________________________', { x: 50, y });
+        y -= 40;
+
+        page.drawText('UNDER PENALTY OF PERJURY, I declare that the foregoing is true.', { x: 50, y, size: 10 });
+        y -= 40;
+
+        // Signature
+        page.drawText(`Date: ${new Date().toLocaleDateString()}`, { x: 50, y });
+        y -= 30;
+        page.drawText('___________________________________________________', { x: 50, y });
+        y -= 15;
+        page.drawText('Signature of Petitioner', { x: 50, y, size: 10 });
+
+        return await doc.save();
+    },
+
+    async generateDE265(estate: any) {
+        const doc = await PDFDocument.create();
+        let page = doc.addPage();
+        const { height } = page.getSize();
+        let y = height - 50;
+        const fontBold = await doc.embedStandardFont(StandardFonts.HelveticaBold);
+
+        page.drawText('ORDER CONFIRMING SALE OF REAL PROPERTY (DE-265)', { x: 50, y, size: 14, font: fontBold });
+        y -= 30;
+
+        page.drawText(`Estate of: ${String(estate.deceasedFirstName || '')} ${String(estate.deceasedLastName || '')}`, { x: 50, y, size: 12 });
+        page.drawText(`Case Number: ${String(estate.courtCaseNumber || 'Pending')}`, { x: 400, y, size: 12 });
+        y -= 40;
+
+        page.drawText('THE COURT FINDS:', { x: 50, y, size: 11, font: fontBold });
+        y -= 25;
+        page.drawText('1. Notice of hearing was given as required by law.', { x: 70, y });
+        y -= 20;
+        page.drawText('2. The sale was made on terms that are to the advantage of the estate.', { x: 70, y });
+        y -= 20;
+        page.drawText('3. The purchase price is at least 90% of the appraised value.', { x: 70, y });
+        y -= 40;
+
+        page.drawText('THE COURT ORDERS:', { x: 50, y, size: 11, font: fontBold });
+        y -= 25;
+        page.drawText('1. The sale of the real property described in the petition is confirmed.', { x: 70, y });
+        y -= 20;
+        page.drawText('2. The personal representative is authorized to execute a deed.', { x: 70, y });
+        y -= 50;
+
+        // Judge Signature area
+        page.drawText('Date: ________________________', { x: 50, y });
+        y -= 30;
+        page.drawText('___________________________________________________', { x: 300, y });
+        y -= 15;
+        page.drawText('JUDGE OF THE SUPERIOR COURT', { x: 350, y, size: 8 });
+
+        return await doc.save();
+    },
 };
 
 function safeSetText(form: any, name: string, value: string | undefined) {

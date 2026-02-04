@@ -43,6 +43,13 @@ import ClosingStatement from "./pages/ClosingStatement";
 import DistributionPetition from "./pages/DistributionPetition";
 import NonProbate from "./pages/NonProbate";
 import SpousalPropertyPetition from "./pages/SpousalPropertyPetition";
+import SuccessionPetition from "./pages/SuccessionPetition";
+import GuardianAdLitem from "./pages/GuardianAdLitem";
+import BondWaiver from "./pages/BondWaiver";
+import SpecialNotice from "./pages/SpecialNotice";
+import ContestedProbate from "./pages/ContestedProbate";
+import AssetSaleAuthorization from "./pages/AssetSaleAuthorization";
+import FinalDistribution from "./pages/FinalDistribution";
 import HelpCenter from "./pages/HelpCenter";
 import SettlementTrail from "./pages/SettlementTrail";
 import Letters from "./pages/probate/Letters";
@@ -219,6 +226,13 @@ const App = () => (
                     <Route path="/probate/closing-statement" element={<ProtectedRoute><ClosingStatement /></ProtectedRoute>} />
                     <Route path="/probate/distribution-petition" element={<ProtectedRoute><DistributionPetition /></ProtectedRoute>} />
                     <Route path="/probate/spousal-petition" element={<ProtectedRoute><SpousalPropertyPetition /></ProtectedRoute>} />
+                    <Route path="/probate/succession-petition" element={<ProtectedRoute><SuccessionPetition /></ProtectedRoute>} />
+                    <Route path="/probate/guardian-ad-litem" element={<ProtectedRoute><GuardianAdLitem /></ProtectedRoute>} />
+                    <Route path="/probate/bond-waiver" element={<ProtectedRoute><BondWaiver /></ProtectedRoute>} />
+                    <Route path="/probate/special-notice" element={<ProtectedRoute><SpecialNotice /></ProtectedRoute>} />
+                    <Route path="/probate/contested-probate" element={<ProtectedRoute><ContestedProbate /></ProtectedRoute>} />
+                    <Route path="/probate/asset-sale" element={<ProtectedRoute><AssetSaleAuthorization /></ProtectedRoute>} />
+                    <Route path="/probate/final-distribution" element={<ProtectedRoute><FinalDistribution /></ProtectedRoute>} />
                     <Route path="/probate/letters" element={<ProtectedRoute><Letters /></ProtectedRoute>} />
 
                     {/* Core Features */}

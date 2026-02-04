@@ -372,13 +372,27 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         requiredDocs: ["DE-221", "Death Certificate"]
       },
       {
+        id: "give_spousal_notice",
+        title: "Give Notice of Hearing (DE-120)",
+        description: "Notify all interested parties about the court hearing date for the Spousal Property Petition.",
+        estimatedTime: "2 hours",
+        category: "probate",
+        isOptional: true,
+        dependencies: ["file_spousal_petition"],
+        requiredDocs: ["DE-120"],
+        alerts: [{
+          type: "important",
+          message: "Notice must be served at least 15 days before the hearing date."
+        }]
+      },
+      {
         id: "obtain_spousal_order",
         title: "Obtain Spousal Property Order (DE-226)",
         description: "Receive signed court order confirming property ownership transfer to spouse. Record with county recorder if real estate is involved.",
         estimatedTime: "1-2 weeks after hearing",
         category: "court-issued",
         isOptional: true,
-        dependencies: ["file_spousal_petition"],
+        dependencies: ["give_spousal_notice"],
         requiredDocs: ["DE-226"],
         alerts: [{
           type: "important",
@@ -459,6 +473,24 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         }]
       },
       {
+        id: "give_succession_notice",
+        title: "Give Notice of Hearing (DE-120)",
+        description: "Notify all interested parties of the hearing date for the succession petition.",
+        estimatedTime: "2 hours",
+        category: "probate",
+        isOptional: true,
+        dependencies: ["file_succession_petition"],
+        requiredDocs: ["DE-120"],
+        links: [{
+          label: "Download DE-120",
+          url: "https://www.courts.ca.gov/documents/de120.pdf"
+        }],
+        alerts: [{
+          type: "important",
+          message: "Notice must be mailed at least 15 days before the hearing."
+        }]
+      },
+      {
         id: "obtain_succession_order",
         title: "Obtain Order Determining Succession (DE-315)",
         description: "Receive court order determining property succession. Record order with county recorder.",
@@ -466,7 +498,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         category: "court-issued",
         isOptional: true,
         requiredDocs: ["DE-315"],
-        dependencies: ["file_succession_petition"],
+        dependencies: ["file_succession_petition", "give_succession_notice"],
         links: [{
           label: "Download DE-315",
           url: "https://www.courts.ca.gov/documents/de315.pdf"

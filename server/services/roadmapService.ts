@@ -99,6 +99,7 @@ export function filterTasksForEstate(
         // Primary Residence Succession (small estates in CA)
         case "check_primary_residence_succession":
         case "file_succession_petition":
+        case "give_succession_notice":
         case "obtain_succession_order":
           return (
             profile.isSmallEstate &&
