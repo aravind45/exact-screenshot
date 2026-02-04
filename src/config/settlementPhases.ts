@@ -478,6 +478,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         description: "Notify all interested parties of the hearing date for the succession petition.",
         estimatedTime: "2 hours",
         category: "probate",
+        exclusiveGroup: "filing_path",
         isOptional: true,
         dependencies: ["file_succession_petition"],
         requiredDocs: ["DE-120"],
@@ -496,6 +497,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         description: "Receive court order determining property succession. Record order with county recorder.",
         estimatedTime: "1-2 weeks after hearing",
         category: "court-issued",
+        exclusiveGroup: "filing_path",
         isOptional: true,
         requiredDocs: ["DE-315"],
         dependencies: ["file_succession_petition", "give_succession_notice"],
@@ -530,7 +532,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       {
         id: "serve_special_notice_parties",
         title: "Serve All Special Notice Recipients",
-        description: "Each time you file a document with the court, serve copies on all parties who requested special notice.",
+        description: "Each time you file a document with the court, serve copies by mail on all parties who requested special notice.",
         estimatedTime: "1-2 hours per filing",
         isLongHorizon: true,
         isOptional: true,
@@ -620,7 +622,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       {
         id: "resolve_contest",
         title: "Resolve Will Contest",
-        description: "Obtain court ruling on objection. If will is upheld, proceed with probate. If invalidated, estate becomes intestate.",
+        description: "Obtain court ruling on objection. If will is upheld, proceed with probate. If invalidated, estate becomes intestate. Contested probate can extend the timeline by 6-24 months.",
         estimatedTime: "Varies (can take 6-24 months)",
         isLongHorizon: true,
         isOptional: true,
@@ -852,7 +854,11 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         description: "Distributions to minors usually require a guardianship or court order to be placed in a blocked account.",
         estimatedTime: "4-8 weeks",
         isOptional: true,
-        category: "probate"
+        category: "probate",
+        alerts: [{
+          type: "important",
+          message: "Minors cannot receive distributions directly. Funds must be placed in court-approved blocked accounts until age 18."
+        }]
       },
       {
         id: "present_letters",
