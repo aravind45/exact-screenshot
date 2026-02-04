@@ -429,23 +429,6 @@ export default function Dashboard() {
                 onNavigate={(id) => navigate(`/asset/${id}`)}
               />
 
-              {/* Fiduciary Guidelines */}
-              <div className="p-5 rounded-2xl bg-slate-900 text-white border border-slate-800 shadow-xl">
-                <div className="flex items-center gap-2 mb-3 text-indigo-400">
-                  <Flag className="w-4 h-4" />
-                  <span className="font-black text-[10px] uppercase tracking-wider">Fiduciary Guidelines</span>
-                </div>
-                <p className="text-sm font-medium text-slate-300 leading-relaxed">
-                  Maintain your <strong className="text-white">System of Record</strong> by logging all bank communications. Consistent documentation is key to evidence of reasonable care.
-                </p>
-                <Button
-                  variant="link"
-                  className="p-0 h-auto text-indigo-400 text-xs font-bold mt-3 hover:text-indigo-300 uppercase tracking-widest"
-                  onClick={() => navigate('/help')}
-                >
-                  View Best Practices <ArrowRight className="w-3 h-3 ml-1" />
-                </Button>
-              </div>
             </div>
           </div>
         </main>

@@ -252,7 +252,6 @@ const App = () => (
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                   <LegalDisclaimer />
-                  <EstateAgentChatWrapper />
                 </WorkflowProvider>
               </AuthProvider>
             </NavigationProvider>
