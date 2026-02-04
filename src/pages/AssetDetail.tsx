@@ -578,6 +578,30 @@ export default function AssetDetail() {
                       </SelectContent>
                     </Select>
                   </div>
+                  <div>
+                    <label className="text-[10px] font-black uppercase text-slate-400 mb-1 block">Institution Email</label>
+                    <Input
+                      value={formData.institutionEmail}
+                      onChange={(e) => setFormData({ ...formData, institutionEmail: e.target.value })}
+                      className="h-10 rounded-xl"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black uppercase text-slate-400 mb-1 block">Institution Phone</label>
+                    <Input
+                      value={formData.institutionPhone}
+                      onChange={(e) => setFormData({ ...formData, institutionPhone: e.target.value })}
+                      className="h-10 rounded-xl"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black uppercase text-slate-400 mb-1 block">Institution Fax</label>
+                    <Input
+                      value={formData.institutionFax}
+                      onChange={(e) => setFormData({ ...formData, institutionFax: e.target.value })}
+                      className="h-10 rounded-xl"
+                    />
+                  </div>
                 </div>
 
                 <div className="flex justify-end gap-2 pt-4 border-t border-slate-50">

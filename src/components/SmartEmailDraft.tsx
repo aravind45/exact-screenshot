@@ -28,6 +28,7 @@ export function SmartEmailDraft({ open, onOpenChange, asset, estate, onLogSent }
     const [ccPersonalEmail, setCcPersonalEmail] = useState(true);
     const [editedSubject, setEditedSubject] = useState("");
     const [editedBody, setEditedBody] = useState("");
+    const [editedTo, setEditedTo] = useState("");
 
 
     const { data: user } = useQuery({
@@ -53,6 +54,7 @@ export function SmartEmailDraft({ open, onOpenChange, asset, estate, onLogSent }
             const template = templates[selectedTemplate as keyof typeof templates];
             setEditedSubject(template.subject);
             setEditedBody(template.body);
+            setEditedTo(asset?.institutionEmail || "");
         }
     }, [open, selectedTemplate, asset, estate]);
 
@@ -60,17 +62,27 @@ export function SmartEmailDraft({ open, onOpenChange, asset, estate, onLogSent }
 
 
     const handleCopyAndOpen = () => {
+        if (!editedTo) {
+            toast({ variant: "destructive", title: "Recipient Missing", description: "Please enter a recipient email address." });
+            return;
+        }
         navigator.clipboard.writeText(editedBody);
         toast({ title: "Draft Copied", description: "Draft copied to clipboard. Opening Gmail..." });
 
-        const mailtoUrl = `mailto:${asset?.institutionEmail || ""}?subject=${encodeURIComponent(editedSubject)}&body=${encodeURIComponent(editedBody)}`;
+        const mailtoUrl = `mailto:${editedTo}?subject=${encodeURIComponent(editedSubject)}&body=${encodeURIComponent(editedBody)}`;
         window.location.href = mailtoUrl;
     };
 
 
     const handleSendDirectly = async () => {
-        if (!asset?.institutionEmail) {
-            toast({ variant: "destructive", title: "Email Missing", description: "Please add an email address for this institution first." });
+        if (!editedTo) {
+            toast({ variant: "destructive", title: "Email Missing", description: "Please add an email address for this recipient first." });
+            return;
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(editedTo)) {
+            toast({ variant: "destructive", title: "Invalid Email", description: "Please enter a valid email address." });
             return;
         }
 
@@ -83,7 +95,7 @@ export function SmartEmailDraft({ open, onOpenChange, asset, estate, onLogSent }
         try {
             const result = await api.sendEmail({
                 assetId: asset.id,
-                to: asset.institutionEmail,
+                to: editedTo,
                 subject: editedSubject,
                 body: editedBody,
                 ccPersonalEmail
@@ -108,10 +120,10 @@ export function SmartEmailDraft({ open, onOpenChange, asset, estate, onLogSent }
                     </div>
                     <Badge className="bg-blue-500 text-white border-none mb-4 px-3 py-1 font-black uppercase text-[10px] tracking-widest">Draft Assist</Badge>
                     <DialogTitle className="text-3xl font-black tracking-tighter leading-none mb-2">Smart Email Draft</DialogTitle>
-                    <DialogDescription className="text-slate-400 font-medium">Professional templates for estate administration.</DialogDescription>
+                    <div className="text-slate-400 font-medium">Professional templates for estate administration.</div>
                 </div>
 
-                <div className="p-8 space-y-6">
+                <div className="p-8 space-y-6 max-h-[60vh] overflow-y-auto">
                     <div className="flex gap-2 p-1 bg-slate-100 rounded-2xl w-fit">
                         {Object.entries(templates).map(([id, t]) => (
                             <Button
@@ -130,6 +142,16 @@ export function SmartEmailDraft({ open, onOpenChange, asset, estate, onLogSent }
                     </div>
 
                     <div className="space-y-4">
+                        <div className="space-y-1">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Email For: {asset?.institution}</label>
+                            <Input
+                                value={editedTo}
+                                onChange={(e) => setEditedTo(e.target.value)}
+                                className="rounded-2xl font-bold text-indigo-600 text-sm border-slate-200 focus:border-indigo-500 transition-all h-12"
+                                placeholder="recipient@institution.com"
+                            />
+                        </div>
+
                         <div className="space-y-1">
                             <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Subject Line</label>
                             <Input
@@ -150,7 +172,6 @@ export function SmartEmailDraft({ open, onOpenChange, asset, estate, onLogSent }
                             />
                         </div>
                     </div>
-
 
                     {/* CC Personal Email Option */}
                     <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
@@ -181,51 +202,46 @@ export function SmartEmailDraft({ open, onOpenChange, asset, estate, onLogSent }
                             </div>
                         )}
                     </div>
+                </div>
 
-                    <div className="pt-4 border-t border-slate-100 grid grid-cols-2 gap-4">
-                        <Button
-                            className="h-14 rounded-2xl bg-slate-900 border-2 border-slate-900 hover:bg-slate-800 transition-all gap-3 font-bold shadow-lg shadow-amber-500/10 col-span-2 sm:col-span-1"
-                            disabled={isSending}
-                            onClick={handleSendDirectly}
-                        >
-                            <Scale className="w-5 h-5 text-amber-400" />
-                            <div className="text-left flex flex-col">
-                                <span className="leading-tight">{isSending ? "Sending..." : "Send via Digital Inbox"}</span>
-                                <span className="text-[9px] opacity-70 font-medium text-amber-200">Permanent Digital Log</span>
-                            </div>
-                        </Button>
-                        <Button
-                            className="h-14 rounded-2xl bg-white border-2 border-slate-200 hover:bg-slate-50 text-slate-900 transition-all gap-3 font-bold shadow-sm col-span-2 sm:col-span-1"
-                            onClick={() => {
-                                // Auto-log as a "Letter" since they are printing it
-                                onLogSent(editedSubject, editedBody);
-
-                                // Trigger PDF generation/print logic. We'll use window.print() for now as a simple fallback, 
-                                // but ideally this calls the PDF generation endpoint we used earlier.
-                                const printWindow = window.open('', '_blank');
-                                if (printWindow) {
-                                    printWindow.document.write(`<html><head><title>Print</title></head><body><pre style="white-space: pre-wrap; font-family: sans-serif;">${editedBody}</pre></body></html>`);
-                                    printWindow.document.close();
-                                    printWindow.print();
-                                }
-                            }}
-                        >
-
-                            <Printer className="w-5 h-5 text-slate-500" />
-                            <div className="text-left flex flex-col">
-                                <span className="leading-tight">Print Letter</span>
-                                <span className="text-[9px] opacity-70 font-medium text-slate-400">Download for Mailing</span>
-                            </div>
-                        </Button>
-                        <Button
-                            variant="outline"
-                            className="h-10 rounded-xl border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-all gap-2 font-bold text-slate-500 col-span-2"
-                            onClick={handleCopyAndOpen}
-                        >
-                            <Copy className="w-4 h-4" />
-                            <span className="text-xs">Copy & Open in my own Email Client</span>
-                        </Button>
-                    </div>
+                <div className="p-8 border-t border-slate-100 bg-slate-50 grid grid-cols-2 gap-4">
+                    <Button
+                        className="h-14 rounded-2xl bg-slate-900 border-2 border-slate-900 hover:bg-slate-800 transition-all gap-3 font-bold shadow-lg shadow-amber-500/10 col-span-2 sm:col-span-1"
+                        disabled={isSending}
+                        onClick={handleSendDirectly}
+                    >
+                        <Scale className="w-5 h-5 text-amber-400" />
+                        <div className="text-left flex flex-col">
+                            <span className="leading-tight">{isSending ? "Sending..." : "Send via Digital Inbox"}</span>
+                            <span className="text-[9px] opacity-70 font-medium text-amber-200">Permanent Digital Log</span>
+                        </div>
+                    </Button>
+                    <Button
+                        className="h-14 rounded-2xl bg-white border-2 border-slate-200 hover:bg-slate-50 text-slate-900 transition-all gap-3 font-bold shadow-sm col-span-2 sm:col-span-1"
+                        onClick={() => {
+                            onLogSent(editedSubject, editedBody);
+                            const printWindow = window.open('', '_blank');
+                            if (printWindow) {
+                                printWindow.document.write(`<html><head><title>Print</title></head><body><pre style="white-space: pre-wrap; font-family: sans-serif;">${editedBody}</pre></body></html>`);
+                                printWindow.document.close();
+                                printWindow.print();
+                            }
+                        }}
+                    >
+                        <Printer className="w-5 h-5 text-slate-500" />
+                        <div className="text-left flex flex-col">
+                            <span className="leading-tight">Print Letter</span>
+                            <span className="text-[9px] opacity-70 font-medium text-slate-400">Download for Mailing</span>
+                        </div>
+                    </Button>
+                    <Button
+                        variant="outline"
+                        className="h-10 rounded-xl border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-all gap-2 font-bold text-slate-500 col-span-2"
+                        onClick={handleCopyAndOpen}
+                    >
+                        <Copy className="w-4 h-4" />
+                        <span className="text-xs">Copy & Open in my own Email Client</span>
+                    </Button>
                 </div>
             </DialogContent>
         </Dialog>
