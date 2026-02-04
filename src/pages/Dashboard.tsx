@@ -1,5 +1,4 @@
 
-import { StatCard } from "@/components/StatCard";
 import { AssetCard } from "@/components/AssetCard";
 import { FollowUpWidget } from "@/components/FollowUpWidget";
 import { useAuth } from "@/contexts/AuthContext";
@@ -13,10 +12,7 @@ import {
   Lightbulb,
   Bell,
   ArrowRight,
-  TrendingUp,
-  LayoutGrid,
   History as HistoryIcon,
-  X,
   Flag,
   ArrowDownLeft,
   ArrowUpRight,
@@ -25,12 +21,10 @@ import {
   FileCheck,
   FileText,
   Search,
-  Gavel,
-  AlertTriangle
+  Gavel
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { AgentInsights } from "@/components/AgentInsights";
 import { FinancialHealthWidget } from "@/components/dashboard/FinancialHealthWidget";
@@ -48,19 +42,10 @@ import type { AssetStatus } from "@/components/StatusBadge";
 import type { Priority } from "@/components/PriorityBadge";
 import { getAssetTaxonomyState, getTaxonomyInfo } from "@/lib/taxonomy";
 import { AssetTaxonomyBadge } from "@/components/AssetTaxonomyBadge";
-import { ProcessFlow } from "@/components/ProcessFlow";
-import { TRACK_STAGES, type SettlementTrack } from "@/config/settlementStages";
 import { Sidebar } from "@/components/Sidebar";
-import { SettlementPhaseChevron, type SettlementPhase } from "@/components/SettlementPhaseChevron";
-import { PhaseTaskList } from "@/components/PhaseTaskList";
-import { CollapsiblePhaseChevron } from "@/components/CollapsiblePhaseChevron";
 import { ProbateBlockerAlert } from "@/components/ProbateBlockerAlert";
 import { useWorkflow } from "@/contexts/WorkflowContext";
-import { CurrentMilestone } from "@/components/dashboard/CurrentMilestone";
-import { QuickActions } from "@/components/dashboard/QuickActions";
-import { SETTLEMENT_PHASE_TASKS } from "@/config/settlementPhases";
-import { ProbateChecklistWidget } from "@/components/dashboard/ProbateChecklistWidget";
-import { WorkRemainingWidget } from "@/components/dashboard/WorkRemainingWidget";
+import { type SettlementPhase } from "@/components/SettlementPhaseChevron";
 import { SEO } from "@/components/SEO";
 import { useTerminology } from "@/hooks/use-terminology";
 import { ProbateStatusUpdater } from "@/components/dashboard/ProbateStatusUpdater";
@@ -193,23 +178,11 @@ export default function Dashboard() {
 
   const { probateBlockers, completedTaskIds, completedPhases } = useWorkflow();
 
-  const [localCompletedTaskIds, setLocalCompletedTaskIds] = useState<string[]>([]);
-  const [localCompletedPhases, setLocalCompletedPhases] = useState<SettlementPhase[]>([]);
-
-  useEffect(() => {
-    setLocalCompletedTaskIds(completedTaskIds);
-    setLocalCompletedPhases(completedPhases);
-  }, [completedTaskIds, completedPhases]);
 
   const { data: activitiesData = [] } = useQuery({
     queryKey: ['activities'],
     queryFn: api.getActivities,
   });
-
-  const totalTasksCount = SETTLEMENT_PHASE_TASKS.reduce((sum, p) => sum + p.tasks.length, 0);
-  const overallProgress = totalTasksCount > 0
-    ? Math.round((completedTaskIds.length / totalTasksCount) * 100)
-    : 0;
 
   const currentPhase: SettlementPhase = (estate?.status?.toLowerCase() as SettlementPhase) || "immediate_actions";
 
@@ -265,28 +238,7 @@ export default function Dashboard() {
 
   const mission = MISSION_MAP[currentPhase] || MISSION_MAP.immediate_actions;
 
-  const queryClient = useQueryClient();
-  const roadmapMutation = useMutation({
-    mutationFn: api.updateRoadmap,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['estate'] });
-    }
-  });
 
-  const handleTaskToggle = (taskId: string, completed: boolean) => {
-    const newCompletedIds = completed
-      ? [...new Set([...localCompletedTaskIds, taskId])]
-      : localCompletedTaskIds.filter(id => id !== taskId);
-
-    setLocalCompletedTaskIds(newCompletedIds);
-
-    roadmapMutation.mutate({
-      completedTaskIds: newCompletedIds,
-      completedPhases: localCompletedPhases,
-      taskId,
-      action: completed ? 'COMPLETED' : 'UNCOMPLETED'
-    });
-  };
 
   if (error) {
     return <div className="p-8 text-red-500">Error loading dashboard: {(error as Error).message}.</div>;
@@ -462,22 +414,10 @@ export default function Dashboard() {
           </div>
 
 
-          <section>
-            <ProbateChecklistWidget
-              estateType={(estate?.estateType && estate.estateType !== "UNSET") ? (estate.estateType as any) : null}
-              deceasedState={estate?.deceasedState}
-            />
-          </section>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             {/* Main Content (Left Column - 8/12 = 66%) */}
             <div className="lg:col-span-8 space-y-6">
-              {/* Work Remaining - Full Width */}
-              <WorkRemainingWidget
-                currentPhase={currentPhase}
-                completedTaskIds={completedTaskIds}
-                assets={assets}
-              />
 
               {/* Urgent Actions Section */}
               <section className="space-y-4">
@@ -592,8 +532,6 @@ export default function Dashboard() {
 
             {/* Sidebar (Right Column - 4/12 = 33%) */}
             <div className="lg:col-span-4 space-y-6">
-              {/* Quick Actions */}
-              <QuickActions currentPhase={currentPhase} />
 
               {/* Critical Dates */}
               <DeadlineTracker estateId={estate?.id || ""} />

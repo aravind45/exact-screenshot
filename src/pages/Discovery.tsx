@@ -127,29 +127,27 @@ const DiscoveryInsights = ({ discoveryStatus, findings, estateInsights = [] }: {
     if (insights.length === 0) return null;
 
     return (
-        <Card className="rounded-[2rem] border-none shadow-sm bg-indigo-900 text-white overflow-hidden p-8 mt-12">
-            <div className="flex items-center gap-3 mb-6">
-                <Sparkles className="w-5 h-5 text-amber-400" />
-                <h3 className="text-xl font-black">AI Discovery Insights</h3>
+        <div className="space-y-4 mt-8">
+            <div className="flex items-center gap-2 px-1">
+                <Sparkles className="w-5 h-5 text-indigo-500" />
+                <h3 className="text-lg font-bold text-slate-900 tracking-tight">AI Discovery Insights</h3>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="flex flex-col gap-3">
                 {insights.map((insight, idx) => (
-                    <div key={idx} className="bg-white/10 rounded-2xl p-5 border border-white/10 hover:bg-white/20 transition-colors">
-                        <div className="flex items-start gap-4">
-                            <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center shrink-0">
-                                <insight.icon className="w-5 h-5 text-indigo-200" />
-                            </div>
-                            <div>
-                                <h4 className="font-black text-sm text-indigo-100 uppercase tracking-widest mb-1">{insight.title}</h4>
-                                <p className="text-xs text-indigo-50 leading-relaxed font-medium">
-                                    {insight.content}
-                                </p>
-                            </div>
+                    <div key={idx} className="bg-indigo-50 border border-indigo-100 rounded-2xl p-4 flex gap-4 items-start hover:bg-indigo-100/50 transition-colors">
+                        <div className="w-10 h-10 bg-indigo-500 rounded-xl flex items-center justify-center shrink-0 shadow-lg shadow-indigo-100">
+                            <insight.icon className="w-5 h-5 text-white" />
+                        </div>
+                        <div className="flex-1">
+                            <h4 className="font-bold text-sm text-indigo-900 tracking-tight mb-0.5">{insight.title}</h4>
+                            <p className="text-xs text-indigo-700 font-medium leading-relaxed italic">
+                                "{insight.content}"
+                            </p>
                         </div>
                     </div>
                 ))}
             </div>
-        </Card>
+        </div>
     );
 };
 
@@ -583,7 +581,7 @@ export default function Discovery() {
                                                                 <div className="space-y-8 py-4">
                                                                     {/* Educational Brief */}
                                                                     {CATEGORY_EDUCATION[cat.category] && (
-                                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                                        <div className="flex flex-col gap-6">
                                                                             <div className="space-y-4">
                                                                                 <div className="space-y-1">
                                                                                     <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Why it matters</h4>
@@ -641,7 +639,7 @@ export default function Discovery() {
                                                                     {/* Pro Tips & Pitfalls */}
                                                                     {CATEGORY_EDUCATION[cat.category] && (
                                                                         <div className="space-y-4">
-                                                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                                            <div className="flex flex-col gap-4">
                                                                                 <div className="bg-rose-50 border border-rose-100 rounded-2xl p-4">
                                                                                     <h5 className="text-[10px] font-black text-rose-900 uppercase tracking-widest flex items-center gap-2 mb-2">
                                                                                         <AlertCircle className="w-3.5 h-3.5" />
