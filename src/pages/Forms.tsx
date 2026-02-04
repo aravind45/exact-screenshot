@@ -84,6 +84,7 @@ const DynamicIcon = ({ name, className }: { name: string, className?: string }) 
 const Forms = () => {
     const [selectedState, setSelectedState] = useState("CA");
     const [searchQuery, setSearchQuery] = useState("");
+    const [processFilter, setProcessFilter] = useState("");
     const [loadingAction, setLoadingAction] = useState<string | null>(null);
 
     const stateName = STATES.find(s => s.id === selectedState)?.name || selectedState;
@@ -131,12 +132,15 @@ const Forms = () => {
 
     const filteredForms = useMemo(() => {
         const list = Array.isArray(templates) ? templates : [];
-        return list.filter((f: any) =>
-            f.state === selectedState &&
-            ((f.title || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
-                (f.name || "").toLowerCase().includes(searchQuery.toLowerCase()))
-        );
-    }, [templates, selectedState, searchQuery]);
+        return list.filter((f: any) => {
+            const matchesState = f.state === selectedState;
+            const matchesSearch = (f.title || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+                (f.name || "").toLowerCase().includes(searchQuery.toLowerCase());
+            const matchesProcess = !processFilter || (f.process || "").toLowerCase() === processFilter.toLowerCase();
+
+            return matchesState && matchesSearch && matchesProcess;
+        });
+    }, [templates, selectedState, searchQuery, processFilter]);
 
     return (
         <div className="flex min-h-screen bg-gray-50 text-gray-900 font-sans">
@@ -160,33 +164,22 @@ const Forms = () => {
                             <p className="text-gray-500 text-xs font-medium">Official Judicial Council Templates</p>
                         </div>
 
-                        <div className="flex items-center gap-3">
-                            <div className="relative w-64 group">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-primary transition-colors" />
-                                <Input
-                                    placeholder="Search forms..."
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="pl-10 h-10 bg-white border-gray-200 focus:border-primary/50 transition-all rounded-lg text-sm"
-                                />
-                            </div>
-                            <select className="h-10 px-4 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 cursor-pointer hover:border-gray-300 transition-colors">
-                                <option value="">All Processes</option>
-                                <option value="probate_initialization">Probate Initialization</option>
-                                <option value="notices">Notices</option>
-                                <option value="inventory">Inventory & Appraisal</option>
-                                <option value="creditor_claims">Creditor Claims</option>
-                                <option value="distribution">Distribution</option>
-                                <option value="closing">Closing</option>
-                            </select>
+                        <div className="relative w-64 group">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-primary transition-colors" />
+                            <Input
+                                placeholder="Search forms..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="pl-10 h-10 bg-white border-gray-200 focus:border-primary/50 transition-all rounded-lg text-sm"
+                            />
                         </div>
                     </div>
 
-                    {/* State Selector */}
+                    {/* State & Process Selectors */}
                     <div className="flex items-center gap-3">
                         <div className="flex items-center gap-2 text-gray-600">
                             <MapPin className="w-4 h-4" />
-                            <span className="text-xs font-bold uppercase tracking-wider">Select State:</span>
+                            <span className="text-xs font-bold uppercase tracking-wider">Filters:</span>
                         </div>
                         <select
                             value={selectedState}
@@ -207,6 +200,19 @@ const Forms = () => {
                                     </option>
                                 ))}
                             </optgroup>
+                        </select>
+                        <select
+                            value={processFilter}
+                            onChange={(e) => setProcessFilter(e.target.value)}
+                            className="px-4 py-2 h-10 bg-white border border-gray-200 rounded-lg text-gray-900 font-medium text-sm focus:outline-none focus:border-primary/50 transition-all cursor-pointer"
+                        >
+                            <option value="">All Processes</option>
+                            <option value="probate_initialization">Probate Initialization</option>
+                            <option value="notices">Notices</option>
+                            <option value="inventory">Inventory & Appraisal</option>
+                            <option value="creditor_claims">Creditor Claims</option>
+                            <option value="distribution">Distribution</option>
+                            <option value="closing">Closing</option>
                         </select>
 
                         {!STATES.find(s => s.id === selectedState)?.supported && (
