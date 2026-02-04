@@ -331,7 +331,7 @@ export default function SettlementTrail() {
                                                         const Icon = getActivityIcon(activityType);
                                                         const colorClasses = getActivityColor(activityType);
                                                         const isAggregated = activity.count > 1;
-                                                        const parts = activity.notes.split('| Note:');
+                                                        const parts = (activity.notes || "").split('| Note:');
                                                         const hasExistingNote = parts.length > 1;
                                                         const existingNote = hasExistingNote ? parts[1].trim() : "";
 
