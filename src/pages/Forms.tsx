@@ -76,6 +76,39 @@ const FORM_CONTEXTS: Record<string, string> = {
     'DE-160': "Asset Discovery → Inventory Phase"
 };
 
+// Map form IDs to process categories
+const FORM_TO_PROCESS: Record<string, string> = {
+    'DE-110': 'probate_initialization',
+    'DE-111': 'probate_initialization',
+    'DE-112': 'probate_initialization',
+    'DE-120': 'notices',
+    'DE-121': 'notices',
+    'DE-122': 'notices',
+    'DE-150': 'probate_initialization',
+    'DE-157': 'probate_initialization',
+    'DE-160': 'inventory',
+    'DE-161': 'inventory',
+    'DE-165': 'inventory',
+    'DE-172': 'creditor_claims',
+    'DE-174': 'creditor_claims',
+    'DE-221': 'creditor_claims',
+    'DE-226': 'creditor_claims',
+    'DE-295': 'distribution',
+    'DE-305': 'distribution',
+    'DE-310': 'distribution',
+    'DE-350': 'closing',
+};
+
+// Helper function to get process for a form
+const getFormProcess = (formName: string): string => {
+    // Extract form ID (e.g., "DE-111" from "Petition for Probate (DE-111)")
+    const match = formName.match(/DE-\d+/);
+    if (match) {
+        return FORM_TO_PROCESS[match[0]] || '';
+    }
+    return '';
+};
+
 const DynamicIcon = ({ name, className }: { name: string, className?: string }) => {
     const IconComponent = (LucideIcons as any)[name] || FileText;
     return <IconComponent className={className} />;
@@ -136,7 +169,10 @@ const Forms = () => {
             const matchesState = f.state === selectedState;
             const matchesSearch = (f.title || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
                 (f.name || "").toLowerCase().includes(searchQuery.toLowerCase());
-            const matchesProcess = !processFilter || (f.process || "").toLowerCase() === processFilter.toLowerCase();
+
+            // Get process from form name/ID
+            const formProcess = getFormProcess(f.name || f.title || '');
+            const matchesProcess = !processFilter || formProcess === processFilter;
 
             return matchesState && matchesSearch && matchesProcess;
         });
