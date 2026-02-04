@@ -248,14 +248,14 @@ export default function Assets() {
             <Sidebar />
 
             <div className="flex-1 ml-64 flex flex-col">
-                <header className="h-20 border-b border-slate-200 bg-white px-8 flex items-center justify-between sticky top-0 z-10">
+                <header className="h-16 border-b border-slate-200 bg-white px-8 flex items-center justify-between sticky top-0 z-10">
                     <div>
-                        <h1 className="text-2xl font-black text-slate-900 tracking-tight">Asset Ledger</h1>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Verified Financial Records</p>
+                        <h1 className="text-xl font-bold text-slate-900">Asset Ledger</h1>
+                        <p className="text-[10px] font-medium text-slate-400 uppercase">Verified Financial Records</p>
                     </div>
                     <Button
                         onClick={() => navigate('/add-asset')}
-                        className="rounded-xl font-black gap-2 shadow-lg shadow-indigo-100"
+                        className="rounded-lg font-bold gap-2 h-9 px-4"
                     >
                         <Plus className="w-4 h-4" />
                         Add New Asset
