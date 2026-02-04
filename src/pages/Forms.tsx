@@ -19,7 +19,7 @@ const STATES = [
     { id: "FL", name: "Florida", icon: "☀️", supported: true },
     { id: "NY", name: "New York", icon: "🗽", supported: true },
     { id: "TX", name: "Texas", icon: "🤠", supported: true },
-    
+
     // Coming Soon States (alphabetical)
     { id: "AL", name: "Alabama", icon: "🏛️", supported: false },
     { id: "AK", name: "Alaska", icon: "🏔️", supported: false },
@@ -147,42 +147,51 @@ const Forms = () => {
             <Sidebar />
             <main className="flex-1 ml-64 flex flex-col h-screen overflow-hidden">
                 {/* Header Section */}
-                <header className="p-8 border-b border-gray-200 bg-white shrink-0">
-                    <div className="flex items-center justify-between mb-8">
+                <header className="p-6 border-b border-gray-200 bg-white shrink-0">
+                    <div className="flex items-center justify-between mb-6">
                         <div>
                             <motion.h1
                                 initial={{ opacity: 0, x: -20 }}
                                 animate={{ opacity: 1, x: 0 }}
-                                className="text-3xl font-black tracking-tighter text-gray-900"
+                                className="text-2xl font-bold tracking-tight text-gray-900"
                             >
                                 PRO <span className="text-primary italic">FORMS</span>
                             </motion.h1>
-                            <p className="text-gray-500 text-sm font-medium">Official Judicial Council Templates</p>
+                            <p className="text-gray-500 text-xs font-medium">Official Judicial Council Templates</p>
                         </div>
 
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-3">
                             <div className="relative w-64 group">
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-primary transition-colors" />
                                 <Input
                                     placeholder="Search forms..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="pl-10 bg-white border-gray-300 focus:border-primary/50 transition-all rounded-xl"
+                                    className="pl-10 h-10 bg-white border-gray-200 focus:border-primary/50 transition-all rounded-lg text-sm"
                                 />
                             </div>
+                            <select className="h-10 px-4 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 cursor-pointer hover:border-gray-300 transition-colors">
+                                <option value="">All Processes</option>
+                                <option value="probate_initialization">Probate Initialization</option>
+                                <option value="notices">Notices</option>
+                                <option value="inventory">Inventory & Appraisal</option>
+                                <option value="creditor_claims">Creditor Claims</option>
+                                <option value="distribution">Distribution</option>
+                                <option value="closing">Closing</option>
+                            </select>
                         </div>
                     </div>
 
                     {/* State Selector */}
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-3">
                         <div className="flex items-center gap-2 text-gray-600">
                             <MapPin className="w-4 h-4" />
-                            <span className="text-xs font-bold uppercase tracking-widest">Select State:</span>
+                            <span className="text-xs font-bold uppercase tracking-wider">Select State:</span>
                         </div>
                         <select
                             value={selectedState}
                             onChange={(e) => setSelectedState(e.target.value)}
-                            className="px-4 py-2 bg-white border border-gray-300 rounded-xl text-gray-900 font-bold text-sm focus:outline-none focus:border-primary/50 transition-all cursor-pointer"
+                            className="px-4 py-2 h-10 bg-white border border-gray-200 rounded-lg text-gray-900 font-medium text-sm focus:outline-none focus:border-primary/50 transition-all cursor-pointer"
                         >
                             <optgroup label="✓ Fully Supported">
                                 {STATES.filter(s => s.supported).map(s => (
@@ -199,7 +208,7 @@ const Forms = () => {
                                 ))}
                             </optgroup>
                         </select>
-                        
+
                         {!STATES.find(s => s.id === selectedState)?.supported && (
                             <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-lg">
                                 <AlertCircle className="w-3.5 h-3.5 text-amber-600" />
@@ -225,7 +234,7 @@ const Forms = () => {
                                 {STATES.find(s => s.id === selectedState)?.name} Forms Coming Soon
                             </h3>
                             <p className="text-sm text-gray-600 mb-6 max-w-md text-center">
-                                We're working on adding official probate forms for {STATES.find(s => s.id === selectedState)?.name}. 
+                                We're working on adding official probate forms for {STATES.find(s => s.id === selectedState)?.name}.
                                 Currently, only California forms are available.
                             </p>
                             <Button
