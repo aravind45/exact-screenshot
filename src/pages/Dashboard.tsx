@@ -43,63 +43,12 @@ import type { Priority } from "@/components/PriorityBadge";
 import { getAssetTaxonomyState, getTaxonomyInfo } from "@/lib/taxonomy";
 import { AssetTaxonomyBadge } from "@/components/AssetTaxonomyBadge";
 import { Sidebar } from "@/components/Sidebar";
-import { ProbateBlockerAlert } from "@/components/ProbateBlockerAlert";
 import { useWorkflow } from "@/contexts/WorkflowContext";
 import { type SettlementPhase } from "@/components/SettlementPhaseChevron";
 import { SEO } from "@/components/SEO";
 import { useTerminology } from "@/hooks/use-terminology";
 import { ProbateStatusUpdater } from "@/components/dashboard/ProbateStatusUpdater";
 
-const MISSION_MAP: Record<string, { title: string; description: string; icon: any; color: string; cta: string; link: string }> = {
-  immediate_actions: {
-    title: "Secure & Notify",
-    description: "Your priority is protecting the estate property and notifying agencies to stop payments.",
-    icon: ShieldAlert,
-    color: "amber",
-    cta: "Start Settlement Path",
-    link: "/roadmap"
-  },
-  court_filing: {
-    title: "Obtain Letters",
-    description: "You are securing your legal authority (DE-150) to act on behalf of the estate.",
-    icon: FileText,
-    color: "indigo",
-    cta: "Open Settlement Path",
-    link: "/roadmap"
-  },
-  asset_discovery: {
-    title: "Map the Estate",
-    description: "Identify all accounts, real estate, and digital assets to build the Inventory (DE-160).",
-    icon: Search,
-    color: "blue",
-    cta: "Resume Settlement Path",
-    link: "/roadmap"
-  },
-  creditor_claims: {
-    title: "Resolve Liabilities",
-    description: "Review incoming claims and resolve debts in accordance with legal priority rules.",
-    icon: Gavel,
-    color: "rose",
-    cta: "Resume Settlement Path",
-    link: "/roadmap"
-  },
-  asset_liquidation: {
-    title: "Consolidate Funds",
-    description: "Transfer assets into the estate account and prepare the final accounting for court.",
-    icon: Landmark,
-    color: "emerald",
-    cta: "Resume Settlement Path",
-    link: "/roadmap"
-  },
-  final_distribution: {
-    title: "Closure & Transfer",
-    description: "distributing remaining wealth to beneficiaries and seeking final court discharge.",
-    icon: Target,
-    color: "purple",
-    cta: "Complete Settlement Path",
-    link: "/roadmap"
-  }
-};
 
 const normalize = (str: string | null) => str?.toLowerCase() || '';
 
@@ -228,15 +177,6 @@ export default function Dashboard() {
     return acc;
   }, []).slice(0, 10);
 
-  // Calculate Diligence Score (Simple heuristic)
-  const diligenceScore = Math.min(100, (
-    (activitiesData.length * 5) +
-    (completedTaskIds.length * 2) +
-    (assets.length > 0 ? 20 : 0) +
-    (estate?.courtCaseNumber ? 15 : 0)
-  ));
-
-  const mission = MISSION_MAP[currentPhase] || MISSION_MAP.immediate_actions;
 
 
 
@@ -282,58 +222,9 @@ export default function Dashboard() {
               </p>
             </motion.div>
 
-            {/* Diligence Meter */}
-            <div className="flex flex-col items-end gap-2">
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Settlement Integrity</span>
-                <Badge variant="outline" className="h-5 text-[9px] font-black border-emerald-200 text-emerald-700 bg-emerald-50">Calm & Comprehensive</Badge>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="w-48 h-2.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200/50">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${diligenceScore}%` }}
-                    className="h-full bg-gradient-to-r from-emerald-400 to-emerald-600 shadow-[0_0_10px_rgba(16,185,129,0.3)]"
-                  />
-                </div>
-                <span className="text-lg font-black text-slate-900 leading-none">{diligenceScore}%</span>
-              </div>
-            </div>
           </div>
 
-          {/* Current Mission Banner */}
-          <div className={cn(
-            "relative overflow-hidden rounded-xl p-2.5 text-white shadow-md border transition-all hover:scale-[1.001]",
-            mission.color === 'amber' ? "bg-gradient-to-br from-amber-500 to-orange-600 border-amber-400" :
-              mission.color === 'indigo' ? "bg-gradient-to-br from-indigo-500 to-blue-700 border-indigo-400" :
-                mission.color === 'blue' ? "bg-gradient-to-br from-blue-500 to-cyan-700 border-blue-400" :
-                  mission.color === 'rose' ? "bg-gradient-to-br from-rose-500 to-red-700 border-rose-400" :
-                    mission.color === 'emerald' ? "bg-gradient-to-br from-emerald-500 to-teal-700 border-emerald-400" :
-                      "bg-gradient-to-br from-purple-500 to-fuchsia-700 border-purple-400"
-          )}>
-            <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-1">
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-0.5">
-                  <div className="inline-flex items-center gap-1.5 px-1.5 py-0.5 bg-white/20 rounded-full border border-white/20 backdrop-blur-sm">
-                    <span className="text-[8px] font-black uppercase tracking-widest text-white/90">Current Track</span>
-                  </div>
-                  <h1 className="text-sm font-black tracking-tight">{mission.title}</h1>
-                </div>
-                <p className="text-[11px] font-medium opacity-90 max-w-2xl leading-tight">
-                  {mission.description}
-                </p>
-              </div>
-              <Button
-                onClick={() => navigate(mission.link)}
-                className="bg-white text-slate-900 hover:bg-slate-100 h-7 px-4 rounded-lg font-black text-[10px] uppercase group shadow-md shrink-0 border-none"
-              >
-                {mission.cta}
-                <ArrowRight className="ml-1.5 w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
-              </Button>
-            </div>
-          </div>
 
-          <ProbateBlockerAlert />
 
 
           {/* Stat Cards - Full Row */}
@@ -419,7 +310,7 @@ export default function Dashboard() {
             {/* Main Content (Left Column - 8/12 = 66%) */}
             <div className="lg:col-span-8 space-y-6">
 
-              {/* Urgent Actions Section */}
+              {/* Support Requested Section - Hidden for now
               <section className="space-y-4">
                 <div className="flex items-center gap-2 px-1">
                   <Lightbulb className="w-5 h-5 text-indigo-500" />
@@ -432,7 +323,6 @@ export default function Dashboard() {
                 </div>
 
                 <div className="space-y-3">
-                  {/* Legal Blockers */}
                   {taxonomyStats.blocked > 0 && (
                     <div className="p-4 bg-indigo-50 border border-indigo-100 rounded-2xl flex gap-3 items-start">
                       <div className="p-2 bg-indigo-500 text-white rounded-xl">
@@ -454,10 +344,8 @@ export default function Dashboard() {
                     </div>
                   )}
 
-                  {/* Follow-Ups */}
                   <FollowUpWidget followUps={realFollowUps as any} onFollowUpClick={handleAssetClick} />
 
-                  {/* All Clear State */}
                   {realFollowUps.length === 0 && taxonomyStats.blocked === 0 && (
                     <div className="p-8 text-center border-2 border-dashed border-emerald-100 bg-emerald-50/30 rounded-2xl">
                       <CheckCircle2 className="w-8 h-8 text-emerald-500 mx-auto mb-2" />
@@ -467,6 +355,7 @@ export default function Dashboard() {
                   )}
                 </div>
               </section>
+              */}
 
               {/* Recent Proof of Work */}
               <section className="space-y-4">
@@ -526,8 +415,6 @@ export default function Dashboard() {
                 </div>
               </section>
 
-              {/* Agent Insights */}
-              <AgentInsights />
             </div>
 
             {/* Sidebar (Right Column - 4/12 = 33%) */}

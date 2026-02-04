@@ -153,6 +153,11 @@ export default function HelpCenter() {
             category: "Asset Mastery: Locate, Value, Manage",
             items: [
                 {
+                    id: "critical-dates",
+                    q: "How are 'Critical Dates' generated if I didn't enter them?",
+                    a: "Critical dates (statutory deadlines) are automatically calculated based on the 'Date of Death' you provided. For example, the Petition for Probate is typically due within 1 month, and the Inventory & Appraisal within 4 months. These reminders help ensure you stay compliant with California court timelines without having to manually track them."
+                },
+                {
                     id: "asset-discovery",
                     q: "How do I find all the assets?",
                     a: "Search through: 1. Physical mail/statements. 2. Tax returns (look for 1099s). 3. Digital accounts/email. 4. Real estate records in the county. 5. Unclaimed property databases. Our 'Discovery' hub helps automate this forensic search."
@@ -570,9 +575,9 @@ export default function HelpCenter() {
                         <h2 className="text-xl font-bold text-slate-900 px-1">Common Questions</h2>
                         <Card className="border-none shadow-sm bg-white overflow-hidden">
                             <CardContent className="p-0">
-                                <Accordion 
-                                    type="single" 
-                                    collapsible 
+                                <Accordion
+                                    type="single"
+                                    collapsible
                                     className="w-full"
                                     value={openAccordionItem}
                                     onValueChange={setOpenAccordionItem}
@@ -583,9 +588,9 @@ export default function HelpCenter() {
                                                 {group.category}
                                             </div>
                                             {group.items.map((item, iIdx) => (
-                                                <AccordionItem 
-                                                    key={iIdx} 
-                                                    value={`item-${gIdx}-${iIdx}`} 
+                                                <AccordionItem
+                                                    key={iIdx}
+                                                    value={`item-${gIdx}-${iIdx}`}
                                                     className="border-slate-100 px-6 last:border-none"
                                                     id={`article-${item.id}`}
                                                 >
