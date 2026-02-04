@@ -475,9 +475,7 @@ export default function AssetDetail() {
                   <ArrowLeft className="w-5 h-5 text-slate-600" />
                 </Button>
                 <div className="flex items-center gap-3">
-                  <span className="text-xl font-black text-slate-900">Pilar</span>
-                  <div className="w-px h-6 bg-slate-200" />
-                  <span className="text-lg font-bold text-slate-500">Institution Settlement Hub: {uiAsset.institution}</span>
+                  <span className="text-lg font-bold text-slate-700">Institution: {uiAsset.institution}</span>
                 </div>
               </div>
 
@@ -573,19 +571,11 @@ export default function AssetDetail() {
                   <div className="min-w-0">
                     <div className="flex items-center gap-3">
                       <h1 className="text-xl font-black text-slate-900 tracking-tight truncate">{uiAsset.institution}</h1>
-                      <div className="flex items-center gap-1.5 flex-shrink-0">
-                        <StatusBadge status={uiAsset.status} />
-                        <AssetTaxonomyBadge state={getAssetTaxonomyState(uiAsset as any, estate as any)} />
-                      </div>
+                      <StatusBadge status={uiAsset.status} />
                     </div>
-                    <div className="flex flex-col mt-2">
-                      <p className="text-[11px] font-bold text-slate-800 uppercase tracking-tight">
-                        Status: {getTaxonomyInfo(uiAsset as any, estate as any).label}
-                      </p>
-                      <p className="text-[11px] text-slate-500 font-medium leading-relaxed max-w-md">
-                        <span className="font-bold">What this means:</span> {getTaxonomyInfo(uiAsset as any, estate as any).secondary}
-                      </p>
-                    </div>
+                    <p className="text-sm text-slate-600 font-medium mt-1">
+                      {getTaxonomyInfo(uiAsset as any, estate as any).secondary}
+                    </p>
                     <div className="flex items-center gap-2 mt-3">
                       <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
                         {uiAsset.type.replace(/_/g, ' ')} • Account {uiAsset.accountNumber}
@@ -655,43 +645,37 @@ export default function AssetDetail() {
             )}
           </motion.div>
 
-          {/* HIGH-FIDELITY MISSION BAR */}
-          <div className="bg-white border border-slate-200 rounded-[32px] p-8 shadow-sm mb-6">
-            <div className="relative flex items-center justify-between">
-              {/* Connection Line */}
-              <div className="absolute top-1/2 left-0 w-full h-1 bg-slate-100 -translate-y-1/2 z-0" />
-              <div
-                className="absolute top-1/2 left-0 h-1 bg-blue-500 -translate-y-1/2 z-0 transition-all duration-500"
-                style={{ width: uiAsset.status === 'closed' || uiAsset.status === 'collected' ? '100%' : uiAsset.status === 'notified' || uiAsset.status === 'notices_sent' ? '50%' : '25%' }}
-              />
-
+          {/* SIMPLIFIED 3-STEP PROGRESS */}
+          <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+            <div className="flex items-center justify-between max-w-2xl mx-auto">
               {[
-                { id: 'notified', label: 'Notified', icon: CheckCircle2, active: uiAsset.status !== 'discovered' },
-                { id: 'response', label: 'Initial Response', icon: MessageSquare, active: ['notified', 'notices_sent', 'claimed', 'collected', 'closed'].includes(uiAsset.status) },
-                { id: 'docs', label: 'Documents Requested', icon: FileText, active: ['claimed', 'collected', 'closed'].includes(uiAsset.status) },
-                { id: 'review', label: 'In Review', icon: CheckCircle2, active: ['collected', 'closed'].includes(uiAsset.status) },
-                { id: 'claimed', label: 'Asset Claimed', icon: CheckCircle2, active: uiAsset.status === 'closed' }
-              ].map((stage, idx) => {
-                const Icon = stage.icon;
-                return (
-                  <div key={stage.id} className="relative z-10 flex flex-col items-center gap-3 bg-white px-4">
+                { id: 'notified', label: 'Notified', active: uiAsset.status !== 'discovered' },
+                { id: 'in_progress', label: 'In Progress', active: ['notified', 'notices_sent', 'claimed'].includes(uiAsset.status) },
+                { id: 'claimed', label: 'Claimed', active: ['collected', 'closed'].includes(uiAsset.status) }
+              ].map((stage, idx) => (
+                <div key={stage.id} className="flex items-center flex-1">
+                  <div className="flex flex-col items-center flex-1">
                     <div className={cn(
-                      "w-14 h-14 rounded-full flex items-center justify-center border-4 transition-all duration-300",
+                      "w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all",
                       stage.active
-                        ? "bg-blue-50 border-blue-500 text-blue-600 shadow-lg shadow-blue-100"
-                        : "bg-slate-50 border-slate-100 text-slate-300"
+                        ? "bg-blue-500 border-blue-500 text-white"
+                        : "bg-white border-slate-200 text-slate-400"
                     )}>
-                      <Icon className="w-6 h-6" />
+                      {stage.active ? <CheckCircle2 className="w-5 h-5" /> : <div className="w-2 h-2 rounded-full bg-slate-300" />}
                     </div>
-                    <div className="text-center">
-                      <p className={cn(
-                        "text-[11px] font-black uppercase tracking-wider",
-                        stage.active ? "text-slate-900" : "text-slate-400"
-                      )}>{stage.label}</p>
-                    </div>
+                    <p className={cn(
+                      "text-xs font-bold mt-2",
+                      stage.active ? "text-slate-900" : "text-slate-400"
+                    )}>{stage.label}</p>
                   </div>
-                );
-              })}
+                  {idx < 2 && (
+                    <div className={cn(
+                      "h-0.5 flex-1 mx-2 transition-all",
+                      stage.active ? "bg-blue-500" : "bg-slate-200"
+                    )} />
+                  )}
+                </div>
+              ))}
             </div>
           </div>
 
@@ -704,61 +688,25 @@ export default function AssetDetail() {
               <motion.div
                 initial={{ opacity: 0, scale: 0.98 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="bg-white rounded-[32px] p-10 border border-slate-200 shadow-sm text-center space-y-8"
+                className="bg-white rounded-2xl p-8 border border-slate-200 shadow-sm space-y-6"
               >
-                <div className="space-y-4">
-                  <Badge className="bg-slate-100 text-slate-500 hover:bg-slate-200 border-none text-[11px] font-black uppercase tracking-[0.2em] px-4 py-1.5 rounded-full">
-                    Primary Action
-                  </Badge>
-                  {rec.legalTerm && (
-                    <div className="flex flex-col items-center gap-1.5 mb-2">
-                      <div className="flex items-center justify-center gap-2">
-                        <Scale className="w-3 h-3 text-indigo-500" />
-                        <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider">{rec.legalTerm}</span>
-                      </div>
-
-                      {/* Physical Workflow Alerts */}
-                      {(() => {
-                        const workflow = getWorkflow(uiAsset.category, uiAsset.type);
-                        const currentStep = workflow.steps.find(s => s.id === currentStepId);
-                        if (!currentStep) return null;
-
-                        return (
-                          <div className="flex items-center gap-3">
-                            {currentStep.requiresNotary && (
-                              <div className="flex items-center gap-1 px-2 py-0.5 bg-amber-50 rounded-md border border-amber-100">
-                                <Gavel className="w-2.5 h-2.5 text-amber-600" />
-                                <span className="text-[8px] font-black text-amber-700 uppercase">Notary Required</span>
-                              </div>
-                            )}
-                            {currentStep.requiresPhysicalMail && (
-                              <div className="flex items-center gap-1 px-2 py-0.5 bg-blue-50 rounded-md border border-blue-100">
-                                <FileText className="w-2.5 h-2.5 text-blue-600" />
-                                <span className="text-[8px] font-black text-blue-700 uppercase">Physical Mail / Fax</span>
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })()}
-                    </div>
-                  )}
-
-                  <h2 className="text-4xl font-black text-slate-900 tracking-tight">
-                    {uiAsset.status === 'approved' ? 'Liquidation Ready' :
-                      uiAsset.status === 'discovered' ? 'Initiate Notification' :
-                        uiAsset.status === 'notified' ? 'Request DoD Balance' :
-                          'Confirm Claim Status'}
+                <div className="space-y-3">
+                  <h2 className="text-2xl font-black text-slate-900">
+                    {uiAsset.status === 'approved' ? 'Record Receipt' :
+                      uiAsset.status === 'discovered' ? 'Send Notification' :
+                        uiAsset.status === 'notified' ? 'Request Balance' :
+                          'Follow Up'}
                   </h2>
-                  <p className="text-slate-500 text-lg font-medium leading-relaxed max-w-xl mx-auto">
+                  <p className="text-sm text-slate-600 font-medium">
                     {uiAsset.status === 'approved' ?
-                      `The institution has approved your claim for ${uiAsset.institution}. You can now record the final receipt of funds to close this asset.` :
+                      `Record the final amount received from ${uiAsset.institution}.` :
                       uiAsset.status === 'discovered' ?
-                        `Begin the formal notification process with ${uiAsset.institution} regarding the estate of ${estate?.deceasedFirstName} ${estate?.deceasedLastName}. Use our AI tools to draft a comprehensive message or generate official documents.` :
-                        `Initiate a formal request for Date of Death values from ${uiAsset.institution} to satisfy court appraisal requirements.`}
+                        `Notify ${uiAsset.institution} about the estate.` :
+                        `Request date of death balance from ${uiAsset.institution}.`}
                   </p>
                 </div>
 
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <div className="flex gap-3">
                   {uiAsset.status === 'approved' ? (
                     <Button
                       size="lg"
@@ -772,43 +720,21 @@ export default function AssetDetail() {
                           });
                         }
                       }}
-                      className="w-full sm:w-auto h-16 px-10 rounded-[20px] bg-emerald-600 hover:bg-emerald-700 text-white font-black transition-all shadow-lg shadow-emerald-100"
+                      className="h-12 px-8 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
                     >
-                      <CheckCircle2 className="w-5 h-5 mr-3" />
-                      Confirm Receipt of Funds
+                      <CheckCircle2 className="w-4 h-4 mr-2" />
+                      Record Receipt
                     </Button>
                   ) : (
-                    <>
-                      <Button
-                        size="lg"
-                        variant="outline"
-                        onClick={() => setShowDraftModal(true)}
-                        className="w-full sm:w-auto h-16 px-10 rounded-[20px] border-slate-200 hover:bg-slate-50 group transition-all"
-                      >
-                        <div className="flex flex-col items-center">
-                          <div className="flex items-center gap-2">
-                            <Zap className="w-5 h-5 text-indigo-500 fill-indigo-500/10" />
-                            <span className="text-lg font-black text-slate-900">AI Draft</span>
-                          </div>
-                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Draft • Send • Print</span>
-                        </div>
-                      </Button>
-                    </>
+                    <Button
+                      size="lg"
+                      onClick={() => setShowDraftModal(true)}
+                      className="h-12 px-8 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold"
+                    >
+                      <Zap className="w-4 h-4 mr-2" />
+                      Draft Message
+                    </Button>
                   )}
-                </div>
-
-                <div className="bg-slate-50 rounded-3xl p-6 text-left border border-slate-100">
-                  <div className="flex items-center justify-between mb-3 text-[10px] font-black uppercase tracking-widest text-slate-400">
-                    <span>Draft Preview</span>
-                    <button className="text-indigo-600 hover:underline" onClick={() => setShowDraftModal(true)}>View Full Draft</button>
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-xs font-bold text-slate-600">Subject: Notification of Death & Request for Account Information</p>
-                    <p className="text-xs font-medium text-slate-500 leading-relaxed">
-                      Dear {uiAsset.institution} Representative,<br /><br />
-                      This communication serves as formal notification of the passing of {estate?.deceasedFirstName} {estate?.deceasedLastName}, Account Holder. We are initiating the estate settlement process...
-                    </p>
-                  </div>
                 </div>
               </motion.div>
 
