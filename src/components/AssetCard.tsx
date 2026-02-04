@@ -70,7 +70,7 @@ export function AssetCard({ asset, onClick, onSelect, selected, selectable, clas
       <button
         onClick={onClick}
         className={cn(
-          'flex-1 text-left card-elevated p-4 hover-lift group cursor-pointer border-2 transition-all',
+          'flex-1 text-left card-elevated p-3 hover-lift group cursor-pointer border-2 transition-all',
           'focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
           selected ? 'border-primary bg-primary/5' : 'border-transparent',
           className
@@ -79,7 +79,7 @@ export function AssetCard({ asset, onClick, onSelect, selected, selectable, clas
         <div className="flex items-start gap-3">
           {/* Category Icon */}
           <div className={cn(
-            'p-2.5 rounded-xl shrink-0',
+            'p-2 rounded-lg shrink-0',
             asset.category === 'financial' && 'bg-primary/10 text-primary',
             asset.category === 'retirement' && 'bg-violet-500/10 text-violet-600',
             asset.category === 'insurance' && 'bg-success/10 text-success',
@@ -87,22 +87,22 @@ export function AssetCard({ asset, onClick, onSelect, selected, selectable, clas
             asset.category === 'property' && 'bg-orange-500/10 text-orange-600',
             asset.category === 'other' && 'bg-muted text-muted-foreground',
           )}>
-            <CategoryIcon className="w-5 h-5" />
+            <CategoryIcon className="w-4 h-4" />
           </div>
 
           {/* Content */}
-          <div className="flex-1 min-w-0 space-y-1.5">
+          <div className="flex-1 min-w-0 space-y-1">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <h3 className="font-semibold text-foreground truncate">
+                <h3 className="font-semibold text-sm text-foreground truncate">
                   {asset.institution}
                 </h3>
-                <p className="text-sm text-muted-foreground capitalize">
-                  {asset.type.replace(/_/g, ' ')}
+                <p className="text-xs text-muted-foreground capitalize">
+                  Account: {asset.type.replace(/_/g, ' ')}
                 </p>
               </div>
               <div className="text-right shrink-0">
-                <p className="font-semibold text-foreground">
+                <p className="font-semibold text-sm text-foreground">
                   {asset.value === 0 ? (
                     <span className="text-slate-400 italic text-xs font-medium">Pending</span>
                   ) : (
@@ -111,7 +111,7 @@ export function AssetCard({ asset, onClick, onSelect, selected, selectable, clas
                 </p>
 
                 {/* Taxonomy Signaling */}
-                <div className="mt-1 flex justify-end">
+                <div className="mt-0.5 flex justify-end">
                   <AssetTaxonomyBadge state={getAssetTaxonomyState(asset as any)} />
                 </div>
               </div>
@@ -131,7 +131,7 @@ export function AssetCard({ asset, onClick, onSelect, selected, selectable, clas
             {/* Follow-up Alert */}
             {needsFollowUp && asset.priority !== 'low' && (
               <div className={cn(
-                'flex items-center gap-2 text-xs p-2 rounded-lg mt-2',
+                'flex items-center gap-2 text-xs p-2 rounded-lg mt-1',
                 asset.priority === 'urgent' && 'bg-destructive/5 text-destructive',
                 asset.priority === 'high' && 'bg-orange-500/5 text-orange-600',
                 asset.priority === 'medium' && 'bg-warning/5 text-warning',
@@ -147,7 +147,7 @@ export function AssetCard({ asset, onClick, onSelect, selected, selectable, clas
           </div>
 
           {/* Arrow */}
-          <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0 mt-1 group-hover:text-foreground transition-colors" />
+          <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0 mt-1 group-hover:text-foreground transition-colors" />
         </div>
       </button>
     </motion.div>
