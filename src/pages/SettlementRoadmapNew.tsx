@@ -111,58 +111,12 @@ export default function SettlementRoadmapNew() {
             <ProbateBlockerAlert />
           )}
 
-          {/* Authority Scout Explanation */}
-          {estate && (
-            <AuthorityDecisionGuide
-              recommendation={calculateAuthorityRecommendation(
-                assets,
-                estate.deceasedState || "CA",
-                {
-                  hasWill: estate.hasWill,
-                  isSpouse: estate.isSpouse,
-                  isOutOfState: estate.isOutOfState
-                }
-              )}
-            />
-          )}
-
           {/* Horizontal Phase Progress */}
           <div className="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm">
             <SettlementPhaseChevron
               currentPhase={currentPhase as SettlementPhase}
               completedPhases={completedPhases as SettlementPhase[]}
             />
-          </div>
-
-          {/* Info Card - Simplified */}
-          <div className="p-4 bg-gradient-to-r from-indigo-50/50 to-blue-50/50 border border-indigo-100/50 rounded-2xl">
-            <div className="flex items-start gap-3">
-              <div className="w-9 h-9 bg-white rounded-xl flex items-center justify-center shadow-sm border border-indigo-100 shrink-0">
-                <ShieldCheck className="w-4 h-4 text-indigo-600" />
-              </div>
-              <div>
-                <h3 className="text-sm font-black text-indigo-900 mb-1">Fiduciary Process & Record System</h3>
-                <p className="text-[11px] text-indigo-800/80 leading-relaxed mb-2">
-                  <strong>ExpectedEstate does not provide legal advice.</strong> It provides a structured, state-aware system for executors to document reasonable diligence and fiduciary compliance.
-                </p>
-                <div className="flex flex-wrap gap-1.5 pb-2 border-b border-indigo-100/30 mb-2">
-                  <Badge variant="secondary" className="bg-white/50 text-indigo-700 border-indigo-200 text-[9px] h-5">
-                    State-Specific
-                  </Badge>
-                  <Badge variant="secondary" className="bg-white/50 text-indigo-700 border-indigo-200 text-[9px] h-5">
-                    Fiduciary Records
-                  </Badge>
-                  <Badge variant="secondary" className="bg-white/50 text-indigo-700 border-indigo-200 text-[9px] h-5">
-                    Attorney-Optimized
-                  </Badge>
-                </div>
-                <div className="flex items-start gap-2 text-[10px] text-slate-400 font-medium italic">
-                  <Scale className="w-3 h-3 mt-0.5 shrink-0" />
-                  <p>Designed to complement legal counsel by creating a clear, timestamped record of fiduciary actions.
-                  </p>
-                </div>
-              </div>
-            </div>
           </div>
 
           {/* Collapsible Chevron */}

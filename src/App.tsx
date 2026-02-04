@@ -50,6 +50,7 @@ import SpecialNotice from "./pages/SpecialNotice";
 import ContestedProbate from "./pages/ContestedProbate";
 import AssetSaleAuthorization from "./pages/AssetSaleAuthorization";
 import FinalDistribution from "./pages/FinalDistribution";
+import SmallEstateAffidavit from "./pages/SmallEstateAffidavit";
 import HelpCenter from "./pages/HelpCenter";
 import SettlementTrail from "./pages/SettlementTrail";
 import Letters from "./pages/probate/Letters";
@@ -233,6 +234,7 @@ const App = () => (
                     <Route path="/probate/contested-probate" element={<ProtectedRoute><ContestedProbate /></ProtectedRoute>} />
                     <Route path="/probate/asset-sale" element={<ProtectedRoute><AssetSaleAuthorization /></ProtectedRoute>} />
                     <Route path="/probate/final-distribution" element={<ProtectedRoute><FinalDistribution /></ProtectedRoute>} />
+                    <Route path="/probate/small-estate" element={<ProtectedRoute><SmallEstateAffidavit /></ProtectedRoute>} />
                     <Route path="/probate/letters" element={<ProtectedRoute><Letters /></ProtectedRoute>} />
 
                     {/* Core Features */}

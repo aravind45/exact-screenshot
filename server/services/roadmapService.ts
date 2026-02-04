@@ -74,15 +74,31 @@ export async function analyzeEstateProfile(estateId: string): Promise<EstateProf
 }
 
 /**
- * Filter tasks based on estate profile
+ * Filter tasks based on estate profile and exclusivity
  */
 export function filterTasksForEstate(
   allTasks: PhaseTaskList[],
-  profile: EstateProfile
+  profile: EstateProfile,
+  completedTaskIds: string[] = []
 ): PhaseTaskList[] {
+  // 1. Identify which exclusive groups have a completed task
+  const completedGroups = new Set<string>();
+  allTasks.forEach(phase => {
+    phase.tasks.forEach(task => {
+      if (task.exclusiveGroup && completedTaskIds.includes(task.id)) {
+        completedGroups.add(task.exclusiveGroup);
+      }
+    });
+  });
+
   return allTasks.map((phaseList) => ({
     ...phaseList,
     tasks: phaseList.tasks.filter((task) => {
+      // 2. Handle Exclusivity: If a group is "set", only show the completed task in that group
+      if (task.exclusiveGroup && completedGroups.has(task.exclusiveGroup)) {
+        return completedTaskIds.includes(task.id);
+      }
+
       // Always show non-optional tasks
       if (!task.isOptional) return true;
 
@@ -139,8 +155,11 @@ export async function getEstateRoadmap(estateId: string): Promise<RoadmapRespons
   // Analyze estate profile
   const profile = await analyzeEstateProfile(estateId);
 
+  // Get current progress
+  const { completedTaskIds } = await getTaskCompletions(estateId);
+
   // Filter tasks based on profile
-  const filteredPhases = filterTasksForEstate(SETTLEMENT_PHASE_TASKS, profile);
+  const filteredPhases = filterTasksForEstate(SETTLEMENT_PHASE_TASKS, profile, completedTaskIds);
 
   // Return roadmap with triggers
   return {

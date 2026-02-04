@@ -17,9 +17,9 @@ export const TASK_ACTIONS: Record<string, TaskAction> = {
   // Phase 0: Preliminary Assessment
   'check_small_estate': {
     type: 'navigate',
-    target: '/documents',
-    label: 'Upload Affidavit',
-    icon: 'Upload',
+    target: '/probate/small-estate',
+    label: 'Start Fast-Track',
+    icon: 'Zap',
     variant: 'primary'
   },
   'confirm_executor_role': {
@@ -70,7 +70,7 @@ export const TASK_ACTIONS: Record<string, TaskAction> = {
   // Phase 1: Court Filing
   'file_petition': {
     type: 'navigate',
-    target: '/probate/petition/wizard',
+    target: '/probate/petition',
     label: 'Start Petition',
     icon: 'FileText',
     variant: 'primary'
@@ -109,14 +109,14 @@ export const TASK_ACTIONS: Record<string, TaskAction> = {
   'file_spousal_petition': {
     type: 'navigate',
     target: '/probate/spousal-petition',
-    label: 'Open Workbook',
+    label: 'Start Spousal Path',
     icon: 'Heart',
     variant: 'primary'
   },
   'file_succession_petition': {
     type: 'navigate',
     target: '/probate/succession-petition',
-    label: 'Open Workbook',
+    label: 'Start Succession',
     icon: 'Home',
     variant: 'primary'
   },
@@ -135,21 +135,21 @@ export const TASK_ACTIONS: Record<string, TaskAction> = {
   'identify_minor_beneficiaries': {
     type: 'navigate',
     target: '/probate/guardian-ad-litem',
-    label: 'Open Workbook',
+    label: 'Protect Minors',
     icon: 'Baby',
     variant: 'primary'
   },
   'petition_guardian_ad_litem': {
     type: 'navigate',
     target: '/probate/guardian-ad-litem',
-    label: 'Open Workbook',
+    label: 'Set Up Guardian',
     icon: 'ShieldCheck',
     variant: 'primary'
   },
   'obtain_guardian_order': {
     type: 'navigate',
     target: '/probate/guardian-ad-litem',
-    label: 'Open Workbook',
+    label: 'Get Final Order',
     icon: 'Gavel',
     variant: 'primary'
   },
@@ -162,7 +162,7 @@ export const TASK_ACTIONS: Record<string, TaskAction> = {
   'request_bond_waiver': {
     type: 'navigate',
     target: '/probate/bond-waiver',
-    label: 'Open Workbook',
+    label: 'Avoid Bond Cost',
     icon: 'ShieldCheck',
     variant: 'primary'
   },
@@ -194,7 +194,7 @@ export const TASK_ACTIONS: Record<string, TaskAction> = {
   'respond_to_objections': {
     type: 'navigate',
     target: '/probate/contested-probate',
-    label: 'Open Workbook',
+    label: 'View Litigation',
     icon: 'Gavel',
     variant: 'primary'
   },
@@ -244,7 +244,7 @@ export const TASK_ACTIONS: Record<string, TaskAction> = {
   'prepare_accounting': {
     type: 'navigate',
     target: '/probate/final-distribution',
-    label: 'Open Workbook',
+    label: 'Finalize Estate',
     icon: 'Calculator',
     variant: 'primary'
   },
