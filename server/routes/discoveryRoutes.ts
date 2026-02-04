@@ -3,9 +3,20 @@ import { Router } from 'express';
 import multer from 'multer';
 import * as pdfLib from 'pdf-parse';
 import { DiscoveryService } from '../services/discoveryService.js';
+import { DiscoveryIntelligenceService } from '../services/discoveryIntelligenceService.js';
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
+
+// Get estate-wide discovery insights
+router.get('/:estateId/insights', async (req, res) => {
+    try {
+        const insights = await DiscoveryIntelligenceService.getDiscoveryInsights(req.params.estateId);
+        res.json(insights);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch discovery insights' });
+    }
+});
 
 // Get discovery status and categories for an estate
 router.get('/:estateId', async (req, res) => {
@@ -79,7 +90,7 @@ router.post('/analyze', upload.single('file'), async (req: any, res) => {
                 text = data.text;
                 console.log(`[DiscoveryRoute] Extracted ${text.length} characters from PDF`);
                 console.log(`[DiscoveryRoute] PDF text preview:`, text.substring(0, 200));
-                
+
                 if (text.length === 0) {
                     console.log(`[DiscoveryRoute] WARNING: PDF text extraction returned 0 characters. PDF might be image-based or encrypted.`);
                 }
@@ -104,7 +115,12 @@ router.post('/analyze', upload.single('file'), async (req: any, res) => {
 
         // Send to DiscoveryService (handling Real AI)
         console.log(`[DiscoveryRoute] Calling DiscoveryService.analyzeDocument...`);
-        const result = await DiscoveryService.analyzeDocument({ text, imageBase64 });
+        const estateId = req.query.estateId as string;
+        const result = await DiscoveryService.analyzeDocument({
+            text,
+            imageBase64,
+            estateId
+        });
         console.log(`[DiscoveryRoute] Analysis complete. Found ${result.findings.length} findings.`);
 
         if (result.findings.length > 0) {
@@ -123,8 +139,8 @@ router.post('/analyze', upload.single('file'), async (req: any, res) => {
         console.error("[DiscoveryRoute] Discovery Analysis Failed:", error);
         console.error("[DiscoveryRoute] Error stack:", error instanceof Error ? error.stack : 'No stack trace');
         console.error("[DiscoveryRoute] ========================================");
-        res.status(500).json({ 
-            error: 'Failed to analyze document', 
+        res.status(500).json({
+            error: 'Failed to analyze document',
             details: error instanceof Error ? error.message : 'Unknown error',
             stack: error instanceof Error ? error.stack : undefined
         });

@@ -50,6 +50,109 @@ const CATEGORY_MAP: Record<string, { label: string, examples: string, closure: s
     'PERSONAL_PROPERTY': { label: 'Vehicles & Personal Items', examples: 'Cars, Jewelry, Art', closure: 'Inventory review complete' },
 };
 
+const CATEGORY_EDUCATION: Record<string, { why: string, how: string, samples: string[], pitfalls: string[], tips: string[] }> = {
+    'BANK_ACCOUNTS': {
+        why: 'Bank accounts are often the primary source of immediate liquidity for an estate.',
+        how: 'Check the deceased\'s mail for monthly statements. Look for "POD" (Payable on Death) designations which bypass probate.',
+        samples: ['Checking accounts', 'Savings accounts', 'Money Market accounts', 'Certificates of Deposit (CDs)'],
+        pitfalls: ['Forgetting small local bank accounts', 'Assuming joint accounts automatic transfer (depends on state signature card)', 'Not checking for safe deposit boxes at the same branch'],
+        tips: ['Request "Date of Death" balances for all accounts', 'Search for "escheatment" notices in mail']
+    },
+    'INVESTMENTS': {
+        why: 'Brokerage and retirement accounts often represent the bulk of an estate\'s value.',
+        how: 'Search for 1099-INT or 1099-DIV forms from tax years. These reveal where dividends were paid from.',
+        samples: ['Brokerage accounts', 'IRAs (Traditional/Roth)', '401(k) / 403(b)', 'Individual Stocks'],
+        pitfalls: ['Missing old employer plans', 'Not verifying listed beneficiaries', 'Assuming IRAs are part of a Will (usually they are contract-based)'],
+        tips: ['Use an "Asset Search" service if you suspect hidden offshore accounts', 'Check for DRIP (Dividend Reinvestment) plans']
+    },
+    'REAL_PROPERTY': {
+        why: 'Real estate requires formal title transfer and often represents the most complex legal step.',
+        how: 'Search county recorder websites. Look for Deeds, Mortgages, and Property Tax bills.',
+        samples: ['Primary residence', 'Vacation homes', 'Rental properties', 'Vacant land'],
+        pitfalls: ['Forgetting timeshares', 'Unrecorded deeds from family transfers', 'Assuming "Joint Tenancy" without checking the actual deed language'],
+        tips: ['Get a "Preliminary Title Report" to check for unknown liens', 'Verify if property is in a Trust']
+    },
+    'DIGITAL_ASSETS': {
+        why: 'Modern estates often have significant value in accounts with no physical footprint.',
+        how: 'Search email for subscription notices, crypto exchange registrations, or payment platform receipts.',
+        samples: ['Cryptocurrency (Wallets/Exchanges)', 'PayPal/Venmo balances', 'Domain names', 'Monetized social media'],
+        pitfalls: ['Losing private keys for crypto', 'Accounts being locked due to inactivity', 'Assuming family members have legal rights to access email passwords'],
+        tips: ['Check for "Legacy Contact" settings on Google/Apple/Facebook', 'Look for hardware wallets (Ledger/Trezor) in physical office']
+    }
+};
+
+const DiscoveryInsights = ({ discoveryStatus, findings, estateInsights = [] }: { discoveryStatus: DiscoveryStatus | null, findings: DiscoveredAsset[], estateInsights?: any[] }) => {
+    const insights = useMemo(() => {
+        if (!discoveryStatus) return [];
+        const result = [];
+        const completedCount = discoveryStatus.categories.filter(c => c.status !== 'NOT_CHECKED').length;
+
+        // Add backend-driven insights first
+        estateInsights.forEach(ei => {
+            result.push({
+                type: ei.type.toUpperCase(),
+                title: ei.title,
+                content: ei.content,
+                icon: ei.type === 'warning' ? AlertCircle : (ei.type === 'success' ? ShieldCheck : Sparkles)
+            });
+        });
+
+        // 1. Progress-based insight
+        if (completedCount < 4) {
+            result.push({
+                type: 'ADVICE',
+                title: 'Diligence Check',
+                content: 'You\'ve only reviewed a few categories. Thorough discovery is key to avoiding future legal claims.',
+                icon: Clock
+            });
+        }
+
+        // 2. Pattern-based insight: No investments found
+        if (result.length < 4) { // Cap insights to avoid clutter
+            const invCat = discoveryStatus.categories.find(c => c.category === 'INVESTMENTS');
+            const bankCat = discoveryStatus.categories.find(c => c.category === 'BANK_ACCOUNTS');
+            if (bankCat?.status === 'REVIEWED' && invCat?.status === 'NOT_CHECKED') {
+                result.push({
+                    type: 'TIP',
+                    title: 'Check Transfers',
+                    content: 'Found bank accounts? Review statements for recurring transfers to brokerage or retirement accounts.',
+                    icon: Zap
+                });
+            }
+        }
+
+        return result.slice(0, 4); // Show top 4 most relevant insights
+    }, [discoveryStatus, findings, estateInsights]);
+
+    if (insights.length === 0) return null;
+
+    return (
+        <Card className="rounded-[2rem] border-none shadow-sm bg-indigo-900 text-white overflow-hidden p-8 mt-12">
+            <div className="flex items-center gap-3 mb-6">
+                <Sparkles className="w-5 h-5 text-amber-400" />
+                <h3 className="text-xl font-black">AI Discovery Insights</h3>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {insights.map((insight, idx) => (
+                    <div key={idx} className="bg-white/10 rounded-2xl p-5 border border-white/10 hover:bg-white/20 transition-colors">
+                        <div className="flex items-start gap-4">
+                            <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center shrink-0">
+                                <insight.icon className="w-5 h-5 text-indigo-200" />
+                            </div>
+                            <div>
+                                <h4 className="font-black text-sm text-indigo-100 uppercase tracking-widest mb-1">{insight.title}</h4>
+                                <p className="text-xs text-indigo-50 leading-relaxed font-medium">
+                                    {insight.content}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </Card>
+    );
+};
+
 interface DiscoveredAsset {
     confidence: number;
     sourceText: string;
@@ -87,9 +190,19 @@ export default function Discovery() {
                 status = await api.getDiscoveryStatus(estate.id);
             }
 
-            return status;
+            return {
+                ...status,
+                estateId: estate.id
+            };
         },
         enabled: !!user?.id
+    });
+
+    // Estate-wide insights from Multi-document Intelligence
+    const { data: estateInsights } = useQuery({
+        queryKey: ["discovery-insights", discoveryStatus?.estateId],
+        queryFn: () => api.getDiscoveryInsights(discoveryStatus!.estateId),
+        enabled: !!discoveryStatus?.estateId
     });
 
     const updateStatusMutation = useMutation({
@@ -97,6 +210,7 @@ export default function Discovery() {
             api.updateDiscoveryCategory(id, { status, evidenceSource }),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["discovery-status"] });
+            queryClient.invalidateQueries({ queryKey: ["discovery-insights"] });
             toast.success("Diligence record updated");
         }
     });
@@ -106,26 +220,17 @@ export default function Discovery() {
             api.addNegativeAssurance(id, statement),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["discovery-status"] });
+            queryClient.invalidateQueries({ queryKey: ["discovery-insights"] });
             toast.success("Negative assurance logged");
         }
     });
 
     const analyzeMutation = useMutation({
-        mutationFn: async (file: File) => {
-            const formData = new FormData();
-            formData.append("file", file);
-            const token = localStorage.getItem("auth_token");
-            const res = await fetch("/api/discovery/analyze", {
-                method: "POST",
-                headers: { "Authorization": `Bearer ${token}` },
-                body: formData
-            });
-            if (!res.ok) throw new Error("Analysis failed");
-            return res.json();
-        },
+        mutationFn: (file: File) => api.analyzeDiscoveryDocument(file, discoveryStatus!.estateId),
         onSuccess: (data) => {
             setFindings(data.findings);
             setAnalyzing(false);
+            queryClient.invalidateQueries({ queryKey: ["discovery-insights"] });
             if (data.findings.length > 0) toast.success(`Found ${data.findings.length} potential assets!`);
             else toast.info("No obvious assets found. Review complete.");
         },
@@ -458,57 +563,146 @@ export default function Discovery() {
                                                                 </Button>
                                                             </DialogTrigger>
                                                             {/* Reuse existing dialog content logic here... ideally extracted to subcomponent but keeping inline for complexity constraint */}
-                                                            <DialogContent className="rounded-[2rem]">
-                                                                {/* ... (Keep existing Dialog Content Logic) ... */}
+                                                            <DialogContent className="rounded-[2.5rem] max-w-2xl max-h-[90vh] overflow-y-auto">
                                                                 <DialogHeader>
-                                                                    <DialogTitle className="text-xl font-black">Verify {CATEGORY_MAP[cat.category]?.label}</DialogTitle>
+                                                                    <div className="flex items-center gap-4 mb-2">
+                                                                        <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center border border-indigo-100">
+                                                                            <Search className="w-6 h-6 text-indigo-600" />
+                                                                        </div>
+                                                                        <div>
+                                                                            <DialogTitle className="text-2xl font-black text-slate-900">
+                                                                                {CATEGORY_MAP[cat.category]?.label}
+                                                                            </DialogTitle>
+                                                                            <DialogDescription className="text-slate-500 font-medium">
+                                                                                {CATEGORY_MAP[cat.category]?.examples}
+                                                                            </DialogDescription>
+                                                                        </div>
+                                                                    </div>
                                                                 </DialogHeader>
-                                                                {/* ... (Same body as before) ... */}
-                                                                {/* NOTE: For brevity in this tool call, I am assuming the Dialog Content needs to be fully retained. I will copy it back in next block if needed, but the tool instruction is to replace structure. I will paste the relevant parts to ensure it works. */}
-                                                                <div className="space-y-6 py-6">
-                                                                    <div className="space-y-3">
-                                                                        <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">Status</Label>
-                                                                        <div className="grid grid-cols-2 gap-3">
+
+                                                                <div className="space-y-8 py-4">
+                                                                    {/* Educational Brief */}
+                                                                    {CATEGORY_EDUCATION[cat.category] && (
+                                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                                            <div className="space-y-4">
+                                                                                <div className="space-y-1">
+                                                                                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Why it matters</h4>
+                                                                                    <p className="text-sm font-medium text-slate-700 leading-relaxed">
+                                                                                        {CATEGORY_EDUCATION[cat.category].why}
+                                                                                    </p>
+                                                                                </div>
+                                                                                <div className="space-y-1">
+                                                                                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">How to search</h4>
+                                                                                    <p className="text-sm font-medium text-slate-700 leading-relaxed">
+                                                                                        {CATEGORY_EDUCATION[cat.category].how}
+                                                                                    </p>
+                                                                                </div>
+                                                                            </div>
+                                                                            <div className="space-y-4 bg-slate-50 rounded-3xl p-5 border border-slate-100">
+                                                                                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Common Samples</h4>
+                                                                                <div className="flex flex-wrap gap-2">
+                                                                                    {CATEGORY_EDUCATION[cat.category].samples.map((s, i) => (
+                                                                                        <Badge key={i} variant="outline" className="bg-white text-slate-600 border-slate-200">
+                                                                                            {s}
+                                                                                        </Badge>
+                                                                                    ))}
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    )}
+
+                                                                    <Separator />
+
+                                                                    <div className="space-y-4">
+                                                                        <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">Update Diligence Status</Label>
+                                                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                                                                             {[
-                                                                                { value: 'REVIEWED', label: 'Assets Found', color: 'border-emerald-200 hover:bg-emerald-50' },
-                                                                                { value: 'NOT_FOUND', label: 'None Found', color: 'border-amber-200 hover:bg-amber-50' },
-                                                                                { value: 'NA', label: 'Not Applicable', color: 'border-slate-200 hover:bg-slate-50' },
-                                                                                { value: 'NOT_CHECKED', label: 'Reset', color: 'border-slate-100' }
+                                                                                { value: 'REVIEWED', label: 'Assets Found', icon: ShieldCheck, color: 'border-emerald-200 hover:bg-emerald-50 text-emerald-700' },
+                                                                                { value: 'NOT_FOUND', label: 'None Found', icon: Search, color: 'border-amber-200 hover:bg-amber-50 text-amber-700' },
+                                                                                { value: 'NA', label: 'Not Applicable', icon: AlertCircle, color: 'border-slate-200 hover:bg-slate-50 text-slate-500' },
+                                                                                { value: 'NOT_CHECKED', label: 'Reset', icon: Clock, color: 'border-slate-100 text-slate-400' }
                                                                             ].map((opt) => (
                                                                                 <button
                                                                                     key={opt.value}
                                                                                     onClick={() => updateStatusMutation.mutate({ id: cat.id, status: opt.value })}
                                                                                     className={cn(
-                                                                                        "h-12 rounded-2xl border text-xs font-black transition-all",
-                                                                                        cat.status === opt.value ? "bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-100" :
-                                                                                            `bg-white text-slate-600 ${opt.color}`
+                                                                                        "h-20 rounded-2xl border flex flex-col items-center justify-center gap-2 transition-all",
+                                                                                        cat.status === opt.value ? "bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-100 ring-2 ring-indigo-600 ring-offset-2" :
+                                                                                            `bg-white ${opt.color}`
                                                                                     )}
                                                                                 >
-                                                                                    {opt.label}
+                                                                                    <opt.icon className={cn("w-5 h-5", cat.status === opt.value ? "text-white" : "")} />
+                                                                                    <span className="text-[10px] font-black uppercase tracking-wider">{opt.label}</span>
                                                                                 </button>
                                                                             ))}
                                                                         </div>
                                                                     </div>
-                                                                    {/* ... (Rest of dialog logic preserved) ... */}
+
+                                                                    {/* Pro Tips & Pitfalls */}
+                                                                    {CATEGORY_EDUCATION[cat.category] && (
+                                                                        <div className="space-y-4">
+                                                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                                                <div className="bg-rose-50 border border-rose-100 rounded-2xl p-4">
+                                                                                    <h5 className="text-[10px] font-black text-rose-900 uppercase tracking-widest flex items-center gap-2 mb-2">
+                                                                                        <AlertCircle className="w-3.5 h-3.5" />
+                                                                                        Common Pitfalls
+                                                                                    </h5>
+                                                                                    <ul className="space-y-1.5">
+                                                                                        {CATEGORY_EDUCATION[cat.category].pitfalls.map((p, i) => (
+                                                                                            <li key={i} className="text-xs text-rose-700 font-medium leading-relaxed">• {p}</li>
+                                                                                        ))}
+                                                                                    </ul>
+                                                                                </div>
+                                                                                <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-4">
+                                                                                    <h5 className="text-[10px] font-black text-emerald-900 uppercase tracking-widest flex items-center gap-2 mb-2">
+                                                                                        <Zap className="w-3.5 h-3.5" />
+                                                                                        Pro Tips
+                                                                                    </h5>
+                                                                                    <ul className="space-y-1.5">
+                                                                                        {CATEGORY_EDUCATION[cat.category].tips.map((t, i) => (
+                                                                                            <li key={i} className="text-xs text-emerald-700 font-medium leading-relaxed">• {t}</li>
+                                                                                        ))}
+                                                                                    </ul>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    )}
+
+                                                                    <Separator />
+
                                                                     {cat.status === 'REVIEWED' && (
                                                                         <div className="space-y-3">
                                                                             <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">Evidence Source</Label>
-                                                                            <Input
-                                                                                className="rounded-2xl h-12 border-slate-200"
-                                                                                placeholder="e.g. 2024 Tax Returns"
-                                                                                defaultValue={cat.evidenceSource}
-                                                                                onBlur={(e) => updateStatusMutation.mutate({ id: cat.id, status: cat.status, evidenceSource: e.target.value })}
+                                                                            <div className="relative">
+                                                                                <Input
+                                                                                    className="rounded-2xl h-12 border-slate-200 pl-4"
+                                                                                    placeholder="e.g. 2024 Tax Returns, Month-End Statement"
+                                                                                    defaultValue={cat.evidenceSource}
+                                                                                    onBlur={(e) => updateStatusMutation.mutate({ id: cat.id, status: cat.status, evidenceSource: e.target.value })}
+                                                                                />
+                                                                            </div>
+                                                                        </div>
+                                                                    )}
+
+                                                                    {cat.status === 'NOT_FOUND' && (
+                                                                        <div className="space-y-3">
+                                                                            <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">Statement of Diligence</Label>
+                                                                            <Textarea
+                                                                                className="rounded-3xl border-slate-200 min-h-[100px] p-4 text-sm font-medium"
+                                                                                placeholder="Affirm that you have searched all reasonable locations for these assets..."
+                                                                                defaultValue={cat.negativeFindings?.[0]?.statement}
+                                                                                onBlur={(e) => negativeAssuranceMutation.mutate({ id: cat.id, statement: e.target.value })}
                                                                             />
                                                                         </div>
                                                                     )}
-                                                                    {cat.status === 'NOT_FOUND' && (
-                                                                        <Textarea
-                                                                            className="rounded-3xl border-slate-200 min-h-[100px] p-4 text-sm font-medium"
-                                                                            placeholder="Statement of negative assurance..."
-                                                                            onBlur={(e) => negativeAssuranceMutation.mutate({ id: cat.id, statement: e.target.value })}
-                                                                        />
-                                                                    )}
                                                                 </div>
+                                                                <DialogFooter className="sm:justify-start">
+                                                                    <DialogTrigger asChild>
+                                                                        <Button type="button" className="rounded-2xl h-12 px-8 bg-slate-900 font-black text-xs uppercase tracking-widest">
+                                                                            Done
+                                                                        </Button>
+                                                                    </DialogTrigger>
+                                                                </DialogFooter>
                                                             </DialogContent>
                                                         </Dialog>
                                                     </TableCell>
@@ -520,6 +714,13 @@ export default function Discovery() {
                             </Card>
                         </div>
                     )}
+
+                    {/* Smart Insights Section */}
+                    <DiscoveryInsights
+                        discoveryStatus={discoveryStatus}
+                        findings={findings}
+                        estateInsights={estateInsights}
+                    />
                 </div>
             </main>
         </div>
@@ -548,4 +749,8 @@ function Landmark(props: any) {
             <polygon points="12 2 3 7 21 7 12 2" />
         </svg>
     );
+}
+
+function Separator() {
+    return <div className="h-px bg-slate-100 w-full" />;
 }

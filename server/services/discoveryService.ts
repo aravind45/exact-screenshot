@@ -137,33 +137,20 @@ export class DiscoveryService {
     /**
      * Analyze uploaded document for assets using Real AI
      */
-    static async analyzeDocument({ text, imageBase64 }: { text?: string, imageBase64?: string }) {
-        console.log(`[DiscoveryService] Starting analysis. Text length: ${text?.length || 0}, Image: ${!!imageBase64}`);
-        
+    static async analyzeDocument({ text, imageBase64, estateId }: { text?: string, imageBase64?: string, estateId?: string }) {
+        console.log(`[DiscoveryService] Starting analysis. Text length: ${text?.length || 0}, Image: ${!!imageBase64}, Estate: ${estateId}`);
+
         if (!text && !imageBase64) {
             console.log(`[DiscoveryService] No content provided`);
             return { findings: [], summary: "No content extracted from document." };
-        }
-
-        // Log first 500 chars of text for debugging
-        if (text) {
-            console.log(`[DiscoveryService] Text preview:`, text.substring(0, 500));
         }
 
         try {
             console.log(`[DiscoveryService] Calling ai.discoverRelatedAssets...`);
             const clues = await ai.discoverRelatedAssets(text, imageBase64);
             console.log(`[DiscoveryService] AI returned ${clues.length} clues`);
-            
-            if (clues.length === 0) {
-                console.log(`[DiscoveryService] WARNING: AI returned 0 clues. This might indicate an issue with the AI service or the document content.`);
-                console.log(`[DiscoveryService] Text sample for debugging:`, text?.substring(0, 200));
-            }
 
             const findings = clues.map(clue => {
-                console.log(`[DiscoveryService] Processing clue:`, JSON.stringify(clue, null, 2));
-                
-                // Map AI category to our internal categories
                 let category = 'INVESTMENTS';
                 const lowerAsset = (clue.potentialAsset || '').toLowerCase();
                 const lowerInst = (clue.institution || '').toLowerCase();
@@ -173,8 +160,6 @@ export class DiscoveryService {
                 else if (lowerAsset.includes('crypto') || lowerInst.includes('coinbase') || lowerInst.includes('binance')) category = 'DIGITAL_ASSETS';
                 else if (lowerAsset.includes('brokerage') || lowerAsset.includes('investment') || lowerInst.includes('robinhood') || lowerInst.includes('fidelity') || lowerInst.includes('vanguard')) category = 'INVESTMENTS';
 
-                console.log(`[DiscoveryService] Mapped clue: ${clue.institution} ${clue.potentialAsset} -> ${category}`);
-
                 return {
                     confidence: clue.confidence,
                     category,
@@ -182,23 +167,37 @@ export class DiscoveryService {
                         name: `${clue.institution} ${clue.potentialAsset}`,
                         institution: clue.institution,
                         assetType: clue.potentialAsset,
-                        value: 0, // AI might not extract value in this specific call, user can edit
+                        value: 0,
                     },
                     sourceText: clue.sourceClue,
                     suggestedAction: `Verify ${clue.institution} holdings`
                 };
             });
 
-            console.log(`[DiscoveryService] Returning ${findings.length} findings`);
-            console.log(`[DiscoveryService] Findings:`, JSON.stringify(findings, null, 2));
-            
+            // PERSISTENCE: Save clues to the estate's discovery trail
+            if (estateId && findings.length > 0) {
+                console.log(`[DiscoveryService] Persisting findings for estate ${estateId}`);
+                const estate = await prisma.estate.findUnique({ where: { id: estateId } });
+                if (estate) {
+                    await prisma.estateDocument.create({
+                        data: {
+                            estateId,
+                            userId: estate.userId,
+                            documentType: 'DISCOVERY_SCAN',
+                            name: `Scan - ${new Date().toLocaleDateString()}`,
+                            status: 'OBTAINED',
+                            clues: clues as any // Store raw AI clues for future correlation
+                        }
+                    });
+                }
+            }
+
             return {
                 findings,
                 summary: `${findings.length} potential assets identified by AI analysis.`
             };
         } catch (error) {
             console.error("[DiscoveryService] AI Analysis Error:", error);
-            console.error("[DiscoveryService] Error stack:", error instanceof Error ? error.stack : 'No stack trace');
             throw error;
         }
     }

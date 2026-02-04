@@ -928,6 +928,27 @@ export const api = {
         return parseResponse(response);
     },
 
+    getDiscoveryInsights: async (estateId: string): Promise<any[]> => {
+        const response = await fetch(`${API_URL}/discovery/${estateId}/insights`, {
+            headers: getHeaders(),
+        });
+        return parseResponse(response);
+    },
+
+    analyzeDiscoveryDocument: async (file: File, estateId: string): Promise<any> => {
+        const formData = new FormData();
+        formData.append("file", file);
+        const token = localStorage.getItem("auth_token");
+        const response = await fetch(`${API_URL}/discovery/analyze?estateId=${estateId}`, {
+            method: "POST",
+            headers: {
+                ...(token ? { "Authorization": `Bearer ${token}` } : {}),
+            },
+            body: formData,
+        });
+        return parseResponse(response);
+    },
+
     downloadDossier: async () => {
         const response = await fetch(`${API_URL}/estates/my/dossier/download`, {
             headers: getHeaders(),
