@@ -438,14 +438,6 @@ export default function SettlementTrail() {
                     </div>
                 </div>
 
-                {/* Defense Footer (Minimalist) */}
-                <div className="fixed bottom-6 right-6 z-50">
-                    <div className="bg-slate-900/90 backdrop-blur-md text-white px-4 py-2 rounded-full shadow-2xl border border-slate-700 flex items-center gap-3 hover:scale-105 transition-transform cursor-default">
-                        <Scale className="w-4 h-4 text-emerald-400" />
-                        <span className="text-[10px] font-bold uppercase tracking-wider">Immutable Ledger Active</span>
-                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                    </div>
-                </div>
             </main>
         </div>
     );

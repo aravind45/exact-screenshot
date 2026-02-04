@@ -235,6 +235,8 @@ export default function AssetDetail() {
         assetType: asset.assetType || "",
         category: asset.category || "",
         value: asset.value || 0,
+        dateOfDeathValue: asset.dateOfDeathValue || 0,
+        settledValue: asset.settledValue || 0,
         priority: asset.priority || "medium",
         status: asset.status || "discovered",
         accountNumber: asset.accountNumber || "",
@@ -524,11 +526,29 @@ export default function AssetDetail() {
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] font-black uppercase text-slate-400 mb-1 block">Account Value</label>
+                    <label className="text-[10px] font-black uppercase text-slate-400 mb-1 block">Value at Death</label>
+                    <Input
+                      type="number"
+                      value={formData.dateOfDeathValue}
+                      onChange={(e) => setFormData({ ...formData, dateOfDeathValue: parseFloat(e.target.value) || 0 })}
+                      className="h-10 rounded-xl"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black uppercase text-slate-400 mb-1 block">Actual Collected</label>
+                    <Input
+                      type="number"
+                      value={formData.settledValue}
+                      onChange={(e) => setFormData({ ...formData, settledValue: parseFloat(e.target.value) || 0 })}
+                      className="h-10 rounded-xl"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black uppercase text-slate-400 mb-1 block">Current Value</label>
                     <Input
                       type="number"
                       value={formData.value}
-                      onChange={(e) => setFormData({ ...formData, value: e.target.value })}
+                      onChange={(e) => setFormData({ ...formData, value: parseFloat(e.target.value) || 0 })}
                       className="h-10 rounded-xl"
                     />
                   </div>
@@ -597,9 +617,9 @@ export default function AssetDetail() {
 
                 {/* Right: Values + Action */}
                 <div className="flex items-center gap-6">
-                  <div className="text-right">
-                    <p className="text-[10px] font-medium uppercase text-slate-400">Value at Death</p>
-                    <p className="text-sm font-bold text-slate-600">
+                  <div className="text-right cursor-pointer group/val" onClick={() => setIsEditing(true)}>
+                    <p className="text-[10px] font-medium uppercase text-slate-400 group-hover/val:text-indigo-500 transition-colors">Value at Death</p>
+                    <p className="text-sm font-bold text-slate-600 group-hover/val:text-indigo-600">
                       {(uiAsset.dateOfDeathValue || 0) === 0 ? (
                         <span className="text-slate-400 italic">Unknown</span>
                       ) : (
@@ -608,22 +628,20 @@ export default function AssetDetail() {
                     </p>
                   </div>
 
-                  {uiAsset.settledValue !== undefined && (
-                    <div className="text-right">
-                      <p className="text-[10px] font-medium uppercase text-emerald-600">Actual Collected</p>
-                      <p className="text-sm font-bold text-emerald-600">
-                        {uiAsset.settledValue === 0 ? (
-                          <span className="text-slate-400 italic">$0</span>
-                        ) : (
-                          formatCurrency(uiAsset.settledValue)
-                        )}
-                      </p>
-                    </div>
-                  )}
+                  <div className="text-right cursor-pointer group/val" onClick={() => setIsEditing(true)}>
+                    <p className="text-[10px] font-medium uppercase text-emerald-600 group-hover/val:text-emerald-500 transition-colors">Actual Collected</p>
+                    <p className="text-sm font-bold text-emerald-600 group-hover/val:text-emerald-500">
+                      {(uiAsset.settledValue || 0) === 0 ? (
+                        <span className="text-slate-400 italic">$0</span>
+                      ) : (
+                        formatCurrency(uiAsset.settledValue || 0)
+                      )}
+                    </p>
+                  </div>
 
-                  <div className="text-right">
-                    <p className="text-[10px] font-medium uppercase text-slate-400">Current Value</p>
-                    <p className="text-xl font-bold text-slate-900">
+                  <div className="text-right cursor-pointer group/val" onClick={() => setIsEditing(true)}>
+                    <p className="text-[10px] font-medium uppercase text-slate-400 group-hover/val:text-indigo-500 transition-colors">Current Value</p>
+                    <p className="text-xl font-bold text-slate-900 group-hover/val:text-indigo-600">
                       {uiAsset.value === 0 ? (
                         <span className="text-slate-400 italic">Pending</span>
                       ) : (
@@ -631,15 +649,6 @@ export default function AssetDetail() {
                       )}
                     </p>
                   </div>
-
-                  <Button
-                    variant={getAssetTaxonomyState(uiAsset as any, estate as any) === 'action_required' ? 'default' : 'outline'}
-                    size="sm"
-                    className="h-9 px-4 rounded-lg text-xs font-bold"
-                  >
-                    {getTaxonomyInfo(uiAsset as any, estate as any).cta}
-                    <ArrowRight className="w-3 h-3 ml-1" />
-                  </Button>
                 </div>
               </div>
             )}
