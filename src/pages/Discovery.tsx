@@ -59,7 +59,9 @@ interface DiscoveredAsset {
         assetType: string;
         value?: number;
         accountNumber?: string;
+        address?: string;
     };
+    educationalNote?: string;
 }
 
 export default function Discovery() {
@@ -293,33 +295,88 @@ export default function Discovery() {
                                     <div className="grid grid-cols-1 gap-4">
                                         {findings.map((finding, idx) => (
                                             <Card key={idx} className="rounded-3xl border-none shadow-lg shadow-slate-200/50 overflow-hidden bg-white hover:scale-[1.01] transition-transform">
-                                                <CardContent className="flex flex-col md:flex-row md:items-center justify-between p-6 gap-6">
-                                                    <div className="space-y-2">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center border border-amber-100">
-                                                                <Landmark className="w-5 h-5 text-amber-600" />
+                                                <CardContent className="p-6 space-y-4">
+                                                    {/* Asset Header */}
+                                                    <div className="flex items-start justify-between gap-4">
+                                                        <div className="flex items-start gap-3 flex-1">
+                                                            <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center border border-amber-100 shrink-0">
+                                                                <Sparkles className="w-5 h-5 text-amber-600" />
                                                             </div>
-                                                            <div>
-                                                                <div className="flex items-center gap-2">
+                                                            <div className="flex-1 min-w-0">
+                                                                <div className="flex items-center gap-2 flex-wrap">
                                                                     <h3 className="font-black text-lg text-slate-900">{finding.asset.name}</h3>
                                                                     <Badge variant="secondary" className="rounded-md bg-indigo-50 text-indigo-700 font-black text-[9px] uppercase">
                                                                         {finding.asset.assetType}
                                                                     </Badge>
                                                                 </div>
-                                                                <p className="text-xs font-medium text-slate-400">
-                                                                    {finding.asset.institution} {finding.asset.accountNumber && `• ${finding.asset.accountNumber}`}
+                                                                <p className="text-xs font-medium text-slate-500 mt-1">
+                                                                    {finding.asset.institution}
+                                                                    {finding.asset.accountNumber && ` • Account ${finding.asset.accountNumber}`}
+                                                                    {finding.asset.value && ` • $${finding.asset.value.toLocaleString()}`}
+                                                                </p>
+                                                                <p className="text-xs text-slate-400 mt-1 italic">
+                                                                    {finding.sourceText}
                                                                 </p>
                                                             </div>
                                                         </div>
+                                                        <Button
+                                                            onClick={() => confirmMutation.mutate(finding.asset)}
+                                                            size="sm"
+                                                            className="rounded-xl h-9 px-4 bg-emerald-600 hover:bg-emerald-700 font-black text-[10px] uppercase tracking-widest shadow-lg shadow-emerald-100 shrink-0"
+                                                        >
+                                                            <Plus className="w-3.5 h-3.5 mr-1.5" />
+                                                            Add
+                                                        </Button>
                                                     </div>
-                                                    <Button
-                                                        onClick={() => confirmMutation.mutate(finding.asset)}
-                                                        size="sm"
-                                                        className="rounded-xl h-10 px-6 bg-emerald-600 hover:bg-emerald-700 font-black text-[10px] uppercase tracking-widest shadow-lg shadow-emerald-100"
-                                                    >
-                                                        <Plus className="w-3.5 h-3.5 mr-2" />
-                                                        Add
-                                                    </Button>
+
+                                                    {/* Confidence Score */}
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="flex-1 bg-slate-100 rounded-full h-2 overflow-hidden">
+                                                            <div
+                                                                className={cn(
+                                                                    "h-2 rounded-full transition-all duration-500",
+                                                                    finding.confidence >= 0.8 ? "bg-emerald-500" :
+                                                                        finding.confidence >= 0.6 ? "bg-amber-500" :
+                                                                            "bg-slate-400"
+                                                                )}
+                                                                style={{ width: `${finding.confidence * 100}%` }}
+                                                            />
+                                                        </div>
+                                                        <TooltipProvider>
+                                                            <Tooltip>
+                                                                <TooltipTrigger asChild>
+                                                                    <div className="flex items-center gap-1.5 cursor-help">
+                                                                        <span className="text-xs font-bold text-slate-600">
+                                                                            {Math.round(finding.confidence * 100)}% confident
+                                                                        </span>
+                                                                        <Info className="w-3.5 h-3.5 text-slate-400" />
+                                                                    </div>
+                                                                </TooltipTrigger>
+                                                                <TooltipContent className="max-w-xs">
+                                                                    <p className="text-xs">
+                                                                        Confidence based on document patterns, keyword matches, and proximity of related information.
+                                                                    </p>
+                                                                </TooltipContent>
+                                                            </Tooltip>
+                                                        </TooltipProvider>
+                                                    </div>
+
+                                                    {/* Educational Note */}
+                                                    {finding.educationalNote && (
+                                                        <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4">
+                                                            <div className="flex items-start gap-2">
+                                                                <Info className="w-4 h-4 text-blue-600 mt-0.5 shrink-0" />
+                                                                <div className="flex-1 min-w-0">
+                                                                    <h4 className="text-xs font-black text-blue-900 mb-1.5 uppercase tracking-wider">
+                                                                        Why This Matters
+                                                                    </h4>
+                                                                    <p className="text-xs text-blue-700 leading-relaxed">
+                                                                        {finding.educationalNote}
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    )}
                                                 </CardContent>
                                             </Card>
                                         ))}
