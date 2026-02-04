@@ -96,52 +96,36 @@ export function AssetAuthorityBlocker({ institutionName, hasLetters, track }: As
         <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`flex flex-col md:flex-row items-center gap-6 p-5 border rounded-3xl shadow-sm overflow-hidden relative ${colorClass.split(' ')[0]} ${colorClass.split(' ')[1]}`}
+            className={`flex items-center gap-4 p-4 border rounded-xl ${colorClass.split(' ')[0]} ${colorClass.split(' ')[1]}`}
         >
-            {/* Background Decorative Element */}
-            <div className="absolute -left-4 -bottom-4 opacity-[0.03] pointer-events-none text-slate-900">
-                <Icon className="w-24 h-24 rotate-12" />
+            <div className={`p-2 rounded-lg flex-shrink-0 ${iconBgClass}`}>
+                <Icon className={`w-4 h-4 ${textColorClass}`} />
             </div>
-
-            {/* Left: Icon & Core Message */}
-            <div className="flex flex-1 items-center gap-5 min-w-0 relative z-10">
-                <div className={`p-3.5 rounded-2xl flex-shrink-0 ${iconBgClass}`}>
-                    <Icon className={`w-6 h-6 ${textColorClass}`} />
-                </div>
-                <div className="min-w-0">
-                    <h2 className="text-sm font-black text-slate-900 uppercase tracking-wider mb-1 flex items-center gap-2">
-                        {config.title}
-                        <span className={`h-1.5 w-1.5 rounded-full animate-pulse bg-${config.color}-500`} />
-                    </h2>
-                    <p className="text-[13px] text-slate-600 font-medium leading-tight">
-                        {config.description}
-                    </p>
-                </div>
+            <div className="flex-1 min-w-0">
+                <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wide">
+                    {config.title}
+                </h2>
+                <p className="text-xs text-slate-600 font-medium">
+                    {config.description}
+                </p>
             </div>
-
-            {/* Middle: Key Requirements Tags */}
-            <div className="flex flex-wrap items-center gap-3 relative z-10">
+            <div className="flex items-center gap-2">
                 {config.docs.map((doc, i) => (
-                    <div key={i} className="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 rounded-xl shadow-sm">
-                        <FileText className="w-3.5 h-3.5 text-slate-400" />
-                        <span className="text-[10px] font-bold text-slate-700 uppercase tracking-tight">{doc}</span>
-                    </div>
+                    <span key={i} className="text-[9px] font-bold text-slate-500 uppercase px-2 py-1 bg-white rounded border border-slate-200">
+                        {doc}
+                    </span>
                 ))}
             </div>
-
-            {/* Right: CTA */}
-            <div className="flex-shrink-0 relative z-10">
-                <Button
-                    size="sm"
-                    className="bg-slate-900 hover:bg-slate-800 text-white font-black text-[10px] uppercase tracking-widest h-10 px-6 rounded-xl gap-2 shadow-md shadow-slate-200"
-                    asChild
-                >
-                    <Link to={config.link}>
-                        {config.linkText}
-                        <ArrowRight className="w-3 h-3" />
-                    </Link>
-                </Button>
-            </div>
+            <Button
+                size="sm"
+                className="bg-slate-900 hover:bg-slate-800 text-white font-bold text-[9px] uppercase h-8 px-4 rounded-lg"
+                asChild
+            >
+                <Link to={config.link}>
+                    {config.linkText}
+                    <ArrowRight className="w-3 h-3 ml-1" />
+                </Link>
+            </Button>
         </motion.div>
     );
 }

@@ -475,7 +475,11 @@ export default function AssetDetail() {
                   <ArrowLeft className="w-5 h-5 text-slate-600" />
                 </Button>
                 <div className="flex items-center gap-3">
-                  <span className="text-lg font-bold text-slate-700">Institution: {uiAsset.institution}</span>
+                  <span className="text-lg font-bold text-slate-700">
+                    {uiAsset.institution === 'Newly Identified Account' || !uiAsset.institution
+                      ? `${uiAsset.assetType || 'Asset'} Account`
+                      : uiAsset.institution}
+                  </span>
                 </div>
               </div>
 
@@ -644,41 +648,6 @@ export default function AssetDetail() {
               </div>
             )}
           </motion.div>
-
-          {/* SIMPLIFIED 3-STEP PROGRESS */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-            <div className="flex items-center justify-between max-w-2xl mx-auto">
-              {[
-                { id: 'notified', label: 'Notified', active: uiAsset.status !== 'discovered' },
-                { id: 'in_progress', label: 'In Progress', active: ['notified', 'notices_sent', 'claimed'].includes(uiAsset.status) },
-                { id: 'claimed', label: 'Claimed', active: ['collected', 'closed'].includes(uiAsset.status) }
-              ].map((stage, idx) => (
-                <div key={stage.id} className="flex items-center flex-1">
-                  <div className="flex flex-col items-center flex-1">
-                    <div className={cn(
-                      "w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all",
-                      stage.active
-                        ? "bg-blue-500 border-blue-500 text-white"
-                        : "bg-white border-slate-200 text-slate-400"
-                    )}>
-                      {stage.active ? <CheckCircle2 className="w-5 h-5" /> : <div className="w-2 h-2 rounded-full bg-slate-300" />}
-                    </div>
-                    <p className={cn(
-                      "text-xs font-bold mt-2",
-                      stage.active ? "text-slate-900" : "text-slate-400"
-                    )}>{stage.label}</p>
-                  </div>
-                  {idx < 2 && (
-                    <div className={cn(
-                      "h-0.5 flex-1 mx-2 transition-all",
-                      stage.active ? "bg-blue-500" : "bg-slate-200"
-                    )} />
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/* LEFT COLUMN: ACTION & WORKFLOW */}
