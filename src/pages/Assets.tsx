@@ -298,18 +298,31 @@ export default function Assets() {
                             )}
                         </div>
 
-                        <TabsContent value="inventory" className="space-y-8 mt-0 outline-none">
-                            <div className="flex items-center gap-2 bg-white p-4 rounded-3xl border border-slate-200 shadow-sm">
+                        <TabsContent value="inventory" className="space-y-6 mt-0 outline-none">
+                            <div className="flex items-center gap-3">
                                 <div className="relative flex-1">
                                     <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                                     <Input
                                         placeholder="Search assets..."
-                                        className="pl-9 h-11 w-full bg-slate-50 border-transparent focus:bg-white focus:border-slate-200 rounded-xl text-sm transition-all"
+                                        className="pl-10 h-10 bg-white border-slate-200 rounded-lg text-sm"
                                     />
                                 </div>
-                                <Button variant="outline" size="sm" className="h-11 px-6 border-slate-200 rounded-xl font-bold text-slate-600">
-                                    <Filter className="w-4 h-4 mr-2" /> Filter
-                                </Button>
+                                <select className="h-10 px-4 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-700 cursor-pointer hover:border-slate-300 transition-colors">
+                                    <option value="">All Processes</option>
+                                    <option value="probate">Probate</option>
+                                    <option value="small_estate">Small Estate</option>
+                                    <option value="spousal">Spousal Property</option>
+                                    <option value="trust">Trust Administration</option>
+                                    <option value="non_probate">Non-Probate Transfer</option>
+                                </select>
+                                <select className="h-10 px-4 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-700 cursor-pointer hover:border-slate-300 transition-colors">
+                                    <option value="">All Statuses</option>
+                                    <option value="discovered">Discovered</option>
+                                    <option value="notified">Notified</option>
+                                    <option value="claimed">Claimed</option>
+                                    <option value="collected">Collected</option>
+                                    <option value="closed">Closed</option>
+                                </select>
                             </div>
 
                             <div className="grid grid-cols-1 gap-4">
