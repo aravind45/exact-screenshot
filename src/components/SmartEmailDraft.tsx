@@ -113,18 +113,14 @@ export function SmartEmailDraft({ open, onOpenChange, asset, estate, onLogSent }
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[650px] overflow-hidden rounded-[32px] p-0 border-none shadow-2xl bg-white">
-                <div className="bg-slate-900 p-8 text-white relative">
-                    <div className="absolute top-0 right-0 p-8 opacity-10">
-                        <Scale className="w-24 h-24" />
-                    </div>
-                    <Badge className="bg-blue-500 text-white border-none mb-4 px-3 py-1 font-black uppercase text-[10px] tracking-widest">Draft Assist</Badge>
-                    <DialogTitle className="text-3xl font-black tracking-tighter leading-none mb-2">Smart Email Draft</DialogTitle>
-                    <div className="text-slate-400 font-medium">Professional templates for estate administration.</div>
+            <DialogContent className="sm:max-w-[650px] max-h-[96vh] flex flex-col overflow-hidden rounded-[32px] p-0 border-none shadow-2xl bg-white">
+                <div className="bg-slate-900 px-6 py-3 text-white relative flex-shrink-0">
+                    <Badge className="bg-blue-600 text-white border-none px-3 py-1 font-black uppercase text-[9px] tracking-widest">Draft Assist</Badge>
+                    <DialogTitle className="sr-only">Email Draft</DialogTitle>
                 </div>
 
-                <div className="p-8 space-y-6 max-h-[60vh] overflow-y-auto">
-                    <div className="flex gap-2 p-1 bg-slate-100 rounded-2xl w-fit">
+                <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                    <div className="flex gap-2 p-1 bg-slate-100 rounded-xl w-fit">
                         {Object.entries(templates).map(([id, t]) => (
                             <Button
                                 key={id}
@@ -132,7 +128,7 @@ export function SmartEmailDraft({ open, onOpenChange, asset, estate, onLogSent }
                                 size="sm"
                                 onClick={() => setSelectedTemplate(id)}
                                 className={cn(
-                                    "rounded-xl font-bold text-xs px-4",
+                                    "rounded-lg font-bold text-xs px-4 h-8",
                                     selectedTemplate === id ? "bg-white text-slate-900 shadow-sm hover:bg-white" : "text-slate-500 hover:bg-slate-200"
                                 )}
                             >
@@ -141,13 +137,13 @@ export function SmartEmailDraft({ open, onOpenChange, asset, estate, onLogSent }
                         ))}
                     </div>
 
-                    <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-1">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Email For: {asset?.institution}</label>
+                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Recipient Email</label>
                             <Input
                                 value={editedTo}
                                 onChange={(e) => setEditedTo(e.target.value)}
-                                className="rounded-2xl font-bold text-indigo-600 text-sm border-slate-200 focus:border-indigo-500 transition-all h-12"
+                                className="rounded-xl font-bold text-indigo-600 text-sm border-slate-200 focus:border-indigo-500 transition-all h-10"
                                 placeholder="recipient@institution.com"
                             />
                         </div>
@@ -157,17 +153,17 @@ export function SmartEmailDraft({ open, onOpenChange, asset, estate, onLogSent }
                             <Input
                                 value={editedSubject}
                                 onChange={(e) => setEditedSubject(e.target.value)}
-                                className="rounded-2xl font-bold text-slate-700 text-sm border-slate-200 focus:border-indigo-500 transition-all h-12"
+                                className="rounded-xl font-bold text-slate-700 text-sm border-slate-200 focus:border-indigo-500 transition-all h-10"
                                 placeholder="Email Subject"
                             />
                         </div>
 
-                        <div className="space-y-1">
+                        <div className="space-y-1 md:col-span-2">
                             <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Email Body</label>
                             <Textarea
                                 value={editedBody}
                                 onChange={(e) => setEditedBody(e.target.value)}
-                                className="rounded-2xl text-slate-600 text-sm h-64 border-slate-200 focus:border-indigo-500 transition-all font-medium leading-relaxed resize-none"
+                                className="rounded-xl text-slate-600 text-sm h-48 border-slate-200 focus:border-indigo-500 transition-all font-medium leading-relaxed resize-none"
                                 placeholder="Write your email here..."
                             />
                         </div>
@@ -204,7 +200,7 @@ export function SmartEmailDraft({ open, onOpenChange, asset, estate, onLogSent }
                     </div>
                 </div>
 
-                <div className="p-8 border-t border-slate-100 bg-slate-50 grid grid-cols-2 gap-4">
+                <div className="p-6 border-t border-slate-100 bg-slate-50 grid grid-cols-2 gap-3 flex-shrink-0">
                     <Button
                         className="h-14 rounded-2xl bg-slate-900 border-2 border-slate-900 hover:bg-slate-800 transition-all gap-3 font-bold shadow-lg shadow-amber-500/10 col-span-2 sm:col-span-1"
                         disabled={isSending}
@@ -235,12 +231,13 @@ export function SmartEmailDraft({ open, onOpenChange, asset, estate, onLogSent }
                         </div>
                     </Button>
                     <Button
-                        variant="outline"
-                        className="h-10 rounded-xl border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-all gap-2 font-bold text-slate-500 col-span-2"
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 rounded-lg hover:bg-slate-200 transition-all gap-2 font-bold text-slate-500 col-span-2 border border-slate-200 mt-1"
                         onClick={handleCopyAndOpen}
                     >
-                        <Copy className="w-4 h-4" />
-                        <span className="text-xs">Copy & Open in my own Email Client</span>
+                        <Copy className="w-3.5 h-3.5" />
+                        <span className="text-[10px] uppercase tracking-wider">Copy & Open in my own Email Client</span>
                     </Button>
                 </div>
             </DialogContent>
