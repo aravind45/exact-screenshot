@@ -55,7 +55,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       {
         id: "check_small_estate",
         title: "Check Small Estate Eligibility",
-        description: "Determine if total California assets are under $184,500. You may be able to avoid probate entirely using an Affidavit (Section 13100).",
+        description: "Determine if total assets are under the state's small estate threshold. You may be able to avoid probate entirely using a simplified Affidavit process.",
         utility: "Shortcut: Avoid full probate if the estate is small enough.",
         estimatedTime: "1 hour",
         exclusiveGroup: "filing_path",
@@ -278,7 +278,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         alerts: [
           {
             type: "info",
-            message: "Filing fee: ~$435 in California. File within 30 days for best practice."
+            message: "Check your local court for the current filing fee. File within the state's recommended timeframe."
           }
         ],
         links: [
@@ -351,9 +351,9 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "file_affidavit",
-        title: "File Small Estate Affidavit (DE-310)",
+        title: "File Small Estate Affidavit",
         description: "For estates under threshold, use this shortcut to bypass court probate.",
-        utility: "Bypass court entirely for estates under $184,500.",
+        utility: "Bypass court entirely for qualifying small estates.",
         estimatedTime: "40 days after death",
         category: "court-issued",
         exclusiveGroup: "filing_path",
@@ -469,7 +469,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         }],
         alerts: [{
           type: "info",
-          message: "Filing fee: ~$435. Hearing typically scheduled 30-45 days after filing."
+          message: "Check local court filing fees. Hearing typically scheduled 30-45 days after filing."
         }]
       },
       {

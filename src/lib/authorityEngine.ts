@@ -1,4 +1,5 @@
 
+
 export const STATE_THRESHOLDS: Record<string, number> = {
     "CA": 184500,
     "NY": 50000,
@@ -7,6 +8,12 @@ export const STATE_THRESHOLDS: Record<string, number> = {
     "IL": 100000,
     "PA": 50000,
 };
+
+// Uniform Probate Code (UPC) states that support Informal Probate
+export const UPC_STATES = [
+    "AK", "AZ", "CO", "HI", "ID", "ME", "MI", "MN", "MT",
+    "NE", "NM", "ND", "SC", "SD", "UT"
+];
 
 export type MasterMode =
     | "COURT_SUPERVISED"
@@ -200,23 +207,32 @@ export function calculateAuthorityRecommendation(
             citations = state === "CA" ? ["CA Prob. Code §13100"] : ["Uniform Probate Code §III"];
         }
     } else {
-        type = metadata?.hasWill === false ? "INTESTATE" : "FORMAL_PROBATE";
+        // Check for Informal Probate (UPC states only)
+        if (UPC_STATES.includes(state) && metadata?.hasWill && !metadata?.hasContest) {
+            type = "INFORMAL_PROBATE";
+            reason = `${state} follows the Uniform Probate Code. Informal probate is available for uncontested estates with a valid will, offering a streamlined process without formal hearings.`;
+            legalTerm = "Informal Probate (UPC)";
+            citations = ["Uniform Probate Code §3-301", `${state} UPC Adoption Statute`];
+        } else {
+            type = metadata?.hasWill === false ? "INTESTATE" : "FORMAL_PROBATE";
 
-        // Texas Muniment of Title Check
-        if (state === "TX" && metadata?.hasWill) {
-            type = "MUNIMENT_OF_TITLE";
-            reason = "Texas allows admitting a Will to probate as a 'Muniment of Title' when no executor administration is needed.";
-            legalTerm = "Muniment of Title";
-        }
+            // Texas Muniment of Title Check
+            if (state === "TX" && metadata?.hasWill && !metadata?.hasInsolvencyRisk) {
+                type = "MUNIMENT_OF_TITLE";
+                reason = "Texas allows admitting a Will to probate as a 'Muniment of Title' when no executor administration is needed and the estate is not insolvent.";
+                legalTerm = "Muniment of Title";
+                citations = ["TX Estates Code §257"];
+            }
 
-        const stateTerm = state === "NY" ? "Formal Administration" : state === "FL" ? "Formal Administration" : "Formal Probate";
+            const stateTerm = state === "NY" ? "Formal Administration" : state === "FL" ? "Formal Administration" : "Formal Probate";
 
-        if (type !== "MUNIMENT_OF_TITLE") {
-            reason = metadata?.hasWill === false
-                ? `No Will found and assets exceed the ${state} threshold. Formal Intestate Succession is required.`
-                : `Assets exceed the ${state} threshold ($${threshold.toLocaleString()}). ${stateTerm} is required.`;
-            legalTerm = metadata?.hasWill === false ? "Intestate Administration" : stateTerm;
-            citations = state === "CA" ? ["CA Prob. Code §7000"] : ["Uniform Probate Code §III"];
+            if (type !== "MUNIMENT_OF_TITLE" && type !== "INFORMAL_PROBATE") {
+                reason = metadata?.hasWill === false
+                    ? `No Will found and assets exceed the ${state} threshold. Formal Intestate Succession is required.`
+                    : `Assets exceed the ${state} threshold ($${threshold.toLocaleString()}). ${stateTerm} is required.`;
+                legalTerm = metadata?.hasWill === false ? "Intestate Administration" : stateTerm;
+                citations = state === "CA" ? ["CA Prob. Code §7000"] : ["Uniform Probate Code §III"];
+            }
         }
     }
 

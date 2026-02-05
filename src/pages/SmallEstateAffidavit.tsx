@@ -91,7 +91,7 @@ export default function SmallEstateAffidavit() {
         {
             id: "verify_limit",
             title: "Verify Estate Limit",
-            desc: "Ensure personal property is under $184,500 (CA 2023+ limit).",
+            desc: "Ensure personal property is under the state's small estate limit.",
             status: completedTaskIds.includes("verify_limit") ? "completed" : "ready",
             icon: Banknote
         },
@@ -247,7 +247,7 @@ export default function SmallEstateAffidavit() {
                                 </CardHeader>
                                 <CardContent className="p-4 space-y-2">
                                     <a href="https://www.courts.ca.gov/10440.htm" target="_blank" className="flex items-center justify-between p-2 rounded-xl hover:bg-amber-50 transition-colors group">
-                                        <span className="text-[10px] font-bold text-slate-700">California Court Guide</span>
+                                        <span className="text-[10px] font-bold text-slate-700">State Probate Guide</span>
                                         <ExternalLink className="w-3 h-3 text-slate-300 group-hover:text-amber-500" />
                                     </a>
                                 </CardContent>

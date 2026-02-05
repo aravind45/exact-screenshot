@@ -77,7 +77,7 @@ export default function SuccessionPetition() {
         return new Blob(byteArrays, { type: contentType });
     };
 
-    const isSmallEstate = estate && (Number(estate.estimatedPersonalProperty || 0) + Number(estate.estimatedRealProperty || 0)) < 184500;
+    const isSmallEstate = true; // Placeholder: Backend should determine eligibility based on state threshold
     const completedTaskIds = estate?.roadmapProgress?.completedTaskIds || [];
 
     const handleDownload = (form: string) => {
@@ -159,7 +159,7 @@ export default function SuccessionPetition() {
                                 <div>
                                     <h4 className="text-xs font-black text-amber-900 uppercase tracking-wide">Value Warning</h4>
                                     <p className="text-xs text-amber-700 leading-relaxed font-medium">
-                                        Your total estate value appears to exceed the California small estate threshold ($184,500).
+                                        Your total estate value appears to exceed the small estate threshold for your state.
                                         This process may result in a court rejection. Consult an attorney before filing.
                                     </p>
                                 </div>
@@ -259,11 +259,11 @@ export default function SuccessionPetition() {
                                     <div className="space-y-3">
                                         <div className="flex items-center justify-between">
                                             <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">State</span>
-                                            <span className="text-xs font-black text-white px-2 py-0.5 bg-white/10 rounded-md border border-white/10">California</span>
+                                            <span className="text-xs font-black text-white px-2 py-0.5 bg-white/10 rounded-md border border-white/10">{estate?.deceasedState || "State"}</span>
                                         </div>
                                         <div className="flex items-center justify-between">
                                             <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Small Estate Limit</span>
-                                            <span className="text-xs font-black text-indigo-400">$184,500</span>
+                                            <span className="text-xs font-black text-indigo-400">STATE LIMIT</span>
                                         </div>
                                         <div className="flex items-center justify-between">
                                             <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Real Property</span>

@@ -105,7 +105,7 @@ export default function Auth() {
             title: 'Account created!',
             description: 'Welcome to ExpectedEstate. Let\'s get started.',
           });
-          navigate('/dashboard');
+          navigate('/onboarding');
         }
       } else if (authMode === 'forgot-password') {
         try {

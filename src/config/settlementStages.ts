@@ -73,7 +73,7 @@ export const TRACK_STAGES: Record<SettlementTrack, ProcessStage[]> = {
             tasks: [
                 { id: "list_assets", title: "List All Assets" },
                 { id: "appraise_real_property", title: "Appraise Real Property" },
-                { id: "check_limit", title: "Verify Total < $184,500" }
+                { id: "check_limit", title: "Verify Total < Threshold" }
             ]
         },
         {
