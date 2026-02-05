@@ -1,6 +1,7 @@
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { HeroSection } from "@/components/landing/HeroSection";
+import { ProcessTimeline } from "@/components/landing/ProcessTimeline";
 import { FeaturesSection } from "@/components/landing/FeaturesSection";
 import { PainPointsSection } from "@/components/landing/PainPointsSection";
 import { CTASection } from "@/components/landing/CTASection";
@@ -32,6 +33,7 @@ const Index = () => {
       <Header />
       <main className="pt-16">
         <HeroSection />
+        <ProcessTimeline />
         <FeaturesSection />
         <PainPointsSection />
         <CTASection />
