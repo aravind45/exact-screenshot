@@ -29,7 +29,7 @@ import {
 import { cn } from "@/lib/utils";
 import { InstitutionSelect } from "@/components/InstitutionSelect";
 import { calculateAuthorityRecommendation } from "@/lib/authorityEngine";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { IntestacyDistributionPreview } from "@/components/IntestacyDistributionPreview";
 
 const STEPS = [
@@ -45,6 +45,7 @@ const STEPS = [
 
 export default function OnboardingWizard() {
     const navigate = useNavigate();
+    const queryClient = useQueryClient();
     const { toast } = useToast();
     const [currentStep, setCurrentStep] = useState(0);
     const [isLoading, setIsLoading] = useState(false);
@@ -146,8 +147,26 @@ export default function OnboardingWizard() {
                     authorityType: recommendation.type,
                     hasUnknownHeirs: estateData.hasUnknownHeirs,
                     isTrustRevocable: estateData.isTrustRevocable,
-                    hasContest: estateData.hasContest
+                    hasContest: estateData.hasContest,
+                    hasTODDeed: estateData.hasTODDeed,
+                    isSurvivingSpouse: estateData.isSpouse,
+                    hasOutOfStateProperty: estateData.isOutOfState
                 });
+
+                // Auto-complete the eligibility task so it doesn't show up as a redundant task on the dashboard
+                if (estate?.id) {
+                    try {
+                        // Mark 'Check Small Estate Eligibility' as complete if we already did it in the wizard
+                        await api.completeTask(estate.id, "check_small_estate", "Auto-completed via onboarding questionnaire");
+                        console.log("Auto-completed eligibility task");
+                    } catch (e) {
+                        console.warn("Failed to auto-complete task, likely not in roadmap", e);
+                    }
+                }
+
+                // Invalidate queries to ensure dashboard is fresh
+                await queryClient.invalidateQueries({ queryKey: ["tasks"] });
+                await queryClient.invalidateQueries({ queryKey: ["estate"] });
             } else if (currentStep === 3) { // Heirs
                 const validHeirs = heirs.filter(h => h.name.trim() !== "");
                 const hasMinors = validHeirs.some(h => h.isMinor);
