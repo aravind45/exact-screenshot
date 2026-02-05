@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { api } from "@/lib/api";
@@ -23,7 +23,8 @@ import {
     Zap,
     Info,
     Users,
-    Mail
+    Mail,
+    Loader2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { InstitutionSelect } from "@/components/InstitutionSelect";
@@ -73,6 +74,37 @@ export default function OnboardingWizard() {
     ]);
     const [collaborators, setCollaborators] = useState<Array<{ email: string; role: string }>>([]);
 
+    const { data: estate, isLoading: isEstateLoading } = useQuery({
+        queryKey: ["estate"],
+        queryFn: api.getMyEstate,
+        retry: false,
+    });
+
+    // Populate data from existing estate
+    useEffect(() => {
+        if (estate) {
+            const deceasedName = [estate.deceasedFirstName, estate.deceasedLastName]
+                .filter(Boolean)
+                .join(" ");
+
+            setEstateData(prev => ({
+                ...prev,
+                deceasedName: deceasedName || prev.deceasedName,
+                dateOfDeath: estate.deceasedDateOfDeath ? new Date(estate.deceasedDateOfDeath).toISOString().split('T')[0] : prev.dateOfDeath,
+                location: estate.deceasedState || prev.location,
+                estimatedValue: estate.estimatedPersonalProperty?.toString() || prev.estimatedValue,
+                estimatedDebt: estate.estimatedLiabilities?.toString() || prev.estimatedDebt,
+                hasContest: estate.hasContest ?? prev.hasContest,
+                hasTODDeed: estate.hasTODDeed ?? prev.hasTODDeed,
+                hasWill: estate.hasWill ?? prev.hasWill,
+                isSpouse: estate.isSurvivingSpouse ?? prev.isSpouse,
+                isOutOfState: estate.hasOutOfStateProperty ?? prev.isOutOfState,
+                hasUnknownHeirs: estate.hasUnknownHeirs ?? prev.hasUnknownHeirs,
+                isTrustRevocable: estate.isTrustRevocable ?? prev.isTrustRevocable
+            }));
+        }
+    }, [estate]);
+
     const recommendation = calculateAuthorityRecommendation(
         [], // No actual assets yet, just using estimates
         estateData.location,
@@ -95,10 +127,13 @@ export default function OnboardingWizard() {
 
             if (currentStep === 1) {
                 // Update Estate (Created on registration)
-                const [firstName, ...lastNameParts] = estateData.deceasedName.split(" ");
+                const nameParts = estateData.deceasedName.trim().split(/\s+/);
+                const firstName = nameParts[0] || "";
+                const lastName = nameParts.slice(1).join(" ") || "Estate"; // Default to "Estate" if no last name given
+
                 await api.updateMyEstate({
                     deceasedFirstName: firstName,
-                    deceasedLastName: lastNameParts.join(" ") || "",
+                    deceasedLastName: lastName,
                     deceasedDateOfDeath: new Date(estateData.dateOfDeath),
                     deceasedState: estateData.location,
                     estimatedPersonalProperty: parseFloat(estateData.estimatedValue) || 0,
@@ -203,9 +238,16 @@ export default function OnboardingWizard() {
                                             <Heart className="w-8 h-8 text-rose-500 fill-rose-500" />
                                         </div>
                                         <h1 className="text-3xl font-bold text-slate-900">We're so sorry for your loss.</h1>
-                                        <p className="text-lg text-slate-600 leading-relaxed mb-8">
-                                            Settling an estate is a heavy burden. We're here to help you organize everything in one place.
-                                        </p>
+                                        {isEstateLoading ? (
+                                            <div className="flex items-center justify-center p-8">
+                                                <Loader2 className="w-6 h-6 animate-spin text-primary mr-2" />
+                                                <span className="text-slate-500">Retrieving your progress...</span>
+                                            </div>
+                                        ) : (
+                                            <p className="text-lg text-slate-600 leading-relaxed mb-8">
+                                                Settling an estate is a heavy burden. We're here to help you organize everything in one place.
+                                            </p>
+                                        )}
 
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left">
                                             <button
