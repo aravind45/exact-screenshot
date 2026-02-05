@@ -713,11 +713,11 @@ export const STATE_ROADMAP_OVERRIDES: Record<string, Partial<Record<SettlementTr
         ],
         SMALL_ESTATE: [
             {
-                id: "qualification", title: "Qualification", description: "Verify estate is < $75,000 (excluding homestead).",
+                id: "qualification", title: "Qualification", description: "Verify estate is below state threshold (excluding homestead).",
                 tasks: [
                     { id: "asset_list", title: "List All Assets" },
                     { id: "id_homestead", title: "Identify Homestead Property" },
-                    { id: "verify_limit", title: "Verify Total < $75,000" }
+                    { id: "verify_limit", title: "Verify Total < Threshold" }
                 ]
             },
             {

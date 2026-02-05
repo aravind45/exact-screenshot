@@ -20,14 +20,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
+import { useTerminology } from "@/hooks/use-terminology";
+
 export default function SmallEstateAffidavit() {
     const queryClient = useQueryClient();
     const [downloadingForm, setDownloadingForm] = useState<string | null>(null);
-
-    const { data: estate } = useQuery({
-        queryKey: ["estate"],
-        queryFn: api.getMyEstate,
-    });
+    const { stateRule, smallEstateThreshold, estate } = useTerminology();
 
     const completeTaskMutation = useMutation({
         mutationFn: ({ taskId }: { taskId: string }) =>
@@ -91,7 +89,7 @@ export default function SmallEstateAffidavit() {
         {
             id: "verify_limit",
             title: "Verify Estate Limit",
-            desc: "Ensure personal property is under the state's small estate limit.",
+            desc: `Ensure personal property is under the ${estate?.deceasedState || "state's"} small estate limit ($${smallEstateThreshold?.toLocaleString()}).`,
             status: completedTaskIds.includes("verify_limit") ? "completed" : "ready",
             icon: Banknote
         },

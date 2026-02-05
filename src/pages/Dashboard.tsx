@@ -48,7 +48,7 @@ import { type SettlementPhase } from "@/components/SettlementPhaseChevron";
 import { SEO } from "@/components/SEO";
 import { useTerminology } from "@/hooks/use-terminology";
 import { ProbateStatusUpdater } from "@/components/dashboard/ProbateStatusUpdater";
-
+import { isProfileComplete } from "@/lib/authorityEngine";
 
 const normalize = (str: string | null) => str?.toLowerCase() || '';
 
@@ -72,9 +72,9 @@ export default function Dashboard() {
   // Ensure assets is always an array
   const assets = Array.isArray(assetsData) ? assetsData : [];
 
-  // Automatically redirect to onboarding if estate profile is incomplete
+  // Automatically redirect to onboarding if estate profile is incomplete or track is unset
   useEffect(() => {
-    if (estate && !estate.deceasedFirstName && !estate.deceasedLastName && !estate.deceasedState) {
+    if (estate && !isProfileComplete(estate)) {
       console.log("Estate profile incomplete, redirecting to onboarding...");
       navigate('/onboarding');
     }

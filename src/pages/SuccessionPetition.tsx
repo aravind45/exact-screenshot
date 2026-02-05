@@ -21,14 +21,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
+import { useTerminology } from "@/hooks/use-terminology";
+
 export default function SuccessionPetition() {
     const queryClient = useQueryClient();
     const [downloadingForm, setDownloadingForm] = useState<string | null>(null);
-
-    const { data: estate } = useQuery({
-        queryKey: ["estate"],
-        queryFn: api.getMyEstate,
-    });
+    const { stateRule, smallEstateThreshold, estate } = useTerminology();
 
     const completeTaskMutation = useMutation({
         mutationFn: ({ taskId }: { taskId: string }) =>
@@ -77,7 +75,7 @@ export default function SuccessionPetition() {
         return new Blob(byteArrays, { type: contentType });
     };
 
-    const isSmallEstate = true; // Placeholder: Backend should determine eligibility based on state threshold
+    const isSmallEstate = (estate?.probateTotal || 0) <= (smallEstateThreshold || 50000);
     const completedTaskIds = estate?.roadmapProgress?.completedTaskIds || [];
 
     const handleDownload = (form: string) => {
@@ -263,7 +261,7 @@ export default function SuccessionPetition() {
                                         </div>
                                         <div className="flex items-center justify-between">
                                             <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Small Estate Limit</span>
-                                            <span className="text-xs font-black text-indigo-400">STATE LIMIT</span>
+                                            <span className="text-xs font-black text-indigo-400">${smallEstateThreshold?.toLocaleString()}</span>
                                         </div>
                                         <div className="flex items-center justify-between">
                                             <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Real Property</span>

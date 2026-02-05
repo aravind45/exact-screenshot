@@ -1,51 +1,10 @@
 
-
-export const STATE_THRESHOLDS: Record<string, number> = {
-    "CA": 184500,
-    "NY": 50000,
-    "TX": 75000,
-    "FL": 75000,
-    "IL": 100000,
-    "PA": 50000,
-};
-
-// Uniform Probate Code (UPC) states that support Informal Probate
-export const UPC_STATES = [
-    "AK", "AZ", "CO", "HI", "ID", "ME", "MI", "MN", "MT",
-    "NE", "NM", "ND", "SC", "SD", "UT"
-];
+import { getStateRule, type AuthorityType } from './stateRules';
 
 export type MasterMode =
     | "COURT_SUPERVISED"
     | "FIDUCIARY_ADMINISTERED"
     | "TRANSFER_ONLY";
-
-export type AuthorityType =
-    | "FORMAL_PROBATE"
-    | "INFORMAL_PROBATE"
-    | "SMALL_ESTATE"
-    | "SUMMARY_ADMINISTRATION" // e.g. Florida, California variants
-    | "VOLUNTARY_ADMINISTRATION" // New York
-    | "MUNIMENT_OF_TITLE" // Texas
-    | "ANCILLARY_PROBATE" // Secondary state
-    | "SPOUSAL_PETITION"
-    | "ELECTIVE_SHARE" // Spousal claim
-    | "FAMILY_ALLOWANCE" // Interim support
-    | "TRUST_ADMIN_REVOCABLE"
-    | "TRUST_ADMIN_IRREVOCABLE"
-    | "POUR_OVER_WILL" // Hybrid
-    | "JOINT_TRANSFER"
-    | "POD_TOD_TRANSFER"
-    | "BENEFICIARY_DESIGNATED"
-    | "TOD_DEED" // Real estate deed
-    | "INTESTATE"
-    | "INSOLVENT_ESTATE"
-    | "ESTATE_WITH_MINORS"
-    | "BUSINESS_ESTATE"
-    | "CONTESTED_ESTATE"
-    | "UNCLAIMED_ESTATE"
-    | "DISCOVERY"
-    | "UNSET";
 
 export interface AuthorityRecommendation {
     type: AuthorityType;
@@ -113,7 +72,8 @@ export function calculateAuthorityRecommendation(
         hasElectiveShare?: boolean; // PTH-20
     }
 ): AuthorityRecommendation {
-    const threshold = STATE_THRESHOLDS[state] || 50000;
+    const rule = getStateRule(state);
+    const threshold = rule.threshold;
 
     const probateAssets = assets.filter(a => a.ownershipType === "INDIVIDUAL");
     let probateTotal = probateAssets.reduce((sum, a) => sum + (a.value || 0), 0);
@@ -158,9 +118,9 @@ export function calculateAuthorityRecommendation(
         citations = ["CA Prob. Code §12501", "Uniform Probate Code §IV"];
     } else if (metadata?.isSpouse && probateTotal > 0) {
         type = "SPOUSAL_PETITION";
-        reason = "As a surviving spouse, you may be eligible for a Spousal Property Petition, which is faster than full probate.";
-        legalTerm = state === "CA" ? "DE-221 Spousal Property Petition" : "Spousal Set-Aside";
-        citations = state === "CA" ? ["CA Prob. Code §13500"] : ["State Spousal Set-Aside Statute"];
+        reason = `As a surviving spouse, you may be eligible for a ${rule.spousalSetAside?.term || 'Spousal Set-Aside'}, which is faster than full probate.`;
+        legalTerm = rule.spousalSetAside?.term || "Spousal Set-Aside";
+        citations = rule.spousalSetAside?.citation || ["State Spousal Set-Aside Statute"];
     } else if (probateTotal === 0 && trustAssets.length > 0) {
         type = metadata?.isTrustRevocable === false ? "TRUST_ADMIN_IRREVOCABLE" : "TRUST_ADMIN_REVOCABLE";
         reason = `Assets are held in a ${type === "TRUST_ADMIN_IRREVOCABLE" ? "Irrevocable" : "Revocable"} Trust. No court probate required.`;
@@ -187,28 +147,17 @@ export function calculateAuthorityRecommendation(
     } else if (isEligibleForSmallEstate) {
         if (state === "FL") {
             type = "SUMMARY_ADMINISTRATION";
-            reason = `Florida Summary Administration is available for estates under $75,000.`;
-            legalTerm = "FL Statute 735.201 Summary Administration";
-            citations = ["FL Stat. §735.201"];
         } else if (state === "NY") {
             type = "VOLUNTARY_ADMINISTRATION";
-            reason = `New York Voluntary Administration is available for estates under $50,000.`;
-            legalTerm = "NY SCPA Article 13 Small Estate";
-            citations = ["NY SCPA Article 13"];
-        } else if (state === "TX") {
-            type = "SMALL_ESTATE";
-            reason = `Texas Small Estate Affidavit is available for estates under $75,000 without a complex will.`;
-            legalTerm = "TX Estates Code 205 Small Estate Affidavit";
-            citations = ["TX Estates Code §205"];
         } else {
             type = "SMALL_ESTATE";
-            reason = `Probate assets ($${probateTotal.toLocaleString()}) are below the ${state} threshold. You can likely use a Small Estate Affidavit.`;
-            legalTerm = state === "CA" ? "CA Prob. Code 13100 Affidavit" : "Small Estate Affidavit";
-            citations = state === "CA" ? ["CA Prob. Code §13100"] : ["Uniform Probate Code §III"];
         }
+        reason = `Probate assets ($${probateTotal.toLocaleString()}) are below the ${state} threshold ($${threshold.toLocaleString()}). You can likely use a ${rule.smallEstateTerm}.`;
+        legalTerm = rule.smallEstateTerm;
+        citations = rule.smallEstateCitation;
     } else {
         // Check for Informal Probate (UPC states only)
-        if (UPC_STATES.includes(state) && metadata?.hasWill && !metadata?.hasContest) {
+        if (rule.isUPC && metadata?.hasWill && !metadata?.hasContest) {
             type = "INFORMAL_PROBATE";
             reason = `${state} follows the Uniform Probate Code. Informal probate is available for uncontested estates with a valid will, offering a streamlined process without formal hearings.`;
             legalTerm = "Informal Probate (UPC)";
@@ -224,14 +173,12 @@ export function calculateAuthorityRecommendation(
                 citations = ["TX Estates Code §257"];
             }
 
-            const stateTerm = state === "NY" ? "Formal Administration" : state === "FL" ? "Formal Administration" : "Formal Probate";
-
-            if (type !== "MUNIMENT_OF_TITLE" && type !== "INFORMAL_PROBATE") {
+            if (type !== "MUNIMENT_OF_TITLE") {
                 reason = metadata?.hasWill === false
-                    ? `No Will found and assets exceed the ${state} threshold. Formal Intestate Succession is required.`
-                    : `Assets exceed the ${state} threshold ($${threshold.toLocaleString()}). ${stateTerm} is required.`;
-                legalTerm = metadata?.hasWill === false ? "Intestate Administration" : stateTerm;
-                citations = state === "CA" ? ["CA Prob. Code §7000"] : ["Uniform Probate Code §III"];
+                    ? `No Will found and assets exceed the ${state} threshold. ${rule.probateTerm} (Intestate) is required.`
+                    : `Assets exceed the ${state} threshold ($${threshold.toLocaleString()}). ${rule.probateTerm} is required.`;
+                legalTerm = metadata?.hasWill === false ? `${rule.probateTerm} (Intestate)` : rule.probateTerm;
+                citations = rule.probateCitation;
             }
         }
     }
@@ -347,4 +294,22 @@ export function getInstitutionAuthorityRequirement(
         conditions: ["Contact institution for specific requirements"],
         warning: "Authority requirements vary by institution. Start with Small Estate Affidavit if eligible, escalate to Letters if rejected."
     };
+}
+
+/**
+ * Check if the estate profile has enough data for the engine
+ */
+export function isProfileComplete(estate: any): boolean {
+    if (!estate) return false;
+
+    // Critical fields for rule engine and identification
+    const hasCriticalFields = !!(
+        estate.deceasedFirstName?.trim() &&
+        estate.deceasedLastName?.trim() &&
+        estate.deceasedState?.trim()
+    );
+
+    const hasAuthority = estate.authorityType && estate.authorityType !== "UNSET";
+
+    return hasCriticalFields && hasAuthority;
 }

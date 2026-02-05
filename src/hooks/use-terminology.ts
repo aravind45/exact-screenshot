@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
+import { getStateRule } from "@/lib/stateRules";
 
 export function useTerminology() {
     const { data: estate } = useQuery({
@@ -8,6 +9,7 @@ export function useTerminology() {
     });
 
     const authorityType = estate?.authorityType || "UNSET";
+    const stateRule = getStateRule(estate?.deceasedState || "CA");
 
     /**
      * Terminology Mapping
@@ -56,5 +58,7 @@ export function useTerminology() {
         estateName: estate?.name || "the Estate",
         authorityType,
         estate,
+        stateRule,
+        smallEstateThreshold: stateRule.threshold,
     };
 }
