@@ -70,19 +70,6 @@ export function HeroSection() {
               See How It Works
             </Button>
           </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-            className="mt-12 relative mx-auto max-w-6xl rounded-2xl border border-border/50 bg-white shadow-xl overflow-hidden p-8"
-          >
-            <img
-              src="/settlement_roadmap_hero.svg"
-              alt="ExpectedEstate Settlement Roadmap - 6 Phase Process from Immediate Actions to Estate Closing"
-              className="w-full h-auto"
-            />
-          </motion.div>
         </div>
 
         {/* Feature highlights */}
