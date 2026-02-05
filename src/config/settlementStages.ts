@@ -263,10 +263,77 @@ export const TRACK_STAGES: Record<SettlementTrack, ProcessStage[]> = {
         }
     ],
     ANCILLARY_PROBATE: [
-        { id: "domiciliary", title: "Domiciliary", description: "Complete primary probate in decedent's home state." },
-        { id: "local_filing", title: "Local Filing", description: "File 'Foreign Will' in state where property exists." },
-        { id: "local_rep", title: "Local Rep", description: "Appoint representative for out-of-state property." },
-        { id: "sale_transfer", title: "Sale/Move", description: "Sell or transfer the out-of-state real property." }
+        {
+            id: "domiciliary_completion",
+            title: "Domiciliary Probate Completion",
+            description: "Complete primary probate in decedent's home state.",
+            tasks: [
+                { id: "complete_primary", title: "Complete primary probate in home state" },
+                { id: "obtain_letters", title: "Obtain certified Letters Testamentary" },
+                { id: "identify_property", title: "Identify all out-of-state property" },
+                { id: "determine_states", title: "Determine which states require ancillary" },
+                { id: "research_requirements", title: "Research each state's requirements" },
+                { id: "estimate_costs", title: "Estimate ancillary probate costs" },
+                { id: "consider_options", title: "Consider selling vs transferring property" }
+            ]
+        },
+        {
+            id: "exemplified_documents",
+            title: "Exemplified Will & Documents",
+            description: "Obtain court-certified exemplified documents.",
+            tasks: [
+                { id: "exemplified_will", title: "Obtain exemplified copy of Will" },
+                { id: "exemplified_letters", title: "Obtain exemplified Letters Testamentary" },
+                { id: "death_certificates", title: "Get certified death certificates (multiple)" },
+                { id: "authenticated_docs", title: "Prepare authenticated court documents" },
+                { id: "research_local", title: "Research local state filing requirements" },
+                { id: "identify_forms", title: "Identify required local forms" }
+            ]
+        },
+        {
+            id: "local_counsel_filing",
+            title: "Local Counsel & Filing",
+            description: "Retain local attorney and file ancillary petition.",
+            tasks: [
+                { id: "retain_attorney", title: "Retain local attorney in property state" },
+                { id: "file_petition", title: "File Petition for Ancillary Probate" },
+                { id: "submit_will", title: "Submit exemplified Will and Letters" },
+                { id: "appoint_rep", title: "Appoint local personal representative (if required)" },
+                { id: "pay_fees", title: "Pay local filing fees" },
+                { id: "publish_notice", title: "Publish local creditor notice" },
+                { id: "serve_heirs", title: "Serve local heirs/beneficiaries" }
+            ]
+        },
+        {
+            id: "local_administration",
+            title: "Local Administration",
+            description: "Administer ancillary estate in property state.",
+            tasks: [
+                { id: "local_letters", title: "Obtain local Letters Testamentary" },
+                { id: "open_account", title: "Open local estate bank account" },
+                { id: "pay_taxes", title: "Pay local property taxes" },
+                { id: "maintain_property", title: "Maintain property during probate" },
+                { id: "resolve_claims", title: "Resolve local creditor claims" },
+                { id: "coordinate", title: "Coordinate with domiciliary executor" },
+                { id: "file_taxes", title: "File local tax returns (if required)" }
+            ]
+        },
+        {
+            id: "property_disposition",
+            title: "Property Transfer or Sale",
+            description: "Transfer or sell out-of-state property.",
+            tasks: [
+                { id: "decide_disposition", title: "Decide: sell property or transfer to heirs" },
+                { id: "list_property", title: "If selling: list property and accept offer" },
+                { id: "close_sale", title: "If selling: close sale" },
+                { id: "prepare_deeds", title: "If transferring: prepare deeds to beneficiaries" },
+                { id: "pay_closing", title: "Pay local closing costs" },
+                { id: "transfer_proceeds", title: "Transfer proceeds to domiciliary estate" },
+                { id: "file_accounting", title: "File final local accounting" },
+                { id: "close_ancillary", title: "Close ancillary probate" },
+                { id: "record_docs", title: "Record final documents with county" }
+            ]
+        }
     ],
     INFORMAL_PROBATE: [
         {
@@ -425,16 +492,148 @@ export const TRACK_STAGES: Record<SettlementTrack, ProcessStage[]> = {
         }
     ],
     INSOLVENT: [
-        { id: "freeze", title: "Freeze", description: "Stop all payments until priority is established." },
-        { id: "categorize", title: "Priority", description: "Sort debts into statutory classes (Taxes vs Medical)." },
-        { id: "exhaustion", title: "Exhaust", description: "Liquidate all assets to maximize creditor pool." },
-        { id: "pro_rata", title: "Pro-Rata", description: "Pay creditors percentage share based on priority." }
+        {
+            id: "insolvency_determination",
+            title: "Insolvency Determination",
+            description: "Determine if estate debts exceed assets.",
+            tasks: [
+                { id: "inventory_assets", title: "Inventory all estate assets" },
+                { id: "appraise_assets", title: "Appraise assets at fair market value" },
+                { id: "list_debts", title: "List all known debts and claims" },
+                { id: "calculate_totals", title: "Calculate total assets vs liabilities" },
+                { id: "determine_insolvent", title: "Determine if estate is insolvent" },
+                { id: "document_analysis", title: "Document insolvency analysis" },
+                { id: "consult_attorney", title: "Consult with probate attorney" }
+            ]
+        },
+        {
+            id: "creditor_priority",
+            title: "Creditor Priority Classification",
+            description: "Classify debts by statutory priority order.",
+            tasks: [
+                { id: "classify_debts", title: "Classify each debt by priority" },
+                { id: "priority_1", title: "Priority 1: Administration costs" },
+                { id: "priority_2", title: "Priority 2: Funeral and last illness" },
+                { id: "priority_3", title: "Priority 3: Family allowance" },
+                { id: "priority_4", title: "Priority 4: Secured creditors" },
+                { id: "priority_5", title: "Priority 5: Taxes (federal, state)" },
+                { id: "priority_6", title: "Priority 6: Medical bills (last 60 days)" },
+                { id: "priority_7", title: "Priority 7: General unsecured creditors" },
+                { id: "priority_8", title: "Priority 8: Lower priority claims" }
+            ]
+        },
+        {
+            id: "court_approval",
+            title: "Court Approval & Notice",
+            description: "File insolvency notice and obtain court approval.",
+            tasks: [
+                { id: "file_notice", title: "File Notice of Insolvency with court" },
+                { id: "request_approval", title: "Request court approval for payment plan" },
+                { id: "publish_notice", title: "Publish extended creditor notice (4 months)" },
+                { id: "individual_notice", title: "Send notice to known creditors" },
+                { id: "explain_prorata", title: "Explain pro-rata distribution" },
+                { id: "set_deadline", title: "Set claims deadline" },
+                { id: "file_report", title: "File preliminary insolvency report" }
+            ]
+        },
+        {
+            id: "asset_liquidation",
+            title: "Asset Liquidation",
+            description: "Liquidate assets to maximize creditor pool.",
+            tasks: [
+                { id: "court_approval_sell", title: "Obtain court approval to sell assets" },
+                { id: "liquidate_assets", title: "Liquidate non-exempt assets" },
+                { id: "estate_sales", title: "Conduct estate sales if needed" },
+                { id: "sell_property", title: "Sell real property (if authorized)" },
+                { id: "collect_receivables", title: "Collect all receivables" },
+                { id: "close_accounts", title: "Close bank accounts" },
+                { id: "deposit_funds", title: "Deposit all funds in estate account" },
+                { id: "maintain_records", title: "Maintain detailed liquidation records" }
+            ]
+        },
+        {
+            id: "prorata_distribution",
+            title: "Pro-Rata Distribution",
+            description: "Distribute funds to creditors by priority.",
+            tasks: [
+                { id: "calculate_available", title: "Calculate total funds available" },
+                { id: "pay_priority_1", title: "Pay Priority 1 claims in full" },
+                { id: "pay_priority_2", title: "Pay Priority 2 claims in full" },
+                { id: "calculate_prorata", title: "Calculate pro-rata percentage" },
+                { id: "prepare_schedule", title: "Prepare distribution schedule" },
+                { id: "obtain_approval", title: "Obtain court approval of distribution" },
+                { id: "issue_checks", title: "Issue checks to approved creditors" },
+                { id: "obtain_releases", title: "Obtain releases from creditors" },
+                { id: "file_proof", title: "File proof of payment with court" }
+            ]
+        },
+        {
+            id: "final_accounting",
+            title: "Final Accounting & Closure",
+            description: "Complete final accounting and close estate.",
+            tasks: [
+                { id: "prepare_accounting", title: "Prepare final accounting" },
+                { id: "document_compliance", title: "Document priority order compliance" },
+                { id: "file_final_report", title: "File final report with court" },
+                { id: "notify_creditors", title: "Notify all creditors of final distribution" },
+                { id: "explain_shortfall", title: "Explain why lower priority creditors received nothing" },
+                { id: "request_discharge", title: "Request discharge as executor" },
+                { id: "close_account", title: "Close estate bank account" },
+                { id: "obtain_order", title: "Obtain court order closing estate" }
+            ]
+        }
     ],
     SPECIAL: [
-        { id: "triage", title: "Triage", description: "Define the specific complex legal challenge." },
-        { id: "litigation", title: "Litigation", description: "Coordinate with specialized legal counsel." },
-        { id: "stay", title: "Hold", description: "Estate assets may be frozen during the contest." },
-        { id: "settlement", title: "Mediation", description: "Reach legally binding agreement or judgment." }
+        {
+            id: "attorney_required",
+            title: "⚠️ Attorney Required",
+            description: "This case requires specialized legal counsel. Do not proceed without an attorney.",
+            tasks: [
+                { id: "recognize_complexity", title: "Recognize this is beyond self-service" },
+                { id: "stop_diy", title: "STOP: Do not attempt to handle this yourself" },
+                { id: "consult_attorney", title: "Consult with probate litigation attorney" },
+                { id: "understand_risks", title: "Understand legal and financial risks" },
+                { id: "attorney_retainer", title: "Retain specialized probate attorney" }
+            ]
+        },
+        {
+            id: "case_assessment",
+            title: "Case Assessment",
+            description: "Attorney evaluates the specific legal challenge.",
+            tasks: [
+                { id: "identify_issue", title: "Identify specific legal issue (Will contest, fraud, etc.)" },
+                { id: "assess_merits", title: "Attorney assesses merits of case" },
+                { id: "estimate_costs", title: "Estimate litigation costs and timeline" },
+                { id: "evaluate_settlement", title: "Evaluate settlement vs litigation options" },
+                { id: "develop_strategy", title: "Develop legal strategy" }
+            ]
+        },
+        {
+            id: "litigation_process",
+            title: "Litigation Process",
+            description: "Attorney handles court proceedings and legal filings.",
+            tasks: [
+                { id: "file_pleadings", title: "Attorney files necessary pleadings" },
+                { id: "discovery", title: "Attorney conducts discovery" },
+                { id: "depositions", title: "Attorney handles depositions" },
+                { id: "motions", title: "Attorney files motions" },
+                { id: "court_hearings", title: "Attorney represents you in court hearings" },
+                { id: "trial_prep", title: "Attorney prepares for trial (if necessary)" }
+            ]
+        },
+        {
+            id: "resolution",
+            title: "Resolution",
+            description: "Case is resolved through settlement or court judgment.",
+            tasks: [
+                { id: "negotiate_settlement", title: "Attorney negotiates settlement (if applicable)" },
+                { id: "mediation", title: "Participate in mediation (if ordered)" },
+                { id: "trial", title: "Attorney represents you at trial (if necessary)" },
+                { id: "judgment", title: "Court issues judgment or order" },
+                { id: "appeal_period", title: "Wait for appeal period to expire" },
+                { id: "implement_order", title: "Implement court's order" }
+            ]
+        }
     ],
     DISCOVERY: [
         {
