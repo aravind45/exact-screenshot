@@ -110,24 +110,157 @@ export const TRACK_STAGES: Record<SettlementTrack, ProcessStage[]> = {
         }
     ],
     TRUST_ADMIN: [
-        { id: "acceptance", title: "Acceptance", description: "Successor Trustee signs Certificate of Trust." },
-        { id: "notification", title: "Notice", description: "Send mandatory notices to all Trust beneficiaries." },
-        { id: "inventory", title: "Inventory", description: "Identify assets specifically titled in the Trust." },
-        { id: "expenses", title: "Expenses", description: "Pay Trust-related taxes and administration costs." },
-        { id: "transfer", title: "Transfer", description: "Direct distribution per Trust terms without court." }
+        {
+            id: "acceptance", title: "Acceptance", description: "Successor Trustee signs Certificate of Trust.",
+            tasks: [
+                { id: "review_trust", title: "Review Original Trust Document" },
+                { id: "sign_acceptance", title: "Sign Acceptance of Trusteeship" },
+                { id: "prepare_cert", title: "Prepare Certificate of Trust" },
+                { id: "notarize_cert", title: "Notarize Certificate" }
+            ]
+        },
+        {
+            id: "notification", title: "Notice", description: "Send mandatory notices to all Trust beneficiaries.",
+            tasks: [
+                { id: "identify_beneficiaries", title: "Identify All Beneficiaries" },
+                { id: "prepare_notice", title: "Prepare Notice (Probate Code §16061.7)" },
+                { id: "send_certified", title: "Send via Certified Mail" },
+                { id: "wait_120_days", title: "Wait 120-Day Contest Period" }
+            ]
+        },
+        {
+            id: "inventory", title: "Inventory", description: "Identify assets specifically titled in the Trust.",
+            tasks: [
+                { id: "verify_titles", title: "Verify Trust Titling on All Assets" },
+                { id: "dod_valuations", title: "Obtain Date-of-Death Valuations" },
+                { id: "create_inventory", title: "Create Trust Asset Inventory" }
+            ]
+        },
+        {
+            id: "expenses", title: "Expenses", description: "Pay Trust-related taxes and administration costs.",
+            tasks: [
+                { id: "file_1040", title: "File Final Form 1040" },
+                { id: "file_1041", title: "File Trust Income Tax (Form 1041)" },
+                { id: "pay_debts", title: "Pay Trust Debts" },
+                { id: "admin_expenses", title: "Pay Administration Expenses" }
+            ]
+        },
+        {
+            id: "transfer", title: "Transfer", description: "Direct distribution per Trust terms without court.",
+            tasks: [
+                { id: "calculate_shares", title: "Calculate Beneficiary Shares" },
+                { id: "distribute_assets", title: "Distribute Assets to Beneficiaries" },
+                { id: "get_receipts", title: "Obtain Signed Receipts" },
+                { id: "final_accounting", title: "Prepare Final Accounting (Optional)" }
+            ]
+        }
     ],
     JOINT_TRANSFER: [
-        { id: "id_beneficiaries", title: "ID Heirs", description: "Confirm primary and contingent beneficiaries." },
-        { id: "claim_forms", title: "Claims", description: "Submit claim forms to Insurance / Retirement co's." },
-        { id: "tax_check", title: "Tax Check", description: "Verify if RMDs or estate taxes are due." },
-        { id: "pay_out", title: "Pay Out", description: "Direct deposit of funds to individual beneficiaries." }
+        {
+            id: "verify_ownership", title: "Verify Ownership", description: "Confirm JTWROS vs Tenants in Common.",
+            tasks: [
+                { id: "check_title", title: "Review Title Document" },
+                { id: "confirm_jtwros", title: "Confirm 'Joint Tenants with Right of Survivorship'" },
+                { id: "identify_survivor", title: "Identify Surviving Owner" }
+            ]
+        },
+        {
+            id: "gather_docs", title: "Documents", description: "Assemble transfer documents.",
+            tasks: [
+                { id: "death_cert", title: "Obtain Certified Death Certificate" },
+                { id: "affidavit", title: "Prepare Affidavit of Death (for real estate)" },
+                { id: "survivor_id", title: "Gather Survivor's ID" }
+            ]
+        },
+        {
+            id: "submit_claim", title: "Submit Claim", description: "Request transfer to sole ownership.",
+            tasks: [
+                { id: "contact_institution", title: "Contact Institution" },
+                { id: "complete_forms", title: "Complete Claim Forms" },
+                { id: "submit_docs", title: "Submit Documents" }
+            ]
+        },
+        {
+            id: "complete_transfer", title: "Complete", description: "Confirm transfer and update records.",
+            tasks: [
+                { id: "verify_transfer", title: "Verify Transfer Complete" },
+                { id: "update_beneficiaries", title: "Update Beneficiary Designations" },
+                { id: "record_affidavit", title: "Record Affidavit (if real estate)" }
+            ]
+        }
     ],
     INTESTATE: [
-        { id: "hierarchy", title: "Hierarchy", description: "Determine legal heirs via state intestacy laws." },
-        { id: "admin_petition", title: "Petition", description: "Ask court to appoint 'Administrator' (no Will)." },
-        { id: "bond", title: "Bond", description: "Court may require a surety bond to protect heirs." },
-        { id: "clearance", title: "Clearance", description: "Resolve disputes over family inheritance priority." },
-        { id: "statutory", title: "Statutory", description: "Distribute according to state percentage rules." }
+        {
+            id: "hierarchy",
+            title: "Heir Hierarchy",
+            description: "Determine legal heirs per state intestacy law.",
+            tasks: [
+                { id: "spouse", title: "Identify surviving spouse (if any)" },
+                { id: "children", title: "Identify children and descendants" },
+                { id: "parents", title: "Identify parents if no descendants" },
+                { id: "siblings", title: "Identify siblings if no parents" },
+                { id: "calculator", title: "Apply state intestacy calculator" },
+                { id: "family_tree", title: "Document complete family tree" },
+                { id: "verify_no_will", title: "Verify no Will exists" },
+                { id: "shares", title: "Determine each heir percentage share" }
+            ]
+        },
+        {
+            id: "admin_petition",
+            title: "Administrator Petition",
+            description: "File petition for Letters of Administration.",
+            tasks: [
+                { id: "prepare_de111", title: "Prepare Petition (DE-111)" },
+                { id: "admin_not_executor", title: "Request Administrator appointment" },
+                { id: "list_heirs", title: "List all heirs with addresses" },
+                { id: "bond_amount", title: "Determine bond requirement" },
+                { id: "file_court", title: "File with probate court" },
+                { id: "pay_fees", title: "Pay filing fees" },
+                { id: "serve_heirs", title: "Serve notice to all heirs" },
+                { id: "publish", title: "Publish notice in newspaper" }
+            ]
+        },
+        {
+            id: "bond",
+            title: "Bond & Authority",
+            description: "Post bond and obtain Letters of Administration.",
+            tasks: [
+                { id: "hearing", title: "Attend court hearing" },
+                { id: "post_bond", title: "Post surety bond (if required)" },
+                { id: "receive_letters", title: "Receive Letters of Administration" },
+                { id: "certified_copies", title: "Order certified copies" },
+                { id: "admin_note", title: "Note: Administrator, not Executor" },
+                { id: "duties", title: "Understand fiduciary duties" }
+            ]
+        },
+        {
+            id: "clearance",
+            title: "Creditor Clearance",
+            description: "Publish notice, pay debts, file taxes.",
+            tasks: [
+                { id: "creditor_notice", title: "Publish creditor notice (4 months)" },
+                { id: "inventory", title: "Collect and inventory all assets" },
+                { id: "funeral", title: "Pay funeral expenses" },
+                { id: "creditors", title: "Pay valid creditor claims" },
+                { id: "taxes", title: "File final tax returns" },
+                { id: "clearances", title: "Obtain tax clearances" }
+            ]
+        },
+        {
+            id: "statutory",
+            title: "Statutory Distribution",
+            description: "Distribute per state intestacy law (not Will).",
+            tasks: [
+                { id: "calc_shares", title: "Calculate shares per state law" },
+                { id: "prepare_petition", title: "Prepare distribution petition" },
+                { id: "file_petition", title: "File Petition for Final Distribution" },
+                { id: "court_approval", title: "Obtain court approval" },
+                { id: "distribute", title: "Distribute to heirs per court order" },
+                { id: "receipts", title: "Obtain receipts from all heirs" },
+                { id: "accounting", title: "File final accounting" },
+                { id: "close", title: "Close estate" }
+            ]
+        }
     ],
     ANCILLARY_PROBATE: [
         { id: "domiciliary", title: "Domiciliary", description: "Complete primary probate in decedent's home state." },
@@ -137,37 +270,159 @@ export const TRACK_STAGES: Record<SettlementTrack, ProcessStage[]> = {
     ],
     INFORMAL_PROBATE: [
         {
-            id: "petition", title: "Petition", description: "Simplified court petition for uncontested estates.",
+            id: "verify_uncontested",
+            title: "Verify Uncontested Status",
+            description: "Confirm estate qualifies for informal/simplified probate.",
             tasks: [
-                { id: "file_petition", title: "File Informal Petition" },
-                { id: "appoint_rep", title: "Appoint Personal Rep" },
-                { id: "notify_heirs", title: "Notify All Heirs" }
+                { id: "review_will", title: "Review Will for clarity and validity" },
+                { id: "contact_beneficiaries", title: "Contact all beneficiaries" },
+                { id: "written_consent", title: "Obtain written consent from heirs" },
+                { id: "verify_no_disputes", title: "Verify no creditor disputes" },
+                { id: "document_agreement", title: "Document unanimous agreement" },
+                { id: "no_contests", title: "Confirm no Will contests expected" },
+                { id: "state_requirements", title: "Verify estate meets state requirements" }
             ]
         },
         {
-            id: "admin", title: "Admin", description: "Collect assets and pay debts without frequent hearings.",
+            id: "simplified_petition",
+            title: "Simplified Petition",
+            description: "File simplified petition with court.",
             tasks: [
-                { id: "inventory", title: "List All Assets" },
-                { id: "pay_creditors", title: "Pay Debts" }
+                { id: "prepare_petition", title: "Prepare simplified probate petition" },
+                { id: "attach_will", title: "Attach Will and death certificate" },
+                { id: "waive_bond", title: "Request waiver of bond" },
+                { id: "independent_admin", title: "Request independent administration" },
+                { id: "file_court", title: "File with probate court" },
+                { id: "reduced_fees", title: "Pay reduced filing fees" },
+                { id: "expedited_hearing", title: "Request expedited hearing (if required)" }
             ]
         },
-        { id: "close", title: "Close", description: "Final accounting and distribution." }
+        {
+            id: "streamlined_authority",
+            title: "Streamlined Authority",
+            description: "Obtain Letters with minimal court supervision.",
+            tasks: [
+                { id: "brief_hearing", title: "Attend brief hearing (or waived)" },
+                { id: "receive_letters", title: "Receive Letters Testamentary" },
+                { id: "certified_copies", title: "Order certified copies" },
+                { id: "independent_note", title: "Note: Independent administration granted" },
+                { id: "minimal_supervision", title: "Minimal ongoing court supervision" },
+                { id: "no_inventory", title: "No Inventory & Appraisal (some states)" }
+            ]
+        },
+        {
+            id: "informal_administration",
+            title: "Informal Administration",
+            description: "Administer estate with minimal court oversight.",
+            tasks: [
+                { id: "collect_assets", title: "Collect and manage assets" },
+                { id: "pay_debts", title: "Pay debts and expenses" },
+                { id: "file_taxes", title: "File tax returns" },
+                { id: "no_accounting", title: "No formal accounting required (most states)" },
+                { id: "communicate", title: "Communicate with beneficiaries" },
+                { id: "records", title: "Maintain detailed records" }
+            ]
+        },
+        {
+            id: "simplified_distribution",
+            title: "Simplified Distribution",
+            description: "Distribute assets with minimal court involvement.",
+            tasks: [
+                { id: "distribution_plan", title: "Prepare distribution plan" },
+                { id: "beneficiary_consents", title: "Obtain beneficiary consents" },
+                { id: "distribute", title: "Distribute per Will terms" },
+                { id: "receipts", title: "Obtain receipts from beneficiaries" },
+                { id: "closing_statement", title: "File closing statement (if required)" },
+                { id: "close_estate", title: "Close estate without formal hearing" }
+            ]
+        }
     ],
     POD_TOD_TRANSFER: [
-        { id: "id_accounts", title: "ID Accounts", description: "Locate accounts with designated beneficiaries." },
-        { id: "claim_forms", title: "Claim Forms", description: "Submit POD/TOD claim packets to institutions." },
-        { id: "transfer", title: "Transfer", description: "Direct transfer of funds to beneficiaries." }
+        {
+            id: "verify_designation", title: "Verify Beneficiary", description: "Confirm beneficiary designation on file.",
+            tasks: [
+                { id: "contact_institution", title: "Contact Institution" },
+                { id: "request_designation", title: "Request Copy of Beneficiary Form" },
+                { id: "verify_name", title: "Verify Your Name is Listed" }
+            ]
+        },
+        {
+            id: "assemble_packet", title: "Assemble Packet", description: "Gather all required claim documents.",
+            tasks: [
+                { id: "death_cert", title: "Obtain Certified Death Certificate" },
+                { id: "beneficiary_id", title: "Gather Your ID" },
+                { id: "claim_form", title: "Complete Institution's Claim Form" },
+                { id: "w9_form", title: "Complete W-9 Form" }
+            ]
+        },
+        {
+            id: "submit_claim", title: "Submit Claim", description: "File claim packet with institution.",
+            tasks: [
+                { id: "review_packet", title: "Review Packet for Completeness" },
+                { id: "submit_docs", title: "Submit via Mail or In-Person" },
+                { id: "track_submission", title: "Track Submission Status" }
+            ]
+        },
+        {
+            id: "receive_transfer", title: "Receive Transfer", description: "Direct transfer to beneficiary.",
+            tasks: [
+                { id: "choose_method", title: "Choose Transfer Method (Check/Wire/Account)" },
+                { id: "receive_funds", title: "Receive Funds" },
+                { id: "tax_reporting", title: "Note Tax Implications (if retirement account)" }
+            ]
+        }
     ],
     SPOUSAL_PETITION: [
+        {
+            id: "eligibility", title: "Eligibility", description: "Verify qualification for spousal petition.",
+            tasks: [
+                { id: "confirm_spouse", title: "Confirm Surviving Spouse Status" },
+                { id: "verify_property", title: "Verify Community Property" },
+                { id: "check_heirs", title: "Check for Other Heirs" }
+            ]
+        },
+        {
+            id: "documents", title: "Documents", description: "Assemble required documents.",
+            tasks: [
+                { id: "death_cert", title: "Obtain Death Certificate" },
+                { id: "marriage_cert", title: "Obtain Marriage Certificate" },
+                { id: "property_docs", title: "Gather Property Deeds/Titles" },
+                { id: "will_if_exists", title: "Locate Original Will (if exists)" }
+            ]
+        },
         {
             id: "petition", title: "Petition", description: "File Spousal Property Petition (DE-221).",
             tasks: [
                 { id: "prepare_de221", title: "Prepare DE-221" },
-                { id: "file_court", title: "File with Local Court" }
+                { id: "notarize", title: "Notarize Signature" },
+                { id: "file_court", title: "File with Probate Court" },
+                { id: "pay_fees", title: "Pay Filing Fees (~$435)" }
             ]
         },
-        { id: "hearing", title: "Hearing", description: "Attend hearing for Spousal Property Order." },
-        { id: "transfer", title: "Transfer", description: "Transfer title to surviving spouse." }
+        {
+            id: "hearing", title: "Hearing", description: "Attend hearing for Spousal Property Order.",
+            tasks: [
+                { id: "receive_notice", title: "Receive Hearing Notice" },
+                { id: "prepare_docs", title: "Prepare Hearing Documents" },
+                { id: "attend_hearing", title: "Attend Court Hearing" }
+            ]
+        },
+        {
+            id: "order", title: "Order", description: "Obtain Spousal Property Order (DE-226).",
+            tasks: [
+                { id: "obtain_de226", title: "Obtain Certified DE-226 Order" },
+                { id: "get_copies", title: "Get Multiple Certified Copies" }
+            ]
+        },
+        {
+            id: "transfer", title: "Transfer", description: "Transfer title to surviving spouse.",
+            tasks: [
+                { id: "present_order", title: "Present DE-226 to Institutions" },
+                { id: "record_deed", title: "Record with County Recorder (real estate)" },
+                { id: "transfer_accounts", title: "Transfer Bank/Brokerage Accounts" },
+                { id: "dmv_transfer", title: "Transfer Vehicle Titles at DMV" }
+            ]
+        }
     ],
     INSOLVENT: [
         { id: "freeze", title: "Freeze", description: "Stop all payments until priority is established." },
