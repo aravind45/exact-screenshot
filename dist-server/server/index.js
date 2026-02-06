@@ -1,13 +1,12 @@
 // Deployment Trigger - Cloud Run Port & Express 5 Fix
 import "dotenv/config";
-import express, { Request, Response, NextFunction } from "express";
+import express from "express";
 import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
 import { execSync } from "child_process";
 import { AuthService } from "./services/authService.js";
 import { prisma } from "./db.js";
-
 import authRoutes from "./routes/authRoutes.js";
 import assetRoutes from "./routes/assetRoutes.js";
 import documentRoutes from "./routes/documentRoutes.js";
@@ -25,67 +24,57 @@ import { pdfRoutes } from "./routes/pdfRoutes.js";
 import formRoutes from "./routes/formRoutes.js";
 import helpRoutes from "./routes/helpRoutes.js";
 import billingRoutes from "./routes/billingRoutes.js";
-
 const app = express();
 const port = Number(process.env.PORT) || 3000;
-
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // Both in dev (server/index.ts) and prod (dist-server/index.js), 
 // the static 'dist' folder is at ../dist relative to the file.
 const distPath = path.resolve(__dirname, "../dist");
-
 console.log("🚀 Starting ExpectedEstate server...");
 console.log(`📦 Node environment: ${process.env.NODE_ENV}`);
 console.log(`🔌 Port: ${port}`);
 console.log(`📁 Dist path: ${distPath}`);
 console.log(`💾 Database URL: ${process.env.DATABASE_URL ? '✅ Set' : '❌ NOT SET'}`);
-
 app.use(cors());
 app.use(express.json());
 app.use(express.raw({
     type: ['application/pdf', 'image/jpeg', 'image/png'],
     limit: '10mb'
 }));
-
 // Logger
 app.use((req, res, next) => {
     console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
     if (req.headers.authorization) {
         console.log(`🔑 Auth Header present: ${req.headers.authorization.substring(0, 15)}...`);
-    } else {
+    }
+    else {
         console.log("🔑 No Auth Header present");
     }
     next();
 });
-
 // Auth Middleware
-const authenticate = async (req: Request | any, res: Response, next: NextFunction) => {
+const authenticate = async (req, res, next) => {
     const authHeader = req.headers.authorization;
     const token = authHeader?.split(" ")[1] || req.query.token;
-
     console.log(`🔒 Auth attempt: ${req.method} ${req.url}`);
     if (!token) {
         console.log("❌ No token provided");
         return res.status(401).json({ error: "Unauthorized" });
     }
-
-    const user = await AuthService.verifyToken(token as string);
+    const user = await AuthService.verifyToken(token);
     if (!user) {
         console.log("❌ Token verification failed or user not found");
         return res.status(401).json({ error: "Invalid token" });
     }
-
     console.log(`✅ Auth success: user ${user.id}`);
     req.user = user;
     next();
 };
-
 // Health
 app.get("/api/health", (req, res) => {
     console.log("✅ Health check called");
     res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
-
 // Routes
 console.log("📋 Registering routes...");
 app.use("/api/auth", authRoutes);
@@ -105,22 +94,20 @@ app.use("/api/forms", authenticate, formRoutes);
 app.use("/api/help", authenticate, helpRoutes);
 app.use("/api/billing", authenticate, billingRoutes);
 app.use("/api/webhooks", webhookRoutes); // Auth handled via Mailgun signatures
-
 // Profile (simple, keep here or move if grows)
-app.get("/api/auth/me", authenticate, (req: any, res) => res.json(req.user));
-app.put("/api/auth/me", authenticate, async (req: any, res) => {
+app.get("/api/auth/me", authenticate, (req, res) => res.json(req.user));
+app.put("/api/auth/me", authenticate, async (req, res) => {
     try {
         const updatedUser = await AuthService.updateProfile(req.user.id, req.body);
         res.json(updatedUser);
-    } catch (e: any) {
+    }
+    catch (e) {
         res.status(400).json({ error: e.message });
     }
 });
-
 // Serve Static Files
 console.log("📂 Setting up static file serving...");
 app.use(express.static(distPath));
-
 // Catch-all to serve index.html for React Router
 app.get(/(.*)/, (req, res) => {
     if (req.path.startsWith("/api/")) {
@@ -128,35 +115,30 @@ app.get(/(.*)/, (req, res) => {
     }
     res.sendFile(path.join(distPath, "index.html"));
 });
-
 // Error handler
-app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+app.use((err, req, res, next) => {
     console.error("❌ Server error:", err);
     res.status(500).json({ error: "Internal server error" });
 });
-
 // Always listen when in production or no specific VITE_API_URL is set
 // Cloud Run expects the server to listen on the PORT environment variable
 console.log(`🎧 Starting server on 0.0.0.0:${port}...`);
-
-let server: any; // Declare server variable outside the conditional block
+let server; // Declare server variable outside the conditional block
 const isServerless = process.env.VERCEL === '1' || process.env.NETLIFY === 'true' || !!process.env.AWS_EXECUTION_ENV || !!process.env.FUNCTION_NAME;
-
 if (!isServerless) {
     server = app.listen(port, '0.0.0.0', async () => {
         console.log(`✅ Server running on http://0.0.0.0:${port}`);
         console.log(`✅ Environment: ${process.env.NODE_ENV || 'development'}`);
-
         // Background Database Sync & Seeding (Non-blocking)
         (async () => {
             try {
                 console.log("🔄 Running prisma db push...");
                 execSync("npx prisma db push --accept-data-loss", { stdio: 'inherit' });
                 console.log("✅ Database schema synced");
-            } catch (syncErr) {
+            }
+            catch (syncErr) {
                 console.error("❌ Database sync failed:", syncErr);
             }
-
             try {
                 // Seed default forms if DB is empty
                 const { FormSeedingService } = await import("./services/formSeedingService.js");
@@ -166,20 +148,20 @@ if (!isServerless) {
                     await FormSeedingService.seedDefaults();
                 }
                 console.log(`🎉 Background initialization complete! Server is fully ready.`);
-            } catch (e) {
+            }
+            catch (e) {
                 console.error("❌ Background initialization error:", e);
             }
         })();
     });
-
-    server.on('error', (err: any) => {
+    server.on('error', (err) => {
         console.error("❌ Failed to start server:", err);
         process.exit(1);
     });
-} else {
+}
+else {
     console.log(`🔧 Running in serverless mode - app exported for function invocation`);
 }
-
 // Graceful shutdown (only if server is running)
 if (server) {
     process.on('SIGTERM', () => {
@@ -189,17 +171,15 @@ if (server) {
         });
     });
 }
-
-
 // Catch unhandled errors
 process.on('uncaughtException', (err) => {
     console.error('❌ Uncaught Exception:', err);
-    if (!isServerless) process.exit(1);
+    if (!isServerless)
+        process.exit(1);
 });
-
 process.on('unhandledRejection', (reason, promise) => {
     console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
-    if (!isServerless) process.exit(1);
+    if (!isServerless)
+        process.exit(1);
 });
-
 export default app;
