@@ -35,6 +35,7 @@ export interface PhaseTask {
   isInternationalOnly?: boolean; // New flag for International Mode
   requiresAuthority?: boolean;  // Blocks until Letters Testamentary (DE-150)
   isAttorneyReviewNode?: boolean; // Highlight mandatory/recommended checkpoints
+  attorneyReviewReason?: string; // Specific reason for attorney review (e.g. "Litigation Risk")
   milestone?: string;           // Human-readable milestone label (e.g. "After Authority Issued")
   trackCompatibility?: ("PROBATE" | "TRUST" | "AFFIDAVIT" | "NON_PROBATE")[];
   isConditional?: boolean;     // Mandatory IF a specific condition is met
@@ -240,6 +241,10 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         alerts: [
           {
             type: "warning",
+            message: "Fiduciary Caution: While recurring charges should stop, avoid paying off large unsecured credit card balances from estate funds until the 4-month creditor period has expired and solvency is confirmed."
+          },
+          {
+            type: "warning",
             message: "Only use estate-related funds for these payments and maintain meticulous records for the final accounting."
           }
         ]
@@ -378,7 +383,8 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         estimatedTime: "40 days after death",
         category: "court-issued",
         exclusiveGroup: "filing_path",
-        isOptional: true, // Only if eligible
+        isConditional: true,
+        conditionalRequirementLabel: "Available if estate value is below state small estate threshold",
         helpArticleId: "small-estate-affidavit",
         requiredDocs: ["DE-310", "Death Certificate"]
       },
@@ -388,7 +394,8 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         description: "Request court order to transfer property to surviving spouse without full probate.",
         estimatedTime: "4-6 weeks",
         category: "probate",
-        isOptional: true,
+        isConditional: true,
+        conditionalRequirementLabel: "Required if property is being transferred to a surviving spouse or domestic partner",
         helpArticleId: "spousal-property",
         requiredDocs: ["DE-221", "Death Certificate"]
       },
@@ -436,7 +443,10 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         description: "If the decedent owned a business, you may need a court order to continue operations and pay employees.",
         estimatedTime: "1-2 weeks",
         category: "probate",
-        isOptional: true,
+        isConditional: true,
+        conditionalRequirementLabel: "Required if decedent owned an ongoing business",
+        isAttorneyReviewNode: true,
+        attorneyReviewReason: "Complex Asset: Continuing business operations involves significant fiduciary risk and employment law compliance.",
         alerts: [{ type: "important", message: "Do not let business operations lapse; it can severely devalue the estate." }]
       },
       {
@@ -571,7 +581,8 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         utility: "Cost Savings: Eliminate bond premium (typically $500-$5,000/year).",
         estimatedTime: "1-2 weeks",
         category: "probate",
-        isOptional: true,
+        isConditional: true,
+        conditionalRequirementLabel: "Recommended to save on bond premiums if all heirs agree to waive",
         requiredDocs: ["DE-142"],
         dependencies: ["file_petition"],
         links: [{
@@ -589,7 +600,8 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         description: "Submit signed waivers to court and request order waiving bond requirement.",
         estimatedTime: "1 day",
         category: "probate",
-        isOptional: true,
+        isConditional: true,
+        conditionalRequirementLabel: "Mandatory if heirs signed bond waivers",
         requiredDocs: ["DE-142"],
         dependencies: ["request_bond_waiver"],
         alerts: [{
@@ -808,6 +820,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         description: "For non-resident executors or beneficiaries, determine U.S. tax withholding requirements and treaty eligibility.",
         isInternationalOnly: true,
         isAttorneyReviewNode: true,
+        attorneyReviewReason: "Tax Risk: Foreign beneficiary withholding is strictly enforced by the IRS and requires specific treaty analysis.",
         trackCompatibility: ["PROBATE", "TRUST"],
         alerts: [{
           type: "important",
@@ -830,6 +843,8 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         title: "Evaluate Estate Solvency",
         description: "Compare total assets to total liabilities and funeral/admin expenses.",
         estimatedTime: "2-3 hours",
+        isAttorneyReviewNode: true,
+        attorneyReviewReason: "Fiduciary Risk: If the estate is insolvent, the legal priority of payments changes. Paying the wrong creditor first is a major source of personal liability.",
         alerts: [{ type: "caution", message: "If liabilities exceed assets, the estate is insolvent. Different rules apply." }]
       },
       {
@@ -870,6 +885,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         title: "Document Claim Evaluation & Decision",
         description: "Formally evaluate each timely creditor claim. Document whether the claim is allowed in full, partially allowed, or rejected.",
         isAttorneyReviewNode: true,
+        attorneyReviewReason: "Litigation Risk: Formal claim rejection (DE-174) triggers a strict 90-day litigation window for the creditor. Legal defense strategy is critical here.",
         trackCompatibility: ["PROBATE", "TRUST"],
         alerts: [{
           type: "caution",
@@ -881,7 +897,8 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         title: "Reject Invalid Claims",
         description: "File formal rejections for claims that are incorrect, unsupported, or time-barred.",
         estimatedTime: "1 week",
-        isOptional: true, // Only if bad claims exist
+        isConditional: true,
+        conditionalRequirementLabel: "Required if creditor claims are invalid or disputed",
         requiredDocs: ["DE-174 Allowance or Rejection"],
         alerts: [
           {
@@ -931,7 +948,10 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         title: "Obtain Court Approval for Minor Distributions",
         description: "Distributions to minors usually require a guardianship or court order to be placed in a blocked account.",
         estimatedTime: "4-8 weeks",
-        isOptional: true,
+        isConditional: true,
+        conditionalRequirementLabel: "Required if any beneficiaries are under age 18",
+        isAttorneyReviewNode: true,
+        attorneyReviewReason: "Malpractice Risk: Minor beneficiaries have special statutory protections. Distributing without court-approved blocked accounts triggers personal liability.",
         category: "probate",
         alerts: [{
           type: "important",
@@ -970,7 +990,8 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         description: "If you have Independent Administration of Estates Act (IAEA) authority, you must notify heirs of your intent to sell real property.",
         estimatedTime: "1 week",
         category: "probate",
-        isOptional: true,
+        isConditional: true,
+        conditionalRequirementLabel: "Required if estate owns real property and intention is to sell",
         requiredDocs: ["DE-165"],
         links: [{
           label: "Download DE-165",
@@ -987,7 +1008,8 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         description: "Mandatory waiting period after serving Notice of Proposed Action to allow heirs to respond or object.",
         estimatedTime: "15 days",
         isLongHorizon: true,
-        isOptional: true,
+        isConditional: true,
+        conditionalRequirementLabel: "Mandatory waiting period for heirs to object to proposed sale",
         dependencies: ["prepare_notice_proposed_action"]
       },
       {
@@ -996,7 +1018,10 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         description: "If you do NOT have IAEA authority, or if someone objects, you must petition the court to confirm the sale of real property.",
         estimatedTime: "2-4 hours",
         category: "probate",
-        isOptional: true,
+        isConditional: true,
+        conditionalRequirementLabel: "Required if IAEA authority is limited or restricted",
+        isAttorneyReviewNode: true,
+        attorneyReviewReason: "Real Estate Sale: Sales without full IAEA authority require complex court confirmation and overbid procedures.",
         requiredDocs: ["DE-260"],
         links: [{
           label: "Download DE-260",
@@ -1013,7 +1038,10 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         description: "Receive signed court order confirming the real estate sale and allowing the close of escrow.",
         estimatedTime: "1-2 weeks after hearing",
         category: "court-issued",
-        isOptional: true,
+        isConditional: true,
+        conditionalRequirementLabel: "Required if court-confirmed sale was necessary",
+        isAttorneyReviewNode: true,
+        attorneyReviewReason: "Real Estate Sale: The court order (DE-265) is a title-clearing document. Errors here can break's the buyer's title and lead to litigation.",
         dependencies: ["petition_confirm_sale"],
         requiredDocs: ["DE-265"]
       },
@@ -1022,7 +1050,10 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         title: "Complete Property Sale & Close Escrow",
         description: "Finalize the sale of real estate, sign closing documents, and receive sale proceeds into the estate account.",
         estimatedTime: "4-8 weeks",
-        isOptional: true,
+        isConditional: true,
+        conditionalRequirementLabel: "Required if estate owns real property",
+        isAttorneyReviewNode: true,
+        attorneyReviewReason: "Fiduciary Risk: Property sales are often the largest transactions in an estate. Mismatched closing statements or tax withholding errors create high liability.",
         dependencies: ["obtain_sale_confirmation_order", "wait_proposed_action_period"],
         requiredDocs: ["Final Hud-1/Closing Statement"]
       },

@@ -140,9 +140,14 @@ export default function SettlementRoadmap() {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-black text-slate-900 tracking-tight">Settlement Path</h1>
-                <p className="text-xs text-slate-600 mt-0.5">
-                  {authorityRec?.legalTerm} • {getMasterMode(authorityRec?.type || "UNSET").replace('_', ' ')}
+                <div className="flex items-center gap-2">
+                  <h1 className="text-2xl font-black text-slate-900 tracking-tight">Settlement Path</h1>
+                  <Badge variant="outline" className="bg-indigo-50 border-indigo-200 text-indigo-700 text-[10px] font-bold uppercase py-0.5 px-2">
+                    {getMasterMode(authorityRec?.type || "UNSET").replace('_', ' ')}
+                  </Badge>
+                </div>
+                <p className="text-xs text-slate-600 mt-0.5 font-medium">
+                  Legal Track: <span className="text-slate-900 font-bold">{authorityRec?.legalTerm}</span>
                 </p>
               </div>
               <div className="flex items-center gap-3">

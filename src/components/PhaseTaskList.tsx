@@ -356,8 +356,11 @@ function TaskItem({ task, isCompleted, onToggle, getAlertIcon, getAlertColor, do
                   {task.isAttorneyReviewNode && <Gavel className="w-4 h-4 text-amber-600 shrink-0" />}
                   {task.title}
                 </h4>
+              </div>
+
+              <div className="flex flex-wrap gap-2 mt-1">
                 {task.isConditional && (
-                  <div className="mt-2 flex items-center gap-1.5 px-2 py-1 bg-blue-50 border border-blue-100 rounded-md w-fit">
+                  <div className="flex items-center gap-1.5 px-2 py-1 bg-blue-50 border border-blue-100 rounded-md w-fit">
                     <Info className="w-3 h-3 text-blue-600" />
                     <span className="text-[10px] font-bold text-blue-700 uppercase tracking-widest">
                       {task.conditionalRequirementLabel || "Conditionally Required"}
@@ -365,9 +368,16 @@ function TaskItem({ task, isCompleted, onToggle, getAlertIcon, getAlertColor, do
                   </div>
                 )}
                 {task.isAttorneyReviewNode && (
-                  <div className="mt-2 flex items-center gap-1.5 px-2 py-1 bg-amber-50 border border-amber-200 rounded-md w-fit">
-                    <Gavel className="w-3 h-3 text-amber-600" />
-                    <span className="text-[10px] font-bold text-amber-700 uppercase tracking-widest">Fiduciary Decision Guardrail</span>
+                  <div className="flex flex-col gap-1 w-full max-w-md">
+                    <div className="flex items-center gap-1.5 px-2 py-1 bg-amber-50 border border-amber-200 rounded-md w-fit">
+                      <Gavel className="w-3 h-3 text-amber-600" />
+                      <span className="text-[10px] font-bold text-amber-700 uppercase tracking-widest leading-none">Attorney Review Recommended</span>
+                    </div>
+                    {task.attorneyReviewReason && (
+                      <p className="text-[10px] text-amber-800 font-medium italic mt-0.5 whitespace-normal">
+                        Reason: {task.attorneyReviewReason}
+                      </p>
+                    )}
                   </div>
                 )}
               </div>
