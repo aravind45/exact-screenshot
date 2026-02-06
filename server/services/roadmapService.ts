@@ -267,18 +267,10 @@ async function getRoadmapFromDatabase(
       requiresNotary: undefined,
       requiresPhysicalMail: undefined,
     })),
-    trackCompatibility: task.trackCompatibility as any[],
-    riskWarning: task.riskWarning || undefined,
-    deadlineWarningId: task.deadlineWarningId || undefined,
-    isInternationalOnly: task.isInternationalOnly,
-    alerts: task.alerts as any,
-    links: task.links as any,
-    tags: task.tags,
-  })),
-}));
+  }));
 
-// Apply existing filtering logic
-return filterTasksForEstate(phases, profile, completedTaskIds);
+  // Apply existing filtering logic
+  return filterTasksForEstate(phases, profile, completedTaskIds);
 }
 
 /**
