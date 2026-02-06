@@ -61,6 +61,11 @@ export function HeroSection() {
                 <ArrowRight className="w-4 h-4" />
               </Button>
             </Link>
+            <Link to="/auth?mode=buy">
+              <Button variant="outline" size="lg" className="h-12 px-8 text-base border-primary text-primary hover:bg-primary/5">
+                Buy Now
+              </Button>
+            </Link>
             <Button
               variant="outline"
               size="lg"

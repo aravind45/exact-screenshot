@@ -11,15 +11,20 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 const Index = () => {
   const navigate = useNavigate();
 
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly');
+
   const plan = {
     name: "ExpectedEstate",
-    price: "$49",
-    period: "/month",
-    annualPrice: "$490/year",
+    monthlyPrice: "$49",
+    annualPriceMonthly: "$41",
+    period: billingCycle === 'monthly' ? "/month" : "/mo, billed annual",
+    annualTotal: "$490/year",
     description: "Complete estate settlement platform with all features included",
     features: [
       "All 11 Settlement Roadmap Types",
@@ -69,7 +74,7 @@ const Index = () => {
         <ProcessTimeline />
         <FeaturesSection />
         <PainPointsSection />
-        
+
         {/* Pricing Section - Inline */}
         <section id="pricing" className="py-20 bg-gradient-to-b from-gray-50 to-white">
           <div className="container mx-auto px-4">
@@ -83,9 +88,31 @@ const Index = () => {
               <p className="text-xl text-gray-600 max-w-2xl mx-auto">
                 Choose the plan that fits your estate's needs. All plans include a 14-day free trial.
               </p>
-              <p className="text-sm text-gray-500 mt-2">
-                💰 Save 15% with annual billing
-              </p>
+
+              {/* Billing Cycle Toggle */}
+              <div className="mt-10 flex items-center justify-center gap-4">
+                <span className={`text-sm font-medium ${billingCycle === 'monthly' ? 'text-foreground' : 'text-muted-foreground'}`}>
+                  Monthly
+                </span>
+                <button
+                  onClick={() => setBillingCycle(billingCycle === 'monthly' ? 'annual' : 'monthly')}
+                  className="relative w-14 h-7 bg-muted rounded-full p-1 transition-colors hover:bg-muted/80"
+                >
+                  <motion.div
+                    animate={{ x: billingCycle === 'monthly' ? 0 : 28 }}
+                    className="w-5 h-5 bg-primary rounded-full shadow-sm"
+                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                  />
+                </button>
+                <div className="flex items-center gap-2">
+                  <span className={`text-sm font-medium ${billingCycle === 'annual' ? 'text-foreground' : 'text-muted-foreground'}`}>
+                    Annual
+                  </span>
+                  <Badge variant="secondary" className="bg-green-100 text-green-700 hover:bg-green-100 border-none">
+                    Save 15%
+                  </Badge>
+                </div>
+              </div>
             </div>
 
             <div className="max-w-2xl mx-auto mb-12">
@@ -101,14 +128,32 @@ const Index = () => {
                   <CardDescription className="text-base mb-6">
                     {plan.description}
                   </CardDescription>
-                  <div className="mt-6">
-                    <span className="text-6xl font-bold">{plan.price}</span>
-                    <span className="text-xl text-gray-600">{plan.period}</span>
+                  <div className="mt-6 flex flex-col items-center">
+                    <div className="flex items-baseline gap-1">
+                      <AnimatePresence mode="wait">
+                        <motion.span
+                          key={billingCycle}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          className="text-6xl font-bold"
+                        >
+                          {billingCycle === 'monthly' ? plan.monthlyPrice : plan.annualPriceMonthly}
+                        </motion.span>
+                      </AnimatePresence>
+                      <span className="text-xl text-gray-600">{plan.period}</span>
+                    </div>
+                    {billingCycle === 'annual' && (
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="text-sm text-green-600 font-medium mt-2"
+                      >
+                        Billed as {plan.annualTotal}
+                      </motion.div>
+                    )}
                   </div>
-                  <div className="text-base text-gray-500 mt-3">
-                    or {plan.annualPrice} (save 15%)
-                  </div>
-                  <div className="mt-6 text-base font-semibold text-primary">
+                  <div className="mt-8 text-base font-semibold text-primary">
                     {plan.highlight}
                   </div>
                 </CardHeader>
@@ -124,15 +169,22 @@ const Index = () => {
                   </ul>
                 </CardContent>
 
-                <CardFooter className="pt-8 pb-8 px-8">
+                <CardFooter className="pt-8 pb-8 px-8 flex flex-col gap-4">
                   <Button
-                    className="w-full h-14 text-lg bg-primary hover:bg-primary/90"
+                    className="w-full h-14 text-lg bg-primary hover:bg-primary/90 shadow-lg"
                     onClick={() => navigate("/auth")}
                   >
                     Start 14-Day Free Trial →
                   </Button>
-                  <p className="text-sm text-gray-500 text-center mt-4 w-full">
-                    No credit card required • Cancel anytime
+                  <Button
+                    variant="outline"
+                    className="w-full h-12 text-base border-primary/20 hover:bg-primary/5"
+                    onClick={() => navigate("/auth?mode=buy")}
+                  >
+                    Skip Trial & Buy Now
+                  </Button>
+                  <p className="text-sm text-gray-500 text-center mt-2 w-full">
+                    No credit card required for trial • Cancel anytime
                   </p>
                 </CardFooter>
               </Card>
@@ -190,14 +242,25 @@ const Index = () => {
                     Do you offer refunds?
                   </summary>
                   <p className="mt-2 text-sm text-gray-600">
-                    We offer a 14-day free trial so you can try before you buy. After that, you can cancel anytime but we don't offer refunds for partial months.
+                    We offer a 14-day free trial so you can try before you buy. After that, you can cancel anytime. For refund queries, please contact us at <a href="mailto:expected.estate@gmail.com" className="text-primary hover:underline font-medium">expected.estate@gmail.com</a>.
                   </p>
                 </details>
+                <div className="text-center mt-12 p-6 bg-gray-50 rounded-xl border border-gray-100">
+                  <p className="text-gray-600">
+                    Still have questions? We're here to help.
+                  </p>
+                  <a
+                    href="mailto:expected.estate@gmail.com"
+                    className="text-primary font-bold text-lg hover:underline mt-2 inline-block"
+                  >
+                    expected.estate@gmail.com
+                  </a>
+                </div>
               </div>
             </div>
           </div>
         </section>
-        
+
         <CTASection />
       </main>
       <Footer />

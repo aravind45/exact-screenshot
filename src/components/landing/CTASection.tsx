@@ -21,12 +21,19 @@ export function CTASection() {
             Start documenting your estate settlement today. Build the fiduciary record
             that shields you from liability and ensures nothing is missed.
           </p>
-          <Link to="/auth">
-            <Button size="lg" className="h-12 px-8 text-base gap-2 shadow-soft-lg">
-              Build My Fiduciary Defense
-              <ArrowRight className="w-4 h-4" />
-            </Button>
-          </Link>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Link to="/auth">
+              <Button size="lg" className="h-12 px-8 text-base gap-2 shadow-soft-lg">
+                Build My Fiduciary Defense
+                <ArrowRight className="w-4 h-4" />
+              </Button>
+            </Link>
+            <Link to="/auth?mode=buy">
+              <Button variant="outline" size="lg" className="h-12 px-8 text-base border-primary/20 hover:bg-primary/5 text-foreground">
+                Buy Now
+              </Button>
+            </Link>
+          </div>
           <p className="text-sm text-muted-foreground mt-4 font-medium italic">
             "The best defense isn't just doing the work—it's proving you did it with reasonable care."
           </p>

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Check, Shield, Zap, FileCheck, Scale, AlertTriangle, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -81,7 +81,7 @@ export default function Pricing() {
                             <FeatureItem icon={Check} text="Priority Support" />
                         </div>
 
-                        <div className="pt-6 border-t">
+                        <div className="pt-6 border-t font-sans">
                             <Button
                                 size="lg"
                                 className="w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold text-lg py-6"
@@ -94,14 +94,28 @@ export default function Pricing() {
                                         Starting Checkout...
                                     </>
                                 ) : (
-                                    "Start Your Subscription"
+                                    "Start 14-Day Free Trial"
                                 )}
                             </Button>
+                            <Button
+                                variant="outline"
+                                className="w-full mt-4 h-12 text-slate-600 border-slate-200 hover:bg-slate-50 font-medium"
+                                onClick={() => handleCheckout()}
+                                disabled={loading}
+                            >
+                                Skip Trial & Buy Now
+                            </Button>
                             <p className="text-center text-sm text-slate-500 mt-4">
-                                Cancel anytime. No hidden fees.
+                                No credit card required for trial. Cancel anytime.
                             </p>
                         </div>
                     </CardContent>
+
+                    <CardFooter className="p-8 pt-0 flex flex-col items-center">
+                        <p className="text-xs text-slate-400 text-center mb-4">
+                            Questions about billing or refunds? Contact <a href="mailto:expected.estate@gmail.com" className="hover:text-slate-600 underline">expected.estate@gmail.com</a>
+                        </p>
+                    </CardFooter>
                 </Card>
 
                 {/* Value Prop */}
