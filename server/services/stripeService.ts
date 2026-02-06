@@ -144,7 +144,7 @@ export class StripeService {
                             amount: (invoice.amount_paid || 0) / 100,
                             currency: invoice.currency?.toUpperCase() || 'USD',
                             status: 'SUCCESS',
-                            stripePaymentIntentId: (typeof invoice.payment_intent === 'string' ? invoice.payment_intent : invoice.payment_intent?.id) as string,
+                            stripePaymentIntentId: (typeof (invoice as any).payment_intent === 'string' ? (invoice as any).payment_intent : (invoice as any).payment_intent?.id) as string,
                             type: 'PAYMENT',
                             notes: `Invoice ${invoice.number} paid`,
                         },
