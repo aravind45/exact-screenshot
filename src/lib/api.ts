@@ -1206,11 +1206,11 @@ export const api = {
      * Billing Methods
      */
     billing: {
-        createCheckout: async (successUrl?: string, cancelUrl?: string) => {
+        createCheckout: async (options?: { skipTrial?: boolean, successUrl?: string, cancelUrl?: string }) => {
             const response = await fetch(`${API_URL}/billing/checkout`, {
                 method: "POST",
                 headers: getHeaders(),
-                body: JSON.stringify({ successUrl, cancelUrl }),
+                body: JSON.stringify(options || {}),
             });
             return parseResponse(response);
         },

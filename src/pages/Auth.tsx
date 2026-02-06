@@ -15,7 +15,11 @@ const emailSchema = z.string().trim().email('Please enter a valid email address'
 const passwordSchema = z.string().min(6, 'Password must be at least 6 characters');
 const nameSchema = z.string().trim().min(1, 'Name is required').max(100, 'Name is too long');
 
+import { useSearchParams } from 'react-router-dom';
+
 export default function Auth() {
+  const [searchParams] = useSearchParams();
+  const buyMode = searchParams.get('mode') === 'buy';
   const [authMode, setAuthMode] = useState<'login' | 'signup' | 'forgot-password'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -82,7 +86,7 @@ export default function Auth() {
             title: 'Welcome back!',
             description: 'You have successfully signed in.',
           });
-          navigate('/dashboard');
+          navigate(buyMode ? '/pricing?mode=buy' : '/dashboard');
         }
       } else if (authMode === 'signup') {
         const { error } = await signUp(email, password, fullName);
@@ -105,7 +109,7 @@ export default function Auth() {
             title: 'Account created!',
             description: 'Welcome to ExpectedEstate. Let\'s get started.',
           });
-          navigate('/onboarding');
+          navigate(buyMode ? '/pricing?mode=buy' : '/onboarding');
         }
       } else if (authMode === 'forgot-password') {
         try {

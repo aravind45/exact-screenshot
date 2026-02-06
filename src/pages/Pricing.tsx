@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,11 +10,19 @@ export default function Pricing() {
     const navigate = useNavigate();
     const { toast } = useToast();
     const [loading, setLoading] = useState(false);
+    const [searchParams] = useSearchParams();
+    const shouldBuyNow = searchParams.get('mode') === 'buy';
 
-    const handleCheckout = async () => {
+    useEffect(() => {
+        if (shouldBuyNow && !loading) {
+            handleCheckout(true);
+        }
+    }, [shouldBuyNow]);
+
+    const handleCheckout = async (skipTrial = false) => {
         setLoading(true);
         try {
-            const { url } = await api.billing.createCheckout();
+            const { url } = await api.billing.createCheckout({ skipTrial });
             if (url) {
                 window.location.href = url;
             }
@@ -85,7 +93,7 @@ export default function Pricing() {
                             <Button
                                 size="lg"
                                 className="w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold text-lg py-6"
-                                onClick={handleCheckout}
+                                onClick={() => handleCheckout(false)}
                                 disabled={loading}
                             >
                                 {loading ? (
@@ -100,7 +108,7 @@ export default function Pricing() {
                             <Button
                                 variant="outline"
                                 className="w-full mt-4 h-12 text-slate-600 border-slate-200 hover:bg-slate-50 font-medium"
-                                onClick={() => handleCheckout()}
+                                onClick={() => handleCheckout(true)}
                                 disabled={loading}
                             >
                                 Skip Trial & Buy Now
