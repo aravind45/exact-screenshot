@@ -168,6 +168,78 @@ export function filterTasksForEstate(
 }
 
 /**
+ * Get roadmap from database based on estate's settlement type
+ */
+async function getRoadmapFromDatabase(
+  estateId: string,
+  profile: EstateProfile,
+  completedTaskIds: string[]
+): Promise<PhaseTaskList[]> {
+  // Get estate to determine settlement type
+  const estate = await db.estate.findUnique({
+    where: { id: estateId },
+    select: { estateType: true, settlementPath: true },
+  });
+
+  if (!estate) throw new Error(`Estate ${estateId} not found`);
+
+  // Determine which settlement type to use
+  const settlementTypeCode = estate.settlementPath || estate.estateType || 'FORMAL_PROBATE';
+
+  // Fetch roadmap from database
+  const settlementType = await db.settlementType.findUnique({
+    where: { code: settlementTypeCode },
+    include: {
+      phases: {
+        orderBy: { orderIndex: 'asc' },
+        include: {
+          tasks: {
+            orderBy: { orderIndex: 'asc' },
+          },
+        },
+      },
+    },
+  });
+
+  if (!settlementType) {
+    console.warn(`Settlement type ${settlementTypeCode} not found in database, falling back to hardcoded SETTLEMENT_PHASE_TASKS`);
+    // Fallback to hardcoded tasks if type not found
+    return filterTasksForEstate(SETTLEMENT_PHASE_TASKS, profile, completedTaskIds);
+  }
+
+  // Convert database format to PhaseTaskList format
+  const phases: PhaseTaskList[] = settlementType.phases.map(phase => ({
+    phase: phase.phaseCode as any,
+    title: phase.title,
+    subtitle: phase.subtitle || '',
+    milestone: phase.milestone || '',
+    isEscalationPath: phase.isEscalationPath,
+    tasks: phase.tasks.map(task => ({
+      id: task.taskCode,
+      title: task.title,
+      description: task.description || task.title,
+      estimatedTime: task.estimatedTime,
+      category: task.category,
+      isOptional: task.isOptional,
+      requiresAuthority: task.requiresAuthority,
+      requiredDocs: task.requiredDocs,
+      dependencies: task.dependencies,
+      exclusiveGroup: task.exclusiveGroup || undefined,
+      trackCompatibility: task.trackCompatibility as any[],
+      riskWarning: task.riskWarning || undefined,
+      deadlineWarningId: task.deadlineWarningId || undefined,
+      isInternationalOnly: task.isInternationalOnly,
+      alerts: task.alerts as any,
+      links: task.links as any,
+      tags: task.tags,
+    })),
+  }));
+
+  // Apply existing filtering logic
+  return filterTasksForEstate(phases, profile, completedTaskIds);
+}
+
+/**
  * Get personalized roadmap for an estate
  */
 export async function getEstateRoadmap(estateId: string): Promise<RoadmapResponse> {
@@ -177,8 +249,8 @@ export async function getEstateRoadmap(estateId: string): Promise<RoadmapRespons
   // Get current progress
   const { completedTaskIds } = await getTaskCompletions(estateId);
 
-  // Filter tasks based on profile
-  const filteredPhases = filterTasksForEstate(SETTLEMENT_PHASE_TASKS, profile, completedTaskIds);
+  // Get roadmap from database (with fallback to hardcoded tasks)
+  const filteredPhases = await getRoadmapFromDatabase(estateId, profile, completedTaskIds);
 
   // Return roadmap with triggers
   return {

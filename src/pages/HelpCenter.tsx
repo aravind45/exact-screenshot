@@ -120,6 +120,31 @@ export default function HelpCenter() {
             ]
         },
         {
+            category: "Understanding Settlement Types & Authority",
+            items: [
+                {
+                    id: "settlement-vs-authority",
+                    q: "What's the difference between 'Settlement Type' and 'Authority Type'?",
+                    a: "Settlement Type is the OVERALL PATH or category of estate settlement (e.g., FORMAL_PROBATE, SMALL_ESTATE, TRUST_ADMIN). Authority Type is the SPECIFIC LEGAL DOCUMENT you need to act on behalf of the estate (e.g., LETTERS_TESTAMENTARY, AFFIDAVIT, SUCCESSOR_TRUSTEE). Think of it this way: Settlement Type = the process you're following. Authority Type = the document that gives you legal power."
+                },
+                {
+                    id: "authority-examples",
+                    q: "What are the common Authority Types for each Settlement Type?",
+                    a: "FORMAL_PROBATE (with will) → LETTERS_TESTAMENTARY | INTESTATE (no will) → LETTERS_OF_ADMINISTRATION | SMALL_ESTATE → AFFIDAVIT (no court letters needed) | TRUST_ADMIN → SUCCESSOR_TRUSTEE (certificate of trust) | SPOUSAL_PETITION → SPOUSAL_PROPERTY_ORDER | JOINT_TRANSFER → AFFIDAVIT_OF_DEATH | POD_TOD_TRANSFER → BENEFICIARY_CLAIM"
+                },
+                {
+                    id: "letters-testamentary",
+                    q: "What are 'Letters Testamentary' and when do I need them?",
+                    a: "Letters Testamentary (Form DE-150) are court-issued documents that prove you have legal authority to act as Executor of an estate with a Will. You receive them after the probate hearing. Financial institutions require these letters before they'll release assets to you. They're your 'proof of power' during the formal probate process."
+                },
+                {
+                    id: "letters-administration",
+                    q: "What's the difference between Letters Testamentary and Letters of Administration?",
+                    a: "Both are court-issued authority documents (Form DE-150), but: LETTERS TESTAMENTARY = You're named as Executor in a Will. LETTERS OF ADMINISTRATION = No Will exists, so the court appoints you as Administrator. Once you have either one, your legal powers are identical—both give you full authority to manage the estate."
+                }
+            ]
+        },
+        {
             category: "Avoiding & Minimizing Probate",
             items: [
                 {

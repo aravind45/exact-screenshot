@@ -166,4 +166,145 @@ router.post("/settings", isAdmin, async (req: any, res: Response) => {
     }
 });
 
+/**
+ * GET /api/admin/user-progress
+ * Get roadmap progress for all users - shows where each user is in their settlement process
+ */
+router.get("/user-progress", isAdmin, async (req: any, res: Response) => {
+    try {
+        const estates = await prisma.estate.findMany({
+            include: {
+                user: {
+                    select: {
+                        id: true,
+                        email: true,
+                        fullName: true,
+                        lastLoginAt: true,
+                    },
+                },
+                _count: {
+                    select: {
+                        assets: true,
+                        heirs: true,
+                    },
+                },
+            },
+            orderBy: {
+                updatedAt: 'desc',
+            },
+        });
+
+        const progressData = await Promise.all(
+            estates.map(async (estate) => {
+                // Get settlement type and roadmap
+                const settlementTypeCode = estate.settlementPath || estate.estateType || 'FORMAL_PROBATE';
+                const settlementType = await prisma.settlementType.findUnique({
+                    where: { code: settlementTypeCode },
+                    include: {
+                        phases: {
+                            include: {
+                                tasks: true,
+                            },
+                            orderBy: { orderIndex: 'asc' },
+                        },
+                    },
+                });
+
+                if (!settlementType) {
+                    return null;
+                }
+
+                // Calculate progress
+                const totalTasks = settlementType.phases.reduce((sum, phase) => sum + phase.tasks.length, 0);
+                const completedTaskIds = (estate.roadmapProgress as any)?.completedTaskIds || [];
+                const completedCount = completedTaskIds.length;
+                const progressPercent = totalTasks > 0 ? Math.round((completedCount / totalTasks) * 100) : 0;
+
+                // Find current phase (first incomplete phase)
+                let currentPhase = settlementType.phases[0];
+                let currentPhaseIndex = 0;
+                for (let i = 0; i < settlementType.phases.length; i++) {
+                    const phase = settlementType.phases[i];
+                    const phaseTasks = phase.tasks.map(t => t.taskCode);
+                    const phaseCompleted = phaseTasks.every(taskCode => completedTaskIds.includes(taskCode));
+                    if (!phaseCompleted) {
+                        currentPhase = phase;
+                        currentPhaseIndex = i;
+                        break;
+                    }
+                }
+
+                // Get last activity
+                const lastActivity = await prisma.settlementActivity.findFirst({
+                    where: { estateId: estate.id },
+                    orderBy: { occurredAt: 'desc' },
+                });
+
+                // Calculate days since last activity
+                const daysSinceActivity = lastActivity
+                    ? Math.floor((Date.now() - new Date(lastActivity.occurredAt).getTime()) / (1000 * 60 * 60 * 24))
+                    : null;
+
+                return {
+                    userId: estate.user.id,
+                    userEmail: estate.user.email,
+                    userName: estate.user.fullName,
+                    lastLogin: estate.user.lastLoginAt,
+                    estateId: estate.id,
+                    estateName: estate.name,
+                    settlementType: {
+                        code: settlementType.code,
+                        name: settlementType.name,
+                        tier: settlementType.tier,
+                    },
+                    progress: {
+                        completedTasks: completedCount,
+                        totalTasks: totalTasks,
+                        percent: progressPercent,
+                        status: getProgressStatus(progressPercent),
+                    },
+                    currentPhase: {
+                        index: currentPhaseIndex,
+                        total: settlementType.phases.length,
+                        code: currentPhase.phaseCode,
+                        title: currentPhase.title,
+                    },
+                    assets: estate._count.assets,
+                    heirs: estate._count.heirs,
+                    lastActivity: lastActivity
+                        ? {
+                            action: lastActivity.action,
+                            date: lastActivity.occurredAt,
+                            daysSince: daysSinceActivity,
+                        }
+                        : null,
+                    createdAt: estate.createdAt,
+                    updatedAt: estate.updatedAt,
+                };
+            })
+        );
+
+        // Filter out nulls and sort by progress
+        const validProgress = progressData.filter(p => p !== null);
+        validProgress.sort((a, b) => b!.progress.percent - a!.progress.percent);
+
+        res.json({
+            total: validProgress.length,
+            users: validProgress,
+        });
+    } catch (error) {
+        console.error('Error fetching user progress:', error);
+        res.status(500).json({ error: 'Failed to fetch user progress' });
+    }
+});
+
+function getProgressStatus(percent: number): string {
+    if (percent === 0) return 'Not Started';
+    if (percent < 25) return 'Just Started';
+    if (percent < 50) return 'In Progress';
+    if (percent < 75) return 'Halfway There';
+    if (percent < 100) return 'Almost Done';
+    return 'Complete';
+}
+
 export default router;

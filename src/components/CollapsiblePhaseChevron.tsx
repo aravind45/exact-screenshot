@@ -6,7 +6,7 @@
  * phases show lock status.
  */
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -59,6 +59,17 @@ export function CollapsiblePhaseChevron({ onTaskToggle }: CollapsiblePhaseChevro
     queryFn: api.getMyEstate,
   });
 
+  // Fetch roadmap from database
+  const { data: roadmapData, isLoading: isLoadingRoadmap } = useQuery({
+    queryKey: ['roadmap', estate?.id],
+    queryFn: () => api.getEstateRoadmap(estate!.id),
+    enabled: !!estate?.id,
+  });
+
+  const dynamicRoadmap = useMemo(() => {
+    return roadmapData?.phases || [];
+  }, [roadmapData]);
+
   const handleSyncRoadmap = async (roadmapId: string, taskTitle?: string, phaseName?: string) => {
     try {
       if (!estate) return;
@@ -89,11 +100,13 @@ export function CollapsiblePhaseChevron({ onTaskToggle }: CollapsiblePhaseChevro
       toast.success("Document uploaded successfully");
 
       // Auto-sync roadmap if this doc matches a task in any phase
-      for (const p of SETTLEMENT_PHASE_TASKS) {
-        const taskWithDoc = p.tasks.find(t => t.requiredDocs?.includes(variables.type));
-        if (taskWithDoc) {
-          handleSyncRoadmap(taskWithDoc.id, taskWithDoc.title, p.title);
-          break;
+      if (dynamicRoadmap && dynamicRoadmap.length > 0) {
+        for (const p of dynamicRoadmap) {
+          const taskWithDoc = p.tasks.find(t => t.requiredDocs?.includes(variables.type));
+          if (taskWithDoc) {
+            handleSyncRoadmap(taskWithDoc.id, taskWithDoc.title, p.title);
+            break;
+          }
         }
       }
     },
@@ -145,9 +158,31 @@ export function CollapsiblePhaseChevron({ onTaskToggle }: CollapsiblePhaseChevro
     }
   };
 
+  // Show loading state
+  if (isLoadingRoadmap) {
+    return (
+      <div className="space-y-3">
+        <div className="text-center py-8 text-slate-500">
+          Loading roadmap...
+        </div>
+      </div>
+    );
+  }
+
+  // Show empty state if no roadmap
+  if (!dynamicRoadmap || dynamicRoadmap.length === 0) {
+    return (
+      <div className="space-y-3">
+        <div className="text-center py-8 text-slate-500">
+          No roadmap available. Please configure your settlement type.
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-3">
-      {SETTLEMENT_PHASE_TASKS.map((phaseData) => {
+      {dynamicRoadmap.map((phaseData) => {
         const phase = phaseData.phase;
         const isExpanded = expandedPhases.has(phase);
         const isCompleted = completedPhases.includes(phase);

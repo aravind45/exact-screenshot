@@ -499,3 +499,73 @@ model TaskCompletion {
   @@unique([estateId, taskId])
   @@map("task_completions")
 }
+
+// ============================================================================
+// ROADMAP SYSTEM - Database-Driven Settlement Type Roadmaps
+// ============================================================================
+
+model SettlementType {
+  id          String         @id @default(uuid())
+  code        String         @unique // e.g., "FORMAL_PROBATE", "TRUST_ADMIN"
+  name        String // e.g., "Formal Probate"
+  description String?
+  tier        Int            @default(1) // 1-5 based on complexity
+  coverage    Float          @default(0) // % of estates (e.g., 0.35 for 35%)
+  isActive    Boolean        @default(true) @map("is_active")
+  version     Int            @default(1)
+  createdAt   DateTime       @default(now()) @map("created_at")
+  updatedAt   DateTime       @updatedAt @map("updated_at")
+  phases      RoadmapPhase[]
+
+  @@map("settlement_types")
+}
+
+model RoadmapPhase {
+  id               String         @id @default(uuid())
+  settlementTypeId String         @map("settlement_type_id")
+  phaseCode        String // e.g., "immediate_actions", "court_filing"
+  title            String // e.g., "Immediate Actions"
+  subtitle         String? // e.g., "First 72 hours"
+  description      String?
+  milestone        String? // e.g., "Death Certificate Obtained"
+  orderIndex       Int             @map("order_index") // Display order
+  trigger          String? // e.g., "AFTER_LETTERS_ISSUED"
+  triggerLabel     String?         @map("trigger_label")
+  isEscalationPath Boolean         @default(false) @map("is_escalation_path")
+  createdAt        DateTime        @default(now()) @map("created_at")
+  updatedAt        DateTime        @updatedAt @map("updated_at")
+  settlementType   SettlementType  @relation(fields: [settlementTypeId], references: [id], onDelete: Cascade)
+  tasks            RoadmapTask[]
+
+  @@unique([settlementTypeId, phaseCode])
+  @@map("roadmap_phases")
+}
+
+model RoadmapTask {
+  id                  String       @id @default(uuid())
+  phaseId             String       @map("phase_id")
+  taskCode            String // e.g., "obtain_death_cert", "file_petition"
+  title               String // e.g., "Obtain Death Certificate"
+  description         String?
+  estimatedTime       String?      @map("estimated_time") // e.g., "1-2 hours"
+  category            String? // e.g., "probate", "court-issued"
+  orderIndex          Int          @map("order_index")
+  isOptional          Boolean      @default(false) @map("is_optional")
+  requiresAuthority   Boolean      @default(false) @map("requires_authority")
+  requiredDocs        String[]     @map("required_docs") // e.g., ["Death Certificate", "Will"]
+  dependencies        String[] // Task codes that must be completed first
+  exclusiveGroup      String?      @map("exclusive_group") // For mutually exclusive tasks
+  trackCompatibility  String[]     @map("track_compatibility") // e.g., ["PROBATE", "AFFIDAVIT"]
+  riskWarning         String?      @map("risk_warning")
+  deadlineWarningId   String?      @map("deadline_warning_id")
+  isInternationalOnly Boolean      @default(false) @map("is_international_only")
+  alerts              Json? // Array of alert objects
+  links               Json? // Array of link objects
+  tags                String[]
+  createdAt           DateTime     @default(now()) @map("created_at")
+  updatedAt           DateTime     @updatedAt @map("updated_at")
+  phase               RoadmapPhase @relation(fields: [phaseId], references: [id], onDelete: Cascade)
+
+  @@unique([phaseId, taskCode])
+  @@map("roadmap_tasks")
+}
