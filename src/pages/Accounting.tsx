@@ -62,6 +62,21 @@ export default function Accounting() {
     const propertyOnHand = totalCharges - disbursementsTotal;
     const solvencyRatio = estimatedDebts > 0 ? (propertyOnHand / estimatedDebts) * 100 : 100;
 
+    // Authority Breakdown for Accounting
+    const authorityBreakdown = assets.reduce((acc: Record<string, number>, asset: any) => {
+        const type = asset.authorityType || 'UNKNOWN';
+        acc[type] = (acc[type] || 0) + (Number(asset.value) || 0);
+        return acc;
+    }, {});
+
+    const authorityTotals = {
+        probate: (authorityBreakdown['COURT_REQUIRED'] || 0) + (authorityBreakdown['LITIGATION_HOLD'] || 0),
+        excluded: (authorityBreakdown['TRUSTEE_DIRECT'] || 0) +
+            (authorityBreakdown['BENEFICIARY_CONTRACT'] || 0) +
+            (authorityBreakdown['SURVIVORSHIP_TITLE'] || 0) +
+            (authorityBreakdown['AFFIDAVIT_SMALL'] || 0)
+    };
+
     // Readiness Score Calculation
     const verifiedAssetsCount = assets.filter((a: any) => a.value > 0).length; // Simplified verification logic
     const assetsScore = assets.length > 0 ? (verifiedAssetsCount / assets.length) * 40 : 40;
@@ -292,16 +307,48 @@ export default function Accounting() {
                                     </div>
 
                                     {lockedTotal > 0 && (
-                                        <div className="bg-rose-900/50 rounded-2xl p-4 border border-rose-800/50 flex items-center justify-between">
+                                        <div className="bg-rose-900/50 rounded-2xl p-3 border border-rose-800/50 flex items-center justify-between">
                                             <div>
-                                                <p className="text-[10px] font-black uppercase text-rose-300">Authority Locked</p>
+                                                <p className="text-[9px] font-black uppercase text-rose-300">Court Authority Locked</p>
                                                 <p className="text-sm font-black text-white">${lockedTotal.toLocaleString()}</p>
                                             </div>
                                             <Badge variant="outline" className="bg-rose-500/20 text-rose-200 border-rose-500/30 text-[8px] font-black uppercase tracking-tighter">
-                                                Ledger Blocker
+                                                Probate Blocker
                                             </Badge>
                                         </div>
                                     )}
+
+                                    <div className="bg-slate-800/50 rounded-2xl p-3 border border-slate-700/50 space-y-2">
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-[9px] font-black uppercase text-slate-400">Net by Authority</span>
+                                        </div>
+                                        <div className="flex items-center gap-1.5">
+                                            <div className="flex-1 flex flex-col gap-1">
+                                                <div className="flex justify-between text-[8px] font-bold text-slate-300 uppercase">
+                                                    <span>Probate</span>
+                                                    <span>${authorityTotals.probate.toLocaleString()}</span>
+                                                </div>
+                                                <div className="h-1 bg-slate-700 rounded-full overflow-hidden">
+                                                    <div
+                                                        className="h-full bg-blue-500"
+                                                        style={{ width: `${totalCharges > 0 ? (authorityTotals.probate / totalCharges) * 100 : 0}%` }}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="flex-1 flex flex-col gap-1">
+                                                <div className="flex justify-between text-[8px] font-bold text-slate-300 uppercase">
+                                                    <span>Excluded</span>
+                                                    <span>${authorityTotals.excluded.toLocaleString()}</span>
+                                                </div>
+                                                <div className="h-1 bg-slate-700 rounded-full overflow-hidden">
+                                                    <div
+                                                        className="h-full bg-emerald-500"
+                                                        style={{ width: `${totalCharges > 0 ? (authorityTotals.excluded / totalCharges) * 100 : 0}%` }}
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </CardContent>
                         </Card>

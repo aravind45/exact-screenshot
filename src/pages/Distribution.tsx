@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { useWorkflow } from "@/contexts/WorkflowContext";
 import { RiskBanner } from "@/components/RiskBanner";
+import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { AuthorityBadge, AuthorityType } from "@/components/AuthorityBadge";
 
@@ -138,8 +139,8 @@ export default function Distribution() {
                                         </div>
                                     </div>
                                     <div className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full border ${isSafe ? 'bg-emerald-500 text-white border-emerald-600' :
-                                            isRestricted ? 'bg-amber-500 text-white border-amber-600' :
-                                                'bg-rose-500 text-white border-rose-600'
+                                        isRestricted ? 'bg-amber-500 text-white border-amber-600' :
+                                            'bg-rose-500 text-white border-rose-600'
                                         }`}>
                                         {isSafe ? 'Low Risk' : isRestricted ? 'Med Risk' : 'High Risk'}
                                     </div>
@@ -163,11 +164,17 @@ export default function Distribution() {
                                                 "Distributing now may expose you to personal liability. Critical safety gates are currently blocked."}
                                     </p>
 
-                                    <div className="mt-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 bg-white/50 p-2.5 rounded-2xl">
+                                    <div className="mt-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-2 bg-white/50 p-2.5 rounded-2xl">
                                         <CheckItem label="Notice Period" done={readiness.checks.noticePeriodClosed} />
                                         <CheckItem label="Priority Claims" done={readiness.checks.allClaimsPaid} />
                                         <CheckItem label="Inventory Filed" done={readiness.checks.inventoryFiled} />
                                         <CheckItem label="Assets Verified" done={readiness.checks.assetsVerified} />
+                                        <CheckItem
+                                            label="Inst. Notice"
+                                            done={assets.filter(a =>
+                                                ['COURT_REQUIRED', 'TRUSTEE_DIRECT'].includes(a.authorityType)
+                                            ).every(a => ['notified', 'approved', 'distributed'].includes(a.status))}
+                                        />
                                     </div>
                                 </div>
                             </motion.div>
@@ -230,19 +237,36 @@ export default function Distribution() {
                                         Manual adjustments are restricted until safety gates are met.
                                     </div>
 
-                                    {/* Authority Source Breakdown */}
                                     <div className="pt-4 border-t border-slate-100 space-y-3">
-                                        <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Residue by Authority Source</h4>
+                                        <div className="flex justify-between items-center">
+                                            <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Residue by Authority Source</h4>
+                                            <Badge variant="outline" className="text-[8px] h-4 bg-slate-50 text-slate-400 border-slate-200">Court vs. Direct</Badge>
+                                        </div>
                                         <div className="space-y-2">
-                                            {Object.entries(authorityBreakdown).map(([type, total]) => (
-                                                <div key={type} className="flex justify-between items-center bg-slate-50/50 p-2 rounded-lg border border-slate-100/50">
-                                                    <div className="flex items-center gap-2">
-                                                        <AuthorityBadge type={type as AuthorityType} showIcon={false} className="h-4 scale-90 origin-left" />
-                                                        <span className="text-[10px] font-bold text-slate-600">{authorityLabels[type] || type}</span>
+                                            {Object.entries(authorityBreakdown).map(([type, total]) => {
+                                                const isExcluded = ['BENEFICIARY_CONTRACT', 'SURVIVORSHIP_TITLE', 'TRUSTEE_DIRECT'].includes(type);
+                                                return (
+                                                    <div key={type} className={cn(
+                                                        "flex justify-between items-center p-2.5 rounded-xl border transition-all",
+                                                        isExcluded ? "bg-emerald-50/30 border-emerald-100/50" : "bg-slate-50/50 border-slate-100/50"
+                                                    )}>
+                                                        <div className="flex items-center gap-2">
+                                                            <AuthorityBadge type={type as AuthorityType} showIcon={false} className="h-4 scale-90 origin-left" />
+                                                            <div className="flex flex-col">
+                                                                <span className="text-[10px] font-bold text-slate-700 leading-tight">
+                                                                    {authorityLabels[type] || type}
+                                                                </span>
+                                                                <span className={cn("text-[8px] font-black uppercase tracking-tight", isExcluded ? "text-emerald-600" : "text-slate-400")}>
+                                                                    {isExcluded ? "Excluded from Probate" : "Probate Asset"}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                        <span className={cn("text-[11px] font-black", isExcluded ? "text-emerald-700" : "text-slate-900")}>
+                                                            ${(total as number).toLocaleString()}
+                                                        </span>
                                                     </div>
-                                                    <span className="text-[11px] font-black text-slate-900">${total.toLocaleString()}</span>
-                                                </div>
-                                            ))}
+                                                );
+                                            })}
                                         </div>
                                     </div>
                                 </CardContent>

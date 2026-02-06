@@ -720,6 +720,47 @@ export default function AssetDetail() {
                 </div>
               </div>
             )}
+
+            {/* Authority Resolution Tracker */}
+            {!isEditing && (
+              <div className="mt-5 pt-5 border-t border-slate-100 grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Authority Resolution</span>
+                    <span className="text-[10px] font-black text-indigo-600">
+                      {uiAsset.authorityType === 'COURT_REQUIRED'
+                        ? (estate?.status === 'APPOINTED' || estate?.status === 'SETTLEMENT' ? '100%' : '30%')
+                        : '100%'}
+                    </span>
+                  </div>
+                  <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-indigo-600 transition-all duration-1000"
+                      style={{
+                        width: uiAsset.authorityType === 'COURT_REQUIRED'
+                          ? (estate?.status === 'APPOINTED' || estate?.status === 'SETTLEMENT' ? '100%' : '30%')
+                          : '100%'
+                      }}
+                    />
+                  </div>
+                </div>
+
+                <div className="md:col-span-2 flex items-center gap-6">
+                  <ResolutionMilestone
+                    label="Petition Prepared"
+                    done={true} // In this architecture, discovery usually implies readiness for petition
+                  />
+                  <ResolutionMilestone
+                    label="Documents Ready"
+                    done={uiAsset.status !== 'discovered'}
+                  />
+                  <ResolutionMilestone
+                    label="Letters/Order Issued"
+                    done={estate?.status === 'APPOINTED' || estate?.status === 'SETTLEMENT'}
+                  />
+                </div>
+              </div>
+            )}
           </motion.div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -1096,7 +1137,11 @@ export default function AssetDetail() {
               notes: content,
               type: "initial_contact",
               occurredAt: new Date().toISOString().slice(0, 16),
-              statusChange: "none"
+              statusChange: "notified",
+              metadata: {
+                isFormalNotice: true,
+                complianceCategory: "FIDUCIARY_NOTIFICATION"
+              }
             } as any);
           }}
         />
@@ -1110,5 +1155,24 @@ export default function AssetDetail() {
         />
       </div >
     </div >
+  );
+}
+
+function ResolutionMilestone({ label, done }: { label: string, done: boolean }) {
+  return (
+    <div className="flex items-center gap-2">
+      <div className={cn(
+        "w-3.5 h-3.5 rounded-full flex items-center justify-center",
+        done ? "bg-emerald-500 text-white" : "border-2 border-slate-200"
+      )}>
+        {done && <CheckCircle2 className="w-2.5 h-2.5" />}
+      </div>
+      <span className={cn(
+        "text-[10px] font-black uppercase tracking-tight",
+        done ? "text-slate-600" : "text-slate-300"
+      )}>
+        {label}
+      </span>
+    </div>
   );
 }

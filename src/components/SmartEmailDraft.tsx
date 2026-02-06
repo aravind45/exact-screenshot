@@ -36,16 +36,25 @@ export function SmartEmailDraft({ open, onOpenChange, asset, estate, onLogSent }
         queryFn: api.getProfile,
     });
 
+    const isAppointed = estate?.probateStatus === 'EXECUTOR_APPOINTED' || estate?.status === 'APPOINTED' || estate?.status === 'SETTLEMENT';
+    const isTrust = asset?.authorityType === 'TRUSTEE_DIRECT';
+
+    const getAuthorityPhrase = () => {
+        if (isTrust) return "I am the Successor Trustee for the trust holding this account.";
+        if (isAppointed) return "I have been formally appointed as the legal representative of the estate.";
+        return "I am the nominated personal representative of the estate and am currently in the process of obtaining formal appointment.";
+    };
+
     const templates = {
         notification: {
             title: "Formal Notification",
             subject: `Estate Notification: Estate of ${estate?.deceasedFirstName} ${estate?.deceasedLastName} - Account ${asset?.accountNumber || "(pending)"}`,
-            body: `Dear ${asset?.institution} Estate Services,\n\nI am writing to formally notify you of the passing of ${estate?.deceasedFirstName} ${estate?.deceasedLastName} on ${estate?.deceasedDateOfDeath ? new Date(estate.deceasedDateOfDeath).toLocaleDateString() : "[Date]"}.\n\nI have been appointed as the legal representative of the estate. Please place an immediate secure lock on all accounts held by the deceased to prevent any unauthorized transactions or automatic withdrawals.\n\nPlease provide me with your specific requirements for asset transfer, including any required forms or certified documents.\n\nSincerely,\n\n${estate?.deceasedFirstName} Estate Representative\nExecutor of the Estate`
+            body: `Dear ${asset?.institution} Estate Services,\n\nI am writing to formally notify you of the passing of ${estate?.deceasedFirstName} ${estate?.deceasedLastName} on ${estate?.deceasedDateOfDeath ? new Date(estate.deceasedDateOfDeath).toLocaleDateString() : "[Date]"}.\n\n${getAuthorityPhrase()} Please place an immediate secure lock on all accounts held by the deceased to prevent any unauthorized transactions or automatic withdrawals.\n\nPlease provide me with your specific requirements for asset transfer, including any required forms or certified documents.\n\nSincerely,\n\n${user?.firstName || estate?.deceasedFirstName} ${user?.lastName || 'Estate Representative'}\n${isAppointed ? 'Executor of the Estate' : isTrust ? 'Successor Trustee' : 'Personal Representative (Nominated)'}`
         },
         inquiry: {
             title: "Value Inquiry",
             subject: `Balance Inquiry: Estate of ${estate?.deceasedFirstName} ${estate?.deceasedLastName}`,
-            body: `Dear ${asset?.institution} Support,\n\nAs the Executor for the Estate of ${estate?.deceasedFirstName} ${estate?.deceasedLastName}, I am requesting a Date of Death balance statement for all accounts held by the deceased.\n\nPlease provide the fair market value as of ${estate?.deceasedDateOfDeath ? new Date(estate.deceasedDateOfDeath).toLocaleDateString() : "[Date]"}.\n\nThank you,\n\nEstate Representative`
+            body: `Dear ${asset?.institution} Support,\n\nAs the ${isAppointed ? 'Executor' : isTrust ? 'Trustee' : 'Representative'} for the Estate of ${estate?.deceasedFirstName} ${estate?.deceasedLastName}, I am requesting a Date of Death balance statement for all accounts held by the deceased.\n\nPlease provide the fair market value as of ${estate?.deceasedDateOfDeath ? new Date(estate.deceasedDateOfDeath).toLocaleDateString() : "[Date]"}.\n\nThank you,\n\nEstate Representative`
         }
     };
 
@@ -159,7 +168,15 @@ export function SmartEmailDraft({ open, onOpenChange, asset, estate, onLogSent }
                         </div>
 
                         <div className="space-y-1 md:col-span-2">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Email Body</label>
+                            <div className="flex justify-between items-center ml-1 mb-1">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Email Body</label>
+                                {!isAppointed && !isTrust && (
+                                    <div className="flex items-center gap-1.5 px-2 py-0.5 bg-amber-50 rounded-md border border-amber-100 animate-pulse">
+                                        <AlertCircle className="w-3 h-3 text-amber-600" />
+                                        <span className="text-[9px] font-black text-amber-700 uppercase tracking-tighter">Letters Pending - Draft Adjusted</span>
+                                    </div>
+                                )}
+                            </div>
                             <Textarea
                                 value={editedBody}
                                 onChange={(e) => setEditedBody(e.target.value)}
