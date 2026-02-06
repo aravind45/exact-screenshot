@@ -185,7 +185,10 @@ async function getRoadmapFromDatabase(
   if (!estate) throw new Error(`Estate ${estateId} not found`);
 
   // Determine which settlement type to use
-  const settlementTypeCode = estate.settlementPath || estate.estateType || 'FORMAL_PROBATE';
+  // Priority: Derived Procedure (from assets) -> Explicit Path -> Default
+  const settlementTypeCode = profile.procedureType !== "UNSET"
+    ? profile.procedureType
+    : (estate.settlementPath || estate.estateType || 'FORMAL_PROBATE');
 
   // Fetch roadmap from database
   const settlementType = await db.settlementType.findUnique({

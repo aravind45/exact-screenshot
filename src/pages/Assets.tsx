@@ -307,12 +307,13 @@ export default function Assets() {
                                     />
                                 </div>
                                 <select className="h-10 px-4 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-700 cursor-pointer hover:border-slate-300 transition-colors">
-                                    <option value="">All Processes</option>
-                                    <option value="probate">Probate</option>
-                                    <option value="small_estate">Small Estate</option>
-                                    <option value="spousal">Spousal Property</option>
-                                    <option value="trust">Trust Administration</option>
-                                    <option value="non_probate">Non-Probate Transfer</option>
+                                    <option value="">All Authority Tiers</option>
+                                    <option value="COURT_REQUIRED">Court Required</option>
+                                    <option value="TRUSTEE_DIRECT">Trustee Direct</option>
+                                    <option value="AFFIDAVIT_SMALL">Small Estate Affidavit</option>
+                                    <option value="BENEFICIARY_CONTRACT">Beneficiary Contract</option>
+                                    <option value="SURVIVORSHIP_TITLE">Survivorship Title</option>
+                                    <option value="LITIGATION_HOLD">Litigation Hold</option>
                                 </select>
                                 <select className="h-10 px-4 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-700 cursor-pointer hover:border-slate-300 transition-colors">
                                     <option value="">All Statuses</option>
@@ -367,6 +368,7 @@ export default function Assets() {
                                                     category: normalize(asset.category) as AssetCategory,
                                                     status: normalize(asset.status) as AssetStatus,
                                                     priority: normalize(asset.priority) as Priority,
+                                                    authorityType: asset.authorityType,
                                                     lastContactDate: asset.lastContactDate ? String(asset.lastContactDate).split('T')[0] : null,
                                                     nextFollowUpDate: asset.nextFollowUpDate ? String(asset.nextFollowUpDate).split('T')[0] : null,
                                                     daysSinceContact: 0

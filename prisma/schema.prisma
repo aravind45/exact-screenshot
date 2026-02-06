@@ -93,13 +93,13 @@ model Estate {
   guardianAdLitemId         String?              @map("guardian_ad_litem_id")
   guardianAdLitemStatus     String?              @map("guardian_ad_litem_status")
   specialNoticeParties      Json?                @map("special_notice_parties")
-  hasTODDeed                Boolean              @default(false) @map("has_tod_deed")
-  isSurvivingSpouse         Boolean              @default(false) @map("is_surviving_spouse")
-  hasOutOfStateProperty     Boolean              @default(false) @map("has_out_of_state_property")
-  isOutOfState              Boolean              @default(false) @map("is_out_of_state")
-  hasUnknownHeirs           Boolean              @default(false) @map("has_unknown_heirs")
-  isTrustRevocable          Boolean?             @map("is_trust_revocable")
   estimatedLiabilities      Decimal?             @map("estimated_liabilities") @db.Decimal(12, 2)
+  hasOutOfStateProperty     Boolean              @default(false) @map("has_out_of_state_property")
+  hasTODDeed                Boolean              @default(false) @map("has_tod_deed")
+  hasUnknownHeirs           Boolean              @default(false) @map("has_unknown_heirs")
+  isOutOfState              Boolean              @default(false) @map("is_out_of_state")
+  isSurvivingSpouse         Boolean              @default(false) @map("is_surviving_spouse")
+  isTrustRevocable          Boolean?             @map("is_trust_revocable")
   assets                    Asset[]
   authorityDecisions        AuthorityDecision[]
   communications            Communication[]
@@ -181,43 +181,44 @@ model Deadline {
 }
 
 model Asset {
-  id                 String               @id @default(uuid())
-  estateId           String               @map("estate_id")
-  userId             String               @map("user_id")
-  institution        String
-  assetType          String               @map("asset_type")
-  category           String
-  ownershipType      String               @default("INDIVIDUAL") @map("ownership_type")
-  accountNumber      String?              @map("account_number")
-  value              Float?
-  dateOfDeathValue   Float?               @map("date_of_death_value")
-  settledValue       Float?               @map("settled_value")
-  settledAt          DateTime?            @map("settled_at")
-  status             String?
-  priority           String?
-  lastContactDate    DateTime?            @map("last_contact_date")
-  nextFollowUpDate   DateTime?            @map("next_follow_up_date")
-  institutionPhone   String?              @map("institution_phone")
-  institutionEmail   String?              @map("institution_email")
-  institutionFax     String?              @map("institution_fax")
-  institutionUrl     String?              @map("institution_url")
-  institutionAddress String?              @map("institution_address")
-  contactPerson      String?              @map("contact_person")
-  notes              String?
-  workflowState      Json?                @map("workflow_state")
-  inventoryValue     Decimal?             @map("inventory_value") @db.Decimal(12, 2)
-  inventoryNote      String?              @map("inventory_note")
-  inventoryCategory  String?              @map("inventory_category")
-  todDeedRecorded    Boolean              @default(false) @map("tod_deed_recorded")
-  beneficiaryDesignation String?          @map("beneficiary_designation")
-  inTrust            Boolean              @default(false) @map("in_trust")
-  createdAt          DateTime             @default(now()) @map("created_at")
-  updatedAt          DateTime             @updatedAt @map("updated_at")
-  communications     AssetCommunication[]
-  estate             Estate               @relation(fields: [estateId], references: [id], onDelete: Cascade)
-  newCommunications  Communication[]      @relation("CommunicationToAsset")
-  distributions      Distribution[]
-  documents          Document[]
+  id                     String               @id @default(uuid())
+  estateId               String               @map("estate_id")
+  userId                 String               @map("user_id")
+  institution            String
+  assetType              String               @map("asset_type")
+  category               String
+  ownershipType          String               @default("INDIVIDUAL") @map("ownership_type")
+  accountNumber          String?              @map("account_number")
+  value                  Float?
+  dateOfDeathValue       Float?               @map("date_of_death_value")
+  settledValue           Float?               @map("settled_value")
+  settledAt              DateTime?            @map("settled_at")
+  status                 String?
+  priority               String?
+  lastContactDate        DateTime?            @map("last_contact_date")
+  nextFollowUpDate       DateTime?            @map("next_follow_up_date")
+  institutionPhone       String?              @map("institution_phone")
+  institutionEmail       String?              @map("institution_email")
+  institutionFax         String?              @map("institution_fax")
+  institutionUrl         String?              @map("institution_url")
+  institutionAddress     String?              @map("institution_address")
+  contactPerson          String?              @map("contact_person")
+  notes                  String?
+  workflowState          Json?                @map("workflow_state")
+  inventoryValue         Decimal?             @map("inventory_value") @db.Decimal(12, 2)
+  inventoryNote          String?              @map("inventory_note")
+  inventoryCategory      String?              @map("inventory_category")
+  createdAt              DateTime             @default(now()) @map("created_at")
+  updatedAt              DateTime             @updatedAt @map("updated_at")
+  beneficiaryDesignation String?              @map("beneficiary_designation")
+  inTrust                Boolean              @default(false) @map("in_trust")
+  todDeedRecorded        Boolean              @default(false) @map("tod_deed_recorded")
+  authorityType          String?              @map("authority_type")
+  communications         AssetCommunication[]
+  estate                 Estate               @relation(fields: [estateId], references: [id], onDelete: Cascade)
+  newCommunications      Communication[]      @relation("CommunicationToAsset")
+  distributions          Distribution[]
+  documents              Document[]
 
   @@map("assets")
 }
@@ -500,17 +501,13 @@ model TaskCompletion {
   @@map("task_completions")
 }
 
-// ============================================================================
-// ROADMAP SYSTEM - Database-Driven Settlement Type Roadmaps
-// ============================================================================
-
 model SettlementType {
   id          String         @id @default(uuid())
-  code        String         @unique // e.g., "FORMAL_PROBATE", "TRUST_ADMIN"
-  name        String // e.g., "Formal Probate"
+  code        String         @unique
+  name        String
   description String?
-  tier        Int            @default(1) // 1-5 based on complexity
-  coverage    Float          @default(0) // % of estates (e.g., 0.35 for 35%)
+  tier        Int            @default(1)
+  coverage    Float          @default(0)
   isActive    Boolean        @default(true) @map("is_active")
   version     Int            @default(1)
   createdAt   DateTime       @default(now()) @map("created_at")
@@ -523,18 +520,18 @@ model SettlementType {
 model RoadmapPhase {
   id               String         @id @default(uuid())
   settlementTypeId String         @map("settlement_type_id")
-  phaseCode        String // e.g., "immediate_actions", "court_filing"
-  title            String // e.g., "Immediate Actions"
-  subtitle         String? // e.g., "First 72 hours"
+  phaseCode        String
+  title            String
+  subtitle         String?
   description      String?
-  milestone        String? // e.g., "Death Certificate Obtained"
-  orderIndex       Int             @map("order_index") // Display order
-  trigger          String? // e.g., "AFTER_LETTERS_ISSUED"
-  triggerLabel     String?         @map("trigger_label")
-  isEscalationPath Boolean         @default(false) @map("is_escalation_path")
-  createdAt        DateTime        @default(now()) @map("created_at")
-  updatedAt        DateTime        @updatedAt @map("updated_at")
-  settlementType   SettlementType  @relation(fields: [settlementTypeId], references: [id], onDelete: Cascade)
+  milestone        String?
+  orderIndex       Int            @map("order_index")
+  trigger          String?
+  triggerLabel     String?        @map("trigger_label")
+  isEscalationPath Boolean        @default(false) @map("is_escalation_path")
+  createdAt        DateTime       @default(now()) @map("created_at")
+  updatedAt        DateTime       @updatedAt @map("updated_at")
+  settlementType   SettlementType @relation(fields: [settlementTypeId], references: [id], onDelete: Cascade)
   tasks            RoadmapTask[]
 
   @@unique([settlementTypeId, phaseCode])
@@ -544,23 +541,23 @@ model RoadmapPhase {
 model RoadmapTask {
   id                  String       @id @default(uuid())
   phaseId             String       @map("phase_id")
-  taskCode            String // e.g., "obtain_death_cert", "file_petition"
-  title               String // e.g., "Obtain Death Certificate"
+  taskCode            String
+  title               String
   description         String?
-  estimatedTime       String?      @map("estimated_time") // e.g., "1-2 hours"
-  category            String? // e.g., "probate", "court-issued"
+  estimatedTime       String?      @map("estimated_time")
+  category            String?
   orderIndex          Int          @map("order_index")
   isOptional          Boolean      @default(false) @map("is_optional")
   requiresAuthority   Boolean      @default(false) @map("requires_authority")
-  requiredDocs        String[]     @map("required_docs") // e.g., ["Death Certificate", "Will"]
-  dependencies        String[] // Task codes that must be completed first
-  exclusiveGroup      String?      @map("exclusive_group") // For mutually exclusive tasks
-  trackCompatibility  String[]     @map("track_compatibility") // e.g., ["PROBATE", "AFFIDAVIT"]
+  requiredDocs        String[]     @map("required_docs")
+  dependencies        String[]
+  exclusiveGroup      String?      @map("exclusive_group")
+  trackCompatibility  String[]     @map("track_compatibility")
   riskWarning         String?      @map("risk_warning")
   deadlineWarningId   String?      @map("deadline_warning_id")
   isInternationalOnly Boolean      @default(false) @map("is_international_only")
-  alerts              Json? // Array of alert objects
-  links               Json? // Array of link objects
+  alerts              Json?
+  links               Json?
   tags                String[]
   createdAt           DateTime     @default(now()) @map("created_at")
   updatedAt           DateTime     @updatedAt @map("updated_at")

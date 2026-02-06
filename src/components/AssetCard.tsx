@@ -6,15 +6,18 @@ import { ChevronRight, Clock, AlertTriangle, Eye, FileText, Lock, CheckCircle2 }
 import { motion } from "framer-motion";
 import { AssetTaxonomyBadge } from "./AssetTaxonomyBadge";
 import { getAssetTaxonomyState, getTaxonomyInfo } from "@/lib/taxonomy";
+import { AuthorityBadge, AuthorityType } from "./AuthorityBadge";
 
 interface Asset {
   id: string;
   institution: string;
   type: string;
   value: number;
+  dateOfDeathValue?: number;
   category: AssetCategory;
   status: AssetStatus;
   priority: Priority;
+  authorityType?: AuthorityType | string;
   lastContactDate: string | null;
   nextFollowUpDate: string | null;
   daysSinceContact: number | null;
@@ -103,10 +106,17 @@ export function AssetCard({ asset, onClick, onSelect, selected, selectable, clas
               </div>
               <div className="text-right shrink-0">
                 <p className="font-semibold text-sm text-foreground">
-                  {asset.value === 0 ? (
+                  {asset.value === 0 && !asset.dateOfDeathValue ? (
                     <span className="text-slate-400 italic text-xs font-medium">Pending</span>
                   ) : (
-                    formatCurrency(asset.value)
+                    <div className="flex flex-col items-end">
+                      <span>{formatCurrency(asset.value)}</span>
+                      {asset.dateOfDeathValue && (
+                        <span className="text-[10px] text-muted-foreground font-medium">
+                          DOD: {formatCurrency(asset.dateOfDeathValue)}
+                        </span>
+                      )}
+                    </div>
                   )}
                 </p>
 
@@ -119,9 +129,10 @@ export function AssetCard({ asset, onClick, onSelect, selected, selectable, clas
 
             {/* Status Row */}
             <div className="flex flex-wrap items-center gap-2">
+              <AuthorityBadge type={asset.authorityType} />
               <StatusBadge status={asset.status} />
               {needsFollowUp && (
-                <span className="status-badge bg-orange-500/10 text-orange-600">
+                <span className="status-badge bg-orange-500/10 text-orange-600 font-bold">
                   <Clock className="w-3 h-3" />
                   {asset.daysSinceContact} days
                 </span>

@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { CategoryBadge, AssetCategory, getCategoryIcon } from "@/components/CategoryBadge";
 import { AssetTaxonomyBadge } from "@/components/AssetTaxonomyBadge";
 import { getAssetTaxonomyState, getTaxonomyInfo } from "@/lib/taxonomy";
+import { AuthorityBadge, AuthorityType } from "@/components/AuthorityBadge";
 import {
   ArrowLeft,
   Phone,
@@ -457,7 +458,8 @@ export default function AssetDetail() {
   const requiredDocs = requirementsMap[authReq.requirement] || ["Death Certificate (certified)"];
 
 
-  const isLocked = asset.ownershipType === 'INDIVIDUAL' && estate?.probateStatus !== 'EXECUTOR_APPOINTED';
+  const isLocked = (uiAsset.authorityType === 'COURT_REQUIRED' || (uiAsset.ownershipType === 'INDIVIDUAL' && !uiAsset.authorityType)) &&
+    estate?.probateStatus !== 'EXECUTOR_APPOINTED';
 
   return (
     <div className="flex min-h-screen bg-[#F8FAFC]">
@@ -504,7 +506,10 @@ export default function AssetDetail() {
           {/* BLOCKER ALERT - Top of Page */}
           {isLocked && (
             <div className="animate-in slide-in-from-top duration-500">
-              <AssetAuthorityBlocker institutionName={uiAsset.institution} />
+              <AssetAuthorityBlocker
+                institutionName={uiAsset.institution}
+                authorityType={uiAsset.authorityType}
+              />
             </div>
           )}
 
@@ -602,6 +607,25 @@ export default function AssetDetail() {
                       className="h-10 rounded-xl"
                     />
                   </div>
+                  <div>
+                    <label className="text-[10px] font-black uppercase text-slate-400 mb-1 block">Authority Tier</label>
+                    <Select
+                      value={formData.authorityType}
+                      onValueChange={(val) => setFormData({ ...formData, authorityType: val })}
+                    >
+                      <SelectTrigger className="h-10 rounded-xl border-violet-200 bg-violet-50 text-violet-700">
+                        <SelectValue placeholder="Select Authority" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="COURT_REQUIRED">Court Required</SelectItem>
+                        <SelectItem value="TRUSTEE_DIRECT">Trustee Direct</SelectItem>
+                        <SelectItem value="AFFIDAVIT_SMALL">Small Estate Affidavit</SelectItem>
+                        <SelectItem value="BENEFICIARY_CONTRACT">Beneficiary Contract</SelectItem>
+                        <SelectItem value="SURVIVORSHIP_TITLE">Survivorship Title</SelectItem>
+                        <SelectItem value="LITIGATION_HOLD">Litigation Hold</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
                 <div className="flex justify-end gap-2 pt-4 border-t border-slate-50">
@@ -639,6 +663,7 @@ export default function AssetDetail() {
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
                       <h1 className="text-lg font-bold text-slate-900 truncate">{uiAsset.institution}</h1>
+                      <AuthorityBadge type={uiAsset.authorityType} />
                       <StatusBadge status={uiAsset.status} />
                     </div>
                     <p className="text-xs text-slate-500 font-medium mt-0.5">

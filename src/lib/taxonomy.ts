@@ -91,10 +91,21 @@ export function getAssetTaxonomyState(asset: Asset, estate?: Estate): AssetTaxon
     }
 
     // 3. Blocked
-    // If estate not appointed and asset likely requires Letters (financial/retirement)
-    const requiresAuthority = ['financial', 'retirement', 'insurance'].includes(asset.assetType?.toLowerCase() || '');
-    if (requiresAuthority && (!estate?.appointedDate)) {
+    // If we have an explicit authority type, use it
+    if (asset.authorityType === 'COURT_REQUIRED' && !estate?.appointedDate) {
         return 'blocked';
+    }
+
+    if (asset.authorityType === 'LITIGATION_HOLD') {
+        return 'blocked';
+    }
+
+    // Legacy fallback for backward compatibility
+    if (!asset.authorityType) {
+        const likelyRequiresAuthority = ['financial', 'retirement', 'insurance'].includes(asset.assetType?.toLowerCase() || '');
+        if (likelyRequiresAuthority && (!estate?.appointedDate)) {
+            return 'blocked';
+        }
     }
 
     // 4. Waiting on Institution

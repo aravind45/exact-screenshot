@@ -8,12 +8,71 @@ interface AssetAuthorityBlockerProps {
     institutionName: string;
     hasLetters?: boolean;
     track?: SettlementTrack;
+    authorityType?: string;
 }
 
-export function AssetAuthorityBlocker({ institutionName, hasLetters, track }: AssetAuthorityBlockerProps) {
+export function AssetAuthorityBlocker({ institutionName, hasLetters, track, authorityType }: AssetAuthorityBlockerProps) {
     if (hasLetters) return null;
 
     const getTrackConfig = () => {
+        // Priority 1: Explicit Authority Type
+        if (authorityType) {
+            switch (authorityType) {
+                case 'AFFIDAVIT_SMALL':
+                    return {
+                        title: "Affidavit Required",
+                        description: `Owned Individually. ${institutionName} requires a notarized Small Estate Affidavit to release funds.`,
+                        docs: ["DE-310 Affidavit", "Death Certificate"],
+                        link: "/vault",
+                        linkText: "Prepare Affidavit",
+                        icon: Zap,
+                        color: "emerald"
+                    };
+                case 'TRUSTEE_DIRECT':
+                    return {
+                        title: "Trustee Authority",
+                        description: `${institutionName} requires a Certificate of Trust and your signed Acceptance of Trusteeship.`,
+                        docs: ["Cert of Trust", "Trustee Acceptance"],
+                        link: "/vault",
+                        linkText: "Upload Trust Docs",
+                        icon: ShieldCheck,
+                        color: "indigo"
+                    };
+                case 'BENEFICIARY_CONTRACT':
+                case 'SURVIVORSHIP_TITLE':
+                    return {
+                        title: "Non-Probate Transfer",
+                        description: `This asset bypasses court. ${institutionName} just needs a Death Certificate and Claim Form.`,
+                        docs: ["Death Certificate", "Claim Form"],
+                        link: "/assets",
+                        linkText: "View Claim Status",
+                        icon: Zap,
+                        color: "amber"
+                    };
+                case 'LITIGATION_HOLD':
+                    return {
+                        title: "Litigation Hold",
+                        description: `${institutionName} is currently blocked due to an active legal dispute or contest.`,
+                        docs: ["Legal Counsel Required"],
+                        link: "/help",
+                        linkText: "Contact Support",
+                        icon: AlertCircle,
+                        color: "slate"
+                    };
+                case 'COURT_REQUIRED':
+                    return {
+                        title: "Court Authority Required",
+                        description: `Owned Individually. ${institutionName} requires Letters Testamentary (DE-150) to grant access.`,
+                        docs: ["DE-150 Letters", "DE-111 Petition"],
+                        link: "/probate",
+                        linkText: "Resolve in Probate Hub",
+                        icon: Gavel,
+                        color: "amber"
+                    };
+            }
+        }
+
+        // Priority 2: Fallback to Track Config
         switch (track) {
             case "SMALL_ESTATE":
                 return {

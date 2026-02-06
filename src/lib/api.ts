@@ -119,6 +119,7 @@ export interface Asset {
     institution: string;
     assetType: string;
     value?: number;
+    dateOfDeathValue?: number;
     inventoryValue?: number;
     inventoryNote?: string;
     inventoryCategory?: string;
@@ -127,6 +128,7 @@ export interface Asset {
     notes?: string;
     status?: string;
     priority?: string;
+    authorityType?: string;
 }
 
 export interface LiabilityStats {
