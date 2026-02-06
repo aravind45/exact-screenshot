@@ -1,5 +1,5 @@
 import { AuthorityType, MasterMode, getMasterMode } from "@/lib/authorityEngine";
-import { PhaseTaskList, SETTLEMENT_PHASE_TASKS } from "./settlementPhases";
+import { PhaseTaskList, SETTLEMENT_PHASE_TASKS, TRUST_PHASE_TASKS, PROBATE_ESCALATION_PHASE } from "./settlementPhases";
 import { SettlementPhase } from "@/components/SettlementPhaseChevron";
 
 export function generateRoadmap(
@@ -51,8 +51,22 @@ export function generateRoadmap(
         }
     });
 
-    // Order phases properly based on SETTLEMENT_PHASE_TASKS order
-    const orderedPhaseKeys = SETTLEMENT_PHASE_TASKS.map(p => p.phase);
+    // Order phases properly based on SETTLEMENT_PHASE_TASKS or TRUST_PHASE_TASKS order
+    const isTrustTrack = engines.includes("TRUST");
+    const baselinePhases = isTrustTrack ? TRUST_PHASE_TASKS : SETTLEMENT_PHASE_TASKS;
+    const orderedPhaseKeys = baselinePhases.map(p => p.phase);
+
+    // Add probate_escalation to the ordered keys if it's the trust track
+    if (isTrustTrack && !orderedPhaseKeys.includes("probate_escalation")) {
+        // Find asset_discovery index and insert after it
+        const discoveryIdx = orderedPhaseKeys.indexOf("asset_discovery");
+        if (discoveryIdx !== -1) {
+            orderedPhaseKeys.splice(discoveryIdx + 1, 0, "probate_escalation");
+        } else {
+            orderedPhaseKeys.push("probate_escalation");
+        }
+    }
+
     return orderedPhaseKeys
         .filter(key => mergedPhases[key])
         .map(key => mergedPhases[key]);
@@ -178,11 +192,8 @@ function generateTransferOnlyRoadmap(type: AuthorityType, state: string, modifie
 }
 
 function generateFiduciaryRoadmap(type: AuthorityType, state: string, modifiers: string[], activeEngines: string[] = []): PhaseTaskList[] {
-    // 4-phase roadmap: Immediate, Discovery, Administration, Closing
-    const phases: SettlementPhase[] = ["immediate_actions", "asset_discovery", "asset_liquidation", "final_distribution"];
-    const baseline = SETTLEMENT_PHASE_TASKS.filter(p => phases.includes(p.phase));
-
-    return baseline.map(p => {
+    // 6-state machine for Trust Admin: Authority, Notice, Marshaling, Creditors, Tax, Close
+    let roadmap = TRUST_PHASE_TASKS.map(p => {
         let tasks = [...p.tasks];
 
         // Filter out international tasks if modifier is not present
@@ -190,10 +201,8 @@ function generateFiduciaryRoadmap(type: AuthorityType, state: string, modifiers:
             tasks = tasks.filter(t => !t.isInternationalOnly);
         }
 
-        // Remove court-filing specific tasks and filter by track incompatibility
-        tasks = tasks.filter(t => t.category !== "probate" && t.category !== "court-issued" && (!t.trackCompatibility || t.trackCompatibility.includes("TRUST")));
-
-        if (p.phase === "immediate_actions" && (type === "TRUST_ADMIN_REVOCABLE" || type === "TRUST_ADMIN_IRREVOCABLE" || type === "POUR_OVER_WILL")) {
+        // Phase-specific additions and overrides
+        if (p.phase === "immediate_actions") {
             tasks.push({
                 id: "issue_cert_trust_gen",
                 title: "Issue Certificate of Trust",
@@ -260,8 +269,18 @@ function generateFiduciaryRoadmap(type: AuthorityType, state: string, modifiers:
             });
         }
 
+        // STRIP AUTHORITY REQUIREMENT: In Trust tracks, court-issued Letters are NOT the default.
+        tasks = tasks.map(t => ({ ...t, requiresAuthority: false }));
+
         return { ...p, tasks };
     });
+
+    // Add Probate Escalation if triggered
+    if (modifiers.includes("PROBATE_ESCALATION")) {
+        roadmap.push({ ...PROBATE_ESCALATION_PHASE });
+    }
+
+    return roadmap;
 }
 
 function generateProbateRoadmap(type: AuthorityType, state: string, modifiers: string[], activeEngines: string[] = []): PhaseTaskList[] {

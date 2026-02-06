@@ -10,10 +10,28 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { Eye, FileUp, Download, Loader2 as Spinner, Trash2 } from "lucide-react";
-import { DOCUMENT_REGISTRY, findCanonicalDoc } from "@/config/documents";
-import { DocumentUploadDialog } from "@/components/documents/DocumentUploadDialog";
-import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
+import { DOCUMENT_REGISTRY, findCanonicalDoc } from "@/config/documents";
+import { MasterMode, AuthorityType } from "@/lib/authorityEngine";
+
+// Track-aware authority helpers
+const isTrustTrack = (estate: any) => {
+  return ["TRUST_ADMIN_REVOCABLE", "TRUST_ADMIN_IRREVOCABLE", "POUR_OVER_WILL", "TRUST"].includes(estate?.authorityType);
+};
+
+const hasAuthority = (estate: any) => {
+  if (isTrustTrack(estate)) {
+    // For trusts, authority is established by Trustee Acceptance/Certification
+    // We check if the user has completed the authority establishment phase
+    // In the future, this can be linked to a specific database field like trusteeCertificationDate
+    return estate?.authorityStatus === "GRANTED" || estate?.probateStatus === "EXECUTOR_APPOINTED" || estate?.trustAdminStatus === "AUTHORITY_ESTABLISHED";
+  }
+  return estate?.authorityStatus === "GRANTED" || estate?.probateStatus === "EXECUTOR_APPOINTED";
+};
+
+const getAuthorityLabel = (estate: any) => {
+  return isTrustTrack(estate) ? "Requires Certificate of Trust" : "Requires Letters Testamentary";
+};
 
 interface PhaseTaskListProps {
   phase: SettlementPhase;
@@ -338,7 +356,7 @@ function TaskItem({ task, isCompleted, onToggle, getAlertIcon, getAlertColor, do
             checked={isCompleted}
             onCheckedChange={(checked) => onToggle(checked === true)}
             className="mt-1"
-            disabled={task.requiresAuthority && estate?.authorityStatus !== "GRANTED" && estate?.probateStatus !== "EXECUTOR_APPOINTED"}
+            disabled={task.requiresAuthority && !hasAuthority(estate)}
           />
         )}
 
@@ -400,10 +418,10 @@ function TaskItem({ task, isCompleted, onToggle, getAlertIcon, getAlertColor, do
                   </Badge>
                 </div>
               )}
-              {task.requiresAuthority && estate?.authorityStatus !== "GRANTED" && estate?.probateStatus !== "EXECUTOR_APPOINTED" && !isCompleted && (
+              {task.requiresAuthority && !hasAuthority(estate) && !isCompleted && (
                 <div className="mt-2 flex items-center gap-1.5 px-2 py-1 bg-slate-100 border border-slate-200 rounded-md w-fit">
                   <Lock className="w-3 h-3 text-slate-500" />
-                  <span className="text-[10px] font-bold text-slate-600 uppercase tracking-widest">Requires Letters Testamentary</span>
+                  <span className="text-[10px] font-bold text-slate-600 uppercase tracking-widest">{getAuthorityLabel(estate)}</span>
                 </div>
               )}
               {task.isLongHorizon && !isCompleted && (

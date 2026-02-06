@@ -7,7 +7,8 @@ export type SettlementPhase =
   | "asset_discovery"
   | "creditor_claims"
   | "asset_liquidation"
-  | "final_distribution";
+  | "final_distribution"
+  | "probate_escalation";
 
 export interface PhaseConfig {
   id: SettlementPhase;

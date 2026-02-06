@@ -11,6 +11,10 @@ describe("Roadmap Filtering Logic", () => {
         isContested: false,
         state: "CA",
         estimatedValue: 200000,
+        authoritySource: "COURT" as any,
+        procedureType: "FORMAL_PROBATE" as any,
+        distributionModel: "PROBATE" as any,
+        activeEngines: ["PROBATE"],
     };
 
     it("should hide guardian ad litem tasks when no minor beneficiaries", () => {

@@ -40,6 +40,8 @@ export interface PhaseTask {
   trackCompatibility?: ("PROBATE" | "TRUST" | "AFFIDAVIT" | "NON_PROBATE")[];
   isConditional?: boolean;     // Mandatory IF a specific condition is met
   conditionalRequirementLabel?: string; // e.g. "Required if minors have interests"
+  requiresNotary?: boolean;    // Task requires notarization
+  requiresPhysicalMail?: boolean; // Task requires certified/physical mail
 }
 
 export interface PhaseTaskList {
@@ -1340,4 +1342,529 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
     ]
   }
 ];
+
+/**
+ * TRUST ADMINISTRATION - 6-STATE MACHINE
+ * 
+ * Trust admin is fundamentally different from probate:
+ * - Authority comes from trust instrument + death certificate, NOT court
+ * - No DE-111 petition, no DE-150 Letters required
+ * - Probate is only an escalation when trust funding fails
+ */
+export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
+  // STATE 1: Trustee Authority (not court-issued)
+  {
+    phase: "immediate_actions", // Reusing existing phase key for compatibility
+    title: "Trustee Authority",
+    subtitle: "Acceptance & Certification",
+    milestone: "After Death",
+    description: "Establish successor trustee authority from the trust instrument and death certificate. No court petition required.",
+    tasks: [
+      {
+        id: "locate_trust",
+        title: "Locate Trust Document & All Amendments",
+        description: "Find the original signed trust document and any amendments. This is your primary legal authority.",
+        estimatedTime: "1-2 days",
+        requiredDocs: ["Original Trust Document", "All Amendments"],
+        alerts: [{
+          type: "important",
+          message: "The trust document is your source of authority. Review the successor trustee clause carefully."
+        }]
+      },
+      {
+        id: "identify_successor_trustee",
+        title: "Confirm Successor Trustee Designation",
+        description: "Verify your appointment as successor trustee per the trust terms.",
+        estimatedTime: "30 minutes",
+        alerts: [{
+          type: "info",
+          message: "If multiple successor trustees are named, determine the order of succession and whether you serve alone or with co-trustees."
+        }]
+      },
+      {
+        id: "sign_trustee_acceptance",
+        title: "Sign Trustee Acceptance / Affidavit",
+        description: "Formally accept your role as successor trustee by signing an acceptance document.",
+        estimatedTime: "1 hour",
+        requiresNotary: true,
+        requiredDocs: ["Trustee Acceptance Form"],
+        alerts: [{
+          type: "important",
+          message: "Fiduciary Duty: By accepting trusteeship, you assume legal responsibility to act in beneficiaries' best interests."
+        }]
+      },
+      {
+        id: "prepare_certification_of_trust",
+        title: "Prepare Certification of Trust",
+        description: "Create a Certification of Trust (abstract of trust) to prove your authority to banks and institutions without revealing full trust terms.",
+        estimatedTime: "2-4 hours",
+        requiresNotary: true,
+        requiredDocs: ["Certification of Trust", "Death Certificate"],
+        alerts: [{
+          type: "info",
+          message: "Institutions may refuse if the Certification is more than 60 days old. Prepare fresh copies as needed."
+        }]
+      },
+      {
+        id: "obtain_ein_trust",
+        title: "Obtain EIN for Trust/Estate",
+        description: "Apply for an Employer Identification Number from the IRS. Required for opening trust bank accounts and filing tax returns.",
+        estimatedTime: "30 minutes",
+        requiredDocs: ["IRS Form SS-4"],
+        alerts: [{
+          type: "important",
+          message: "The trust may need a new EIN after the grantor's death if it was previously a revocable trust."
+        }],
+        links: [{
+          label: "Apply for EIN Online",
+          url: "https://www.irs.gov/businesses/small-businesses-self-employed/apply-for-an-employer-identification-number-ein-online"
+        }]
+      },
+      {
+        id: "secure_trust_property",
+        title: "Secure Trust Property",
+        description: "Change locks on real property, forward mail, secure valuables, and ensure insurance coverage remains active.",
+        estimatedTime: "1-2 days",
+        alerts: [{
+          type: "warning",
+          message: "Vacant properties are high-risk for theft and insurance issues. Act immediately."
+        }]
+      }
+    ]
+  },
+  // STATE 2: Notice & Beneficiary Communications
+  {
+    phase: "court_filing", // Repurposing phase key - will be renamed in title
+    title: "Notice & Communications",
+    subtitle: "Beneficiary Notification",
+    milestone: "Within 60 Days",
+    description: "Notify all beneficiaries and heirs of the trust administration. State law may require formal notification within specific timeframes.",
+    tasks: [
+      {
+        id: "identify_all_beneficiaries",
+        title: "Identify All Trust Beneficiaries",
+        description: "Review the trust to identify all current and remainder beneficiaries. Include contingent beneficiaries.",
+        estimatedTime: "1-2 hours",
+        requiredDocs: ["Beneficiary List"],
+        alerts: [{
+          type: "info",
+          message: "Beneficiaries may include individuals, charities, and other trusts. Check each class of beneficiaries."
+        }]
+      },
+      {
+        id: "send_statutory_notice",
+        title: "Send Statutory Notice to Beneficiaries",
+        description: "California Probate Code §16061.7 requires notice to beneficiaries within 60 days. Other states have similar requirements.",
+        estimatedTime: "2-4 hours",
+        requiredDocs: ["Notice Letters", "Certified Mail Receipts"],
+        requiresPhysicalMail: true,
+        alerts: [
+          {
+            type: "important",
+            message: "This notice starts the 120-day contest period. Keep all certified mail receipts as proof."
+          },
+          {
+            type: "warning",
+            message: "Failure to send proper notice can result in personal liability and extended contest periods."
+          }
+        ]
+      },
+      {
+        id: "handle_trust_copy_requests",
+        title: "Respond to Trust Copy Requests",
+        description: "Beneficiaries have the right to request a copy of the trust. Respond within the timeframe specified by state law.",
+        estimatedTime: "Ongoing",
+        alerts: [{
+          type: "info",
+          message: "You may redact provisions that don't directly affect the requesting beneficiary."
+        }]
+      },
+      {
+        id: "identify_minor_trust_beneficiaries",
+        title: "Flag Minor Beneficiaries",
+        description: "Identify any beneficiaries under age 18. Distributions to minors require special handling.",
+        estimatedTime: "30 minutes",
+        isConditional: true,
+        conditionalRequirementLabel: "Required if minors are beneficiaries",
+        alerts: [{
+          type: "important",
+          message: "Minor beneficiaries may require distributions to be held in sub-trusts or UTMA accounts."
+        }]
+      },
+      {
+        id: "wait_contest_period",
+        title: "Monitor 120-Day Contest Period",
+        description: "Wait 120 days from the date notice was sent before making final distributions. Document any contests or concerns raised.",
+        estimatedTime: "120 days",
+        isLongHorizon: true,
+        alerts: [{
+          type: "warning",
+          message: "Making distributions before the contest period expires can create personal liability if a challenge is later filed."
+        }]
+      }
+    ]
+  },
+  // STATE 3: Trust Asset Marshaling (funding verification)
+  {
+    phase: "asset_discovery", // Repurposing existing phase key
+    title: "Trust Asset Marshaling",
+    subtitle: "Funding Verification",
+    milestone: "After Authority Established",
+    description: "Inventory all trust assets, verify proper titling, and identify any assets outside the trust that may require probate.",
+    tasks: [
+      {
+        id: "inventory_trust_assets",
+        title: "Create Trust Asset Inventory",
+        description: "List all assets titled in the trust's name. This is an internal document, not filed with court.",
+        estimatedTime: "1-2 weeks",
+        requiredDocs: ["Trust Asset Inventory", "Date-of-Death Statements"],
+        alerts: [{
+          type: "info",
+          message: "Unlike probate, you do NOT file DE-160 with the court. This inventory is for accounting purposes."
+        }]
+      },
+      {
+        id: "verify_trust_titling",
+        title: "Verify Trust Titling on All Assets",
+        description: "Check each asset to confirm it is properly titled in the trust's name. Assets not in the trust may require probate.",
+        estimatedTime: "2-4 hours per asset",
+        alerts: [{
+          type: "caution",
+          message: "Trust vs. Probate: If an asset was never transferred into the trust, it may need to go through probate."
+        }]
+      },
+      {
+        id: "obtain_dod_valuations",
+        title: "Obtain Date-of-Death Valuations",
+        description: "Request statements and appraisals as of the date of death for tax basis and accounting purposes.",
+        estimatedTime: "2-4 weeks",
+        requiredDocs: ["Bank Statements (DOD)", "Brokerage Statements (DOD)", "Real Property Appraisal"],
+        alerts: [{
+          type: "important",
+          message: "Step-up in basis: Most inherited assets receive a new cost basis equal to fair market value at death."
+        }]
+      },
+      {
+        id: "check_out_of_trust_assets",
+        title: "Identify Out-of-Trust Assets",
+        description: "Review for assets that were never funded into the trust. For each: Does it have a POD/TOD? Is it joint tenancy? Or does it require probate?",
+        estimatedTime: "2-4 hours",
+        alerts: [{
+          type: "warning",
+          message: "Assets outside the trust with no beneficiary pathway trigger a probate escalation."
+        }]
+      },
+      {
+        id: "probate_escalation_check",
+        title: "Probate Escalation Decision Point",
+        description: "If solely-owned assets exist outside the trust with no beneficiary designation, determine if formal probate or small estate affidavit is needed.",
+        estimatedTime: "1-2 hours",
+        isConditional: true,
+        conditionalRequirementLabel: "Required IF out-of-trust assets are found",
+        isAttorneyReviewNode: true,
+        attorneyReviewReason: "Funding Failure: Assets outside trust may require court intervention.",
+        alerts: [{
+          type: "caution",
+          message: "Escalation Path: This triggers the Probate Escalation module if unfunded assets exceed small estate limits."
+        }]
+      },
+      {
+        id: "notify_financial_institutions",
+        title: "Notify Financial Institutions",
+        description: "Present your Certification of Trust and death certificate to banks, brokerages, and insurance companies.",
+        estimatedTime: "2-4 weeks",
+        requiredDocs: ["Certification of Trust", "Death Certificate", "Trustee ID"],
+        alerts: [{
+          type: "info",
+          message: "Institutions may require specific claim forms. Request their transfer/claim package."
+        }]
+      }
+    ]
+  },
+  // STATE 4: Creditor Exposure & Expenses (non-probate)
+  {
+    phase: "creditor_claims", // Repurposing existing phase key
+    title: "Creditor Exposure & Expenses",
+    subtitle: "Non-Probate Debt Handling",
+    milestone: "After Marshaling",
+    description: "Evaluate creditor exposure silently and pay debts from trust assets according to trust terms and state law. This is NOT the formal probate claims process.",
+    tasks: [
+      {
+        id: "trust_creditor_assessment",
+        title: "Creditor Exposure Assessment",
+        description: "Review known debts and potential claims against the trust estate. This is a silent legal check, not formal probate publication.",
+        estimatedTime: "2-4 hours",
+        isAttorneyReviewNode: true,
+        attorneyReviewReason: "Creditor Strategy: Determining whether to voluntarily notify creditors or remain silent depends on estate solvency and risk tolerance.",
+        alerts: [{
+          type: "info",
+          message: "Unlike probate, trust admin does NOT require public creditor notice. However, you must still pay legitimate debts."
+        }]
+      },
+      {
+        id: "pay_funeral_last_illness",
+        title: "Pay Funeral & Last Illness Expenses",
+        description: "These are typically the first obligations to pay from trust assets.",
+        estimatedTime: "1-2 weeks",
+        requiredDocs: ["Funeral Invoice", "Medical Bills"],
+        alerts: [{
+          type: "important",
+          message: "Keep all receipts. These expenses are documented in the final accounting."
+        }]
+      },
+      {
+        id: "pay_ongoing_expenses",
+        title: "Pay Ongoing Property Expenses",
+        description: "Maintain trust property by paying mortgage, property taxes, insurance, and utilities from trust accounts.",
+        estimatedTime: "Ongoing",
+        alerts: [{
+          type: "warning",
+          message: "Only use trust funds for trust expenses. Maintain meticulous records for accounting."
+        }]
+      },
+      {
+        id: "evaluate_trust_solvency",
+        title: "Evaluate Trust Solvency",
+        description: "Compare total trust assets against all known and potential liabilities to determine solvency status.",
+        estimatedTime: "1-2 hours",
+        alerts: [{
+          type: "caution",
+          message: "Insolvent Trust Warning: If liabilities exceed assets, you must follow statutory priority rules for debt payment."
+        }]
+      },
+      {
+        id: "pay_trust_debts",
+        title: "Pay Valid Debts",
+        description: "Pay legitimate debts from trust accounts according to trust terms and state priority rules.",
+        estimatedTime: "2-4 weeks",
+        alerts: [{
+          type: "warning",
+          message: "Fiduciary Risk: Paying lower-priority debts before higher-priority ones can create personal liability."
+        }]
+      }
+    ]
+  },
+  // STATE 5: Tax & Accounting
+  {
+    phase: "asset_liquidation", // Repurposing existing phase key
+    title: "Tax & Accounting",
+    subtitle: "Fiduciary Returns",
+    milestone: "Before Distribution",
+    description: "File all required tax returns and prepare accounting for beneficiaries. Note: A revocable trust becomes irrevocable at death, changing its tax posture.",
+    tasks: [
+      {
+        id: "file_final_1040",
+        title: "File Decedent's Final Form 1040",
+        description: "File the decedent's final individual income tax return for the year of death.",
+        estimatedTime: "2-4 weeks",
+        requiredDocs: ["Form 1040", "W-2s", "1099s"],
+        alerts: [{
+          type: "important",
+          message: "Due April 15 of the year following death. Mark 'DECEASED' on the return."
+        }]
+      },
+      {
+        id: "determine_trust_tax_posture",
+        title: "Determine Post-Death Tax Posture",
+        description: "A revocable trust becomes irrevocable at death. Determine whether it's now a grantor trust, complex trust, or simple trust for tax purposes.",
+        estimatedTime: "1-2 hours",
+        isAttorneyReviewNode: true,
+        attorneyReviewReason: "Tax Election: The trust's tax classification affects reporting requirements and distribution planning.",
+        alerts: [{
+          type: "important",
+          message: "Consult a CPA: The trust may need its own EIN and separate tax returns after the grantor's death."
+        }]
+      },
+      {
+        id: "file_form_1041",
+        title: "File Trust/Estate Income Tax Return (Form 1041)",
+        description: "File Form 1041 for trust income earned after death. Issue K-1s to beneficiaries for their share of income.",
+        estimatedTime: "2-4 weeks",
+        requiredDocs: ["Form 1041", "Schedule K-1"],
+        alerts: [{
+          type: "info",
+          message: "Due April 15 for calendar year trusts. Complex trusts have different distribution deduction rules."
+        }]
+      },
+      {
+        id: "evaluate_form_706",
+        title: "Evaluate Estate Tax Return Requirement",
+        description: "Determine if Form 706 is required based on total estate value, including trust assets.",
+        estimatedTime: "2-4 hours",
+        isConditional: true,
+        conditionalRequirementLabel: "Required if estate exceeds federal exemption (~$13M in 2024)",
+        requiredDocs: ["Form 706 (if required)"],
+        alerts: [{
+          type: "important",
+          message: "Form 706 is due 9 months after death. Extensions available but must be requested."
+        }]
+      },
+      {
+        id: "obtain_tax_clearance",
+        title: "Obtain Tax Clearances",
+        description: "Confirm all taxes are paid before making final distributions to beneficiaries.",
+        estimatedTime: "2-4 weeks",
+        alerts: [{
+          type: "warning",
+          message: "Personal Liability: Distributing assets before taxes are settled can make you personally liable."
+        }]
+      },
+      {
+        id: "prepare_trust_accounting",
+        title: "Prepare Trust Accounting",
+        description: "Create a comprehensive accounting of all receipts, disbursements, and distributions for beneficiaries.",
+        estimatedTime: "1-2 weeks",
+        requiredDocs: ["Trust Accounting Statement"],
+        alerts: [{
+          type: "info",
+          message: "While not always legally required, providing an accounting protects you from future disputes."
+        }]
+      }
+    ]
+  },
+  // STATE 6: Distribution & Close
+  {
+    phase: "final_distribution", // Repurposing existing phase key
+    title: "Distribution & Close",
+    subtitle: "Final Accounting",
+    milestone: "After Tax Clearance",
+    description: "Distribute trust assets to beneficiaries according to trust terms. Obtain receipts and close the trust administration.",
+    tasks: [
+      {
+        id: "prepare_distribution_schedule",
+        title: "Prepare Distribution Schedule",
+        description: "Calculate each beneficiary's share according to the trust terms. Document all calculations.",
+        estimatedTime: "2-4 hours",
+        requiredDocs: ["Distribution Schedule"],
+        alerts: [{
+          type: "important",
+          message: "Follow the trust terms exactly. You cannot modify distributions based on personal preference."
+        }]
+      },
+      {
+        id: "reserve_policy",
+        title: "Establish Reserve for Unknown Liabilities",
+        description: "Hold back a reasonable reserve for potential taxes, unknown bills, or administrative costs before final distribution.",
+        estimatedTime: "1-2 hours",
+        alerts: [{
+          type: "info",
+          message: "A 5-10% holdback is common practice. Distribute reserves after final tax clearances."
+        }]
+      },
+      {
+        id: "distribute_assets_to_beneficiaries",
+        title: "Distribute Assets to Beneficiaries",
+        description: "Transfer assets to beneficiaries per the trust terms. Real property may require new deeds.",
+        estimatedTime: "2-8 weeks",
+        requiredDocs: ["Transfer Documents", "Deeds (if real property)"],
+        alerts: [{
+          type: "warning",
+          message: "Minor Beneficiaries: Do NOT distribute directly to minors. Use sub-trusts or UTMA accounts."
+        }]
+      },
+      {
+        id: "obtain_beneficiary_receipts",
+        title: "Obtain Receipts & Releases",
+        description: "Have each beneficiary sign a receipt acknowledging their distribution and releasing you from further claims.",
+        estimatedTime: "1-2 weeks",
+        requiredDocs: ["Distribution Receipts", "Release Forms"],
+        alerts: [{
+          type: "important",
+          message: "Receipts protect you from future claims. Keep signed copies indefinitely."
+        }]
+      },
+      {
+        id: "send_final_accounting",
+        title: "Send Final Accounting to Beneficiaries",
+        description: "Provide each beneficiary with a complete accounting showing all transactions during the administration.",
+        estimatedTime: "1-2 days",
+        requiredDocs: ["Final Trust Accounting"],
+        alerts: [{
+          type: "info",
+          message: "Transparency builds trust. Answer any questions beneficiaries have about the accounting."
+        }]
+      },
+      {
+        id: "close_trust_accounts",
+        title: "Close Trust Bank Accounts",
+        description: "After all distributions are complete, close the trust bank and brokerage accounts.",
+        estimatedTime: "1-2 weeks",
+        alerts: [{
+          type: "important",
+          message: "Keep copies of final statements for your records. You may need them for future tax questions."
+        }]
+      },
+      {
+        id: "complete_trust_administration",
+        title: "Complete Trust Administration",
+        description: "The trust administration is complete. Retain records for at least 7 years.",
+        estimatedTime: "N/A",
+        alerts: [{
+          type: "info",
+          message: "Congratulations! You have fulfilled your fiduciary duty as trustee."
+        }]
+      }
+    ]
+  }
+];
+
+/**
+ * Probate Escalation Phase - Added to trust roadmap only when assets are outside trust
+ */
+export const PROBATE_ESCALATION_PHASE: PhaseTaskList = {
+  phase: "probate_escalation", // Unique key for escalation path
+  title: "⚠️ Probate Escalation",
+  subtitle: "Funding Failure Only",
+  milestone: "If Assets Outside Trust",
+  description: "This phase is triggered ONLY when assets are found outside the trust with no beneficiary pathway. Court intervention is required for these assets only.",
+  isEscalationPath: true,
+  tasks: [
+    {
+      id: "escalation_evaluate_path",
+      title: "Evaluate Probate Path",
+      description: "Determine whether small estate affidavit or formal probate is needed for out-of-trust assets.",
+      estimatedTime: "1-2 hours",
+      isAttorneyReviewNode: true,
+      attorneyReviewReason: "Probate Threshold: State thresholds determine if formal probate or affidavit applies.",
+      alerts: [{
+        type: "caution",
+        message: "Only the assets OUTSIDE the trust require probate. Trust assets remain in the trust track."
+      }]
+    },
+    {
+      id: "escalation_file_petition",
+      title: "File Probate Petition (DE-111)",
+      description: "If formal probate is required for out-of-trust assets, file petition with Superior Court.",
+      category: "probate",
+      estimatedTime: "2-4 hours",
+      requiredDocs: ["DE-111", "Death Certificate", "Original Will (if exists)"],
+      alerts: [{
+        type: "info",
+        message: "You may serve as both Trustee and Executor, but the roles have different authority sources."
+      }]
+    },
+    {
+      id: "escalation_obtain_letters",
+      title: "Obtain Letters Testamentary (DE-150)",
+      description: "Attend hearing and obtain court-issued authority for probate assets only.",
+      category: "court-issued",
+      estimatedTime: "60-90 days",
+      requiredDocs: ["Letters (DE-150)"],
+      alerts: [{
+        type: "important",
+        message: "Letters are for probate assets ONLY. Trust assets do not require Letters."
+      }]
+    },
+    {
+      id: "escalation_transfer_to_trust",
+      title: "Transfer Probate Assets to Trust",
+      description: "After probate closes, pour-over will or court order transfers probate assets into the trust for unified distribution.",
+      estimatedTime: "2-4 weeks",
+      alerts: [{
+        type: "info",
+        message: "If a pour-over will exists, probate assets flow into the trust via court order."
+      }]
+    }
+  ]
+};
 
