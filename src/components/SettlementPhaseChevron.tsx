@@ -1,8 +1,6 @@
 import { Check, Clock, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-// Changed from hardcoded union to string to support dynamic settlement types
-export type SettlementPhase = string;
+import type { SettlementPhase } from "@/config/settlementPhases";
 
 export interface PhaseConfig {
   id: SettlementPhase;

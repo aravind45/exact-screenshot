@@ -1,5 +1,7 @@
-import type { SettlementPhase } from "../components/SettlementPhaseChevron";
-import { AuthorityType, MasterMode } from "../lib/authorityEngine";
+// Type definition (moved here to avoid importing from React component in server code)
+export type SettlementPhase = string;
+
+import { AuthorityType, MasterMode } from "../lib/authorityEngine.js";
 
 export interface PhaseTask {
   id: string;
