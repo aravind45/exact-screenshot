@@ -1,5 +1,13 @@
 
-import { getStateRule, UPC_STATES, STATE_RULES, type AuthorityType } from './stateRules';
+import {
+    getStateRule,
+    UPC_STATES,
+    STATE_RULES,
+    type AuthorityType,
+    type AuthoritySource,
+    type ProcedureType,
+    type DistributionModel
+} from './stateRules';
 export { UPC_STATES, type AuthorityType };
 
 // State thresholds for small estate eligibility
@@ -13,8 +21,16 @@ export type MasterMode =
     | "TRANSFER_ONLY";
 
 export interface AuthorityRecommendation {
+    // Primary classification
     type: AuthorityType;
     masterMode: MasterMode;
+
+    // Multi-dimensional classification (Attorney Model)
+    authoritySource: AuthoritySource;
+    procedureType: ProcedureType;
+    distributionModel: DistributionModel;
+    activeEngines: ("PROBATE" | "TRUST" | "TOD_DEED" | "POD_TOD_ACCOUNTS" | "DISCOVERY" | "NON_PROBATE" | "AFFIDAVIT")[];
+
     threshold: number;
     probateTotal: number;
     isEligibleForSmallEstate: boolean;
@@ -81,25 +97,37 @@ export function calculateAuthorityRecommendation(
     const rule = getStateRule(state);
     const threshold = rule.threshold;
 
-    const probateAssets = assets.filter(a => a.ownershipType === "INDIVIDUAL");
+    // 1. ASSET-FIRST CLASSIFICATION (Mandatory)
+    const probateAssets = assets.filter(a =>
+        a.ownershipType === "INDIVIDUAL" &&
+        !a.beneficiaryDesignation &&
+        !a.todDeedRecorded &&
+        !a.inTrust
+    );
     let probateTotal = probateAssets.reduce((sum, a) => sum + (a.value || 0), 0);
 
-    // Fallback to estimatedValue if provided and no probate assets exist
-    if (probateTotal === 0 && metadata?.estimatedValue) {
+    // Fallback if no specific assets entered yet
+    if (probateTotal === 0 && metadata?.estimatedValue && !metadata?.hasTODDeed && !metadata?.isTrustRevocable) {
         probateTotal = metadata.estimatedValue;
     }
 
-    const trustAssets = assets.filter(a => a.ownershipType === "TRUST");
-    const jointAssets = assets.filter(a => a.ownershipType === "JOINT");
-    const beneficiaryAssets = assets.filter(a => a.ownershipType === "BENEFICIARY");
+    const trustAssets = assets.filter(a => a.ownershipType === "TRUST" || a.inTrust);
+    const beneficiaryAssets = assets.filter(a =>
+        a.ownershipType === "BENEFICIARY" ||
+        a.beneficiaryDesignation ||
+        a.todDeedRecorded ||
+        a.ownershipType === "JOINT"
+    );
+
+    // 2. INITIALIZE TRACKS
+    let type: AuthorityType = "UNSET";
+    let authoritySource: AuthoritySource = "UNSET";
+    let procedureType: ProcedureType = "UNSET";
+    let distributionModel: DistributionModel = "UNSET";
+    let activeEngines: ("PROBATE" | "TRUST" | "TOD_DEED" | "POD_TOD_ACCOUNTS" | "DISCOVERY" | "NON_PROBATE" | "AFFIDAVIT")[] = [];
+    let modifiers: string[] = [];
 
     const isEligibleForSmallEstate = probateTotal > 0 && probateTotal <= threshold;
-
-    let type: AuthorityType = "UNSET";
-    let reason = "";
-    let legalTerm = "";
-    let citations: string[] = [];
-    let modifiers: string[] = [];
 
     // Modifiers detection
     if (metadata?.hasInsolvencyRisk) modifiers.push("INSOLVENT");
@@ -108,90 +136,92 @@ export function calculateAuthorityRecommendation(
         modifiers.push("BUSINESS_ESTATE");
     }
     if (metadata?.hasContest) modifiers.push("CONTESTED");
-    if (metadata?.hasUnclaimedProperty) modifiers.push("UNCLAIMED_PROPERTY");
-    if (metadata?.hasElectiveShare) modifiers.push("ELECTIVE_SHARE");
 
-    // Check for modifiers first
-    if (trustAssets.length > 0 && probateTotal > 0) {
-        type = "POUR_OVER_WILL";
-        reason = "Estate involves both Trust assets and Probate assets. A Pour-Over Will likely bridges them.";
-        legalTerm = "Hybrid Administration (Trust + Probate)";
-        citations = ["CA Prob. Code §6300", "Uniform Probate Code §2-511"];
-    } else if (metadata?.isOutOfState) {
-        type = "ANCILLARY_PROBATE";
-        reason = "Property located in another state requires Ancillary Probate.";
-        legalTerm = "Ancillary Administration";
-        citations = ["CA Prob. Code §12501", "Uniform Probate Code §IV"];
-    } else if (metadata?.isSpouse && probateTotal > 0) {
-        type = "SPOUSAL_PETITION";
-        reason = `As a surviving spouse, you may be eligible for a ${rule.spousalSetAside?.term || 'Spousal Set-Aside'}, which is faster than full probate.`;
-        legalTerm = rule.spousalSetAside?.term || "Spousal Set-Aside";
-        citations = rule.spousalSetAside?.citation || ["State Spousal Set-Aside Statute"];
-    } else if (probateTotal === 0 && trustAssets.length > 0) {
-        type = metadata?.isTrustRevocable === false ? "TRUST_ADMIN_IRREVOCABLE" : "TRUST_ADMIN_REVOCABLE";
-        reason = `Assets are held in a ${type === "TRUST_ADMIN_IRREVOCABLE" ? "Irrevocable" : "Revocable"} Trust. No court probate required.`;
-        legalTerm = "Trust Administration";
-        citations = ["Uniform Trust Code", "State Trust Statute"];
-    } else if (metadata?.hasTODDeed) {
-        type = "TOD_DEED";
-        reason = "A Transfer-on-Death (TOD) Deed exists for the primary real property, bypassing probate.";
-        legalTerm = "TOD Deed Transfer";
-        citations = ["CA Prob. Code §5600", "State TOD Deed Statutes"];
-    } else if (probateAssets.length === 0) {
-        if (jointAssets.length > 0) {
-            type = "JOINT_TRANSFER";
-            reason = "Assets pass automatically to the surviving joint owner.";
-        } else if (beneficiaryAssets.length > 0) {
-            type = "BENEFICIARY_DESIGNATED";
-            reason = "Assets pass directly to named beneficiaries.";
-        } else {
-            type = "POD_TOD_TRANSFER";
-            reason = "Assets pass directly via POD/TOD designations.";
-        }
-        legalTerm = "Non-Probate Transfer";
-        citations = ["Right of Survivorship Laws"];
-    } else if (isEligibleForSmallEstate) {
-        if (state === "FL") {
-            type = "SUMMARY_ADMINISTRATION";
-        } else if (state === "NY") {
-            type = "VOLUNTARY_ADMINISTRATION";
-        } else {
-            type = "SMALL_ESTATE";
-        }
-        reason = `Probate assets ($${probateTotal.toLocaleString()}) are below the ${state} threshold ($${threshold.toLocaleString()}). You can likely use a ${rule.smallEstateTerm}.`;
-        legalTerm = rule.smallEstateTerm;
-        citations = rule.smallEstateCitation;
-    } else {
-        // Check for Informal Probate (UPC states only)
-        if (rule.isUPC && metadata?.hasWill && !metadata?.hasContest) {
-            type = "INFORMAL_PROBATE";
-            reason = `${state} follows the Uniform Probate Code. Informal probate is available for uncontested estates with a valid will, offering a streamlined process without formal hearings.`;
-            legalTerm = "Informal Probate (UPC)";
-            citations = ["Uniform Probate Code §3-301", `${state} UPC Adoption Statute`];
-        } else {
-            type = metadata?.hasWill === false ? "INTESTATE" : "FORMAL_PROBATE";
-
-            // Texas Muniment of Title Check
-            if (state === "TX" && metadata?.hasWill && !metadata?.hasInsolvencyRisk) {
-                type = "MUNIMENT_OF_TITLE";
-                reason = "Texas allows admitting a Will to probate as a 'Muniment of Title' when no executor administration is needed and the estate is not insolvent.";
-                legalTerm = "Muniment of Title";
-                citations = ["TX Estates Code §257"];
-            }
-
-            if (type !== "MUNIMENT_OF_TITLE") {
-                reason = metadata?.hasWill === false
-                    ? `No Will found and assets exceed the ${state} threshold. ${rule.probateTerm} (Intestate) is required.`
-                    : `Assets exceed the ${state} threshold ($${threshold.toLocaleString()}). ${rule.probateTerm} is required.`;
-                legalTerm = metadata?.hasWill === false ? `${rule.probateTerm} (Intestate)` : rule.probateTerm;
-                citations = rule.probateCitation;
-            }
-        }
+    // 3. ENGINE ACTIVATION
+    if (metadata?.hasTODDeed || assets.some(a => a.todDeedRecorded)) {
+        activeEngines.push("TOD_DEED");
+        activeEngines.push("NON_PROBATE");
     }
+    if (beneficiaryAssets.length > 0) {
+        activeEngines.push("POD_TOD_ACCOUNTS");
+        if (!activeEngines.includes("NON_PROBATE")) activeEngines.push("NON_PROBATE");
+    }
+    if (trustAssets.length > 0 || metadata?.isTrustRevocable !== undefined) {
+        activeEngines.push("TRUST");
+    }
+    if (probateTotal > 0 || metadata?.isOutOfState || metadata?.isSpouse) {
+        activeEngines.push("PROBATE");
+        if (isEligibleForSmallEstate) activeEngines.push("AFFIDAVIT");
+    }
+    if (activeEngines.length === 0) activeEngines.push("DISCOVERY");
+
+    // 4. MULTI-DIMENSIONAL CLASSIFICATION (Attorney Decision Tree)
+
+    // AUTHORITY SOURCE
+    if (probateTotal > threshold || metadata?.isOutOfState || metadata?.hasContest) {
+        authoritySource = "COURT";
+    } else if (trustAssets.length > 0) {
+        authoritySource = "FIDUCIARY_INSTRUMENT";
+    } else {
+        authoritySource = "BENEFICIARY_TRANSFER";
+    }
+
+    // PROCEDURE TYPE
+    if (metadata?.isOutOfState) {
+        procedureType = "ANCILLARY_PROBATE";
+        type = "ANCILLARY_PROBATE";
+    } else if (metadata?.isSpouse && probateTotal > 0) {
+        procedureType = "SPOUSAL_PETITION";
+        type = "SPOUSAL_PETITION";
+    } else if (probateTotal > threshold) {
+        if (rule.isUPC && metadata?.hasWill && !metadata?.hasContest) {
+            procedureType = "INFORMAL_PROBATE";
+            type = "INFORMAL_PROBATE";
+        } else if (state === "TX" && metadata?.hasWill && !metadata?.hasInsolvencyRisk) {
+            procedureType = "MUNIMENT_OF_TITLE";
+            type = "MUNIMENT_OF_TITLE";
+        } else {
+            procedureType = "FORMAL_PROBATE";
+            type = metadata?.hasWill === false ? "INTESTATE" : "FORMAL_PROBATE";
+        }
+    } else if (probateTotal > 0) {
+        if (state === "FL" && probateTotal < 75000) procedureType = "SUMMARY_ADMINISTRATION";
+        else if (state === "NY" && probateTotal < 50000) procedureType = "VOLUNTARY_ADMINISTRATION";
+        else procedureType = "SMALL_ESTATE_AFFIDAVIT";
+        type = "SMALL_ESTATE";
+    } else if (activeEngines.includes("TRUST")) {
+        procedureType = "TRUST_ADMINISTRATION";
+        type = metadata?.isTrustRevocable === false ? "TRUST_ADMIN_IRREVOCABLE" : "TRUST_ADMIN_REVOCABLE";
+    } else if (activeEngines.includes("TOD_DEED") || activeEngines.includes("POD_TOD_ACCOUNTS")) {
+        procedureType = "DIRECT_TRANSFER";
+        type = metadata?.hasTODDeed ? "TOD_DEED" : "POD_TOD_TRANSFER";
+    }
+
+    // DISTRIBUTION MODEL
+    if (metadata?.hasWill && trustAssets.length > 0 && probateTotal > 0) {
+        distributionModel = "POUR_OVER";
+    } else if (metadata?.hasWill) {
+        distributionModel = "TESTATE";
+    } else if (trustAssets.length > 0) {
+        distributionModel = "TRUST_TERMS";
+    } else if (probateTotal > 0) {
+        distributionModel = "INTESTATE";
+    } else {
+        distributionModel = "DIRECT_BENEFICIARY";
+    }
+
+    // Backwards Compatibility Mapping for UI strings
+    let legalTerm = procedureType.replace(/_/g, " ");
+    let citations = rule.probateCitation;
+    let reason = `Multi-track active: ${activeEngines.join(", ")}. Primary Source: ${authoritySource}.`;
 
     return {
         type,
         masterMode: getMasterMode(type),
+        authoritySource,
+        procedureType,
+        distributionModel,
+        activeEngines,
         threshold,
         probateTotal,
         isEligibleForSmallEstate,

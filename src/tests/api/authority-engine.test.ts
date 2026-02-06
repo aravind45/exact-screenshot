@@ -58,8 +58,9 @@ describe('Authority Engine - Path Detection', () => {
 
       const result = calculateAuthorityRecommendation(assets, 'FL', { hasWill: true });
 
-      expect(result.type).toBe('SUMMARY_ADMINISTRATION');
-      expect(result.masterMode).toBe('COURT_SUPERVISED');
+      expect(result.type).toBe('SMALL_ESTATE');
+      expect(result.procedureType).toBe('SUMMARY_ADMINISTRATION');
+      expect(result.masterMode).toBe('TRANSFER_ONLY');
       expect(result.isEligibleForSmallEstate).toBe(true);
       expect(result.threshold).toBe(75000);
     });
@@ -126,8 +127,10 @@ describe('Authority Engine - Path Detection', () => {
 
       const result = calculateAuthorityRecommendation(assets, 'CA', { hasWill: true });
 
-      expect(result.type).toBe('POUR_OVER_WILL');
-      expect(result.masterMode).toBe('FIDUCIARY_ADMINISTERED');
+      expect(result.type).toBe('FORMAL_PROBATE');
+      expect(result.masterMode).toBe('COURT_SUPERVISED');
+      expect(result.activeEngines).toContain('TRUST');
+      expect(result.activeEngines).toContain('PROBATE');
       expect(result.probateTotal).toBe(400000);
     });
   });
@@ -157,7 +160,7 @@ describe('Authority Engine - Path Detection', () => {
 
       const result = calculateAuthorityRecommendation(assets, 'CA', { hasWill: false });
 
-      expect(result.type).toBe('JOINT_TRANSFER');
+      expect(result.type).toBe('POD_TOD_TRANSFER');
       expect(result.masterMode).toBe('TRANSFER_ONLY');
       expect(result.probateTotal).toBe(0);
     });
@@ -172,8 +175,8 @@ describe('Authority Engine - Path Detection', () => {
 
       const result = calculateAuthorityRecommendation(assets, 'CA', { hasWill: false });
 
-      // Authority engine returns BENEFICIARY_DESIGNATED for beneficiary assets
-      expect(result.type).toBe('BENEFICIARY_DESIGNATED');
+      // Authority engine returns POD_TOD_TRANSFER for beneficiary assets
+      expect(result.type).toBe('POD_TOD_TRANSFER');
       expect(result.masterMode).toBe('TRANSFER_ONLY');
       expect(result.probateTotal).toBe(0);
     });
@@ -188,7 +191,7 @@ describe('Authority Engine - Path Detection', () => {
 
       const result = calculateAuthorityRecommendation(assets, 'CA', { hasWill: false });
 
-      expect(result.type).toBe('BENEFICIARY_DESIGNATED');
+      expect(result.type).toBe('POD_TOD_TRANSFER');
       expect(result.masterMode).toBe('TRANSFER_ONLY');
     });
   });
@@ -206,7 +209,7 @@ describe('Authority Engine - Path Detection', () => {
       expect(result.type).toBe('SPOUSAL_PETITION');
       expect(result.masterMode).toBe('COURT_SUPERVISED');
       expect(result.probateTotal).toBe(500000);
-      expect(result.legalTerm).toBe('DE-221 Spousal Property Petition');
+      expect(result.procedureType).toBe('SPOUSAL_PETITION');
     });
 
     it('Should prioritize SPOUSAL_PETITION over FORMAL_PROBATE', () => {
@@ -241,12 +244,12 @@ describe('Master Mode Classification', () => {
     expect(getMasterMode('SMALL_ESTATE')).toBe('TRANSFER_ONLY');
   });
 
-  it('Should classify JOINT_TRANSFER as TRANSFER_ONLY', () => {
-    expect(getMasterMode('JOINT_TRANSFER')).toBe('TRANSFER_ONLY');
-  });
-
   it('Should classify POD_TOD_TRANSFER as TRANSFER_ONLY', () => {
     expect(getMasterMode('POD_TOD_TRANSFER')).toBe('TRANSFER_ONLY');
+  });
+
+  it('Should classify TOD_DEED as TRANSFER_ONLY', () => {
+    expect(getMasterMode('TOD_DEED')).toBe('TRANSFER_ONLY');
   });
 });
 
@@ -364,9 +367,7 @@ describe('Edge Cases', () => {
     const result = calculateAuthorityRecommendation([], 'CA', { hasWill: true, estimatedValue: 100000 });
 
     expect(result.probateTotal).toBe(100000);
-    // With no assets, authority engine defaults to POD_TOD_TRANSFER
-    // In practice, estimatedValue would trigger SMALL_ESTATE if assets were present
-    expect(result.type).toBe('POD_TOD_TRANSFER');
+    expect(result.type).toBe('SMALL_ESTATE');
   });
 
   it('Should handle missing state (default to $50k threshold)', () => {
@@ -400,5 +401,33 @@ describe('Edge Cases', () => {
 
     expect(result.isEligibleForSmallEstate).toBe(false);
     expect(result.type).toBe('FORMAL_PROBATE');
+  });
+});
+
+describe('Multi-Track Detection', () => {
+  it('Should detect PROBATE, TRUST, and TOD_DEED tracks simultaneously', () => {
+    const assets = [
+      { value: 500000, ownershipType: 'INDIVIDUAL', assetType: 'REAL_ESTATE', category: 'real_estate' }, // Probate
+      { value: 200000, ownershipType: 'TRUST', assetType: 'BROKERAGE', category: 'financial' }, // Trust
+      { value: 100000, ownershipType: 'INDIVIDUAL', assetType: 'REAL_ESTATE', category: 'real_estate', todDeedRecorded: true }, // TOD
+    ];
+
+    const result = calculateAuthorityRecommendation(assets, 'CA', { hasWill: true });
+
+    expect(result.activeEngines).toContain('PROBATE');
+    expect(result.activeEngines).toContain('TRUST');
+    expect(result.activeEngines).toContain('TOD_DEED');
+    expect(result.activeEngines).toContain('NON_PROBATE');
+  });
+
+  it('Should include AFFIDAVIT when probate assets are below threshold', () => {
+    const assets = [
+      { value: 50000, ownershipType: 'INDIVIDUAL', assetType: 'CHECKING', category: 'financial' },
+    ];
+
+    const result = calculateAuthorityRecommendation(assets, 'CA', { hasWill: true });
+
+    expect(result.activeEngines).toContain('PROBATE');
+    expect(result.activeEngines).toContain('AFFIDAVIT');
   });
 });

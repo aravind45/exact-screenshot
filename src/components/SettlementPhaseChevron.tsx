@@ -15,6 +15,7 @@ export interface PhaseConfig {
   subtitle: string;
   milestone: string;
   color?: string;
+  isEscalationPath?: boolean;
 }
 
 const DEFAULT_PHASES: PhaseConfig[] = [
@@ -103,8 +104,8 @@ export function SettlementPhaseChevron({
                     "relative h-14 w-44 flex items-center justify-center transition-all duration-300",
                     "clip-chevron",
                     isCompleted && "bg-green-600",
-                    isCurrent && phase.color,
-                    isUpcoming && "bg-slate-200",
+                    isCurrent && (phase.isEscalationPath ? "bg-amber-600" : phase.color),
+                    isUpcoming && (phase.isEscalationPath ? "bg-amber-100 border-l border-amber-200" : "bg-slate-200"),
                     isCurrent && "scale-105 z-20 shadow-xl ring-2 ring-white/30"
                   )}
                   style={{
@@ -131,21 +132,21 @@ export function SettlementPhaseChevron({
                       <span className={cn(
                         "text-xs font-bold leading-tight",
                         (isCompleted || isCurrent) && "text-white",
-                        isUpcoming && "text-slate-600"
+                        isUpcoming && (phase.isEscalationPath ? "text-amber-900" : "text-slate-600")
                       )}>
                         {phase.title}
                       </span>
                       <span className={cn(
                         "text-[10px] leading-tight",
                         (isCompleted || isCurrent) && "text-white/80",
-                        isUpcoming && "text-slate-500"
+                        isUpcoming && (phase.isEscalationPath ? "text-amber-800" : "text-slate-500")
                       )}>
                         {phase.subtitle}
                       </span>
                       <span className={cn(
                         "text-[9px] leading-tight mt-0.5 opacity-80",
                         (isCompleted || isCurrent) && "text-white/60",
-                        isUpcoming && "text-slate-400"
+                        isUpcoming && (phase.isEscalationPath ? "text-amber-700/60" : "text-slate-400")
                       )}>
                         {phase.milestone}
                       </span>

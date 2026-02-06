@@ -1,7 +1,10 @@
 import { SETTLEMENT_PHASE_TASKS, PhaseTaskList, PhaseTask } from "../../src/config/settlementPhases.js";
 import { prisma as db } from "../db.js";
+import { calculateAuthorityRecommendation } from "../../src/lib/authorityEngine.js";
+import { AuthoritySource, ProcedureType, DistributionModel } from "../../src/lib/stateRules.js";
+
 /**
- * Estate Profile for Task Filtering
+ * Estate Profile for Task Filtering (Multi-Dimensional Attorney Model)
  */
 interface EstateProfile {
   id: string;
@@ -11,6 +14,12 @@ interface EstateProfile {
   isContested: boolean;
   state: string;
   estimatedValue: number;
+
+  // Multi-dimensional Track Data
+  authoritySource: AuthoritySource;
+  procedureType: ProcedureType;
+  distributionModel: DistributionModel;
+  activeEngines: string[];
 }
 
 /**
@@ -26,6 +35,7 @@ export interface RoadmapResponse {
     isContested: boolean;
     showBondWaiver: boolean;
     showSpecialNotice: boolean;
+    activeEngines: string[];
   };
   profile: EstateProfile;
 }
@@ -47,29 +57,27 @@ export async function analyzeEstateProfile(estateId: string): Promise<EstateProf
     throw new Error(`Estate ${estateId} not found`);
   }
 
-  // Detect characteristics (persist flags if not set)
-  const hasMinorBeneficiaries = estate.hasMinorBeneficiaries || estate.heirs.some((heir) => !heir.isAdult);
-  const isContested = estate.hasContest || estate.probateNotes?.toLowerCase().includes("contest") || false;
-
-  const estimatedValue =
-    Number(estate.estimatedPersonalProperty || 0) +
-    Number(estate.estimatedRealProperty || 0);
-  const isSmallEstate = estimatedValue < 100000;
-
-  const isPrimaryResidence = estate.hasPrimaryResidence || estate.assets.some(
-    (asset) =>
-      asset.assetType === "real_estate" &&
-      asset.inventoryCategory === "ATTACHMENT_1" // Real property
-  );
+  // Calculate recommendation using the new multi-dimensional engine
+  const rec = calculateAuthorityRecommendation(estate.assets, estate.deceasedState, {
+    hasWill: estate.hasWill,
+    isOutOfState: estate.isOutOfState,
+    hasMinors: estate.hasMinorBeneficiaries || estate.heirs.some(h => !h.isAdult),
+    hasContest: estate.hasContest,
+    hasTODDeed: estate.hasTODDeed || estate.assets.some(a => a.todDeedRecorded)
+  });
 
   return {
     id: estate.id,
-    hasMinorBeneficiaries,
-    isSmallEstate,
-    isPrimaryResidence,
-    isContested,
+    hasMinorBeneficiaries: rec.modifiers?.includes("MINOR_HEIRS") || false,
+    isSmallEstate: rec.isEligibleForSmallEstate,
+    isPrimaryResidence: estate.hasPrimaryResidence || estate.assets.some(a => a.assetType === "real_estate"),
+    isContested: rec.modifiers?.includes("CONTESTED") || false,
     state: estate.deceasedState,
-    estimatedValue,
+    estimatedValue: rec.probateTotal,
+    authoritySource: rec.authoritySource,
+    procedureType: rec.procedureType,
+    distributionModel: rec.distributionModel,
+    activeEngines: rec.activeEngines
   };
 }
 
@@ -99,11 +107,15 @@ export function filterTasksForEstate(
         return completedTaskIds.includes(task.id);
       }
 
-      // 3. Handle Track Compatibility
-      // This ensures Probate tasks don't leak into Trust tracks and vice-versa.
-      const estateTrack = profile.isSmallEstate ? "AFFIDAVIT" : "PROBATE"; // Simplified for now, should map to actual track
-      if (task.trackCompatibility && !task.trackCompatibility.includes(estateTrack as any)) {
-        return false;
+      // 3. Handle Track Compatibility (Multi-Dimensional)
+      // We check if the task is compatible with ANY of the active engines.
+      // E.g., if "PROBATE" is an active engine, show probate tasks.
+      if (task.trackCompatibility) {
+        const isCompatible = task.trackCompatibility.some(track =>
+          profile.activeEngines.includes(track) ||
+          (track === "AFFIDAVIT" && profile.procedureType === "SMALL_ESTATE_AFFIDAVIT")
+        );
+        if (!isCompatible) return false;
       }
 
       // Always show non-optional tasks
@@ -140,16 +152,16 @@ export function filterTasksForEstate(
         case "request_bond_waiver":
         case "file_bond_waiver":
         case "obtain_bond_waiver_order":
-          return true;
+          return profile.authoritySource === "COURT"; // Only for court authority
 
         // Special Notice (always show - used in 90% of estates)
         case "track_special_notice_requests":
         case "serve_special_notice_parties":
-          return true;
+          return profile.authoritySource === "COURT"; // Only for court authority
 
         // Default: show other optional tasks
         default:
-          return task.isOptional;
+          return true;
       }
     }),
   }));
@@ -177,8 +189,9 @@ export async function getEstateRoadmap(estateId: string): Promise<RoadmapRespons
       isSmallEstate: profile.isSmallEstate,
       isPrimaryResidence: profile.isPrimaryResidence,
       isContested: profile.isContested,
-      showBondWaiver: true, // Always show as optional
-      showSpecialNotice: true, // Always show
+      showBondWaiver: profile.authoritySource === "COURT",
+      showSpecialNotice: profile.authoritySource === "COURT",
+      activeEngines: profile.activeEngines
     },
     profile,
   };

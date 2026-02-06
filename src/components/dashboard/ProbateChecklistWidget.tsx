@@ -50,7 +50,7 @@ export function ProbateChecklistWidget({ estateType, deceasedState = "CA" }: Pro
         if (estate?.isInternational) {
             modifiers.push("INTERNATIONAL_MODE");
         }
-        return generateRoadmap(recommendation.type, estate?.deceasedState || deceasedState, modifiers);
+        return generateRoadmap(recommendation.type, estate?.deceasedState || deceasedState, modifiers, recommendation.activeEngines);
     }, [recommendation, estate?.deceasedState, deceasedState, estate?.isInternational]);
 
     const stages = dynamicStages.map(s => ({

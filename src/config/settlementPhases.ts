@@ -49,6 +49,7 @@ export interface PhaseTaskList {
   milestone: string;
   description: string;
   tasks: PhaseTask[];
+  isEscalationPath?: boolean; // Flag for phases that are secondary/contingency paths
 }
 
 export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
@@ -90,6 +91,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         title: "Confirm Executor/Trustee Role",
         description: "Review the Will or Trust to confirm your appointment and willingness to serve.",
         estimatedTime: "2 hours",
+        trackCompatibility: ["PROBATE", "TRUST"],
         helpArticleId: "executor-duties",
         alerts: [
           {
@@ -115,6 +117,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         title: "Identify Minor Beneficiaries",
         description: "Review all heirs and identify any beneficiaries under age 18. Minors require special court protection through a guardian ad litem.",
         estimatedTime: "30 minutes",
+        trackCompatibility: ["PROBATE"],
         isOptional: true, // Controlled by filtering logic based on profile
         alerts: [{
           type: "important",
@@ -128,6 +131,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         utility: "Shortcut: Simplified path for qualifying primary residences.",
         estimatedTime: "1 hour",
         exclusiveGroup: "filing_path",
+        trackCompatibility: ["PROBATE"],
         isOptional: true,
         helpArticleId: "primary-residence-succession",
         alerts: [{
@@ -148,6 +152,71 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         ]
       },
       {
+        id: "check_tod_recordation",
+        title: "Verify TOD Deed Recordation Date",
+        description: "Statutory Rule: A TOD deed must be recorded before the owner's death to be legally valid. Confirm the 'Date Filed' on the deed.",
+        estimatedTime: "30 minutes",
+        trackCompatibility: ["NON_PROBATE"],
+        alerts: [{
+          type: "important",
+          message: "Deed Invalidality Alert: If the recording date is after the date of death, the TOD deed is void and the property must go through probate."
+        }]
+      },
+      {
+        id: "check_tod_revocation",
+        title: "Confirm No Subsequent Revocation",
+        description: "Check for any subsequently recorded 'Revocation of TOD Deed' or a newer TOD deed that might override the current one.",
+        estimatedTime: "1 hour",
+        trackCompatibility: ["NON_PROBATE"],
+        isAttorneyReviewNode: true,
+        attorneyReviewReason: "Legal Conflict: Multiple recorded deeds or revocations create high litigation risk and title clouds."
+      },
+      {
+        id: "check_beneficiary_survival",
+        title: "Confirm Beneficiary Survival Status",
+        description: "Verify the named TOD beneficiary survived the transferor. If the beneficiary predeceased, the TOD deed typically fails unless 'Anti-Lapse' rules apply.",
+        estimatedTime: "1 hour",
+        trackCompatibility: ["NON_PROBATE"],
+        alerts: [{
+          type: "warning",
+          message: "Survival Requirement: If the beneficiary died before the transferor, the property likely escapes the TOD track and enters the Probate track."
+        }]
+      },
+      {
+        id: "check_joint_tenancy_override",
+        title: "Check for Joint Tenancy Override",
+        description: "Verify the property was not held in Joint Tenancy at the time of death. In many states, Joint Tenancy survivorship overrides a TOD deed.",
+        estimatedTime: "1 hour",
+        trackCompatibility: ["NON_PROBATE"],
+        isAttorneyReviewNode: true,
+        attorneyReviewReason: "Title Priority: Joint Tenancy with Right of Survivorship usually trumps TOD deeds, which can invalidate the transfer."
+      },
+      {
+        id: "prepare_beneficiary_authority_packet",
+        title: "Establish Beneficiary Transfer Authority",
+        description: "Instead of 'Letters Testamentary', the TOD beneficiary uses a 'Transfer Packet' to claim title.",
+        estimatedTime: "2-4 hours",
+        trackCompatibility: ["NON_PROBATE"],
+        requiredDocs: ["Certified Death Certificate", "Recorded TOD Deed copy", "Affidavit of Death of Transferor", "PCOR Form"],
+        alerts: [{
+          type: "info",
+          message: "This packet replaces court-issued authority and is presented to the county recorder or title company."
+        }]
+      },
+      {
+        id: "escalate_to_probate_trigger",
+        title: "PROBATE ESCALATION: Deed Issue Detected",
+        description: "If any of the validation checks failed (unrecorded deed, predeceased beneficiary, joint tenancy conflict), you must pivot to a formal probate petition.",
+        estimatedTime: "Ongoing",
+        trackCompatibility: ["NON_PROBATE"],
+        isConditional: true,
+        conditionalRequirementLabel: "Required IF TOD validation fails",
+        alerts: [{
+          type: "caution",
+          message: "Escalation Path: Bypassing probate is only legal when the TOD deed is perfectly valid. If not, court intervention is mandatory."
+        }]
+      },
+      {
         id: "notify_ssa",
         title: "Notify Social Security Administration",
         description: "Report the death to stop benefit payments and prevent overpayment recovery.",
@@ -165,6 +234,30 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
             url: "https://www.ssa.gov/benefits/survivors/ifyou.html"
           }
         ]
+      },
+      {
+        id: "record_affidavit_of_death",
+        title: "Record Affidavit of Death (TOD)",
+        description: "Prepare and record an Affidavit of Death of Transferor to formally transfer title to the TOD beneficiary.",
+        estimatedTime: "2-4 hours",
+        requiredDocs: ["Death Certificate", "Affidavit of Death", "Recorded TOD Deed"],
+        trackCompatibility: ["NON_PROBATE"],
+        links: [{
+          label: "About TOD Affidavits",
+          url: "https://www.courts.ca.gov/documents/de165.pdf"
+        }]
+      },
+      {
+        id: "notify_recorder_assessor",
+        title: "Notify County Recorder & Assessor",
+        description: "Submit Change in Ownership Statement to the county to update tax records and prevent penalties.",
+        estimatedTime: "1 hour",
+        trackCompatibility: ["NON_PROBATE"],
+        requiredDocs: ["BOE-502-A"],
+        alerts: [{
+          type: "warning",
+          message: "Missing the property tax reassessment deadline can lead to significant penalties."
+        }]
       },
       {
         id: "cancel_cards",
@@ -868,6 +961,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         description: "Examine each creditor claim for validity, amount, and supporting documentation.",
         estimatedTime: "1-2 weeks",
         helpArticleId: "creditor-claims",
+        isAttorneyReviewNode: true,
         alerts: [
           {
             type: "important",
@@ -877,8 +971,26 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
             type: "caution",
             message: "California law provides specific timeframes for approving or rejecting claims. Verify compliance with statutory deadlines."
           }
-        ],
-        isAttorneyReviewNode: true
+        ]
+      },
+      {
+        id: "tod_creditor_review",
+        title: "⚠️ Creditor Exposure Assessment",
+        description: "Silent Legal Check: Evaluate potential beneficiary liability for decedent's debts. This is NOT a formal probate claim process, but a risk assessment of statutory 'clawback' provisions.",
+        estimatedTime: "1-2 weeks",
+        trackCompatibility: ["NON_PROBATE"],
+        isAttorneyReviewNode: true,
+        attorneyReviewReason: "Insolvency Risk: If the probate estate is empty, creditors may sue TOD beneficiaries directly. This review determines your personal exposure.",
+        alerts: [
+          {
+            type: "caution",
+            message: "Clawback Risk: In many states, creditors have 1 year to pursue TOD assets if the estate cannot pay debts."
+          },
+          {
+            type: "important",
+            message: "This is a 'Silent' review. Do NOT publish notice to creditors unless you escalate to formal probate."
+          }
+        ]
       },
       {
         id: "evaluate_and_document_claims",

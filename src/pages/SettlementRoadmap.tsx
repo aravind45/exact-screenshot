@@ -139,16 +139,28 @@ export default function SettlementRoadmap() {
           {/* Header */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <div>
+              <div className="space-y-1">
                 <div className="flex items-center gap-2">
                   <h1 className="text-2xl font-black text-slate-900 tracking-tight">Settlement Path</h1>
-                  <Badge variant="outline" className="bg-indigo-50 border-indigo-200 text-indigo-700 text-[10px] font-bold uppercase py-0.5 px-2">
-                    {getMasterMode(authorityRec?.type || "UNSET").replace('_', ' ')}
-                  </Badge>
+                  <div className="flex gap-1">
+                    {authorityRec?.activeEngines?.map(engine => (
+                      <Badge key={engine} variant="outline" className="bg-indigo-50 border-indigo-200 text-indigo-700 text-[9px] font-bold uppercase py-0 px-2 h-4 shrink-0">
+                        {engine.replace('_', ' ')}
+                      </Badge>
+                    ))}
+                  </div>
                 </div>
-                <p className="text-xs text-slate-600 mt-0.5 font-medium">
-                  Legal Track: <span className="text-slate-900 font-bold">{authorityRec?.legalTerm}</span>
-                </p>
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                  <p className="text-[11px] text-slate-600 font-medium flex items-center gap-1">
+                    Source: <span className="text-slate-900 font-bold bg-slate-100 px-1.5 py-0.5 rounded uppercase text-[9px]">{authorityRec?.authoritySource?.replace(/_/g, " ")}</span>
+                  </p>
+                  <p className="text-[11px] text-slate-600 font-medium flex items-center gap-1">
+                    Model: <span className="text-slate-900 font-bold bg-slate-100 px-1.5 py-0.5 rounded uppercase text-[9px]">{authorityRec?.distributionModel?.replace(/_/g, " ")}</span>
+                  </p>
+                  <p className="text-[11px] text-slate-600 font-medium flex items-center gap-1">
+                    Procedure: <span className="text-slate-900 font-bold uppercase text-[10px]">{authorityRec?.legalTerm}</span>
+                  </p>
+                </div>
               </div>
               <div className="flex items-center gap-3">
                 <div className="text-right">
@@ -220,21 +232,29 @@ export default function SettlementRoadmap() {
                     <p className="text-lg font-bold leading-tight mt-1">
                       {authorityRec.reason}
                     </p>
-                    <div className="flex items-center gap-4 mt-3">
+                    <div className="flex flex-wrap gap-2 mt-3">
                       <div className="flex items-center gap-1.5 px-2 py-1 bg-white/10 rounded border border-white/20">
-                        <span className="text-[10px] font-black uppercase tracking-tight text-white/70">Legal Track</span>
-                        <span className="text-[10px] font-bold text-white uppercase">{authorityRec.type.replace('_', ' ')}</span>
+                        <span className="text-[9px] font-black uppercase tracking-tight text-white/70">Legal Source</span>
+                        <span className="text-[9px] font-bold text-white uppercase">{authorityRec.authoritySource?.replace('_', ' ')}</span>
                       </div>
-                      {authorityRec.citations && authorityRec.citations.length > 0 && (
-                        <div className="flex items-center gap-1.5">
-                          {authorityRec.citations.map((cite, i) => (
-                            <span key={i} className="text-[11px] font-bold text-indigo-200 italic">
-                              {cite}
-                            </span>
-                          ))}
-                        </div>
-                      )}
+                      <div className="flex items-center gap-1.5 px-2 py-1 bg-white/10 rounded border border-white/20">
+                        <span className="text-[9px] font-black uppercase tracking-tight text-white/70">Procedure</span>
+                        <span className="text-[9px] font-bold text-white uppercase">{authorityRec.procedureType?.replace('_', ' ')}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 px-2 py-1 bg-white/10 rounded border border-white/20">
+                        <span className="text-[9px] font-black uppercase tracking-tight text-white/70">Distribution</span>
+                        <span className="text-[9px] font-bold text-white uppercase">{authorityRec.distributionModel?.replace('_', ' ')}</span>
+                      </div>
                     </div>
+                    {authorityRec.citations && authorityRec.citations.length > 0 && (
+                      <div className="flex items-center gap-1.5">
+                        {authorityRec.citations.map((cite, i) => (
+                          <span key={i} className="text-[11px] font-bold text-indigo-200 italic">
+                            {cite}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -279,7 +299,8 @@ export default function SettlementRoadmap() {
                 id: p.phase,
                 title: p.title,
                 subtitle: p.subtitle,
-                milestone: p.milestone
+                milestone: p.milestone,
+                isEscalationPath: p.isEscalationPath
               }))}
             />
           </div>
@@ -360,13 +381,17 @@ export default function SettlementRoadmap() {
                     disabled={isFuture && !isComplete}
                     className={cn(
                       "group relative bg-white p-5 rounded-[28px] border transition-all text-left overflow-hidden",
-                      isCurrent && "border-indigo-500 bg-indigo-50/40 shadow-xl ring-4 ring-indigo-500/5 scale-[1.02] z-10",
+                      isCurrent && !phase.isEscalationPath && "border-indigo-500 bg-indigo-50/40 shadow-xl ring-4 ring-indigo-500/5 scale-[1.02] z-10",
+                      isCurrent && phase.isEscalationPath && "border-amber-500 bg-amber-50/40 shadow-xl ring-4 ring-amber-500/5 scale-[1.02] z-10",
                       !isCurrent && !isFuture && "border-slate-200 hover:border-slate-300 hover:bg-slate-50/50",
                       isFuture && !isComplete && "border-slate-100 opacity-60 grayscale cursor-not-allowed bg-slate-50/30"
                     )}
                   >
                     {isCurrent && (
-                      <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-indigo-600 rounded-r-full" />
+                      <div className={cn(
+                        "absolute left-0 top-0 bottom-0 w-1.5 rounded-r-full",
+                        phase.isEscalationPath ? "bg-amber-600" : "bg-indigo-600"
+                      )} />
                     )}
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
@@ -396,6 +421,11 @@ export default function SettlementRoadmap() {
                             {isFuture && !isComplete && (
                               <Badge variant="outline" className="h-4 px-1.5 text-[8px] font-black uppercase tracking-widest bg-white border-slate-200 text-slate-400">
                                 Locked
+                              </Badge>
+                            )}
+                            {phase.isEscalationPath && (
+                              <Badge className="h-4 px-1.5 text-[8px] font-black uppercase tracking-widest bg-amber-600 text-white border-amber-600">
+                                Escalation Path
                               </Badge>
                             )}
                           </div>
@@ -440,7 +470,7 @@ export default function SettlementRoadmap() {
             </div>
           </div>
         </main>
-      </div>
-    </div>
+      </div >
+    </div >
   );
 }

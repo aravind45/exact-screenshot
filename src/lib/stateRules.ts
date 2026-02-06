@@ -1,3 +1,32 @@
+export type AuthoritySource =
+    | "COURT"                // Powers granted by judge (Letters, Orders)
+    | "FIDUCIARY_INSTRUMENT" // Powers granted by Will/Trust document
+    | "BENEFICIARY_TRANSFER" // Powers granted by TOD/POD/Designation laws
+    | "UNSET";
+
+export type ProcedureType =
+    | "FORMAL_PROBATE"
+    | "INFORMAL_PROBATE"
+    | "SUMMARY_ADMINISTRATION"
+    | "VOLUNTARY_ADMINISTRATION"
+    | "MUNIMENT_OF_TITLE"
+    | "SMALL_ESTATE_AFFIDAVIT"
+    | "ANCILLARY_PROBATE"
+    | "SPOUSAL_PETITION"
+    | "TRUST_ADMINISTRATION"
+    | "DIRECT_TRANSFER"     // TOD/POD/Joint
+    | "DISCOVERY"
+    | "UNSET";
+
+export type DistributionModel =
+    | "TESTATE"             // Per Will
+    | "INTESTATE"           // Per State Law
+    | "POUR_OVER"           // Will to Trust
+    | "TRUST_TERMS"         // Per Trust document
+    | "DIRECT_BENEFICIARY"  // Per designation
+    | "UNSET";
+
+// Legacy Type for backward compatibility during transition
 export type AuthorityType =
     | "FORMAL_PROBATE"
     | "INFORMAL_PROBATE"

@@ -5,36 +5,76 @@ import { SettlementPhase } from "@/components/SettlementPhaseChevron";
 export function generateRoadmap(
     authorityType: AuthorityType,
     state: string,
-    modifiers: string[] = []
+    modifiers: string[] = [],
+    activeEngines: string[] = []
 ): PhaseTaskList[] {
     const masterMode = getMasterMode(authorityType);
 
-    // For simplest cases (Transfer Only), we use a reduced phase set
-    if (masterMode === "TRANSFER_ONLY") {
-        return generateTransferOnlyRoadmap(authorityType, state, modifiers);
+    // If no active engines provided, infer them from authorityType for backwards compatibility
+    const engines = activeEngines.length > 0 ? activeEngines : [
+        masterMode === "TRANSFER_ONLY" ? "NON_PROBATE" :
+            masterMode === "FIDUCIARY_ADMINISTERED" ? "TRUST" : "PROBATE"
+    ];
+
+    const allRoadmaps: PhaseTaskList[][] = [];
+
+    if (engines.includes("PROBATE") || engines.includes("AFFIDAVIT")) {
+        allRoadmaps.push(generateProbateRoadmap(authorityType, state, modifiers, engines));
     }
 
-    // For Trust Admin, we use a specialized workflow
-    if (masterMode === "FIDUCIARY_ADMINISTERED") {
-        return generateFiduciaryRoadmap(authorityType, state, modifiers);
+    if (engines.includes("TRUST")) {
+        allRoadmaps.push(generateFiduciaryRoadmap(authorityType, state, modifiers, engines));
     }
 
-    // Discovery mode
-    if (authorityType === "DISCOVERY") {
-        return generateDiscoveryRoadmap(authorityType, state);
+    if (engines.includes("NON_PROBATE") || engines.includes("TOD_DEED") || engines.includes("POD_TOD_ACCOUNTS")) {
+        allRoadmaps.push(generateTransferOnlyRoadmap(authorityType, state, modifiers, engines));
     }
 
-    // Default: Court Supervised (Full Probate / Intestate / etc.)
-    return generateProbateRoadmap(authorityType, state, modifiers);
+    if (authorityType === "DISCOVERY" || engines.includes("DISCOVERY")) {
+        allRoadmaps.push(generateDiscoveryRoadmap(authorityType, state));
+    }
+
+    // Merge roadmaps by phase
+    const mergedPhases: Record<string, PhaseTaskList> = {};
+
+    allRoadmaps.flat().forEach(phaseList => {
+        if (!mergedPhases[phaseList.phase]) {
+            mergedPhases[phaseList.phase] = { ...phaseList, tasks: [...phaseList.tasks] };
+        } else {
+            // Merge tasks, avoiding duplicates
+            const existingIds = new Set(mergedPhases[phaseList.phase].tasks.map(t => t.id));
+            phaseList.tasks.forEach(task => {
+                if (!existingIds.has(task.id)) {
+                    mergedPhases[phaseList.phase].tasks.push(task);
+                }
+            });
+        }
+    });
+
+    // Order phases properly based on SETTLEMENT_PHASE_TASKS order
+    const orderedPhaseKeys = SETTLEMENT_PHASE_TASKS.map(p => p.phase);
+    return orderedPhaseKeys
+        .filter(key => mergedPhases[key])
+        .map(key => mergedPhases[key]);
 }
 
-function generateTransferOnlyRoadmap(type: AuthorityType, state: string, modifiers: string[] = []): PhaseTaskList[] {
-    // Simplified 3-phase roadmap
-    const baseline = SETTLEMENT_PHASE_TASKS.filter(p =>
-        ["immediate_actions", "asset_discovery", "final_distribution"].includes(p.phase)
-    );
+function generateTransferOnlyRoadmap(type: AuthorityType, state: string, modifiers: string[] = [], activeEngines: string[] = []): PhaseTaskList[] {
+    const isTOD = type === "TOD_DEED";
 
-    return baseline.map(p => {
+    // 5-State Attorney Model for TOD
+    // 1. Eligibility Validation
+    // 2. Beneficiary Authority
+    // 3. Title Transfer
+    // 4. Creditor Exposure Review
+    // 5. Exception Escalation
+
+    const phaseKeys: SettlementPhase[] = isTOD
+        ? ["immediate_actions", "asset_discovery", "creditor_claims", "asset_liquidation"]
+        : ["immediate_actions", "asset_discovery", "final_distribution"];
+
+    const baseline = SETTLEMENT_PHASE_TASKS.filter(p => phaseKeys.includes(p.phase));
+
+    const roadmap = baseline.map(p => {
         let tasks = [...p.tasks];
 
         // Filter out international tasks if modifier is not present
@@ -42,35 +82,102 @@ function generateTransferOnlyRoadmap(type: AuthorityType, state: string, modifie
             tasks = tasks.filter(t => !t.isInternationalOnly);
         }
 
-        // Filter tasks that are purely probate-related or incompatible with affidavit track
-        tasks = tasks.filter(t => t.category !== "probate" && (!t.trackCompatibility || t.trackCompatibility.includes("AFFIDAVIT")));
+        const trackTag = isTOD ? "NON_PROBATE" : "AFFIDAVIT";
+        tasks = tasks.filter(t =>
+            t.category !== "probate" &&
+            (!t.trackCompatibility || t.trackCompatibility.includes(trackTag as any))
+        );
 
-        // Add specific task for the transfer type
-        if (type === "SMALL_ESTATE") {
-            tasks.push({
-                id: "prepare_affidavit",
-                title: "Prepare Small Estate Affidavit",
-                description: `Draft the ${state} Small Estate Affidavit to transfer assets without court.`,
-                estimatedTime: "1-2 hours",
-                requiresAuthority: false,
-                alerts: [{ type: "info", message: "Verification Required: Most banks require a 40-day waiting period from date of death before processing affidavits." }]
-            });
+        // STRIP AUTHORITY REQUIREMENT: In TOD/Transfer tracks, court-issued Letters are NOT the default.
+        tasks = tasks.map(t => ({ ...t, requiresAuthority: false }));
+
+        if (isTOD) {
+            if (p.phase === "immediate_actions") {
+                // Focus on State 1 & State 2: Selection of only critical assessment + TOD validation
+                tasks = tasks.filter(t =>
+                    ["preliminary_asset_scan", "secure_property_2", "check_tod_recordation",
+                        "check_tod_revocation", "check_beneficiary_survival", "check_joint_tenancy_override",
+                        "prepare_beneficiary_authority_packet", "escalate_to_probate_trigger"
+                    ].includes(t.id)
+                );
+            }
+            if (p.phase === "asset_discovery") {
+                // State 5 Escalation logic placeholder or additional verification
+                tasks = tasks.filter(t => t.id === "confirm_tod_deed_validity");
+            }
+            if (p.phase === "creditor_claims") {
+                // State 4: Silent Creditor Review
+                tasks = tasks.filter(t => t.id === "tod_creditor_review");
+            }
+            if (p.phase === "asset_liquidation") {
+                // State 3: Title Transfer Workflow
+                tasks = tasks.filter(t =>
+                    ["record_affidavit_of_death", "notify_recorder_assessor", "coordinate_institutional_transfer"].includes(t.id)
+                );
+            }
+        } else {
+            // Standard Small Estate / Joint Transfer path
+            if (type === "SMALL_ESTATE" && p.phase === "immediate_actions") {
+                tasks.push({
+                    id: "prepare_affidavit",
+                    title: "Prepare Small Estate Affidavit",
+                    description: `Draft the ${state} Small Estate Affidavit to transfer assets without court.`,
+                    estimatedTime: "1-2 hours",
+                    requiresAuthority: false,
+                    alerts: [{ type: "info", message: "Verification Required: Most banks require a 40-day waiting period from date of death before processing affidavits." }]
+                });
+            }
+            if (type === "JOINT_TRANSFER" && p.phase === "immediate_actions") {
+                tasks.push({
+                    id: "transfer_joint_assets",
+                    title: "Transfer Jointly Owned Assets",
+                    description: "Submit death certificates to financial institutions to remove decedent from joint accounts.",
+                    estimatedTime: "2-3 weeks"
+                });
+            }
         }
 
-        if (type === "JOINT_TRANSFER") {
-            tasks.push({
-                id: "transfer_joint_assets",
-                title: "Transfer Jointly Owned Assets",
-                description: "Submit death certificates to financial institutions to remove decedent from joint accounts.",
-                estimatedTime: "2-3 weeks"
-            });
+        // Apply Dynamic Renaming & Labeling
+        let title = p.title;
+        let subtitle = p.subtitle;
+
+        if (isTOD) {
+            if (p.phase === "immediate_actions") {
+                title = "TOD Eligibility & Authority";
+                subtitle = "State 1 & 2: Validation";
+            } else if (p.phase === "asset_discovery") {
+                title = "Escalation Verification";
+                subtitle = "State 5: Exception Shield";
+            } else if (p.phase === "creditor_claims") {
+                title = "Creditor Exposure Review";
+                subtitle = "State 4: Liability Assessment";
+            } else if (p.phase === "asset_liquidation") {
+                title = "Title Transfer Workflow";
+                subtitle = "State 3: Execution";
+            }
         }
 
-        return { ...p, tasks };
+        return { ...p, title, subtitle, tasks, isEscalationPath: false };
     });
+
+    // Add Escalation Paths (Standard Probate Phases) at the end for TOD
+    if (isTOD) {
+        const escalationPhases = SETTLEMENT_PHASE_TASKS.filter(p =>
+            ["court_filing"].includes(p.phase)
+        ).map(p => ({
+            ...p,
+            title: `Escalation: ${p.title}`,
+            subtitle: "⚠️ Triggered by Exception",
+            isEscalationPath: true
+        }));
+
+        roadmap.push(...escalationPhases);
+    }
+
+    return roadmap;
 }
 
-function generateFiduciaryRoadmap(type: AuthorityType, state: string, modifiers: string[]): PhaseTaskList[] {
+function generateFiduciaryRoadmap(type: AuthorityType, state: string, modifiers: string[], activeEngines: string[] = []): PhaseTaskList[] {
     // 4-phase roadmap: Immediate, Discovery, Administration, Closing
     const phases: SettlementPhase[] = ["immediate_actions", "asset_discovery", "asset_liquidation", "final_distribution"];
     const baseline = SETTLEMENT_PHASE_TASKS.filter(p => phases.includes(p.phase));
@@ -157,7 +264,7 @@ function generateFiduciaryRoadmap(type: AuthorityType, state: string, modifiers:
     });
 }
 
-function generateProbateRoadmap(type: AuthorityType, state: string, modifiers: string[]): PhaseTaskList[] {
+function generateProbateRoadmap(type: AuthorityType, state: string, modifiers: string[], activeEngines: string[] = []): PhaseTaskList[] {
     // Full 6-phase roadmap
     let roadmap = JSON.parse(JSON.stringify(SETTLEMENT_PHASE_TASKS));
 
