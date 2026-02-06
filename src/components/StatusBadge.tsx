@@ -1,12 +1,12 @@
 import { cn } from "@/lib/utils";
 
-export type AssetStatus = 
-  | 'discovered' 
-  | 'contacted' 
-  | 'documents_submitted' 
-  | 'in_review' 
-  | 'approved' 
-  | 'distributed' 
+export type AssetStatus =
+  | 'discovered'
+  | 'contacted'
+  | 'documents_submitted'
+  | 'in_review'
+  | 'approved'
+  | 'distributed'
   | 'closed';
 
 interface StatusBadgeProps {
@@ -47,6 +47,15 @@ const statusConfig: Record<AssetStatus, { label: string; className: string }> = 
 
 export function StatusBadge({ status, className }: StatusBadgeProps) {
   const config = statusConfig[status];
+
+  if (!config) {
+    return (
+      <span className={cn('status-badge bg-muted text-muted-foreground', className)}>
+        <span className="w-1.5 h-1.5 rounded-full bg-current" />
+        {status || 'Unknown'}
+      </span>
+    );
+  }
 
   return (
     <span

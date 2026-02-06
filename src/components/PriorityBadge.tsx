@@ -9,8 +9,8 @@ interface PriorityBadgeProps {
   className?: string;
 }
 
-const priorityConfig: Record<Priority, { 
-  label: string; 
+const priorityConfig: Record<Priority, {
+  label: string;
   className: string;
   icon: React.ComponentType<{ className?: string }>;
 }> = {
@@ -38,6 +38,16 @@ const priorityConfig: Record<Priority, {
 
 export function PriorityBadge({ priority, showIcon = true, className }: PriorityBadgeProps) {
   const config = priorityConfig[priority];
+
+  if (!config) {
+    return (
+      <span className={cn('status-badge bg-muted text-muted-foreground', className)}>
+        {showIcon && <Clock className="w-3 h-3" />}
+        {priority || 'Medium'}
+      </span>
+    );
+  }
+
   const Icon = config.icon;
 
   return (

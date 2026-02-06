@@ -1,19 +1,19 @@
 import { cn } from "@/lib/utils";
-import { 
-  Landmark, 
-  PiggyBank, 
-  Shield, 
-  Briefcase, 
-  Home, 
-  MoreHorizontal 
+import {
+  Landmark,
+  PiggyBank,
+  Shield,
+  Briefcase,
+  Home,
+  MoreHorizontal
 } from "lucide-react";
 
-export type AssetCategory = 
-  | 'financial' 
-  | 'retirement' 
-  | 'insurance' 
-  | 'employer' 
-  | 'property' 
+export type AssetCategory =
+  | 'financial'
+  | 'retirement'
+  | 'insurance'
+  | 'employer'
+  | 'property'
   | 'other';
 
 interface CategoryBadgeProps {
@@ -22,8 +22,8 @@ interface CategoryBadgeProps {
   className?: string;
 }
 
-const categoryConfig: Record<AssetCategory, { 
-  label: string; 
+const categoryConfig: Record<AssetCategory, {
+  label: string;
   className: string;
   icon: React.ComponentType<{ className?: string }>;
 }> = {
@@ -61,6 +61,16 @@ const categoryConfig: Record<AssetCategory, {
 
 export function CategoryBadge({ category, showIcon = true, className }: CategoryBadgeProps) {
   const config = categoryConfig[category];
+
+  if (!config) {
+    return (
+      <span className={cn('status-badge bg-muted text-muted-foreground', className)}>
+        {showIcon && <MoreHorizontal className="w-3 h-3" />}
+        {category || 'Other'}
+      </span>
+    );
+  }
+
   const Icon = config.icon;
 
   return (
@@ -78,5 +88,5 @@ export function CategoryBadge({ category, showIcon = true, className }: Category
 }
 
 export function getCategoryIcon(category: AssetCategory) {
-  return categoryConfig[category].icon;
+  return categoryConfig[category]?.icon || MoreHorizontal;
 }

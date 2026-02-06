@@ -70,6 +70,13 @@ export function AssetAuthorityBlocker({ institutionName, hasLetters, track }: As
     };
 
     const config = getTrackConfig();
+
+    // Safety check - if config is somehow undefined, return null
+    if (!config || !config.icon) {
+        console.error('AssetAuthorityBlocker: Invalid config', { track, config });
+        return null;
+    }
+
     const Icon = config.icon;
     const colorClass = {
         amber: "bg-amber-50 border-amber-200 text-amber-600",
