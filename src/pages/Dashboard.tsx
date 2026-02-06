@@ -21,8 +21,10 @@ import {
   FileCheck,
   FileText,
   Search,
-  Gavel
+  Gavel,
+  Activity
 } from "lucide-react";
+import { SettlementHealthEngine } from "@/components/SettlementHealthEngine";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -116,6 +118,58 @@ export default function Dashboard() {
     },
   });
 
+  const { data: liabilitiesData = [] } = useQuery({
+    queryKey: ['liabilities'],
+    queryFn: api.getLiabilities,
+  });
+
+  const { data: readiness } = useQuery({
+    queryKey: ["accounting-readiness"],
+    queryFn: () => api.getAccountingReadiness()
+  });
+
+  const { probateBlockers, completedTaskIds, completedPhases } = useWorkflow();
+
+  // Calculate Health Scores
+  const liabilities = Array.isArray(liabilitiesData) ? liabilitiesData : [];
+
+  // 1. Authority Score: % of assets needing authority that HAVE authority 
+  const needsAuthority = assets.filter((a: any) =>
+    a.authorityType === "COURT_REQUIRED" || a.authorityType === "TRUSTEE_DIRECT"
+  );
+  const hasAuthority = needsAuthority.filter((a: any) => a.authorityIssuedDate).length;
+  const authorityScore = needsAuthority.length > 0 ? Math.round((hasAuthority / needsAuthority.length) * 100) : 100;
+
+  // 2. Accounting Score (matches Accounting.tsx logic)
+  const verifiedAssetsCount = assets.filter((a: any) => a.value > 0).length;
+  const assetsScore = assets.length > 0 ? (verifiedAssetsCount / assets.length) * 40 : 40;
+  const liabilitiesScore = liabilities.length > 0 ? (liabilities.filter((l: any) => l.status === 'PAID').length / liabilities.length) * 40 : 40;
+  const requirementsScore = (readiness?.checks?.inventoryObtained ? 10 : 0) + (readiness?.checks?.claimsResolved ? 10 : 0);
+  const accountingScore = Math.round(assetsScore + liabilitiesScore + requirementsScore);
+
+  // 3. Risk Score: Solvency + Litigation
+  const totalDebtsValue = liabilities.reduce((sum, l: any) => sum + (Number(l.amount) || 0), 0);
+  const solvencyRatio = totalDebtsValue > 0 ? (totalValue / totalDebtsValue) : 100;
+  const riskSubScore = Math.min(Math.max(solvencyRatio * 100, 0), 100);
+  const hasLitigation = assets.some((a: any) => a.authorityType === "LITIGATION_HOLD" || a.hasContest);
+  const riskScore = Math.round(hasLitigation ? riskSubScore * 0.7 : riskSubScore);
+
+  // 4. Compliance Score: % tasks completed
+  const complianceScore = Math.round(((completedTaskIds?.length || 0) / 20) * 100);
+
+  const healthScores = {
+    authority: authorityScore,
+    accounting: accountingScore,
+    risk: riskScore,
+    compliance: Math.min(complianceScore, 100)
+  };
+
+  const healthAlerts: { type: 'CRITICAL' | 'WARNING' | 'INFO'; message: string }[] = [];
+  if (solvencyRatio < 1.0) healthAlerts.push({ type: 'CRITICAL', message: "Estate is currently Insolvent. Debts exceed assets." });
+  if (hasLitigation) healthAlerts.push({ type: 'CRITICAL', message: "Active Litigation Hold detected on one or more assets." });
+  if (authorityScore < 50) healthAlerts.push({ type: 'WARNING', message: "Significant authority gaps. Letters not yet issued for major assets." });
+  if (accountingScore < 30) healthAlerts.push({ type: 'INFO', message: "Early accounting phase. Inventory verification pending." });
+
   // Calculate Asset Stats via Taxonomy
   const taxonomyStats = assets.reduce((acc, a) => {
     const state = getAssetTaxonomyState(a as any, estate as any);
@@ -130,7 +184,6 @@ export default function Dashboard() {
     : 0;
 
 
-  const { probateBlockers, completedTaskIds, completedPhases } = useWorkflow();
 
 
   const { data: activitiesData = [] } = useQuery({
@@ -424,6 +477,11 @@ export default function Dashboard() {
 
             {/* Sidebar (Right Column - 4/12 = 33%) */}
             <div className="lg:col-span-4 space-y-6">
+              {/* Settlement Health Engine */}
+              <SettlementHealthEngine
+                scores={healthScores}
+                alerts={healthAlerts}
+              />
 
               {/* Critical Dates */}
               <DeadlineTracker estateId={estate?.id || ""} />

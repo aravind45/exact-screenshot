@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { Sidebar } from "@/components/Sidebar";
@@ -17,7 +17,12 @@ import {
     X,
     ArrowRight,
     LayoutGrid,
-    AlertCircle
+    AlertCircle,
+    ShieldCheck,
+    Scale,
+    FileText,
+    Lock,
+    Users
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -89,6 +94,24 @@ export default function Assets() {
 
         return (a.institution || "").localeCompare(b.institution || "");
     });
+
+    const authoritySummary = useMemo(() => {
+        const counts: Record<string, number> = {
+            COURT_REQUIRED: 0,
+            TRUSTEE_DIRECT: 0,
+            AFFIDAVIT_SMALL: 0,
+            BENEFICIARY_CONTRACT: 0,
+            SURVIVORSHIP_TITLE: 0,
+            LITIGATION_HOLD: 0,
+            UNSET: 0
+        };
+        assets.forEach((a: any) => {
+            const type = a.authorityType || "UNSET";
+            if (counts[type] !== undefined) counts[type]++;
+            else counts.UNSET++;
+        });
+        return counts;
+    }, [assets]);
 
     const normalize = (val: string | undefined) => (val || "").toLowerCase().replace(/ /g, "_");
 
@@ -298,6 +321,52 @@ export default function Assets() {
                         </div>
 
                         <TabsContent value="inventory" className="space-y-6 mt-0 outline-none">
+                            {/* Authority Landscape Summary */}
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+                                <AuthoritySummaryCard
+                                    label="Court"
+                                    count={authoritySummary.COURT_REQUIRED}
+                                    icon={Scale}
+                                    color="text-rose-600"
+                                    bgColor="bg-rose-50"
+                                />
+                                <AuthoritySummaryCard
+                                    label="Trust"
+                                    count={authoritySummary.TRUSTEE_DIRECT}
+                                    icon={ShieldCheck}
+                                    color="text-emerald-600"
+                                    bgColor="bg-emerald-50"
+                                />
+                                <AuthoritySummaryCard
+                                    label="Affidavit"
+                                    count={authoritySummary.AFFIDAVIT_SMALL}
+                                    icon={FileText}
+                                    color="text-amber-600"
+                                    bgColor="bg-amber-50"
+                                />
+                                <AuthoritySummaryCard
+                                    label="Contract"
+                                    count={authoritySummary.BENEFICIARY_CONTRACT}
+                                    icon={Users}
+                                    color="text-indigo-600"
+                                    bgColor="bg-indigo-50"
+                                />
+                                <AuthoritySummaryCard
+                                    label="Title"
+                                    count={authoritySummary.SURVIVORSHIP_TITLE}
+                                    icon={Landmark}
+                                    color="text-slate-600"
+                                    bgColor="bg-slate-50"
+                                />
+                                <AuthoritySummaryCard
+                                    label="Hold"
+                                    count={authoritySummary.LITIGATION_HOLD}
+                                    icon={Lock}
+                                    color="text-rose-900"
+                                    bgColor="bg-rose-100"
+                                />
+                            </div>
+
                             <div className="flex items-center gap-3">
                                 <div className="relative flex-1">
                                     <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -602,6 +671,20 @@ export default function Assets() {
                     </motion.div>
                 )}
             </AnimatePresence>
+        </div>
+    );
+}
+
+function AuthoritySummaryCard({ label, count, icon: Icon, color, bgColor }: any) {
+    return (
+        <div className={cn("p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-col gap-2 bg-white", count > 0 && "border-slate-200")}>
+            <div className="flex items-center justify-between">
+                <div className={cn("p-1.5 rounded-lg", bgColor, color)}>
+                    <Icon className="w-4 h-4" />
+                </div>
+                <span className={cn("text-lg font-black", count > 0 ? "text-slate-900" : "text-slate-300")}>{count}</span>
+            </div>
+            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{label}</p>
         </div>
     );
 }

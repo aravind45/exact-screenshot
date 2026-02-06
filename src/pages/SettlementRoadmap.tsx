@@ -5,14 +5,20 @@ import { PhaseTaskList } from "@/components/PhaseTaskList";
 import { SETTLEMENT_PHASE_TASKS } from "@/config/settlementPhases";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Clock, CheckCircle2, ArrowRight } from "lucide-react";
+import {
+  Clock,
+  CheckCircle2,
+  ArrowRight,
+  ShieldCheck,
+  Info,
+  AlertCircle,
+  Zap
+} from "lucide-react";
 import { cn } from "@/lib/utils";
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useEffect, useMemo } from "react";
 import { calculateAuthorityRecommendation } from "@/lib/authorityEngine";
-import { ShieldCheck, Info } from "lucide-react";
 
 import { generateRoadmap } from "@/config/roadmapGenerator";
 import { getMasterMode } from "@/lib/authorityEngine";
@@ -38,6 +44,10 @@ export default function SettlementRoadmap() {
       isSpouse: false, // Could be derived if we had more info
     });
   }, [estate, assets]);
+
+  const isContested = useMemo(() => {
+    return assets.some((a: any) => a.authorityType === "LITIGATION_HOLD" || a.status === "contested");
+  }, [assets]);
 
   const { data: roadmapData, isLoading: isLoadingRoadmap } = useQuery({
     queryKey: ['roadmap', estate?.id],
@@ -142,6 +152,9 @@ export default function SettlementRoadmap() {
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
                   <h1 className="text-2xl font-black text-slate-900 tracking-tight">Settlement Path</h1>
+                  <Badge variant="outline" className="bg-indigo-600 text-white border-none text-[8px] font-black uppercase tracking-tighter px-1.5 h-4">
+                    Derived from Ledger
+                  </Badge>
                   <div className="flex gap-1">
                     {authorityRec?.activeEngines?.map(engine => (
                       <Badge key={engine} variant="outline" className="bg-indigo-50 border-indigo-200 text-indigo-700 text-[9px] font-bold uppercase py-0 px-2 h-4 shrink-0">
@@ -219,42 +232,55 @@ export default function SettlementRoadmap() {
 
             {/* Authority Logic Banner */}
             {authorityRec && (
-              <div className="bg-indigo-900 rounded-2xl p-4 text-white shadow-lg border border-indigo-700 overflow-hidden relative">
+              <div className={cn(
+                "rounded-2xl p-4 text-white shadow-lg border overflow-hidden relative",
+                isContested ? "bg-rose-900 border-rose-700" : "bg-indigo-900 border-indigo-700"
+              )}>
                 <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
-                  <ShieldCheck className="w-24 h-24" />
+                  {isContested ? <AlertCircle className="w-24 h-24" /> : <ShieldCheck className="w-24 h-24" />}
                 </div>
-                <div className="flex items-start gap-3 relative z-10">
-                  <div className="bg-indigo-500/30 p-2 rounded-lg backdrop-blur-sm">
-                    <ShieldCheck className="w-6 h-6 text-white" />
+                <div className="flex items-start gap-4 relative z-10">
+                  <div className={cn(
+                    "p-2.5 rounded-xl backdrop-blur-sm",
+                    isContested ? "bg-rose-500/30" : "bg-indigo-500/30"
+                  )}>
+                    {isContested ? <AlertCircle className="w-6 h-6 text-white" /> : <ShieldCheck className="w-6 h-6 text-white" />}
                   </div>
-                  <div>
-                    <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-300">Deterministic Logic Engine</h3>
-                    <p className="text-lg font-bold leading-tight mt-1">
-                      {authorityRec.reason}
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className={cn(
+                        "text-[10px] font-black uppercase tracking-[0.2em]",
+                        isContested ? "text-rose-300" : "text-indigo-300"
+                      )}>
+                        {isContested ? "Active Conflict Overlay" : "Deterministic Settlement Engine"}
+                      </h3>
+                      {isContested && (
+                        <Badge className="bg-white text-rose-900 border-none text-[8px] font-black uppercase tracking-tighter px-1.5 h-4 animate-pulse">
+                          SPECIAL Path Active
+                        </Badge>
+                      )}
+                    </div>
+                    <p className="text-lg font-bold leading-tight">
+                      {isContested ? "Litigation Hold detected on assets. Settlement path has been updated to the SPECIAL (Contested) overlay." : authorityRec.reason}
                     </p>
-                    <div className="flex flex-wrap gap-2 mt-3">
+                    <div className="flex flex-wrap gap-2 mt-4">
                       <div className="flex items-center gap-1.5 px-2 py-1 bg-white/10 rounded border border-white/20">
-                        <span className="text-[9px] font-black uppercase tracking-tight text-white/70">Legal Source</span>
+                        <span className="text-[9px] font-black uppercase tracking-tight text-white/70">Master Source</span>
                         <span className="text-[9px] font-bold text-white uppercase">{authorityRec.authoritySource?.replace('_', ' ')}</span>
                       </div>
                       <div className="flex items-center gap-1.5 px-2 py-1 bg-white/10 rounded border border-white/20">
-                        <span className="text-[9px] font-black uppercase tracking-tight text-white/70">Procedure</span>
-                        <span className="text-[9px] font-bold text-white uppercase">{authorityRec.procedureType?.replace('_', ' ')}</span>
+                        <span className="text-[9px] font-black uppercase tracking-tight text-white/70">Orchestrator Mode</span>
+                        <span className="text-[9px] font-bold text-white uppercase">{authorityRec.masterMode}</span>
                       </div>
                       <div className="flex items-center gap-1.5 px-2 py-1 bg-white/10 rounded border border-white/20">
-                        <span className="text-[9px] font-black uppercase tracking-tight text-white/70">Distribution</span>
-                        <span className="text-[9px] font-bold text-white uppercase">{authorityRec.distributionModel?.replace('_', ' ')}</span>
+                        <span className="text-[9px] font-black uppercase tracking-tight text-white/70">Active Engines</span>
+                        <div className="flex gap-1">
+                          {authorityRec.activeEngines?.map(engine => (
+                            <span key={engine} className="text-[9px] font-bold text-white uppercase bg-white/10 px-1 rounded">{engine.replace('_', ' ')}</span>
+                          ))}
+                        </div>
                       </div>
                     </div>
-                    {authorityRec.citations && authorityRec.citations.length > 0 && (
-                      <div className="flex items-center gap-1.5">
-                        {authorityRec.citations.map((cite, i) => (
-                          <span key={i} className="text-[11px] font-bold text-indigo-200 italic">
-                            {cite}
-                          </span>
-                        ))}
-                      </div>
-                    )}
                   </div>
                 </div>
               </div>

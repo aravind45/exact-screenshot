@@ -13,8 +13,11 @@ import {
     ArrowRight,
     FileSearch,
     Download,
-    Search
+    Search,
+    TrendingUp,
+    Briefcase
 } from "lucide-react";
+import { AuthorityBadge } from "@/components/AuthorityBadge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -49,9 +52,22 @@ export default function Accounting() {
     const disbursementsTotal = paidLiabilities.reduce((sum: number, l: any) => sum + (Number(l.amount) || 0), 0);
     const estimatedDebts = unpaidLiabilities.reduce((sum: number, l: any) => sum + (Number(l.amount) || 0), 0);
 
+    const lockedAssets = assets.filter((a: any) =>
+        (a.authorityType === "COURT_REQUIRED" || a.authorityType === "LITIGATION_HOLD") &&
+        !a.authorityIssuedDate
+    );
+    const lockedTotal = lockedAssets.reduce((sum: number, a: any) => sum + (Number(a.value) || 0), 0);
+
     const totalCharges = inventoryTotal;
     const propertyOnHand = totalCharges - disbursementsTotal;
     const solvencyRatio = estimatedDebts > 0 ? (propertyOnHand / estimatedDebts) * 100 : 100;
+
+    // Readiness Score Calculation
+    const verifiedAssetsCount = assets.filter((a: any) => a.value > 0).length; // Simplified verification logic
+    const assetsScore = assets.length > 0 ? (verifiedAssetsCount / assets.length) * 40 : 40;
+    const liabilitiesScore = liabilities.length > 0 ? (paidLiabilities.length / liabilities.length) * 40 : 40;
+    const requirementsScore = (readiness?.checks.inventoryObtained ? 10 : 0) + (readiness?.checks.claimsResolved ? 10 : 0);
+    const readinessScore = Math.round(assetsScore + liabilitiesScore + requirementsScore);
 
     const isReady = readiness?.status === 'READY_FOR_REVIEW';
     const isDraft = readiness?.status === 'DRAFT';
@@ -61,32 +77,32 @@ export default function Accounting() {
         // Generate CSV content
         const estateName = estate?.name || 'Estate';
         const date = new Date().toLocaleDateString();
-        
+
         let csvContent = `Estate Accounting Report\n`;
         csvContent += `Estate: ${estateName}\n`;
         csvContent += `Generated: ${date}\n`;
         csvContent += `Status: ${readiness?.status || 'UNKNOWN'}\n\n`;
-        
+
         csvContent += `SUMMARY\n`;
         csvContent += `Total Charges (Assets):,$${totalCharges.toLocaleString()}\n`;
         csvContent += `Total Credits (Disbursements):,$${disbursementsTotal.toLocaleString()}\n`;
         csvContent += `Net Property on Hand:,$${propertyOnHand.toLocaleString()}\n`;
         csvContent += `Estimated Remaining Debts:,$${estimatedDebts.toLocaleString()}\n`;
         csvContent += `Solvency Ratio:,${solvencyRatio.toFixed(1)}%\n\n`;
-        
+
         csvContent += `SCHEDULE A & B - INVENTORY & RECEIPTS\n`;
         csvContent += `Asset Name,Institution,Category,Value\n`;
         assets.forEach((asset: any) => {
             csvContent += `"${asset.name || 'Unnamed'}","${asset.institution || 'N/A'}","${asset.category || 'N/A'}",$${(Number(asset.value) || 0).toFixed(2)}\n`;
         });
-        
+
         csvContent += `\nSCHEDULE C & D - DISBURSEMENTS (PAID DEBTS)\n`;
         csvContent += `Liability Name,Amount,Status,Date Paid\n`;
         paidLiabilities.forEach((liability: any) => {
             const datePaid = liability.updatedAt ? new Date(liability.updatedAt).toLocaleDateString() : 'N/A';
             csvContent += `"${liability.name || 'Unnamed'}",$${(Number(liability.amount) || 0).toFixed(2)},"${liability.status}","${datePaid}"\n`;
         });
-        
+
         // Create download link
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement('a');
@@ -118,8 +134,23 @@ export default function Accounting() {
                             </div>
                             <p className="text-slate-500 text-sm font-medium"> Financial command center for fiduciary transparency and court reporting. </p>
                         </div>
-                        <div className="flex gap-3">
-                            <div className="flex flex-col items-end mr-2">
+                        <div className="flex gap-4">
+                            <div className="flex flex-col items-end">
+                                <div className="flex items-center gap-3 bg-white p-2 px-4 rounded-2xl border border-slate-200">
+                                    <div className="text-right">
+                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Readiness Score</p>
+                                        <p className="text-lg font-black text-slate-900 leading-tight">{readinessScore}%</p>
+                                    </div>
+                                    <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center border-2 border-slate-100 relative overflow-hidden">
+                                        <div
+                                            className="absolute bottom-0 left-0 right-0 bg-emerald-500 transition-all duration-1000"
+                                            style={{ height: `${readinessScore}%` }}
+                                        />
+                                        <Calculator className="w-4 h-4 text-slate-900 relative z-10 mix-blend-difference" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="flex flex-col items-end">
                                 <Button
                                     variant={isWaiverEnabled ? "default" : "outline"}
                                     size="sm"
@@ -133,7 +164,7 @@ export default function Accounting() {
                                 </Button>
                                 <p className="text-[9px] text-slate-400 font-bold mt-1 uppercase tracking-tighter">Requires all-heir consent</p>
                             </div>
-                            <Button 
+                            <Button
                                 onClick={handleExportReport}
                                 className="h-10 bg-slate-900 hover:bg-slate-800 text-white font-bold px-6 shadow-lg shadow-slate-200 rounded-xl"
                             >
@@ -249,14 +280,28 @@ export default function Accounting() {
                                 <p className="text-[11px] text-slate-400 leading-relaxed mb-4 font-medium">
                                     Charges minus Credits. This flows directly into the <strong>Final Distribution</strong> plan.
                                 </p>
-                                <div className="bg-slate-800/50 rounded-2xl p-4 border border-slate-700/50">
-                                    <div className="flex justify-between items-center mb-2">
-                                        <span className="text-[10px] font-black uppercase text-slate-400">Solvency Health</span>
-                                        <span className={cn("text-[10px] font-black uppercase", solvencyRatio >= 100 ? "text-emerald-400" : "text-amber-400")}>
-                                            {solvencyRatio >= 100 ? "Estate Solvent" : "Risk of Insolvency"}
-                                        </span>
+                                <div className="flex flex-col gap-2">
+                                    <div className="bg-slate-800/50 rounded-2xl p-4 border border-slate-700/50">
+                                        <div className="flex justify-between items-center mb-2">
+                                            <span className="text-[10px] font-black uppercase text-slate-400">Solvency Health</span>
+                                            <span className={cn("text-[10px] font-black uppercase", solvencyRatio >= 100 ? "text-emerald-400" : "text-amber-400")}>
+                                                {solvencyRatio >= 100 ? "Estate Solvent" : "Risk of Insolvency"}
+                                            </span>
+                                        </div>
+                                        <Progress value={Math.min(solvencyRatio, 100)} className={cn("h-1.5 bg-slate-700", solvencyRatio >= 100 ? "[&>div]:bg-emerald-500" : "[&>div]:bg-amber-500")} />
                                     </div>
-                                    <Progress value={Math.min(solvencyRatio, 100)} className={cn("h-1.5 bg-slate-700", solvencyRatio >= 100 ? "[&>div]:bg-emerald-500" : "[&>div]:bg-amber-500")} />
+
+                                    {lockedTotal > 0 && (
+                                        <div className="bg-rose-900/50 rounded-2xl p-4 border border-rose-800/50 flex items-center justify-between">
+                                            <div>
+                                                <p className="text-[10px] font-black uppercase text-rose-300">Authority Locked</p>
+                                                <p className="text-sm font-black text-white">${lockedTotal.toLocaleString()}</p>
+                                            </div>
+                                            <Badge variant="outline" className="bg-rose-500/20 text-rose-200 border-rose-500/30 text-[8px] font-black uppercase tracking-tighter">
+                                                Ledger Blocker
+                                            </Badge>
+                                        </div>
+                                    )}
                                 </div>
                             </CardContent>
                         </Card>
@@ -276,7 +321,7 @@ export default function Accounting() {
                         </TabsList>
 
                         <TabsContent value="charges">
-                            <ScheduleCard title="Inventory & Receipts" data={assets} />
+                            <ScheduleCard title="Outputs from Asset Ledger (Inventory & Receipts)" data={assets} />
                         </TabsContent>
 
                         <TabsContent value="credits">
@@ -358,7 +403,12 @@ function ScheduleCard({ title, data, isDebt }: { title: string, data: any[], isD
                                 {isDebt ? <ArrowDownRight className="w-5 h-5" /> : <CheckCircle2 className="w-5 h-5" />}
                             </div>
                             <div>
-                                <div className="text-xs font-black text-slate-900">{item.name || item.institution}</div>
+                                <div className="flex items-center gap-2">
+                                    <div className="text-xs font-black text-slate-900">{item.name || item.institution}</div>
+                                    {!isDebt && item.authorityType && (
+                                        <AuthorityBadge type={item.authorityType} showIcon={false} className="h-4 px-1.5 border-none bg-slate-100 text-[8px]" />
+                                    )}
+                                </div>
                                 <div className="text-[10px] text-slate-400 font-bold uppercase tracking-tight">
                                     {isDebt ? `Paid on ${item.updatedAt ? new Date(item.updatedAt).toLocaleDateString() : 'N/A'}` : (item.category || "General Asset")}
                                 </div>

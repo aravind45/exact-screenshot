@@ -14,6 +14,8 @@ interface EstateProfile {
   isContested: boolean;
   state: string;
   estimatedValue: number;
+  totalDebts: number;
+  solvencyRatio: number;
 
   // Multi-dimensional Track Data
   authoritySource: AuthoritySource;
@@ -50,6 +52,7 @@ export async function analyzeEstateProfile(estateId: string): Promise<EstateProf
     include: {
       heirs: true,
       assets: true,
+      liabilities: true,
     },
   });
 
@@ -66,6 +69,21 @@ export async function analyzeEstateProfile(estateId: string): Promise<EstateProf
     hasTODDeed: (estate as any).hasTODDeed ?? estate.assets.some((a: any) => a.todDeedRecorded)
   });
 
+  // Calculate Insolvency Risk
+  const totalAssets = estate.assets.reduce((sum, a: any) => sum + (Number(a.value) || 0), 0);
+  const totalDebts = estate.liabilities.reduce((sum, l: any) => sum + (Number(l.amount) || 0), 0);
+  const solvencyRatio = totalDebts > 0 ? (totalAssets / totalDebts) : 100;
+
+  if (solvencyRatio < 1.0) {
+    if (!rec.modifiers.includes("INSOLVENT")) {
+      rec.modifiers.push("INSOLVENT");
+    }
+    // If insolvent, we might want to override procedure type or add active engines
+    if (!rec.activeEngines.includes("PROBATE")) {
+      rec.activeEngines.push("PROBATE"); // Insolvency usually requires court supervision
+    }
+  }
+
   return {
     id: estate.id,
     hasMinorBeneficiaries: rec.modifiers?.includes("MINOR_HEIRS") || false,
@@ -74,6 +92,8 @@ export async function analyzeEstateProfile(estateId: string): Promise<EstateProf
     isContested: rec.modifiers?.includes("CONTESTED") || false,
     state: estate.deceasedState,
     estimatedValue: rec.probateTotal,
+    totalDebts,
+    solvencyRatio,
     authoritySource: rec.authoritySource,
     procedureType: rec.procedureType,
     distributionModel: rec.distributionModel,
