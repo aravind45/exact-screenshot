@@ -20,6 +20,9 @@ describe("Trust Admin Roadmap Generation", () => {
         expect(allTaskIds).toContain("locate_trust");
         expect(allTaskIds).toContain("sign_trustee_acceptance");
         expect(allTaskIds).toContain("prepare_certification_of_trust");
+        expect(allTaskIds).toContain("file_irs_form_56");
+        expect(allTaskIds).toContain("notify_state_agencies_dhcs");
+        expect(allTaskIds).toContain("obtain_beneficiary_receipts");
     });
 
     it("should have correct phase titles for the 6-state machine", () => {

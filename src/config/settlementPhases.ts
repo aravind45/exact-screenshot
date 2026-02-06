@@ -1421,10 +1421,23 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
         }]
       },
       {
+        id: "file_irs_form_56",
+        title: "File IRS Form 56",
+        description: "Formally notify the IRS of your fiduciary relationship as successor trustee. This ensures tax notices are sent to you directly.",
+        estimatedTime: "1 hour",
+        tags: ["statutory", "tax"],
+        requiredDocs: ["IRS Form 56"],
+        alerts: [{
+          type: "info",
+          message: "Failure to file Form 56 may result in critical tax notices being sent to the decedent's old address."
+        }]
+      },
+      {
         id: "secure_trust_property",
         title: "Secure Trust Property",
         description: "Change locks on real property, forward mail, secure valuables, and ensure insurance coverage remains active.",
         estimatedTime: "1-2 days",
+        tags: ["risk-guardrail"],
         alerts: [{
           type: "warning",
           message: "Vacant properties are high-risk for theft and insurance issues. Act immediately."
@@ -1456,18 +1469,29 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
         title: "Send Statutory Notice to Beneficiaries",
         description: "California Probate Code §16061.7 requires notice to beneficiaries within 60 days. Other states have similar requirements.",
         estimatedTime: "2-4 hours",
+        isAttorneyReviewNode: true,
+        attorneyReviewReason: "Statutory Deadline: Missing this 60-day window can result in removal of the trustee and personal liability.",
+        tags: ["statutory", "risk-guardrail"],
         requiredDocs: ["Notice Letters", "Certified Mail Receipts"],
         requiresPhysicalMail: true,
         alerts: [
           {
             type: "important",
             message: "This notice starts the 120-day contest period. Keep all certified mail receipts as proof."
-          },
-          {
-            type: "warning",
-            message: "Failure to send proper notice can result in personal liability and extended contest periods."
           }
         ]
+      },
+      {
+        id: "notify_state_agencies_dhcs",
+        title: "Notify State Agencies (Medi-Cal/DHCS)",
+        description: "In CA and other states, the trustee must notify the Department of Health Care Services of the muerte to allow for estate recovery claims.",
+        estimatedTime: "1 hour",
+        tags: ["statutory"],
+        requiresPhysicalMail: true,
+        alerts: [{
+          type: "caution",
+          message: "Mandatory Notice: Distributing trust assets before checking for Medi-Cal recovery claims can make the trustee personally liable for the debt."
+        }]
       },
       {
         id: "handle_trust_copy_requests",
@@ -1764,13 +1788,16 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "obtain_beneficiary_receipts",
-        title: "Obtain Receipts & Releases",
-        description: "Have each beneficiary sign a receipt acknowledging their distribution and releasing you from further claims.",
+        title: "Obtain Receipts & Global Releases",
+        description: "Have each beneficiary sign a receipt acknowledging their distribution and a GLOBAL RELEASE waiving the right to sue the trustee for past actions.",
         estimatedTime: "1-2 weeks",
-        requiredDocs: ["Distribution Receipts", "Release Forms"],
+        isAttorneyReviewNode: true,
+        attorneyReviewReason: "Malpractice Prevention: A distribution without a properly drafted release leaves the trustee exposed to litigation for years.",
+        tags: ["risk-guardrail", "fiduciary"],
+        requiredDocs: ["Distribution Receipts", "Global Release & Settlement Agreement"],
         alerts: [{
           type: "important",
-          message: "Receipts protect you from future claims. Keep signed copies indefinitely."
+          message: "Risk Limit: Receipts prove you paid the money; RELEASES prove they can't sue you for how you managed it."
         }]
       },
       {
