@@ -16,6 +16,9 @@ export function Footer() {
 
           {/* Links */}
           <nav className="flex items-center gap-6 text-sm">
+            <a href="/#pricing" className="text-background/70 hover:text-background transition-colors">
+              Pricing
+            </a>
             <a href="#" className="text-background/70 hover:text-background transition-colors">
               Privacy Policy
             </a>

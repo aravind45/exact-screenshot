@@ -65,6 +65,14 @@ export function HeroSection() {
               variant="outline"
               size="lg"
               className="h-12 px-8 text-base"
+              onClick={() => document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })}
+            >
+              View Pricing
+            </Button>
+            <Button
+              variant="ghost"
+              size="lg"
+              className="h-12 px-8 text-base"
               onClick={() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })}
             >
               See How It Works

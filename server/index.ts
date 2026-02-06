@@ -140,10 +140,12 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 console.log(`🎧 Starting server on 0.0.0.0:${port}...`);
 
 let server: any; // Declare server variable outside the conditional block
-if (process.env.VERCEL !== '1') {
+const isServerless = process.env.VERCEL === '1' || process.env.NETLIFY === 'true' || !!process.env.AWS_EXECUTION_ENV || !!process.env.FUNCTION_NAME;
+
+if (!isServerless) {
     server = app.listen(port, '0.0.0.0', async () => {
         console.log(`✅ Server running on http://0.0.0.0:${port}`);
-        console.log(`✅ Environment: ${process.env.NODE_ENV}`);
+        console.log(`✅ Environment: ${process.env.NODE_ENV || 'development'}`);
 
         // Background Database Sync & Seeding (Non-blocking)
         (async () => {
@@ -175,7 +177,7 @@ if (process.env.VERCEL !== '1') {
         process.exit(1);
     });
 } else {
-    console.log(`🔧 Running in Vercel serverless mode - app exported for serverless functions`);
+    console.log(`🔧 Running in serverless mode - app exported for function invocation`);
 }
 
 // Graceful shutdown (only if server is running)

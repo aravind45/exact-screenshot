@@ -23,6 +23,9 @@ export function Header() {
             <a href="/#how-it-works" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
               Audit Trail
             </a>
+            <a href="/#pricing" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+              Pricing
+            </a>
             <Link to="/pricing" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
               Fiduciary Guidance
             </Link>
