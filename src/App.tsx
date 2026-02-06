@@ -61,6 +61,7 @@ import { EstateAgentChatWrapper } from "@/components/EstateAgentChatWrapper";
 import { LegalDisclaimer } from "@/components/LegalDisclaimer";
 import CaliforniaProbateGuide from "./pages/guides/CaliforniaProbateGuide";
 import ResetPassword from "./pages/ResetPassword";
+import Pricing from "./pages/Pricing";
 
 const queryClient = new QueryClient();
 
@@ -123,6 +124,7 @@ const App = () => (
                     <Route path="/discovery" element={<ProtectedRoute><ProfileGuard><Discovery /></ProfileGuard></ProtectedRoute>} />
                     <Route path="/distribution" element={<ProtectedRoute><ProfileGuard><Distribution /></ProfileGuard></ProtectedRoute>} />
                     <Route path="/settings" element={<ProtectedRoute><ProfileGuard><Settings /></ProfileGuard></ProtectedRoute>} />
+                    <Route path="/pricing" element={<ProtectedRoute><ProfileGuard><Pricing /></ProfileGuard></ProtectedRoute>} />
                     <Route path="/accounting" element={<ProtectedRoute><ProfileGuard><Accounting /></ProfileGuard></ProtectedRoute>} />
                     <Route path="/tax-management" element={<ProtectedRoute><ProfileGuard><TaxManagement /></ProfileGuard></ProtectedRoute>} />
                     <Route path="/receipts" element={<ProtectedRoute><ProfileGuard><Receipts /></ProfileGuard></ProtectedRoute>} />
