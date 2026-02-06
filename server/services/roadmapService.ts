@@ -244,24 +244,41 @@ async function getRoadmapFromDatabase(
       title: task.title,
       description: task.description || task.title,
       estimatedTime: task.estimatedTime,
-      category: task.category,
+      category: task.category as "probate" | "court-issued" | undefined,
       isOptional: task.isOptional,
       requiresAuthority: task.requiresAuthority,
       requiredDocs: task.requiredDocs,
       dependencies: task.dependencies,
       exclusiveGroup: task.exclusiveGroup || undefined,
-      trackCompatibility: task.trackCompatibility as any[],
-      riskWarning: task.riskWarning || undefined,
-      deadlineWarningId: task.deadlineWarningId || undefined,
-      isInternationalOnly: task.isInternationalOnly,
-      alerts: task.alerts as any,
-      links: task.links as any,
-      tags: task.tags,
+      trackCompatibility: task.trackCompatibility as any,
+      tags: task.tags as any,
+      alerts: undefined,
+      utility: undefined,
+      isLongHorizon: undefined,
+      links: undefined,
+      deadlineWarningId: undefined,
+      helpArticleId: undefined,
+      applicability: undefined,
+      isInternationalOnly: undefined,
+      isAttorneyReviewNode: undefined,
+      attorneyReviewReason: undefined,
+      isConditional: undefined,
+      conditionalRequirementLabel: undefined,
+      requiresNotary: undefined,
+      requiresPhysicalMail: undefined,
     })),
-  }));
+    trackCompatibility: task.trackCompatibility as any[],
+    riskWarning: task.riskWarning || undefined,
+    deadlineWarningId: task.deadlineWarningId || undefined,
+    isInternationalOnly: task.isInternationalOnly,
+    alerts: task.alerts as any,
+    links: task.links as any,
+    tags: task.tags,
+  })),
+}));
 
-  // Apply existing filtering logic
-  return filterTasksForEstate(phases, profile, completedTaskIds);
+// Apply existing filtering logic
+return filterTasksForEstate(phases, profile, completedTaskIds);
 }
 
 /**
