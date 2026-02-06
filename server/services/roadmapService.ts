@@ -99,6 +99,13 @@ export function filterTasksForEstate(
         return completedTaskIds.includes(task.id);
       }
 
+      // 3. Handle Track Compatibility
+      // This ensures Probate tasks don't leak into Trust tracks and vice-versa.
+      const estateTrack = profile.isSmallEstate ? "AFFIDAVIT" : "PROBATE"; // Simplified for now, should map to actual track
+      if (task.trackCompatibility && !task.trackCompatibility.includes(estateTrack as any)) {
+        return false;
+      }
+
       // Always show non-optional tasks
       if (!task.isOptional) return true;
 

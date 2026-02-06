@@ -274,7 +274,7 @@ export default function SettlementRoadmap() {
                 id: p.phase,
                 title: p.title,
                 subtitle: p.subtitle,
-                duration: p.duration
+                milestone: p.milestone
               }))}
             />
           </div>
@@ -292,7 +292,7 @@ export default function SettlementRoadmap() {
                       Active Phase: {phaseData.title}
                     </h2>
                     <p className="text-xs text-slate-500 mt-1">
-                      {phaseData.subtitle} • {phaseData.duration}
+                      {phaseData.subtitle} • {phaseData.milestone}
                     </p>
                   </div>
                 </div>
@@ -395,7 +395,7 @@ export default function SettlementRoadmap() {
                             )}
                           </div>
                           {!isFuture ? (
-                            <p className="text-xs text-slate-500">{phase.subtitle} • {phase.duration}</p>
+                            <p className="text-xs text-slate-500">{phase.subtitle} • {phase.milestone}</p>
                           ) : (
                             <p className="text-[10px] text-slate-400 font-medium italic">Unlocks after {phaseOrder[thisIndex - 1].replace('_', ' ')} phase</p>
                           )}

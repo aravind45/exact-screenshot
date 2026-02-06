@@ -13,51 +13,51 @@ export interface PhaseConfig {
   id: SettlementPhase;
   title: string;
   subtitle: string;
-  duration: string;
+  milestone: string;
   color?: string;
 }
 
 const DEFAULT_PHASES: PhaseConfig[] = [
   {
     id: "immediate_actions",
-    title: "Immediate Actions",
+    title: "Strategic Assessment",
     subtitle: "Secure & Notify",
-    duration: "Week 1-2",
+    milestone: "Death to Filing",
     color: "bg-red-500"
   },
   {
     id: "court_filing",
-    title: "Court Filing",
-    subtitle: "Petition & Letters",
-    duration: "Week 3-8",
+    title: "Petition & Authority",
+    subtitle: "Obtaining Powers",
+    milestone: "After Petition Filed",
     color: "bg-orange-500"
   },
   {
     id: "asset_discovery",
     title: "Asset Discovery",
     subtitle: "Inventory & Appraisal",
-    duration: "Month 2-4",
+    milestone: "After Letters Issued",
     color: "bg-yellow-500"
   },
   {
     id: "creditor_claims",
     title: "Creditor Claims",
-    subtitle: "Notice & Payment",
-    duration: "Month 4-8",
+    subtitle: "Notice & Priority",
+    milestone: "After Notice Published",
     color: "bg-blue-500"
   },
   {
     id: "asset_liquidation",
     title: "Asset Liquidation",
-    subtitle: "Transfer & Sell",
-    duration: "Month 6-12",
+    subtitle: "Managed Transfer",
+    milestone: "After Inventory Approved",
     color: "bg-indigo-500"
   },
   {
     id: "final_distribution",
     title: "Final Distribution",
-    subtitle: "Close Estate",
-    duration: "Month 12-18",
+    subtitle: "Estate In Closing",
+    milestone: "After Claim Period",
     color: "bg-green-500"
   }
 ];
@@ -147,7 +147,7 @@ export function SettlementPhaseChevron({
                         (isCompleted || isCurrent) && "text-white/60",
                         isUpcoming && "text-slate-400"
                       )}>
-                        {phase.duration}
+                        {phase.milestone}
                       </span>
                     </div>
                   </div>
@@ -218,7 +218,7 @@ export function SettlementPhaseChevron({
                   isCurrent && "text-blue-700",
                   isUpcoming && "text-slate-500"
                 )}>
-                  {phase.subtitle} • {phase.duration}
+                  {phase.subtitle} • {phase.milestone}
                 </div>
               </div>
             </div>

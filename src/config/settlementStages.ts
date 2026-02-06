@@ -12,17 +12,61 @@ export type SettlementTrack =
     | "SPECIAL"
     | "DISCOVERY";
 
+export type MilestoneTrigger =
+    | 'IMMEDIATE'              // Can start right after death
+    | 'AFTER_PETITION_FILED'   // After court filing
+    | 'AFTER_LETTERS_ISSUED'   // After authority granted
+    | 'AFTER_NOTICE_PUBLISHED' // After creditor notice starts
+    | 'AFTER_CLAIM_PERIOD'     // After 4-month window closes
+    | 'AFTER_INVENTORY_APPROVED' // After court approves inventory
+    | 'AFTER_DEBTS_PAID';      // After all debts satisfied
+
+export interface TaskDefinition {
+    id: string;
+    title: string;
+    status?: 'pending' | 'completed';
+    requiresAuthority?: boolean;  // Blocks until Letters Testamentary
+    riskWarning?: string;         // Fiduciary risk note
+}
+
 export interface ProcessStage {
     id: string;
     title: string;
     description: string;
-    tasks?: { id: string; title: string, status?: 'pending' | 'completed' }[];
+    trigger?: MilestoneTrigger;       // When this phase can begin
+    triggerLabel?: string;            // Human-readable milestone label
+    milestone?: string;               // Display milestone (death, petition, etc.)
+    tasks?: TaskDefinition[];
+    conditional?: {                   // Makes phase conditional
+        required?: (estate: any) => boolean;
+        reason?: string;
+    };
 }
 
 export const TRACK_STAGES: Record<SettlementTrack, ProcessStage[]> = {
     FORMAL_PROBATE: [
         {
-            id: "petition", title: "Petition", description: "File petition and original Will with the court.",
+            id: "pre_filing",
+            title: "Preliminary Assessment",
+            description: "Preliminary actions to stabilize the estate before court filing.",
+            trigger: 'IMMEDIATE',
+            triggerLabel: 'Immediate (after death)',
+            milestone: 'Death Initial',
+            tasks: [
+                { id: "preliminary_inventory", title: "Create Preliminary Asset List" },
+                { id: "estimate_value", title: "Estimate Total Estate Value" },
+                { id: "identify_jurisdiction", title: "Identify Probate Jurisdiction" },
+                { id: "determine_bond", title: "Estimate Bond Requirement" },
+                { id: "gather_death_certs", title: "Order Death Certificates (10+ copies)" }
+            ]
+        },
+        {
+            id: "petition",
+            title: "Court Petition",
+            description: "Submitting the petition to open probate with the court.",
+            trigger: 'IMMEDIATE',
+            triggerLabel: 'After preliminary inventory',
+            milestone: 'Post-Filing',
             tasks: [
                 { id: "file_petition", title: "File Petition (DE-111)" },
                 { id: "lodge_will", title: "Lodge Original Will" },
@@ -31,38 +75,61 @@ export const TRACK_STAGES: Record<SettlementTrack, ProcessStage[]> = {
             ]
         },
         {
-            id: "authority", title: "Authority", description: "Court issues Letters Testamentary to the Executor.",
+            id: "authority",
+            title: "Fiduciary Authority",
+            description: "Establishing the formal legal authority of the Executor.",
+            trigger: 'AFTER_PETITION_FILED',
+            triggerLabel: 'After petition filed',
+            milestone: 'Post-Filing',
             tasks: [
                 { id: "attend_hearing", title: "Attend Probate Hearing" },
                 { id: "bond", title: "File Bond (if required)" },
-                { id: "letters", title: "Obtain Certified Letters" },
-                { id: "ein", title: "Obtain EIN for Estate" }
+                { id: "letters", title: "Obtain Certified Letters (DE-150)" },
+                { id: "ein", title: "Obtain EIN for Estate", requiresAuthority: true }
             ]
         },
         {
-            id: "discovery", title: "Discovery", description: "Identify and inventory all estate assets and debts.",
+            id: "discovery",
+            title: "Discovery & Inventory",
+            description: "Inventorying estate assets and liabilities with fiduciary powers.",
+            trigger: 'AFTER_LETTERS_ISSUED',
+            triggerLabel: 'After Letters Testamentary issued',
+            milestone: 'Fiduciary Authority Issued',
             tasks: [
-                { id: "notify_banks", title: "Notify Financial Institutions" },
+                { id: "notify_banks", title: "Notify Financial Institutions", requiresAuthority: true },
                 { id: "inventory_assets", title: "Inventory All Assets" },
                 { id: "appraisal", title: "Get Referee Appraisal" },
                 { id: "file_inventory", title: "File Inventory & Appraisal (DE-160)" }
             ]
         },
         {
-            id: "creditors", title: "Creditors", description: "Publish notice and handle valid creditor claims.",
+            id: "creditors",
+            title: "Creditor Management",
+            description: "Statutory notice period and claim priority evaluation.",
+            trigger: 'AFTER_NOTICE_PUBLISHED',
+            triggerLabel: 'After creditor notice period starts',
+            milestone: 'Creditor Notice Period',
             tasks: [
-                { id: "notify_creditors", title: "Send Notice to Creditors" },
+                { id: "notify_creditors", title: "Send Notice to Known Creditors", requiresAuthority: true },
+                { id: "wait_claim_period", title: "Wait 4-Month Claim Period" },
+                { id: "categorize_claims", title: "Categorize Claims (Secured/Unsecured)" },
+                { id: "apply_priority", title: "Apply Statutory Priority Hierarchy" },
                 { id: "review_claims", title: "Review & Approve/Reject Claims" },
-                { id: "pay_debts", title: "Pay Valid Debts" },
-                { id: "tax_returns", title: "File Final Tax Returns" }
+                { id: "pay_debts", title: "Pay Valid Debts in Priority Order", requiresAuthority: true, riskWarning: "Paying before claim period closes may create personal liability" },
+                { id: "tax_returns", title: "File Final Tax Returns (1040, 1041)" }
             ]
         },
         {
-            id: "distribution", title: "Distribution", description: "Final court order and distribution to heirs.",
+            id: "distribution",
+            title: "Final Distribution",
+            description: "Final court oversight and distribution to beneficiaries.",
+            trigger: 'AFTER_CLAIM_PERIOD',
+            triggerLabel: 'After 4-month creditor period closes',
+            milestone: 'Closing Estate',
             tasks: [
-                { id: "final_petition", title: "File Final Petition" },
+                { id: "final_petition", title: "File Final Petition", requiresAuthority: true },
                 { id: "court_order", title: "Obtain Order for Distribution" },
-                { id: "distribute", title: "Distribute Assets to Heirs" },
+                { id: "distribute", title: "Distribute Assets to Heirs", requiresAuthority: true, riskWarning: "Ensure all debts paid before distribution" },
                 { id: "discharge", title: "File Receipt & Discharge" }
             ]
         }

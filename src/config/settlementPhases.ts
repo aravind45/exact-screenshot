@@ -33,13 +33,17 @@ export interface PhaseTask {
     states?: string[];
   };
   isInternationalOnly?: boolean; // New flag for International Mode
+  requiresAuthority?: boolean;  // Blocks until Letters Testamentary (DE-150)
+  isAttorneyReviewNode?: boolean; // Highlight mandatory/recommended checkpoints
+  milestone?: string;           // Human-readable milestone label (e.g. "After Authority Issued")
+  trackCompatibility?: ("PROBATE" | "TRUST" | "AFFIDAVIT" | "NON_PROBATE")[];
 }
 
 export interface PhaseTaskList {
   phase: SettlementPhase;
   title: string;
   subtitle: string;
-  duration: string;
+  milestone: string;
   description: string;
   tasks: PhaseTask[];
 }
@@ -49,23 +53,34 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
     phase: "immediate_actions",
     title: "Preliminary Assessment",
     subtitle: "Determine Strategy",
-    duration: "Day 1-7",
-    description: "Determine the legal path for the estate before taking irrevocable actions.",
+    milestone: "Death to Filing",
+    description: "Evaluate the estate's characteristics before taking irrevocable actions.",
     tasks: [
       {
+        id: "preliminary_asset_scan",
+        title: "Preliminary Asset & Liability Scan",
+        description: "Identify known bank accounts, real estate, and major debts. This data is critical for estimating estate value on the petition and determining bond requirements.",
+        estimatedTime: "2-4 hours",
+        trackCompatibility: ["PROBATE", "TRUST", "AFFIDAVIT"],
+        alerts: [{
+          type: "important",
+          message: "Pre-Filing Requirement: Accurate estimates prevent petition amendments and delays in bond approval."
+        }]
+      },
+      {
         id: "check_small_estate",
-        title: "Check Small Estate Eligibility",
-        description: "Determine if total assets are under the state's small estate threshold. You may be able to avoid probate entirely using a simplified Affidavit process.",
+        title: "Evaluate Small Estate Eligibility",
+        description: "Determine if total assets are under the state's small estate threshold. This may allow for a simplified Affidavit process, bypassing full probate.",
         utility: "Shortcut: Avoid full probate if the estate is small enough.",
         estimatedTime: "1 hour",
         exclusiveGroup: "filing_path",
-        helpArticleId: "small-estate-affidavit",
-        alerts: [
-          {
-            type: "important",
-            message: "Avoid full probate if possible. Small estates can be settled in 40 days without court."
-          }
-        ]
+        trackCompatibility: ["PROBATE", "AFFIDAVIT"],
+        isOptional: true,
+        helpArticleId: "small-estate-ca",
+        alerts: [{
+          type: "info",
+          message: "Small estate limits vary by state (e.g., $184,500 in CA as of 2023)."
+        }]
       },
       {
         id: "confirm_executor_role",
@@ -105,16 +120,16 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "check_primary_residence_succession",
-        title: "Check Primary Residence Succession Eligibility",
-        description: "If the estate consists primarily of a primary residence valued under $100,000, you may qualify for simplified succession process (DE-310/315).",
-        utility: "Shortcut: Avoid full probate for qualifying primary residences.",
+        title: "Evaluate Primary Residence Succession",
+        description: "If the estate consists primarily of a primary residence valued under $100,000, you may qualify for the simplified Succession process (DE-310/315).",
+        utility: "Shortcut: Simplified path for qualifying primary residences.",
         estimatedTime: "1 hour",
         exclusiveGroup: "filing_path",
         isOptional: true,
         helpArticleId: "primary-residence-succession",
         alerts: [{
           type: "important",
-          message: "This process is ONLY for primary residences. Other assets require different procedures."
+          message: "This procedure is limited to primary residences. Other assets require different pathways."
         }]
       }
     ]
@@ -122,14 +137,14 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
   {
     phase: "immediate_actions",
     title: "Immediate Actions",
-    subtitle: "Secure & Notify",
-    duration: "Week 1-2",
-    description: "Critical tasks to complete immediately after death.",
+    subtitle: "Notification & Protection",
+    milestone: "Death to Filing",
+    description: "Essential initial steps to protect the estate and fulfill immediate notification requirements.",
     tasks: [
       {
-        id: "secure_property_2", // Deduped ID for second occurrence or handled via UI logic, assuming list structure implies distinct phases
-        title: "Secure the Property",
-        description: "Change locks, forward mail, and ensure the home is protected from theft or damage.",
+        id: "secure_property_2",
+        title: "Initial Property Protection",
+        description: "Ensure the decedent's residence is secured, mail is forwarded, and assets are protected from loss or damage.",
         estimatedTime: "1-2 days",
         alerts: [
           {
@@ -201,26 +216,27 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "open_estate_account",
-        title: "Open Estate Bank Account",
-        description: "Create a separate checking account for estate income and expenses.",
+        title: "Establish Estate Financial Account",
+        description: "Open a separate fiduciary account for estate income and expenses once legal authority is obtained.",
         estimatedTime: "1 hour",
-        requiredDocs: ["Death Certificate", "Executor ID"],
+        requiresAuthority: true,
+        requiredDocs: ["Death Certificate", "Letters (DE-150)", "EIN"],
         alerts: [
           {
             type: "important",
-            message: "NEVER mix estate funds with personal funds. This is a legal requirement."
+            message: "Fiduciary Duty: Estate funds must never be commingled with personal funds."
           }
         ]
       },
       {
         id: "pay_immediate_bills",
-        title: "Pay Immediate Bills",
-        description: "Keep utilities, mortgage, and insurance current to protect estate assets.",
+        title: "Managed Payment of Immediate Bills",
+        description: "Prioritize current utilities, mortgage, and insurance to protect the value of estate assets.",
         estimatedTime: "Ongoing",
         alerts: [
           {
             type: "warning",
-            message: "Use estate funds only. Keep receipts for court accounting."
+            message: "Only use estate-related funds for these payments and maintain meticulous records for the final accounting."
           }
         ]
       },
@@ -256,9 +272,9 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
   {
     phase: "court_filing",
     title: "Court Filing",
-    subtitle: "Petition & Letters",
-    duration: "Week 3-8",
-    description: "File probate petition, publish creditor notice, and obtain Letters Testamentary.",
+    subtitle: "Petition & Authority",
+    milestone: "After Petition Filed",
+    description: "Submitting the probate petition to the court to obtain official fiduciary authority (Letters).",
     tasks: [
       {
         id: "file_petition",
@@ -336,8 +352,9 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "receive_letters",
-        title: "Receive Letters Testamentary (DE-150)",
-        description: "Obtain certified copies of your Letters - this is your legal authority to act.",
+        title: "Establish Fiduciary Authority (DE-150)",
+        description: "Obtain certified copies of the Letters—this document is your legal evidence of authority to manage estate assets.",
+        requiresAuthority: true,
         estimatedTime: "1-2 weeks after hearing",
         category: "court-issued",
         requiredDocs: ["DE-150"],
@@ -638,8 +655,8 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
     phase: "asset_discovery",
     title: "Asset Discovery",
     subtitle: "Inventory & Appraisal",
-    duration: "Month 2-4",
-    description: "Identify all assets, obtain date-of-death values, and file Inventory & Appraisal.",
+    milestone: "After Letters Issued",
+    description: "Identify all assets within the estate's jurisdiction and obtain formal Date-of-Death valuations.",
     tasks: [
       {
         id: "check_unclaimed_property",
@@ -658,14 +675,15 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "freeze_accounts",
-        title: "Freeze All Financial Accounts",
-        description: "Contact every bank, brokerage, and insurance company to freeze accounts.",
+        title: "Coordinate with Financial Institutions",
+        description: "Provide notice of your fiduciary authority to banks, brokerages, and insurance companies to secure accounts.",
         estimatedTime: "2-4 weeks",
+        requiresAuthority: true,
         requiredDocs: ["Death Certificate", "Letters (DE-150)"],
         alerts: [
           {
             type: "important",
-            message: "This prevents unauthorized access and locks in values for tax purposes."
+            message: "This step formalizes your control over assets and locks in values for reporting purposes."
           }
         ]
       },
@@ -707,10 +725,15 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         helpArticleId: "inventory-appraisal",
         alerts: [
           {
+            type: "info",
+            message: "Recommended: Consult with counsel before filing the Inventory & Appraisal to ensure all assets are correctly categorized."
+          },
+          {
             type: "warning",
-            message: "Due within 4 months of Letters. Late filing can delay distribution by months."
+            message: "Due within 4 months of Letters issuance. Delays in filing can impede the overall settlement timeline."
           }
-        ]
+        ],
+        isAttorneyReviewNode: true
       },
 
       {
@@ -759,10 +782,51 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
   {
     phase: "creditor_claims",
     title: "Creditor Claims",
-    subtitle: "Notice & Payment",
-    duration: "Month 4-8",
-    description: "Wait for creditor claim period, review claims, and pay approved debts.",
+    subtitle: "Notice & Priority",
+    milestone: "After Notice Published",
+    description: "Managing the statutory creditor period and determining the legal priority of submitted claims.",
     tasks: [
+      {
+        id: "debt_priority_risk",
+        title: "FIDUCIARY RISK: Statutory Debt Priority",
+        description: "Evaluate claims according to legal priority (e.g., administration costs, taxes, then general debts).",
+        isAttorneyReviewNode: true,
+        trackCompatibility: ["PROBATE", "TRUST", "NON_PROBATE"],
+        alerts: [{
+          type: "caution",
+          message: "Liability Alert: Do NOT pay any debts until the statutory notice period has expired and priority is confirmed."
+        }]
+      },
+      {
+        id: "intl_w8_assessment",
+        title: "International Fiduciary: W-8BEN/W-8CE Assessment",
+        description: "For non-resident executors or beneficiaries, determine U.S. tax withholding requirements and treaty eligibility.",
+        isInternationalOnly: true,
+        isAttorneyReviewNode: true,
+        trackCompatibility: ["PROBATE", "TRUST"],
+        alerts: [{
+          type: "important",
+          message: "Tax Liability: Failure to withhold correctly can result in the executor being personally liable for the tax."
+        }]
+      },
+      {
+        id: "itin_application_protocol",
+        title: "International Fiduciary: ITIN Acquisition",
+        description: "Identify foreign beneficiaries who require a U.S. Individual Taxpayer Identification Number (ITIN) for distributions.",
+        isInternationalOnly: true,
+        trackCompatibility: ["PROBATE", "TRUST"]
+      },
+      {
+        id: "itin_acquisition_protocol",
+        title: "International Fiduciary: ITIN Acquisition Protocol",
+        description: "Identify foreign beneficiaries without a SSN/ITIN. Coordinate acquisition of U.S. Individual Taxpayer Identification Numbers to avoid maximum backup withholding on distributions.",
+        isInternationalOnly: true,
+        trackCompatibility: ["PROBATE", "TRUST"],
+        alerts: [{
+          type: "info",
+          message: "Wait times for ITINs can exceed 12 weeks. Start this process as soon as beneficiaries are identified."
+        }]
+      },
       {
         id: "evaluate_solvency",
         title: "Evaluate Estate Solvency",
@@ -793,10 +857,15 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         helpArticleId: "creditor-claims",
         alerts: [
           {
+            type: "important",
+            message: "Recommended Attorney Review: Rejecting a claim can lead to litigation. Consult with counsel before issuing a rejection notice."
+          },
+          {
             type: "caution",
-            message: "You have 30 days to approve or reject each claim. Get attorney help if unsure."
+            message: "California law provides specific timeframes for approving or rejecting claims. Verify compliance with statutory deadlines."
           }
-        ]
+        ],
+        isAttorneyReviewNode: true
       },
       {
         id: "reject_invalid",
@@ -845,7 +914,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
     phase: "asset_liquidation",
     title: "Asset Liquidation",
     subtitle: "Transfer & Sell",
-    duration: "Month 6-12",
+    milestone: "Month 6-12",
     description: "Present Letters to institutions, transfer or sell assets, and pay final bills.",
     tasks: [
       {
@@ -1007,7 +1076,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
     phase: "final_distribution",
     title: "Final Distribution",
     subtitle: "Close Estate",
-    duration: "Month 12-18",
+    milestone: "Month 6-12",
     description: "File petition for final distribution, distribute assets to heirs, and close estate.",
     tasks: [
       {

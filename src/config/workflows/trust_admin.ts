@@ -176,7 +176,7 @@ I am the Successor Trustee of the {{trustName}} following the death of {{decease
 I need assistance preparing the following tax returns:
 1. Final Form 1040 for {{deceasedName}} ({{taxYear}})
 2. Form 1041 for the trust (if required)
-3. Form 706 estate tax return (estate value: approximately ${{ estateValue }})
+3. Form 706 estate tax return (estate value: approximately {{estateValue}})
 
 I have gathered the following documents:
 - Trust asset inventory

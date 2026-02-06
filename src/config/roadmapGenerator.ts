@@ -42,8 +42,8 @@ function generateTransferOnlyRoadmap(type: AuthorityType, state: string, modifie
             tasks = tasks.filter(t => !t.isInternationalOnly);
         }
 
-        // Filter tasks that are purely probate-related
-        tasks = tasks.filter(t => t.category !== "probate");
+        // Filter tasks that are purely probate-related or incompatible with affidavit track
+        tasks = tasks.filter(t => t.category !== "probate" && (!t.trackCompatibility || t.trackCompatibility.includes("AFFIDAVIT")));
 
         // Add specific task for the transfer type
         if (type === "SMALL_ESTATE") {
@@ -52,7 +52,8 @@ function generateTransferOnlyRoadmap(type: AuthorityType, state: string, modifie
                 title: "Prepare Small Estate Affidavit",
                 description: `Draft the ${state} Small Estate Affidavit to transfer assets without court.`,
                 estimatedTime: "1-2 hours",
-                alerts: [{ type: "info", message: "Most banks require a 40-day waiting period from date of death." }]
+                requiresAuthority: false,
+                alerts: [{ type: "info", message: "Verification Required: Most banks require a 40-day waiting period from date of death before processing affidavits." }]
             });
         }
 
@@ -82,8 +83,8 @@ function generateFiduciaryRoadmap(type: AuthorityType, state: string, modifiers:
             tasks = tasks.filter(t => !t.isInternationalOnly);
         }
 
-        // Remove court-filing specific tasks
-        tasks = tasks.filter(t => t.category !== "probate" && t.category !== "court-issued");
+        // Remove court-filing specific tasks and filter by track incompatibility
+        tasks = tasks.filter(t => t.category !== "probate" && t.category !== "court-issued" && (!t.trackCompatibility || t.trackCompatibility.includes("TRUST")));
 
         if (p.phase === "immediate_actions" && (type === "TRUST_ADMIN_REVOCABLE" || type === "TRUST_ADMIN_IRREVOCABLE" || type === "POUR_OVER_WILL")) {
             tasks.push({
@@ -97,9 +98,10 @@ function generateFiduciaryRoadmap(type: AuthorityType, state: string, modifiers:
         if (modifiers.includes("INSOLVENT")) {
             tasks.push({
                 id: "insolvency_prioritization",
-                title: "Strict Liability Prioritization",
-                description: "Estate is insolvent. Do not pay any creditors until priority order is legally confirmed.",
-                alerts: [{ type: "caution", message: "Personal liability risk: Paying a low-priority debt before a high-priority one may require you to pay back the estate." }]
+                title: "Statutory Priority Assessment",
+                description: "Estate liabilities may exceed assets. The fiduciary must strictly follow statutory payment priority to avoid personal liability.",
+                alerts: [{ type: "important", message: "Fiduciary Risk: Paying a lower-priority debt before higher-priority obligations (like administration or funeral costs) may result in personal liability." }],
+                isAttorneyReviewNode: true
             });
         }
 
@@ -230,6 +232,9 @@ function generateProbateRoadmap(type: AuthorityType, state: string, modifiers: s
         if (!modifiers.includes("INTERNATIONAL_MODE")) {
             tasks = tasks.filter(t => !t.isInternationalOnly);
         }
+
+        // Apply strict track compatibility for Probate
+        tasks = tasks.filter(t => !t.trackCompatibility || t.trackCompatibility.includes("PROBATE"));
 
         if (modifiers.includes("INSOLVENT") && p.phase === "creditor_claims") {
             tasks.unshift({

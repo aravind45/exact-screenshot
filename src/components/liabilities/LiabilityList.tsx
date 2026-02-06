@@ -1,6 +1,5 @@
 import { Liability } from "@/lib/api";
 import { Badge } from "@/components/ui/badge";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { MoreHorizontal, Calendar, Trash2, Edit2, Check, ShieldAlert } from "lucide-react";
 import {

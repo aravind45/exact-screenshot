@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronDown, ChevronUp, Clock, FileText, AlertTriangle, Info, ExternalLink, CheckCircle2, HelpCircle } from "lucide-react";
+import { ChevronDown, ChevronUp, Clock, FileText, AlertTriangle, Info, ExternalLink, CheckCircle2, HelpCircle, Gavel, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -141,7 +141,7 @@ export function PhaseTaskList({
           </div>
           <div className="text-left">
             <h3 className="text-xs font-bold text-slate-900">{phaseData.title}</h3>
-            <p className="text-[10px] text-slate-500">{phaseData.subtitle} • {phaseData.duration}</p>
+            <p className="text-[10px] text-slate-500">{phaseData.subtitle} • {phaseData.milestone}</p>
           </div>
         </div>
 
@@ -174,6 +174,17 @@ export function PhaseTaskList({
             <p className="text-[11px] text-slate-700 leading-relaxed">{phaseData.description}</p>
           </div>
 
+          {/* Fiduciary Risk Banner */}
+          {phaseData.phase === "creditor_claims" && estate?.isInsolvent && (
+            <div className="p-3 bg-red-50 border-b border-red-100 flex gap-2.5">
+              <AlertTriangle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+              <div>
+                <p className="text-[11px] font-bold text-red-900 leading-tight">CRITICAL FIDUCIARY RISK: ESTATE INSOLVENCY</p>
+                <p className="text-[10px] text-red-800 mt-0.5">Liabilities exceed assets. Do NOT pay any debts or distribute assets without a pro-rata court order. You may be personally liable for improper payments.</p>
+              </div>
+            </div>
+          )}
+
           {/* Task List */}
           <div className="divide-y divide-slate-100">
             {phaseData.tasks.map((task) => {
@@ -192,6 +203,7 @@ export function PhaseTaskList({
                   onDelete={(id) => deleteMutation.mutate(id)}
                   isUploading={uploadMutation.isPending}
                   navigate={navigate}
+                  estate={estate}
                 />
               );
             })}
@@ -285,9 +297,10 @@ interface TaskItemProps {
   onDelete: (id: string) => void;
   isUploading: boolean;
   navigate: (path: string) => void;
+  estate?: any;
 }
 
-function TaskItem({ task, isCompleted, onToggle, getAlertIcon, getAlertColor, documents, onUpload, onDelete, isUploading, navigate }: TaskItemProps) {
+function TaskItem({ task, isCompleted, onToggle, getAlertIcon, getAlertColor, documents, onUpload, onDelete, isUploading, navigate, estate }: TaskItemProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const handleHelpClick = (e: React.MouseEvent) => {
@@ -299,8 +312,9 @@ function TaskItem({ task, isCompleted, onToggle, getAlertIcon, getAlertColor, do
 
   return (
     <div className={cn(
-      "p-3.5 transition-colors",
-      isCompleted && "bg-green-50/30"
+      "p-3.5 transition-colors border-l-4",
+      isCompleted ? "bg-green-50/30 border-l-green-200" :
+        task.isAttorneyReviewNode ? "bg-amber-50/50 border-l-amber-400" : "border-l-transparent"
     )}>
       {/* Task Header */}
       <div className="flex items-start gap-3">
@@ -314,6 +328,7 @@ function TaskItem({ task, isCompleted, onToggle, getAlertIcon, getAlertColor, do
             checked={isCompleted}
             onCheckedChange={(checked) => onToggle(checked === true)}
             className="mt-1"
+            disabled={task.requiresAuthority && estate?.authorityStatus !== "GRANTED" && estate?.probateStatus !== "EXECUTOR_APPOINTED"}
           />
         )}
 
@@ -325,9 +340,10 @@ function TaskItem({ task, isCompleted, onToggle, getAlertIcon, getAlertColor, do
             >
               <div className="flex items-center gap-2">
                 <h4 className={cn(
-                  "text-sm font-bold group-hover:text-indigo-600 transition-colors",
+                  "text-sm font-bold group-hover:text-indigo-600 transition-colors flex items-center gap-2",
                   isCompleted ? "text-slate-500 line-through" : "text-slate-900"
                 )}>
+                  {task.isAttorneyReviewNode && <Gavel className="w-4 h-4 text-amber-600 shrink-0" />}
                   {task.title}
                 </h4>
                 {task.helpArticleId && (
@@ -359,10 +375,16 @@ function TaskItem({ task, isCompleted, onToggle, getAlertIcon, getAlertColor, do
                   </Badge>
                 </div>
               )}
+              {task.requiresAuthority && estate?.authorityStatus !== "GRANTED" && estate?.probateStatus !== "EXECUTOR_APPOINTED" && !isCompleted && (
+                <div className="mt-2 flex items-center gap-1.5 px-2 py-1 bg-slate-100 border border-slate-200 rounded-md w-fit">
+                  <Lock className="w-3 h-3 text-slate-500" />
+                  <span className="text-[10px] font-bold text-slate-600 uppercase tracking-widest">Requires Letters Testamentary</span>
+                </div>
+              )}
               {task.isLongHorizon && !isCompleted && (
                 <div className="mt-2 flex items-center gap-1.5 px-2 py-1 bg-amber-50 border border-amber-100 rounded-md w-fit">
                   <Clock className="w-3 h-3 text-amber-600" />
-                  <span className="text-[10px] font-bold text-amber-700 uppercase tracking-widest">Future Phase — Locked</span>
+                  <span className="text-[10px] font-bold text-amber-700 uppercase tracking-widest">Awaiting Milestone</span>
                 </div>
               )}
             </button>

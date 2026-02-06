@@ -110,13 +110,13 @@ export const DEFAULT_STATE_RULE: StateRule = {
 };
 
 // UPC States Mapping
-const UPC_STATES_LIST = [
+export const UPC_STATES = [
     "AK", "AZ", "CO", "HI", "ID", "ME", "MI", "MN", "MT",
     "NE", "NM", "ND", "SC", "SD", "UT"
 ];
 
 // Initialize UPC states in the rules dictionary if not explicitly defined
-UPC_STATES_LIST.forEach(state => {
+UPC_STATES.forEach(state => {
     if (!STATE_RULES[state]) {
         STATE_RULES[state] = {
             ...DEFAULT_STATE_RULE,

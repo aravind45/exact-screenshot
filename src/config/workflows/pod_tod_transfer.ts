@@ -142,7 +142,7 @@ Best regards,
                 subject: "Inherited Retirement Account - Tax Planning",
                 body: `Dear {{advisorName}},
 
-I recently inherited a {{accountType}} from {{deceasedName}} who passed away on {{dateOfDeath}}. The account value is approximately ${{ accountValue }}.
+I recently inherited a {{accountType}} from {{deceasedName}} who passed away on {{dateOfDeath}}. The account value is approximately {{accountValue}}.
 
 I need guidance on:
 1. Whether to take a lump sum distribution or open an Inherited IRA

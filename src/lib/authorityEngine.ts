@@ -1,5 +1,11 @@
 
-import { getStateRule, type AuthorityType } from './stateRules';
+import { getStateRule, UPC_STATES, STATE_RULES, type AuthorityType } from './stateRules';
+export { UPC_STATES, type AuthorityType };
+
+// State thresholds for small estate eligibility
+export const STATE_THRESHOLDS: Record<string, number> = Object.fromEntries(
+    Object.entries(STATE_RULES).map(([state, rule]) => [state, rule.threshold])
+);
 
 export type MasterMode =
     | "COURT_SUPERVISED"
