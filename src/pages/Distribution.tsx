@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { useWorkflow } from "@/contexts/WorkflowContext";
 import { RiskBanner } from "@/components/RiskBanner";
 import { motion, AnimatePresence } from "framer-motion";
+import { AuthorityBadge, AuthorityType } from "@/components/AuthorityBadge";
 
 export default function Distribution() {
     const queryClient = useQueryClient();
@@ -53,6 +54,23 @@ export default function Distribution() {
     const inventoryValue = assets.reduce((sum: number, a: any) => sum + (Number(a.value) || 0), 0);
     const statutoryFee = calculateFee(inventoryValue);
 
+    // Calculate Residue by Authority Source
+    const authorityBreakdown = assets.reduce((acc: Record<string, number>, asset: any) => {
+        const type = asset.authorityType || 'UNKNOWN';
+        acc[type] = (acc[type] || 0) + (Number(asset.value) || 0);
+        return acc;
+    }, {});
+
+    const authorityLabels: Record<string, string> = {
+        'COURT_REQUIRED': 'Court Authority',
+        'TRUSTEE_DIRECT': 'Trust Authority',
+        'AFFIDAVIT_SMALL': 'Affidavit Authority',
+        'BENEFICIARY_CONTRACT': 'Beneficiary Direct (Excluded)',
+        'SURVIVORSHIP_TITLE': 'Survivorship (Excluded)',
+        'LITIGATION_HOLD': 'Litigation Hold (Frozen)',
+        'UNKNOWN': 'Unclassified'
+    };
+
     // Safety Status logic
     const isSafe = readiness?.status === 'ALLOWED';
     const isRestricted = readiness?.status === 'RESTRICTED';
@@ -79,26 +97,55 @@ export default function Distribution() {
                         )}
                     </header>
 
-                    {/* Safety Signalling Banner */}
+                    {/* Safety Signalling Banner & Risk Meter */}
                     <AnimatePresence mode="wait">
                         {readiness && (
                             <motion.div
                                 initial={{ opacity: 0, y: -20 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                className={`p-4 rounded-2xl border flex gap-3 ${isSafe ? 'bg-emerald-50 border-emerald-100' :
+                                className={`p-6 rounded-[2.5rem] border shadow-2xl shadow-slate-200/50 flex flex-col md:flex-row gap-6 ${isSafe ? 'bg-emerald-50 border-emerald-100' :
                                     isRestricted ? 'bg-amber-50 border-amber-100' :
                                         'bg-rose-50 border-rose-100'
                                     }`}
                             >
-                                <div className={`mt-0.5 p-2 rounded-full h-fit ${isSafe ? 'bg-emerald-500 text-white' :
-                                    isRestricted ? 'bg-amber-500 text-white' :
-                                        'bg-rose-500 text-white'
-                                    }`}>
-                                    {isSafe ? <CheckCircle2 className="w-5 h-5" /> :
-                                        isRestricted ? <AlertCircle className="w-5 h-5" /> :
-                                            <ShieldAlert className="w-5 h-5" />}
+                                {/* Fiduciary Risk Meter (Gauge Visual) */}
+                                <div className="flex flex-col items-center gap-2 px-4 border-r border-slate-200/50">
+                                    <div className="relative w-24 h-24 flex items-center justify-center">
+                                        <svg className="w-full h-full -rotate-90">
+                                            <circle
+                                                cx="48" cy="48" r="40"
+                                                fill="transparent"
+                                                stroke="currentColor"
+                                                strokeWidth="8"
+                                                className="text-slate-200"
+                                            />
+                                            <circle
+                                                cx="48" cy="48" r="40"
+                                                fill="transparent"
+                                                stroke="currentColor"
+                                                strokeWidth="8"
+                                                strokeDasharray={251.2}
+                                                strokeDashoffset={251.2 - (251.2 * (isSafe ? 100 : isRestricted ? 60 : 20)) / 100}
+                                                strokeLinecap="round"
+                                                className={isSafe ? 'text-emerald-500' : isRestricted ? 'text-amber-500' : 'text-rose-500'}
+                                            />
+                                        </svg>
+                                        <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                                            <span className={`text-xl font-black ${isSafe ? 'text-emerald-700' : isRestricted ? 'text-amber-700' : 'text-rose-700'}`}>
+                                                {isSafe ? '100%' : isRestricted ? '60%' : '20%'}
+                                            </span>
+                                            <span className="text-[8px] font-bold uppercase tracking-tighter opacity-70">Security</span>
+                                        </div>
+                                    </div>
+                                    <div className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full border ${isSafe ? 'bg-emerald-500 text-white border-emerald-600' :
+                                            isRestricted ? 'bg-amber-500 text-white border-amber-600' :
+                                                'bg-rose-500 text-white border-rose-600'
+                                        }`}>
+                                        {isSafe ? 'Low Risk' : isRestricted ? 'Med Risk' : 'High Risk'}
+                                    </div>
                                 </div>
-                                <div className="space-y-1">
+
+                                <div className="flex-1 space-y-1">
                                     <h3 className={`text-lg font-black tracking-tight ${isSafe ? 'text-emerald-900' :
                                         isRestricted ? 'text-amber-900' :
                                             'text-rose-900'
@@ -116,7 +163,7 @@ export default function Distribution() {
                                                 "Distributing now may expose you to personal liability. Critical safety gates are currently blocked."}
                                     </p>
 
-                                    <div className="mt-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 bg-white/50 p-2.5 rounded-xl">
+                                    <div className="mt-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 bg-white/50 p-2.5 rounded-2xl">
                                         <CheckItem label="Notice Period" done={readiness.checks.noticePeriodClosed} />
                                         <CheckItem label="Priority Claims" done={readiness.checks.allClaimsPaid} />
                                         <CheckItem label="Inventory Filed" done={readiness.checks.inventoryFiled} />
@@ -181,6 +228,22 @@ export default function Distribution() {
                                     <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-lg text-[10px] font-bold text-slate-500 uppercase tracking-tight">
                                         <Info className="w-3.5 h-3.5" />
                                         Manual adjustments are restricted until safety gates are met.
+                                    </div>
+
+                                    {/* Authority Source Breakdown */}
+                                    <div className="pt-4 border-t border-slate-100 space-y-3">
+                                        <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Residue by Authority Source</h4>
+                                        <div className="space-y-2">
+                                            {Object.entries(authorityBreakdown).map(([type, total]) => (
+                                                <div key={type} className="flex justify-between items-center bg-slate-50/50 p-2 rounded-lg border border-slate-100/50">
+                                                    <div className="flex items-center gap-2">
+                                                        <AuthorityBadge type={type as AuthorityType} showIcon={false} className="h-4 scale-90 origin-left" />
+                                                        <span className="text-[10px] font-bold text-slate-600">{authorityLabels[type] || type}</span>
+                                                    </div>
+                                                    <span className="text-[11px] font-black text-slate-900">${total.toLocaleString()}</span>
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
                                 </CardContent>
                             </Card>
