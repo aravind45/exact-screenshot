@@ -17,14 +17,12 @@ import { motion, AnimatePresence } from "framer-motion";
 const Index = () => {
   const navigate = useNavigate();
 
-  const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly');
+  const [billingCycle] = useState<'monthly' | 'annual'>('monthly');
 
   const plan = {
     name: "ExpectedEstate",
     monthlyPrice: "$49",
-    annualPriceMonthly: "$41",
-    period: billingCycle === 'monthly' ? "/month" : "/mo, billed annual",
-    annualTotal: "$490/year",
+    period: "/month",
     description: "Complete estate settlement platform with all features included",
     features: [
       "All 11 Settlement Roadmap Types",
@@ -86,33 +84,8 @@ const Index = () => {
                 Simple, Transparent Pricing
               </h2>
               <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-                Choose the plan that fits your estate's needs. All plans include a 14-day free trial.
+                Complete estate settlement for a predictable monthly fee. All plans include a 14-day free trial.
               </p>
-
-              {/* Billing Cycle Toggle */}
-              <div className="mt-10 flex items-center justify-center gap-4">
-                <span className={`text-sm font-medium ${billingCycle === 'monthly' ? 'text-foreground' : 'text-muted-foreground'}`}>
-                  Monthly
-                </span>
-                <button
-                  onClick={() => setBillingCycle(billingCycle === 'monthly' ? 'annual' : 'monthly')}
-                  className="relative w-14 h-7 bg-muted rounded-full p-1 transition-colors hover:bg-muted/80"
-                >
-                  <motion.div
-                    animate={{ x: billingCycle === 'monthly' ? 0 : 28 }}
-                    className="w-5 h-5 bg-primary rounded-full shadow-sm"
-                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                  />
-                </button>
-                <div className="flex items-center gap-2">
-                  <span className={`text-sm font-medium ${billingCycle === 'annual' ? 'text-foreground' : 'text-muted-foreground'}`}>
-                    Annual
-                  </span>
-                  <Badge variant="secondary" className="bg-green-100 text-green-700 hover:bg-green-100 border-none">
-                    Save 15%
-                  </Badge>
-                </div>
-              </div>
             </div>
 
             <div className="max-w-2xl mx-auto mb-12">
@@ -130,28 +103,9 @@ const Index = () => {
                   </CardDescription>
                   <div className="mt-6 flex flex-col items-center">
                     <div className="flex items-baseline gap-1">
-                      <AnimatePresence mode="wait">
-                        <motion.span
-                          key={billingCycle}
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -10 }}
-                          className="text-6xl font-bold"
-                        >
-                          {billingCycle === 'monthly' ? plan.monthlyPrice : plan.annualPriceMonthly}
-                        </motion.span>
-                      </AnimatePresence>
+                      <span className="text-6xl font-bold">{plan.monthlyPrice}</span>
                       <span className="text-xl text-gray-600">{plan.period}</span>
                     </div>
-                    {billingCycle === 'annual' && (
-                      <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className="text-sm text-green-600 font-medium mt-2"
-                      >
-                        Billed as {plan.annualTotal}
-                      </motion.div>
-                    )}
                   </div>
                   <div className="mt-8 text-base font-semibold text-primary">
                     {plan.highlight}
