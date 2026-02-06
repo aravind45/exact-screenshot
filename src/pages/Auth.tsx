@@ -256,11 +256,17 @@ export default function Auth() {
                 <button
                   type="button"
                   onClick={() => {
+                    const params = new URLSearchParams(window.location.search);
                     if (authMode === 'forgot-password') {
                       setAuthMode('login');
                     } else {
                       setAuthMode(authMode === 'login' ? 'signup' : 'login');
                     }
+                    // This update ensures the URL is updated with parameters preserved
+                    navigate({
+                      pathname: '/auth',
+                      search: params.toString()
+                    }, { replace: true });
                     setErrors({});
                   }}
                   className="font-medium text-primary hover:underline"
