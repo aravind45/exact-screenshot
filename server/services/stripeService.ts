@@ -1,13 +1,20 @@
 import Stripe from 'stripe';
 import { prisma } from '../db.js';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-    apiVersion: '2026-01-28.clover',
-});
 
 const PRICE_ID = process.env.STRIPE_PRICE_ID || 'price_1234567890'; // $49/mo product
 
 export class StripeService {
+    private static _stripe: Stripe | null = null;
+
+    private static get stripe(): Stripe {
+        if (!this._stripe) {
+            this._stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder', {
+                apiVersion: '2026-01-28.clover' as any,
+            });
+        }
+        return this._stripe;
+    }
     /**
      * Create a Stripe Checkout Session for a user to subscribe
      */
@@ -19,7 +26,7 @@ export class StripeService {
 
         // Create Stripe customer if doesn't exist
         if (!customerId) {
-            const customer = await stripe.customers.create({
+            const customer = await this.stripe.customers.create({
                 email: user.email,
                 metadata: { userId: user.id },
             });
@@ -31,7 +38,7 @@ export class StripeService {
             });
         }
 
-        const session = await stripe.checkout.sessions.create({
+        const session = await this.stripe.checkout.sessions.create({
             customer: customerId,
             payment_method_types: ['card'],
             line_items: [
@@ -61,7 +68,7 @@ export class StripeService {
                 const userId = session.metadata?.userId;
                 if (!userId) break;
 
-                const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
+                const subscription = await this.stripe.subscriptions.retrieve(session.subscription as string);
 
                 await prisma.user.update({
                     where: { id: userId },
@@ -195,7 +202,7 @@ export class StripeService {
         if (!transaction.stripePaymentIntentId) throw new Error('No Stripe payment intent found');
 
         // Issue refund via Stripe
-        const refund = await stripe.refunds.create({
+        const refund = await this.stripe.refunds.create({
             payment_intent: transaction.stripePaymentIntentId,
         });
 
@@ -233,7 +240,7 @@ export class StripeService {
 
         let subscription = null;
         if (user.stripeSubscriptionId) {
-            subscription = await stripe.subscriptions.retrieve(user.stripeSubscriptionId);
+            subscription = await this.stripe.subscriptions.retrieve(user.stripeSubscriptionId);
         }
 
         return {

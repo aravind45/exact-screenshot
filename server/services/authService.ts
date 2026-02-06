@@ -67,14 +67,28 @@ export const AuthService = {
 
     async verifyToken(token: string) {
         try {
-            // console.log("🔑 Verifying token...");
+            if (!token || token === 'null' || token === 'undefined') {
+                console.log("🔑 verifyToken called with empty/invalid token string");
+                return null;
+            }
+
+            console.log(`🔑 Verifying token (len: ${token.length}). Secret prefix: ${JWT_SECRET.substring(0, 3)}...`);
+
             const decoded: any = jwt.verify(token, JWT_SECRET);
-            // console.log(`👤 Token decoded for user: ${decoded.userId}`);
+            console.log(`👤 JWT Valid. Decoded userId: ${decoded.userId}`);
+
             const user = await prisma.user.findUnique({ where: { id: decoded.userId } });
-            if (!user) console.log("👤 User not found in database");
+            if (!user) {
+                console.log(`❌ DB Lookup: User ${decoded.userId} not found in database`);
+                return null;
+            }
+
             return user;
         } catch (error: any) {
-            console.error("🔑 JWT Verification Error:", error.message);
+            console.error("🔑 JWT Verification Failed:", error.message);
+            if (error.name === 'TokenExpiredError') {
+                console.log("⏰ Token expired at:", error.expiredAt);
+            }
             return null;
         }
     },

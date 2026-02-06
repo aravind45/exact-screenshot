@@ -24,6 +24,7 @@ import { pdfRoutes } from "./routes/pdfRoutes.js";
 import formRoutes from "./routes/formRoutes.js";
 import helpRoutes from "./routes/helpRoutes.js";
 import billingRoutes from "./routes/billingRoutes.js";
+const isServerless = process.env.VERCEL === '1' || process.env.NETLIFY === 'true' || !!process.env.AWS_EXECUTION_ENV || !!process.env.FUNCTION_NAME;
 const app = express();
 const port = Number(process.env.PORT) || 3000;
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -35,6 +36,7 @@ console.log(`📦 Node environment: ${process.env.NODE_ENV}`);
 console.log(`🔌 Port: ${port}`);
 console.log(`📁 Dist path: ${distPath}`);
 console.log(`💾 Database URL: ${process.env.DATABASE_URL ? '✅ Set' : '❌ NOT SET'}`);
+console.log(`🔍 Serverless detection: ${isServerless ? 'YES' : 'NO'}`);
 app.use(cors());
 app.use(express.json());
 app.use(express.raw({
@@ -58,22 +60,32 @@ const authenticate = async (req, res, next) => {
     const token = authHeader?.split(" ")[1] || req.query.token;
     console.log(`🔒 Auth attempt: ${req.method} ${req.url}`);
     if (!token) {
-        console.log("❌ No token provided");
-        return res.status(401).json({ error: "Unauthorized" });
+        console.log("❌ No token provided in headers or query");
+        return res.status(401).json({ error: "Unauthorized: No token provided" });
     }
-    const user = await AuthService.verifyToken(token);
-    if (!user) {
-        console.log("❌ Token verification failed or user not found");
-        return res.status(401).json({ error: "Invalid token" });
+    try {
+        const user = await AuthService.verifyToken(token);
+        if (!user) {
+            console.log("❌ Auth failure: verifyToken returned null (User not found or JWT invalid)");
+            return res.status(401).json({ error: "Unauthorized: Invalid token or user not found" });
+        }
+        console.log(`✅ Auth success: user ${user.id} (${user.email})`);
+        req.user = user;
+        next();
     }
-    console.log(`✅ Auth success: user ${user.id}`);
-    req.user = user;
-    next();
+    catch (err) {
+        console.error("❌ Auth middleware crash:", err.message);
+        return res.status(500).json({ error: "Authentication service error" });
+    }
 };
-// Health
+// Health & Ping
 app.get("/api/health", (req, res) => {
     console.log("✅ Health check called");
-    res.json({ status: "ok", timestamp: new Date().toISOString() });
+    res.json({ status: "ok", timestamp: new Date().toISOString(), serverless: isServerless });
+});
+app.get("/api/ping", (req, res) => {
+    console.log("🏓 Ping called");
+    res.send("pong");
 });
 // Routes
 console.log("📋 Registering routes...");
@@ -105,16 +117,21 @@ app.put("/api/auth/me", authenticate, async (req, res) => {
         res.status(400).json({ error: e.message });
     }
 });
-// Serve Static Files
-console.log("📂 Setting up static file serving...");
-app.use(express.static(distPath));
-// Catch-all to serve index.html for React Router
-app.get(/(.*)/, (req, res) => {
-    if (req.path.startsWith("/api/")) {
-        return res.status(404).json({ error: "API route not found" });
-    }
-    res.sendFile(path.join(distPath, "index.html"));
-});
+// Serve Static Files (Disabled in serverless to avoid path issues)
+if (!isServerless) {
+    console.log("📂 Setting up static file serving...");
+    app.use(express.static(distPath));
+    // Catch-all to serve index.html for React Router
+    app.get(/(.*)/, (req, res) => {
+        if (req.path.startsWith("/api/")) {
+            return res.status(404).json({ error: "API route not found" });
+        }
+        res.sendFile(path.join(distPath, "index.html"));
+    });
+}
+else {
+    console.log("📂 Skipping static file serving in serverless mode");
+}
 // Error handler
 app.use((err, req, res, next) => {
     console.error("❌ Server error:", err);
@@ -124,7 +141,6 @@ app.use((err, req, res, next) => {
 // Cloud Run expects the server to listen on the PORT environment variable
 console.log(`🎧 Starting server on 0.0.0.0:${port}...`);
 let server; // Declare server variable outside the conditional block
-const isServerless = process.env.VERCEL === '1' || process.env.NETLIFY === 'true' || !!process.env.AWS_EXECUTION_ENV || !!process.env.FUNCTION_NAME;
 if (!isServerless) {
     server = app.listen(port, '0.0.0.0', async () => {
         console.log(`✅ Server running on http://0.0.0.0:${port}`);
