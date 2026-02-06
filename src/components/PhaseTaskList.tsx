@@ -145,6 +145,16 @@ export function PhaseTaskList({
           </div>
         </div>
 
+        {/* Active Track Indicator (If first phase) */}
+        {phase === 'immediate_actions' && estate?.authorityType && (
+          <div className="hidden md:flex flex-col items-end mr-4">
+            <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Active Settlement Track</span>
+            <Badge variant="outline" className="text-[10px] font-bold bg-indigo-50 border-indigo-200 text-indigo-700 mt-0.5">
+              {estate.authorityType.replace('_', ' ')}
+            </Badge>
+          </div>
+        )}
+
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
             <div className="w-20 h-1.5 bg-slate-100 rounded-full overflow-hidden">
@@ -346,14 +356,19 @@ function TaskItem({ task, isCompleted, onToggle, getAlertIcon, getAlertColor, do
                   {task.isAttorneyReviewNode && <Gavel className="w-4 h-4 text-amber-600 shrink-0" />}
                   {task.title}
                 </h4>
-                {task.helpArticleId && (
-                  <button
-                    onClick={handleHelpClick}
-                    className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-blue-50 rounded-full"
-                    title="View help article"
-                  >
-                    <HelpCircle className="w-4 h-4 text-blue-600" />
-                  </button>
+                {task.isConditional && (
+                  <div className="mt-2 flex items-center gap-1.5 px-2 py-1 bg-blue-50 border border-blue-100 rounded-md w-fit">
+                    <Info className="w-3 h-3 text-blue-600" />
+                    <span className="text-[10px] font-bold text-blue-700 uppercase tracking-widest">
+                      {task.conditionalRequirementLabel || "Conditionally Required"}
+                    </span>
+                  </div>
+                )}
+                {task.isAttorneyReviewNode && (
+                  <div className="mt-2 flex items-center gap-1.5 px-2 py-1 bg-amber-50 border border-amber-200 rounded-md w-fit">
+                    <Gavel className="w-3 h-3 text-amber-600" />
+                    <span className="text-[10px] font-bold text-amber-700 uppercase tracking-widest">Fiduciary Decision Guardrail</span>
+                  </div>
                 )}
               </div>
               <p className={cn(

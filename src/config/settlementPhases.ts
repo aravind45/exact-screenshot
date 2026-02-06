@@ -37,6 +37,8 @@ export interface PhaseTask {
   isAttorneyReviewNode?: boolean; // Highlight mandatory/recommended checkpoints
   milestone?: string;           // Human-readable milestone label (e.g. "After Authority Issued")
   trackCompatibility?: ("PROBATE" | "TRUST" | "AFFIDAVIT" | "NON_PROBATE")[];
+  isConditional?: boolean;     // Mandatory IF a specific condition is met
+  conditionalRequirementLabel?: string; // e.g. "Required if minors have interests"
 }
 
 export interface PhaseTaskList {
@@ -131,16 +133,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
           type: "important",
           message: "This procedure is limited to primary residences. Other assets require different pathways."
         }]
-      }
-    ]
-  },
-  {
-    phase: "immediate_actions",
-    title: "Immediate Actions",
-    subtitle: "Notification & Protection",
-    milestone: "Death to Filing",
-    description: "Essential initial steps to protect the estate and fulfill immediate notification requirements.",
-    tasks: [
+      },
       {
         id: "secure_property_2",
         title: "Initial Property Protection",
@@ -177,6 +170,17 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         title: "Cancel Credit Cards & Subscriptions",
         description: "Stop recurring charges and prevent identity theft by closing accounts.",
         estimatedTime: "2-3 hours",
+        alerts: [
+          {
+            type: "warning",
+            message: "Fiduciary Caution: While recurring charges should stop, avoid paying off large unsecured credit card balances from estate funds until the 4-month creditor period has expired and solvency is confirmed."
+          }
+        ]
+      },
+      {
+        id: "manage_utilities",
+        title: "Manage Utilities",
+        description: "Review decedent's utility accounts (electricity, water, gas).",
         alerts: [
           {
             type: "caution",
@@ -441,7 +445,8 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         description: "Request court appointment of a guardian ad litem to represent minor beneficiaries' interests throughout probate.",
         estimatedTime: "2-4 hours",
         category: "probate",
-        isOptional: true,
+        isConditional: true,
+        conditionalRequirementLabel: "Required if minors have interests",
         requiredDocs: ["DE-350", "Death Certificate"],
         dependencies: ["file_petition"],
         links: [{
@@ -810,13 +815,6 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         }]
       },
       {
-        id: "itin_application_protocol",
-        title: "International Fiduciary: ITIN Acquisition",
-        description: "Identify foreign beneficiaries who require a U.S. Individual Taxpayer Identification Number (ITIN) for distributions.",
-        isInternationalOnly: true,
-        trackCompatibility: ["PROBATE", "TRUST"]
-      },
-      {
         id: "itin_acquisition_protocol",
         title: "International Fiduciary: ITIN Acquisition Protocol",
         description: "Identify foreign beneficiaries without a SSN/ITIN. Coordinate acquisition of U.S. Individual Taxpayer Identification Numbers to avoid maximum backup withholding on distributions.",
@@ -866,6 +864,17 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
           }
         ],
         isAttorneyReviewNode: true
+      },
+      {
+        id: "evaluate_and_document_claims",
+        title: "Document Claim Evaluation & Decision",
+        description: "Formally evaluate each timely creditor claim. Document whether the claim is allowed in full, partially allowed, or rejected.",
+        isAttorneyReviewNode: true,
+        trackCompatibility: ["PROBATE", "TRUST"],
+        alerts: [{
+          type: "caution",
+          message: "Legal Decision Guardrail: Formal claim rejection (DE-174) triggers a strict 90-day litigation window for the creditor. Consult with an attorney before issuing a formal rejection."
+        }]
       },
       {
         id: "reject_invalid",
