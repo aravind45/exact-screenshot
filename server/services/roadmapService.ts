@@ -60,10 +60,10 @@ export async function analyzeEstateProfile(estateId: string): Promise<EstateProf
   // Calculate recommendation using the new multi-dimensional engine
   const rec = calculateAuthorityRecommendation(estate.assets, estate.deceasedState, {
     hasWill: estate.hasWill,
-    isOutOfState: estate.isOutOfState,
+    isOutOfState: (estate as any).isOutOfState ?? false,
     hasMinors: estate.hasMinorBeneficiaries || estate.heirs.some(h => !h.isAdult),
     hasContest: estate.hasContest,
-    hasTODDeed: estate.hasTODDeed || estate.assets.some(a => a.todDeedRecorded)
+    hasTODDeed: (estate as any).hasTODDeed ?? estate.assets.some((a: any) => a.todDeedRecorded)
   });
 
   return {

@@ -7,7 +7,7 @@ import {
     type AuthoritySource,
     type ProcedureType,
     type DistributionModel
-} from './stateRules';
+} from './stateRules.js';
 export { UPC_STATES, type AuthorityType };
 
 // State thresholds for small estate eligibility
