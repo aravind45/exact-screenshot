@@ -93,6 +93,13 @@ model Estate {
   guardianAdLitemId         String?              @map("guardian_ad_litem_id")
   guardianAdLitemStatus     String?              @map("guardian_ad_litem_status")
   specialNoticeParties      Json?                @map("special_notice_parties")
+  hasTODDeed                Boolean              @default(false) @map("has_tod_deed")
+  isSurvivingSpouse         Boolean              @default(false) @map("is_surviving_spouse")
+  hasOutOfStateProperty     Boolean              @default(false) @map("has_out_of_state_property")
+  isOutOfState              Boolean              @default(false) @map("is_out_of_state")
+  hasUnknownHeirs           Boolean              @default(false) @map("has_unknown_heirs")
+  isTrustRevocable          Boolean?             @map("is_trust_revocable")
+  estimatedLiabilities      Decimal?             @map("estimated_liabilities") @db.Decimal(12, 2)
   assets                    Asset[]
   authorityDecisions        AuthorityDecision[]
   communications            Communication[]
@@ -201,6 +208,9 @@ model Asset {
   inventoryValue     Decimal?             @map("inventory_value") @db.Decimal(12, 2)
   inventoryNote      String?              @map("inventory_note")
   inventoryCategory  String?              @map("inventory_category")
+  todDeedRecorded    Boolean              @default(false) @map("tod_deed_recorded")
+  beneficiaryDesignation String?          @map("beneficiary_designation")
+  inTrust            Boolean              @default(false) @map("in_trust")
   createdAt          DateTime             @default(now()) @map("created_at")
   updatedAt          DateTime             @updatedAt @map("updated_at")
   communications     AssetCommunication[]
