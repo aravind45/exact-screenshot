@@ -187,7 +187,8 @@ export function CollapsiblePhaseChevron({ onTaskToggle }: CollapsiblePhaseChevro
         const isExpanded = expandedPhases.has(phase);
         const isCompleted = completedPhases.includes(phase);
         const isCurrent = phase === currentPhase;
-        const lockStatus = phaseLocks[phase];
+        // Fallback for lockStatus if phase not found in phaseLocks (database roadmap may have different phase codes)
+        const lockStatus = phaseLocks[phase] || { isLocked: false };
         const progress = phaseProgress[phase];
         const assetCount = assetsByPhase[phase]?.length || 0;
 
