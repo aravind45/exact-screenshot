@@ -110,7 +110,8 @@ export function filterTasksForEstate(
       // 3. Handle Track Compatibility (Multi-Dimensional)
       // We check if the task is compatible with ANY of the active engines.
       // E.g., if "PROBATE" is an active engine, show probate tasks.
-      if (task.trackCompatibility) {
+      // If trackCompatibility is empty or null, show the task (no restrictions)
+      if (task.trackCompatibility && task.trackCompatibility.length > 0) {
         const isCompatible = task.trackCompatibility.some(track =>
           profile.activeEngines.includes(track) ||
           (track === "AFFIDAVIT" && profile.procedureType === "SMALL_ESTATE_AFFIDAVIT")
