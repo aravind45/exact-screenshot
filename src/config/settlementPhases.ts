@@ -1,4 +1,4 @@
-import { SettlementPhase } from "../components/SettlementPhaseChevron.js";
+import type { SettlementPhase } from "../components/SettlementPhaseChevron.js";
 import { AuthorityType, MasterMode } from "../lib/authorityEngine.js";
 
 export interface PhaseTask {

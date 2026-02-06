@@ -237,6 +237,7 @@ async function getRoadmapFromDatabase(
     title: phase.title,
     subtitle: phase.subtitle || '',
     milestone: phase.milestone || '',
+    description: phase.description || '',
     isEscalationPath: phase.isEscalationPath,
     tasks: phase.tasks.map(task => ({
       id: task.taskCode,
