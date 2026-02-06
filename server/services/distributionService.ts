@@ -11,6 +11,7 @@ export interface DistributionReadiness {
         allClaimsPaid: boolean;
         inventoryFiled: boolean;
         assetsVerified: boolean;
+        accountingComplete: boolean;
     };
     daysRemaining?: number;
 }
@@ -54,7 +55,10 @@ export class DistributionService {
         // 4. Assets Verified Check
         const assetsVerified = assets.length > 0 && assets.every(a => a.status !== 'DISCOVERED' && a.status !== 'LOCKED');
 
-        // 5. Minor Beneficiary Check (Gap 11)
+        // 5. Accounting Complete Check
+        const accountingComplete = documents.some(d => d.documentType === 'FINAL_ACCOUNTING' && d.status === 'OBTAINED');
+
+        // 6. Minor Beneficiary Check (Gap 11)
         const heirs = await prisma.heir.findMany({ where: { estateId } });
         const hasMinors = heirs.some(h => h.isAdult === false);
         const blockedAccountVerified = documents.some(d => d.documentType === 'BLOCKED_ACCOUNT_PROOF' && d.status === 'OBTAINED');
@@ -64,6 +68,7 @@ export class DistributionService {
         if (!allClaimsPaid) reasons.push("There are unpaid liabilities or unresolved claims.");
         if (!inventoryFiled) reasons.push("Final Inventory & Appraisal has not been filed with the court.");
         if (!assetsVerified) reasons.push("Some assets are still in 'Discovered' or 'Locked' status and must be verified.");
+        if (!accountingComplete) reasons.push("Final Accounting has not been completed or verified.");
 
         let minorCheckPassed = true;
         if (hasMinors && !blockedAccountVerified) {
@@ -71,17 +76,18 @@ export class DistributionService {
             minorCheckPassed = false;
         }
 
-        const isAllowed = noticePeriodClosed && allClaimsPaid && inventoryFiled && assetsVerified && minorCheckPassed;
+        const isAllowed = noticePeriodClosed && allClaimsPaid && inventoryFiled && assetsVerified && accountingComplete && minorCheckPassed;
 
         return {
             allowed: isAllowed,
-            status: isAllowed ? 'ALLOWED' : (noticePeriodClosed ? (minorCheckPassed ? 'BLOCKED' : 'RESTRICTED') : 'RESTRICTED'),
+            status: isAllowed ? 'ALLOWED' : (noticePeriodClosed ? (minorCheckPassed && accountingComplete ? 'BLOCKED' : 'RESTRICTED') : 'RESTRICTED'),
             reasons,
             checks: {
                 noticePeriodClosed,
                 allClaimsPaid,
                 inventoryFiled,
-                assetsVerified
+                assetsVerified,
+                accountingComplete
             },
             daysRemaining
         };

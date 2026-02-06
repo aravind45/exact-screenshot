@@ -185,6 +185,7 @@ export interface DistributionReadiness {
         allClaimsPaid: boolean;
         inventoryFiled: boolean;
         assetsVerified: boolean;
+        accountingComplete: boolean;
     };
     daysRemaining?: number;
 }

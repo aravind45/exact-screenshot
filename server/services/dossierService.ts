@@ -103,7 +103,10 @@ export class DossierService {
         report += `IV. CHRONOLOGICAL FIDUCIARY AUDIT TRAIL\n`;
         report += `Full audit trail preserving the chain of custody for all fiduciary decisions.\n`;
         activityLogs.forEach(log => {
-            report += `[${log.occurredAt.toISOString()}] ${log.action}: ${log.notes}\n`;
+            const date = log.occurredAt.toISOString();
+            const metadata = log.metadata as any;
+            const complianceTag = metadata?.complianceCategory ? ` [COMPLIANCE: ${metadata.complianceCategory}]` : '';
+            report += `[${date}]${complianceTag} ${log.action}: ${log.notes}\n`;
         });
 
         report += `\nV. RECORD OF REASONABLE DILIGENCE (ASSET DISCOVERY)\n`;

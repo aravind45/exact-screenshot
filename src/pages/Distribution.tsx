@@ -164,7 +164,7 @@ export default function Distribution() {
                                                 "Distributing now may expose you to personal liability. Critical safety gates are currently blocked."}
                                     </p>
 
-                                    <div className="mt-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-2 bg-white/50 p-2.5 rounded-2xl">
+                                    <div className="mt-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2 bg-white/50 p-2.5 rounded-2xl">
                                         <CheckItem label="Notice Period" done={readiness.checks.noticePeriodClosed} />
                                         <CheckItem label="Priority Claims" done={readiness.checks.allClaimsPaid} />
                                         <CheckItem label="Inventory Filed" done={readiness.checks.inventoryFiled} />
@@ -175,6 +175,7 @@ export default function Distribution() {
                                                 ['COURT_REQUIRED', 'TRUSTEE_DIRECT'].includes(a.authorityType)
                                             ).every(a => ['notified', 'approved', 'distributed'].includes(a.status))}
                                         />
+                                        <CheckItem label="Accounting" done={readiness.checks.accountingComplete} />
                                     </div>
                                 </div>
                             </motion.div>
