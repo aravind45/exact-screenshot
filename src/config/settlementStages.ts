@@ -410,9 +410,9 @@ export const TRACK_STAGES: Record<SettlementTrack, ProcessStage[]> = {
             tasks: [
                 { id: "review_will", title: "Review Will for clarity and validity" },
                 { id: "contact_beneficiaries", title: "Contact all beneficiaries" },
-                { id: "written_consent", title: "Obtain written consent from heirs" },
+                { id: "notify_heirs", title: "Notify heirs and confirm no objections filed" },
                 { id: "verify_no_disputes", title: "Verify no creditor disputes" },
-                { id: "document_agreement", title: "Document unanimous agreement" },
+                { id: "document_agreement", title: "Document absence of objections" },
                 { id: "no_contests", title: "Confirm no Will contests expected" },
                 { id: "state_requirements", title: "Verify estate meets state requirements" }
             ]

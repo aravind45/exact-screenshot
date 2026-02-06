@@ -1,14 +1,8 @@
 import { Check, Clock, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export type SettlementPhase =
-  | "immediate_actions"
-  | "court_filing"
-  | "asset_discovery"
-  | "creditor_claims"
-  | "asset_liquidation"
-  | "final_distribution"
-  | "probate_escalation";
+// Changed from hardcoded union to string to support dynamic settlement types
+export type SettlementPhase = string;
 
 export interface PhaseConfig {
   id: SettlementPhase;

@@ -42,7 +42,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import type { AssetCategory } from "@/components/CategoryBadge";
 import type { AssetStatus } from "@/components/StatusBadge";
 import type { Priority } from "@/components/PriorityBadge";
-import { ClaimsPriorityEngine } from "@/components/liabilities/ClaimsPriorityEngine";
 import { SEO } from "@/components/SEO";
 
 export default function Assets() {
