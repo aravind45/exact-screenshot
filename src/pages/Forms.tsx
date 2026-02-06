@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { AuthorityBadge, AuthorityType } from "@/components/AuthorityBadge";
 
 const STATES = [
     // Fully Supported States
@@ -118,6 +119,7 @@ const Forms = () => {
     const [selectedState, setSelectedState] = useState("CA");
     const [searchQuery, setSearchQuery] = useState("");
     const [processFilter, setProcessFilter] = useState("");
+    const [authorityFilter, setAuthorityFilter] = useState("");
     const [loadingAction, setLoadingAction] = useState<string | null>(null);
 
     const stateName = STATES.find(s => s.id === selectedState)?.name || selectedState;
@@ -174,9 +176,12 @@ const Forms = () => {
             const formProcess = getFormProcess(f.name || f.title || '');
             const matchesProcess = !processFilter || formProcess === processFilter;
 
-            return matchesState && matchesSearch && matchesProcess;
+            // Authority Tier filter
+            const matchesAuthority = !authorityFilter || f.authorityTier === authorityFilter;
+
+            return matchesState && matchesSearch && matchesProcess && matchesAuthority;
         });
-    }, [templates, selectedState, searchQuery, processFilter]);
+    }, [templates, selectedState, searchQuery, processFilter, authorityFilter]);
 
     return (
         <div className="flex min-h-screen bg-gray-50 text-gray-900 font-sans">
@@ -242,13 +247,21 @@ const Forms = () => {
                             onChange={(e) => setProcessFilter(e.target.value)}
                             className="px-4 py-2 h-10 bg-white border border-gray-200 rounded-lg text-gray-900 font-medium text-sm focus:outline-none focus:border-primary/50 transition-all cursor-pointer"
                         >
-                            <option value="">All Processes</option>
-                            <option value="probate_initialization">Probate Initialization</option>
-                            <option value="notices">Notices</option>
-                            <option value="inventory">Inventory & Appraisal</option>
-                            <option value="creditor_claims">Creditor Claims</option>
                             <option value="distribution">Distribution</option>
                             <option value="closing">Closing</option>
+                        </select>
+
+                        <select
+                            value={authorityFilter}
+                            onChange={(e) => setAuthorityFilter(e.target.value)}
+                            className="px-4 py-2 h-10 bg-white border border-gray-200 rounded-lg text-gray-900 font-medium text-sm focus:outline-none focus:border-primary/50 transition-all cursor-pointer"
+                        >
+                            <option value="">All Authority Tiers</option>
+                            <option value="COURT_REQUIRED">Court Authority</option>
+                            <option value="TRUSTEE_DIRECT">Trustee Authority</option>
+                            <option value="AFFIDAVIT_SMALL">Affidavit Support</option>
+                            <option value="BENEFICIARY_CONTRACT">Beneficiary Claims</option>
+                            <option value="SURVIVORSHIP_TITLE">Survivorship Title</option>
                         </select>
 
                         {!STATES.find(s => s.id === selectedState)?.supported && (
@@ -323,7 +336,7 @@ const Forms = () => {
                                                             "text-[10px] font-black uppercase tracking-widest",
                                                             formReady ? "text-emerald-600" : "text-amber-600"
                                                         )}>
-                                                            {formReady ? "Ready for Preparation" : "Not Ready Yet"}
+                                                            {readiness?.[form.name]?.status || (formReady ? "Ready for Preparation" : "Not Ready Yet")}
                                                         </span>
                                                     </div>
 
@@ -340,6 +353,9 @@ const Forms = () => {
                                                             <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-gray-100 border border-gray-200 text-primary uppercase">
                                                                 {form.name}
                                                             </span>
+                                                        </div>
+                                                        <div className="mb-2">
+                                                            <AuthorityBadge type={form.authorityTier as AuthorityType} showIcon={true} className="h-5 py-0.5 text-[9px]" />
                                                         </div>
                                                         <CardTitle className="text-lg font-bold text-gray-900 mb-2 leading-tight">
                                                             {form.title}

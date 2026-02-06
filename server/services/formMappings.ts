@@ -77,3 +77,43 @@ export const FORM_MAPPINGS: Record<string, FormMapping> = {
     'DE-150': DE150_MAPPING,
     'DE-160': DE160_MAPPING,
 };
+
+/**
+ * Maps Judicial Council and statutory forms to their required Authority Engines.
+ * Used for authority-driven filtering and readiness logic.
+ */
+export const FORM_AUTHORITIES: Record<string, string> = {
+    // Court Authority Required
+    'DE-111': 'COURT_REQUIRED',
+    'DE-121': 'COURT_REQUIRED',
+    'DE-150': 'COURT_REQUIRED',
+    'DE-160': 'COURT_REQUIRED',
+    'DE-110': 'COURT_REQUIRED',
+    'DE-112': 'COURT_REQUIRED',
+    'DE-120': 'COURT_REQUIRED',
+    'DE-122': 'COURT_REQUIRED',
+    'DE-157': 'COURT_REQUIRED',
+    'DE-161': 'COURT_REQUIRED',
+    'DE-165': 'COURT_REQUIRED',
+    'DE-172': 'COURT_REQUIRED',
+    'DE-174': 'COURT_REQUIRED',
+    'DE-221': 'COURT_REQUIRED',
+    'DE-226': 'COURT_REQUIRED',
+    'DE-295': 'COURT_REQUIRED',
+    'DE-305': 'COURT_REQUIRED',
+    'DE-310': 'COURT_REQUIRED',
+    'DE-350': 'COURT_REQUIRED',
+
+    // Trustee Direct (Templates)
+    'Notice 16061.7': 'TRUSTEE_DIRECT',
+    'Certification of Trust': 'TRUSTEE_DIRECT',
+    'Notice to Creditors (Trust)': 'TRUSTEE_DIRECT',
+
+    // Small Estate Affidavit
+    'Affidavit for Collection': 'AFFIDAVIT_SMALL',
+    'Small Estate Affidavit': 'AFFIDAVIT_SMALL',
+
+    // Beneficiary / Joint
+    'Claim for Life Insurance': 'BENEFICIARY_CONTRACT',
+    'Affidavit of Death of Joint Tenant': 'SURVIVORSHIP_TITLE',
+};

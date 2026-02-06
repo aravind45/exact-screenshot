@@ -1,7 +1,7 @@
 import { Router, Request, Response } from "express";
 import { prisma } from "../db.js";
 import { FormService } from "../services/formService.js";
-import { FORM_MAPPINGS } from "../services/formMappings.js";
+import { FORM_MAPPINGS, FORM_AUTHORITIES } from "../services/formMappings.js";
 import { DistributionService } from "../services/distributionService.js";
 import { AccountingService } from "../services/accountingService.js";
 
@@ -22,7 +22,14 @@ router.get("/templates", async (req: Request, res: Response) => {
                 updatedAt: true
             } as any
         });
-        res.json(templates);
+
+        // Add authority metadata
+        const enriched = templates.map((t: any) => ({
+            ...t,
+            authorityTier: FORM_AUTHORITIES[t.name] || 'COURT_REQUIRED'
+        }));
+
+        res.json(enriched);
     } catch (error) {
         console.error("Failed to fetch form templates:", error);
         res.status(500).json({ error: "Failed to fetch form templates" });
@@ -48,23 +55,31 @@ router.get("/readiness", async (req: any, res: Response) => {
         const estate = await prisma.estate.findUnique({ where: { id: estateId } });
         const accountingReadiness = await AccountingService.getReadiness(estateId);
 
-        // Form specific logic
+        // Form specific logic - mapped to Authority Engines
         const readiness = {
             'DE-111': {
                 ready: !!(estate?.deceasedFirstName && estate?.deceasedLastName),
-                reason: "Requires decedent name and address."
+                reason: "Requires decedent name and address.",
+                status: !!(estate?.deceasedFirstName && estate?.deceasedLastName) ? "READY" : "LOCKED",
+                authorityTier: "COURT_REQUIRED"
             },
             'DE-121': {
                 ready: !!(estate?.deceasedFirstName && estate?.deceasedLastName),
-                reason: "Requires decedent name and address."
+                reason: "Requires decedent name and address.",
+                status: !!(estate?.deceasedFirstName && estate?.deceasedLastName) ? "READY" : "LOCKED",
+                authorityTier: "COURT_REQUIRED"
             },
             'DE-150': {
                 ready: estate?.status === 'APPOINTED' || estate?.status === 'SETTLEMENT',
-                reason: "Can be prepared once the court has issued appointment orders."
+                reason: "Can be prepared once the court has issued appointment orders.",
+                status: (estate?.status === 'APPOINTED' || estate?.status === 'SETTLEMENT') ? "READY (Letters Issued)" : "PENDING COURT ORDER",
+                authorityTier: "COURT_REQUIRED"
             },
             'DE-160': {
                 ready: accountingReadiness.checks.inventoryObtained || estate?.status === 'SETTLEMENT',
-                reason: "Appropriate once assets have been discovered and valued."
+                reason: "Appropriate once assets have been discovered and valued.",
+                status: (accountingReadiness.checks.inventoryObtained || estate?.status === 'SETTLEMENT') ? "READY (Inventory Open)" : "COLLECTING ASSETS",
+                authorityTier: "COURT_REQUIRED"
             }
         };
 

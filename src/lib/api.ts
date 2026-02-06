@@ -200,7 +200,12 @@ export interface AccountingReadiness {
     details: string[];
 }
 
-export type FormReadiness = Record<string, { ready: boolean; reason: string }>;
+export type FormReadiness = Record<string, {
+    ready: boolean;
+    reason: string;
+    status?: string;
+    authorityTier?: string;
+}>;
 
 export interface RoadmapResponse {
     estateId: string;
