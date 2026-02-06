@@ -73,6 +73,46 @@ const SETTLEMENT_TYPE_META: Record<string, { tier: number; coverage: number; nam
     },
 };
 
+/**
+ * Generate a helpful description from a task title
+ */
+function generateTaskDescription(title: string): string {
+    // Remove form numbers and clean up title
+    const cleanTitle = title.replace(/\([^)]+\)/g, '').trim();
+
+    // Common action verbs and their descriptions
+    if (title.toLowerCase().includes('file') || title.toLowerCase().includes('submit')) {
+        return `Complete and ${title.toLowerCase()}. This is a required step in the settlement process.`;
+    }
+    if (title.toLowerCase().includes('obtain') || title.toLowerCase().includes('get') || title.toLowerCase().includes('receive')) {
+        return `${title}. You'll need this document to proceed with subsequent steps.`;
+    }
+    if (title.toLowerCase().includes('notify') || title.toLowerCase().includes('mail') || title.toLowerCase().includes('send')) {
+        return `${title} as required by law. Keep proof of notification for your records.`;
+    }
+    if (title.toLowerCase().includes('attend') || title.toLowerCase().includes('hearing')) {
+        return `${title}. Bring all required documents and be prepared to answer questions about the estate.`;
+    }
+    if (title.toLowerCase().includes('inventory') || title.toLowerCase().includes('list') || title.toLowerCase().includes('identify')) {
+        return `${title}. Create a detailed list with values and supporting documentation.`;
+    }
+    if (title.toLowerCase().includes('pay') || title.toLowerCase().includes('distribute')) {
+        return `${title} according to legal priority and requirements. Maintain detailed records of all payments.`;
+    }
+    if (title.toLowerCase().includes('close') || title.toLowerCase().includes('discharge')) {
+        return `${title}. This finalizes your responsibilities and formally concludes this phase.`;
+    }
+    if (title.toLowerCase().includes('review') || title.toLowerCase().includes('verify') || title.toLowerCase().includes('check')) {
+        return `${title} carefully. Ensure all information is accurate and complete before proceeding.`;
+    }
+    if (title.toLowerCase().includes('prepare') || title.toLowerCase().includes('complete')) {
+        return `${title}. Gather all necessary information and documentation before starting.`;
+    }
+
+    // Default description
+    return `${title}. Follow the required procedures and maintain proper documentation.`;
+}
+
 async function main() {
     console.log('🗺️  Migrating roadmaps to database...\n');
 
@@ -155,6 +195,7 @@ async function main() {
             if (stage.tasks && stage.tasks.length > 0) {
                 for (let j = 0; j < stage.tasks.length; j++) {
                     const task = stage.tasks[j];
+                    const description = generateTaskDescription(task.title);
 
                     await prisma.roadmapTask.upsert({
                         where: {
@@ -165,7 +206,7 @@ async function main() {
                         },
                         update: {
                             title: task.title,
-                            description: task.title,
+                            description: description,
                             estimatedTime: (task as any).estimatedTime,
                             category: (task as any).category,
                             orderIndex: j,
@@ -186,7 +227,7 @@ async function main() {
                             phaseId: phase.id,
                             taskCode: task.id,
                             title: task.title,
-                            description: task.title,
+                            description: description,
                             estimatedTime: (task as any).estimatedTime,
                             category: (task as any).category,
                             orderIndex: j,
