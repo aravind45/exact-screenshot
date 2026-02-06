@@ -68,26 +68,30 @@ export const AuthService = {
     async verifyToken(token: string) {
         try {
             if (!token || token === 'null' || token === 'undefined') {
-                console.log("🔑 verifyToken called with empty/invalid token string");
+                console.log("🔑 [VERIFY] Token is empty or literal 'null'/'undefined'");
                 return null;
             }
 
-            console.log(`🔑 Verifying token (len: ${token.length}). Secret prefix: ${JWT_SECRET.substring(0, 3)}...`);
+            // Diagnostic: Log secret status at verification time
+            const secretStatus = JWT_SECRET === "your-secret-key-change-this" ? "DEFAULT (INSECURE)" : `CUSTOM (${JWT_SECRET.length} chars)`;
+            console.log(`🔑 [VERIFY] Secret Status: ${secretStatus}`);
 
             const decoded: any = jwt.verify(token, JWT_SECRET);
-            console.log(`👤 JWT Valid. Decoded userId: ${decoded.userId}`);
+            console.log(`👤 [VERIFY] JWT Valid. Decoded userId: ${decoded.userId}`);
 
             const user = await prisma.user.findUnique({ where: { id: decoded.userId } });
             if (!user) {
-                console.log(`❌ DB Lookup: User ${decoded.userId} not found in database`);
+                console.log(`❌ [VERIFY] User ID ${decoded.userId} from token not found in DB`);
                 return null;
             }
 
             return user;
         } catch (error: any) {
-            console.error("🔑 JWT Verification Failed:", error.message);
+            console.error("🔑 [VERIFY] JWT rejection:", error.message);
             if (error.name === 'TokenExpiredError') {
-                console.log("⏰ Token expired at:", error.expiredAt);
+                console.log(`⏰ [VERIFY] Expired at: ${error.expiredAt}`);
+            } else if (error.name === 'JsonWebTokenError') {
+                console.log("🛠️ [VERIFY] Invalid signature (Check JWT_SECRET consistency)");
             }
             return null;
         }

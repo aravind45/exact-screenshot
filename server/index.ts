@@ -65,24 +65,26 @@ const authenticate = async (req: Request | any, res: Response, next: NextFunctio
     const authHeader = req.headers.authorization;
     const token = authHeader?.split(" ")[1] || req.query.token;
 
-    console.log(`🔒 Auth attempt: ${req.method} ${req.url}`);
+    console.log(`🔒 [AUTH] Attempting ${req.method} ${req.url}`);
     if (!token) {
-        console.log("❌ No token provided in headers or query");
+        console.log("❌ [AUTH] No token found in Authorization header or query params");
         return res.status(401).json({ error: "Unauthorized: No token provided" });
     }
 
     try {
+        console.log(`🔒 [AUTH] Token received (length: ${token.length}). Passing to verifyToken...`);
         const user = await AuthService.verifyToken(token as string);
         if (!user) {
-            console.log("❌ Auth failure: verifyToken returned null (User not found or JWT invalid)");
+            console.log("❌ [AUTH] verifyToken returned null - token rejected or user deleted");
             return res.status(401).json({ error: "Unauthorized: Invalid token or user not found" });
         }
 
-        console.log(`✅ Auth success: user ${user.id} (${user.email})`);
+        console.log(`✅ [AUTH] Success for user: ${user.email} (${user.id})`);
         req.user = user;
         next();
     } catch (err: any) {
-        console.error("❌ Auth middleware crash:", err.message);
+        console.error("❌ [AUTH] Middleware crash:", err.message);
+        console.error(err.stack);
         return res.status(500).json({ error: "Authentication service error" });
     }
 };
