@@ -11,6 +11,9 @@
 
 Based on comprehensive analysis of your current application state, competitive landscape, and market positioning, here's your optimal pricing strategy:
 
+> [!TIP]
+> **FLASH RECOMMENDATION:** While the 3-tier model is better for long-term revenue, for **RIGHT NOW (Soft Launch)**, I recommend a **Single Plan: $49/month "Everything Included"**. It eliminates choice friction and simplifies your Stripe integration.
+
 ### Current Application State: EXCELLENT ✅
 
 **System Grade:** A- (88%)
@@ -35,9 +38,9 @@ Based on comprehensive analysis of your current application state, competitive l
 
 | Tier | Price | Target | Conversion |
 |------|-------|--------|------------|
-| **Starter** | $39/month or $390/year | First-time executors, simple estates | 30-40% |
-| **Professional** | $69/month or $690/year | Serious executors, complex estates | 50-60% |
-| **Premium** | $129/month or $1,290/year | High-value estates, concierge service | 10-15% |
+| **Starter** | $29/month or $290/year | First-time executors, simple estates | 30-40% |
+| **Professional** | $49/month or $490/year | Serious executors, complex estates | 50-60% |
+| **Premium** | $99/month or $990/year | High-value estates, concierge service | 10-15% |
 
 **Why This Pricing:**
 1. **$39 Starter** - Accessible entry point, 20% higher than previous $29 recommendation
@@ -112,7 +115,9 @@ Based on comprehensive analysis of your current application state, competitive l
 - ✅ Document Vault (50GB)
 - ✅ Priority Support (email, 24hr response)
 - ✅ **All 11 Settlement Type Workflows**
-- ✅ **20 Workflow Phases with Email Templates**
+- ✅ **Authority Guardrails** (Digital phrase protection)
+- ✅ **Fiduciary Risk Meter** (Basic access)
+- ✅ **Accounting Complete Safety Gate**
 
 **Value Proposition:**
 "Complete automation with legal compliance for $69/month - prevents $10,000+ in mistakes"
@@ -146,14 +151,13 @@ Based on comprehensive analysis of your current application state, competitive l
 - Users who want white-glove service
 
 **Included Features:**
-- ✅ Everything in Professional
+- ✅ **Everything in Professional**
+- ✅ **The Evidence Dossier** (Comprehensive Audit Trail)
+- ✅ **Advanced Fiduciary Safety Gates** (The Risk Meter)
+- ✅ **Insolvency Engine** (Automated triggering)
+- ✅ **Authority Resolution Tracker** (Milestone-driven)
+- ✅ **Priority Attorney Review Nodes**
 - ✅ **Concierge Support** (dedicated support person)
-- ✅ **Weekly Check-in Calls** (30 min)
-- ✅ **Document Review Service**
-- ✅ **Attorney Network Access** (1 hour/month consultation)
-- ✅ **Tax Management Tools** (coming soon)
-- ✅ **Accounting Hub** (coming soon)
-- ✅ **Distribution Planning** (advanced)
 - ✅ **Unlimited Storage**
 - ✅ **White-glove Support** (phone, email, chat, 4hr response)
 - ✅ **Priority Feature Requests**
@@ -191,9 +195,9 @@ Based on comprehensive analysis of your current application state, competitive l
 
 | Tier | Monthly | Annual | Savings | Effective Monthly |
 |------|---------|--------|---------|-------------------|
-| **Starter** | $39/mo | $390/yr | $78 (2 months) | $32.50/mo |
-| **Professional** | $69/mo | $690/yr | $138 (2 months) | $57.50/mo |
-| **Premium** | $129/mo | $1,290/yr | $258 (2 months) | $107.50/mo |
+| **Starter** | $29/mo | $290/yr | $58 (2 months) | $24.16/mo |
+| **Professional** | $49/mo | $490/yr | $98 (2 months) | $40.83/mo |
+| **Premium** | $99/mo | $990/yr | $198 (2 months) | $82.50/mo |
 
 **Why 15% Discount:**
 - Encourages annual commitment
@@ -712,9 +716,23 @@ Compare that to:
 
 ---
 
-## Final Recommendation
+## Soft Launch Alternative: The "Total Executor" Plan (Single Tier)
 
-### Recommended Pricing Structure ⭐
+If you want to move FAST with zero friction, skip the tiers for the first 90 days:
+
+**Price:** $49/month (or $490/year)
+**Value Prop:** "Full Fiduciary OS Access - No Limits."
+
+**Pros:**
+- **Zero Friction:** One button. One choice. No analysis paralysis.
+- **Dev Speed:** Simple Stripe checkout (1 product ID).
+- **Brand Trust:** "We give you everything you need to be a perfect fiduciary."
+
+**Cons:**
+- Misses the ultra-low entry ($29) for very simple estates.
+- Leaves money on the table from high-value estates that would pay $99+.
+
+### Final Recommendation ⭐
 
 **Tier 1: Starter**
 - Price: $39/month or $390/year (15% off)

@@ -18,7 +18,10 @@ import {
     Loader2,
     ExternalLink,
     Mail,
-    FileCheck
+    FileCheck,
+    CreditCard,
+    Ban,
+    RefreshCcw
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -28,6 +31,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sidebar } from "@/components/Sidebar";
+import { BillingManager } from "@/components/BillingManager";
 
 function formatCurrency(value: number): string {
     return new Intl.NumberFormat('en-US', {
@@ -133,6 +137,7 @@ export default function AdminDashboard() {
                     <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                         <TabsList className="mb-6">
                             <TabsTrigger value="overview">System Users</TabsTrigger>
+                            <TabsTrigger value="billing">Billing & Ledger</TabsTrigger>
                             <TabsTrigger value="institutions">Institution Master</TabsTrigger>
                             <TabsTrigger value="templates">Form Templates</TabsTrigger>
                             <TabsTrigger value="communications">Communications</TabsTrigger>
@@ -159,6 +164,7 @@ export default function AdminDashboard() {
                                                 <th className="px-6 py-4">User</th>
                                                 <th className="px-6 py-4">Role</th>
                                                 <th className="px-6 py-4">Location</th>
+                                                <th className="px-6 py-4">Subscription</th>
                                                 <th className="px-6 py-4">Estates</th>
                                                 <th className="px-6 py-4">Logs</th>
                                                 <th className="px-6 py-4">Status</th>
@@ -177,8 +183,16 @@ export default function AdminDashboard() {
                                                     <td className="px-6 py-4 text-xs font-mono uppercase font-bold text-primary">
                                                         {user.role}
                                                     </td>
-                                                    <td className="px-6 py-4 text-muted-foreground">
-                                                        {user.state || "Not set"}
+                                                    <td className="px-6 py-4">
+                                                        <div className="flex flex-col text-sm">
+                                                            <span className="font-medium">{user.state || "—"}</span>
+                                                            {user.city && <span className="text-xs text-muted-foreground">{user.city}</span>}
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <Badge variant={user.subscriptionStatus === 'ACTIVE' ? 'default' : 'outline'} className="text-[10px]">
+                                                            {user.subscriptionStatus || 'FREE'}
+                                                        </Badge>
                                                     </td>
                                                     <td className="px-6 py-4 font-medium">
                                                         {user._count.estates}
@@ -203,6 +217,10 @@ export default function AdminDashboard() {
                                     </table>
                                 </div>
                             </div>
+                        </TabsContent>
+
+                        <TabsContent value="billing" className="mt-0">
+                            <BillingManager />
                         </TabsContent>
 
                         <TabsContent value="institutions" className="mt-0">

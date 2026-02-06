@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import { prisma } from "../db.js";
 import { FormSeedingService } from "../services/formSeedingService.js";
+import { StripeService } from "../services/stripeService.js";
 
 const router = Router();
 
@@ -306,5 +307,50 @@ function getProgressStatus(percent: number): string {
     if (percent < 100) return 'Almost Done';
     return 'Complete';
 }
+
+// Billing & Transactions
+router.get("/transactions", isAdmin, async (req: any, res: Response) => {
+    try {
+        const transactions = await prisma.transaction.findMany({
+            include: {
+                user: {
+                    select: { id: true, email: true, fullName: true }
+                }
+            },
+            orderBy: { createdAt: 'desc' },
+            take: 100
+        });
+        res.json(transactions);
+    } catch (error) {
+        console.error('❌ Failed to fetch transactions:', error);
+        res.status(500).json({ error: "Failed to fetch transactions" });
+    }
+});
+
+router.post("/waive-fees", isAdmin, async (req: any, res: Response) => {
+    try {
+        const { userId, notes } = req.body;
+        if (!userId) return res.status(400).json({ error: "userId required" });
+
+        await StripeService.waiveFees(userId, notes || 'Admin waived fees');
+        res.json({ success: true, message: 'Fees waived successfully' });
+    } catch (error: any) {
+        console.error('❌ Waive fees error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+router.post("/refund", isAdmin, async (req: any, res: Response) => {
+    try {
+        const { transactionId, notes } = req.body;
+        if (!transactionId) return res.status(400).json({ error: "transactionId required" });
+
+        const refund = await StripeService.issueRefund(transactionId, notes || 'Admin issued refund');
+        res.json({ success: true, refund });
+    } catch (error: any) {
+        console.error('❌ Refund error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
 
 export default router;

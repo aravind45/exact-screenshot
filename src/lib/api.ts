@@ -1201,4 +1201,55 @@ export const api = {
         });
         return parseResponse(response);
     },
+
+    /**
+     * Billing Methods
+     */
+    billing: {
+        createCheckout: async (successUrl?: string, cancelUrl?: string) => {
+            const response = await fetch(`${API_URL}/billing/checkout`, {
+                method: "POST",
+                headers: getHeaders(),
+                body: JSON.stringify({ successUrl, cancelUrl }),
+            });
+            return parseResponse(response);
+        },
+
+        getStatus: async () => {
+            const response = await fetch(`${API_URL}/billing/status`, {
+                headers: getHeaders(),
+            });
+            return parseResponse(response);
+        },
+    },
+
+    /**
+     * Admin Billing Methods
+     */
+    adminBilling: {
+        getTransactions: async () => {
+            const response = await fetch(`${API_URL}/admin/transactions`, {
+                headers: getHeaders(),
+            });
+            return parseResponse(response);
+        },
+
+        waiveFees: async (userId: string, notes?: string) => {
+            const response = await fetch(`${API_URL}/admin/waive-fees`, {
+                method: "POST",
+                headers: getHeaders(),
+                body: JSON.stringify({ userId, notes }),
+            });
+            return parseResponse(response);
+        },
+
+        issueRefund: async (transactionId: string, notes?: string) => {
+            const response = await fetch(`${API_URL}/admin/refund`, {
+                method: "POST",
+                headers: getHeaders(),
+                body: JSON.stringify({ transactionId, notes }),
+            });
+            return parseResponse(response);
+        },
+    },
 };

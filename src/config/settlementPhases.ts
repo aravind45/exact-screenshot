@@ -387,6 +387,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         utility: "Required to obtain legal authority to access accounts.",
         estimatedTime: "2-4 hours",
         category: "probate",
+        trackCompatibility: ["PROBATE"],
         exclusiveGroup: "filing_path",
         helpArticleId: "probate-steps",
         requiredDocs: [
@@ -413,6 +414,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         title: "Publish Creditor Notice",
         description: "Publish notice in a local newspaper for 3 consecutive weeks to notify creditors.",
         estimatedTime: "1 week",
+        trackCompatibility: ["PROBATE"],
         requiredDocs: ["Court Case Number", "DE-130"],
         category: "probate",
         deadlineWarningId: "CREDITOR_NOTICE_DEADLINE", // New deadline link
@@ -551,6 +553,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         estimatedTime: "2-4 hours",
         category: "probate",
         isConditional: true,
+        isOptional: true, // Controlled by filtering logic based on profile
         conditionalRequirementLabel: "Required if minors have interests",
         requiredDocs: ["DE-350", "Death Certificate"],
         dependencies: ["file_petition"],
@@ -724,7 +727,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         description: "If someone files an objection to the petition or will, you must respond formally and prepare for contest hearing.",
         estimatedTime: "2-4 weeks",
         category: "probate",
-        isOptional: true,
+        isOptional: true, // Controlled by profile.isContested
         requiredDocs: ["DE-115", "DE-116"],
         dependencies: ["file_petition"],
         links: [{

@@ -24,6 +24,7 @@ import { heirRoutes } from "./routes/heirRoutes.js";
 import { pdfRoutes } from "./routes/pdfRoutes.js";
 import formRoutes from "./routes/formRoutes.js";
 import helpRoutes from "./routes/helpRoutes.js";
+import billingRoutes from "./routes/billingRoutes.js";
 
 const app = express();
 const port = Number(process.env.PORT) || 3000;
@@ -102,6 +103,7 @@ app.use("/api/heirs", authenticate, heirRoutes);
 app.use("/api/pdf", authenticate, pdfRoutes);
 app.use("/api/forms", authenticate, formRoutes);
 app.use("/api/help", authenticate, helpRoutes);
+app.use("/api/billing", authenticate, billingRoutes);
 app.use("/api/webhooks", webhookRoutes); // Auth handled via Mailgun signatures
 
 // Profile (simple, keep here or move if grows)

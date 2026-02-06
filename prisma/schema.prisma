@@ -37,6 +37,10 @@ model User {
   invitations             Invitation[]
   estates                 Estate[]
   settlementActivities    SettlementActivity[]
+  transactions            Transaction[]
+  stripeCustomerId        String?                   @map("stripe_customer_id")
+  stripeSubscriptionId    String?                   @map("stripe_subscription_id")
+  subscriptionStatus      String?                   @default("FREE") @map("subscription_status")
 
   @@map("profiles")
 }
@@ -565,4 +569,20 @@ model RoadmapTask {
 
   @@unique([phaseId, taskCode])
   @@map("roadmap_tasks")
+}
+
+model Transaction {
+  id                    String   @id @default(uuid())
+  userId                String   @map("user_id")
+  amount                Decimal  @db.Decimal(12, 2)
+  currency              String   @default("USD")
+  status                String   @default("SUCCESS")
+  stripePaymentIntentId String?  @map("stripe_payment_intent_id")
+  type                  String   @default("PAYMENT")
+  notes                 String?
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("transactions")
 }
