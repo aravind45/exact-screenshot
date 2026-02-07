@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Sidebar } from "@/components/Sidebar";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import {
@@ -29,6 +29,7 @@ import { Label } from "@/components/ui/label";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 export default function HelpCenter() {
+    const navigate = useNavigate();
     const { data: estate } = useQuery({
         queryKey: ["estate"],
         queryFn: api.getMyEstate,
@@ -653,7 +654,10 @@ export default function HelpCenter() {
                                         about your case 24/7. Get instant clarity on complex legal protocols.
                                     </p>
                                 </div>
-                                <Button className="w-full md:w-auto px-12 h-14 bg-blue-600 hover:bg-blue-500 font-black text-xs uppercase tracking-widest border-none rounded-2xl">
+                                <Button 
+                                    className="w-full md:w-auto px-12 h-14 bg-blue-600 hover:bg-blue-500 font-black text-xs uppercase tracking-widest border-none rounded-2xl"
+                                    onClick={() => navigate('/estate-agent')}
+                                >
                                     Start Chatting
                                 </Button>
                             </CardContent>

@@ -13,7 +13,7 @@ export class StripeService {
     /**
      * Create a Stripe Checkout Session for a user to subscribe
      */
-    static async createCheckoutSession(userId, successUrl, cancelUrl) {
+    static async createCheckoutSession(userId, successUrl, cancelUrl, skipTrial = false) {
         const user = await prisma.user.findUnique({ where: { id: userId } });
         if (!user)
             throw new Error('User not found');
@@ -40,6 +40,9 @@ export class StripeService {
                 },
             ],
             mode: 'subscription',
+            subscription_data: skipTrial ? undefined : {
+                trial_period_days: 14,
+            },
             success_url: successUrl,
             cancel_url: cancelUrl,
             metadata: { userId },

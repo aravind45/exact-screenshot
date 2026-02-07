@@ -9,8 +9,8 @@ const router = Router();
 router.post('/checkout', async (req, res) => {
     try {
         const userId = req.user.id;
-        const { successUrl, cancelUrl } = req.body;
-        const session = await StripeService.createCheckoutSession(userId, successUrl || `${process.env.APP_URL || 'http://localhost:5173'}/dashboard?payment=success`, cancelUrl || `${process.env.APP_URL || 'http://localhost:5173'}/pricing?payment=cancelled`);
+        const { successUrl, cancelUrl, skipTrial } = req.body;
+        const session = await StripeService.createCheckoutSession(userId, successUrl || `${process.env.APP_URL || 'http://localhost:5173'}/dashboard?payment=success`, cancelUrl || `${process.env.APP_URL || 'http://localhost:5173'}/pricing?payment=cancelled`, !!skipTrial);
         res.json(session);
     }
     catch (error) {
