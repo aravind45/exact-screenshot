@@ -426,14 +426,7 @@ export const api = {
         return parseResponse(response);
     },
 
-    deleteAsset: async (id: string) => {
-        const response = await fetch(`${API_URL}/assets/${id}`, {
-            method: "DELETE",
-            headers: getHeaders(),
-        });
-        return parseResponse(response);
-    },
-
+    // Liabilities
     generateLetter: async (id: string, overrides?: any) => {
         const response = await fetch(`${API_URL}/assets/${id}/generate-letter`, {
             method: "POST",
@@ -1058,6 +1051,14 @@ export const api = {
             method: "POST",
             headers: getHeaders(),
             body: JSON.stringify(data),
+        });
+        return parseResponse(response);
+    },
+
+    deleteInvitation: async (id: string) => {
+        const response = await fetch(`${API_URL}/collaboration/invitations/${id}`, {
+            method: "DELETE",
+            headers: getHeaders(),
         });
         return parseResponse(response);
     },

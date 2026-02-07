@@ -44,13 +44,24 @@ export const CollaborationService = {
                 expiresAt
             }
         });
-        // 4. Send email
-        await EmailService.sendInviteEmail(email, {
-            inviterName: (await prisma.user.findUnique({ where: { id: inviterId } }))?.fullName || "A user",
-            estateName: estate.name,
-            token
-        });
-        return invitation;
+        // 4. Send email (optional - if it fails, we still have the invitation in the system)
+        try {
+            await EmailService.sendInviteEmail(email, {
+                inviterName: (await prisma.user.findUnique({ where: { id: inviterId } }))?.fullName || "A user",
+                estateName: estate.name,
+                token
+            });
+        }
+        catch (emailError) {
+            console.error("Failed to send invitation email:", emailError);
+            // We don't throw here so the 201 response can still be sent
+            return {
+                ...invitation,
+                emailSent: false,
+                emailError: "Invitation created, but email could not be sent. Please share the link manually."
+            };
+        }
+        return { ...invitation, emailSent: true };
     },
     /**
      * Accept an invitation

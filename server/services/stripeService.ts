@@ -132,42 +132,37 @@ export class StripeService {
                 const userId = session.metadata?.userId;
                 if (!userId) break;
 
-                const subscription = await this.stripe.subscriptions.retrieve(session.subscription as string);
+                // Handle Subscriptions
+                if (session.mode === 'subscription') {
+                    const subscription = await this.stripe.subscriptions.retrieve(session.subscription as string);
 
-                await prisma.user.update({
-                    where: { id: userId },
-                    data: {
-                        stripeSubscriptionId: subscription.id,
-                        subscriptionStatus: 'ACTIVE',
-                    },
-                });
+                    await prisma.user.update({
+                        where: { id: userId },
+                        data: {
+                            stripeSubscriptionId: subscription.id,
+                            subscriptionStatus: 'ACTIVE',
+                        },
+                    });
 
-                // Log transaction
-                await prisma.transaction.create({
-                    data: {
-                        userId,
-                        amount: (session.amount_total || 0) / 100,
-                        currency: session.currency?.toUpperCase() || 'USD',
-                        status: 'SUCCESS',
-                        stripePaymentIntentId: session.payment_intent as string,
-                        type: 'PAYMENT',
-                        notes: 'Subscription activated',
-                    },
-                });
+                    // Log transaction
+                    await prisma.transaction.create({
+                        data: {
+                            userId,
+                            amount: (session.amount_total || 0) / 100,
+                            currency: session.currency?.toUpperCase() || 'USD',
+                            status: 'SUCCESS',
+                            stripePaymentIntentId: session.payment_intent as string,
+                            type: 'PAYMENT',
+                            notes: 'Subscription activated',
+                        },
+                    });
 
-                console.log(`✅ Subscription activated for user ${userId}`);
-                break;
-            }
+                    console.log(`✅ Subscription activated for user ${userId}`);
+                }
 
-            case 'checkout.session.completed': {
-                const session = event.data.object as Stripe.Checkout.Session;
+                // Handle Extra Seats
                 if (session.metadata?.type === 'EXTRA_SEAT') {
-                    const { userId, estateId, inviteeEmail, inviteeRole } = session.metadata;
-
-                    // The payment is complete, now create the invitation
-                    // We need to import CollaborationService or use the logic here
-                    // To avoid circular dependency, we might want to move core logic to a shared helper
-                    // But for now, let's assume we can call CollaborationService or just create the record
+                    const { estateId, inviteeEmail, inviteeRole } = session.metadata;
 
                     const token = crypto.randomBytes(32).toString('hex');
                     const expiresAt = new Date();
@@ -202,9 +197,6 @@ export class StripeService {
 
                     console.log(`✅ Extra seat invitation created for ${inviteeEmail}`);
                 }
-                // Handle normal checkout if type is not extra seat (already partially handled above in a separate case block)
-                // Actually the current code has TWO checkout.session.completed blocks potentially? 
-                // Let's re-examine handleWebhook.
                 break;
             }
 

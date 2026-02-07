@@ -22,7 +22,7 @@ import {
     SelectValue
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { UserPlus, Mail, Shield, UserCircle, CreditCard, Clock, Loader2, AlertCircle } from "lucide-react";
+import { UserPlus, Mail, Shield, UserCircle, CreditCard, Clock, Loader2, AlertCircle, Trash2 } from "lucide-react";
 import { loadStripe } from "@stripe/stripe-js";
 import { EmbeddedCheckoutProvider, EmbeddedCheckout } from "@stripe/react-stripe-js";
 
@@ -57,7 +57,12 @@ export function UserManagement({ estateId }: UserManagementProps) {
             setIsInviteDialogOpen(false);
             setEmail("");
             setRole("VIEWER");
-            toast.success("Invitation sent successfully!");
+
+            if (response.emailSent === false) {
+                toast.warning(response.emailError || "Invitation created, but email failed.");
+            } else {
+                toast.success("Invitation sent successfully!");
+            }
         },
         onError: (err: any) => {
             toast.error(err.message || "Failed to send invitation");
@@ -71,6 +76,17 @@ export function UserManagement({ estateId }: UserManagementProps) {
         },
         onError: (err: any) => {
             toast.error(err.message || "Failed to initiate payment");
+        }
+    });
+
+    const deleteInviteMutation = useMutation({
+        mutationFn: (id: string) => api.deleteInvitation(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["collaborators", estateId] });
+            toast.success("Invitation deleted");
+        },
+        onError: (err: any) => {
+            toast.error(err.message || "Failed to delete invitation");
         }
     });
 
@@ -262,8 +278,19 @@ export function UserManagement({ estateId }: UserManagementProps) {
                                             <div className="text-xs text-slate-500">Sent to {invite.role}</div>
                                         </div>
                                     </div>
-                                    <div className="text-xs text-amber-600 font-medium">
-                                        Waiting for Join
+                                    <div className="flex items-center gap-2">
+                                        <div className="text-xs text-amber-600 font-medium">
+                                            Waiting for Join
+                                        </div>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-8 w-8 text-slate-400 hover:text-red-500 hover:bg-red-50"
+                                            onClick={() => deleteInviteMutation.mutate(invite.id)}
+                                            disabled={deleteInviteMutation.isPending}
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </Button>
                                     </div>
                                 </div>
                             ))}
