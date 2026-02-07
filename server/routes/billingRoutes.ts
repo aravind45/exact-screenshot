@@ -28,16 +28,22 @@ router.post('/checkout', async (req: any, res: Response) => {
 });
 
 /**
- * GET /api/billing/status
- * Get current subscription status
+ * POST /api/billing/portal
+ * Create a Stripe Customer Portal session
  */
-router.get('/status', async (req: any, res: Response) => {
+router.post('/portal', async (req: any, res: Response) => {
     try {
         const userId = req.user.id;
-        const status = await StripeService.getSubscriptionStatus(userId);
-        res.json(status);
+        const { returnUrl } = req.body;
+
+        const session = await StripeService.createPortalSession(
+            userId,
+            returnUrl || `${process.env.APP_URL || 'http://localhost:5173'}/profile`
+        );
+
+        res.json(session);
     } catch (error: any) {
-        console.error('❌ Status error:', error);
+        console.error('❌ Portal error:', error);
         res.status(500).json({ error: error.message });
     }
 });

@@ -14,7 +14,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/lib/api";
-import { ArrowLeft, Save, User, UserCircle, Briefcase, MapPin, Mail, Loader2, ShieldCheck, Share2, Copy, Check } from "lucide-react";
+import { ArrowLeft, Save, User, UserCircle, Briefcase, MapPin, Mail, Loader2, ShieldCheck, Share2, Copy, Check, CreditCard, ExternalLink } from "lucide-react";
 import { motion } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Sidebar } from "@/components/Sidebar";
@@ -37,6 +37,7 @@ export default function ProfileSettings() {
         role: "",
         personalEmail: "",
     });
+    const [portalLoading, setPortalLoading] = useState(false);
 
     const { data: profile, isLoading } = useQuery({
         queryKey: ["profile"],
@@ -72,6 +73,22 @@ export default function ProfileSettings() {
 
     const handleSave = () => {
         updateMutation.mutate(formData);
+    };
+
+    const handleManageBilling = async () => {
+        setPortalLoading(true);
+        try {
+            const { url } = await api.billing.createPortalSession();
+            window.location.href = url;
+        } catch (error: any) {
+            toast({
+                variant: "destructive",
+                title: "Portal Failed",
+                description: error.message || "Unable to open billing portal"
+            });
+        } finally {
+            setPortalLoading(false);
+        }
     };
 
     if (isLoading) return <div className="p-8">Loading profile...</div>;
@@ -316,6 +333,56 @@ export default function ProfileSettings() {
                                                 Save Profile Changes
                                             </Button>
                                         </div>
+                                    </CardContent>
+                                </Card>
+                            </motion.div>
+
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.05 }}
+                            >
+                                <Card className="card-elevated border-none overflow-hidden relative">
+                                    <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
+                                        <CreditCard className="w-20 h-20 text-primary -rotate-12" />
+                                    </div>
+                                    <CardHeader>
+                                        <CardTitle className="flex items-center gap-2">
+                                            <CreditCard className="w-5 h-5 text-primary" />
+                                            Billing & Subscription
+                                        </CardTitle>
+                                        <CardDescription>
+                                            Manage your payment methods, view invoices, and update your subscription details.
+                                        </CardDescription>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <div className="bg-muted/30 rounded-xl p-4 border border-border/50 mb-6 font-sans">
+                                            <div className="flex items-center justify-between">
+                                                <div className="space-y-1">
+                                                    <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Current Plan</p>
+                                                    <p className="font-bold text-foreground">Executor Pro Plan</p>
+                                                </div>
+                                                <div className="text-right">
+                                                    <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Price</p>
+                                                    <p className="font-bold text-foreground">$49/mo</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <Button
+                                            variant="outline"
+                                            className="w-full h-12 gap-2 font-bold border-2"
+                                            onClick={handleManageBilling}
+                                            disabled={portalLoading}
+                                        >
+                                            {portalLoading ? (
+                                                <Loader2 className="w-4 h-4 animate-spin" />
+                                            ) : (
+                                                <>
+                                                    Manage Billing via Stripe
+                                                    <ExternalLink className="w-4 h-4" />
+                                                </>
+                                            )}
+                                        </Button>
                                     </CardContent>
                                 </Card>
                             </motion.div>

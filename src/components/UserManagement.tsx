@@ -22,7 +22,11 @@ import {
     SelectValue
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { UserPlus, Mail, Shield, UserCircle, CreditCard, Clock } from "lucide-react";
+import { UserPlus, Mail, Shield, UserCircle, CreditCard, Clock, Loader2, AlertCircle } from "lucide-react";
+import { loadStripe } from "@stripe/stripe-js";
+import { EmbeddedCheckoutProvider, EmbeddedCheckout } from "@stripe/react-stripe-js";
+
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || "pk_test_placeholder");
 
 interface UserManagementProps {
     estateId: string;
@@ -33,6 +37,8 @@ export function UserManagement({ estateId }: UserManagementProps) {
     const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
     const [email, setEmail] = useState("");
     const [role, setRole] = useState("VIEWER");
+    const [clientSecret, setClientSecret] = useState<string | null>(null);
+    const [isLimitExceeded, setIsLimitExceeded] = useState(false);
 
     const { data: collaborators, isLoading } = useQuery({
         queryKey: ["collaborators", estateId],
@@ -42,7 +48,11 @@ export function UserManagement({ estateId }: UserManagementProps) {
     const inviteMutation = useMutation({
         mutationFn: (data: { email: string; role: string }) =>
             api.inviteCollaborator({ estateId, ...data }),
-        onSuccess: () => {
+        onSuccess: (response: any) => {
+            if (response.limitExceeded) {
+                setIsLimitExceeded(true);
+                return;
+            }
             queryClient.invalidateQueries({ queryKey: ["collaborators", estateId] });
             setIsInviteDialogOpen(false);
             setEmail("");
@@ -51,6 +61,16 @@ export function UserManagement({ estateId }: UserManagementProps) {
         },
         onError: (err: any) => {
             toast.error(err.message || "Failed to send invitation");
+        }
+    });
+
+    const seatPaymentMutation = useMutation({
+        mutationFn: () => api.createExtraSeatSession({ estateId, email, role }),
+        onSuccess: (session: any) => {
+            setClientSecret(session.clientSecret);
+        },
+        onError: (err: any) => {
+            toast.error(err.message || "Failed to initiate payment");
         }
     });
 
@@ -78,64 +98,120 @@ export function UserManagement({ estateId }: UserManagementProps) {
                     </CardDescription>
                 </div>
 
-                <Dialog open={isInviteDialogOpen} onOpenChange={setIsInviteDialogOpen}>
+                <Dialog open={isInviteDialogOpen} onOpenChange={(open) => {
+                    setIsInviteDialogOpen(open);
+                    if (!open) {
+                        setClientSecret(null);
+                        setIsLimitExceeded(false);
+                    }
+                }}>
                     <DialogTrigger asChild>
                         <Button className="bg-indigo-600 hover:bg-indigo-700">
                             <UserPlus className="w-4 h-4 mr-2" />
                             Invite Member
                         </Button>
                     </DialogTrigger>
-                    <DialogContent className="sm:max-w-[425px]">
+                    <DialogContent className={clientSecret ? "sm:max-w-[700px]" : "sm:max-w-[425px]"}>
                         <DialogHeader>
                             <DialogTitle className="flex items-center gap-2">
                                 <UserPlus className="w-5 h-5 text-indigo-600" />
-                                Invite Collaborator
+                                {clientSecret ? "Complete Payment" : "Invite Collaborator"}
                             </DialogTitle>
                             <DialogDescription>
-                                Add a new member to the estate team. They will receive an email invitation.
+                                {clientSecret
+                                    ? "You've reached the free limit. Finish payment to add another seat."
+                                    : "Add a new member to the estate team. They will receive an email invitation."}
                             </DialogDescription>
                         </DialogHeader>
-                        <form onSubmit={handleInvite} className="space-y-6 pt-4">
-                            <div className="space-y-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="email">Email Address</Label>
-                                    <div className="relative">
-                                        <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                                        <Input
-                                            id="email"
-                                            type="email"
-                                            placeholder="collaborator@example.com"
-                                            className="pl-10"
-                                            value={email}
-                                            onChange={(e) => setEmail(e.target.value)}
-                                            required
-                                        />
+
+                        {clientSecret ? (
+                            <div className="mt-4 border rounded-xl overflow-hidden bg-white">
+                                <EmbeddedCheckoutProvider stripe={stripePromise} options={{ clientSecret }}>
+                                    <EmbeddedCheckout className="min-h-[400px]" />
+                                </EmbeddedCheckoutProvider>
+                            </div>
+                        ) : isLimitExceeded ? (
+                            <div className="space-y-6 pt-4">
+                                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex gap-3 text-amber-800">
+                                    <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+                                    <div>
+                                        <p className="font-bold mb-1 text-sm">Free Seat Limit Reached</p>
+                                        <p className="text-xs leading-relaxed opacity-90">
+                                            Your estate currently has 5 or more collaborators. Additional seats are available for a one-time charge of **$9.99** each.
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="flex flex-col gap-3">
+                                    <Button
+                                        onClick={() => seatPaymentMutation.mutate()}
+                                        disabled={seatPaymentMutation.isPending}
+                                        className="w-full bg-indigo-600 hover:bg-indigo-700 h-12 font-bold gap-2"
+                                    >
+                                        {seatPaymentMutation.isPending ? (
+                                            <Loader2 className="w-5 h-5 animate-spin" />
+                                        ) : (
+                                            <>
+                                                Pay $9.99 for Extra Seat
+                                                <CreditCard className="w-4 h-4" />
+                                            </>
+                                        )}
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        onClick={() => setIsLimitExceeded(false)}
+                                        className="text-slate-500 font-medium"
+                                    >
+                                        Back to Details
+                                    </Button>
+                                </div>
+                            </div>
+                        ) : (
+                            <form onSubmit={handleInvite} className="space-y-6 pt-4">
+                                <div className="space-y-4">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="email">Email Address</Label>
+                                        <div className="relative">
+                                            <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                                            <Input
+                                                id="email"
+                                                type="email"
+                                                placeholder="collaborator@example.com"
+                                                className="pl-10 h-10 rounded-lg"
+                                                value={email}
+                                                onChange={(e) => setEmail(e.target.value)}
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <Label htmlFor="role">Collaborator Role</Label>
+                                        <Select value={role} onValueChange={setRole}>
+                                            <SelectTrigger className="h-10 rounded-lg">
+                                                <SelectValue placeholder="Select a role" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="VIEWER">Viewer (Read Only)</SelectItem>
+                                                <SelectItem value="CO_EXECUTOR">Co-Executor (Full Access)</SelectItem>
+                                                <SelectItem value="ATTORNEY">Attorney (Legal Oversight)</SelectItem>
+                                            </SelectContent>
+                                        </Select>
                                     </div>
                                 </div>
 
-                                <div className="space-y-2">
-                                    <Label htmlFor="role">Collaborator Role</Label>
-                                    <Select value={role} onValueChange={setRole}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select a role" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="VIEWER">Viewer (Read Only)</SelectItem>
-                                            <SelectItem value="CO_EXECUTOR">Co-Executor (Full Access)</SelectItem>
-                                            <SelectItem value="ATTORNEY">Attorney (Legal Oversight)</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                            </div>
-
-                            <Button
-                                type="submit"
-                                className="w-full bg-indigo-600 hover:bg-indigo-700 h-11"
-                                disabled={inviteMutation.isPending}
-                            >
-                                {inviteMutation.isPending ? "Sending..." : "Send Invitation"}
-                            </Button>
-                        </form>
+                                <Button
+                                    type="submit"
+                                    className="w-full bg-indigo-600 hover:bg-indigo-700 h-11 rounded-lg font-bold"
+                                    disabled={inviteMutation.isPending}
+                                >
+                                    {inviteMutation.isPending ? (
+                                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                                    ) : (
+                                        "Send Invitation"
+                                    )}
+                                </Button>
+                            </form>
+                        )}
                     </DialogContent>
                 </Dialog>
             </CardHeader>

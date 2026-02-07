@@ -1,7 +1,23 @@
 import { Router } from "express";
 import { CollaborationService } from "../services/collaborationService.js";
+import { StripeService } from "../services/stripeService.js";
 import { prisma } from "../db.js";
 const router = Router();
+// Create a Stripe checkout session for an extra collaborator seat ($9.99)
+router.post("/extra-seat-session", async (req, res) => {
+    try {
+        const { estateId, email, role } = req.body;
+        if (!estateId || !email || !role) {
+            return res.status(400).json({ error: "Missing required fields: estateId, email, role" });
+        }
+        const session = await StripeService.createExtraSeatCheckoutSession(req.user.id, estateId, email, role);
+        res.json(session);
+    }
+    catch (error) {
+        console.error("Extra Seat Session Error:", error);
+        res.status(500).json({ error: error.message });
+    }
+});
 // Send an invitation
 router.post("/invitations", async (req, res) => {
     try {

@@ -22,6 +22,19 @@ export const CollaborationService = {
             throw new Error("You do not have permission to invite collaborators to this estate.");
         }
 
+        // 1b. Check collaborator limit (5 free seats)
+        const currentGrants = await prisma.estateGrant.count({
+            where: { estateId }
+        });
+        const pendingInvites = await prisma.invitation.count({
+            where: { estateId, status: 'PENDING' }
+        });
+        const totalCollaborators = currentGrants + pendingInvites;
+
+        if (totalCollaborators >= 5) {
+            return { limitExceeded: true, currentCount: totalCollaborators };
+        }
+
         // 2. Generate token
         const token = crypto.randomBytes(32).toString('hex');
         const expiresAt = new Date();

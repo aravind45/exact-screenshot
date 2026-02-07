@@ -1053,6 +1053,15 @@ export const api = {
         return parseResponse(response);
     },
 
+    createExtraSeatSession: async (data: { estateId: string, email: string, role: string }) => {
+        const response = await fetch(`${API_URL}/collaboration/extra-seat-session`, {
+            method: "POST",
+            headers: getHeaders(),
+            body: JSON.stringify(data),
+        });
+        return parseResponse(response);
+    },
+
     // Liabilities
     getLiabilities: async () => {
         const response = await fetch(`${API_URL}/liabilities`, {
@@ -1218,6 +1227,15 @@ export const api = {
         getStatus: async () => {
             const response = await fetch(`${API_URL}/billing/status`, {
                 headers: getHeaders(),
+            });
+            return parseResponse(response);
+        },
+
+        createPortalSession: async (options?: { returnUrl?: string }) => {
+            const response = await fetch(`${API_URL}/billing/portal`, {
+                method: "POST",
+                headers: getHeaders(),
+                body: JSON.stringify(options || {}),
             });
             return parseResponse(response);
         },

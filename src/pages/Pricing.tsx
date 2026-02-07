@@ -1,152 +1,213 @@
-import { useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Check, Shield, Zap, FileCheck, Scale, AlertTriangle, Loader2 } from "lucide-react";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Check, Shield, Zap, FileCheck, Scale, AlertTriangle, Loader2, ArrowLeft, Gem } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { loadStripe } from "@stripe/stripe-js";
+import { EmbeddedCheckoutProvider, EmbeddedCheckout } from "@stripe/react-stripe-js";
+import { motion, AnimatePresence } from "framer-motion";
+
+// Initialize Stripe
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || "pk_test_placeholder");
 
 export default function Pricing() {
     const navigate = useNavigate();
     const { toast } = useToast();
     const [loading, setLoading] = useState(false);
-    const [searchParams] = useSearchParams();
-    const shouldBuyNow = searchParams.get('mode') === 'buy';
+    const [clientSecret, setClientSecret] = useState<string | null>(null);
 
-    useEffect(() => {
-        if (shouldBuyNow && !loading) {
-            handleCheckout(true);
-        }
-    }, [shouldBuyNow]);
-
-    const handleCheckout = async (skipTrial = false) => {
+    const fetchClientSecret = useCallback(async (skipTrial = false) => {
         setLoading(true);
         try {
-            const { url } = await api.billing.createCheckout({ skipTrial });
-            if (url) {
-                window.location.href = url;
-            }
+            const { clientSecret: secret } = await api.billing.createCheckout({ skipTrial });
+            setClientSecret(secret);
         } catch (error: any) {
             toast({
                 variant: "destructive",
                 title: "Checkout Failed",
                 description: error.message || "Unable to start checkout session"
             });
+        } finally {
             setLoading(false);
         }
-    };
+    }, [toast]);
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
+        <div className="min-h-screen bg-[#0f172a] text-slate-200 selection:bg-indigo-500/30">
             {/* Header */}
-            <header className="border-b border-slate-200 bg-white/80 backdrop-blur-sm sticky top-0 z-50">
-                <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                        <Shield className="w-6 h-6 text-slate-900" />
-                        <span className="font-bold text-lg">ExpectedEstate</span>
+            <header className="border-b border-slate-800 bg-slate-900/50 backdrop-blur-xl sticky top-0 z-50">
+                <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+                    <div className="flex items-center gap-3 group cursor-pointer" onClick={() => navigate("/dashboard")}>
+                        <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20 group-hover:scale-110 transition-transform">
+                            <Shield className="w-6 h-6 text-white" />
+                        </div>
+                        <span className="font-black text-xl tracking-tight text-white">ExpectedEstate</span>
                     </div>
-                    <Button variant="ghost" onClick={() => navigate("/dashboard")}>
+                    <Button
+                        variant="ghost"
+                        className="text-slate-400 hover:text-white hover:bg-slate-800"
+                        onClick={() => navigate("/dashboard")}
+                    >
+                        <ArrowLeft className="w-4 h-4 mr-2" />
                         Back to Dashboard
                     </Button>
                 </div>
             </header>
 
-            {/* Hero */}
-            <section className="max-w-4xl mx-auto px-6 py-16 text-center">
-                <div className="inline-flex items-center gap-2 px-4 py-2 bg-amber-100 text-amber-900 rounded-full text-sm font-semibold mb-6">
-                    <Zap className="w-4 h-4" />
-                    Soft Launch Special
-                </div>
-                <h1 className="text-5xl font-bold text-slate-900 mb-4">
-                    The Fiduciary Execution OS
-                </h1>
-                <p className="text-xl text-slate-600 max-w-2xl mx-auto">
-                    Everything you need to execute your fiduciary duties with confidence. No tiers. No limits. Just results.
-                </p>
-            </section>
+            <main className="max-w-7xl mx-auto px-6 py-20">
+                <AnimatePresence mode="wait">
+                    {!clientSecret ? (
+                        <motion.div
+                            key="pricing"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            transition={{ duration: 0.5, ease: "easeOut" }}
+                            className="flex flex-col items-center"
+                        >
+                            {/* Hero */}
+                            <div className="text-center mb-16 space-y-6 max-w-3xl">
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.9 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ delay: 0.2 }}
+                                    className="inline-flex items-center gap-2 px-4 py-1.5 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 rounded-full text-sm font-bold tracking-wide uppercase"
+                                >
+                                    <Zap className="w-4 h-4" />
+                                    Launch Special Pricing
+                                </motion.div>
+                                <h1 className="text-6xl md:text-7xl font-black text-white tracking-tight leading-[1.1]">
+                                    Execute with <br />
+                                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400">
+                                        Absolute Confidence
+                                    </span>
+                                </h1>
+                                <p className="text-xl text-slate-400 leading-relaxed">
+                                    The Fiduciary Execution OS gives you the same tools used by elite professionals.
+                                    Protect the legacy, minimize liability, and settle faster.
+                                </p>
+                            </div>
 
-            {/* Pricing Card */}
-            <section className="max-w-2xl mx-auto px-6 pb-16">
-                <Card className="border-2 border-slate-900 shadow-2xl overflow-hidden">
-                    <div className="bg-gradient-to-r from-slate-900 to-slate-700 p-8 text-white">
-                        <div className="flex items-baseline gap-2 mb-2">
-                            <span className="text-5xl font-bold">$49</span>
-                            <span className="text-xl text-slate-300">/month</span>
-                        </div>
-                        <p className="text-slate-200 text-lg">Total Executor Plan</p>
-                    </div>
+                            {/* Pricing Card */}
+                            <div className="relative group max-w-2xl w-full">
+                                <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 via-purple-600 to-pink-600 rounded-[2.5rem] blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200" />
 
-                    <CardContent className="p-8 space-y-6">
-                        <div className="space-y-4">
-                            <FeatureItem icon={Shield} text="Full Fiduciary OS Access" />
-                            <FeatureItem icon={FileCheck} text="Authority Guardrails & Risk Meter" />
-                            <FeatureItem icon={Scale} text="Claims Priority Engine" />
-                            <FeatureItem icon={AlertTriangle} text="Accounting Complete Safety Gate" />
-                            <FeatureItem icon={Check} text="All 11 Settlement Type Workflows" />
-                            <FeatureItem icon={Check} text="Unlimited Estates & Assets" />
-                            <FeatureItem icon={Check} text="Comprehensive Audit Trail" />
-                            <FeatureItem icon={Check} text="Email & Document Automation" />
-                            <FeatureItem icon={Check} text="Priority Support" />
-                        </div>
+                                <Card className="relative bg-slate-900 border border-slate-800 rounded-[2rem] overflow-hidden shadow-2xl">
+                                    <div className="grid md:grid-cols-5 h-full">
+                                        <div className="md:col-span-2 bg-gradient-to-br from-slate-800 to-slate-900 p-10 flex flex-col justify-center border-r border-slate-800/50">
+                                            <div className="space-y-4">
+                                                <div className="flex items-center gap-2 text-indigo-400 font-bold text-sm tracking-widest uppercase">
+                                                    <Gem className="w-4 h-4" />
+                                                    One Simple Plan
+                                                </div>
+                                                <div className="flex items-baseline gap-2">
+                                                    <span className="text-6xl font-black text-white tracking-tighter">$49</span>
+                                                    <span className="text-slate-500 font-medium tracking-tight">/mo</span>
+                                                </div>
+                                                <p className="text-slate-400 text-sm leading-relaxed">
+                                                    Cancel anytime. No lock-in. <br />
+                                                    Deductible as an estate expense.
+                                                </p>
+                                            </div>
+                                        </div>
 
-                        <div className="pt-6 border-t font-sans">
-                            <Button
-                                size="lg"
-                                className="w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold text-lg py-6"
-                                onClick={() => handleCheckout(false)}
-                                disabled={loading}
-                            >
-                                {loading ? (
-                                    <>
-                                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                                        Starting Checkout...
-                                    </>
-                                ) : (
-                                    "Start 14-Day Free Trial"
-                                )}
-                            </Button>
-                            <Button
-                                variant="outline"
-                                className="w-full mt-4 h-12 text-slate-600 border-slate-200 hover:bg-slate-50 font-medium"
-                                onClick={() => handleCheckout(true)}
-                                disabled={loading}
-                            >
-                                Skip Trial & Buy Now
-                            </Button>
-                            <p className="text-center text-sm text-slate-500 mt-4">
-                                No credit card required for trial. Cancel anytime.
-                            </p>
-                        </div>
-                    </CardContent>
+                                        <div className="md:col-span-3 p-10 flex flex-col">
+                                            <div className="flex-1 space-y-4 mb-10 text-slate-300">
+                                                <FeatureItem icon={Shield} text="Full Fiduciary OS Access" />
+                                                <FeatureItem icon={FileCheck} text="Authority Guardrails & Risk Meter" />
+                                                <FeatureItem icon={Scale} text="Claims Priority Engine" />
+                                                <FeatureItem icon={AlertTriangle} text="Accounting Safety Gate" />
+                                                <FeatureItem icon={Check} text="11 Settlement Workflows" />
+                                                <FeatureItem icon={Check} text="Unlimited Estates & Assets" />
+                                                <FeatureItem icon={Check} text="Comprehensive Audit Trail" />
+                                                <FeatureItem icon={Check} text="Document Automation" />
+                                            </div>
 
-                    <CardFooter className="p-8 pt-0 flex flex-col items-center">
-                        <p className="text-xs text-slate-400 text-center mb-4">
-                            Questions about billing or refunds? Contact <a href="mailto:expected.estate@gmail.com" className="hover:text-slate-600 underline">expected.estate@gmail.com</a>
-                        </p>
-                    </CardFooter>
-                </Card>
+                                            <div className="space-y-4">
+                                                <Button
+                                                    size="lg"
+                                                    className="w-full bg-white hover:bg-slate-100 text-slate-950 font-black text-lg py-7 rounded-2xl shadow-xl shadow-white/5 transition-all active:scale-95 disabled:opacity-50"
+                                                    onClick={() => fetchClientSecret(false)}
+                                                    disabled={loading}
+                                                >
+                                                    {loading ? (
+                                                        <Loader2 className="w-6 h-6 animate-spin" />
+                                                    ) : (
+                                                        "Start 14-Day Free Trial"
+                                                    )}
+                                                </Button>
+                                                <button
+                                                    onClick={() => fetchClientSecret(true)}
+                                                    disabled={loading}
+                                                    className="w-full text-slate-500 hover:text-slate-300 transition-colors text-sm font-bold uppercase tracking-widest py-2"
+                                                >
+                                                    Skip Trial & Buy Now
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </Card>
+                            </div>
 
-                {/* Value Prop */}
-                <div className="mt-12 p-6 bg-amber-50 border border-amber-200 rounded-lg">
-                    <h3 className="font-bold text-lg text-amber-900 mb-2">Why $49/month is a steal</h3>
-                    <p className="text-amber-800 text-sm leading-relaxed">
-                        A single mistake in estate administration can cost <strong>$10,000+</strong> in legal fees, penalties, or personal liability.
-                        Our Fiduciary OS prevents those mistakes with automated guardrails, audit trails, and compliance checks—giving you the confidence
-                        to execute your duties perfectly.
-                    </p>
-                </div>
-            </section>
+                            {/* Trust Badge */}
+                            <div className="mt-16 text-center text-slate-500 font-medium max-w-md">
+                                <p className="mb-4 italic text-slate-400">
+                                    "A single mistake can cost $10,000+ in penalties. ExpectedEstate prevents those mistakes automatically."
+                                </p>
+                                <div className="flex items-center justify-center gap-8 opacity-40 grayscale pointer-events-none">
+                                    <div className="h-6 w-px bg-slate-800" />
+                                    <div className="font-black italic text-lg tracking-tighter">STRIPE SECURE</div>
+                                    <div className="h-6 w-px bg-slate-800" />
+                                </div>
+                            </div>
+                        </motion.div>
+                    ) : (
+                        <motion.div
+                            key="checkout"
+                            initial={{ opacity: 0, scale: 0.98 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            className="max-w-5xl mx-auto w-full"
+                        >
+                            <div className="mb-8 flex items-center justify-between">
+                                <Button
+                                    variant="ghost"
+                                    className="text-slate-400 hover:text-white"
+                                    onClick={() => setClientSecret(null)}
+                                >
+                                    <ArrowLeft className="w-4 h-4 mr-2" />
+                                    Change Plan
+                                </Button>
+                                <div className="flex items-center gap-2">
+                                    <Shield className="w-5 h-5 text-indigo-400" />
+                                    <span className="font-bold text-white tracking-tight">Secure Checkout</span>
+                                </div>
+                            </div>
+
+                            <div className="bg-white rounded-[2.5rem] overflow-hidden p-2 shadow-2xl">
+                                <EmbeddedCheckoutProvider
+                                    stripe={stripePromise}
+                                    options={{ clientSecret }}
+                                >
+                                    <EmbeddedCheckout className="min-h-[650px]" />
+                                </EmbeddedCheckoutProvider>
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+            </main>
         </div>
     );
 }
 
 function FeatureItem({ icon: Icon, text }: { icon: any; text: string }) {
     return (
-        <div className="flex items-center gap-3">
-            <div className="flex-shrink-0 w-5 h-5 rounded-full bg-green-100 flex items-center justify-center">
-                <Icon className="w-3 h-3 text-green-700" />
+        <div className="flex items-center gap-4 group">
+            <div className="flex-shrink-0 w-6 h-6 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center group-hover:bg-indigo-500/10 group-hover:border-indigo-500/30 transition-colors">
+                <Icon className="w-3.5 h-3.5 text-indigo-400" />
             </div>
-            <span className="text-slate-700 font-medium">{text}</span>
+            <span className="text-slate-400 group-hover:text-slate-200 transition-colors font-medium">{text}</span>
         </div>
     );
 }
