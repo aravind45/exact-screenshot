@@ -22,7 +22,7 @@ import {
     SelectValue
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { UserPlus, Mail, Shield, UserCircle, CreditCard, Clock, Loader2, AlertCircle, Trash2 } from "lucide-react";
+import { UserPlus, Mail, Shield, UserCircle, CreditCard, Clock, Loader2, AlertCircle, Trash2, ExternalLink } from "lucide-react";
 import { loadStripe } from "@stripe/stripe-js";
 import { EmbeddedCheckoutProvider, EmbeddedCheckout } from "@stripe/react-stripe-js";
 
@@ -281,9 +281,22 @@ export function UserManagement({ estateId }: UserManagementProps) {
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <div className="text-xs text-amber-600 font-medium">
+                                        <div className="text-xs text-amber-600 font-medium whitespace-nowrap">
                                             Waiting for Join
                                         </div>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-8 w-8 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50"
+                                            title="Copy Invitation Link"
+                                            onClick={() => {
+                                                const url = `${window.location.origin}/invite/${invite.token}`;
+                                                navigator.clipboard.writeText(url);
+                                                toast.success("Invitation link copied to clipboard");
+                                            }}
+                                        >
+                                            <ExternalLink className="w-4 h-4" />
+                                        </Button>
                                         <Button
                                             variant="ghost"
                                             size="icon"

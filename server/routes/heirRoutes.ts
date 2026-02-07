@@ -28,10 +28,11 @@ router.get("/", async (req: any, res: Response) => {
         });
 
         const heirsWithStatus = heirs.map(heir => {
-            const hasPendingInvite = heir.email ? invitations.some(i => i.email.toLowerCase() === heir.email?.toLowerCase()) : false;
+            const pendingInvite = heir.email ? invitations.find(i => i.email.toLowerCase() === heir.email?.toLowerCase()) : null;
             return {
                 ...heir,
-                hasPendingInvite
+                hasPendingInvite: !!pendingInvite,
+                pendingInviteToken: pendingInvite?.token
             };
         });
 
