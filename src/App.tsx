@@ -131,6 +131,7 @@ const App = () => (
                     <Route path="/liabilities" element={<ProtectedRoute><ProfileGuard><Liabilities /></ProfileGuard></ProtectedRoute>} />
                     <Route path="/non-probate" element={<ProtectedRoute><ProfileGuard><NonProbate /></ProfileGuard></ProtectedRoute>} />
                     <Route path="/help" element={<ProtectedRoute><ProfileGuard><HelpCenter /></ProfileGuard></ProtectedRoute>} />
+                    <Route path="/estate-agent" element={<ProtectedRoute><ProfileGuard><EstateAgentChatWrapper /></ProfileGuard></ProtectedRoute>} />
                     <Route path="/guides/california-probate" element={<CaliforniaProbateGuide />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
