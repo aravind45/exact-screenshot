@@ -257,7 +257,7 @@ Which asset ID does this email most likely belong to? Return ONLY the ID. If non
         if (!response.ok) {
             const error = await response.text();
             console.error("[EmailService] Invitation Email Error:", error);
-            throw new Error("Failed to send invitation email");
+            throw new Error(`Failed to send invitation email: ${error}`);
         }
 
         console.log(`[EmailService] Invitation email successfully sent to ${to}`);
@@ -304,7 +304,7 @@ Which asset ID does this email most likely belong to? Return ONLY the ID. If non
         if (!response.ok) {
             const error = await response.text();
             console.error("[EmailService] Password Reset Email Error:", error);
-            throw new Error("Failed to send reset email");
+            throw new Error(`Failed to send reset email: ${error}`);
         }
 
         console.log(`[EmailService] Reset email successfully accepted by Mailgun for ${to}`);
