@@ -81,4 +81,15 @@ router.get("/:estateId/collaborators", async (req, res) => {
         res.status(500).json({ error: "Failed to fetch collaborators" });
     }
 });
+// Delete a pending invitation
+router.delete("/invitations/:id", async (req, res) => {
+    try {
+        await CollaborationService.deleteInvitation(req.user.id, req.params.id);
+        res.json({ success: true });
+    }
+    catch (error) {
+        console.error("Delete Invite Error:", error);
+        res.status(400).json({ error: error.message });
+    }
+});
 export default router;

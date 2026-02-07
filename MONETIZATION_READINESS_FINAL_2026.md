@@ -230,7 +230,7 @@ After comprehensive reevaluation of your codebase, **you've made MASSIVE progres
 
 **Features:**
 - ✅ Mailgun integration
-- ✅ Estate-specific email addresses (handle@pilar.com)
+- ✅ Estate-specific email addresses (handle@expectedestate.com)
 - ✅ Inbound email processing (webhook)
 - ✅ Signature verification
 - ✅ CC to personal email option

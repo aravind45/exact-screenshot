@@ -1,6 +1,6 @@
 # Marketing Strategy for Estate Settlement Platform - 2026
 
-**Product:** ExpectedEstate / Pilar  
+**Product:** ExpectedEstate
 **Target Market:** Executors & Administrators settling estates  
 **Market Size:** 1.4M executors/year in US (50% of 2.8M deaths go through probate)  
 **Price Point:** $29-99/month  

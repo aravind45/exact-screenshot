@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
-import { Plus, Trash2, Save, User, Gavel, FileText, AlertTriangle, ShieldCheck, CheckCircle2 } from "lucide-react";
+import { Plus, Trash2, Save, User, Gavel, FileText, AlertTriangle, ShieldCheck, CheckCircle2, Mail } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import {
@@ -60,6 +60,23 @@ export default function Settings() {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["heirs"] });
             toast.success("Heir removed");
+        }
+    });
+
+    const inviteHeirMutation = useMutation({
+        mutationFn: api.inviteHeir,
+        onSuccess: (data: any) => {
+            queryClient.invalidateQueries({ queryKey: ["heirs"] });
+            if (data.emailSent) {
+                toast.success("Invitation email sent to heir");
+            } else if (data.emailError) {
+                toast.warning(data.emailError);
+            } else {
+                toast.success("Heir invited");
+            }
+        },
+        onError: (err: any) => {
+            toast.error(err.message || "Failed to send invitation");
         }
     });
 
@@ -257,23 +274,56 @@ export default function Settings() {
                                             </div>
                                         )}
                                         {heirs.map((heir: any) => (
-                                            <div key={heir.id} className="flex items-center justify-between p-4 border rounded-lg bg-white">
+                                            <div key={heir.id} className="flex items-center justify-between p-4 border rounded-lg bg-white shadow-sm hover:shadow-md transition-shadow">
                                                 <div className="flex items-center gap-4">
-                                                    <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 font-bold">
+                                                    <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 font-bold border border-indigo-200">
                                                         {heir.name.charAt(0)}
                                                     </div>
                                                     <div>
-                                                        <div className="font-bold text-slate-900">{heir.name}</div>
-                                                        <div className="text-sm text-slate-500">{heir.relationship}</div>
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="font-bold text-slate-900">{heir.name}</div>
+                                                            {heir.userId && (
+                                                                <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 flex items-center gap-1 text-[10px] py-0">
+                                                                    <ShieldCheck className="w-3 h-3" /> Joined
+                                                                </Badge>
+                                                            )}
+                                                        </div>
+                                                        <div className="text-sm text-slate-500 font-medium">{heir.relationship}</div>
                                                     </div>
                                                 </div>
                                                 <div className="flex items-center gap-4">
-                                                    <div className="text-sm text-slate-400 max-w-[200px] truncate hidden md:block">
-                                                        {heir.address || heir.email || "No contact info"}
+                                                    <div className="text-right hidden md:block">
+                                                        <div className="text-sm text-slate-600 font-medium truncate max-w-[200px]">
+                                                            {heir.email || heir.address || "No contact info"}
+                                                        </div>
+                                                        {heir.email && !heir.userId && (
+                                                            <div className="text-[10px] text-slate-400 italic">Not joined yet</div>
+                                                        )}
                                                     </div>
-                                                    <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-700 hover:bg-red-50" onClick={() => deleteHeirMutation.mutate(heir.id)}>
-                                                        <Trash2 className="w-4 h-4" />
-                                                    </Button>
+
+                                                    <div className="flex items-center gap-2 border-l pl-4 ml-2">
+                                                        {heir.email && !heir.userId && (
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                className="h-8 text-indigo-600 border-indigo-200 hover:bg-indigo-50"
+                                                                onClick={() => inviteHeirMutation.mutate(heir.id)}
+                                                                disabled={inviteHeirMutation.isPending}
+                                                            >
+                                                                <Mail className="w-3.5 h-3.5 mr-1.5" />
+                                                                Invite
+                                                            </Button>
+                                                        )}
+
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            className="h-8 w-8 text-slate-400 hover:text-red-500 hover:bg-red-50"
+                                                            onClick={() => deleteHeirMutation.mutate(heir.id)}
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </Button>
+                                                    </div>
                                                 </div>
                                             </div>
                                         ))}

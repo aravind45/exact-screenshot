@@ -96,14 +96,27 @@ export const CollaborationService = {
                     acceptedAt: new Date()
                 }
             });
-            // 3. Log Activity
+            // 3. Link Heir record if it exists
+            const matchingHeir = await tx.heir.findFirst({
+                where: {
+                    estateId: invitation.estateId,
+                    email: invitation.email
+                }
+            });
+            if (matchingHeir) {
+                await tx.heir.update({
+                    where: { id: matchingHeir.id },
+                    data: { userId }
+                });
+            }
+            // 4. Log Activity
             await tx.settlementActivity.create({
                 data: {
                     estateId: invitation.estateId,
                     userId,
                     type: 'SYSTEM',
                     action: 'JOINED',
-                    notes: `User joined as ${invitation.role}`
+                    notes: `User joined as ${invitation.role}${matchingHeir ? ' (Linked to Beneficiary record)' : ''}`
                 }
             });
             return grant;
@@ -130,5 +143,24 @@ export const CollaborationService = {
             userRole: g.role,
             isOwner: false
         }));
+    },
+    /**
+     * Delete a pending invitation
+     */
+    async deleteInvitation(userId, invitationId) {
+        const invitation = await prisma.invitation.findUnique({
+            where: { id: invitationId },
+            include: { estate: { include: { grants: true } } }
+        });
+        if (!invitation)
+            throw new Error("Invitation not found");
+        const isOwner = invitation.estate.userId === userId;
+        const hasAdminGrant = invitation.estate.grants.some(g => g.userId === userId && (g.role === 'OWNER' || g.role === 'ATTORNEY'));
+        if (!isOwner && !hasAdminGrant && invitation.invitedBy !== userId) {
+            throw new Error("You do not have permission to delete this invitation.");
+        }
+        return await prisma.invitation.delete({
+            where: { id: invitationId }
+        });
     }
 };

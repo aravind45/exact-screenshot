@@ -15,7 +15,7 @@ export class EmailService {
         if (estate.handle)
             return estate.handle;
         const handle = crypto.randomBytes(4).toString("hex"); // e.g. 'af2b81'
-        const domain = process.env.MAILGUN_DOMAIN || "mg.pilar.ai";
+        const domain = process.env.MAILGUN_DOMAIN || "mg.expectedestate.com";
         const inboundEmail = `settle-${handle}@${domain}`;
         await prisma.estate.update({
             where: { id: estateId },
@@ -39,7 +39,7 @@ export class EmailService {
      * Processes an inbound email from Mailgun.
      */
     static async processInbound(payload) {
-        const recipient = payload.recipient; // e.g. settle-af2b81@mg.pilar.ai
+        const recipient = payload.recipient; // e.g. settle-af2b81@mg.expectedestate.com
         const handle = recipient.match(/settle-([a-f0-9]+)@/)?.[1];
         if (!handle)
             return { status: "ignored", reason: "no handle found" };
@@ -115,7 +115,7 @@ Which asset ID does this email most likely belong to? Return ONLY the ID. If non
         if (!estate)
             throw new Error("Estate not found");
         const handle = await this.ensureEstateHandle(params.estateId);
-        const domain = await ConfigService.get("MAILGUN_DOMAIN") || "mg.pilar.ai";
+        const domain = await ConfigService.get("MAILGUN_DOMAIN") || "mg.expectedestate.com";
         const sender = `ExpectedEstate <settle-${handle}@${domain}>`;
         const apiKey = await ConfigService.get("MAILGUN_API_KEY");
         // Add CC if requested and user has personal email
@@ -182,8 +182,8 @@ Which asset ID does this email most likely belong to? Return ONLY the ID. If non
         return await ConfigService.get("APP_URL") || process.env.APP_URL || "http://localhost:5173";
     }
     static async sendInviteEmail(to, data) {
-        const domain = await ConfigService.get("MAILGUN_DOMAIN") || "mg.pilar.ai";
-        const sender = `Pilar Team <noreply@${domain}>`;
+        const domain = await ConfigService.get("MAILGUN_DOMAIN") || "mg.expectedestate.com";
+        const sender = `ExpectedEstate <noreply@${domain}>`;
         const appUrl = (await this.getAppUrl()).replace(/\/$/, "");
         const inviteUrl = `${appUrl}/invite/${data.token}`;
         const apiKey = await ConfigService.get("MAILGUN_API_KEY");
@@ -206,7 +206,7 @@ Which asset ID does this email most likely belong to? Return ONLY the ID. If non
         formData.append("from", sender);
         formData.append("to", to);
         formData.append("subject", `Invitation to collaborate on ${data.estateName}`);
-        formData.append("text", `${data.inviterName} has invited you to collaborate on the estate of ${data.estateName} on Pilar.\n\nClick the link below to accept the invitation:\n${inviteUrl}\n\nThis invitation will expire in 7 days.`);
+        formData.append("text", `${data.inviterName} has invited you to collaborate on the estate of ${data.estateName} on ExpectedEstate.\n\nClick the link below to accept the invitation:\n${inviteUrl}\n\nThis invitation will expire in 7 days.`);
         console.log(`[EmailService] Sending invite to ${to}`);
         const baseUrl = process.env.MAILGUN_BASE_URL || "https://api.mailgun.net";
         const response = await fetch(`${baseUrl}/v3/${domain}/messages`, {
@@ -225,7 +225,7 @@ Which asset ID does this email most likely belong to? Return ONLY the ID. If non
         console.log(`[EmailService] Invitation email successfully sent to ${to}`);
     }
     static async sendPasswordResetEmail(to, resetLink) {
-        const domain = await ConfigService.get("MAILGUN_DOMAIN") || "mg.pilar.ai";
+        const domain = await ConfigService.get("MAILGUN_DOMAIN") || "mg.expectedestate.com";
         const apiKey = await ConfigService.get("MAILGUN_API_KEY");
         console.log(`[EmailService] Attempting to send reset email to: ${to}`);
         console.log(`[EmailService] Using domain: ${domain}`);

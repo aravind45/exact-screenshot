@@ -41,6 +41,7 @@ model User {
   estates                 Estate[]
   settlementActivities    SettlementActivity[]
   transactions            Transaction[]
+  heirs                   Heir[]
 
   @@map("profiles")
 }
@@ -363,6 +364,7 @@ model EstateDocument {
 model Heir {
   id            String         @id @default(uuid())
   estateId      String         @map("estate_id")
+  userId        String?        @map("user_id")
   name          String
   relationship  String
   isAdult       Boolean        @default(true) @map("is_adult")
@@ -373,6 +375,7 @@ model Heir {
   updatedAt     DateTime       @updatedAt @map("updated_at")
   distributions Distribution[]
   estate        Estate         @relation(fields: [estateId], references: [id], onDelete: Cascade)
+  user          User?          @relation(fields: [userId], references: [id])
 
   @@map("heirs")
 }

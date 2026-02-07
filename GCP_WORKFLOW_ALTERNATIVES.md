@@ -100,7 +100,7 @@ main:
                                 - to:
                                     - email: ${deadline.userEmail}
                               from:
-                                email: noreply@pilar.com
+                                email: noreply@expectedestate.com
                               subject: ${"Deadline Tomorrow: " + deadline.title}
                               content:
                                 - type: text/plain

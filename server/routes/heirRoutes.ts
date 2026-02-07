@@ -1,6 +1,7 @@
 import { Router, Response } from "express";
 import { prisma } from "../db.js";
 import { AuditService } from "../services/auditService.js";
+import { CollaborationService } from "../services/collaborationService.js";
 
 const router = Router();
 
@@ -105,6 +106,25 @@ router.delete("/:id", async (req: any, res: Response) => {
         }
 
         res.json({ success: true });
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// Invite an heir to collaborate
+router.post("/:id/invite", async (req: any, res: Response) => {
+    try {
+        const { id } = req.params;
+        const heir = await prisma.heir.findUnique({ where: { id } });
+
+        if (!heir) return res.status(404).json({ error: "Heir not found" });
+        if (!heir.email) return res.status(400).json({ error: "Heir has no email address" });
+
+        // Trigger invitation via CollaborationService
+        // Role for heirs is currently VIEW (read-only for their own data)
+        const invitation = await CollaborationService.invite(req.user.id, heir.estateId, heir.email, "VIEWER");
+
+        res.json(invitation);
     } catch (e: any) {
         res.status(500).json({ error: e.message });
     }

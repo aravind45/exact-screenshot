@@ -1,4 +1,4 @@
-# Honest Product Evaluation: ExpectedEstate (Pilar)
+# Honest Product Evaluation: ExpectedEstate
 
 **Evaluator:** AI Agent (Simulating Executor Perspective)  
 **Date:** January 25, 2026  
@@ -254,8 +254,8 @@
 **Value if Complete:** +$15/month
 
 **What's Needed:**
-- Unique email address per estate (e.g., estate-123@pilar.com)
-- Forward emails to Pilar
+- Unique email address per estate (e.g., estate-123@expectedestate.com)
+- Forward emails to ExpectedEstate
 - Auto-parse sender, subject, body
 - Suggest asset to attach to (AI)
 - One-click to log communication
@@ -308,7 +308,7 @@
 - Specializations (probate, trust, tax)
 - Request consultation button
 - Pricing transparency
-- Pilar referral discount
+- ExpectedEstate referral discount
 
 **Why It Matters:**
 - Executors often need legal help
@@ -391,7 +391,7 @@
 **What You Get:**
 - ✅ Everything from Tier 1
 - ✅ Collaboration (co-executor/attorney)
-- ✅ Email integration (forward to Pilar)
+- ✅ Email integration (forward to ExpectedEstate)
 - ✅ State-specific forms (CA)
 - ✅ Attorney network
 
@@ -433,29 +433,29 @@
 1. **Spreadsheets (Free)**
    - Pros: Flexible, familiar
    - Cons: No automation, easy to lose track, no audit trail
-   - **Pilar Advantage:** Automation, audit trail, guidance
+   - **ExpectedEstate Advantage:** Automation, audit trail, guidance
 
 2. **Estate Attorneys ($5,000-$50,000)**
    - Pros: Expert guidance, legal protection
    - Cons: Expensive, slow, not always necessary
-   - **Pilar Advantage:** 10x cheaper, faster, self-service
+   - **ExpectedEstate Advantage:** 10x cheaper, faster, self-service
 
 3. **Everplans ($75/year)**
    - Pros: Document storage, planning tools
    - Cons: Pre-death focus, no settlement workflow
-   - **Pilar Advantage:** Post-death focus, settlement workflow
+   - **ExpectedEstate Advantage:** Post-death focus, settlement workflow
 
 4. **Trust & Will ($399 one-time)**
    - Pros: Will creation, trust setup
    - Cons: Pre-death focus, no settlement tools
-   - **Pilar Advantage:** Post-death focus, settlement tools
+   - **ExpectedEstate Advantage:** Post-death focus, settlement tools
 
 5. **Manual Tracking (Free)**
    - Pros: No cost
    - Cons: Time-consuming, error-prone, stressful
-   - **Pilar Advantage:** Saves time, reduces errors, reduces stress
+   - **ExpectedEstate Advantage:** Saves time, reduces errors, reduces stress
 
-**Conclusion:** Pilar has a clear market gap. No competitor focuses on post-death settlement workflow with this level of detail.
+**Conclusion:** ExpectedEstate has a clear market gap. No competitor focuses on post-death settlement workflow with this level of detail.
 
 ---
 
@@ -755,7 +755,7 @@
 
 ## Conclusion
 
-**ExpectedEstate (Pilar) has the potential to be a $49-99/month product that executors happily pay for.** The vision is clear, the technical foundation is solid, and the market gap is real.
+**ExpectedEstate has the potential to be a $49-99/month product that executors happily pay for.** The vision is clear, the technical foundation is solid, and the market gap is real.
 
 **However, you're currently at 40% completion.** The Communication Log—the most important feature—is fully spec'd but not implemented. Critical Tier 1 features are missing.
 

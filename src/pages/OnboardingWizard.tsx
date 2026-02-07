@@ -919,7 +919,7 @@ export default function OnboardingWizard() {
                                             <p className="text-slate-600">
                                                 We've set up your secure dashboard on the **{recommendation.type.replace(/_/g, ' ')}** track.
                                                 <br />
-                                                Welcome to Pilar.
+                                                Welcome to ExpectedEstate.
                                             </p>
                                         </div>
                                         <Button size="lg" onClick={handleNext} className="w-full rounded-2xl h-14 text-lg font-bold shadow-xl shadow-primary/20">

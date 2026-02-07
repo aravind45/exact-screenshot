@@ -641,6 +641,14 @@ export const api = {
         return parseResponse(response);
     },
 
+    inviteHeir: async (id: string) => {
+        const response = await fetch(`${API_URL}/heirs/${id}/invite`, {
+            method: "POST",
+            headers: getHeaders()
+        });
+        return parseResponse(response);
+    },
+
     deleteHeir: async (id: string) => {
         const response = await fetch(`${API_URL}/heirs/${id}`, {
             method: "DELETE",

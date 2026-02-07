@@ -556,7 +556,7 @@ function CommunicationsManager() {
                             <label className="text-xs font-black uppercase text-slate-400">Mailgun Domain</label>
                             <div className="flex gap-2">
                                 <Input
-                                    placeholder="mg.pilar.ai"
+                                    placeholder="mg.expectedestate.com"
                                     defaultValue={getVal("MAILGUN_DOMAIN")}
                                     onBlur={(e) => handleSave("MAILGUN_DOMAIN", e.target.value)}
                                 />

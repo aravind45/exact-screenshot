@@ -144,7 +144,7 @@ export default function Inbox() {
                         </div>
                         <div>
                             <h1 className="text-xl font-bold text-slate-900 tracking-tight">Settlement Trail</h1>
-                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-none mt-1">Pilar Settlement Engine</p>
+                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-none mt-1">ExpectedEstate Engine</p>
                         </div>
                         <Badge variant="secondary" className="ml-2 bg-slate-100 text-slate-600 border-none font-bold">
                             {filteredMessages.length} Interactions
