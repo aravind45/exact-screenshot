@@ -97,4 +97,15 @@ router.get("/:estateId/collaborators", async (req: any, res: Response) => {
     }
 });
 
+// Delete a pending invitation
+router.delete("/invitations/:id", async (req: any, res: Response) => {
+    try {
+        await CollaborationService.deleteInvitation(req.user.id, req.params.id);
+        res.json({ success: true });
+    } catch (error: any) {
+        console.error("Delete Invite Error:", error);
+        res.status(400).json({ error: error.message });
+    }
+});
+
 export default router;
