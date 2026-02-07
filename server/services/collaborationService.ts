@@ -7,6 +7,8 @@ export const CollaborationService = {
      * Invite a user to collaborate on an estate
      */
     async invite(inviterId: string, estateId: string, email: string, role: string) {
+        const normalizedEmail = email.toLowerCase();
+
         // 1. Verify estate ownership (only owners/attorneys can invite)
         const estate = await prisma.estate.findUnique({
             where: { id: estateId },
@@ -22,7 +24,50 @@ export const CollaborationService = {
             throw new Error("You do not have permission to invite collaborators to this estate.");
         }
 
-        // 1b. Check collaborator limit (5 free seats)
+        // 2. Check for existing PENDING invitation for this exact email/estate
+        // This prevents duplicate seats being consumed by the same person
+        const existingPending = await prisma.invitation.findFirst({
+            where: {
+                estateId,
+                email: normalizedEmail,
+                status: 'PENDING'
+            }
+        });
+
+        if (existingPending) {
+            console.log(`[CollaborationService] Found existing pending invite for ${normalizedEmail}. Resending...`);
+            // Update expiry and resend email
+            const newExpiresAt = new Date();
+            newExpiresAt.setDate(newExpiresAt.getDate() + 7);
+
+            const updatedInvitation = await prisma.invitation.update({
+                where: { id: existingPending.id },
+                data: {
+                    role, // Allow updating role on resend
+                    expiresAt: newExpiresAt,
+                    invitedBy: inviterId
+                }
+            });
+
+            try {
+                await EmailService.sendInviteEmail(normalizedEmail, {
+                    inviterName: (await prisma.user.findUnique({ where: { id: inviterId } }))?.fullName || "A user",
+                    estateName: estate.name,
+                    token: updatedInvitation.token
+                });
+                return { ...updatedInvitation, emailSent: true, reused: true };
+            } catch (emailError) {
+                console.error("Failed to resend invitation email:", emailError);
+                return {
+                    ...updatedInvitation,
+                    emailSent: false,
+                    emailError: "Existing invitation updated, but email could not be sent. Please share the link manually.",
+                    reused: true
+                };
+            }
+        }
+
+        // 3. Check collaborator limit (5 free seats)
         const currentGrants = await prisma.estateGrant.count({
             where: { estateId }
         });
@@ -32,19 +77,20 @@ export const CollaborationService = {
         const totalCollaborators = currentGrants + pendingInvites;
 
         if (totalCollaborators >= 5) {
+            console.log(`[CollaborationService] Limit reached for estate ${estateId}: ${totalCollaborators}/5`);
             return { limitExceeded: true, currentCount: totalCollaborators };
         }
 
-        // 2. Generate token
+        // 4. Generate token
         const token = crypto.randomBytes(32).toString('hex');
         const expiresAt = new Date();
         expiresAt.setDate(expiresAt.getDate() + 7); // 7 days expiry
 
-        // 3. Create invitation
+        // 5. Create invitation
         const invitation = await prisma.invitation.create({
             data: {
                 estateId,
-                email: email.toLowerCase(),
+                email: normalizedEmail,
                 role,
                 token,
                 invitedBy: inviterId,
@@ -52,16 +98,15 @@ export const CollaborationService = {
             }
         });
 
-        // 4. Send email (optional - if it fails, we still have the invitation in the system)
+        // 6. Send email
         try {
-            await EmailService.sendInviteEmail(email, {
+            await EmailService.sendInviteEmail(normalizedEmail, {
                 inviterName: (await prisma.user.findUnique({ where: { id: inviterId } }))?.fullName || "A user",
                 estateName: estate.name,
                 token
             });
         } catch (emailError) {
             console.error("Failed to send invitation email:", emailError);
-            // We don't throw here so the 201 response can still be sent
             return {
                 ...invitation,
                 emailSent: false,
@@ -118,7 +163,7 @@ export const CollaborationService = {
             if (matchingHeir) {
                 await tx.heir.update({
                     where: { id: matchingHeir.id },
-                    data: { userId }
+                    data: { user: { connect: { id: userId } } }
                 });
             }
 

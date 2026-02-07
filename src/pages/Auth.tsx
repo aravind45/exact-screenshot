@@ -86,7 +86,13 @@ export default function Auth() {
             title: 'Welcome back!',
             description: 'You have successfully signed in.',
           });
-          navigate(buyMode ? '/pricing?mode=buy' : '/dashboard');
+          const redirect = sessionStorage.getItem("after_login_redirect");
+          if (redirect) {
+            sessionStorage.removeItem("after_login_redirect");
+            navigate(redirect);
+          } else {
+            navigate(buyMode ? '/pricing?mode=buy' : '/dashboard');
+          }
         }
       } else if (authMode === 'signup') {
         const { error } = await signUp(email, password, fullName);
@@ -109,7 +115,13 @@ export default function Auth() {
             title: 'Account created!',
             description: 'Welcome to ExpectedEstate. Let\'s get started.',
           });
-          navigate(buyMode ? '/pricing?mode=buy' : '/onboarding');
+          const redirect = sessionStorage.getItem("after_login_redirect");
+          if (redirect) {
+            sessionStorage.removeItem("after_login_redirect");
+            navigate(redirect);
+          } else {
+            navigate(buyMode ? '/pricing?mode=buy' : '/onboarding');
+          }
         }
       } else if (authMode === 'forgot-password') {
         try {

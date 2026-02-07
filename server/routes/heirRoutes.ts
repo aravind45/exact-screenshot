@@ -21,7 +21,21 @@ router.get("/", async (req: any, res: Response) => {
             where: { estateId },
             orderBy: { createdAt: 'asc' }
         });
-        res.json(heirs);
+
+        // Get invitations for this estate to match with heirs
+        const invitations = await prisma.invitation.findMany({
+            where: { estateId, status: 'PENDING' }
+        });
+
+        const heirsWithStatus = heirs.map(heir => {
+            const hasPendingInvite = heir.email ? invitations.some(i => i.email.toLowerCase() === heir.email?.toLowerCase()) : false;
+            return {
+                ...heir,
+                hasPendingInvite
+            };
+        });
+
+        res.json(heirsWithStatus);
     } catch (e: any) {
         res.status(500).json({ error: e.message });
     }

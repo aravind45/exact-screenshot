@@ -1047,6 +1047,15 @@ export const api = {
         return parseResponse(response);
     },
 
+    acceptInvitation: async (token: string) => {
+        const response = await fetch(`${API_URL}/collaboration/invitations/accept`, {
+            method: "POST",
+            headers: getHeaders(),
+            body: JSON.stringify({ token }),
+        });
+        return parseResponse(response);
+    },
+
     getCollaborators: async (estateId: string) => {
         const response = await fetch(`${API_URL}/collaboration/${estateId}/collaborators`, {
             headers: getHeaders(),

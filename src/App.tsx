@@ -63,6 +63,7 @@ import CaliforniaProbateGuide from "./pages/guides/CaliforniaProbateGuide";
 import ResetPassword from "./pages/ResetPassword";
 import Pricing from "./pages/Pricing";
 import PaymentSuccess from "./pages/PaymentSuccess";
+import AcceptInvite from "./pages/AcceptInvite";
 
 const queryClient = new QueryClient();
 
@@ -135,6 +136,7 @@ const App = () => (
                     <Route path="/help" element={<ProtectedRoute><ProfileGuard><HelpCenter /></ProfileGuard></ProtectedRoute>} />
                     <Route path="/estate-agent" element={<ProtectedRoute><ProfileGuard><EstateAgentChatWrapper /></ProfileGuard></ProtectedRoute>} />
                     <Route path="/guides/california-probate" element={<CaliforniaProbateGuide />} />
+                    <Route path="/invite/:token" element={<AcceptInvite />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                   <LegalDisclaimer />

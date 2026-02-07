@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
-import { Plus, Trash2, Save, User, Gavel, FileText, AlertTriangle, ShieldCheck, CheckCircle2, Mail } from "lucide-react";
+import { Plus, Trash2, Save, User, Gavel, FileText, AlertTriangle, ShieldCheck, CheckCircle2, Mail, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import {
@@ -67,6 +67,31 @@ export default function Settings() {
         mutationFn: api.inviteHeir,
         onSuccess: (data: any) => {
             queryClient.invalidateQueries({ queryKey: ["heirs"] });
+            queryClient.invalidateQueries({ queryKey: ["collaborators", estate?.id] });
+
+            if (data.limitExceeded) {
+                toast.error("Collaborator limit (5) reached. Please manage your team in the 'Team' tab.", {
+                    duration: 5000,
+                    action: {
+                        label: "Go to Team",
+                        onClick: () => {
+                            const teamTab = document.querySelector('[value="team"]') as HTMLElement;
+                            if (teamTab) teamTab.click();
+                        }
+                    }
+                });
+                return;
+            }
+
+            if (data.reused) {
+                if (data.emailSent) {
+                    toast.success("Existing invitation resent to heir");
+                } else {
+                    toast.warning("Existing invitation updated, but email failed. Share the link manually from the Team tab.");
+                }
+                return;
+            }
+
             if (data.emailSent) {
                 toast.success("Invitation email sent to heir");
             } else if (data.emailError) {
@@ -282,9 +307,13 @@ export default function Settings() {
                                                     <div>
                                                         <div className="flex items-center gap-2">
                                                             <div className="font-bold text-slate-900">{heir.name}</div>
-                                                            {heir.userId && (
+                                                            {heir.userId ? (
                                                                 <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 flex items-center gap-1 text-[10px] py-0">
                                                                     <ShieldCheck className="w-3 h-3" /> Joined
+                                                                </Badge>
+                                                            ) : heir.hasPendingInvite && (
+                                                                <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 flex items-center gap-1 text-[10px] py-0">
+                                                                    <Clock className="w-3 h-3" /> Pending
                                                                 </Badge>
                                                             )}
                                                         </div>

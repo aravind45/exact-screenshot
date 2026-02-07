@@ -60,6 +60,8 @@ export function UserManagement({ estateId }: UserManagementProps) {
 
             if (response.emailSent === false) {
                 toast.warning(response.emailError || "Invitation created, but email failed.");
+            } else if (response.reused) {
+                toast.success("Existing invitation resent!");
             } else {
                 toast.success("Invitation sent successfully!");
             }
