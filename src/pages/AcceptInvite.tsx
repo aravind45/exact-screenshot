@@ -35,7 +35,7 @@ export default function AcceptInvite() {
         if (!user) {
             // Store target in session storage to redirect after login
             sessionStorage.setItem("after_login_redirect", `/invite/${token}`);
-            navigate("/auth");
+            navigate("/auth?mode=signup");
             return;
         }
 

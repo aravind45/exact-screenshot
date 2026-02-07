@@ -20,7 +20,8 @@ import { useSearchParams } from 'react-router-dom';
 export default function Auth() {
   const [searchParams] = useSearchParams();
   const buyMode = searchParams.get('mode') === 'buy';
-  const [authMode, setAuthMode] = useState<'login' | 'signup' | 'forgot-password'>('login');
+  const signupMode = searchParams.get('mode') === 'signup';
+  const [authMode, setAuthMode] = useState<'login' | 'signup' | 'forgot-password'>(signupMode ? 'signup' : 'login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
