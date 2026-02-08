@@ -1,0 +1,104 @@
+
+import React from 'react';
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { ShieldAlert, Info, Calculator, Landmark } from 'lucide-react';
+import { cn } from "@/lib/utils";
+
+interface TaxAlertsProps {
+    estate: any;
+    totalValue: number;
+    className?: string;
+}
+
+const INHERITANCE_TAX_STATES = ['KY', 'MD', 'NE', 'NJ', 'PA'];
+const STATE_ESTATE_TAX_THRESHOLDS: Record<string, number> = {
+    'OR': 1000000,
+    'MA': 2000000,
+    'RI': 1774583,
+    'MN': 3000000,
+    'WA': 2193000,
+    'VT': 5000000,
+    'IL': 4000000,
+    'ME': 6410000,
+    'MD': 5000000,
+    'NY': 6940000,
+    'CT': 12920000,
+    'DC': 4528900,
+    'HI': 5490000,
+};
+
+const FEDERAL_ESTATE_TAX_THRESHOLD = 13610000; // 2024 limit
+
+export function TaxAlerts({ estate, totalValue, className }: TaxAlertsProps) {
+    if (!estate) return null;
+
+    const state = estate.deceasedState || '';
+    const alerts = [];
+
+    // Federal Alert
+    if (totalValue > FEDERAL_ESTATE_TAX_THRESHOLD) {
+        alerts.push({
+            type: 'critical',
+            title: 'Federal Estate Tax Alert (Form 706)',
+            description: `The total estate value ($${totalValue.toLocaleString()}) exceeds the federal exemption limit of $${FEDERAL_ESTATE_TAX_THRESHOLD.toLocaleString()}. A Federal Estate Tax Return (Form 706) is likely required within 9 months of death.`,
+            icon: ShieldAlert
+        });
+    } else if (totalValue > FEDERAL_ESTATE_TAX_THRESHOLD * 0.8) {
+        alerts.push({
+            type: 'warning',
+            title: 'Approaching Federal Estate Tax Limit',
+            description: 'The estate value is nearing the federal exemption threshold. Precise valuation of all assets is critical to determine if Form 706 filing is necessary.',
+            icon: Info
+        });
+    }
+
+    // State Estate Tax Alert
+    const stateThreshold = STATE_ESTATE_TAX_THRESHOLDS[state];
+    if (stateThreshold && totalValue > stateThreshold) {
+        alerts.push({
+            type: 'important',
+            title: `${state} State Estate Tax Alert`,
+            description: `${state} has a lower estate tax threshold ($${stateThreshold.toLocaleString()}) than the federal government. A state estate tax return may be required.`,
+            icon: Landmark
+        });
+    }
+
+    // Inheritance Tax Alert
+    if (INHERITANCE_TAX_STATES.includes(state)) {
+        alerts.push({
+            type: 'info',
+            title: `${state} Inheritance Tax Notice`,
+            description: `${state} imposes an Inheritance Tax on distributions to certain beneficiaries. Note: Pennsylvania offers a 5% discount if tax is pre-paid within 3 months of death.`,
+            icon: Calculator
+        });
+    }
+
+    if (alerts.length === 0) return null;
+
+    return (
+        <div className={cn("space-y-4", className)}>
+            {alerts.map((alert, idx) => (
+                <Alert
+                    key={idx}
+                    variant={alert.type === 'critical' ? 'destructive' : 'default'}
+                    className={cn(
+                        "border-l-4",
+                        alert.type === 'critical' && "border-l-destructive",
+                        alert.type === 'warning' && "border-l-amber-500 bg-amber-50/50",
+                        alert.type === 'important' && "border-l-primary bg-primary/5",
+                        alert.type === 'info' && "border-l-blue-400 bg-blue-50/30"
+                    )}
+                >
+                    <alert.icon className="h-4 w-4" />
+                    <AlertTitle className="font-black flex items-center gap-2">
+                        {alert.title}
+                        {alert.type === 'critical' && <span className="text-[10px] bg-destructive text-white px-2 py-0.5 rounded-full uppercase tracking-widest">Urgent</span>}
+                    </AlertTitle>
+                    <AlertDescription className="text-slate-600 font-medium">
+                        {alert.description}
+                    </AlertDescription>
+                </Alert>
+            ))}
+        </div>
+    );
+}

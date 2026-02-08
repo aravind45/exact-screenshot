@@ -51,6 +51,8 @@ import { SEO } from "@/components/SEO";
 import { useTerminology } from "@/hooks/use-terminology";
 import { ProbateStatusUpdater } from "@/components/dashboard/ProbateStatusUpdater";
 import { isProfileComplete } from "@/lib/authorityEngine";
+import { TaxAlerts } from "@/components/dashboard/TaxAlerts";
+import { generateCPAExport } from "@/lib/csvExport";
 
 const normalize = (str: string | null) => str?.toLowerCase() || '';
 
@@ -354,7 +356,17 @@ export default function Dashboard() {
               </div>
               <div>
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 leading-none">Settlement Track</p>
-                <p className="text-2xl font-black text-slate-900 tracking-tighter leading-none truncate">{authorityType.replace(/_/g, " ")}</p>
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-2xl font-black text-slate-900 tracking-tighter leading-none truncate">{authorityType.replace(/_/g, " ")}</p>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 text-[9px] uppercase font-black text-primary hover:bg-primary/10 border border-primary/20 rounded-xl px-3"
+                    onClick={() => generateCPAExport(assets, liabilities)}
+                  >
+                    CPA Handoff
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
@@ -363,7 +375,8 @@ export default function Dashboard() {
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             {/* Main Content (Left Column - 8/12 = 66%) */}
-            <div className="lg:col-span-8 space-y-6">
+            <div className="lg:col-span-8 space-y-8">
+              <TaxAlerts estate={estate} totalValue={totalValue} />
 
               {/* Support Requested Section - Hidden for now
               <section className="space-y-4">

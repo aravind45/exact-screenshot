@@ -2,7 +2,7 @@ import { cn } from "@/lib/utils";
 import { StatusBadge, AssetStatus } from "./StatusBadge";
 import { PriorityBadge, Priority } from "./PriorityBadge";
 import { CategoryBadge, AssetCategory, getCategoryIcon } from "./CategoryBadge";
-import { ChevronRight, Clock, AlertTriangle, Eye, FileText, Lock, CheckCircle2 } from "lucide-react";
+import { ChevronRight, Clock, AlertTriangle, Eye, FileText, Lock, CheckCircle2, ShieldAlert } from "lucide-react";
 import { motion } from "framer-motion";
 import { AssetTaxonomyBadge } from "./AssetTaxonomyBadge";
 import { getAssetTaxonomyState, getTaxonomyInfo } from "@/lib/taxonomy";
@@ -112,9 +112,15 @@ export function AssetCard({ asset, onClick, onSelect, selected, selectable, clas
                     <div className="flex flex-col items-end">
                       <span className="leading-none">{formatCurrency(asset.value)}</span>
                       {asset.dateOfDeathValue && (
-                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-1">
-                          Value at Death: {formatCurrency(asset.dateOfDeathValue)}
-                        </span>
+                        <div className="flex flex-col items-end gap-1 mt-1">
+                          <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+                            Value at Death: {formatCurrency(asset.dateOfDeathValue)}
+                          </span>
+                          <span className="inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100/50">
+                            <ShieldAlert className="w-2.5 h-2.5" />
+                            Tax Basis Reset
+                          </span>
+                        </div>
                       )}
                     </div>
                   )}
