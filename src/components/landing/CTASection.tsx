@@ -19,7 +19,7 @@ export function CTASection() {
           </h2>
           <p className="text-lg text-muted-foreground mb-8">
             Start documenting your estate settlement today. Build the fiduciary record
-            that shields you from liability and ensures nothing is missed.
+            that helps mitigate liability risks and stay organized.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link to="/auth">

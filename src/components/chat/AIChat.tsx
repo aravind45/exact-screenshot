@@ -14,7 +14,7 @@ interface Message {
 
 export function AIChat() {
     const [messages, setMessages] = useState<Message[]>([
-        { role: "bot", content: "Hello! I'm your ExpectedEstate settlement assistant. I use our curated legal guides to answer your questions about estate settlement. How can I help you today?" }
+        { role: "bot", content: "Hello! I'm your ExpectedEstate settlement assistant. I use our curated legal guides to answer your questions about estate settlement. Please note: This is for educational purposes only and does not constitute legal advice. How can I help you today?" }
     ]);
     const [input, setInput] = useState("");
     const [isLoading, setIsLoading] = useState(false);

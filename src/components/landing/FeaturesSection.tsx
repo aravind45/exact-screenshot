@@ -17,7 +17,7 @@ const features = [
   {
     icon: MessageSquare,
     title: "Proof of Diligence",
-    description: "Document every call, email, and fax. Our system builds your fiduciary defense automatically as you work, proving you met your legal obligations.",
+    description: "Document every call, email, and fax. Our system helps you document your reasonable care as you work, helping build a record of your actions.",
   },
   {
     icon: Bell,
@@ -37,7 +37,7 @@ const features = [
   {
     icon: Lock,
     title: "Institutional Scrutiny",
-    description: "Our audit trails are structured to meet the high standards of banks, courts, and insurance companies, protecting you from personal liability.",
+    description: "Our audit trails are structured to meet the high standards of banks, courts, and insurance companies, helping mitigate personal liability risks.",
   },
 ];
 

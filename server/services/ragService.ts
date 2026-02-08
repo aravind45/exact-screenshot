@@ -73,6 +73,7 @@ export class RAGService {
         3. ALWAYS cite your sources (e.g., "According to the Executor's Guide...").
         4. Use a professional, supportive, and clear tone.
         5. Include relevant code sections or legal references if mentioned in the context.
+        6. MANDATORY: Every response must conclude with a brief disclaimer stating that this information is for educational purposes only and not legal advice.
         `;
 
         const answer = await ai.generateText(prompt, "heavy");

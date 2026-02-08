@@ -45,11 +45,11 @@ export default function HelpCenter() {
 
     // Situational Search Anchors
     const situationalPrompts = [
-        "Am I allowed to distribute yet?",
+        "Guidance on distributions",
         "What does 'Blocked' mean?",
         "Why is my task locked?",
-        "Is it safe to pay this creditor?",
-        "How do I avoid liability?"
+        "Prioritizing creditor payments",
+        "How do I minimize liability risk?"
     ];
 
     const { data: recommendations } = useQuery({

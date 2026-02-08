@@ -154,7 +154,7 @@ export default function Pricing() {
                             {/* Trust Badge */}
                             <div className="mt-16 text-center text-slate-500 font-medium max-w-md">
                                 <p className="mb-4 italic text-slate-400">
-                                    "A single mistake can cost $10,000+ in penalties. ExpectedEstate prevents those mistakes automatically."
+                                    "A single mistake can cost $10,000+ in penalties. ExpectedEstate could prevent those mistakes."
                                 </p>
                                 <div className="flex items-center justify-center gap-8 opacity-40 grayscale pointer-events-none">
                                     <div className="h-6 w-px bg-slate-800" />

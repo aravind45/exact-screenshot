@@ -32,27 +32,27 @@ export const FIDUCIARY_RISKS: Record<string, FiduciaryRisk> = {
     PREMATURE_DEBT_PAYMENT: {
         id: 'PREMATURE_DEBT_PAYMENT',
         title: 'Premature Debt Payment',
-        description: 'Paying debts before the creditor claim period closes (typically 4 months) may result in personal liability if preferred creditors appear later.',
+        description: 'Paying debts before the creditor claim period closes (typically 4 months) could result in personal liability if preferred creditors appear later.',
         severity: 'DANGER',
         legalBasis: 'California Probate Code §9000-9399',
-        recommendation: 'Wait until the 4-month creditor claim period ends before paying non-essential debts.',
+        recommendation: 'It is generally recommended to wait until the 4-month creditor claim period ends before paying non-essential debts.',
         affectedActions: ['pay_debts', 'pay_other', 'pay_medical']
     },
 
     PREMATURE_DISTRIBUTION: {
         id: 'PREMATURE_DISTRIBUTION',
         title: 'Premature Asset Distribution',
-        description: 'Distributing assets to heirs before all debts and taxes are paid may make you personally liable to creditors.',
+        description: 'Distributing assets to heirs before all debts and taxes are paid may create personal liability to creditors.',
         severity: 'CRITICAL',
         legalBasis: 'California Probate Code §11420-11429',
-        recommendation: 'Ensure all debts are paid, tax clearance is obtained, and court approval is received before distribution.',
+        recommendation: 'Ensure all debts are documented, tax clearance is addressed, and court approval is received before distribution.',
         affectedActions: ['distribute', 'distribute_funds', 'final_distribution']
     },
 
     NO_AUTHORITY_ACTION: {
         id: 'NO_AUTHORITY_ACTION',
         title: 'Acting Without Authority',
-        description: 'Taking financial actions before Letters Testamentary are issued is illegal and may void the transactions.',
+        description: 'Taking financial actions before Letters Testamentary are issued is generally not authorized and may create personal liability.',
         severity: 'CRITICAL',
         legalBasis: 'California Probate Code §8400-8404',
         recommendation: 'Obtain certified Letters Testamentary before accessing accounts or making payments.',
@@ -62,7 +62,7 @@ export const FIDUCIARY_RISKS: Record<string, FiduciaryRisk> = {
     CREDITOR_PRIORITY_VIOLATION: {
         id: 'CREDITOR_PRIORITY_VIOLATION',
         title: 'Creditor Priority Violation',
-        description: 'Paying creditors out of statutory priority order may create personal liability for unpaid senior creditors.',
+        description: 'Paying creditors out of statutory priority order could create personal liability for unpaid senior creditors.',
         severity: 'DANGER',
         legalBasis: 'California Probate Code §11420',
         recommendation: 'Pay claims in statutory priority order: (1) Administration, (2) Funeral, (3) Medical, (4) Family Allowance, (5) General.',
@@ -82,7 +82,7 @@ export const FIDUCIARY_RISKS: Record<string, FiduciaryRisk> = {
     BOND_REQUIREMENT: {
         id: 'BOND_REQUIREMENT',
         title: 'Bond Requirement Not Met',
-        description: 'Some estates require a surety bond. Proceeding without proper bond may result in personal liability.',
+        description: 'Some estates require a surety bond. Proceeding without proper bond may create personal liability risks.',
         severity: 'WARNING',
         legalBasis: 'California Probate Code §8480-8488',
         recommendation: 'Confirm with the court whether bond is required and obtain waiver or purchase bond.',
@@ -102,7 +102,7 @@ export const FIDUCIARY_RISKS: Record<string, FiduciaryRisk> = {
     INSOLVENT_ESTATE_DISTRIBUTION: {
         id: 'INSOLVENT_ESTATE_DISTRIBUTION',
         title: 'Insolvent Estate Distribution',
-        description: 'Distributing assets when the estate cannot pay all debts creates personal liability for the shortfall.',
+        description: 'Distributing assets when the estate cannot pay all debts could create personal liability for the shortfall.',
         severity: 'CRITICAL',
         legalBasis: 'California Probate Code §11640-11643',
         recommendation: 'File insolvency petition with the court before making any distributions.',
