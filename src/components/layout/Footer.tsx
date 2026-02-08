@@ -28,6 +28,9 @@ export function Footer() {
             <a href="/#about" className="text-background/70 hover:text-background transition-colors">
               About Us
             </a>
+            <a href="/#contact" className="text-background/70 hover:text-background transition-colors">
+              Contact Us
+            </a>
           </nav>
 
           {/* Copyright */}

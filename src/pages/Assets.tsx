@@ -684,12 +684,12 @@ function AuthoritySummaryCard({ label, count, icon: Icon, color, bgColor }: any)
     return (
         <div className={cn("p-5 rounded-[2rem] border border-slate-100 shadow-premium flex flex-col gap-3 bg-white hover:border-primary/20 hover:scale-105 transition-all group cursor-default", count > 0 && "border-slate-200")}>
             <div className="flex items-center justify-between">
-                <div className={cn("p-2 rounded-xl transition-all group-hover:scale-110", bgColor, color)}>
-                    <Icon className="w-4 h-4" />
+                <div className={cn("p-2.5 rounded-xl transition-all group-hover:scale-110 border shadow-sm", bgColor, color, count > 0 ? "border-current/10" : "border-slate-100 opacity-60")}>
+                    <Icon className="w-5 h-5 stroke-[2.5]" />
                 </div>
-                <span className={cn("text-xl font-['Outfit'] font-black leading-none", count > 0 ? "text-slate-900" : "text-slate-200")}>{count}</span>
+                <span className={cn("text-xl font-['Outfit'] font-black leading-none", count > 0 ? "text-slate-900" : "text-slate-300")}>{count}</span>
             </div>
-            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">{label}</p>
+            <p className={cn("text-[10px] font-black uppercase tracking-[0.2em]", count > 0 ? "text-slate-600" : "text-slate-400")}>{label}</p>
         </div>
     );
 }

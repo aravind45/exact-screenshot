@@ -90,7 +90,7 @@ export function AssetCard({ asset, onClick, onSelect, selected, selectable, clas
             asset.category === 'property' && 'bg-orange-500/10 text-orange-600',
             asset.category === 'other' && 'bg-slate-100 text-slate-500',
           )}>
-            <CategoryIcon className="w-5 h-5" />
+            <CategoryIcon className="w-5 h-5 stroke-[2.5]" />
           </div>
 
           {/* Content */}

@@ -137,6 +137,32 @@ const Index = () => {
             </div>
           </div>
         </section>
+        {/* Contact section */}
+        <section id="contact" className="py-24 bg-white">
+          <div className="section-container">
+            <div className="max-w-4xl mx-auto bg-primary/5 rounded-[3rem] p-12 md:p-16 text-center border border-primary/10">
+              <motion.h2
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                className="text-3xl md:text-5xl font-black text-foreground mb-6"
+              >
+                Still have questions?
+              </motion.h2>
+              <p className="text-lg text-muted-foreground mb-10 max-w-2xl mx-auto font-medium">
+                Our team is here to help you navigate every step of the probate and settlement process.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Button size="lg" className="h-14 px-10 text-lg font-bold rounded-full shadow-lg transition-all hover:scale-[1.02]">
+                  Chat with Support
+                </Button>
+                <Button variant="outline" size="lg" className="h-14 px-10 text-lg font-bold rounded-full border-primary text-primary hover:bg-primary/5 transition-all hover:scale-[1.02]">
+                  Email Us
+                </Button>
+              </div>
+            </div>
+          </div>
+        </section>
       </main>
 
       <Footer />

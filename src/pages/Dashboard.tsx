@@ -289,7 +289,7 @@ export default function Dashboard() {
             <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-premium flex flex-col justify-between hover:border-primary/20 transition-all hover:scale-[1.02] group">
               <div className="flex justify-between items-start mb-6">
                 <div className="p-3 bg-primary/5 rounded-xl group-hover:bg-primary group-hover:text-white transition-colors">
-                  <DollarSign className="w-5 h-5 text-primary group-hover:text-white transition-colors" />
+                  <DollarSign className="w-5 h-5 text-primary group-hover:text-white transition-colors stroke-[2.5]" />
                 </div>
                 <div className="text-[10px] font-black text-primary uppercase tracking-widest">Global Assets</div>
               </div>
@@ -302,7 +302,7 @@ export default function Dashboard() {
             <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-premium flex flex-col justify-between hover:border-primary/20 transition-all hover:scale-[1.02] group">
               <div className="flex justify-between items-start mb-6">
                 <div className="p-3 bg-primary/5 rounded-xl group-hover:bg-primary group-hover:text-white transition-colors">
-                  <CheckCircle2 className="w-5 h-5 text-primary group-hover:text-white transition-colors" />
+                  <CheckCircle2 className="w-5 h-5 text-primary group-hover:text-white transition-colors stroke-[2.5]" />
                 </div>
                 <div className="text-[10px] font-black text-primary uppercase tracking-widest">{completed}/{assets.length} Tasks</div>
               </div>
@@ -331,7 +331,7 @@ export default function Dashboard() {
                   "p-3 rounded-xl transition-colors",
                   attentionNeededCount > 0 ? "bg-primary text-white shadow-lg shadow-primary/20" : "bg-primary/5 text-primary group-hover:bg-primary group-hover:text-white"
                 )}>
-                  <Bell className="w-5 h-5 transition-colors" />
+                  <Bell className="w-5 h-5 transition-colors stroke-[2.5]" />
                 </div>
                 {taxonomyStats.action_required > 0 && <Badge variant="destructive" className="animate-pulse text-[10px] font-black px-2 py-1 rounded-lg tracking-widest uppercase border-none">Urgent</Badge>}
               </div>
