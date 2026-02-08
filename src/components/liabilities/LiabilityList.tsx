@@ -14,7 +14,14 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ManageClaimDialog } from "./ManageClaimDialog";
 import { useState } from "react";
 
-export function LiabilityList({ liabilities }: { liabilities: Liability[] }) {
+interface PriorityRule {
+    rank: number;
+    classId: string;
+    label: string;
+    description: string;
+}
+
+export function LiabilityList({ liabilities, priorityOptions }: { liabilities: Liability[], priorityOptions?: PriorityRule[] }) {
     const queryClient = useQueryClient();
     const [selectedLiability, setSelectedLiability] = useState<Liability | null>(null);
     const [showManageDialog, setShowManageDialog] = useState(false);
@@ -75,8 +82,10 @@ export function LiabilityList({ liabilities }: { liabilities: Liability[] }) {
                                     <div className="text-[10px] text-slate-500">{item.accountNumber ? `Acct: ${item.accountNumber}` : 'No Acct #'}</div>
                                 </td>
                                 <td className="px-6 py-4 max-w-[200px]">
-                                    <Badge variant="outline" className="text-[10px] font-normal bg-slate-50 border-slate-200">
-                                        {item.priorityClass?.replace(/_/g, " ") || "GENERAL"}
+                                    <Badge variant="outline" className="text-[10px] font-bold bg-slate-50 border-slate-200 text-slate-600">
+                                        {priorityOptions?.find(p => p.classId === item.priorityClass)
+                                            ? `${priorityOptions.find(p => p.classId === item.priorityClass)?.rank}. ${priorityOptions.find(p => p.classId === item.priorityClass)?.label}`
+                                            : item.priorityClass?.replace(/_/g, " ") || "GENERAL"}
                                     </Badge>
                                 </td>
                                 <td className="px-6 py-4">

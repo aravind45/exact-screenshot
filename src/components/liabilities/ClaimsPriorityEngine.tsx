@@ -25,19 +25,21 @@ interface ClaimsPriorityEngineProps {
     stats: LiabilityStats;
     solvency?: SolvencyAssessment;
     isLoading?: boolean;
+    priorityOptions?: PriorityRule[];
 }
 
-export function ClaimsPriorityEngine({ stats, solvency, isLoading }: ClaimsPriorityEngineProps) {
+export function ClaimsPriorityEngine({ stats, solvency, isLoading, priorityOptions }: ClaimsPriorityEngineProps) {
     if (isLoading) return (
         <div className="h-64 w-full bg-slate-100 animate-pulse rounded-2xl" />
     );
 
+    const activeRules = priorityOptions || CA_RULES;
     const breakdown = stats.priorityBreakdown || {};
     const noticePeriodOpen = solvency?.noticePeriodStatus !== 'CLOSED';
 
     // Determine the "Current" priority class (the first one with unpaid debts)
     let currentRankFound = false;
-    const rulesWithStatus = CA_RULES.map(rule => {
+    const rulesWithStatus = activeRules.map(rule => {
         const data = breakdown[rule.classId] || { total: 0, paid: 0 };
         const isFullyPaid = data.total > 0 && data.paid >= data.total;
         const hasDebts = data.total > 0;
@@ -55,7 +57,7 @@ export function ClaimsPriorityEngine({ stats, solvency, isLoading }: ClaimsPrior
     return (
         <Card className="border-none shadow-sm bg-white">
             <CardHeader className="pb-4">
-                <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Claims Priority Roadmap (CA § 11420)</CardTitle>
+                <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Claims Priority Roadmap</CardTitle>
             </CardHeader>
             <CardContent>
                 <div className="space-y-3">
@@ -75,7 +77,7 @@ export function ClaimsPriorityEngine({ stats, solvency, isLoading }: ClaimsPrior
                                     animate={{ opacity: 1, x: 0 }}
                                     transition={{ delay: idx * 0.1 }}
                                     className={`relative z-10 flex gap-4 p-3 rounded-xl transition-all ${rule.status === 'active' ? 'bg-indigo-50 border border-indigo-100 ring-2 ring-indigo-500/10' :
-                                            rule.status === 'completed' ? 'bg-emerald-50/50' : 'opacity-60'
+                                        rule.status === 'completed' ? 'bg-emerald-50/50' : 'opacity-60'
                                         }`}
                                 >
                                     <div className="mt-1">
@@ -135,7 +137,7 @@ export function ClaimsPriorityEngine({ stats, solvency, isLoading }: ClaimsPrior
                         Pro Tip: Personal Liability
                     </div>
                     <p className="text-[11px] text-slate-600 leading-relaxed">
-                        Under CA law, an executor who pays lower-priority debts while higher ones remain unpaid can be <strong>personally liable</strong> to the higher-priority creditors if the estate runs out of money.
+                        Under probate law, an executor who pays lower-priority debts while higher ones remain unpaid can be <strong>personally liable</strong> to the higher-priority creditors if the estate runs out of money.
                     </p>
                 </div>
             </CardContent>

@@ -31,6 +31,11 @@ export default function Liabilities() {
         queryFn: api.getSolvency
     });
 
+    const { data: priorityOptions } = useQuery({
+        queryKey: ["priorityOptions"],
+        queryFn: api.getPriorityOptions
+    });
+
     return (
         <div className="flex bg-[#F8FAFC] min-h-screen">
             <SEO
@@ -64,7 +69,12 @@ export default function Liabilities() {
                             <SolvencyTracker solvency={solvency} isLoading={solvencyLoading} />
                         )}
                         {stats && (
-                            <ClaimsPriorityEngine stats={stats} solvency={solvency} isLoading={isLoading} />
+                            <ClaimsPriorityEngine
+                                stats={stats}
+                                solvency={solvency}
+                                isLoading={isLoading}
+                                priorityOptions={priorityOptions?.options}
+                            />
                         )}
                     </div>
 
@@ -75,7 +85,10 @@ export default function Liabilities() {
                             <p className="text-sm font-medium text-slate-400 mt-4">Loading liabilities...</p>
                         </div>
                     ) : (
-                        <LiabilityList liabilities={liabilities} />
+                        <LiabilityList
+                            liabilities={liabilities}
+                            priorityOptions={priorityOptions?.options}
+                        />
                     )}
                 </div>
             </main>

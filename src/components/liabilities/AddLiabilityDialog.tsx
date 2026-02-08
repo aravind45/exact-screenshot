@@ -125,13 +125,25 @@ export function AddLiabilityDialog({ open, onOpenChange }: AddLiabilityDialogPro
                                 <SelectValue placeholder="Select class" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="ADMINISTRATION_EXPENSES" className="text-xs">1. Administration Expenses</SelectItem>
-                                <SelectItem value="MORTGAGES_SECURED" className="text-xs">2. Secured Debts (Mortgages)</SelectItem>
-                                <SelectItem value="FUNERAL_EXPENSES" className="text-xs">3. Funeral Expenses</SelectItem>
-                                <SelectItem value="MEDICAL_LAST_ILLNESS" className="text-xs">4. Last Illness Expenses</SelectItem>
-                                <SelectItem value="FAMILY_ALLOWANCE" className="text-xs">5. Family Allowance</SelectItem>
-                                <SelectItem value="WAGE_CLAIMS" className="text-xs">6. Wage Claims (to $2000)</SelectItem>
-                                <SelectItem value="GENERAL_DEBTS" className="text-xs">7. General Debts / Credit Cards</SelectItem>
+                                {priorityOptions?.options?.map((option: any) => (
+                                    <SelectItem key={option.classId} value={option.classId} className="text-xs">
+                                        <div className="flex flex-col py-0.5">
+                                            <span className="font-semibold">{option.rank}. {option.label}</span>
+                                            <span className="text-[10px] text-muted-foreground leading-tight">{option.description}</span>
+                                        </div>
+                                    </SelectItem>
+                                ))}
+                                {!priorityOptions && (
+                                    <>
+                                        <SelectItem value="ADMINISTRATION_EXPENSES" className="text-xs">1. Administration Expenses</SelectItem>
+                                        <SelectItem value="MORTGAGES_SECURED" className="text-xs">2. Secured Debts (Mortgages)</SelectItem>
+                                        <SelectItem value="FUNERAL_EXPENSES" className="text-xs">3. Funeral Expenses</SelectItem>
+                                        <SelectItem value="MEDICAL_LAST_ILLNESS" className="text-xs">4. Last Illness Expenses</SelectItem>
+                                        <SelectItem value="FAMILY_ALLOWANCE" className="text-xs">5. Family Allowance</SelectItem>
+                                        <SelectItem value="WAGE_CLAIMS" className="text-xs">6. Wage Claims (to $2000)</SelectItem>
+                                        <SelectItem value="GENERAL_DEBTS" className="text-xs">7. General Debts / Credit Cards</SelectItem>
+                                    </>
+                                )}
                             </SelectContent>
                         </Select>
                     </div>

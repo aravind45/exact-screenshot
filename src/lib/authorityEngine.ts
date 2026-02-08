@@ -8,7 +8,41 @@ import {
     type ProcedureType,
     type DistributionModel
 } from './stateRules.js';
-export { UPC_STATES, type AuthorityType };
+export { UPC_STATES, type AuthorityType, getStateRule };
+
+export type AssetAuthorityType =
+    | 'COURT_REQUIRED'
+    | 'TRUSTEE_DIRECT'
+    | 'AFFIDAVIT_SMALL'
+    | 'BENEFICIARY_CONTRACT'
+    | 'SURVIVORSHIP_TITLE'
+    | 'LITIGATION_HOLD'
+    | 'UNSET';
+
+/**
+ * Maps asset titling (ownershipType) to UI authority categories
+ */
+export function getAssetAuthorityType(
+    asset: { ownershipType: string; value: number; beneficiaryDesignation?: string; inTrust?: boolean; todDeedRecorded?: boolean },
+    threshold: number
+): AssetAuthorityType {
+    const { ownershipType, value, beneficiaryDesignation, inTrust, todDeedRecorded } = asset;
+
+    // Direct transfers bypass everything else
+    if (ownershipType === 'BENEFICIARY' || beneficiaryDesignation) return 'BENEFICIARY_CONTRACT';
+    if (ownershipType === 'JOINT') return 'SURVIVORSHIP_TITLE';
+    if (todDeedRecorded) return 'BENEFICIARY_CONTRACT'; // TOD Deeds are beneficiary-like
+
+    // Trusts
+    if (ownershipType === 'TRUST' || inTrust) return 'TRUSTEE_DIRECT';
+
+    // Probate vs Affidavit
+    if (ownershipType === 'INDIVIDUAL') {
+        return value > threshold ? 'COURT_REQUIRED' : 'AFFIDAVIT_SMALL';
+    }
+
+    return 'UNSET';
+}
 
 // State thresholds for small estate eligibility
 export const STATE_THRESHOLDS: Record<string, number> = Object.fromEntries(
