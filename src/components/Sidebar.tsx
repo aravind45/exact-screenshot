@@ -132,20 +132,20 @@ export function Sidebar() {
     const hasPendingDocs = estateData?.roadmapProgress?.completedTaskIds?.length === 0 || false; // Simple logic for demo
 
     return (
-        <div className="w-64 h-screen bg-slate-900 text-slate-300 flex flex-col fixed left-0 top-0 z-50 border-r border-slate-800">
+        <div className="w-64 h-screen bg-slate-950 text-slate-400 flex flex-col fixed left-0 top-0 z-50 border-r border-white/5">
             {/* Brand */}
-            <div className="p-6">
-                <div className="flex items-center gap-3 mb-2">
-                    <div className="p-2 rounded-xl bg-primary text-primary-foreground shadow-[0_0_20px_rgba(var(--primary-rgb),0.3)]">
+            <div className="p-8">
+                <div className="flex items-center gap-3 mb-4">
+                    <div className="p-2 rounded-xl bg-primary text-primary-foreground shadow-[0_0_20px_rgba(234,88,12,0.3)]">
                         <Landmark className="w-6 h-6" />
                     </div>
-                    <span className="font-bold text-xl tracking-tight text-white">ExpectedEstate</span>
+                    <span className="font-['Outfit'] font-black text-2xl tracking-tighter text-white">ExpectedEstate</span>
                 </div>
                 {estate?.estateType && (
                     <div className="pl-1">
-                        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-800/80 border border-slate-700">
-                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-white/5 border border-white/10">
+                            <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">
                                 {estate.estateType.replace(/_/g, " ")}
                             </span>
                         </div>
@@ -158,7 +158,7 @@ export function Sidebar() {
             <nav className="flex-1 px-4 space-y-8 overflow-y-auto pb-4 custom-scrollbar">
                 {NAV_CATEGORIES.map((category) => (
                     <div key={category.title} className="space-y-1">
-                        <p className="px-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-3 opacity-60">
+                        <p className="px-4 text-[10px] font-black uppercase tracking-[0.3em] text-slate-600 mb-4">
                             {category.title}
                         </p>
                         {category.items.map((item) => (
@@ -166,24 +166,24 @@ export function Sidebar() {
                                 key={item.label}
                                 onClick={() => (item as any).onClick ? (item as any).onClick() : navigate(item.path!)}
                                 className={`
-                                    w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all group
-                                    ${item.path && isActive(item.path) ? "bg-primary/10 text-primary" : "hover:bg-white/5"}
+                                    w-full flex items-center justify-between px-4 py-2.5 rounded-xl transition-all group
+                                    ${item.path && isActive(item.path) ? "bg-primary/10 text-primary shadow-[inset_0_0_20px_rgba(234,88,12,0.05)]" : "hover:bg-white/5"}
                                 `}
                             >
                                 <div className="flex items-center gap-3">
-                                    <item.icon className={`w-4 h-4 ${item.path && isActive(item.path) ? "text-primary" : "text-slate-500 group-hover:text-slate-300"}`} />
-                                    <span className={`text-[13px] font-semibold ${item.path && isActive(item.path) ? "text-white" : "text-slate-400 group-hover:text-slate-200"}`}>
+                                    <item.icon className={`w-4 h-4 transition-colors ${item.path && isActive(item.path) ? "text-primary" : "text-slate-500 group-hover:text-slate-300"}`} />
+                                    <span className={`text-[13px] font-bold tracking-tight transition-colors ${item.path && isActive(item.path) ? "text-white" : "text-slate-500 group-hover:text-slate-300"}`}>
                                         {item.label}
                                     </span>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     {item.label === "Settlement Path" && item.path && !isActive(item.path) && (
-                                        <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse shadow-[0_0_10px_rgba(245,158,11,0.5)]" />
+                                        <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_10px_rgba(234,88,12,0.5)]" />
                                     )}
                                     {item.path && isActive(item.path) && (
                                         <motion.div
                                             layoutId="nav-acc"
-                                            className="w-1 h-3 bg-primary rounded-full shadow-[0_0_8px_rgba(var(--primary-rgb),0.5)]"
+                                            className="w-1 h-3 bg-primary rounded-full shadow-[0_0_15px_rgba(234,88,12,0.6)]"
                                         />
                                     )}
                                 </div>

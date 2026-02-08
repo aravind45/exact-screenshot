@@ -4,7 +4,7 @@ import { api } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { FileText, Download, CheckCircle, AlertCircle, Users, Gavel, Landmark, Upload, Eye, FileUp, Loader2, Archive, Edit2 } from "lucide-react";
+import { FileText, Download, CheckCircle, CheckCircle2, AlertCircle, Users, Gavel, Landmark, Upload, Eye, FileUp, Loader2, Archive, Edit2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -99,42 +99,45 @@ export default function ProbatePetition() {
             <main className="flex-1 ml-64 p-8">
                 <div className="max-w-4xl mx-auto space-y-6">
                     <div className="flex flex-col gap-2">
-                        <h1 className="text-3xl font-bold tracking-tight">Probate Petition (DE-111)</h1>
-                        <p className="text-muted-foreground underline">
-                            The foundation of your authority. This document initiates the court process.
-                        </p>
+                        <h1 className="text-4xl font-['Outfit'] font-black text-slate-900 tracking-tight">Probate Petition (DE-111)</h1>
+                        <div className="flex items-center gap-2">
+                            <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                                The foundation of your authority.
+                            </p>
+                        </div>
                     </div>
 
                     <Tabs defaultValue="preparation" className="space-y-6">
-                        <TabsList className="grid w-full grid-cols-2 max-w-[400px]">
-                            <TabsTrigger value="preparation">1. Preparation</TabsTrigger>
-                            <TabsTrigger value="filing">2. Filing & Results</TabsTrigger>
+                        <TabsList className="bg-slate-100 p-1 rounded-[1.5rem] h-12 max-w-[440px]">
+                            <TabsTrigger value="preparation" className="rounded-[1.25rem] font-black text-xs uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:text-slate-900 shadow-none transition-all">1. Preparation</TabsTrigger>
+                            <TabsTrigger value="filing" className="rounded-[1.25rem] font-black text-xs uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:text-slate-900 shadow-none transition-all">2. Filing & Results</TabsTrigger>
                         </TabsList>
 
                         <TabsContent value="preparation" className="space-y-6">
                             <div className="grid md:grid-cols-3 gap-6">
-                                <Card className="md:col-span-2">
-                                    <CardHeader>
+                                <Card className="md:col-span-2 border-slate-100 shadow-premium rounded-[2rem] overflow-hidden">
+                                    <CardHeader className="p-8">
                                         <div className="flex items-center justify-between">
-                                            <CardTitle>Preparation Status</CardTitle>
-                                            <span className={cn(
-                                                "px-2 py-1 rounded-full text-xs font-bold uppercase tracking-wider",
-                                                isReady ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
+                                            <CardTitle className="font-['Outfit'] font-black text-xl">Preparation Status</CardTitle>
+                                            <div className={cn(
+                                                "px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em]",
+                                                isReady ? "bg-emerald-50 text-emerald-600 border border-emerald-100" : "bg-primary/5 text-primary border border-primary/10"
                                             )}>
                                                 {isReady ? "Draft Ready" : "In Progress"}
-                                            </span>
+                                            </div>
                                         </div>
-                                        <CardDescription>
+                                        <CardDescription className="font-bold text-slate-400">
                                             Gathering the required data for your Petition for Probate.
                                         </CardDescription>
                                     </CardHeader>
-                                    <CardContent className="space-y-6">
-                                        <div className="space-y-2">
-                                            <div className="flex justify-between text-sm">
-                                                <span>Readiness</span>
-                                                <span className="font-bold">{progress}%</span>
+                                    <CardContent className="px-8 pb-8 space-y-8">
+                                        <div className="space-y-4">
+                                            <div className="flex justify-between items-end">
+                                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Readiness Score</span>
+                                                <span className="text-2xl font-black text-slate-900">{progress}%</span>
                                             </div>
-                                            <Progress value={progress} className="h-2" />
+                                            <Progress value={progress} className="h-3 bg-slate-50 [&>div]:bg-primary transition-all duration-1000" />
                                         </div>
 
                                         <div className="grid grid-cols-2 gap-4">
@@ -385,20 +388,20 @@ export default function ProbatePetition() {
 
 function StatusItem({ icon, label, complete }: { icon: React.ReactNode, label: string, complete: boolean }) {
     return (
-        <div className="flex items-center gap-3 p-3 border rounded-lg bg-card">
+        <div className={cn("flex items-center gap-4 p-4 border border-slate-100 rounded-2xl bg-white transition-all hover:border-primary/20 hover:scale-[1.02] shadow-sm", complete ? "border-emerald-100" : "")}>
             <div className={cn(
-                "p-2 rounded-md",
-                complete ? "bg-green-100 text-green-600" : "bg-muted text-muted-foreground"
+                "p-3 rounded-xl transition-all shadow-sm",
+                complete ? "bg-emerald-50 text-emerald-600" : "bg-slate-50 text-slate-400"
             )}>
                 {icon}
             </div>
             <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium truncate">{label}</p>
-                <p className={cn("text-[10px]", complete ? "text-green-600" : "text-muted-foreground")}>
-                    {complete ? "Complete" : "Missing"}
+                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-0.5">{label}</p>
+                <p className={cn("text-xs font-bold", complete ? "text-slate-900" : "text-slate-300")}>
+                    {complete ? "Validated" : "Required"}
                 </p>
             </div>
-            {complete && <CheckCircle className="w-4 h-4 text-green-500" />}
+            {complete && <CheckCircle2 className="w-5 h-5 text-emerald-500" />}
         </div>
     );
 }

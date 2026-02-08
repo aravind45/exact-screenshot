@@ -73,47 +73,47 @@ export function AssetCard({ asset, onClick, onSelect, selected, selectable, clas
       <button
         onClick={onClick}
         className={cn(
-          'flex-1 text-left card-elevated p-3 hover-lift group cursor-pointer border-2 transition-all',
+          'flex-1 text-left bg-white rounded-3xl border border-slate-100 p-5 shadow-premium hover:border-primary/20 hover:scale-[1.01] transition-all group cursor-pointer',
           'focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
-          selected ? 'border-primary bg-primary/5' : 'border-transparent',
+          selected ? 'border-primary bg-primary/[0.02]' : '',
           className
         )}
       >
         <div className="flex items-start gap-3">
           {/* Category Icon */}
           <div className={cn(
-            'p-2 rounded-lg shrink-0',
-            asset.category === 'financial' && 'bg-primary/10 text-primary',
+            'p-3 rounded-2xl shrink-0 group-hover:scale-110 transition-transform duration-300',
+            asset.category === 'financial' && 'bg-primary/10 text-primary shadow-sm shadow-primary/10',
             asset.category === 'retirement' && 'bg-violet-500/10 text-violet-600',
-            asset.category === 'insurance' && 'bg-success/10 text-success',
-            asset.category === 'employer' && 'bg-warning/10 text-warning',
+            asset.category === 'insurance' && 'bg-emerald-500/10 text-emerald-600',
+            asset.category === 'employer' && 'bg-amber-500/10 text-amber-600',
             asset.category === 'property' && 'bg-orange-500/10 text-orange-600',
-            asset.category === 'other' && 'bg-muted text-muted-foreground',
+            asset.category === 'other' && 'bg-slate-100 text-slate-500',
           )}>
-            <CategoryIcon className="w-4 h-4" />
+            <CategoryIcon className="w-5 h-5" />
           </div>
 
           {/* Content */}
           <div className="flex-1 min-w-0 space-y-1">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <h3 className="font-semibold text-sm text-foreground truncate">
+                <h3 className="font-['Outfit'] font-black text-base text-slate-900 leading-tight group-hover:text-primary transition-colors">
                   {asset.institution}
                 </h3>
-                <p className="text-xs text-muted-foreground capitalize">
-                  Account: {asset.type.replace(/_/g, ' ')}
+                <p className="text-[10px] uppercase font-black tracking-widest text-slate-400 mt-1">
+                  {asset.type.replace(/_/g, ' ')}
                 </p>
               </div>
               <div className="text-right shrink-0">
-                <p className="font-semibold text-sm text-foreground">
+                <p className="font-['Outfit'] font-black text-lg text-slate-900 tracking-tighter">
                   {asset.value === 0 && !asset.dateOfDeathValue ? (
-                    <span className="text-slate-400 italic text-xs font-medium">Pending</span>
+                    <span className="text-slate-300 italic text-xs font-medium uppercase tracking-widest">Awaiting Value</span>
                   ) : (
                     <div className="flex flex-col items-end">
-                      <span>{formatCurrency(asset.value)}</span>
+                      <span className="leading-none">{formatCurrency(asset.value)}</span>
                       {asset.dateOfDeathValue && (
-                        <span className="text-[10px] text-muted-foreground font-medium">
-                          DOD: {formatCurrency(asset.dateOfDeathValue)}
+                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-1">
+                          Value at Death: {formatCurrency(asset.dateOfDeathValue)}
                         </span>
                       )}
                     </div>

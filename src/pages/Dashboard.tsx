@@ -46,7 +46,7 @@ import { getAssetTaxonomyState, getTaxonomyInfo } from "@/lib/taxonomy";
 import { AssetTaxonomyBadge } from "@/components/AssetTaxonomyBadge";
 import { Sidebar } from "@/components/Sidebar";
 import { useWorkflow } from "@/contexts/WorkflowContext";
-import { type SettlementPhase } from "@/components/SettlementPhaseChevron";
+import { type SettlementPhase } from "@/config/settlementPhases";
 import { SEO } from "@/components/SEO";
 import { useTerminology } from "@/hooks/use-terminology";
 import { ProbateStatusUpdater } from "@/components/dashboard/ProbateStatusUpdater";
@@ -253,19 +253,19 @@ export default function Dashboard() {
       <div className="flex-1 ml-64 flex flex-col">
         <main className="max-w-[1240px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8 space-y-6">
           {/* Top Metadata Bar */}
-          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 pb-2">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               className="flex items-center gap-4"
             >
               <div className="flex items-center gap-3">
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold uppercase tracking-wider border border-emerald-100">
-                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/5 text-primary text-[10px] font-black uppercase tracking-[0.2em] border border-primary/10">
+                  <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
                   Estate Active
                 </div>
                 {estate?.estateType && estate.estateType !== "UNSET" && (
-                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-bold uppercase tracking-wider border border-slate-200">
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900/5 text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] border border-slate-200">
                     {estate.estateType.replace(/_/g, " ")} TRACK
                   </div>
                 )}
@@ -275,44 +275,43 @@ export default function Dashboard() {
                 />
               </div>
               <div className="h-6 w-px bg-slate-200 hidden sm:block" />
-              <p className="text-xs font-medium text-slate-500 uppercase tracking-widest hidden sm:block">
+              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.1em] hidden sm:block">
                 Managing: <span className="text-slate-900 font-black">{estate?.deceasedFirstName} {estate?.deceasedLastName}</span>
               </p>
             </motion.div>
-
           </div>
 
 
 
 
           {/* Stat Cards - Full Row */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between hover:border-emerald-200 transition-colors">
-              <div className="flex justify-between items-start mb-2">
-                <div className="p-1.5 bg-emerald-50 rounded-lg">
-                  <DollarSign className="w-4 h-4 text-emerald-600" />
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-premium flex flex-col justify-between hover:border-primary/20 transition-all hover:scale-[1.02] group">
+              <div className="flex justify-between items-start mb-6">
+                <div className="p-3 bg-primary/5 rounded-xl group-hover:bg-primary group-hover:text-white transition-colors">
+                  <DollarSign className="w-5 h-5 text-primary group-hover:text-white transition-colors" />
                 </div>
-                <Badge variant="outline" className="text-[8px] font-black text-emerald-600 border-emerald-100 bg-emerald-50/50 px-1 h-4">+{Math.round(progressPercent / 2)}%</Badge>
+                <div className="text-[10px] font-black text-primary uppercase tracking-widest">Global Assets</div>
               </div>
               <div>
-                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1.5">Estate Value</p>
-                <p className="text-xl font-black text-slate-900 leading-none">${(totalValue / 1000).toFixed(0)}K</p>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 leading-none">Gross Estate Value</p>
+                <p className="text-3xl font-black text-slate-900 tracking-tighter leading-none">${(totalValue / 1000).toFixed(0)}K</p>
               </div>
             </div>
 
-            <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between hover:border-indigo-200 transition-colors">
-              <div className="flex justify-between items-start mb-2">
-                <div className="p-1.5 bg-indigo-50 rounded-lg">
-                  <CheckCircle2 className="w-4 h-4 text-indigo-600" />
+            <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-premium flex flex-col justify-between hover:border-primary/20 transition-all hover:scale-[1.02] group">
+              <div className="flex justify-between items-start mb-6">
+                <div className="p-3 bg-primary/5 rounded-xl group-hover:bg-primary group-hover:text-white transition-colors">
+                  <CheckCircle2 className="w-5 h-5 text-primary group-hover:text-white transition-colors" />
                 </div>
-                <p className="text-[8px] font-black text-indigo-600 uppercase tracking-tighter">{completed}/{assets.length}</p>
+                <div className="text-[10px] font-black text-primary uppercase tracking-widest">{completed}/{assets.length} Tasks</div>
               </div>
               <div>
-                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1.5">Progress</p>
-                <div className="flex items-center gap-2">
-                  <p className="text-xl font-black text-slate-900 leading-none">{progressPercent}%</p>
-                  <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden max-w-[60px]">
-                    <div className="h-full bg-indigo-600 transition-all duration-1000" style={{ width: `${progressPercent}%` }} />
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 leading-none">Overall Progress</p>
+                <div className="flex items-center gap-3">
+                  <p className="text-3xl font-black text-slate-900 tracking-tighter leading-none">{progressPercent}%</p>
+                  <div className="flex-1 h-2 bg-slate-50 rounded-full overflow-hidden">
+                    <div className="h-full bg-primary transition-all duration-1000" style={{ width: `${progressPercent}%` }} />
                   </div>
                 </div>
               </div>
@@ -320,44 +319,42 @@ export default function Dashboard() {
 
             <div
               className={cn(
-                "p-3 rounded-xl border shadow-sm flex flex-col justify-between cursor-pointer transition-all group",
+                "p-6 rounded-2xl border transition-all hover:scale-[1.02] shadow-premium flex flex-col justify-between cursor-pointer group",
                 attentionNeededCount > 0
-                  ? "bg-amber-50/50 border-amber-200 hover:border-amber-400 shadow-amber-100/20"
-                  : "bg-white border-slate-200 hover:border-slate-400"
+                  ? "bg-primary/[0.02] border-primary/20"
+                  : "bg-white border-slate-100 hover:border-primary/20"
               )}
               onClick={() => navigate('/assets')}
             >
-              <div className="flex justify-between items-start mb-2">
+              <div className="flex justify-between items-start mb-6">
                 <div className={cn(
-                  "p-1.5 rounded-lg group-hover:scale-105 transition-transform",
-                  attentionNeededCount > 0 ? "bg-amber-100 text-amber-600" : "bg-slate-50 text-slate-600"
+                  "p-3 rounded-xl transition-colors",
+                  attentionNeededCount > 0 ? "bg-primary text-white shadow-lg shadow-primary/20" : "bg-primary/5 text-primary group-hover:bg-primary group-hover:text-white"
                 )}>
-                  <Bell className="w-4 h-4" />
+                  <Bell className="w-5 h-5 transition-colors" />
                 </div>
-                {taxonomyStats.action_required > 0 && <Badge variant="destructive" className="animate-pulse text-[8px] font-black px-1 h-4">{taxonomyStats.action_required} Urgent</Badge>}
+                {taxonomyStats.action_required > 0 && <Badge variant="destructive" className="animate-pulse text-[10px] font-black px-2 py-1 rounded-lg tracking-widest uppercase border-none">Urgent</Badge>}
               </div>
               <div>
-                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1.5">
-                  Guidance Required
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 leading-none">
+                  Fiduciary Guidance
                 </p>
-                <div className="flex items-center gap-1.5">
-                  <p className="text-xl font-black text-slate-900 leading-none">{attentionNeededCount}</p>
-                  {attentionNeededCount > 0 && (
-                    <ArrowRight className="w-4 h-4 text-amber-500 group-hover:translate-x-0.5 transition-transform" />
-                  )}
+                <div className="flex items-center gap-2">
+                  <p className="text-3xl font-black text-slate-900 tracking-tighter leading-none">{attentionNeededCount}</p>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Required</span>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between hover:border-slate-400 transition-colors">
-              <div className="flex justify-between items-start mb-2">
-                <div className="p-1.5 bg-slate-50 rounded-lg">
-                  <Landmark className="w-4 h-4 text-slate-600" />
+            <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-premium flex flex-col justify-between hover:border-primary/20 transition-all hover:scale-[1.02] group">
+              <div className="flex justify-between items-start mb-6">
+                <div className="p-3 bg-primary/5 rounded-xl group-hover:bg-primary group-hover:text-white transition-colors">
+                  <Landmark className="w-5 h-5 text-primary group-hover:text-white transition-colors" />
                 </div>
               </div>
               <div>
-                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1.5">Authority Type</p>
-                <p className="text-xl font-black text-slate-900 leading-none truncate">{authorityType.replace(/_/g, " ")}</p>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 leading-none">Settlement Track</p>
+                <p className="text-2xl font-black text-slate-900 tracking-tighter leading-none truncate">{authorityType.replace(/_/g, " ")}</p>
               </div>
             </div>
           </div>

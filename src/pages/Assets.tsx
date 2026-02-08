@@ -270,34 +270,37 @@ export default function Assets() {
             <Sidebar />
 
             <div className="flex-1 ml-64 flex flex-col">
-                <header className="h-16 border-b border-slate-200 bg-white px-8 flex items-center justify-between sticky top-0 z-10">
+                <header className="h-20 border-b border-white/5 bg-white/80 backdrop-blur-xl px-12 flex items-center justify-between sticky top-0 z-10">
                     <div>
-                        <h1 className="text-xl font-bold text-slate-900">Asset Ledger</h1>
-                        <p className="text-[10px] font-medium text-slate-400 uppercase">Verified Financial Records</p>
+                        <h1 className="text-2xl font-['Outfit'] font-black text-slate-900 tracking-tight">Asset Ledger</h1>
+                        <div className="flex items-center gap-2 mt-0.5">
+                            <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Verified Financial Records</p>
+                        </div>
                     </div>
                     <Button
                         onClick={() => navigate('/add-asset')}
-                        className="rounded-lg font-bold gap-2 h-9 px-4"
+                        className="rounded-2xl font-black gap-2 h-11 px-8 bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95 group"
                     >
-                        <Plus className="w-4 h-4" />
+                        <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" />
                         Add New Asset
                     </Button>
                 </header>
 
                 <main className="max-w-[1200px] w-full mx-auto px-8 py-10">
-                    <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
-                        <div className="flex items-center justify-between bg-white p-2 rounded-2xl border border-slate-200 shadow-sm">
-                            <TabsList className="bg-transparent border-none p-0 h-10">
+                    <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-10">
+                        <div className="flex items-center justify-between bg-slate-50 p-2 rounded-[2rem] border border-slate-100 shadow-sm">
+                            <TabsList className="bg-transparent border-none p-0 h-12">
                                 <TabsTrigger
                                     value="inventory"
-                                    className="rounded-xl px-6 font-bold data-[state=active]:bg-slate-900 data-[state=active]:text-white transition-all h-full"
+                                    className="rounded-[1.5rem] px-8 font-black text-xs uppercase tracking-widest data-[state=active]:bg-slate-900 data-[state=active]:text-white transition-all h-full"
                                 >
                                     <LayoutGrid className="w-4 h-4 mr-2" />
                                     Estate Inventory
                                 </TabsTrigger>
                                 <TabsTrigger
                                     value="detective"
-                                    className="rounded-xl px-6 font-bold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all h-full"
+                                    className="rounded-[1.5rem] px-8 font-black text-xs uppercase tracking-widest data-[state=active]:bg-primary data-[state=active]:text-white transition-all h-full"
                                 >
                                     <Sparkles className="w-4 h-4 mr-2" />
                                     Asset Detective
@@ -307,15 +310,17 @@ export default function Assets() {
                             {activeTab === "inventory" && (
                                 <div className="flex items-center gap-2 pr-2">
                                     <Button
-                                        variant={isSelectionMode ? "secondary" : "outline"}
+                                        variant={isSelectionMode ? "secondary" : "ghost"}
                                         size="sm"
-                                        className="h-10 px-4 border-slate-200 rounded-xl font-bold"
+                                        className="h-10 px-6 rounded-[1.25rem] font-black text-[10px] uppercase tracking-widest"
                                         onClick={toggleSelectionMode}
                                     >
                                         {isSelectionMode ? "Cancel" : "Batch Select"}
                                     </Button>
-                                    <div className="h-6 w-px bg-slate-100 mx-2" />
-                                    <Badge variant="outline" className="bg-slate-50 text-slate-500 border-slate-200">{assets.length} Total</Badge>
+                                    <div className="h-6 w-px bg-slate-200 mx-2" />
+                                    <div className="px-4 py-2 bg-white rounded-xl border border-slate-200 text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                                        {assets.length} Total Accounts
+                                    </div>
                                 </div>
                             )}
                         </div>
@@ -677,14 +682,14 @@ export default function Assets() {
 
 function AuthoritySummaryCard({ label, count, icon: Icon, color, bgColor }: any) {
     return (
-        <div className={cn("p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-col gap-2 bg-white", count > 0 && "border-slate-200")}>
+        <div className={cn("p-5 rounded-[2rem] border border-slate-100 shadow-premium flex flex-col gap-3 bg-white hover:border-primary/20 hover:scale-105 transition-all group cursor-default", count > 0 && "border-slate-200")}>
             <div className="flex items-center justify-between">
-                <div className={cn("p-1.5 rounded-lg", bgColor, color)}>
+                <div className={cn("p-2 rounded-xl transition-all group-hover:scale-110", bgColor, color)}>
                     <Icon className="w-4 h-4" />
                 </div>
-                <span className={cn("text-lg font-black", count > 0 ? "text-slate-900" : "text-slate-300")}>{count}</span>
+                <span className={cn("text-xl font-['Outfit'] font-black leading-none", count > 0 ? "text-slate-900" : "text-slate-200")}>{count}</span>
             </div>
-            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{label}</p>
+            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">{label}</p>
         </div>
     );
 }
