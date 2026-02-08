@@ -22,8 +22,8 @@
     --popover: 214 31% 91%;
     --popover-foreground: 222 47% 11%;
 
-    /* Primary - Professional Orange (matches landing page accents) */
-    --primary: 25 95% 48%;
+    /* Primary - Peaceful Blue (evokes hope & peace) */
+    --primary: 221 83% 53%;
     --primary-foreground: 0 0% 100%;
 
     /* Secondary - Soft neutral */
@@ -192,7 +192,12 @@
   }
 
   /* Empathetic typography - generous line heights for readability */
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply font-semibold tracking-tight;
   }
 
@@ -214,6 +219,7 @@
 }
 
 @layer components {
+
   /* Card with soft shadow */
   .card-elevated {
     @apply bg-card rounded-xl border border-border/50;
@@ -296,6 +302,7 @@
 }
 
 @layer utilities {
+
   /* Animate in from bottom */
   .animate-in-up {
     animation: slideUp 0.5s ease-out forwards;
@@ -306,6 +313,7 @@
       opacity: 0;
       transform: translateY(20px);
     }
+
     to {
       opacity: 1;
       transform: translateY(0);
@@ -313,11 +321,25 @@
   }
 
   /* Staggered animation delays */
-  .delay-100 { animation-delay: 100ms; }
-  .delay-200 { animation-delay: 200ms; }
-  .delay-300 { animation-delay: 300ms; }
-  .delay-400 { animation-delay: 400ms; }
-  .delay-500 { animation-delay: 500ms; }
+  .delay-100 {
+    animation-delay: 100ms;
+  }
+
+  .delay-200 {
+    animation-delay: 200ms;
+  }
+
+  .delay-300 {
+    animation-delay: 300ms;
+  }
+
+  .delay-400 {
+    animation-delay: 400ms;
+  }
+
+  .delay-500 {
+    animation-delay: 500ms;
+  }
 
   /* Subtle pulse for attention */
   .pulse-subtle {
@@ -325,9 +347,12 @@
   }
 
   @keyframes pulseSubtle {
-    0%, 100% {
+
+    0%,
+    100% {
       opacity: 1;
     }
+
     50% {
       opacity: 0.8;
     }

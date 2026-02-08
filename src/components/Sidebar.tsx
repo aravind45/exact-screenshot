@@ -136,7 +136,7 @@ export function Sidebar() {
             {/* Brand */}
             <div className="p-8">
                 <div className="flex items-center gap-3 mb-4">
-                    <div className="p-2 rounded-xl bg-primary text-primary-foreground shadow-[0_0_20px_rgba(234,88,12,0.3)]">
+                    <div className="p-2 rounded-xl bg-primary text-primary-foreground shadow-[0_0_20px_rgba(37,99,235,0.3)]">
                         <Landmark className="w-6 h-6" />
                     </div>
                     <span className="font-['Outfit'] font-black text-2xl tracking-tighter text-white">ExpectedEstate</span>
@@ -167,7 +167,7 @@ export function Sidebar() {
                                 onClick={() => (item as any).onClick ? (item as any).onClick() : navigate(item.path!)}
                                 className={`
                                     w-full flex items-center justify-between px-4 py-2.5 rounded-xl transition-all group
-                                    ${item.path && isActive(item.path) ? "bg-primary/10 text-primary shadow-[inset_0_0_20px_rgba(234,88,12,0.05)]" : "hover:bg-white/5"}
+                                    ${item.path && isActive(item.path) ? "bg-primary/10 text-primary shadow-[inset_0_0_20px_rgba(37,99,235,0.05)]" : "hover:bg-white/5"}
                                 `}
                             >
                                 <div className="flex items-center gap-3">
@@ -178,12 +178,12 @@ export function Sidebar() {
                                 </div>
                                 <div className="flex items-center gap-2">
                                     {item.label === "Settlement Path" && item.path && !isActive(item.path) && (
-                                        <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_10px_rgba(234,88,12,0.5)]" />
+                                        <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_10px_rgba(37,99,235,0.5)]" />
                                     )}
                                     {item.path && isActive(item.path) && (
                                         <motion.div
                                             layoutId="nav-acc"
-                                            className="w-1 h-3 bg-primary rounded-full shadow-[0_0_15px_rgba(234,88,12,0.6)]"
+                                            className="w-1 h-3 bg-primary rounded-full shadow-[0_0_15px_rgba(37,99,235,0.6)]"
                                         />
                                     )}
                                 </div>

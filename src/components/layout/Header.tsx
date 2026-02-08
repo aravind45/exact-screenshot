@@ -23,14 +23,8 @@ export function Header() {
             <a href="/#services" className="text-sm font-semibold text-foreground/70 hover:text-primary transition-colors">
               Services
             </a>
-            <a href="/#pricing" className="text-sm font-semibold text-foreground/70 hover:text-primary transition-colors">
-              Pricing
-            </a>
-            <a href="/#about" className="text-sm font-semibold text-foreground/70 hover:text-primary transition-colors">
+            <a href="/#about" className="text-background/70 hover:text-background transition-colors">
               About Us
-            </a>
-            <a href="/#contact" className="text-sm font-semibold text-foreground/70 hover:text-primary transition-colors">
-              Contact Us
             </a>
           </nav>
 

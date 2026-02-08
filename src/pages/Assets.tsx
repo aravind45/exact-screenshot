@@ -452,8 +452,8 @@ export default function Assets() {
                                                 selected={selectedAssetIds.includes(asset.id)}
                                                 selectable={isSelectionMode}
                                                 className={cn(
-                                                    "bg-white border-slate-200 hover:border-indigo-200 hover:shadow-md transition-all rounded-3xl p-6",
-                                                    selectedAssetIds.includes(asset.id) && "border-indigo-600 ring-4 ring-indigo-600/5 shadow-lg bg-indigo-50/20"
+                                                    "bg-white border-slate-200 hover:border-primary/20 hover:shadow-md transition-all rounded-3xl p-6",
+                                                    selectedAssetIds.includes(asset.id) && "border-primary ring-4 ring-primary/5 shadow-lg bg-primary/[0.02]"
                                                 )}
                                             />
                                         </motion.div>
@@ -491,7 +491,7 @@ export default function Assets() {
                                         />
 
                                         <div className="mt-8 pt-8 border-t border-slate-100">
-                                            <div className="flex items-center gap-2 text-indigo-600 mb-3">
+                                            <div className="flex items-center gap-2 text-primary mb-3">
                                                 <AlertCircle className="w-4 h-4" />
                                                 <h3 className="text-xs font-black uppercase tracking-widest italic">Detective's Tip</h3>
                                             </div>
@@ -505,7 +505,7 @@ export default function Assets() {
                                 <div className="lg:col-span-7 space-y-6">
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-3">
-                                            <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600">
+                                            <div className="p-2 rounded-xl bg-primary/10 text-primary">
                                                 <TrendingUp className="w-5 h-5" />
                                             </div>
                                             <h2 className="text-xl font-black tracking-tight">Discovery Findings</h2>
@@ -521,15 +521,15 @@ export default function Assets() {
                                                 <motion.div
                                                     initial={{ opacity: 0 }}
                                                     animate={{ opacity: 1 }}
-                                                    className="flex flex-col items-center justify-center py-20 bg-indigo-50/30 border-2 border-dashed border-indigo-100 rounded-[32px] text-center"
+                                                    className="flex flex-col items-center justify-center py-20 bg-primary/5 border-2 border-dashed border-primary/10 rounded-[32px] text-center"
                                                 >
                                                     <div className="relative mb-6">
-                                                        <div className="w-20 h-20 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin" />
+                                                        <div className="w-20 h-20 border-4 border-blue-100 border-t-primary rounded-full animate-spin" />
                                                         <div className="absolute inset-0 flex items-center justify-center">
-                                                            <SearchIcon className="w-8 h-8 text-indigo-600 animate-pulse" />
+                                                            <SearchIcon className="w-8 h-8 text-primary animate-pulse" />
                                                         </div>
                                                     </div>
-                                                    <h3 className="font-black text-xl text-indigo-900">Detective is investigating...</h3>
+                                                    <h3 className="font-black text-xl text-primary-900">Detective is investigating...</h3>
                                                     <p className="text-sm text-slate-400 max-w-xs mt-3 font-bold leading-relaxed">
                                                         Running forensic scan on your document to find hidden clues and assets.
                                                     </p>
@@ -559,14 +559,14 @@ export default function Assets() {
                                                         exit={{ opacity: 0, scale: 0.95 }}
                                                         className={cn(
                                                             "relative overflow-hidden group border border-slate-200 rounded-3xl p-6 transition-all",
-                                                            clue.added ? "bg-slate-50 opacity-60" : "bg-white hover:border-indigo-200 shadow-sm"
+                                                            clue.added ? "bg-slate-50 opacity-60" : "bg-white hover:border-primary/20 shadow-sm"
                                                         )}
                                                     >
                                                         <div className="flex justify-between items-start gap-4">
                                                             <div className="space-y-2 flex-1">
                                                                 <div className="flex items-center gap-3">
                                                                     <h3 className="font-black text-lg text-slate-900">{clue.institution}</h3>
-                                                                    <Badge variant="secondary" className="text-[10px] py-0.5 px-2 uppercase font-black tracking-widest bg-indigo-50 text-indigo-600 border-none">
+                                                                    <Badge variant="secondary" className="text-[10px] py-0.5 px-2 uppercase font-black tracking-widest bg-primary/5 text-primary border-none">
                                                                         {clue.type}
                                                                     </Badge>
                                                                 </div>
@@ -612,7 +612,7 @@ export default function Assets() {
                                                                         <motion.div
                                                                             initial={{ width: 0 }}
                                                                             animate={{ width: `${clue.confidence * 100}%` }}
-                                                                            className="h-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.5)]"
+                                                                            className="h-full bg-primary shadow-[0_0_8px_rgba(37,99,235,0.5)]"
                                                                         />
                                                                     </div>
                                                                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">

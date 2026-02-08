@@ -166,7 +166,7 @@ export default function ProbatePetition() {
                                         {/* NEW: Additional Inputs */}
                                         <div className="p-4 bg-white rounded-lg border space-y-4">
                                             <h4 className="text-sm font-bold flex items-center gap-2">
-                                                <Edit2 className="w-4 h-4 text-blue-500" /> Additional Details (Required)
+                                                <Edit2 className="w-4 h-4 text-primary" /> Additional Details (Required)
                                             </h4>
                                             <div className="grid grid-cols-2 gap-4">
                                                 <div className="space-y-2">
@@ -312,8 +312,8 @@ export default function ProbatePetition() {
                                                 {filedPetition ? (
                                                     <div className="p-4 border rounded-xl bg-slate-50 relative group">
                                                         <div className="flex items-start gap-3">
-                                                            <div className="p-2 bg-blue-100 rounded-lg">
-                                                                <FileText className="w-6 h-6 text-blue-600" />
+                                                            <div className="p-2 bg-primary/10 rounded-lg">
+                                                                <FileText className="w-6 h-6 text-primary" />
                                                             </div>
                                                             <div className="flex-1 min-w-0">
                                                                 <p className="text-xs font-bold truncate">{filedPetition.name}</p>

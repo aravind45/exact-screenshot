@@ -3,7 +3,6 @@ import { Footer } from "@/components/layout/Footer";
 import { HeroSection } from "@/components/landing/HeroSection";
 import { AboutSection } from "@/components/landing/AboutSection";
 import { ServicesSection } from "@/components/landing/ServicesSection";
-import { CTASection } from "@/components/landing/CTASection";
 import { SEO } from "@/components/SEO";
 import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -138,8 +137,6 @@ const Index = () => {
             </div>
           </div>
         </section>
-
-        <CTASection />
       </main>
 
       <Footer />

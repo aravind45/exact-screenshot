@@ -52,7 +52,7 @@ export function HeroSection() {
             className="flex justify-center"
           >
             <Link to="/auth">
-              <Button size="lg" className="h-20 px-14 text-xl font-black rounded-full bg-primary hover:bg-primary/90 shadow-[0_25px_60px_rgba(234,88,12,0.35)] transition-all hover:scale-105 active:scale-95 group">
+              <Button size="lg" className="h-20 px-14 text-xl font-black rounded-full bg-primary hover:bg-primary/90 shadow-[0_25px_60px_rgba(37,99,235,0.35)] transition-all hover:scale-105 active:scale-95 group">
                 Start Your Journey
                 <span className="ml-3 group-hover:translate-x-2 transition-transform">→</span>
               </Button>
