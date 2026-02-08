@@ -16,17 +16,20 @@ export function Footer() {
 
           {/* Links */}
           <nav className="flex items-center gap-6 text-sm">
+            <a href="/" className="text-background/70 hover:text-background transition-colors">
+              Home
+            </a>
+            <a href="/#services" className="text-background/70 hover:text-background transition-colors">
+              Services
+            </a>
             <a href="/#pricing" className="text-background/70 hover:text-background transition-colors">
               Pricing
             </a>
-            <a href="#" className="text-background/70 hover:text-background transition-colors">
-              Privacy Policy
+            <a href="/#about" className="text-background/70 hover:text-background transition-colors">
+              About Us
             </a>
-            <a href="#" className="text-background/70 hover:text-background transition-colors">
-              Terms of Service
-            </a>
-            <a href="#" className="text-background/70 hover:text-background transition-colors">
-              Contact
+            <a href="/#contact" className="text-background/70 hover:text-background transition-colors">
+              Contact Us
             </a>
           </nav>
 

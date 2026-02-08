@@ -16,27 +16,30 @@ export function Header() {
           </Link>
 
           {/* Navigation */}
-          <nav className="hidden md:flex items-center gap-8">
-            <a href="/#features" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-              Solutions
+          <nav className="hidden md:flex items-center gap-10">
+            <Link to="/" className="text-sm font-semibold text-foreground/70 hover:text-primary transition-colors">
+              Home
+            </Link>
+            <a href="/#services" className="text-sm font-semibold text-foreground/70 hover:text-primary transition-colors">
+              Services
             </a>
-            <a href="/#how-it-works" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-              Audit Trail
-            </a>
-            <a href="/#pricing" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+            <a href="/#pricing" className="text-sm font-semibold text-foreground/70 hover:text-primary transition-colors">
               Pricing
             </a>
-            <Link to="/pricing" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-              Fiduciary Guidance
-            </Link>
+            <a href="/#about" className="text-sm font-semibold text-foreground/70 hover:text-primary transition-colors">
+              About Us
+            </a>
+            <a href="/#contact" className="text-sm font-semibold text-foreground/70 hover:text-primary transition-colors">
+              Contact Us
+            </a>
           </nav>
 
           {/* CTA */}
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" asChild>
+            <Button variant="ghost" size="sm" className="font-semibold" asChild>
               <Link to="/auth">Sign In</Link>
             </Button>
-            <Button size="sm" asChild>
+            <Button size="sm" className="font-bold px-6" asChild>
               <Link to="/auth">Get Started</Link>
             </Button>
           </div>

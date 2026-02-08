@@ -1,136 +1,64 @@
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Shield, Clock, FileCheck, Landmark } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 
 export function HeroSection() {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-b from-background to-primary/5 pt-20 pb-32">
-      {/* Background decoration */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/5 rounded-full blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-success/5 rounded-full blur-3xl" />
-      </div>
-
-      <div className="section-container relative">
+    <section className="relative pt-32 pb-24 overflow-hidden bg-white">
+      <div className="section-container relative z-10">
         <div className="max-w-4xl mx-auto text-center">
-          {/* Badge */}
-          <motion.div
+          <motion.h3
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
+            transition={{ duration: 0.6 }}
+            className="text-primary font-bold tracking-[0.2em] uppercase text-sm mb-6"
           >
-            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
-              <Shield className="w-4 h-4" />
-              Built for Fiduciary Protection
-            </span>
-          </motion.div>
+            Efficiency Meets Peace of Mind
+          </motion.h3>
 
-          {/* Headline */}
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="text-4xl md:text-5xl lg:text-3xl font-bold text-foreground leading-tight mb-6"
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="text-5xl md:text-7xl font-extrabold text-foreground mb-8 tracking-tight"
           >
-            The settlement trail that protects you from{" "}
-            <span className="text-destructive">personal liability</span>
+            Estate settlement <br className="hidden md:block" />
+            made <span className="text-primary">simple</span>
           </motion.h1>
 
-          {/* Subheadline */}
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed"
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="text-2xl md:text-3xl text-muted-foreground font-medium mb-12 tracking-wide max-w-2xl mx-auto"
           >
-            ExpectedEstate helps executors document every action, eliminate diligence gaps,
-            and build a bulletproof record of <span className="text-foreground font-semibold italic">reasonable care</span>—so you never have to worry about missing a step or being sued later.
+            Discover the clear path to a stress-free and legally sound estate settlement.
           </motion.p>
 
-          {/* CTA Buttons */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-            className="flex flex-col sm:flex-row items-center justify-center gap-4"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="flex justify-center"
           >
             <Link to="/auth">
-              <Button size="lg" className="h-12 px-8 text-base gap-2 shadow-soft-lg">
-                Get Started Free
-                <ArrowRight className="w-4 h-4" />
+              <Button size="lg" className="h-16 px-12 text-lg font-black rounded-full bg-primary hover:bg-primary/90 shadow-[0_20px_50px_rgba(234,88,12,0.3)] transition-all hover:scale-105 active:scale-95 group">
+                Start Your Journey
+                <span className="ml-2 group-hover:translate-x-1 transition-transform">→</span>
               </Button>
             </Link>
-            <Link to="/auth?mode=buy">
-              <Button variant="outline" size="lg" className="h-12 px-8 text-base border-primary text-primary hover:bg-primary/5">
-                Buy Now
-              </Button>
-            </Link>
-            <Button
-              variant="outline"
-              size="lg"
-              className="h-12 px-8 text-base"
-              onClick={() => document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })}
-            >
-              View Pricing
-            </Button>
-            <Button
-              variant="ghost"
-              size="lg"
-              className="h-12 px-8 text-base"
-              onClick={() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })}
-            >
-              See How It Works
-            </Button>
           </motion.div>
         </div>
+      </div>
 
-        {/* Feature highlights */}
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.5 }}
-          className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto"
-        >
-          <FeatureHighlight
-            icon={Shield}
-            title="Defend Your Actions"
-            description="Export court-ready audit trails that prove you fulfilled your duties with reasonable care."
-          />
-          <FeatureHighlight
-            icon={Clock}
-            title="Stop Missing Details"
-            description="Track every call, fax, and search in one centralized place so nothing falls through the cracks."
-          />
-          <FeatureHighlight
-            icon={FileCheck}
-            title="Reduce Cognitive Load"
-            description="Know exactly what's done and what's left without checking twenty different spreadsheets."
-          />
-        </motion.div>
+      {/* Aesthetic background accent */}
+      <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/4 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/4 w-[500px] h-[500px] bg-success/5 rounded-full blur-[100px] pointer-events-none" />
+
+      {/* Subtle geometric patterns */}
+      <div className="absolute top-1/2 left-0 -translate-y-1/2 w-full h-full opacity-[0.03] pointer-events-none select-none overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(#ea580c_1px,transparent_1px)] [background-size:40px_40px]" />
       </div>
     </section>
-  );
-}
-
-function FeatureHighlight({
-  icon: Icon,
-  title,
-  description
-}: {
-  icon: React.ComponentType<{ className?: string }>;
-  title: string;
-  description: string;
-}) {
-  return (
-    <div className="flex items-start gap-4 p-5 rounded-xl bg-card border border-border/50 hover-lift">
-      <div className="p-2.5 rounded-lg bg-primary/10 text-primary shrink-0">
-        <Icon className="w-5 h-5" />
-      </div>
-      <div>
-        <h3 className="font-semibold text-foreground mb-1">{title}</h3>
-        <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
-      </div>
-    </div>
   );
 }
