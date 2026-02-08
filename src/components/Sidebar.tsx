@@ -98,7 +98,7 @@ export function Sidebar() {
             title: "System",
             items: [
                 { label: "Profile", icon: User, path: "/profile" },
-                { label: "Admin Console", icon: ShieldCheck, path: "/admin" },
+                ...(user?.email === 'aravind45@gmail.com' ? [{ label: "Admin Console", icon: ShieldCheck, path: "/admin" }] : []),
                 { label: "Billing & Plans", icon: Zap, path: "/pricing" },
             ]
         }

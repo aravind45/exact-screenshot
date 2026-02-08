@@ -7,10 +7,11 @@ const router = Router();
 
 // Admin Middleware check
 const isAdmin = (req: any, res: Response, next: any) => {
-    // DEV BYPASS: Allow all users to access admin during development/demo
-    // if (req.user?.role !== 'ADMIN') {
-    //    return res.status(403).json({ error: "Admin access required" });
-    // }
+    const AUTHORIZED_ADMINS = ['aravind45@gmail.com'];
+
+    if (!req.user || !AUTHORIZED_ADMINS.includes(req.user.email)) {
+        return res.status(403).json({ error: "Admin access restricted to authorized personnel" });
+    }
     next();
 };
 
