@@ -15,7 +15,9 @@ import {
     Download,
     Search,
     TrendingUp,
-    Briefcase
+    Briefcase,
+    Plus,
+    Sparkles
 } from "lucide-react";
 import { AuthorityBadge } from "@/components/AuthorityBadge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -372,7 +374,13 @@ export default function Accounting() {
                         </TabsContent>
 
                         <TabsContent value="credits">
-                            <ScheduleCard title="Disbursements (Paid Debts)" data={paidLiabilities} isDebt />
+                            <ScheduleCard
+                                title="Disbursements (Paid Debts)"
+                                data={paidLiabilities}
+                                isDebt
+                                onAdd={() => navigate('/liabilities')}
+                                onDiscovery={() => navigate('/discovery')}
+                            />
                         </TabsContent>
                     </Tabs>
 
@@ -433,11 +441,16 @@ function KPICol({ label, value, isReady, items }: { label: string, value: number
     );
 }
 
-function ScheduleCard({ title, data, isDebt }: { title: string, data: any[], isDebt?: boolean }) {
+function ScheduleCard({ title, data, isDebt, onAdd, onDiscovery }: { title: string, data: any[], isDebt?: boolean, onAdd?: () => void, onDiscovery?: () => void }) {
     return (
         <Card className="border-none shadow-sm bg-white overflow-hidden rounded-3xl">
-            <div className="p-4 bg-slate-50/50 border-b border-slate-100">
+            <div className="p-4 bg-slate-50/50 border-b border-slate-100 flex justify-between items-center">
                 <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-500">{title}</h3>
+                {isDebt && data.length > 0 && (
+                    <Button onClick={onAdd} variant="ghost" size="sm" className="h-6 px-2 text-[8px] font-black uppercase tracking-widest text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50">
+                        <Plus className="w-3 h-3 mr-1" /> Add Payment
+                    </Button>
+                )}
             </div>
             <div className="divide-y divide-slate-50">
                 {data.map((item: any) => (
@@ -467,11 +480,40 @@ function ScheduleCard({ title, data, isDebt }: { title: string, data: any[], isD
                     </div>
                 ))}
                 {data.length === 0 && (
-                    <div className="p-16 text-center text-slate-300">
-                        <div className="p-4 bg-slate-50 w-fit mx-auto rounded-3xl mb-4">
-                            <Search className="w-8 h-8 opacity-20" />
+                    <div className="p-12 text-center">
+                        <div className="max-w-xs mx-auto space-y-4">
+                            <div className="p-4 bg-slate-50 w-fit mx-auto rounded-3xl mb-2">
+                                {isDebt ? <Search className="w-8 h-8 text-indigo-400 opacity-40 shrink-0" /> : <Search className="w-8 h-8 opacity-20" />}
+                            </div>
+                            <div className="space-y-1">
+                                <h4 className="text-xs font-black uppercase tracking-widest text-slate-900">
+                                    {isDebt ? "No Paid Debts Found" : "No records found for this schedule"}
+                                </h4>
+                                {isDebt && (
+                                    <p className="text-[10px] text-slate-500 font-medium leading-relaxed">
+                                        Accounting Schedule C & D tracks <strong>paid</strong> liabilities. If you have unpaid creditors, they first need to be logged and approved in the Liabilities ledger.
+                                    </p>
+                                )}
+                            </div>
+
+                            {isDebt && (
+                                <div className="flex flex-col gap-2 pt-2">
+                                    <Button
+                                        onClick={onDiscovery}
+                                        className="w-full bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-100 rounded-xl h-9 text-[10px] font-black uppercase tracking-widest shadow-none"
+                                    >
+                                        <Sparkles className="w-3.5 h-3.5 mr-2" /> Start Debt Discovery
+                                    </Button>
+                                    <Button
+                                        onClick={onAdd}
+                                        variant="outline"
+                                        className="w-full border-slate-200 rounded-xl h-9 text-[10px] font-black uppercase tracking-widest"
+                                    >
+                                        <Plus className="w-3.5 h-3.5 mr-2" /> Manually Add Liability
+                                    </Button>
+                                </div>
+                            )}
                         </div>
-                        <div className="text-xs font-black uppercase tracking-widest">No records found for this schedule</div>
                     </div>
                 )}
             </div>

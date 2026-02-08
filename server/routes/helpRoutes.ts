@@ -36,4 +36,24 @@ router.post("/chat", async (req: any, res) => {
     }
 });
 
+router.post("/contact", async (req: any, res) => {
+    try {
+        const { estateId, message, subject } = req.body;
+        const result = await HelpService.processSupportMessage(req.user.id, estateId, message, subject);
+        res.json(result);
+    } catch (error: any) {
+        res.status(500).json({ error: error.message || "Failed to send support message" });
+    }
+});
+
+router.post("/feedback", async (req: any, res) => {
+    try {
+        const { rating, comment } = req.body;
+        const result = await HelpService.processFeedback(req.user.id, rating, comment);
+        res.json(result);
+    } catch (error: any) {
+        res.status(500).json({ error: error.message || "Failed to submit feedback" });
+    }
+});
+
 export default router;

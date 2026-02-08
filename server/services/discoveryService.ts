@@ -12,6 +12,7 @@ export const DISCOVERY_CATEGORIES = [
     { id: 'DIGITAL_ASSETS', label: 'Digital Assets', examples: 'Crypto, PayPal, Venmo, Social Media' },
     { id: 'UNCLAIMED_PROPERTY', label: 'Unclaimed Property', examples: 'State registry search' },
     { id: 'PERSONAL_PROPERTY', label: 'Vehicles & Personal Property', examples: 'Cars, Jewelry, Art' },
+    { id: 'DEBTS_CREDITORS', label: 'Debts & Creditors', examples: 'Credit Cards, Medical Bills, Utilities, Mortgages' },
 ];
 
 export class DiscoveryService {
@@ -23,8 +24,11 @@ export class DiscoveryService {
             where: { estateId }
         });
 
-        if (existing.length === 0) {
-            const data = DISCOVERY_CATEGORIES.map(cat => ({
+        const existingCatIds = new Set(existing.map(cat => cat.category));
+        const missing = DISCOVERY_CATEGORIES.filter(cat => !existingCatIds.has(cat.id));
+
+        if (missing.length > 0) {
+            const data = missing.map(cat => ({
                 estateId,
                 category: cat.id,
                 status: 'NOT_CHECKED'

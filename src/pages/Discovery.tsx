@@ -48,6 +48,7 @@ const CATEGORY_MAP: Record<string, { label: string, examples: string, closure: s
     'DIGITAL_ASSETS': { label: 'Digital Assets', examples: 'Crypto, PayPal, Venmo', closure: 'Digital sweep complete' },
     'UNCLAIMED_PROPERTY': { label: 'Unclaimed Property', examples: 'State registry search', closure: 'State search logged' },
     'PERSONAL_PROPERTY': { label: 'Vehicles & Personal Items', examples: 'Cars, Jewelry, Art', closure: 'Inventory review complete' },
+    'DEBTS_CREDITORS': { label: 'Debts & Creditors', examples: 'Credit Cards, Medical Bills, Utilities', closure: 'Creditor search complete' },
 };
 
 const CATEGORY_EDUCATION: Record<string, { why: string, how: string, samples: string[], pitfalls: string[], tips: string[] }> = {
@@ -78,6 +79,13 @@ const CATEGORY_EDUCATION: Record<string, { why: string, how: string, samples: st
         samples: ['Cryptocurrency (Wallets/Exchanges)', 'PayPal/Venmo balances', 'Domain names', 'Monetized social media'],
         pitfalls: ['Losing private keys for crypto', 'Accounts being locked due to inactivity', 'Assuming family members have legal rights to access email passwords'],
         tips: ['Check for "Legacy Contact" settings on Google/Apple/Facebook', 'Look for hardware wallets (Ledger/Trezor) in physical office']
+    },
+    'DEBTS_CREDITORS': {
+        why: 'Identifying all debts is critical for fiduciary protection. Paying heirs before creditors can make you personally liable.',
+        how: 'Review physical mail (look for final notices), check medical statements from the last 6 months, and search for evidence of recurring utility payments.',
+        samples: ['Credit cards', 'Medical/Hospital bills', 'Final utilities (Water/Electric/Gas)', 'Mortgages/HELOCs', 'Personal loans'],
+        pitfalls: ['Overlooking hospital bills that arrive months later', 'Ignoring small utility "final" statements', 'Not checking the deceased\'s credit report for unknown accounts'],
+        tips: ['Order a "Deceased Credit Report" from Equifax/Experian', 'Check the last 3 months of bank statements for auto-pay withdrawals']
     }
 };
 
@@ -117,6 +125,17 @@ const DiscoveryInsights = ({ discoveryStatus, findings, estateInsights = [] }: {
                     title: 'Check Transfers',
                     content: 'Found bank accounts? Review statements for recurring transfers to brokerage or retirement accounts.',
                     icon: Zap
+                });
+            }
+
+            // 3. Debt-specific insight
+            const debtCat = discoveryStatus.categories.find(c => c.category === 'DEBTS_CREDITORS');
+            if (debtCat?.status === 'NOT_CHECKED' && completedCount > 2) {
+                result.push({
+                    type: 'WARNING',
+                    title: 'Potential Creditors',
+                    content: 'Assets are surfacing. Have you checked for corresponding debts? Unpaid creditors can challenge distributions later.',
+                    icon: AlertCircle
                 });
             }
         }

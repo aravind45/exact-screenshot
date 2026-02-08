@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState } from "react";
 import {
     Landmark,
     Plus,
@@ -26,6 +26,7 @@ import {
     Heart,
     HelpCircle,
     ScrollText,
+    MessageSquare,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -33,11 +34,14 @@ import { useAuth } from "@/contexts/AuthContext";
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
+import { SupportDialog } from "./SupportDialog";
 
 export function Sidebar() {
     const navigate = useNavigate();
     const location = useLocation();
     const { signOut, user } = useAuth();
+    const [supportOpen, setSupportOpen] = useState(false);
+    const [supportTab, setSupportTab] = useState<"feedback" | "contact">("feedback");
 
     const { data: estate } = useQuery({
         queryKey: ["estate"],
@@ -91,6 +95,22 @@ export function Sidebar() {
             title: "Support",
             items: [
                 { label: "Help Center", icon: HelpCircle, path: "/help" },
+                {
+                    label: "Send Feedback",
+                    icon: MessageSquare,
+                    onClick: () => {
+                        setSupportTab("feedback");
+                        setSupportOpen(true);
+                    }
+                },
+                {
+                    label: "Contact Support",
+                    icon: Mail,
+                    onClick: () => {
+                        setSupportTab("contact");
+                        setSupportOpen(true);
+                    }
+                },
                 { label: "Settings", icon: Settings, path: "/settings" },
             ]
         },
@@ -144,23 +164,23 @@ export function Sidebar() {
                         {category.items.map((item) => (
                             <button
                                 key={item.label}
-                                onClick={() => navigate(item.path)}
+                                onClick={() => (item as any).onClick ? (item as any).onClick() : navigate(item.path!)}
                                 className={`
                                     w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all group
-                                    ${isActive(item.path) ? "bg-primary/10 text-primary" : "hover:bg-white/5"}
+                                    ${item.path && isActive(item.path) ? "bg-primary/10 text-primary" : "hover:bg-white/5"}
                                 `}
                             >
                                 <div className="flex items-center gap-3">
-                                    <item.icon className={`w-4 h-4 ${isActive(item.path) ? "text-primary" : "text-slate-500 group-hover:text-slate-300"}`} />
-                                    <span className={`text-[13px] font-semibold ${isActive(item.path) ? "text-white" : "text-slate-400 group-hover:text-slate-200"}`}>
+                                    <item.icon className={`w-4 h-4 ${item.path && isActive(item.path) ? "text-primary" : "text-slate-500 group-hover:text-slate-300"}`} />
+                                    <span className={`text-[13px] font-semibold ${item.path && isActive(item.path) ? "text-white" : "text-slate-400 group-hover:text-slate-200"}`}>
                                         {item.label}
                                     </span>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    {item.label === "Settlement Path" && !isActive(item.path) && (
+                                    {item.label === "Settlement Path" && item.path && !isActive(item.path) && (
                                         <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse shadow-[0_0_10px_rgba(245,158,11,0.5)]" />
                                     )}
-                                    {isActive(item.path) && (
+                                    {item.path && isActive(item.path) && (
                                         <motion.div
                                             layoutId="nav-acc"
                                             className="w-1 h-3 bg-primary rounded-full shadow-[0_0_8px_rgba(var(--primary-rgb),0.5)]"
@@ -192,6 +212,12 @@ export function Sidebar() {
                     Sign Out
                 </button>
             </div>
+
+            <SupportDialog
+                open={supportOpen}
+                onOpenChange={setSupportOpen}
+                defaultTab={supportTab}
+            />
         </div>
     );
 }
