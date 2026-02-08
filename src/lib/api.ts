@@ -1313,4 +1313,37 @@ export const api = {
             return parseResponse(response);
         },
     },
+
+    /**
+     * Admin Knowledge Management
+     */
+    adminKnowledge: {
+        getStats: async () => {
+            const response = await fetch(`${API_URL}/admin/knowledge/stats`, {
+                headers: getHeaders(),
+            });
+            return parseResponse(response);
+        },
+        getChunks: async (offset = 0, limit = 100) => {
+            const response = await fetch(`${API_URL}/admin/knowledge/chunks?offset=${offset}&limit=${limit}`, {
+                headers: getHeaders(),
+            });
+            return parseResponse(response);
+        },
+        ingestText: async (text: string, source: string) => {
+            const response = await fetch(`${API_URL}/admin/knowledge/ingest`, {
+                method: "POST",
+                headers: getHeaders(),
+                body: JSON.stringify({ text, source }),
+            });
+            return parseResponse(response);
+        },
+        deleteChunk: async (id: string) => {
+            const response = await fetch(`${API_URL}/admin/knowledge/chunks/${id}`, {
+                method: "DELETE",
+                headers: getHeaders(),
+            });
+            return parseResponse(response);
+        },
+    },
 };

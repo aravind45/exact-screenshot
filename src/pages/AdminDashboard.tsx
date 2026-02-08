@@ -21,7 +21,8 @@ import {
     FileCheck,
     CreditCard,
     Ban,
-    RefreshCcw
+    RefreshCcw,
+    BookOpen
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -140,6 +141,7 @@ export default function AdminDashboard() {
                             <TabsTrigger value="billing">Billing & Ledger</TabsTrigger>
                             <TabsTrigger value="institutions">Institution Master</TabsTrigger>
                             <TabsTrigger value="templates">Form Templates</TabsTrigger>
+                            <TabsTrigger value="knowledge">Knowledge Base</TabsTrigger>
                             <TabsTrigger value="communications">Communications</TabsTrigger>
                         </TabsList>
 
@@ -240,6 +242,10 @@ export default function AdminDashboard() {
 
                         <TabsContent value="templates" className="mt-0">
                             <TemplateManager />
+                        </TabsContent>
+
+                        <TabsContent value="knowledge" className="mt-0">
+                            <KnowledgeManager />
                         </TabsContent>
 
                         <TabsContent value="communications" className="mt-0">
@@ -475,6 +481,224 @@ function TemplateManager() {
         </div>
     );
 }
+
+function KnowledgeManager() {
+    const { toast } = useToast();
+    const queryClient = useQueryClient();
+    const [ingesting, setIngesting] = useState(false);
+    const [sourceName, setSourceName] = useState("");
+    const [rawText, setRawText] = useState("");
+
+    const { data: stats, isLoading: statsLoading } = useQuery({
+        queryKey: ["admin", "knowledge", "stats"],
+        queryFn: () => api.adminKnowledge.getStats()
+    });
+
+    const { data: chunks, isLoading: chunksLoading } = useQuery({
+        queryKey: ["admin", "knowledge", "chunks"],
+        queryFn: () => api.adminKnowledge.getChunks()
+    });
+
+    const ingestMutation = useMutation({
+        mutationFn: () => api.adminKnowledge.ingestText(rawText, sourceName),
+        onSuccess: (data) => {
+            toast({
+                title: "Ingestion Complete",
+                description: `Successfully processed ${data.successfullyIngested}/${data.totalChunks} chunks.`
+            });
+            setRawText("");
+            setSourceName("");
+            queryClient.invalidateQueries({ queryKey: ["admin", "knowledge"] });
+        },
+        onError: (err: any) => {
+            toast({ variant: "destructive", title: "Ingestion Failed", description: err.message });
+        }
+    });
+
+    const deleteMutation = useMutation({
+        mutationFn: (id: string) => api.adminKnowledge.deleteChunk(id),
+        onSuccess: () => {
+            toast({ title: "Chunk Deleted" });
+            queryClient.invalidateQueries({ queryKey: ["admin", "knowledge"] });
+        }
+    });
+
+    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const text = event.target?.result as string;
+            setRawText(text);
+            if (!sourceName) setSourceName(file.name.replace(".txt", ""));
+        };
+        reader.readAsText(file);
+    };
+
+    return (
+        <div className="space-y-6">
+            {/* Stats Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <Card className="bg-blue-600 text-white border-none shadow-lg">
+                    <CardHeader className="pb-2">
+                        <CardDescription className="text-blue-100 flex items-center gap-2">
+                            <Database className="w-4 h-4" /> Total Chunks
+                        </CardDescription>
+                        <CardTitle className="text-3xl font-bold">
+                            {statsLoading ? "..." : stats?.totalChunks || 0}
+                        </CardTitle>
+                    </CardHeader>
+                </Card>
+                <Card className="bg-slate-900 text-white border-none shadow-lg">
+                    <CardHeader className="pb-2">
+                        <CardDescription className="text-slate-400 flex items-center gap-2">
+                            <BookOpen className="w-4 h-4" /> Primary Sources
+                        </CardDescription>
+                        <CardTitle className="text-3xl font-bold">
+                            {statsLoading ? "..." : stats?.sourceCount || 0}
+                        </CardTitle>
+                    </CardHeader>
+                </Card>
+                <Card className="bg-indigo-600 text-white border-none shadow-lg">
+                    <CardHeader className="pb-2 text-xs">
+                        {stats?.sources?.map((s: any, idx: number) => (
+                            <div key={idx} className="flex justify-between items-center py-1 border-b border-white/10 last:border-0 uppercase tracking-tighter">
+                                <span className="truncate mr-2">{s.name}</span>
+                                <span className="font-bold">{s.count}</span>
+                            </div>
+                        ))}
+                    </CardHeader>
+                </Card>
+            </div>
+
+            {/* Ingestion Area */}
+            <Card className="card-elevated border-none overflow-hidden">
+                <CardHeader className="bg-slate-50/50 border-b">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <CardTitle>Add Legal Material</CardTitle>
+                            <CardDescription>Upload a .txt file or paste raw text to train the RAG bot.</CardDescription>
+                        </div>
+                        <div className="flex gap-2">
+                            <Input
+                                type="file"
+                                accept=".txt"
+                                className="hidden"
+                                id="rag-file-upload"
+                                onChange={handleFileUpload}
+                            />
+                            <Button variant="outline" size="sm" asChild>
+                                <label htmlFor="rag-file-upload" className="cursor-pointer">
+                                    <ExternalLink className="w-4 h-4 mr-2" />
+                                    Import .txt
+                                </label>
+                            </Button>
+                        </div>
+                    </div>
+                </CardHeader>
+                <CardContent className="p-6 space-y-4">
+                    <div className="grid grid-cols-1 gap-4">
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">Source Name</label>
+                            <Input
+                                placeholder="e.g., California Probate Code Section 13000"
+                                value={sourceName}
+                                onChange={(e) => setSourceName(e.target.value)}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">Content (Text)</label>
+                            <textarea
+                                className="w-full h-40 bg-muted/50 border rounded-md p-4 text-sm font-mono focus:ring-2 focus:ring-primary outline-none"
+                                placeholder="Paste legal text here..."
+                                value={rawText}
+                                onChange={(e) => setRawText(e.target.value)}
+                            />
+                        </div>
+                        <div className="flex justify-end">
+                            <Button
+                                onClick={() => ingestMutation.mutate()}
+                                disabled={!rawText || !sourceName || ingestMutation.isPending}
+                                className="h-10 px-8"
+                            >
+                                {ingestMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+                                Start Ingestion
+                            </Button>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+
+            {/* Manage Chunks */}
+            <Card className="card-elevated border-none overflow-hidden">
+                <CardHeader className="bg-slate-50/50 border-b">
+                    <CardTitle>Recent Knowledge Chunks</CardTitle>
+                    <CardDescription>The underlying data being used by the RAG assistant.</CardDescription>
+                </CardHeader>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left text-sm">
+                        <thead className="bg-muted/50 text-muted-foreground font-medium uppercase tracking-wider text-[10px]">
+                            <tr>
+                                <th className="px-6 py-4">Snippet</th>
+                                <th className="px-6 py-4">Source</th>
+                                <th className="px-6 py-4">Created</th>
+                                <th className="px-6 py-4 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-border/50">
+                            {chunksLoading ? (
+                                <tr>
+                                    <td colSpan={4} className="px-6 py-20 text-center text-muted-foreground">
+                                        <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" />
+                                        Loading chunks...
+                                    </td>
+                                </tr>
+                            ) : chunks?.map((chunk: any) => (
+                                <tr key={chunk.id} className="hover:bg-muted/30 transition-colors">
+                                    <td className="px-6 py-4">
+                                        <p className="line-clamp-2 max-w-sm text-xs leading-relaxed italic text-slate-600">
+                                            "{chunk.content}"
+                                        </p>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <Badge variant="outline" className="text-[10px] font-bold">
+                                            {chunk.source}
+                                        </Badge>
+                                    </td>
+                                    <td className="px-6 py-4 text-xs text-muted-foreground">
+                                        {new Date(chunk.createdAt).toLocaleDateString()}
+                                    </td>
+                                    <td className="px-6 py-4 text-right">
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-8 w-8 text-destructive"
+                                            onClick={() => deleteMutation.mutate(chunk.id)}
+                                            disabled={deleteMutation.isPending}
+                                        >
+                                            <X className="w-4 h-4" />
+                                        </Button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                    {chunks?.length === 0 && !chunksLoading && (
+                        <div className="p-20 text-center text-muted-foreground">
+                            <div className="bg-slate-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <Search className="w-8 h-8 text-slate-400" />
+                            </div>
+                            <p className="font-medium">No knowledge chunks found.</p>
+                            <p className="text-sm">Start by uploading legal materials above.</p>
+                        </div>
+                    )}
+                </div>
+            </Card>
+        </div>
+    );
+}
+
 function CommunicationsManager() {
     const { toast } = useToast();
     const queryClient = useQueryClient();
