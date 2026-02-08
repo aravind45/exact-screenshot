@@ -135,7 +135,7 @@ export default function Pricing() {
                                                     {loading ? (
                                                         <Loader2 className="w-6 h-6 animate-spin" />
                                                     ) : (
-                                                        "Start 14-Day Free Trial"
+                                                        "Start 7-Day Free Trial"
                                                     )}
                                                 </Button>
                                                 <button

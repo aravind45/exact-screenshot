@@ -84,7 +84,7 @@ const Index = () => {
                 Simple, Transparent Pricing
               </h2>
               <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-                Complete estate settlement for a predictable monthly fee. All plans include a 14-day free trial.
+                Complete estate settlement for a predictable monthly fee. All plans include a 7-day free trial.
               </p>
             </div>
 
@@ -128,7 +128,7 @@ const Index = () => {
                     className="w-full h-14 text-lg bg-primary hover:bg-primary/90 shadow-lg"
                     onClick={() => navigate("/auth")}
                   >
-                    Start 14-Day Free Trial →
+                    Start 7-Day Free Trial →
                   </Button>
                   <Button
                     variant="outline"
@@ -196,7 +196,7 @@ const Index = () => {
                     Do you offer refunds?
                   </summary>
                   <p className="mt-2 text-sm text-gray-600">
-                    We offer a 14-day free trial so you can try before you buy. After that, you can cancel anytime. For refund queries, please contact us at <a href="mailto:expected.estate@gmail.com" className="text-primary hover:underline font-medium">expected.estate@gmail.com</a>.
+                    We offer a 7-day free trial so you can try before you buy. After that, you can cancel anytime. For refund queries, please contact us at <a href="mailto:expected.estate@gmail.com" className="text-primary hover:underline font-medium">expected.estate@gmail.com</a>.
                   </p>
                 </details>
                 <div className="text-center mt-12 p-6 bg-gray-50 rounded-xl border border-gray-100">

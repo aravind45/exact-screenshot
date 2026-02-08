@@ -589,3 +589,14 @@ model Transaction {
 
   @@map("transactions")
 }
+
+model KnowledgeChunk {
+  id        String   @id @default(uuid())
+  content   String
+  metadata  Json?
+  embedding Unsupported("vector(1536)")? // For OpenAI embeddings (1536 dims)
+  source    String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("knowledge_chunks")
+}

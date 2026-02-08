@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { Sidebar } from "@/components/Sidebar";
+import { AIChat } from "@/components/chat/AIChat";
+import { MessageCircle } from "lucide-react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
@@ -11,7 +13,6 @@ import {
     Shield,
     HelpCircle,
     ArrowRight,
-    MessageCircle,
     ExternalLink,
     AlertCircle,
     Info,
@@ -638,7 +639,18 @@ export default function HelpCenter() {
                         </Card>
                     </div>
 
-                    {/* Still Need Help? - Removed as requested */}
+                    {/* Legal Assistant Section */}
+                    <div className="pb-12">
+                        <div className="mb-6">
+                            <h2 className="text-2xl font-bold text-slate-100 flex items-center gap-2">
+                                <MessageCircle className="w-6 h-6 text-blue-400" />
+                                Legal Assistant (RAG)
+                            </h2>
+                            <p className="text-slate-400 text-sm">Ask questions based on our primary legal guides and California Probate Code.</p>
+                        </div>
+                        <AIChat />
+                    </div>
+
                 </div>
             </main>
         </div>

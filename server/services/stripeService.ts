@@ -52,7 +52,7 @@ export class StripeService {
             mode: 'subscription',
             ui_mode: 'embedded',
             subscription_data: skipTrial ? undefined : {
-                trial_period_days: 14,
+                trial_period_days: 7,
             },
             return_url: `${process.env.APP_URL || 'http://localhost:5173'}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
             metadata: { userId },

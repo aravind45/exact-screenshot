@@ -1229,6 +1229,31 @@ export const api = {
         return parseResponse(response);
     },
 
+    help: {
+        getRecommendations: async (estateId: string) => {
+            const response = await fetch(`${API_URL}/help/recommendations/${estateId}`, {
+                headers: getHeaders(),
+            });
+            return parseResponse(response);
+        },
+        logReference: async (estateId: string, topic: string) => {
+            const response = await fetch(`${API_URL}/help/log`, {
+                method: "POST",
+                headers: getHeaders(),
+                body: JSON.stringify({ estateId, topic }),
+            });
+            return parseResponse(response);
+        },
+        chat: async (question: string) => {
+            const response = await fetch(`${API_URL}/help/chat`, {
+                method: "POST",
+                headers: getHeaders(),
+                body: JSON.stringify({ question }),
+            });
+            return parseResponse(response);
+        },
+    },
+
     /**
      * Billing Methods
      */
