@@ -59,7 +59,7 @@ import Forms from "./pages/Forms";
 import { HelmetProvider } from "react-helmet-async";
 import { EstateAgentChatWrapper } from "@/components/EstateAgentChatWrapper";
 import { LegalDisclaimer } from "@/components/LegalDisclaimer";
-import CaliforniaProbateGuide from "./pages/guides/CaliforniaProbateGuide";
+import ProbateGuide from "./pages/guides/ProbateGuide";
 import ResetPassword from "./pages/ResetPassword";
 import Pricing from "./pages/Pricing";
 import PaymentSuccess from "./pages/PaymentSuccess";
@@ -135,7 +135,7 @@ const App = () => (
                     <Route path="/non-probate" element={<ProtectedRoute><ProfileGuard><NonProbate /></ProfileGuard></ProtectedRoute>} />
                     <Route path="/help" element={<ProtectedRoute><ProfileGuard><HelpCenter /></ProfileGuard></ProtectedRoute>} />
                     <Route path="/estate-agent" element={<ProtectedRoute><ProfileGuard><EstateAgentChatWrapper /></ProfileGuard></ProtectedRoute>} />
-                    <Route path="/guides/california-probate" element={<CaliforniaProbateGuide />} />
+                    <Route path="/guides/probate" element={<ProbateGuide />} />
                     <Route path="/invite/:token" element={<AcceptInvite />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>

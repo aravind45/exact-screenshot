@@ -2,10 +2,10 @@ import React from "react";
 import { PillarContentTemplate } from "@/components/PillarContentTemplate";
 import { SEO } from "@/components/SEO";
 
-const CaliforniaProbateGuide = () => {
+const ProbateGuide = () => {
     const guideData = {
-        title: "Complete Guide to Settling an Estate in California (2026)",
-        description: "A step-by-step roadmap for California executors navigating the probate process, including timelines, form guides, and asset tracking tips.",
+        title: "Complete Guide to Settling an Estate (2026)",
+        description: "A step-by-step roadmap for executors navigating the probate process, including timelines, form guides, and asset tracking tips.",
         category: "State Probate Guides",
         publishDate: "January 30, 2026",
         readTime: "12 min",
@@ -15,13 +15,13 @@ const CaliforniaProbateGuide = () => {
             bio: "Our team of legal tech specialists has helped over 10,000 families simplify the probate process across the United States."
         },
         expertReviewer: {
-            name: "California Legal Board",
+            name: "Expert Legal Panel",
             role: "Compliance Review"
         },
         faqs: [
             {
-                question: "How long does probate take in California?",
-                answer: "In California, probate typically takes between 12 to 18 months, depending on the complexity of the estate and court backlog."
+                question: "How long does probate take?",
+                answer: "Probate typically takes between 12 to 18 months, depending on the complexity of the estate and court backlog."
             },
             {
                 question: "What is the small estate limit in CA?",
@@ -40,14 +40,14 @@ const CaliforniaProbateGuide = () => {
             <SEO
                 title={guideData.title}
                 description={guideData.description}
-                canonical="https://expectedestate.com/guides/california-probate"
+                canonical="https://expectedestate.com/guides/probate"
                 ogType="article"
             />
             <PillarContentTemplate {...guideData}>
                 <section>
-                    <h2>Introduction to California Probate</h2>
+                    <h2>Introduction to Probate</h2>
                     <p>
-                        Settling a loved one's estate in the Golden State can be a daunting task. Between the Judicial Council forms and strict court timelines, many executors feel overwhelmed. This guide simplifies the process into actionable steps.
+                        Settling a loved one's estate can be a daunting task. Between complex forms and strict court timelines, many executors feel overwhelmed. This guide simplifies the process into actionable steps.
                     </p>
 
                     <h3>1. Filing the Initial Petition</h3>
@@ -77,4 +77,4 @@ const CaliforniaProbateGuide = () => {
     );
 };
 
-export default CaliforniaProbateGuide;
+export default ProbateGuide;

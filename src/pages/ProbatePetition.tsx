@@ -125,7 +125,7 @@ export default function ProbatePetition() {
                                             </span>
                                         </div>
                                         <CardDescription>
-                                            Gathering the required data for your California Petition for Probate.
+                                            Gathering the required data for your Petition for Probate.
                                         </CardDescription>
                                     </CardHeader>
                                     <CardContent className="space-y-6">

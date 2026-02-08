@@ -272,7 +272,7 @@ export default function SpousalPropertyPetition() {
                                 </CardHeader>
                                 <CardContent className="pt-0 space-y-3">
                                     <p className="text-[10px] text-slate-400 leading-relaxed italic">
-                                        "California Probate Code Section 13650 allows for the summary distribution
+                                        "Probate Code Section 13650 allows for the summary distribution
                                         of assets passing to a surviving spouse."
                                     </p>
                                     <div className="space-y-2 pt-2 border-t border-slate-800">
@@ -298,7 +298,7 @@ export default function SpousalPropertyPetition() {
                                 </CardHeader>
                                 <CardContent className="space-y-2">
                                     <a href="https://www.courts.ca.gov/8865.htm" target="_blank" className="flex items-center justify-between p-2 rounded hover:bg-slate-50 transition-colors group">
-                                        <span className="text-[10px] font-bold text-slate-700">CA Judicial Council Guide</span>
+                                        <span className="text-[10px] font-bold text-slate-700">Judicial Council Guide</span>
                                         <ExternalLink className="w-3 h-3 text-slate-300 group-hover:text-rose-500" />
                                     </a>
                                     <a href="#" className="flex items-center justify-between p-2 rounded hover:bg-slate-50 transition-colors group">

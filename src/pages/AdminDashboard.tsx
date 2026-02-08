@@ -602,7 +602,7 @@ function KnowledgeManager() {
                         <div className="space-y-2">
                             <label className="text-sm font-medium">Source Name</label>
                             <Input
-                                placeholder="e.g., California Probate Code Section 13000"
+                                placeholder="e.g., Probate Code Section 13000"
                                 value={sourceName}
                                 onChange={(e) => setSourceName(e.target.value)}
                             />

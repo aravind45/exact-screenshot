@@ -62,7 +62,7 @@ export class EmailService {
         if (estate.assets.length > 0) {
             try {
                 const assetContext = estate.assets.map(a => `${a.id}: ${a.institution} (${a.assetType})`).join("\n");
-                const triagePrompt = `You are a legal assistant for an estate. 
+                const triagePrompt = `You are a settlement assistant for an estate. 
 An email has arrived for the estate of ${estate.deceasedFirstName} ${estate.deceasedLastName}.
 Subject: ${subject}
 Sender: ${sender}

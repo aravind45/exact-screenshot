@@ -14,7 +14,7 @@ interface Message {
 
 export function AIChat() {
     const [messages, setMessages] = useState<Message[]>([
-        { role: "bot", content: "Hello! I'm your ExpectedEstate legal assistant. I use our curated legal guides to answer your questions about estate settlement. How can I help you today?" }
+        { role: "bot", content: "Hello! I'm your ExpectedEstate settlement assistant. I use our curated legal guides to answer your questions about estate settlement. How can I help you today?" }
     ]);
     const [input, setInput] = useState("");
     const [isLoading, setIsLoading] = useState(false);
@@ -45,8 +45,8 @@ export function AIChat() {
                         <MessageCircle className="w-5 h-5 text-blue-400" />
                     </div>
                     <div>
-                        <CardTitle className="text-lg">Legal Assistant</CardTitle>
-                        <p className="text-xs text-slate-400">Powered by RAG & California Probate Code</p>
+                        <CardTitle className="text-lg">Settlement Assistant</CardTitle>
+                        <p className="text-xs text-slate-400">Powered by RAG & Expert Knowledge Base</p>
                     </div>
                 </div>
             </CardHeader>

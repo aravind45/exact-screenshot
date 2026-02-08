@@ -107,7 +107,7 @@ export default function HelpCenter() {
                 {
                     id: "probate-needed",
                     q: "When is full probate actually needed?",
-                    a: "Probate is required when a deceased person owned assets in their name alone (no beneficiary, no joint owner) that exceed the state's 'Small Estate' threshold. In California, this is currently $184,500 for assets not in a trust or joint tenancy."
+                    a: "Probate is required when a deceased person owned assets in their name alone (no beneficiary, no joint owner) that exceed the state's 'Small Estate' threshold. For many jurisdictions, this is currently $184,500 for assets not in a trust or joint tenancy."
                 },
                 {
                     id: "executor-duties",
@@ -116,7 +116,7 @@ export default function HelpCenter() {
                 },
                 {
                     id: "probate-steps",
-                    q: "What are the standard steps in a California probate case?",
+                    q: "What are the standard steps in a probate case?",
                     a: "1. File Petition (DE-111) to open the case. 2. Publish Notice in a local paper. 3. Attend Hearing to get 'Letters (DE-150)'. 4. File Inventory (DE-160). 5. Pay Creditors/Taxes. 6. File Final Petition for Distribution. 7. Distribute assets and close the case."
                 }
             ]
@@ -182,7 +182,7 @@ export default function HelpCenter() {
                 {
                     id: "critical-dates",
                     q: "How are 'Critical Dates' generated if I didn't enter them?",
-                    a: "Critical dates (statutory deadlines) are automatically calculated based on the 'Date of Death' you provided. For example, the Petition for Probate is typically due within 1 month, and the Inventory & Appraisal within 4 months. These reminders help ensure you stay compliant with California court timelines without having to manually track them."
+                    a: "Critical dates (statutory deadlines) are automatically calculated based on the 'Date of Death' you provided. For example, the Petition for Probate is typically due within 1 month, and the Inventory & Appraisal within 4 months. These reminders help ensure you stay compliant with court timelines without having to manually track them."
                 },
                 {
                     id: "asset-discovery",
@@ -242,7 +242,7 @@ export default function HelpCenter() {
                 {
                     id: "small-estate-affidavit",
                     q: "How does the Small Estate Affidavit work?",
-                    a: "For estates under $184,500 in California, you can use a Small Estate Affidavit (Section 13100) to claim assets without going through court probate. You must wait 40 days after death, then present the notarized affidavit directly to financial institutions. This is the fastest way to settle a small estate."
+                    a: "For estates under a specific state threshold (e.g., $184,500), you can use a Small Estate Affidavit to claim assets without going through court probate. You must wait a required period (often 40 days) after death, then present the notarized affidavit directly to financial institutions. This is the fastest way to settle a small estate."
                 }
             ]
         }
@@ -267,7 +267,7 @@ export default function HelpCenter() {
                         </div>
                         <h1 className="text-4xl font-black text-slate-900 tracking-tight">How can we help?</h1>
                         <p className="text-slate-500 max-w-lg mx-auto italic text-sm">
-                            Search our library of legal explanations, form guides, and California-specific probate tips.
+                            Search our library of expert explanations, form guides, and probate tips.
                         </p>
 
                         <div className="relative max-w-xl mx-auto mt-6">
@@ -639,14 +639,13 @@ export default function HelpCenter() {
                         </Card>
                     </div>
 
-                    {/* Legal Assistant Section */}
                     <div className="pb-12">
                         <div className="mb-6">
                             <h2 className="text-2xl font-bold text-slate-100 flex items-center gap-2">
                                 <MessageCircle className="w-6 h-6 text-blue-400" />
-                                Legal Assistant (RAG)
+                                Settlement Assistant
                             </h2>
-                            <p className="text-slate-400 text-sm">Ask questions based on our primary legal guides and California Probate Code.</p>
+                            <p className="text-slate-400 text-sm">Ask questions based on our primary guides and expert knowledge base.</p>
                         </div>
                         <AIChat />
                     </div>
