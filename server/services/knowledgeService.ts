@@ -2,10 +2,10 @@ import { prisma } from "../db.js";
 import { OpenAIEmbeddings } from "@langchain/openai";
 import crypto from 'crypto';
 
-const embeddings = new OpenAIEmbeddings({
+const embeddings = process.env.OPENAI_API_KEY ? new OpenAIEmbeddings({
     apiKey: process.env.OPENAI_API_KEY,
     modelName: "text-embedding-3-small"
-});
+}) : null;
 
 export class KnowledgeService {
     /**
@@ -32,6 +32,10 @@ export class KnowledgeService {
      * Ingest raw text into chunks and embeddings
      */
     static async ingestText(text: string, source: string) {
+        if (!embeddings) {
+            throw new Error("OPENAI_API_KEY is missing. RAG functionality requires an OpenAI API key for embeddings.");
+        }
+
         const CHUNK_SIZE = 1500;
         const CHUNK_OVERLAP = 200;
 
@@ -46,17 +50,12 @@ export class KnowledgeService {
         for (const chunkText of chunks) {
             try {
                 const vector = await embeddings.embedQuery(chunkText);
+                const vectorSql = `[${vector.join(',')}]`;
 
-                await prisma.$executeRaw`
+                await prisma.$executeRawUnsafe(`
                     INSERT INTO "knowledge_chunks" (id, content, source, embedding, created_at)
-                    VALUES (
-                        ${crypto.randomUUID()}, 
-                        ${chunkText}, 
-                        ${source}, 
-                        ${vector}::vector, 
-                        NOW()
-                    )
-                `;
+                    VALUES ($1, $2, $3, $4::vector, NOW())
+                `, crypto.randomUUID(), chunkText, source, vectorSql);
                 successCount++;
             } catch (err) {
                 console.error(`❌ Ingestion error for ${source}:`, err);

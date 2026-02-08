@@ -3,30 +3,38 @@ import { OpenAIEmbeddings } from "@langchain/openai";
 import { ai } from "./ai.js";
 
 // Initialize embeddings (requires OPENAI_API_KEY)
-const embeddings = new OpenAIEmbeddings({
+const embeddings = process.env.OPENAI_API_KEY ? new OpenAIEmbeddings({
     apiKey: process.env.OPENAI_API_KEY,
     modelName: "text-embedding-3-small"
-});
+}) : null;
 
 export class RAGService {
     /**
      * Perform semantic search to find relevant legal chunks
      */
     static async searchKnowledge(query: string, limit = 5) {
+        if (!embeddings) {
+            console.error("RAG Error: OPENAI_API_KEY is missing. Semantic search disabled.");
+            return [];
+        }
         try {
             const queryVector = await embeddings.embedQuery(query);
+            const vectorSql = `[${queryVector.join(',')}]`;
 
             // Perform vector similarity search
-            // <=> is the cosine distance operator in pgvector
+            // Lowered threshold to 0.45 for better retrieval
             const results = await prisma.$queryRawUnsafe(`
                 SELECT content, source, 1 - (embedding <=> $1::vector) as similarity
                 FROM knowledge_chunks
-                WHERE 1 - (embedding <=> $1::vector) > 0.6
+                WHERE 1 - (embedding <=> $1::vector) > 0.45
                 ORDER BY similarity DESC
                 LIMIT $2
-            `, queryVector, limit);
+            `, vectorSql, limit);
 
-            return results as { content: string; source: string; similarity: number }[];
+            const searchResults = results as { content: string; source: string; similarity: number }[];
+            console.log(`🤖 RAG Search for "${query}": Found ${searchResults.length} chunks. Max Similarity: ${searchResults[0]?.similarity?.toFixed(4) || 0}`);
+
+            return searchResults;
         } catch (error) {
             console.error("RAG Search Error:", error);
             return [];
