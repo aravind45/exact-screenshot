@@ -6,19 +6,19 @@ import { Link } from "react-router-dom";
 export function ServicesSection() {
     const services = [
         {
-            icon: Map,
-            title: "Estate Roadmaps",
-            description: "Step-by-step guidance tailored to your specific state and estate type. Never guess your next step."
+            icon: Users,
+            title: "Guided Intake",
+            description: "Answer a few questions about the state, trust, will, assets, and beneficiaries."
         },
         {
-            icon: Files,
-            title: "Smart Ledger",
-            description: "Automatically track assets, liabilities, and disbursements with accountant-ready precision."
+            icon: Map,
+            title: "Settlement Roadmap",
+            description: "See the likely path — probate, trust administration, small estate, or beneficiary transfer — explained in plain language."
         },
         {
             icon: Shield,
-            title: "Audit Trail",
-            description: "Build a robust record of diligence that protects you from personal liability and heir scrutiny."
+            title: "One Shared Workspace",
+            description: "Track assets, debts, documents, and progress so co-executors and family stay aligned."
         }
     ];
 
@@ -32,26 +32,25 @@ export function ServicesSection() {
                         viewport={{ once: true }}
                         className="text-primary font-bold tracking-[0.2em] uppercase text-sm mb-6"
                     >
-                        Capabilities
+                        How it works
                     </motion.h3>
                     <motion.h2
                         initial={{ opacity: 0, y: 20 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         transition={{ delay: 0.1 }}
-                        className="text-4xl md:text-5xl font-bold text-foreground mb-6"
+                        className="text-4xl md:text-5xl font-black text-foreground mb-6"
                     >
-                        Everything you need <br className="hidden md:block" />
-                        in one place
+                        What ExpectedEstate Actually Does
                     </motion.h2>
                     <motion.p
                         initial={{ opacity: 0, y: 20 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         transition={{ delay: 0.2 }}
-                        className="text-lg text-muted-foreground max-w-2xl mx-auto"
+                        className="text-lg text-muted-foreground max-w-2xl mx-auto font-medium"
                     >
-                        From the first day of settlement to the final distribution, ExpectedEstate provides the tools and security professional fiduciaries trust.
+                        Concrete tools built for families navigating the complexities of estate settlement.
                     </motion.p>
                 </div>
 
@@ -63,13 +62,13 @@ export function ServicesSection() {
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ delay: index * 0.1 + 0.3 }}
-                            className="text-center group"
+                            className="bg-muted/30 p-10 rounded-[2.5rem] border border-border/50 hover:border-primary/20 transition-all hover:shadow-xl group"
                         >
-                            <div className="w-20 h-20 rounded-2xl bg-primary/5 text-primary flex items-center justify-center mx-auto mb-8 transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
-                                <service.icon className="w-10 h-10" />
+                            <div className="w-16 h-16 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mb-8">
+                                <service.icon className="w-8 h-8" />
                             </div>
                             <h3 className="text-2xl font-bold mb-4">{service.title}</h3>
-                            <p className="text-muted-foreground leading-relaxed">
+                            <p className="text-muted-foreground leading-relaxed font-medium">
                                 {service.description}
                             </p>
                         </motion.div>
@@ -83,10 +82,10 @@ export function ServicesSection() {
                     transition={{ delay: 0.6 }}
                     className="text-center mt-20"
                 >
-                    <Link to="/auth">
-                        <Button size="lg" className="h-14 px-10 text-lg font-bold rounded-full group">
-                            Explore All Features
-                            <span className="ml-2 group-hover:translate-x-1 transition-transform">→</span>
+                    <Link to="/dashboard">
+                        <Button size="lg" className="h-16 px-12 text-lg font-bold rounded-full group bg-primary">
+                            Start guided intake
+                            <span className="ml-3 group-hover:translate-x-1 transition-transform">→</span>
                         </Button>
                     </Link>
                 </motion.div>

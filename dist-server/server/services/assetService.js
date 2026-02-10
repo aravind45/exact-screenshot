@@ -61,6 +61,12 @@ export const AssetService = {
                 accountNumber: existingAsset.accountNumber ? decrypt(existingAsset.accountNumber) : existingAsset.accountNumber
             };
         }
+        const { getAssetAuthorityType, getStateRule } = await import("../../src/lib/authorityEngine.js");
+        const rule = getStateRule(estate.deceasedState || "CA");
+        const authType = getAssetAuthorityType({
+            ownershipType: ownershipType || "INDIVIDUAL",
+            value: value ? parseFloat(value) : 0
+        }, rule.threshold);
         const asset = await prisma.asset.create({
             data: {
                 userId,
@@ -69,6 +75,7 @@ export const AssetService = {
                 assetType,
                 category,
                 ownershipType: ownershipType || "INDIVIDUAL",
+                authorityType: authType,
                 value: value ? parseFloat(value) : 0,
                 dateOfDeathValue: dateOfDeathValue ? parseFloat(dateOfDeathValue) : undefined,
                 priority: priority || 'medium',
@@ -115,6 +122,16 @@ export const AssetService = {
         if (!existing)
             throw new Error("Access denied");
         const { institution, assetType, category, ownershipType, value, dateOfDeathValue, priority, status, accountNumber, institutionPhone, institutionEmail, institutionFax, institutionAddress, institutionUrl, notes, workflowState, settledValue, settledAt } = data;
+        const { getAssetAuthorityType, getStateRule } = await import("../../src/lib/authorityEngine.js");
+        const estateRecordForAuth = await prisma.estate.findUnique({
+            where: { id: existing.estateId },
+            select: { deceasedState: true }
+        });
+        const rule = getStateRule(estateRecordForAuth?.deceasedState || "CA");
+        const authType = getAssetAuthorityType({
+            ownershipType: ownershipType || existing.ownershipType,
+            value: value !== undefined ? parseFloat(value) : (existing.value || 0)
+        }, rule.threshold);
         const updated = await prisma.asset.update({
             where: { id },
             data: {
@@ -122,6 +139,7 @@ export const AssetService = {
                 assetType,
                 category,
                 ownershipType,
+                authorityType: authType,
                 value: value ? parseFloat(value) : undefined,
                 dateOfDeathValue: dateOfDeathValue ? parseFloat(dateOfDeathValue) : undefined,
                 priority,

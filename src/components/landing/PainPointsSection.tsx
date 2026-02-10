@@ -16,38 +16,27 @@ export function PainPointsSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="text-center max-w-2xl mx-auto mb-16"
+          className="text-center max-w-4xl mx-auto mb-16"
         >
-          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-            Stop wondering: <span className="text-destructive italic">"Did I miss something?"</span>
+          <h2 className="text-3xl md:text-5xl font-black text-foreground mb-6">
+            When someone passes away, families are left to figure everything out alone.
           </h2>
-          <p className="text-lg text-muted-foreground">
-            The fear of missing a deadline or being blamed for a mistake is real.
-            We provide the documented proof you need to settle with confidence.
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left max-w-3xl mx-auto mb-10">
+            {[
+              "“Do we need probate or not?”",
+              "“Which forms apply to us?”",
+              "“Who is tracking assets, debts, and deadlines?”",
+              "“Why is everyone asking for different documents?”"
+            ].map((text, i) => (
+              <div key={i} className="flex items-start gap-4 p-5 rounded-2xl bg-white border border-border/50 shadow-sm">
+                <span className="text-xl font-medium text-foreground">{text}</span>
+              </div>
+            ))}
+          </div>
+          <p className="text-lg text-muted-foreground font-medium italic">
+            ExpectedEstate doesn’t replace professionals — it keeps families organized until they bring one in.
           </p>
         </motion.div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
-          {painPoints.map((item, index) => (
-            <motion.div
-              key={item.problem}
-              initial={{ opacity: 0, x: index % 2 === 0 ? -20 : 20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              className="flex items-center gap-4 p-5 rounded-xl bg-card border border-border/50"
-            >
-              <div className="flex flex-col gap-1 flex-1">
-                <span className="text-sm text-muted-foreground line-through decoration-destructive/40">
-                  {item.problem}
-                </span>
-                <span className="font-medium text-success">
-                  {item.solution}
-                </span>
-              </div>
-            </motion.div>
-          ))}
-        </div>
       </div>
     </section>
   );

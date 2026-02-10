@@ -15,7 +15,7 @@ export class EmailService {
         if (estate.handle)
             return estate.handle;
         const handle = crypto.randomBytes(4).toString("hex"); // e.g. 'af2b81'
-        const domain = process.env.MAILGUN_DOMAIN || "mg.expectedestate.com";
+        const domain = process.env.MAILGUN_DOMAIN || "expectedestate.com";
         const inboundEmail = `settle-${handle}@${domain}`;
         await prisma.estate.update({
             where: { id: estateId },
@@ -39,7 +39,7 @@ export class EmailService {
      * Processes an inbound email from Mailgun.
      */
     static async processInbound(payload) {
-        const recipient = payload.recipient; // e.g. settle-af2b81@mg.expectedestate.com
+        const recipient = payload.recipient; // e.g. settle-af2b81@expectedestate.com
         const handle = recipient.match(/settle-([a-f0-9]+)@/)?.[1];
         if (!handle)
             return { status: "ignored", reason: "no handle found" };
@@ -57,7 +57,7 @@ export class EmailService {
         if (estate.assets.length > 0) {
             try {
                 const assetContext = estate.assets.map(a => `${a.id}: ${a.institution} (${a.assetType})`).join("\n");
-                const triagePrompt = `You are a legal assistant for an estate. 
+                const triagePrompt = `You are a settlement assistant for an estate. 
 An email has arrived for the estate of ${estate.deceasedFirstName} ${estate.deceasedLastName}.
 Subject: ${subject}
 Sender: ${sender}
@@ -115,7 +115,7 @@ Which asset ID does this email most likely belong to? Return ONLY the ID. If non
         if (!estate)
             throw new Error("Estate not found");
         const handle = await this.ensureEstateHandle(params.estateId);
-        const domain = await ConfigService.get("MAILGUN_DOMAIN") || "mg.expectedestate.com";
+        const domain = await ConfigService.get("MAILGUN_DOMAIN") || "expectedestate.com";
         const sender = `ExpectedEstate <settle-${handle}@${domain}>`;
         const apiKey = await ConfigService.get("MAILGUN_API_KEY");
         // Add CC if requested and user has personal email
@@ -182,7 +182,7 @@ Which asset ID does this email most likely belong to? Return ONLY the ID. If non
         return await ConfigService.get("APP_URL") || process.env.APP_URL || "http://localhost:5173";
     }
     static async sendInviteEmail(to, data) {
-        const domain = await ConfigService.get("MAILGUN_DOMAIN") || "mg.expectedestate.com";
+        const domain = await ConfigService.get("MAILGUN_DOMAIN") || "expectedestate.com";
         const sender = `ExpectedEstate <noreply@${domain}>`;
         const appUrl = (await this.getAppUrl()).replace(/\/$/, "");
         const inviteUrl = `${appUrl}/invite/${data.token}`;
@@ -220,12 +220,12 @@ Which asset ID does this email most likely belong to? Return ONLY the ID. If non
         if (!response.ok) {
             const error = await response.text();
             console.error("[EmailService] Invitation Email Error:", error);
-            throw new Error("Failed to send invitation email");
+            throw new Error(`Failed to send invitation email: ${error}`);
         }
         console.log(`[EmailService] Invitation email successfully sent to ${to}`);
     }
     static async sendPasswordResetEmail(to, resetLink) {
-        const domain = await ConfigService.get("MAILGUN_DOMAIN") || "mg.expectedestate.com";
+        const domain = await ConfigService.get("MAILGUN_DOMAIN") || "expectedestate.com";
         const apiKey = await ConfigService.get("MAILGUN_API_KEY");
         console.log(`[EmailService] Attempting to send reset email to: ${to}`);
         console.log(`[EmailService] Using domain: ${domain}`);
@@ -257,7 +257,7 @@ Which asset ID does this email most likely belong to? Return ONLY the ID. If non
         if (!response.ok) {
             const error = await response.text();
             console.error("[EmailService] Password Reset Email Error:", error);
-            throw new Error("Failed to send reset email");
+            throw new Error(`Failed to send reset email: ${error}`);
         }
         console.log(`[EmailService] Reset email successfully accepted by Mailgun for ${to}`);
     }

@@ -36,11 +36,8 @@ export function Header() {
 
           {/* CTA */}
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" className="font-semibold" asChild>
-              <Link to="/auth">Sign In</Link>
-            </Button>
             <Button size="sm" className="font-bold px-6" asChild>
-              <Link to="/auth">Get Started</Link>
+              <Link to="/dashboard">Start guided intake</Link>
             </Button>
           </div>
         </div>

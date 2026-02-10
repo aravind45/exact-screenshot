@@ -48,117 +48,132 @@ const Index = () => {
 
         <ServicesSection />
 
-        {/* Pricing section (The 'Pricelist' in template) */}
-        <section id="pricing" className="py-24 bg-gray-50/50">
+        {/* Visual Proof Section */}
+        <section className="py-24 bg-gray-50/50">
           <div className="section-container">
             <div className="text-center mb-16">
-              <motion.h3
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                className="text-primary font-bold tracking-[0.2em] uppercase text-sm mb-6"
-              >
-                Pricing
-              </motion.h3>
               <motion.h2
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: 0.1 }}
-                className="text-4xl md:text-5xl font-extrabold text-foreground mb-6"
+                className="text-4xl md:text-5xl font-black text-foreground mb-6"
               >
-                One Simple Pricelist
+                Built for how estates actually work
               </motion.h2>
-              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                No complex tiers or hidden fees. Just one comprehensive plan for ultimate peace of mind.
+              <p className="text-lg text-muted-foreground font-medium">
+                Not generic to-do lists. Professional-grade tools for real settlement tasks.
               </p>
             </div>
 
-            <div className="max-w-xl mx-auto">
-              <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.3 }}
-              >
-                <Card className="border-none shadow-[0_20px_50px_rgba(0,0,0,0.08)] bg-white overflow-hidden rounded-3xl">
-                  <div className="bg-primary px-8 py-3 text-center">
-                    <span className="text-primary-foreground font-black text-xs uppercase tracking-widest">Most Recommended</span>
+            <div className="grid md:grid-cols-2 gap-8">
+              {[
+                { title: "Settlement Roadmap", img: "/modern_roadmap_banner.png", caption: "Clear steps for your specific legal path." },
+                { title: "Asset Ledger", img: "/settlement_trail_compact.png", caption: "Track everything with accountant-ready precision." }
+              ].map((item, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1 }}
+                  className="bg-white p-4 rounded-[2.5rem] shadow-xl border border-border/50"
+                >
+                  <img src={item.img} alt={item.title} className="w-full h-auto rounded-3xl mb-6 border border-border/30" />
+                  <div className="px-6 pb-4">
+                    <h3 className="text-xl font-bold mb-2">{item.title}</h3>
+                    <p className="text-sm text-muted-foreground font-medium">{item.caption}</p>
                   </div>
-                  <CardHeader className="text-center pt-10 pb-6">
-                    <CardTitle className="text-2xl font-black mb-2">{plan.name}</CardTitle>
-                    <CardDescription className="text-base italic">
-                      {plan.description}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="px-10 pb-10">
-                    <div className="flex items-baseline justify-center gap-1 mb-10">
-                      <span className="text-7xl font-black tracking-tighter text-foreground">{plan.monthlyPrice}</span>
-                      <span className="text-xl text-muted-foreground font-bold">{plan.period}</span>
-                    </div>
-
-                    <div className="space-y-4 mb-10 border-t border-b border-gray-100 py-10">
-                      {plan.features.map((feature, index) => (
-                        <div key={index} className="flex items-center gap-4">
-                          <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                            <Check className="w-3 h-3 text-primary stroke-[4]" />
-                          </div>
-                          <span className="text-lg font-medium text-foreground/80">{feature}</span>
-                        </div>
-                      ))}
-                    </div>
-
-                    <Button
-                      className="w-full h-16 text-xl font-black rounded-full shadow-lg hover:scale-[1.02] transition-all"
-                      onClick={() => navigate("/auth")}
-                    >
-                      Start 7-Day Free Trial
-                    </Button>
-                  </CardContent>
-                </Card>
-              </motion.div>
+                </motion.div>
+              ))}
             </div>
+          </div>
+        </section>
 
-            <div className="max-w-3xl mx-auto mt-20 text-center">
-              <div className="p-8 bg-white border border-gray-100 rounded-2xl shadow-sm">
-                <h4 className="font-bold text-xl mb-4">Why $49/month?</h4>
-                <div className="flex flex-col md:flex-row gap-8 text-left justify-center items-center">
-                  <div className="space-y-2">
-                    <p className="text-sm font-semibold text-primary">💰 ROI: 30x-50x</p>
-                    <p className="text-xs text-muted-foreground">Saves thousands in legal fees and prevents costly fiduciaries mistakes.</p>
-                  </div>
-                  <div className="w-px h-12 bg-gray-100 hidden md:block" />
-                  <div className="space-y-2">
-                    <p className="text-sm font-semibold text-primary">⚖️ vs. Attorneys</p>
-                    <p className="text-xs text-muted-foreground">95% cheaper than traditional probate lawyers while providing the same structural rigor.</p>
-                  </div>
-                </div>
+        {/* Compliance + Safety */}
+        <section className="py-16 bg-white border-y border-border/50">
+          <div className="section-container">
+            <div className="max-w-3xl mx-auto text-center p-10 bg-primary/5 rounded-[2rem] border border-primary/10">
+              <Badge variant="outline" className="mb-6 uppercase tracking-widest font-black py-1.5 px-4 bg-white">Educational Guidance Only</Badge>
+              <p className="text-xl text-foreground font-medium leading-relaxed mb-4">
+                ExpectedEstate does not provide legal advice or replace an attorney.
+              </p>
+              <p className="text-muted-foreground font-medium italic">
+                It helps families stay organized and prepared, making professional consultations more efficient.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* Who This Is For / Not For */}
+        <section className="py-24 bg-white">
+          <div className="section-container">
+            <div className="grid md:grid-cols-2 gap-12 max-w-5xl mx-auto">
+              <div className="p-10 bg-success/5 rounded-[3rem] border border-success/10">
+                <h3 className="text-2xl font-black text-foreground mb-8 text-success flex items-center gap-3">
+                  <Check className="w-6 h-6 stroke-[4]" /> This is for:
+                </h3>
+                <ul className="space-y-6">
+                  {[
+                    "Executors or administrators",
+                    "Trustees",
+                    "Family members helping from another state or country"
+                  ].map((text, i) => (
+                    <li key={i} className="flex items-center gap-4 text-lg font-bold text-foreground/80">
+                      <div className="w-2 h-2 rounded-full bg-success" />
+                      {text}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="p-10 bg-destructive/5 rounded-[3rem] border border-destructive/10">
+                <h3 className="text-2xl font-black text-foreground mb-8 text-destructive flex items-center gap-3">
+                  <span className="text-3xl">×</span> This is not for:
+                </h3>
+                <ul className="space-y-6">
+                  {[
+                    "DIY legal advice",
+                    "Filing documents for you",
+                    "Avoiding required court processes"
+                  ].map((text, i) => (
+                    <li key={i} className="flex items-center gap-4 text-lg font-bold text-foreground/80">
+                      <div className="w-2 h-2 rounded-full bg-destructive" />
+                      {text}
+                    </li>
+                  ))}
+                </ul>
               </div>
             </div>
           </div>
         </section>
-        {/* Contact section */}
-        <section id="contact" className="py-24 bg-white">
+
+        {/* Final CTA */}
+        <section id="contact" className="py-32 bg-primary/5">
           <div className="section-container">
-            <div className="max-w-4xl mx-auto bg-primary/5 rounded-[3rem] p-12 md:p-16 text-center border border-primary/10">
+            <div className="max-w-4xl mx-auto text-center">
               <motion.h2
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                className="text-3xl md:text-5xl font-black text-foreground mb-6"
+                className="text-4xl md:text-6xl font-black text-foreground mb-8 leading-tight"
               >
-                Still have questions?
+                Get clarity before the <br className="hidden md:block" />
+                paperwork piles up.
               </motion.h2>
-              <p className="text-lg text-muted-foreground mb-10 max-w-2xl mx-auto font-medium">
-                Our team is here to help you navigate every step of the probate and settlement process.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button size="lg" className="h-14 px-10 text-lg font-bold rounded-full shadow-lg transition-all hover:scale-[1.02]">
-                  Chat with Support
+              <div className="flex flex-col items-center gap-6">
+                <Button
+                  size="lg"
+                  className="h-20 px-16 text-2xl font-black rounded-full shadow-2xl hover:scale-105 transition-all bg-primary"
+                  onClick={() => navigate("/dashboard")}
+                >
+                  Start guided intake
+                  <span className="ml-3">→</span>
                 </Button>
-                <Button variant="outline" size="lg" className="h-14 px-10 text-lg font-bold rounded-full border-primary text-primary hover:bg-primary/5 transition-all hover:scale-[1.02]">
-                  Email Us
-                </Button>
+                <div className="space-y-2">
+                  <p className="text-lg text-muted-foreground font-bold italic">
+                    Takes ~5 minutes. No payment required to begin.
+                  </p>
+                </div>
               </div>
             </div>
           </div>

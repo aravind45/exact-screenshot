@@ -1,5 +1,26 @@
 import { getStateRule, UPC_STATES, STATE_RULES } from './stateRules.js';
-export { UPC_STATES };
+export { UPC_STATES, getStateRule };
+/**
+ * Maps asset titling (ownershipType) to UI authority categories
+ */
+export function getAssetAuthorityType(asset, threshold) {
+    const { ownershipType, value, beneficiaryDesignation, inTrust, todDeedRecorded } = asset;
+    // Direct transfers bypass everything else
+    if (ownershipType === 'BENEFICIARY' || beneficiaryDesignation)
+        return 'BENEFICIARY_CONTRACT';
+    if (ownershipType === 'JOINT')
+        return 'SURVIVORSHIP_TITLE';
+    if (todDeedRecorded)
+        return 'BENEFICIARY_CONTRACT'; // TOD Deeds are beneficiary-like
+    // Trusts
+    if (ownershipType === 'TRUST' || inTrust)
+        return 'TRUSTEE_DIRECT';
+    // Probate vs Affidavit
+    if (ownershipType === 'INDIVIDUAL') {
+        return value > threshold ? 'COURT_REQUIRED' : 'AFFIDAVIT_SMALL';
+    }
+    return 'UNSET';
+}
 // State thresholds for small estate eligibility
 export const STATE_THRESHOLDS = Object.fromEntries(Object.entries(STATE_RULES).map(([state, rule]) => [state, rule.threshold]));
 export function getMasterMode(type) {

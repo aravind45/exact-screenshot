@@ -1,5 +1,6 @@
 import express from "express";
 import { HelpService } from "../services/helpService.js";
+import { RAGService } from "../services/ragService.js";
 const router = express.Router();
 router.get("/recommendations/:estateId", async (req, res) => {
     try {
@@ -18,6 +19,39 @@ router.post("/log", async (req, res) => {
     }
     catch (error) {
         res.status(500).json({ error: "Failed to log help reference" });
+    }
+});
+router.post("/chat", async (req, res) => {
+    try {
+        const { question } = req.body;
+        if (!question)
+            return res.status(400).json({ error: "Question is required" });
+        const result = await RAGService.answerLegalQuestion(question);
+        res.json(result);
+    }
+    catch (error) {
+        console.error("RAG Chat Error:", error);
+        res.status(500).json({ error: error.message || "Failed to process chat" });
+    }
+});
+router.post("/contact", async (req, res) => {
+    try {
+        const { estateId, message, subject } = req.body;
+        const result = await HelpService.processSupportMessage(req.user.id, estateId, message, subject);
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: error.message || "Failed to send support message" });
+    }
+});
+router.post("/feedback", async (req, res) => {
+    try {
+        const { rating, comment } = req.body;
+        const result = await HelpService.processFeedback(req.user.id, rating, comment);
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: error.message || "Failed to submit feedback" });
     }
 });
 export default router;

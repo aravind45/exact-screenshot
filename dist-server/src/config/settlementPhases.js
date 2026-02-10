@@ -288,6 +288,40 @@ export const SETTLEMENT_PHASE_TASKS = [
                     }
                 ]
             },
+            {
+                id: "obtain_ein_probate",
+                title: "Obtain EIN for the Estate",
+                description: "Apply for an Employer Identification Number from the IRS. This unique ID is required to open an estate bank account and for all tax filings.",
+                estimatedTime: "30 minutes",
+                tags: ["tax", "statutory"],
+                requiredDocs: ["IRS Form SS-4"],
+                trackCompatibility: ["PROBATE"],
+                alerts: [{
+                        type: "important",
+                        message: "Critical Infrastructure: You cannot open a fiduciary bank account without an EIN. Apply online for immediate issuance."
+                    }],
+                links: [{
+                        label: "Apply for EIN Online (IRS)",
+                        url: "https://www.irs.gov/businesses/small-businesses-self-employed/apply-for-an-employer-identification-number-ein-online"
+                    }]
+            },
+            {
+                id: "file_irs_form_56_probate",
+                title: "File IRS Form 56 (Notice of Fiduciary)",
+                description: "Formally notify the IRS that you have taken on the role of Executor/Administrator. This ensures that all tax correspondence regarding the decedent is sent to you.",
+                estimatedTime: "1 hour",
+                tags: ["tax", "fiduciary"],
+                requiredDocs: ["IRS Form 56", "Certified Letters (DE-150)"],
+                trackCompatibility: ["PROBATE"],
+                alerts: [{
+                        type: "info",
+                        message: "Compliance Tip: This protects you from missing critical IRS deadlines by routing notices to your address."
+                    }],
+                links: [{
+                        label: "Download IRS Form 56",
+                        url: "https://www.irs.gov/pub/irs-pdf/f56.pdf"
+                    }]
+            },
             // International Mode Tasks - Group 1: Representation
             {
                 id: "confirm_us_rep",
@@ -1123,10 +1157,14 @@ export const SETTLEMENT_PHASE_TASKS = [
                 description: "Report income, deductions, and credits for a trust or estate that has gross income of $600 or more in a tax year.",
                 estimatedTime: "4-8 hours",
                 tags: ["tax", "statutory"],
+                trackCompatibility: ["PROBATE", "TRUST"],
                 applicability: {
                     authorityTypes: ["TRUST_ADMIN_IRREVOCABLE", "TRUST_ADMIN_REVOCABLE", "FORMAL_PROBATE", "INFORMAL_PROBATE"]
                 },
-                alerts: [{ type: "important", message: "Required for irrevocable trusts and estates with significant income. Consult a tax professional." }]
+                alerts: [
+                    { type: "important", message: "Required for irrevocable trusts and estates with significant income. Consult a tax professional." },
+                    { type: "info", message: "Note: Income is taxed at much higher brackets in an estate than for an individual." }
+                ]
             },
             {
                 id: "issue_k1",

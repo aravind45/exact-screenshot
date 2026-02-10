@@ -2,13 +2,14 @@ import { Router } from "express";
 import { prisma } from "../db.js";
 import { FormSeedingService } from "../services/formSeedingService.js";
 import { StripeService } from "../services/stripeService.js";
+import { KnowledgeService } from "../services/knowledgeService.js";
 const router = Router();
 // Admin Middleware check
 const isAdmin = (req, res, next) => {
-    // DEV BYPASS: Allow all users to access admin during development/demo
-    // if (req.user?.role !== 'ADMIN') {
-    //    return res.status(403).json({ error: "Admin access required" });
-    // }
+    const AUTHORIZED_ADMINS = ['aravind45@gmail.com'];
+    if (!req.user || !AUTHORIZED_ADMINS.includes(req.user.email)) {
+        return res.status(403).json({ error: "Admin access restricted to authorized personnel" });
+    }
     next();
 };
 router.get("/stats", isAdmin, async (req, res) => {
@@ -337,6 +338,48 @@ router.post("/refund", isAdmin, async (req, res) => {
     }
     catch (error) {
         console.error('❌ Refund error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+// Knowledge Base Management
+router.get("/knowledge/stats", isAdmin, async (req, res) => {
+    try {
+        const stats = await KnowledgeService.getStats();
+        res.json(stats);
+    }
+    catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+router.get("/knowledge/chunks", isAdmin, async (req, res) => {
+    try {
+        const limit = parseInt(req.query.limit) || 100;
+        const offset = parseInt(req.query.offset) || 0;
+        const chunks = await KnowledgeService.listChunks(limit, offset);
+        res.json(chunks);
+    }
+    catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+router.post("/knowledge/ingest", isAdmin, async (req, res) => {
+    try {
+        const { text, source } = req.body;
+        if (!text || !source)
+            return res.status(400).json({ error: "Text and source required" });
+        const result = await KnowledgeService.ingestText(text, source);
+        res.json(result);
+    }
+    catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+router.delete("/knowledge/chunks/:id", isAdmin, async (req, res) => {
+    try {
+        await KnowledgeService.deleteChunk(req.params.id);
+        res.json({ success: true });
+    }
+    catch (error) {
         res.status(500).json({ error: error.message });
     }
 });

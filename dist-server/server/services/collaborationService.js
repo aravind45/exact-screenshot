@@ -54,7 +54,7 @@ export const CollaborationService = {
                 return {
                     ...updatedInvitation,
                     emailSent: false,
-                    emailError: "Existing invitation updated, but email could not be sent. Please share the link manually.",
+                    emailError: emailError instanceof Error ? emailError.message : "Email could not be sent. Please share the link manually.",
                     reused: true
                 };
             }
@@ -99,7 +99,7 @@ export const CollaborationService = {
             return {
                 ...invitation,
                 emailSent: false,
-                emailError: "Invitation created, but email could not be sent. Please share the link manually."
+                emailError: emailError instanceof Error ? emailError.message : "Invitation created, but email could not be sent. Please share the link manually."
             };
         }
         return { ...invitation, emailSent: true };

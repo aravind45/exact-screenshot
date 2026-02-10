@@ -32,8 +32,8 @@ export function HeroSection() {
             transition={{ duration: 0.6, delay: 0.1 }}
             className="text-6xl md:text-8xl font-black text-foreground mb-10 tracking-tighter leading-[0.9]"
           >
-            Estate settlement <br className="hidden md:block" />
-            made <span className="text-primary">simple</span>
+            Estate settlement, <br className="hidden md:block" />
+            step by step — <span className="text-primary text-5xl md:text-7xl">without legal guesswork.</span>
           </motion.h1>
 
           <motion.p
@@ -42,21 +42,24 @@ export function HeroSection() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="text-2xl md:text-3xl text-muted-foreground font-medium mb-14 tracking-tight max-w-2xl mx-auto leading-relaxed"
           >
-            A clear, stress-free path to navigating your legal and fiduciary obligations with confidence.
+            ExpectedEstate helps families organize probate, trust, and beneficiary tasks in one guided workspace.
           </motion.p>
 
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6, delay: 0.4 }}
-            className="flex justify-center"
+            className="flex flex-col sm:flex-row justify-center gap-6 items-center"
           >
-            <Link to="/auth">
+            <Link to="/dashboard">
               <Button size="lg" className="h-20 px-14 text-xl font-black rounded-full bg-primary hover:bg-primary/90 shadow-[0_25px_60px_rgba(37,99,235,0.35)] transition-all hover:scale-105 active:scale-95 group">
-                Start Your Journey
+                Start guided intake
                 <span className="ml-3 group-hover:translate-x-2 transition-transform">→</span>
               </Button>
             </Link>
+            <a href="#how-it-works" className="text-lg font-bold text-muted-foreground hover:text-primary transition-colors">
+              See how it works
+            </a>
           </motion.div>
         </div>
       </div>
