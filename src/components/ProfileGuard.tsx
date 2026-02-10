@@ -4,12 +4,14 @@ import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { isProfileComplete } from "@/lib/authorityEngine";
 import { Loader2 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface ProfileGuardProps {
     children: React.ReactNode;
 }
 
 export function ProfileGuard({ children }: ProfileGuardProps) {
+    const { user } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -18,6 +20,7 @@ export function ProfileGuard({ children }: ProfileGuardProps) {
         queryFn: api.getMyEstate,
         // Don't retry on 401/403 as AuthContext handles that
         retry: false,
+        enabled: !!user,
     });
 
     useEffect(() => {

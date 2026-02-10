@@ -1,0 +1,134 @@
+Here’s a clear, structured summary of the main points from the page you’re viewing .
+
+---
+
+# **Summary of the Page**
+
+## **1. The Scenario**
+A woman named **Becka** inherited her mother’s IRA.  
+She must take a **$10,000 required minimum distribution (RMD)** in **2025**, but the account holds **no cash**—only stocks, bonds, and mutual funds.
+
+---
+
+## **2. Why This Is Complicated**
+Inherited IRAs have special rules:
+- The **SECURE Act 1.0 and 2.0** changed how non‑spouse beneficiaries must withdraw money.  
+- If the original owner died in **2020 or later**, most adult children must **empty the account within 10 years**.
+- If the original owner was already taking RMDs, the beneficiary must also take **annual RMDs**.
+
+---
+
+## **3. How the 10‑Year Rule Works**
+- The 10‑year countdown starts **Dec. 31 of the year after the original owner’s death**.  
+- Example from the article:  
+  If Becka’s mom died in **2022**, the clock starts **2023**, and the account must be empty by **Dec. 31, 2032**.
+
+---
+
+## **4. What to Do When There’s No Cash in the IRA**
+To take an RMD, Becka must **liquidate some investments** inside the IRA.  
+Key points:
+- She can sell **any combination** of stocks, bonds, or mutual funds to generate the needed cash.  
+- The choice depends on:
+  - Investment performance  
+  - Risk tolerance  
+  - Diversification  
+  - Market conditions  
+- Selling inside the IRA does **not** trigger capital gains taxes; the RMD itself is taxable income.
+
+---
+
+## **5. Why Professional Advice Helps**
+The article strongly recommends consulting:
+- A **financial advisor**  
+- A **tax professional**  
+
+Inherited IRAs are complex, and mistakes can lead to penalties or unnecessary taxes.
+
+---
+
+If you want, I can also create:
+- A **step‑by‑step guide** for deciding what to liquidate  
+- A **simple decision tree** for inherited IRA withdrawals  
+- A **checklist** of what to review before taking an RMD         Here’s a simple, practical step‑by‑step guide you can follow.
+
+---
+
+### Step 1: Confirm your RMD amount and deadline  
+- **Find the exact RMD number** for this year (e.g., the $10,000 required in 2025).  
+- **Note the deadline**—usually December 31 for inherited IRAs (unless it’s your first year with special rules).
+
+---
+
+### Step 2: List all holdings inside the IRA  
+- **Make a quick table** of each position:  
+  - **Name:** Fund/stock/bond  
+  - **Type:** Stock, bond, mutual fund, ETF, cash equivalents  
+  - **Current value & % of account**  
+  - **Risk level:** Conservative / moderate / aggressive  
+
+This gives you a snapshot of what you’re actually choosing from.
+
+---
+
+### Step 3: Decide your target mix *after* the sale  
+Before picking what to sell, decide what you want the portfolio to look like going forward:  
+- **More conservative?** You might trim stocks and keep more bonds/cash.  
+- **Comfortable with current risk?** You might sell proportionally across all holdings.  
+- **Too concentrated in one position?** You might use the RMD to reduce that concentration.
+
+Your RMD is a chance to **reshape the portfolio**, not just raise cash.
+
+---
+
+### Step 4: Rank what’s most logical to trim  
+Use these lenses to prioritize what to sell:
+
+- **Overweight positions:**  
+  - **Sell first** from holdings that have grown too large as a % of the account.  
+- **Highest risk holdings:**  
+  - If you want less volatility, **trim the riskiest stocks/funds**.  
+- **Redundant or low‑conviction funds:**  
+  - If you own multiple funds doing the same thing, consider simplifying.  
+
+Create a short list: **“Sell from A, then B, then C if needed.”**
+
+---
+
+### Step 5: Check for practical constraints  
+Inside an IRA, you don’t worry about capital gains, but you still check:
+
+- **Trading costs or spreads:** Avoid very illiquid or expensive‑to‑trade positions unless it’s intentional.  
+- **Minimum holding amounts:** Some mutual funds require a minimum remaining balance—don’t accidentally drop below it.  
+- **Diversification impact:** Make sure selling doesn’t leave you overly concentrated in one sector or asset class.
+
+---
+
+### Step 6: Execute sales to raise slightly more than the RMD  
+- **Sell enough to raise a bit more than the RMD** (e.g., $10,200 instead of $10,000) to cover any small price moves or fees.  
+- Keep the extra cash in the IRA—you can always leave it there or use it for next year’s RMD.
+
+---
+
+### Step 7: Take the RMD distribution in cash  
+- Once the sales settle, **withdraw the required amount in cash** from the IRA.  
+- Remember:  
+  - The **sale inside the IRA is not taxable**.  
+  - The **RMD distribution itself is taxable income** (unless it’s from a Roth or has basis).
+
+---
+
+### Step 8: Decide what to do with the withdrawn money  
+If you don’t need the cash immediately:  
+- **Invest it in a taxable brokerage account** in a way that fits your overall plan (often tax‑efficient stock/ETF holdings).  
+- Or **hold some in savings** if you want more liquidity.
+
+---
+
+### Step 9: Document your choices  
+- Note **what you sold, why, and how much** you withdrew.  
+- Keep a simple record so next year’s RMD decisions are easier and more consistent.
+
+---
+
+If you tell me your rough mix (e.g., “60% stock funds, 30% bond funds, 10% individual stocks”), I can sketch a concrete example of *exactly* how you might choose what to sell.

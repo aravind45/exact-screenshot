@@ -56,6 +56,19 @@ import { generateCPAExport } from "@/lib/csvExport";
 
 const normalize = (str: string | null) => str?.toLowerCase() || '';
 
+const getStatusLabel = (status: string) => {
+  switch (status) {
+    case 'EXECUTOR_APPOINTED': return 'Executor Appointed';
+    case 'PETITION_FILED': return 'Petition Filed';
+    case 'HEARING_SCHEDULED': return 'Hearing Scheduled';
+    case 'INVENTORY_FILED': return 'Inventory Filed';
+    case 'CREDITOR_PERIOD_ACTIVE': return 'Creditor Period Active';
+    case 'DISTRIBUTION_READY': return 'Distribution Ready';
+    case 'CLOSED': return 'Estate Closed';
+    default: return 'Not Started';
+  }
+};
+
 export default function Dashboard() {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
@@ -66,11 +79,13 @@ export default function Dashboard() {
   const { data: assetsData, isLoading, error } = useQuery({
     queryKey: ['assets'],
     queryFn: api.getAssets,
+    enabled: !!user,
   });
 
   const { data: estate } = useQuery({
     queryKey: ['estate'],
     queryFn: api.getMyEstate,
+    enabled: !!user,
   });
 
   // Ensure assets is always an array
@@ -110,6 +125,7 @@ export default function Dashboard() {
   const { data: realFollowUps = [] } = useQuery({
     queryKey: ['follow-ups'],
     queryFn: api.getFollowUps,
+    enabled: !!user,
   });
 
   const { data: recentActivity = [] } = useQuery({
@@ -118,16 +134,19 @@ export default function Dashboard() {
       const data = await api.getTimeline();
       return data.slice(0, 5);
     },
+    enabled: !!user,
   });
 
   const { data: liabilitiesData = [] } = useQuery({
     queryKey: ['liabilities'],
     queryFn: api.getLiabilities,
+    enabled: !!user,
   });
 
   const { data: readiness } = useQuery({
     queryKey: ["accounting-readiness"],
-    queryFn: () => api.getAccountingReadiness()
+    queryFn: () => api.getAccountingReadiness(),
+    enabled: !!user,
   });
 
   const { probateBlockers, completedTaskIds, completedPhases } = useWorkflow();
@@ -191,6 +210,7 @@ export default function Dashboard() {
   const { data: activitiesData = [] } = useQuery({
     queryKey: ['activities'],
     queryFn: api.getActivities,
+    enabled: !!user,
   });
 
   const currentPhase: SettlementPhase = (estate?.status?.toLowerCase() as SettlementPhase) || "immediate_actions";
@@ -262,9 +282,16 @@ export default function Dashboard() {
               className="flex items-center gap-4"
             >
               <div className="flex items-center gap-3">
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/5 text-primary text-[10px] font-black uppercase tracking-[0.2em] border border-primary/10">
-                  <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                  Estate Active
+                <div className="flex items-center gap-2">
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/5 text-primary text-[10px] font-black uppercase tracking-[0.2em] border border-primary/10">
+                    <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                    Estate Active
+                  </div>
+                  {estate?.probateStatus && estate.probateStatus !== "NOT_STARTED" && (
+                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-50 text-indigo-700 text-[10px] font-black uppercase tracking-[0.2em] border border-indigo-100">
+                      {getStatusLabel(estate.probateStatus)}
+                    </div>
+                  )}
                 </div>
                 {estate?.estateType && estate.estateType !== "UNSET" && (
                   <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900/5 text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] border border-slate-200">
@@ -277,9 +304,16 @@ export default function Dashboard() {
                 />
               </div>
               <div className="h-6 w-px bg-slate-200 hidden sm:block" />
-              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.1em] hidden sm:block">
-                Managing: <span className="text-slate-900 font-black">{estate?.deceasedFirstName} {estate?.deceasedLastName}</span>
-              </p>
+              <div className="flex flex-col">
+                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.1em] hidden sm:block">
+                  Managing: <span className="text-slate-900 font-black">{estate?.deceasedFirstName} {estate?.deceasedLastName}</span>
+                </p>
+                {estate?.courtCaseNumber && (
+                  <p className="text-[10px] font-medium text-indigo-600 uppercase tracking-[0.05em] hidden sm:block">
+                    Case: {estate.courtCaseNumber}
+                  </p>
+                )}
+              </div>
             </motion.div>
           </div>
 
@@ -339,7 +373,7 @@ export default function Dashboard() {
               </div>
               <div>
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 leading-none">
-                  Fiduciary Guidance
+                  Guidance Required
                 </p>
                 <div className="flex items-center gap-2">
                   <p className="text-3xl font-black text-slate-900 tracking-tighter leading-none">{attentionNeededCount}</p>
@@ -378,7 +412,6 @@ export default function Dashboard() {
             <div className="lg:col-span-8 space-y-8">
               <TaxAlerts estate={estate} totalValue={totalValue} />
 
-              {/* Support Requested Section - Hidden for now
               <section className="space-y-4">
                 <div className="flex items-center gap-2 px-1">
                   <Lightbulb className="w-5 h-5 text-indigo-500" />
@@ -423,7 +456,6 @@ export default function Dashboard() {
                   )}
                 </div>
               </section>
-              */}
 
               {/* Recent Proof of Work */}
               <section className="space-y-4">

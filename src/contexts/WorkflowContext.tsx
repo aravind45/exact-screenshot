@@ -10,7 +10,8 @@ import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { calculateAssetPhase, getAssetsByPhase, type AssetPhaseStatus } from '@/lib/assetPhase';
 import { getPhaseLocksStatus, type PhaseLockStatus } from '@/lib/phaseLock';
-import type { SettlementPhase } from '@/components/SettlementPhaseChevron';
+import { type SettlementPhase } from '@/config/settlementPhases';
+import { useAuth } from '@/contexts/AuthContext';
 
 export interface PhaseProgress {
   completed: number;
@@ -45,32 +46,37 @@ interface WorkflowContextValue {
 const WorkflowContext = createContext<WorkflowContextValue | null>(null);
 
 export function WorkflowProvider({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
   const [currentPhase, setCurrentPhase] = useState<SettlementPhase>('immediate_actions');
 
   const { data: estate } = useQuery({
     queryKey: ['estate'],
-    queryFn: api.getMyEstate
+    queryFn: api.getMyEstate,
+    enabled: !!user
   });
 
   const { data: assets = [] } = useQuery({
     queryKey: ['assets'],
-    queryFn: api.getAssets
+    queryFn: api.getAssets,
+    enabled: !!user
   });
 
   const { data: liabilities = [] } = useQuery({
     queryKey: ['liabilities'],
-    queryFn: api.getLiabilities
+    queryFn: api.getLiabilities,
+    enabled: !!user
   });
 
   const { data: documents = [] } = useQuery({
     queryKey: ['estate', 'documents'],
     queryFn: api.getEstateDocuments,
-    enabled: !!estate
+    enabled: !!user && !!estate
   });
 
   const { data: stateConfig } = useQuery({
     queryKey: ['liabilities', 'priority-options'],
-    queryFn: api.getPriorityOptions
+    queryFn: api.getPriorityOptions,
+    enabled: !!user
   });
 
   // Calculate asset distribution by phase

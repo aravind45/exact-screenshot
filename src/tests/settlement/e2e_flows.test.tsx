@@ -11,8 +11,23 @@ import { MemoryRouter } from "react-router-dom";
 // Mock the API and Auth
 vi.mock("@/lib/api", () => ({
     api: {
-        getMyEstate: vi.fn(),
-        getAssets: vi.fn(),
+        getMyEstate: vi.fn(() => Promise.resolve({
+            probateStatus: "NOT_STARTED",
+            courtCaseNumber: "",
+            deceasedState: "California",
+            deceasedFirstName: "John",
+            deceasedLastName: "Doe",
+            estateType: "FORMAL_PROBATE",
+            authorityType: "FORMAL_PROBATE"
+        })),
+        getAssets: vi.fn(() => Promise.resolve([])),
+        getLiabilities: vi.fn(() => Promise.resolve([])),
+        getEstateDocuments: vi.fn(() => Promise.resolve([])),
+        getPriorityOptions: vi.fn(() => Promise.resolve([])),
+        getFollowUps: vi.fn(() => Promise.resolve([])),
+        getTimeline: vi.fn(() => Promise.resolve([])),
+        getAccountingReadiness: vi.fn(() => Promise.resolve({ checks: {} })),
+        getActivities: vi.fn(() => Promise.resolve([])),
         updateMyEstate: vi.fn(),
         generateLetter: vi.fn(),
     }
@@ -27,7 +42,7 @@ vi.mock("@/contexts/AuthContext", () => ({
 
 
 vi.mock("@/components/SEO", () => ({
-    SEO: () => null
+    SEO: ({ title }: { title: string }) => <h1>{title}</h1>
 }));
 
 // Create a wrapper for React Query
@@ -57,7 +72,8 @@ describe("Estate Settlement E2E - Onboarding and Authority", () => {
             deceasedState: "California",
             deceasedFirstName: "John",
             deceasedLastName: "Doe",
-            estateType: "FORMAL_PROBATE"
+            estateType: "FORMAL_PROBATE",
+            authorityType: "FORMAL_PROBATE"
         };
 
         (api.getMyEstate as any).mockResolvedValue(mockEstate);
@@ -84,9 +100,9 @@ describe("Estate Settlement E2E - Onboarding and Authority", () => {
         fireEvent.click(updateButton);
 
         // Simulate choosing "Letters Testamentary Issued" (Executor Appointed)
-        const selectTriggers = screen.getAllByRole("combobox");
-        // The first is Estate Type, the second is Probate Status (based on my UI change)
-        fireEvent.click(selectTriggers[1]);
+        const selectTriggers = await screen.findAllByRole("combobox");
+        // The probate status select trigger
+        fireEvent.click(selectTriggers[0]);
 
         // In Radix Select, items are usually in a portal.
         // We'll simulate the update by calling the mutation directly if needed, 
@@ -99,25 +115,36 @@ describe("Estate Settlement E2E - Onboarding and Authority", () => {
         fireEvent.change(caseInput, { target: { value: "2024-PR-12345" } });
         fireEvent.blur(caseInput);
 
+        // Click Done to save
+        const saveButton = await screen.findByRole("button", { name: /Done/i });
+        fireEvent.click(saveButton);
+
         await waitFor(() => {
-            expect(api.updateMyEstate).toHaveBeenCalledWith(expect.objectContaining({
-                courtCaseNumber: "2024-PR-12345"
-            }));
+            expect(api.updateMyEstate).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    courtCaseNumber: "2024-PR-12345"
+                }),
+                expect.anything()
+            );
         });
 
         // Mock the refreshed data after mutation
-        (api.getMyEstate as any).mockResolvedValue({
+        const updatedEstate = {
             ...mockEstate,
             probateStatus: "EXECUTOR_APPOINTED",
             courtCaseNumber: "2024-PR-12345"
+        };
+        (api.getMyEstate as any).mockResolvedValue(updatedEstate);
+
+        // Explicitly invalidate and wait for any UI changes
+        await queryClient.invalidateQueries({ queryKey: ["estate"] });
+
+        // Verify Status Transition - wait for the dialog to close first
+        await waitFor(() => {
+            expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
         });
-        queryClient.invalidateQueries({ queryKey: ["estate"] });
 
-        // Verify Status Transition
-        const doneButton = screen.getByRole("button", { name: /Done/i });
-        fireEvent.click(doneButton);
-
-        expect(await screen.findByText(/Executor Appointed/i)).toBeInTheDocument();
+        expect(await screen.findByText(/Executor Appointed/i, {}, { timeout: 3000 })).toBeInTheDocument();
         expect(screen.getByText(/2024-PR-12345/i)).toBeInTheDocument();
     });
 

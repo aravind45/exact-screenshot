@@ -1,0 +1,46 @@
+
+> vite_react_shadcn_ts@0.0.0 test
+> vitest run src/tests/settlement/e2e_flows.test.tsx
+
+
+[1m[46m RUN [49m[22m [36mv3.2.4 [39m[90mC:/Users/aravi/Documents/AI_LLM/projects/exact-screenshot[39m
+
+stderr | src/tests/settlement/e2e_flows.test.tsx > Estate Settlement E2E - Onboarding and Authority > E2E-01 & E2E-02: Onboarding and Authority Acquisition Workflow
+ΓÜá∩╕Å React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+ΓÜá∩╕Å React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+stderr | src/tests/settlement/e2e_flows.test.tsx > Estate Settlement E2E - Onboarding and Authority > E2E-01 & E2E-02: Onboarding and Authority Acquisition Workflow
+Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+
+ [31mΓ¥»[39m src/tests/settlement/e2e_flows.test.tsx [2m([22m[2m5 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 466[2mms[22m[39m
+[31m   [31m├ù[31m Estate Settlement E2E - Onboarding and Authority[2m > [22mE2E-01 & E2E-02: Onboarding and Authority Acquisition Workflow[39m[33m 345[2mms[22m[39m
+[31m     ΓåÆ Unable to fire a "click" event - please provide a DOM element.[39m
+   [32mΓ£ô[39m Estate Settlement E2E - Onboarding and Authority[2m > [22mE2E-03: Asset Discovery + Institution Matching[32m 14[2mms[22m[39m
+   [32mΓ£ô[39m Estate Settlement E2E - Onboarding and Authority[2m > [22mE2E-04: Bank Closure and Disbursement[32m 71[2mms[22m[39m
+   [32mΓ£ô[39m Estate Settlement E2E - Onboarding and Authority[2m > [22mE2E-05 to E2E-07: Brokerage, Retirement, and Insurance Flows[32m 16[2mms[22m[39m
+   [32mΓ£ô[39m Estate Settlement E2E - Onboarding and Authority[2m > [22mE2E-08 & E2E-09: Debts, Notices, and Final Distribution[32m 19[2mms[22m[39m
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 1 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  src/tests/settlement/e2e_flows.test.tsx > Estate Settlement E2E - Onboarding and Authority > E2E-01 & E2E-02: Onboarding and Authority Acquisition Workflow
+Error: Unable to fire a "click" event - please provide a DOM element.
+ Γ¥» createEvent node_modules/@testing-library/dom/dist/events.js:27:11
+ Γ¥» createEvent.<computed> [as click] node_modules/@testing-library/dom/dist/events.js:106:38
+ Γ¥» fireEvent.<computed> [as click] node_modules/@testing-library/dom/dist/events.js:110:68
+ Γ¥» fireEvent.click node_modules/@testing-library/react/dist/fire-event.js:15:52
+ Γ¥» src/tests/settlement/e2e_flows.test.tsx:104:19
+    102|         const selectTriggers = screen.getAllByRole("combobox");
+    103|         // The first is Estate Type, the second is Probate Status (basΓÇª
+    104|         fireEvent.click(selectTriggers[1]);
+       |                   ^
+    105| 
+    106|         // In Radix Select, items are usually in a portal.
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/1]ΓÄ»
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m4 passed[39m[22m[90m (5)[39m
+[2m   Start at [22m 17:48:00
+[2m   Duration [22m 2.70s[2m (transform 286ms, setup 101ms, collect 1.12s, tests 466ms, environment 611ms, prepare 115ms)[22m
+

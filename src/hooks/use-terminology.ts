@@ -4,7 +4,7 @@ import { getStateRule } from "@/lib/stateRules";
 
 export function useTerminology() {
     const { data: estate } = useQuery({
-        queryKey: ["my-estate"],
+        queryKey: ["estate"],
         queryFn: api.getMyEstate,
     });
 
