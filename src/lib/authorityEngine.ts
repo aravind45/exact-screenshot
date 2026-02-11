@@ -187,7 +187,11 @@ export function calculateAuthorityRecommendation(
         activeEngines.push("PROBATE");
         if (isEligibleForSmallEstate) activeEngines.push("AFFIDAVIT");
     }
-    if (activeEngines.length === 0) activeEngines.push("DISCOVERY");
+    if (activeEngines.length === 0) {
+        activeEngines.push("DISCOVERY");
+        if (type === "UNSET") type = "DISCOVERY";
+        if (procedureType === "UNSET") procedureType = "DISCOVERY";
+    }
 
     // 4. MULTI-DIMENSIONAL CLASSIFICATION (Attorney Decision Tree)
 
