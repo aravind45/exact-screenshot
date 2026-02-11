@@ -37,7 +37,10 @@ router.get("/stats", isAdmin, async (req: any, res: Response) => {
 router.get("/users", isAdmin, async (req: any, res: Response) => {
     try {
         const users = await prisma.user.findMany({
-            include: { _count: { select: { estates: true, communications: true } } }
+            include: {
+                _count: { select: { estates: true, communications: true } },
+                estates: { select: { id: true, name: true } }
+            }
         });
         res.json(users);
     } catch (error) {
