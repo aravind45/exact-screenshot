@@ -12,6 +12,9 @@ import { calculateAssetPhase, getAssetsByPhase, type AssetPhaseStatus } from '@/
 import { getPhaseLocksStatus, type PhaseLockStatus } from '@/lib/phaseLock';
 import { type SettlementPhase } from '@/config/settlementPhases';
 import { useAuth } from '@/contexts/AuthContext';
+import { calculateAuthorityRecommendation } from '@/lib/authorityEngine';
+import { generateRoadmap } from '@/config/roadmapGenerator';
+import { useMemo } from 'react';
 
 export interface PhaseProgress {
   completed: number;
@@ -41,6 +44,7 @@ interface WorkflowContextValue {
   legalRisks: LegalRisk[];
   assets: any[];
   liabilities: any[];
+  totalTaskCount: number;
 }
 
 const WorkflowContext = createContext<WorkflowContextValue | null>(null);
@@ -102,15 +106,54 @@ export function WorkflowProvider({ children }: { children: ReactNode }) {
   const completedTaskIds = estate?.roadmapProgress?.completedTaskIds || [];
   const completedPhases = estate?.roadmapProgress?.completedPhases || [];
 
-  // Calculate phase progress
-  const phaseProgress: Record<SettlementPhase, PhaseProgress> = {
-    immediate_actions: calculateProgress('immediate_actions', completedTaskIds),
-    court_filing: calculateProgress('court_filing', completedTaskIds),
-    asset_discovery: calculateProgress('asset_discovery', completedTaskIds),
-    creditor_claims: calculateProgress('creditor_claims', completedTaskIds),
-    asset_liquidation: calculateProgress('asset_liquidation', completedTaskIds),
-    final_distribution: calculateProgress('final_distribution', completedTaskIds)
-  };
+  // Calculate dynamic roadmap
+  const roadmap = useMemo(() => {
+    if (!estate) return [];
+
+    const recommendation = calculateAuthorityRecommendation(assets, estate.deceasedState || 'CA', {
+      hasWill: estate.hasWill,
+      isSpouse: estate.isSurvivingSpouse,
+      isOutOfState: estate.hasOutOfStateProperty,
+      estimatedValue: estate.estimatedPersonalProperty,
+      isTrustRevocable: estate.isTrustRevocable,
+      hasTODDeed: estate.hasTODDeed,
+      hasContest: estate.hasContest
+    });
+
+    const modifiers = [...(recommendation.modifiers || [])];
+    if (estate.isInternational) modifiers.push("INTERNATIONAL_MODE");
+
+    return generateRoadmap(recommendation.type, estate.deceasedState || 'CA', modifiers, recommendation.activeEngines);
+  }, [estate, assets]);
+
+  // Calculate phase progress based on actual roadmap
+  const phaseProgress: Record<SettlementPhase, PhaseProgress> = useMemo(() => {
+    const progress: Record<string, PhaseProgress> = {};
+
+    // Initialize all possible phases with 0/0
+    const allPhases: SettlementPhase[] = [
+      'immediate_actions', 'court_filing', 'asset_discovery',
+      'creditor_claims', 'asset_liquidation', 'final_distribution'
+    ];
+    allPhases.forEach(p => {
+      progress[p] = { completed: 0, total: 0, percentage: 0 };
+    });
+
+    roadmap.forEach(phase => {
+      const total = phase.tasks.length;
+      const completed = completedTaskIds.filter(id => id.startsWith(phase.phase)).length;
+      progress[phase.phase] = {
+        completed,
+        total,
+        percentage: total > 0 ? Math.round((completed / total) * 100) : 0
+      };
+    });
+    return progress;
+  }, [roadmap, completedTaskIds]);
+
+  const totalTaskCount = useMemo(() => {
+    return roadmap.reduce((sum, phase) => sum + (phase.tasks?.length || 0), 0);
+  }, [roadmap]);
 
   // Calculate Legal Risks
   const legalRisks: LegalRisk[] = [];
@@ -199,7 +242,8 @@ export function WorkflowProvider({ children }: { children: ReactNode }) {
       completedPhases,
       legalRisks,
       assets,
-      liabilities
+      liabilities,
+      totalTaskCount
     }}>
       {children}
     </WorkflowContext.Provider>
@@ -214,9 +258,8 @@ export function useWorkflow() {
   return context;
 }
 
-// Helper function to calculate progress for a phase
+// Helper function to calculate progress for a phase (keeping for legacy if needed, but discouraged)
 function calculateProgress(phase: SettlementPhase, completedTaskIds: string[]): PhaseProgress {
-  // Import phase tasks (we'll need to update settlementPhases.ts to export task counts)
   const taskCounts: Record<SettlementPhase, number> = {
     immediate_actions: 6,
     court_filing: 5,

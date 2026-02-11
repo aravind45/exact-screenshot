@@ -149,7 +149,7 @@ export default function Dashboard() {
     enabled: !!user,
   });
 
-  const { probateBlockers, completedTaskIds, completedPhases } = useWorkflow();
+  const { probateBlockers, completedTaskIds, completedPhases, totalTaskCount } = useWorkflow();
 
   // Calculate Health Scores
   const liabilities = Array.isArray(liabilitiesData) ? liabilitiesData : [];
@@ -176,7 +176,8 @@ export default function Dashboard() {
   const riskScore = Math.round(hasLitigation ? riskSubScore * 0.7 : riskSubScore);
 
   // 4. Compliance Score: % tasks completed
-  const complianceScore = Math.round(((completedTaskIds?.length || 0) / 20) * 100);
+  const complianceScore = totalTaskCount > 0 ? Math.round(((completedTaskIds?.length || 0) / totalTaskCount) * 100) : 0;
+
 
   const healthScores = {
     authority: authorityScore,

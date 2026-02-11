@@ -7,7 +7,12 @@ interface User {
   fullName?: string;
   role?: string;
   state?: string;
+  subscriptionStatus?: 'ACTIVE' | 'INACTIVE' | 'PAST_DUE' | 'CANCELED';
+  subscriptionPlan?: 'BASIC' | 'PREMIUM' | 'ENTERPRISE';
+  planId?: string;
+  isTrialing?: boolean;
 }
+
 
 interface AuthContextType {
   user: User | null;

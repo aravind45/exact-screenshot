@@ -8,6 +8,7 @@ import { NavigationProvider } from "@/contexts/NavigationContext";
 import { WorkflowProvider } from "@/contexts/WorkflowContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { ProfileGuard } from "@/components/ProfileGuard";
+import { SubscriptionGuard } from "@/components/SubscriptionGuard";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 // Pages
@@ -99,10 +100,10 @@ const App = () => (
                     <Route path="/probate/petition/wizard" element={<ProtectedRoute><ProfileGuard><PetitionWizard /></ProfileGuard></ProtectedRoute>} />
                     <Route path="/settlement-trail" element={<ProtectedRoute><ProfileGuard><SettlementTrail /></ProfileGuard></ProtectedRoute>} />
                     <Route path="/follow-ups" element={<ProtectedRoute><ProfileGuard><FollowUps /></ProfileGuard></ProtectedRoute>} />
-                    <Route path="/roadmap" element={<ProtectedRoute><ProfileGuard><SettlementRoadmapNew /></ProfileGuard></ProtectedRoute>} />
+                    <Route path="/roadmap" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><SettlementRoadmapNew /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
                     <Route path="/roadmap-old" element={<ProtectedRoute><ProfileGuard><SettlementRoadmap /></ProfileGuard></ProtectedRoute>} />
-                    <Route path="/forms" element={<ProtectedRoute><ProfileGuard><Forms /></ProfileGuard></ProtectedRoute>} />
-                    <Route path="/documents" element={<ProtectedRoute><ProfileGuard><Documents /></ProfileGuard></ProtectedRoute>} />
+                    <Route path="/forms" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><Forms /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
+                    <Route path="/documents" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><Documents /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
                     <Route path="/profile" element={<ProtectedRoute><ProfileGuard><ProfileSettings /></ProfileGuard></ProtectedRoute>} />
                     <Route path="/admin" element={<ProtectedRoute><ProfileGuard><AdminDashboard /></ProfileGuard></ProtectedRoute>} />
                     <Route path="/admin/institutions" element={<ProtectedRoute><ProfileGuard><AdminInstitutions /></ProfileGuard></ProtectedRoute>} />
@@ -134,7 +135,7 @@ const App = () => (
                     <Route path="/liabilities" element={<ProtectedRoute><ProfileGuard><Liabilities /></ProfileGuard></ProtectedRoute>} />
                     <Route path="/non-probate" element={<ProtectedRoute><ProfileGuard><NonProbate /></ProfileGuard></ProtectedRoute>} />
                     <Route path="/help" element={<ProtectedRoute><ProfileGuard><HelpCenter /></ProfileGuard></ProtectedRoute>} />
-                    <Route path="/estate-agent" element={<ProtectedRoute><ProfileGuard><EstateAgentChatWrapper /></ProfileGuard></ProtectedRoute>} />
+                    <Route path="/estate-agent" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><EstateAgentChatWrapper /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
                     <Route path="/guides/probate" element={<ProbateGuide />} />
                     <Route path="/invite/:token" element={<AcceptInvite />} />
                     <Route path="*" element={<NotFound />} />

@@ -15,15 +15,17 @@ interface ProbateChecklistWidgetProps {
     deceasedState?: string;
 }
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useMemo } from "react";
 import { calculateAuthorityRecommendation } from "@/lib/authorityEngine";
 import { generateRoadmap } from "@/config/roadmapGenerator";
+import { useToast } from "@/hooks/use-toast";
 
 export function ProbateChecklistWidget({ estateType, deceasedState = "CA" }: ProbateChecklistWidgetProps) {
     const navigate = useNavigate();
-    const [checkedTasks, setCheckedTasks] = useState<Record<string, boolean>>({});
+    const queryClient = useQueryClient();
+    const { toast } = useToast();
 
     const { data: estate } = useQuery({
         queryKey: ['estate'],
@@ -33,6 +35,50 @@ export function ProbateChecklistWidget({ estateType, deceasedState = "CA" }: Pro
     const { data: assets = [] } = useQuery({
         queryKey: ['assets'],
         queryFn: api.getAssets,
+    });
+
+    const { data: taskCompletions = [] } = useQuery({
+        queryKey: ['tasks', estate?.id],
+        queryFn: () => estate ? api.getTaskCompletions(estate.id) : Promise.resolve([]),
+        enabled: !!estate?.id,
+    });
+
+    const checkedTasks = useMemo(() => {
+        const checked: Record<string, boolean> = {};
+        if (Array.isArray(taskCompletions)) {
+            taskCompletions.forEach((t: any) => {
+                checked[t.taskId] = true;
+            });
+        }
+        return checked;
+    }, [taskCompletions]);
+
+    const completeMutation = useMutation({
+        mutationFn: (taskId: string) => api.completeTask(estate!.id, taskId),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['tasks', estate?.id] });
+        },
+        onError: (error: any) => {
+            toast({
+                title: "Error updating task",
+                description: error.message,
+                variant: "destructive"
+            });
+        }
+    });
+
+    const uncompleteMutation = useMutation({
+        mutationFn: (taskId: string) => api.uncompleteTask(estate!.id, taskId),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['tasks', estate?.id] });
+        },
+        onError: (error: any) => {
+            toast({
+                title: "Error updating task",
+                description: error.message,
+                variant: "destructive"
+            });
+        }
     });
 
     const recommendation = useMemo(() => {
@@ -60,22 +106,12 @@ export function ProbateChecklistWidget({ estateType, deceasedState = "CA" }: Pro
         tasks: s.tasks.map(t => ({ id: t.id, title: t.title, links: t.links }))
     }));
 
-    // Restore persistence logic
-    useEffect(() => {
-        const saved = localStorage.getItem("probate_checklist_progress");
-        if (saved) {
-            try {
-                setCheckedTasks(JSON.parse(saved));
-            } catch (e) {
-                console.error("Failed to parse saved checklist progress", e);
-            }
-        }
-    }, []);
-
     const handleCheck = (taskId: string, checked: boolean) => {
-        const newChecked = { ...checkedTasks, [taskId]: checked };
-        setCheckedTasks(newChecked);
-        localStorage.setItem("probate_checklist_progress", JSON.stringify(newChecked));
+        if (checked) {
+            completeMutation.mutate(taskId);
+        } else {
+            uncompleteMutation.mutate(taskId);
+        }
     };
 
     if (stages.length === 0) {

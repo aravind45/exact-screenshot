@@ -44,6 +44,11 @@ export default function ProfileSettings() {
         queryFn: () => api.getProfile(),
     });
 
+    const { data: billingStatus } = useQuery({
+        queryKey: ["billing-status"],
+        queryFn: () => api.billing.getStatus(),
+    });
+
     useEffect(() => {
         if (profile) {
             setFormData({
@@ -360,11 +365,15 @@ export default function ProfileSettings() {
                                             <div className="flex items-center justify-between">
                                                 <div className="space-y-1">
                                                     <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Current Plan</p>
-                                                    <p className="font-bold text-foreground">Executor Pro Plan</p>
+                                                    <p className="font-bold text-foreground">{billingStatus?.planName || profile?.subscriptionPlan || "Executor Pro Plan"}</p>
                                                 </div>
                                                 <div className="text-right">
-                                                    <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Price</p>
-                                                    <p className="font-bold text-foreground">$49/mo</p>
+                                                    <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Status</p>
+                                                    <p className={cn("font-bold capitalize",
+                                                        billingStatus?.status === 'active' ? "text-emerald-600" : "text-amber-600"
+                                                    )}>
+                                                        {billingStatus?.status || profile?.subscriptionStatus || "Active"}
+                                                    </p>
                                                 </div>
                                             </div>
                                         </div>
