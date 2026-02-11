@@ -391,7 +391,18 @@ router.get("/transactions", isAdmin, async (req: any, res: Response) => {
 router.post("/waive-fees", isAdmin, async (req: any, res: Response) => {
     try {
         const validated = waiveFeesSchema.parse(req.body);
-        const { userId, notes } = validated;
+        let { userId, notes } = validated;
+
+        // Validating if the input looks like an email
+        if (userId.includes('@')) {
+            const user = await prisma.user.findUnique({
+                where: { email: userId }
+            });
+            if (!user) {
+                return res.status(404).json({ error: "User not found with that email" });
+            }
+            userId = user.id;
+        }
 
         await StripeService.waiveFees(userId, notes || 'Admin waived fees');
         res.json({ success: true, message: 'Fees waived successfully' });
