@@ -355,6 +355,13 @@ export const api = {
                 headers: getHeaders()
             });
             return parseResponse(response);
+        },
+        resetEstate: async (estateId: string) => {
+            const response = await fetch(`${API_URL}/admin/estates/${estateId}/reset`, {
+                method: "PUT",
+                headers: getHeaders()
+            });
+            return parseResponse(response);
         }
     },
 

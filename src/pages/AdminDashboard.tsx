@@ -22,7 +22,8 @@ import {
     CreditCard,
     Ban,
     RefreshCcw,
-    BookOpen
+    BookOpen,
+    Trash2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -33,6 +34,24 @@ import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sidebar } from "@/components/Sidebar";
 import { BillingManager } from "@/components/BillingManager";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 function formatCurrency(value: number): string {
     return new Intl.NumberFormat('en-US', {
@@ -47,20 +66,52 @@ export default function AdminDashboard() {
     const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState("");
     const [activeTab, setActiveTab] = useState("overview");
+    const { toast } = useToast();
+    const queryClient = useQueryClient();
+
+    // Reset State
+    const [resetEstateId, setResetEstateId] = useState<string | null>(null);
+    const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
 
     const { data: stats, isLoading: statsLoading } = useQuery({
         queryKey: ["admin", "stats"],
-        queryFn: () => api.getAdminStats(),
+        queryFn: () => api.admin.getStats(),
     });
 
     const { data: users, isLoading: usersLoading } = useQuery({
         queryKey: ["admin", "users"],
-        queryFn: () => api.getAdminUsers(),
+        queryFn: () => api.admin.getUsers(),
     });
+
+    const resetMutation = useMutation({
+        mutationFn: (estateId: string) => api.admin.resetEstate(estateId),
+        onSuccess: () => {
+            toast({
+                title: "Estate Reset Successful",
+                description: "The settlement track and roadmap data have been cleared.",
+            });
+            queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
+            setIsResetDialogOpen(false);
+            setResetEstateId(null);
+        },
+        onError: (error: any) => {
+            toast({
+                variant: "destructive",
+                title: "Reset Failed",
+                description: error.message || "An error occurred while resetting the estate.",
+            });
+        },
+    });
+
+    const handleResetConfirm = () => {
+        if (resetEstateId) {
+            resetMutation.mutate(resetEstateId);
+        }
+    };
 
     const { data: institutions, isLoading: institutionsLoading } = useQuery({
         queryKey: ["admin", "institutions"],
-        queryFn: () => api.getAdminInstitutions(),
+        queryFn: () => api.admin.getInstitutions(),
     });
 
     const filteredUsers = users?.filter((u: any) =>
@@ -209,9 +260,37 @@ export default function AdminDashboard() {
                                                         </div>
                                                     </td>
                                                     <td className="px-6 py-4 text-right">
-                                                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                                                            <MoreVertical className="w-4 h-4" />
-                                                        </Button>
+                                                        <DropdownMenu>
+                                                            <DropdownMenuTrigger asChild>
+                                                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                                    <MoreVertical className="w-4 h-4" />
+                                                                </Button>
+                                                            </DropdownMenuTrigger>
+                                                            <DropdownMenuContent align="end">
+                                                                <DropdownMenuLabel>User Actions</DropdownMenuLabel>
+                                                                <DropdownMenuItem onClick={() => { /* View details logic */ }}>
+                                                                    View Profile
+                                                                </DropdownMenuItem>
+                                                                {user.estates && user.estates.map((estate: any) => (
+                                                                    <DropdownMenuItem
+                                                                        key={estate.id}
+                                                                        className="text-destructive focus:text-destructive"
+                                                                        onClick={() => {
+                                                                            setResetEstateId(estate.id);
+                                                                            setIsResetDialogOpen(true);
+                                                                        }}
+                                                                    >
+                                                                        <RefreshCcw className="w-4 h-4 mr-2" />
+                                                                        Reset Estate Track
+                                                                    </DropdownMenuItem>
+                                                                ))}
+                                                                <DropdownMenuSeparator />
+                                                                <DropdownMenuItem className="text-destructive focus:text-destructive">
+                                                                    <Ban className="w-4 h-4 mr-2" />
+                                                                    Suspend Account
+                                                                </DropdownMenuItem>
+                                                            </DropdownMenuContent>
+                                                        </DropdownMenu>
                                                     </td>
                                                 </tr>
                                             ))}
@@ -254,7 +333,29 @@ export default function AdminDashboard() {
                     </Tabs>
                 </main>
             </div>
-        </div >
+
+            <AlertDialog open={isResetDialogOpen} onOpenChange={setIsResetDialogOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This will completely reset the estate settlement track, roadmap progress, and authority decisions.
+                            The user will have to start their intake process over. This action cannot be undone.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            onClick={handleResetConfirm}
+                            disabled={resetMutation.isPending}
+                        >
+                            {resetMutation.isPending ? "Resetting..." : "Reset Estate Track"}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+        </div>
     );
 }
 

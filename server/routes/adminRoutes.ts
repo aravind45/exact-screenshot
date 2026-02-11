@@ -397,4 +397,54 @@ router.delete("/knowledge/chunks/:id", isAdmin, async (req, res) => {
     }
 });
 
+// Estate Management & Reset
+router.put("/estates/:id/reset", isAdmin, async (req: any, res: Response) => {
+    try {
+        const { id } = req.params;
+
+        // Reset the estate track fields and JSON blobs
+        const updatedEstate = await prisma.estate.update({
+            where: { id },
+            data: {
+                estateType: null,
+                authorityType: "UNSET",
+                authorityStatus: "NOT_STARTED",
+                probateStatus: "NOT_STARTED",
+                settlementPath: null,
+                roadmapProgress: null,
+                authorityDecision: null,
+                status: "NOT_STARTED", // Revert to initial status
+                iaeaType: null,
+                appointedDate: null,
+                hearingDate: null,
+                hearingTime: null,
+                hearingDept: null,
+                hearingAddress: null,
+                courtCaseNumber: null,
+                probateCounty: null,
+            }
+        });
+
+        // Clear associated task completions and deadlines to ensure a clean slate
+        await prisma.taskCompletion.deleteMany({ where: { estateId: id } });
+        await prisma.deadline.deleteMany({ where: { estateId: id } });
+
+        // Log the reset action
+        await prisma.settlementActivity.create({
+            data: {
+                estateId: id,
+                userId: req.user.id,
+                type: 'CONFIGURATION',
+                action: 'RESET',
+                notes: `ADMIN RESET – Estate settlement track and roadmap data have been cleared by an administrator.`
+            }
+        });
+
+        res.json({ success: true, estate: updatedEstate });
+    } catch (error: any) {
+        console.error('❌ Estate reset error:', error);
+        res.status(500).json({ error: "Failed to reset estate data" });
+    }
+});
+
 export default router;
