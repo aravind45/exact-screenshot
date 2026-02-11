@@ -1,8 +1,10 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Landmark } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 export function Header() {
+  const { user } = useAuth();
   return (
     <header className="fixed top-0 left-0 right-0 z-50 glass border-b border-border/50">
       <div className="section-container">
@@ -35,10 +37,24 @@ export function Header() {
           </nav>
 
           {/* CTA */}
-          <div className="flex items-center gap-3">
-            <Button size="sm" className="font-bold px-6" asChild>
-              <Link to="/dashboard">Start guided intake</Link>
-            </Button>
+          <div className="flex items-center gap-4">
+            {!user ? (
+              <>
+                <Link
+                  to="/auth?mode=login"
+                  className="text-sm font-semibold text-foreground/70 hover:text-primary transition-colors"
+                >
+                  Sign In
+                </Link>
+                <Button size="sm" className="font-bold px-6 rounded-full" asChild>
+                  <Link to="/auth?mode=signup">Start guided intake</Link>
+                </Button>
+              </>
+            ) : (
+              <Button size="sm" className="font-bold px-6 rounded-full" asChild>
+                <Link to="/dashboard">Dashboard</Link>
+              </Button>
+            )}
           </div>
         </div>
       </div>
