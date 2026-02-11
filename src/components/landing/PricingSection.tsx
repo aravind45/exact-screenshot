@@ -88,7 +88,7 @@ export function PricingSection() {
                                     <Button
                                         size="lg"
                                         className="w-full h-16 text-xl font-black rounded-full shadow-xl bg-primary hover:scale-105 transition-all"
-                                        onClick={() => navigate("/dashboard")}
+                                        onClick={() => navigate("/pricing")}
                                     >
                                         Get Started Now
                                     </Button>

@@ -13,6 +13,8 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
 
   useEffect(() => {
     if (!loading && !user) {
+      // Save the attempted path to redirect back after login
+      sessionStorage.setItem("after_login_redirect", window.location.pathname + window.location.search);
       navigate('/auth');
     }
   }, [user, loading, navigate]);
