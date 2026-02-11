@@ -42,6 +42,7 @@ model User {
   settlementActivities    SettlementActivity[]
   transactions            Transaction[]
   heirs                   Heir[]
+  agentExecutions         AgentExecution[]
 
   @@map("profiles")
 }
@@ -599,4 +600,22 @@ model KnowledgeChunk {
   createdAt DateTime @default(now()) @map("created_at")
 
   @@map("knowledge_chunks")
+}
+
+model AgentExecution {
+  id              String   @id @default(uuid())
+  executionId     String   @unique @map("execution_id")
+  userId          String?  @map("user_id")
+  question        String
+  answer          String
+  sources         String[]
+  evidence        Json     // Array of evidence objects with IDs, sources, scores
+  metadata        Json     // Agent flow metadata (retrieval, draft, citation, validation)
+  executionTimeMs Int      @map("execution_time_ms")
+  createdAt       DateTime @default(now()) @map("created_at")
+  user            User?    @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("agent_executions")
 }

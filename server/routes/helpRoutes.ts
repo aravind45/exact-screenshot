@@ -1,6 +1,6 @@
 import express from "express";
 import { HelpService } from "../services/helpService.js";
-import { RAGService } from "../services/ragService.js";
+import { OrchestratorService } from "../services/orchestratorService.js";
 import { z } from "zod";
 import { logger } from "../lib/logger.js";
 
@@ -54,7 +54,7 @@ router.post("/chat", async (req: any, res) => {
         const validated = legalChatSchema.parse(req.body);
         const { question } = validated;
 
-        const result = await RAGService.answerLegalQuestion(question);
+        const result = await OrchestratorService.answerLegalQuestion(question, req.user?.id);
         res.json(result);
     } catch (error: any) {
         if (error instanceof z.ZodError) return res.status(400).json({ error: "Question is required", details: error.errors });
