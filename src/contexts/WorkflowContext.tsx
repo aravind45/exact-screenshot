@@ -59,23 +59,26 @@ export function WorkflowProvider({ children }: { children: ReactNode }) {
     enabled: !!user
   });
 
-  const { data: assets = [] } = useQuery({
+  const { data: assetsData } = useQuery({
     queryKey: ['assets'],
     queryFn: api.getAssets,
     enabled: !!user
   });
+  const assets = Array.isArray(assetsData) ? assetsData : [];
 
-  const { data: liabilities = [] } = useQuery({
+  const { data: liabilitiesData } = useQuery({
     queryKey: ['liabilities'],
     queryFn: api.getLiabilities,
     enabled: !!user
   });
+  const liabilities = Array.isArray(liabilitiesData) ? liabilitiesData : [];
 
-  const { data: documents = [] } = useQuery({
+  const { data: documentsData } = useQuery({
     queryKey: ['estate', 'documents'],
     queryFn: api.getEstateDocuments,
     enabled: !!user && !!estate
   });
+  const documents = Array.isArray(documentsData) ? documentsData : [];
 
   const { data: stateConfig } = useQuery({
     queryKey: ['liabilities', 'priority-options'],
