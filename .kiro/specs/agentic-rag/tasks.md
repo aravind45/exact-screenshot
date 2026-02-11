@@ -86,28 +86,28 @@
 ## Phase 3: Advanced Agents (Week 3)
 
 ### 3.1 Form-Filling Agent
-- [-] 3.1.1 Create `extractFormData` method in RAGService
-- [ ] 3.1.2 Design prompt for structured data extraction
-- [ ] 3.1.3 Implement JSON schema validation
-- [ ] 3.1.4 Add form type mapping
-- [ ] 3.1.5 Test with DE-111, DE-221 forms
-- [ ] 3.1.6 Add to orchestrator as optional agent
+- [x] 3.1.1 Create `extractFormData` method in RAGService
+- [x] 3.1.2 Design prompt for structured data extraction
+- [x] 3.1.3 Implement JSON schema validation
+- [x] 3.1.4 Add form type mapping
+- [x] 3.1.5 Test with DE-111, DE-221 forms
+- [x] 3.1.6 Add to orchestrator as optional agent
 
 ### 3.2 Checklist Agent
-- [ ] 3.2.1 Create `generateChecklist` method in RAGService
-- [ ] 3.2.2 Design prompt for personalized checklists
-- [ ] 3.2.3 Integrate with estate data
-- [ ] 3.2.4 Add priority scoring
-- [ ] 3.2.5 Test with different estate types
-- [ ] 3.2.6 Add to orchestrator as optional agent
+- [x] 3.2.1 Create `generateChecklist` method in RAGService
+- [x] 3.2.2 Design prompt for personalized checklists
+- [x] 3.2.3 Integrate with estate data
+- [x] 3.2.4 Add priority scoring
+- [x] 3.2.5 Test with different estate types
+- [x] 3.2.6 Add to orchestrator as optional agent
 
 ### 3.3 Timeline Agent
-- [ ] 3.3.1 Create `generateTimeline` method in RAGService
-- [ ] 3.3.2 Retrieve state-specific deadline rules
-- [ ] 3.3.3 Calculate deadlines from death date
-- [ ] 3.3.4 Format timeline output
-- [ ] 3.3.5 Test with multiple states
-- [ ] 3.3.6 Add to orchestrator as optional agent
+- [x] 3.3.1 Create `generateTimeline` method in RAGService
+- [x] 3.3.2 Retrieve state-specific deadline rules
+- [x] 3.3.3 Calculate deadlines from death date
+- [x] 3.3.4 Format timeline output
+- [x] 3.3.5 Test with multiple states
+- [x] 3.3.6 Add to orchestrator as optional agent
 
 ## Phase 4: Monitoring & Observability (Week 4)
 

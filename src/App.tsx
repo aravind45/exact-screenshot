@@ -65,6 +65,7 @@ import ResetPassword from "./pages/ResetPassword";
 import Pricing from "./pages/Pricing";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import AcceptInvite from "./pages/AcceptInvite";
+import EstateAgents from "./pages/EstateAgents";
 
 const queryClient = new QueryClient();
 
@@ -138,6 +139,7 @@ const App = () => (
                     <Route path="/estate-agent" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><EstateAgentChatWrapper /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
                     <Route path="/guides/probate" element={<ProbateGuide />} />
                     <Route path="/invite/:token" element={<AcceptInvite />} />
+                    <Route path="/estates/:estateId/agents" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><EstateAgents /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                   <LegalDisclaimer />

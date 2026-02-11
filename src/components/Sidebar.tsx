@@ -80,6 +80,7 @@ export function Sidebar() {
                 { label: "Accounting", icon: Calculator, path: "/accounting" },
                 { label: "Final Distribution", icon: CheckCircle2, path: "/distribution" },
                 { label: "Official Forms", icon: ScrollText, path: "/forms" },
+                { label: "AI Assistants", icon: Zap, path: `/estates/${estate?.id}/agents` },
             ]
         },
         {

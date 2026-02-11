@@ -168,4 +168,88 @@ export class OrchestratorService {
             throw error;
         }
     }
+
+    /**
+     * Form-filling orchestration - extracts data for specific form types
+     */
+    static async fillForm(estateData: any, formType: string) {
+        const startTime = Date.now();
+        const executionId = `form_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+
+        logger.info(`🎯 Orchestrator [${executionId}]: Form-Filling for ${formType}`);
+
+        try {
+            const result = await RAGService.extractFormData(estateData, formType);
+            
+            return {
+                ...result,
+                execution_id: executionId,
+                execution_time_ms: Date.now() - startTime
+            };
+        } catch (error) {
+            logger.error(`❌ Orchestrator [${executionId}]: Form-filling error`, error);
+            return {
+                success: false,
+                error: String(error),
+                execution_id: executionId,
+                execution_time_ms: Date.now() - startTime
+            };
+        }
+    }
+
+    /**
+     * Checklist generation orchestration
+     */
+    static async createChecklist(estateData: any, userContext?: any) {
+        const startTime = Date.now();
+        const executionId = `checklist_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+
+        logger.info(`🎯 Orchestrator [${executionId}]: Generating checklist`);
+
+        try {
+            const result = await RAGService.generateChecklist(estateData, userContext);
+            
+            return {
+                ...result,
+                execution_id: executionId,
+                execution_time_ms: Date.now() - startTime
+            };
+        } catch (error) {
+            logger.error(`❌ Orchestrator [${executionId}]: Checklist error`, error);
+            return {
+                checklist: [],
+                error: String(error),
+                execution_id: executionId,
+                execution_time_ms: Date.now() - startTime
+            };
+        }
+    }
+
+    /**
+     * Timeline generation orchestration
+     */
+    static async createTimeline(estateData: any) {
+        const startTime = Date.now();
+        const executionId = `timeline_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+
+        logger.info(`🎯 Orchestrator [${executionId}]: Generating timeline`);
+
+        try {
+            const result = await RAGService.generateTimeline(estateData);
+            
+            return {
+                ...result,
+                execution_id: executionId,
+                execution_time_ms: Date.now() - startTime
+            };
+        } catch (error) {
+            logger.error(`❌ Orchestrator [${executionId}]: Timeline error`, error);
+            return {
+                timeline: [],
+                error: String(error),
+                execution_id: executionId,
+                execution_time_ms: Date.now() - startTime
+            };
+        }
+    }
 }
