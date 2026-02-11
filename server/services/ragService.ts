@@ -119,21 +119,24 @@ export class RAGService {
             .join("\n\n---\n\n");
 
         const prompt = `
-You are an elite Estate Settlement AI Assistant for ExpectedEstate.
+You are a helpful Estate Settlement Assistant for ExpectedEstate.
 
-CRITICAL RULES:
+Your goal is to help families navigate the estate settlement process with clear, supportive guidance.
+
+IMPORTANT GUIDELINES:
 1. Answer ONLY using the provided evidence
 2. DO NOT add information not in the evidence
 3. DO NOT cite sources yet (Citation Agent will handle that)
-4. Write in a professional, supportive, clear tone
-5. If evidence is insufficient, explicitly state that
+4. Write in a warm, supportive, and clear tone
+5. If evidence is insufficient, suggest consulting with a professional who can provide personalized guidance
+6. Frame information as educational guidance to help users understand their options
 
 EVIDENCE:
 ${contextContent}
 
 USER QUESTION: ${question}
 
-Write a comprehensive answer using ONLY the evidence above.
+Write a helpful answer using ONLY the evidence above. Focus on empowering the user with knowledge.
 `;
 
         const draft = await ai.generateText(prompt, "heavy");
@@ -180,7 +183,7 @@ CRITICAL RULES:
 2. Format citations as [e1], [e2], etc.
 3. Every factual claim MUST have a citation
 4. If a claim cannot be cited, remove it or mark as uncertain
-5. Add a disclaimer at the end
+5. Add a helpful disclaimer at the end
 
 DRAFT ANSWER:
 ${draft}
@@ -215,12 +218,13 @@ Return the final answer with proper citations. Every claim must be grounded in e
     }
 
     /**
-     * Validation Agent: Ensure answer meets compliance standards
+     * Validation Agent: Ensure answer meets quality standards
      */
     static async validateAnswer(finalAnswer: string, evidence: any[], metadata: any) {
         const validationChecks = {
-            has_disclaimer: finalAnswer.toLowerCase().includes('not legal advice') || 
-                           finalAnswer.toLowerCase().includes('educational purposes'),
+            has_disclaimer: finalAnswer.toLowerCase().includes('educational') || 
+                           finalAnswer.toLowerCase().includes('guidance') ||
+                           finalAnswer.toLowerCase().includes('professional'),
             has_citations: /\[e\d+\]/.test(finalAnswer),
             sufficient_evidence: evidence.length >= 2,
             grounding_score: metadata.grounding_score || 0,
@@ -236,7 +240,7 @@ Return the final answer with proper citations. Every claim must be grounded in e
         // Add disclaimer if missing
         let validatedAnswer = finalAnswer;
         if (!validationChecks.has_disclaimer) {
-            validatedAnswer += "\n\n**Disclaimer:** This information is for educational purposes only and does not constitute legal advice. For specific legal guidance, please consult with a qualified estate attorney.";
+            validatedAnswer += "\n\n**Note:** This information is educational guidance to help you understand the estate settlement process. For personalized advice specific to your situation, consider consulting with a qualified professional who can review your unique circumstances.";
         }
 
         logger.info(`✅ Validation Agent: ${isValid ? 'PASSED' : 'FAILED'} - Grounding: ${(validationChecks.grounding_score * 100).toFixed(1)}%`);
@@ -261,7 +265,7 @@ Return the final answer with proper citations. Every claim must be grounded in e
 
         if (contexts.length === 0) {
             return {
-                answer: "I couldn't find specific information in our legal guides to answer that. For complex legal matters, I strongly recommend consulting with a qualified estate attorney.",
+                answer: "I couldn't find specific information in our guides to answer that. For personalized guidance on your specific situation, consider consulting with a qualified professional who can review your unique circumstances.",
                 sources: []
             };
         }
@@ -271,8 +275,8 @@ Return the final answer with proper citations. Every claim must be grounded in e
             .join("\n\n---\n\n");
 
         const prompt = `
-        You are an elite Estate Settlement AI Assistant for the ExpectedEstate platform.
-        Your goal is to provide accurate, helpful, and expert answers to estate settlement questions.
+        You are a helpful Estate Settlement Assistant for the ExpectedEstate platform.
+        Your goal is to help families navigate the estate settlement process with clear, supportive guidance.
         
         CONTEXT FROM KNOWLEDGE BASE:
         ${contextContent}
@@ -281,11 +285,11 @@ Return the final answer with proper citations. Every claim must be grounded in e
         
         INSTRUCTIONS:
         1. Answer the question specifically using ONLY the provided context.
-        2. IF the answer is not contained in the context, explicitly state that you don't have enough information from the current guides and suggest professional advice.
+        2. IF the answer is not contained in the context, explicitly state that you don't have enough information from the current guides and suggest consulting with a professional.
         3. ALWAYS cite your sources (e.g., "According to the Executor's Guide...").
-        4. Use a professional, supportive, and clear tone.
-        5. Include relevant code sections or legal references if mentioned in the context.
-        6. MANDATORY: Every response must conclude with a brief disclaimer stating that this information is for educational purposes only and not legal advice.
+        4. Use a warm, supportive, and clear tone.
+        5. Include relevant code sections or statutory references if mentioned in the context.
+        6. MANDATORY: Every response must conclude with a brief note that this information is educational guidance to help users understand their options.
         `;
 
         const answer = await ai.generateText(prompt, "heavy");
