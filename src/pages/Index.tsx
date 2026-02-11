@@ -10,26 +10,10 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { PricingSection } from "@/components/landing/PricingSection";
 
 const Index = () => {
   const navigate = useNavigate();
-
-  const plan = {
-    name: "Complete Estate Access",
-    monthlyPrice: "$49",
-    period: "/month",
-    description: "Every feature you need for a stress-free settlement",
-    features: [
-      "All 11 Settlement Roadmap Types",
-      "Unlimited Asset Tracking",
-      "Fiduciary Communications Log",
-      "Complete CA PDF Form Suite",
-      "Claims Priority Engine",
-      "AI-Powered Discovery Assistant",
-      "Secure Document Vault (50GB)",
-    ],
-    highlight: "All inclusive, no hidden costs.",
-  };
 
   return (
     <div className="min-h-screen selection:bg-primary/20">
@@ -47,6 +31,8 @@ const Index = () => {
         <AboutSection />
 
         <ServicesSection />
+
+        <PricingSection />
 
         {/* Visual Proof Section */}
         <section className="py-24 bg-gray-50/50">
