@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Loader2, Calendar, AlertTriangle, Clock } from 'lucide-react';
+import { api } from '@/lib/api';
 
 interface TimelineAgentProps {
     estateId: string;
@@ -29,13 +30,7 @@ export function TimelineAgent({ estateId }: TimelineAgentProps) {
         setError(null);
 
         try {
-            const response = await fetch(`/api/agent/estates/${estateId}/timeline`);
-
-            if (!response.ok) {
-                throw new Error('Failed to load timeline');
-            }
-
-            const data = await response.json();
+            const data = await api.agents.getTimeline(estateId);
             setTimeline(data.timeline || []);
             setCriticalDeadlines(data.critical_deadlines || []);
         } catch (err: any) {
@@ -47,10 +42,10 @@ export function TimelineAgent({ estateId }: TimelineAgentProps) {
 
     const formatDate = (dateString: string) => {
         const date = new Date(dateString);
-        return date.toLocaleDateString('en-US', { 
-            month: 'long', 
-            day: 'numeric', 
-            year: 'numeric' 
+        return date.toLocaleDateString('en-US', {
+            month: 'long',
+            day: 'numeric',
+            year: 'numeric'
         });
     };
 
@@ -151,15 +146,14 @@ export function TimelineAgent({ estateId }: TimelineAgentProps) {
                                 <div key={index} className="relative pl-12">
                                     {/* Timeline Dot */}
                                     <div
-                                        className={`absolute left-0 w-8 h-8 rounded-full flex items-center justify-center ${
-                                            critical
-                                                ? 'bg-red-600'
-                                                : mandatory
+                                        className={`absolute left-0 w-8 h-8 rounded-full flex items-center justify-center ${critical
+                                            ? 'bg-red-600'
+                                            : mandatory
                                                 ? 'bg-orange-500'
                                                 : upcoming
-                                                ? 'bg-blue-600'
-                                                : 'bg-gray-400'
-                                        }`}
+                                                    ? 'bg-blue-600'
+                                                    : 'bg-gray-400'
+                                            }`}
                                     >
                                         {critical ? (
                                             <AlertTriangle className="w-4 h-4 text-white" />
@@ -170,25 +164,23 @@ export function TimelineAgent({ estateId }: TimelineAgentProps) {
 
                                     {/* Content */}
                                     <div
-                                        className={`border rounded-lg p-4 ${
-                                            critical
-                                                ? 'border-red-300 bg-red-50'
-                                                : mandatory
+                                        className={`border rounded-lg p-4 ${critical
+                                            ? 'border-red-300 bg-red-50'
+                                            : mandatory
                                                 ? 'border-orange-300 bg-orange-50'
                                                 : upcoming
-                                                ? 'border-blue-300 bg-blue-50'
-                                                : 'border-gray-300 bg-gray-50'
-                                        }`}
+                                                    ? 'border-blue-300 bg-blue-50'
+                                                    : 'border-gray-300 bg-gray-50'
+                                            }`}
                                     >
                                         <div className="flex items-start justify-between gap-3 mb-2">
                                             <div>
                                                 <div className="flex items-center gap-2 mb-1">
                                                     <span
-                                                        className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                                                            mandatory
-                                                                ? 'bg-orange-200 text-orange-800'
-                                                                : 'bg-blue-200 text-blue-800'
-                                                        }`}
+                                                        className={`text-xs px-2 py-0.5 rounded-full font-medium ${mandatory
+                                                            ? 'bg-orange-200 text-orange-800'
+                                                            : 'bg-blue-200 text-blue-800'
+                                                            }`}
                                                     >
                                                         {item.type}
                                                     </span>

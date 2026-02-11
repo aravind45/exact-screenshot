@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Loader2, CheckSquare, Clock, AlertTriangle } from 'lucide-react';
+import { api } from '@/lib/api';
 
 interface ChecklistAgentProps {
     estateId: string;
@@ -32,15 +33,7 @@ export function ChecklistAgent({ estateId, currentPhase = 'discovery' }: Checkli
         setError(null);
 
         try {
-            const response = await fetch(
-                `/api/agent/estates/${estateId}/checklist?phase=${currentPhase}`
-            );
-
-            if (!response.ok) {
-                throw new Error('Failed to load checklist');
-            }
-
-            const data = await response.json();
+            const data = await api.agents.getChecklist(estateId, currentPhase);
             setChecklist(data.checklist || []);
             setSummary(data.summary || '');
         } catch (err: any) {
@@ -150,23 +143,21 @@ export function ChecklistAgent({ estateId, currentPhase = 'discovery' }: Checkli
                 <div className="space-y-3">
                     {checklist.map((item) => {
                         const isCompleted = completedTasks.has(item.priority);
-                        
+
                         return (
                             <div
                                 key={item.priority}
-                                className={`border rounded-lg p-4 transition-all ${
-                                    isCompleted ? 'bg-gray-50 opacity-75' : 'bg-white'
-                                }`}
+                                className={`border rounded-lg p-4 transition-all ${isCompleted ? 'bg-gray-50 opacity-75' : 'bg-white'
+                                    }`}
                             >
                                 <div className="flex items-start gap-3">
                                     {/* Checkbox */}
                                     <button
                                         onClick={() => toggleTask(item.priority)}
-                                        className={`flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
-                                            isCompleted
-                                                ? 'bg-blue-600 border-blue-600'
-                                                : 'border-gray-300 hover:border-blue-500'
-                                        }`}
+                                        className={`flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${isCompleted
+                                            ? 'bg-blue-600 border-blue-600'
+                                            : 'border-gray-300 hover:border-blue-500'
+                                            }`}
                                     >
                                         {isCompleted && (
                                             <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">

@@ -1365,4 +1365,35 @@ export const api = {
             return parseResponse(response);
         },
     },
+    /**
+     * AI Agents
+     */
+    agents: {
+        getChecklist: async (estateId: string, phase: string = 'discovery') => {
+            const response = await fetch(`${API_URL}/agent/estates/${estateId}/checklist?phase=${phase}`, {
+                headers: getHeaders(),
+            });
+            return parseResponse(response);
+        },
+        getTimeline: async (estateId: string) => {
+            const response = await fetch(`${API_URL}/agent/estates/${estateId}/timeline`, {
+                headers: getHeaders(),
+            });
+            return parseResponse(response);
+        },
+        fillForm: async (estateId: string, formType: string) => {
+            const response = await fetch(`${API_URL}/agent/estates/${estateId}/forms/fill`, {
+                method: "POST",
+                headers: getHeaders(),
+                body: JSON.stringify({ formType }),
+            });
+            return parseResponse(response);
+        },
+        getAvailableForms: async (estateId: string) => {
+            const response = await fetch(`${API_URL}/agent/estates/${estateId}/forms/available`, {
+                headers: getHeaders(),
+            });
+            return parseResponse(response);
+        }
+    }
 };

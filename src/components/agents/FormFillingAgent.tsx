@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Loader2, FileText, CheckCircle, AlertCircle } from 'lucide-react';
+import { api } from '@/lib/api';
 
 interface FormFillingAgentProps {
     estateId: string;
@@ -15,8 +16,7 @@ export function FormFillingAgent({ estateId, onFormFilled }: FormFillingAgentPro
 
     // Load available forms on mount
     useState(() => {
-        fetch(`/api/agent/estates/${estateId}/forms/available`)
-            .then(res => res.json())
+        api.agents.getAvailableForms(estateId)
             .then(data => setAvailableForms(data.forms))
             .catch(err => console.error('Failed to load forms:', err));
     });
@@ -27,17 +27,7 @@ export function FormFillingAgent({ estateId, onFormFilled }: FormFillingAgentPro
         setResult(null);
 
         try {
-            const response = await fetch(`/api/agent/estates/${estateId}/forms/fill`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ formType })
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to fill form');
-            }
-
-            const data = await response.json();
+            const data = await api.agents.fillForm(estateId, formType);
             setResult(data);
             onFormFilled?.(data);
         } catch (err: any) {
@@ -54,7 +44,7 @@ export function FormFillingAgent({ estateId, onFormFilled }: FormFillingAgentPro
                     <FileText className="w-5 h-5" />
                     AI Form Assistant
                 </h3>
-                
+
                 <p className="text-gray-600 mb-4">
                     Let AI automatically fill out probate forms using your estate information.
                 </p>
@@ -113,8 +103,8 @@ export function FormFillingAgent({ estateId, onFormFilled }: FormFillingAgentPro
                             <div className="flex-1">
                                 <div className="font-medium text-green-900">Form data extracted successfully!</div>
                                 <div className="text-sm text-green-700 mt-1">
-                                    {result.success 
-                                        ? 'All required fields filled' 
+                                    {result.success
+                                        ? 'All required fields filled'
                                         : `${result.missing_fields?.length || 0} fields need manual input`}
                                 </div>
                                 <div className="text-sm text-green-700">
@@ -153,7 +143,7 @@ export function FormFillingAgent({ estateId, onFormFilled }: FormFillingAgentPro
                         {/* Action Buttons */}
                         <div className="flex gap-3">
                             <button
-                                onClick={() => {/* Navigate to form editor */}}
+                                onClick={() => {/* Navigate to form editor */ }}
                                 className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                             >
                                 Edit & Complete Form
