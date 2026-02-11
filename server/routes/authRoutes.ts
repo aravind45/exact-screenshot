@@ -9,7 +9,7 @@ const registerSchema = z.object({
     email: z.string().email(),
     password: z.string().min(8),
     fullName: z.string().min(2),
-    state: z.string().length(2)
+    state: z.string().length(2).optional()
 });
 
 const loginSchema = z.object({

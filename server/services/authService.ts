@@ -6,7 +6,7 @@ const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-this";
 import { logger } from "../lib/logger.js";
 
 export const AuthService = {
-    async register(data: { email: string, password: string, fullName: string, state: string, ip?: string }) {
+    async register(data: { email: string, password: string, fullName: string, state?: string, ip?: string }) {
         const { email, password, fullName, state, ip } = data;
 
         const existingUser = await prisma.user.findUnique({ where: { email } });
