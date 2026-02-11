@@ -11,7 +11,6 @@ import {
     Scale,
     Zap,
     ShieldCheck,
-    Mail,
     Inbox,
     History,
     Bell,
@@ -97,16 +96,8 @@ export function Sidebar() {
             items: [
                 { label: "Help Center", icon: HelpCircle, path: "/help" },
                 {
-                    label: "Send Feedback",
+                    label: "Support & Feedback",
                     icon: MessageSquare,
-                    onClick: () => {
-                        setSupportTab("feedback");
-                        setSupportOpen(true);
-                    }
-                },
-                {
-                    label: "Contact Support",
-                    icon: Mail,
                     onClick: () => {
                         setSupportTab("contact");
                         setSupportOpen(true);
