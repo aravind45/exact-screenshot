@@ -5,8 +5,10 @@ import { DiscoveryService } from '../services/discoveryService.js';
 import { DiscoveryIntelligenceService } from '../services/discoveryIntelligenceService.js';
 import { z } from 'zod';
 import { logger } from '../lib/logger.js';
+import { requireSubscription } from '../middleware/subscription.js';
 
 const router = Router();
+router.use(requireSubscription);
 const upload = multer({ storage: multer.memoryStorage() });
 
 const categoryUpdateSchema = z.object({

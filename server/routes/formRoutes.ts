@@ -6,6 +6,7 @@ import { DistributionService } from "../services/distributionService.js";
 import { AccountingService } from "../services/accountingService.js";
 import { z } from "zod";
 import { logger } from "../lib/logger.js";
+import { requireSubscription } from "../middleware/subscription.js";
 
 const generateFormSchema = z.object({
     formId: z.string().min(1),
@@ -13,6 +14,7 @@ const generateFormSchema = z.object({
 });
 
 const router = Router();
+router.use(requireSubscription);
 
 // List all available form templates (public)
 router.get("/templates", async (req: Request, res: Response) => {

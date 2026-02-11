@@ -3,12 +3,14 @@ import { prisma } from "../db.js";
 import { enrichInstitutionData } from "../services/enrichment.js";
 import { z } from "zod";
 import { logger } from "../lib/logger.js";
+import { requireSubscription } from "../middleware/subscription.js";
 
 const searchQuerySchema = z.object({
     query: z.string().min(2)
 });
 
 const router = Router();
+router.use(requireSubscription);
 
 router.get("/search", async (req, res) => {
     try {

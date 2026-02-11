@@ -4,6 +4,7 @@ import { AuditService } from "../services/auditService.js";
 import { CollaborationService } from "../services/collaborationService.js";
 import { z } from "zod";
 import { logger } from "../lib/logger.js";
+import { requireSubscription } from "../middleware/subscription.js";
 
 const heirSchema = z.object({
     name: z.string().min(1),
@@ -15,6 +16,7 @@ const heirSchema = z.object({
 });
 
 const router = Router();
+router.use(requireSubscription);
 
 // Middleware to get estateId (assumes user has one estate for now)
 const getEstateId = async (req: any) => {

@@ -3,6 +3,7 @@ import { prisma } from "../db.js";
 import { PdfService } from "../services/pdfService.js";
 import { z } from "zod";
 import { logger } from "../lib/logger.js";
+import { requireSubscription } from "../middleware/subscription.js";
 
 const pdfPreviewSchema = z.object({
     formType: z.string().optional(),
@@ -10,6 +11,7 @@ const pdfPreviewSchema = z.object({
 }).passthrough(); // Allow other fields for merge
 
 const router = Router();
+router.use(requireSubscription);
 
 const getEstateId = async (userId: string) => {
     const grant = await prisma.estateGrant.findFirst({

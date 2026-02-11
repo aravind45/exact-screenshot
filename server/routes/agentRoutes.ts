@@ -5,6 +5,7 @@ import { graph } from "../services/agent/graph.js";
 import { HumanMessage } from "@langchain/core/messages";
 import { z } from "zod";
 import { logger } from "../lib/logger.js";
+import { requireSubscription } from "../middleware/subscription.js";
 
 const chatSchema = z.object({
     message: z.string().min(1),
@@ -14,6 +15,7 @@ const chatSchema = z.object({
 });
 
 const router = Router();
+router.use(requireSubscription);
 
 /**
  * POST /api/agent/chat

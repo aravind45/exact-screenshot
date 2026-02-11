@@ -6,6 +6,7 @@ import { AuditService } from "../services/auditService.js";
 import { requireRole } from "../middleware/rbac.js";
 import { z } from "zod";
 import { logger } from "../lib/logger.js";
+import { requireSubscription } from "../middleware/subscription.js";
 
 const estateUpdateSchema = z.object({
     name: z.string().optional(),
@@ -233,7 +234,7 @@ router.put("/my", async (req: any, res: Response) => {
 });
 
 // Roadmap Persistence
-router.put("/my/roadmap", async (req: any, res: Response) => {
+router.put("/my/roadmap", requireSubscription, async (req: any, res: Response) => {
     try {
         const estate = await prisma.estate.findFirst({
             where: {
@@ -314,7 +315,7 @@ router.get("/my/activities", async (req: any, res: Response) => {
     }
 });
 
-router.put("/my/activities/:id", async (req: any, res: Response) => {
+router.put("/my/activities/:id", requireSubscription, async (req: any, res: Response) => {
     try {
         const estate = await prisma.estate.findFirst({ where: { userId: req.user.id } });
         if (!estate) return res.status(404).json({ error: "Estate not found" });
@@ -336,7 +337,7 @@ router.put("/my/activities/:id", async (req: any, res: Response) => {
     }
 });
 
-router.get("/my/activities/download", async (req: any, res: Response) => {
+router.get("/my/activities/download", requireSubscription, async (req: any, res: Response) => {
     try {
         const estate = await prisma.estate.findFirst({ where: { userId: req.user.id } });
         if (!estate) return res.status(404).json({ error: "Estate not found" });
@@ -388,7 +389,7 @@ router.get("/my/activities/download", async (req: any, res: Response) => {
 
 import { PdfService } from "../services/pdfService.js";
 
-router.get("/my/petition/pdf", async (req: any, res: Response) => {
+router.get("/my/petition/pdf", requireSubscription, async (req: any, res: Response) => {
     try {
         const estate = await prisma.estate.findFirst({
             where: { userId: req.user.id },
@@ -409,7 +410,7 @@ router.get("/my/petition/pdf", async (req: any, res: Response) => {
 });
 
 // Upload completed probate form
-router.post("/:estateId/documents", async (req: any, res: Response) => {
+router.post("/:estateId/documents", requireSubscription, async (req: any, res: Response) => {
     try {
         const { estateId } = req.params;
         const { documentType, name } = req.query;
@@ -502,7 +503,7 @@ router.get("/my/documents/:formCode/download", async (req: any, res: Response) =
 });
 
 // Create estate document record (metadata only)
-router.post("/my/documents", async (req: any, res: Response) => {
+router.post("/my/documents", requireSubscription, async (req: any, res: Response) => {
     try {
         const estate = await prisma.estate.findFirst({ where: { userId: req.user.id } });
         if (!estate) return res.status(404).json({ error: "Estate not found" });

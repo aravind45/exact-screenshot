@@ -8,11 +8,13 @@ import { AgentService } from "../services/agentService.js";
 import { createRequire } from "module";
 import { z } from "zod";
 import { logger } from "../lib/logger.js";
+import { requireSubscription } from "../middleware/subscription.js";
 
 const require = createRequire(import.meta.url);
 const pdf = require("pdf-parse");
 
 const router = Router();
+router.use(requireSubscription);
 
 const scanQuerySchema = z.object({
     saveToVault: z.string().optional(),

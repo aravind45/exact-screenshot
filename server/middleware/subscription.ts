@@ -1,0 +1,45 @@
+import { Request, Response, NextFunction } from "express";
+import { prisma } from "../db.js";
+import { logger } from "../lib/logger.js";
+
+/**
+ * Middleware to enforce subscription status on sensitive API routes.
+ * Exempts Admins and Alpha users.
+ */
+export const requireSubscription = async (req: any, res: Response, next: NextFunction) => {
+    try {
+        const userId = req.user?.id;
+        if (!userId) return res.status(401).json({ error: "Unauthorized" });
+
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: {
+                subscriptionStatus: true,
+                fullName: true,
+                role: true,
+                email: true
+            }
+        });
+
+        if (!user) return res.status(401).json({ error: "User not found" });
+
+        // Logic sync with SubscriptionGuard.tsx
+        const isAlphaUser = user.fullName?.includes("(Alpha)") || user.email?.endsWith("@expectedestate.com");
+        const isAdmin = user.role === 'ADMIN';
+        const isActive = user.subscriptionStatus === 'ACTIVE'; // Basic check
+
+        const canAccess = isAdmin || isAlphaUser || isActive;
+
+        if (!canAccess) {
+            return res.status(403).json({
+                error: "Subscription Required",
+                message: "This feature requires an active premium subscription."
+            });
+        }
+
+        next();
+    } catch (error: any) {
+        logger.error("Subscription Check Error:", error.message);
+        res.status(500).json({ error: "Internal server error during subscription check" });
+    }
+};

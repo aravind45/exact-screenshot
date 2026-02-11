@@ -7,6 +7,7 @@ import { AuditService } from "../services/auditService.js";
 import { requireRole } from "../middleware/rbac.js";
 import { z } from "zod";
 import { logger } from "../lib/logger.js";
+import { requireSubscription } from "../middleware/subscription.js";
 
 const liabilitySchema = z.object({
     name: z.string().min(1),
@@ -23,6 +24,7 @@ const liabilitySchema = z.object({
 });
 
 const router = Router();
+router.use(requireSubscription);
 
 // Middleware to get estateId for the current user
 const getEstateId = async (userId: string) => {

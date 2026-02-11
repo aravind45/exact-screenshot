@@ -2,8 +2,12 @@ import { Router, Request, Response } from "express";
 import { AssetService } from "../services/assetService.js";
 import { z } from "zod";
 import { logger } from "../lib/logger.js";
+import { requireSubscription } from "../middleware/subscription.js";
 
 const router = Router();
+
+// Enforce subscription for all asset management features
+router.use(requireSubscription);
 
 const assetSchema = z.object({
     institution: z.string().min(1),
