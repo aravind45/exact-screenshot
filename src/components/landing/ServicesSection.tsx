@@ -23,7 +23,7 @@ export function ServicesSection() {
     ];
 
     return (
-        <section id="services" className="py-24 bg-white">
+        <section id="services" className="py-24 bg-white scroll-mt-20">
             <div className="section-container">
                 <div className="text-center mb-16">
                     <motion.h3

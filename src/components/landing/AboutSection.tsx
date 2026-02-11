@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 
 export function AboutSection() {
     return (
-        <section id="about" className="py-24 bg-white overflow-hidden">
+        <section id="about" className="py-24 bg-white overflow-hidden scroll-mt-20">
             <div className="section-container">
                 <div className="grid lg:grid-cols-2 gap-16 items-center">
                     <motion.div

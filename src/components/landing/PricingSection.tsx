@@ -26,7 +26,7 @@ export function PricingSection() {
     };
 
     return (
-        <section id="pricing" className="py-24 bg-primary/5">
+        <section id="pricing" className="py-24 bg-primary/5 scroll-mt-20">
             <div className="section-container">
                 <div className="text-center mb-16">
                     <motion.h3

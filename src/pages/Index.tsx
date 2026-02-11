@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { PricingSection } from "@/components/landing/PricingSection";
+import { Mail } from "lucide-react";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -29,9 +30,7 @@ const Index = () => {
         <HeroSection />
 
         <AboutSection />
-
         <ServicesSection />
-
         <PricingSection />
 
         {/* Visual Proof Section */}
@@ -134,9 +133,18 @@ const Index = () => {
         </section>
 
         {/* Final CTA */}
-        <section id="contact" className="py-32 bg-primary/5">
+        <section id="contact" className="py-32 bg-primary/5 scroll-mt-20">
           <div className="section-container">
             <div className="max-w-4xl mx-auto text-center">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-black uppercase tracking-[0.2em] mb-8"
+              >
+                <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                Contact Support
+              </motion.div>
               <motion.h2
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -146,7 +154,7 @@ const Index = () => {
                 Get clarity before the <br className="hidden md:block" />
                 paperwork piles up.
               </motion.h2>
-              <div className="flex flex-col items-center gap-6">
+              <div className="flex flex-col items-center gap-8">
                 <Button
                   size="lg"
                   className="h-20 px-16 text-2xl font-black rounded-full shadow-2xl hover:scale-105 transition-all bg-primary"
@@ -155,10 +163,19 @@ const Index = () => {
                   Start guided intake
                   <span className="ml-3">→</span>
                 </Button>
-                <div className="space-y-2">
-                  <p className="text-lg text-muted-foreground font-bold italic">
-                    Takes ~5 minutes. No payment required to begin.
-                  </p>
+
+                <div className="pt-8 border-t border-border/50 w-full max-w-sm">
+                  <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest mb-4">Or Reach Out Directly</p>
+                  <a
+                    href="mailto:expected.estate@gmail.com"
+                    className="group flex items-center justify-center gap-3 p-4 bg-white rounded-2xl border border-border/50 hover:border-primary/30 transition-all hover:shadow-lg"
+                  >
+                    <div className="p-2 bg-primary/10 text-primary rounded-lg group-hover:bg-primary group-hover:text-white transition-colors">
+                      <Mail className="w-5 h-5" />
+                    </div>
+                    <span className="text-lg font-black text-foreground tracking-tight">expected.estate@gmail.com</span>
+                  </a>
+                  <p className="text-[10px] text-muted-foreground font-bold mt-4 uppercase tracking-[0.1em]">Typically responds in &lt; 24 hours</p>
                 </div>
               </div>
             </div>
