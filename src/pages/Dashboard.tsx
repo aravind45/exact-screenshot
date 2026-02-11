@@ -22,7 +22,8 @@ import {
   FileText,
   Search,
   Gavel,
-  Activity
+  Activity,
+  Lock
 } from "lucide-react";
 import { SettlementHealthEngine } from "@/components/SettlementHealthEngine";
 import { useState, useEffect } from "react";
@@ -78,18 +79,26 @@ export default function Dashboard() {
 
   const { data: assetsData, isLoading, error } = useQuery({
     queryKey: ['assets'],
-    queryFn: api.getAssets,
+    queryFn: async () => {
+      try {
+        return await api.getAssets();
+      } catch (err: any) {
+        if (err.status === 403) return { isLocked: true, data: [] };
+        throw err;
+      }
+    },
     enabled: !!user,
   });
+
+  const isAssetsLocked = (assetsData as any)?.isLocked;
+  // Ensure assets is always an array
+  const assets = isAssetsLocked ? [] : (Array.isArray(assetsData) ? assetsData : []);
 
   const { data: estate } = useQuery({
     queryKey: ['estate'],
     queryFn: api.getMyEstate,
     enabled: !!user,
   });
-
-  // Ensure assets is always an array
-  const assets = Array.isArray(assetsData) ? assetsData : [];
 
   // Automatically redirect to onboarding if estate profile is incomplete or track is unset
   useEffect(() => {
@@ -122,26 +131,54 @@ export default function Dashboard() {
 
   const firstName = user?.fullName?.split(' ')[0] || user?.email?.split('@')[0] || 'there';
 
-  const { data: realFollowUps = [] } = useQuery({
+  const { data: followUpsData } = useQuery({
     queryKey: ['follow-ups'],
-    queryFn: api.getFollowUps,
-    enabled: !!user,
-  });
-
-  const { data: recentActivity = [] } = useQuery({
-    queryKey: ['timeline', 'recent'],
     queryFn: async () => {
-      const data = await api.getTimeline();
-      return data.slice(0, 5);
+      try {
+        return await api.getFollowUps();
+      } catch (err: any) {
+        if (err.status === 403) return { isLocked: true, data: [] };
+        throw err;
+      }
     },
     enabled: !!user,
   });
 
-  const { data: liabilitiesData = [] } = useQuery({
-    queryKey: ['liabilities'],
-    queryFn: api.getLiabilities,
+  const isFollowUpsLocked = (followUpsData as any)?.isLocked;
+  const realFollowUps = isFollowUpsLocked ? [] : (Array.isArray(followUpsData) ? followUpsData : []);
+
+  const { data: timelineData } = useQuery({
+    queryKey: ['timeline', 'recent'],
+    queryFn: async () => {
+      try {
+        const data = await api.getTimeline();
+        return { data: data.slice(0, 5) };
+      } catch (err: any) {
+        if (err.status === 403) return { isLocked: true, data: [] };
+        throw err;
+      }
+    },
     enabled: !!user,
   });
+
+  const isTimelineLocked = (timelineData as any)?.isLocked;
+  const recentActivity = isTimelineLocked ? [] : (Array.isArray((timelineData as any)?.data) ? (timelineData as any).data : []);
+
+  const { data: liabilitiesQueryData } = useQuery({
+    queryKey: ['liabilities'],
+    queryFn: async () => {
+      try {
+        return await api.getLiabilities();
+      } catch (err: any) {
+        if (err.status === 403) return { isLocked: true, data: [] };
+        throw err;
+      }
+    },
+    enabled: !!user,
+  });
+
+  const isLiabilitiesLocked = (liabilitiesQueryData as any)?.isLocked;
+  const liabilities = isLiabilitiesLocked ? [] : (Array.isArray(liabilitiesQueryData) ? liabilitiesQueryData : []);
 
   const { data: readiness } = useQuery({
     queryKey: ["accounting-readiness"],
@@ -149,10 +186,23 @@ export default function Dashboard() {
     enabled: !!user,
   });
 
-  const { probateBlockers, completedTaskIds, completedPhases, totalTaskCount } = useWorkflow();
+  const { data: activitiesQueryData } = useQuery({
+    queryKey: ['activities'],
+    queryFn: async () => {
+      try {
+        return await api.getActivities();
+      } catch (err: any) {
+        if (err.status === 403) return { isLocked: true, data: [] };
+        throw err;
+      }
+    },
+    enabled: !!user,
+  });
 
-  // Calculate Health Scores
-  const liabilities = Array.isArray(liabilitiesData) ? liabilitiesData : [];
+  const isActivitiesLocked = (activitiesQueryData as any)?.isLocked;
+  const activitiesData = isActivitiesLocked ? [] : (Array.isArray(activitiesQueryData) ? activitiesQueryData : []);
+
+  const { probateBlockers, completedTaskIds, completedPhases, totalTaskCount } = useWorkflow();
 
   // 1. Authority Score: % of assets needing authority that HAVE authority 
   const needsAuthority = assets.filter((a: any) =>
@@ -180,10 +230,10 @@ export default function Dashboard() {
 
 
   const healthScores = {
-    authority: authorityScore,
-    accounting: accountingScore,
-    risk: riskScore,
-    compliance: Math.min(complianceScore, 100)
+    authority: isAssetsLocked ? 0 : authorityScore,
+    accounting: isAssetsLocked ? 0 : accountingScore,
+    risk: isLiabilitiesLocked ? 0 : riskScore,
+    compliance: isActivitiesLocked ? 0 : Math.min(complianceScore, 100)
   };
 
   const healthAlerts: { type: 'CRITICAL' | 'WARNING' | 'INFO'; message: string }[] = [];
@@ -208,11 +258,6 @@ export default function Dashboard() {
 
 
 
-  const { data: activitiesData = [] } = useQuery({
-    queryKey: ['activities'],
-    queryFn: api.getActivities,
-    enabled: !!user,
-  });
 
   const currentPhase: SettlementPhase = (estate?.status?.toLowerCase() as SettlementPhase) || "immediate_actions";
 
@@ -261,7 +306,7 @@ export default function Dashboard() {
 
 
 
-  if (error) {
+  if (error && !isAssetsLocked) {
     return <div className="p-8 text-red-500">Error loading dashboard: {(error as Error).message}.</div>;
   }
 
@@ -332,7 +377,14 @@ export default function Dashboard() {
               </div>
               <div>
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 leading-none">Gross Estate Value</p>
-                <p className="text-3xl font-black text-slate-900 tracking-tighter leading-none">${(totalValue / 1000).toFixed(0)}K</p>
+                {isAssetsLocked ? (
+                  <div className="flex items-baseline gap-1">
+                    <p className="text-3xl font-black text-slate-300 tracking-tighter leading-none">$---</p>
+                    <span className="text-[10px] font-black text-primary uppercase bg-primary/10 px-1.5 py-0.5 rounded">Premium</span>
+                  </div>
+                ) : (
+                  <p className="text-3xl font-black text-slate-900 tracking-tighter leading-none">${(totalValue / 1000).toFixed(0)}K</p>
+                )}
               </div>
             </div>
 
@@ -346,10 +398,19 @@ export default function Dashboard() {
               <div>
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 leading-none">Overall Progress</p>
                 <div className="flex items-center gap-3">
-                  <p className="text-3xl font-black text-slate-900 tracking-tighter leading-none">{progressPercent}%</p>
-                  <div className="flex-1 h-2 bg-slate-50 rounded-full overflow-hidden">
-                    <div className="h-full bg-primary transition-all duration-1000" style={{ width: `${progressPercent}%` }} />
-                  </div>
+                  {isActivitiesLocked ? (
+                    <div className="flex items-center gap-2">
+                      <p className="text-3xl font-black text-slate-300 tracking-tighter leading-none">--%</p>
+                      <span className="text-[9px] font-bold text-slate-400 uppercase px-1.5 py-0.5 border border-slate-200 rounded-lg">Trial Required</span>
+                    </div>
+                  ) : (
+                    <>
+                      <p className="text-3xl font-black text-slate-900 tracking-tighter leading-none">{progressPercent}%</p>
+                      <div className="flex-1 h-2 bg-slate-50 rounded-full overflow-hidden">
+                        <div className="h-full bg-primary transition-all duration-1000" style={{ width: `${progressPercent}%` }} />
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -377,8 +438,14 @@ export default function Dashboard() {
                   Guidance Required
                 </p>
                 <div className="flex items-center gap-2">
-                  <p className="text-3xl font-black text-slate-900 tracking-tighter leading-none">{attentionNeededCount}</p>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Required</span>
+                  {isAssetsLocked ? (
+                    <p className="text-sm font-bold text-slate-400">Upgrade to View Actions</p>
+                  ) : (
+                    <>
+                      <p className="text-3xl font-black text-slate-900 tracking-tighter leading-none">{attentionNeededCount}</p>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Required</span>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -397,9 +464,10 @@ export default function Dashboard() {
                     variant="ghost"
                     size="sm"
                     className="h-8 text-[9px] uppercase font-black text-primary hover:bg-primary/10 border border-primary/20 rounded-xl px-3"
+                    disabled={isAssetsLocked}
                     onClick={() => generateCPAExport(assets, liabilities)}
                   >
-                    CPA Handoff
+                    {isAssetsLocked ? 'Premium' : 'CPA Handoff'}
                   </Button>
                 </div>
               </div>
@@ -446,14 +514,34 @@ export default function Dashboard() {
                     </div>
                   )}
 
-                  <FollowUpWidget followUps={realFollowUps as any} onFollowUpClick={handleAssetClick} />
-
-                  {realFollowUps.length === 0 && taxonomyStats.blocked === 0 && (
-                    <div className="p-8 text-center border-2 border-dashed border-emerald-100 bg-emerald-50/30 rounded-2xl">
-                      <CheckCircle2 className="w-8 h-8 text-emerald-500 mx-auto mb-2" />
-                      <p className="text-sm font-bold text-emerald-700">All caught up!</p>
-                      <p className="text-xs text-emerald-600 mt-1">No pending follow-ups or blockers.</p>
+                  {isFollowUpsLocked ? (
+                    <div className="p-8 text-center border-2 border-dashed border-slate-100 bg-slate-50/50 rounded-2xl">
+                      <Lock className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                      <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Premium Feature</p>
+                      <p className="text-[10px] text-slate-400 mt-1 mb-4">Real-time alerts and follow-ups are available on professional plans.</p>
+                      <Button
+                        size="sm"
+                        className="h-8 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest"
+                        onClick={() => navigate('/pricing')}
+                      >
+                        Start 7-Day Trial
+                      </Button>
                     </div>
+                  ) : (
+                    <>
+                      <FollowUpWidget
+                        followUps={realFollowUps as any}
+                        onFollowUpClick={handleAssetClick}
+                      />
+
+                      {realFollowUps.length === 0 && (
+                        <div className="p-8 text-center border-2 border-dashed border-emerald-100 bg-emerald-50/30 rounded-2xl">
+                          <CheckCircle2 className="w-8 h-8 text-emerald-500 mx-auto mb-2" />
+                          <p className="text-sm font-bold text-emerald-700">All caught up!</p>
+                          <p className="text-xs text-emerald-600 mt-1">No pending follow-ups or blockers.</p>
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               </section>
@@ -476,43 +564,65 @@ export default function Dashboard() {
                 </div>
 
                 <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
-                  {recentActivity.length === 0 && (
-                    <div className="p-10 text-center">
-                      <p className="text-xs font-medium text-slate-400">No recent activity recorded.</p>
-                    </div>
-                  )}
-                  <div className="divide-y divide-slate-100">
-                    {unifiedTimeline.slice(0, 5).map((act: any) => (
-                      <div
-                        key={act.id}
-                        className="p-3 hover:bg-slate-50 transition-colors cursor-pointer group flex gap-3"
-                        onClick={() => act.uiType === 'communication' ? navigate(`/inbox?selected=${act.id}`) : navigate('/roadmap')}
-                      >
-                        <div className={cn(
-                          "w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-110",
-                          act.uiType === 'activity' ? "bg-amber-100 text-amber-600" : (act.direction === 'inbound' ? "bg-emerald-100 text-emerald-600" : "bg-indigo-100 text-indigo-600")
-                        )}>
-                          {act.uiType === 'activity' ? <Flag className="w-4 h-4" /> : (act.direction === 'inbound' ? <ArrowDownLeft className="w-4 h-4" /> : <ArrowUpRight className="w-4 h-4" />)}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex justify-between items-start mb-0.5">
-                            <span className="text-[10px] font-black uppercase text-slate-400">
-                              {act.uiType === 'activity' ? 'Roadmap' : (act.institutionName || 'Message')}
-                            </span>
-                            <span className="text-[9px] font-bold text-slate-400">{new Date(act.occurredAt).toLocaleDateString()}</span>
-                          </div>
-                          <p className="text-xs font-bold text-slate-800 line-clamp-1">
-                            {act.subject || act.notes} {act.count > 1 && <span className="text-[10px] text-indigo-500 ml-1">({act.count}×)</span>}
-                          </p>
-                          {act.type && (
-                            <Badge variant="outline" className="h-4 text-[8px] font-black border-slate-200 text-slate-500 uppercase px-1.5 mt-1">
-                              {act.type}
-                            </Badge>
-                          )}
-                        </div>
+                  {isTimelineLocked ? (
+                    <div className="p-12 text-center flex flex-col items-center justify-center">
+                      <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center mb-4">
+                        <HistoryIcon className="w-6 h-6 text-indigo-400" />
                       </div>
-                    ))}
-                  </div>
+                      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-600 mb-2">Immutable Audit Trail</p>
+                      <p className="text-xs text-slate-500 max-w-[240px] leading-relaxed mb-6 font-medium">
+                        Secure, court-ready activity logging is a premium feature. Track every fiduciary action with timestamps.
+                      </p>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-9 border-slate-200 rounded-xl text-[10px] font-black uppercase tracking-widest px-6"
+                        onClick={() => navigate('/pricing')}
+                      >
+                        Unlock Audit Trail
+                      </Button>
+                    </div>
+                  ) : (
+                    <>
+                      {recentActivity.length === 0 && (
+                        <div className="p-10 text-center">
+                          <p className="text-xs font-medium text-slate-400">No recent activity recorded.</p>
+                        </div>
+                      )}
+                      <div className="divide-y divide-slate-100">
+                        {unifiedTimeline.slice(0, 5).map((act: any) => (
+                          <div
+                            key={act.id}
+                            className="p-3 hover:bg-slate-50 transition-colors cursor-pointer group flex gap-3"
+                            onClick={() => act.uiType === 'communication' ? navigate(`/inbox?selected=${act.id}`) : navigate('/roadmap')}
+                          >
+                            <div className={cn(
+                              "w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-110",
+                              act.uiType === 'activity' ? "bg-amber-100 text-amber-600" : (act.direction === 'inbound' ? "bg-emerald-100 text-emerald-600" : "bg-indigo-100 text-indigo-600")
+                            )}>
+                              {act.uiType === 'activity' ? <Flag className="w-4 h-4" /> : (act.direction === 'inbound' ? <ArrowDownLeft className="w-4 h-4" /> : <ArrowUpRight className="w-4 h-4" />)}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex justify-between items-start mb-0.5">
+                                <span className="text-[10px] font-black uppercase text-slate-400">
+                                  {act.uiType === 'activity' ? 'Roadmap' : (act.institutionName || 'Message')}
+                                </span>
+                                <span className="text-[9px] font-bold text-slate-400">{new Date(act.occurredAt).toLocaleDateString()}</span>
+                              </div>
+                              <p className="text-xs font-bold text-slate-800 line-clamp-1">
+                                {act.subject || act.notes} {act.count > 1 && <span className="text-[10px] text-indigo-500 ml-1">({act.count}×)</span>}
+                              </p>
+                              {act.type && (
+                                <Badge variant="outline" className="h-4 text-[8px] font-black border-slate-200 text-slate-500 uppercase px-1.5 mt-1">
+                                  {act.type}
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  )}
                 </div>
               </section>
 

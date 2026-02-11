@@ -6,6 +6,7 @@ import { prisma } from "../db.js";
 import { fileUpload, FileService } from "../services/fileService.js";
 import { z } from "zod";
 import { logger } from "../lib/logger.js";
+import { requireSubscription } from "../middleware/subscription.js";
 
 const communicationSchema = z.object({
     assetId: z.string(),

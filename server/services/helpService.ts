@@ -67,7 +67,7 @@ export class HelpService {
         // We import EmailService dynamically to avoid circular dependencies if any
         const { EmailService } = await import("./emailService.js");
 
-        const contactEmail = process.env.SUPPORT_EMAIL || "support@expectedestate.com";
+        const contactEmail = process.env.SUPPORT_EMAIL || "expected.estate@gmail.com";
         const emailBody = `
 SUPPORT REQUEST
 ---------------
@@ -80,16 +80,9 @@ Message:
 ${message}
         `;
 
-        // If we have an estateId, we can attach it to a 'General' asset if exists, 
-        // or just send as a system email. Since sendEmail requires assetId, 
-        // we might need a more generic sendSystemEmail or mock it.
-        // For now, let's log to console as well.
-        logger.info(`[HelpService] Support Message Relay to ${contactEmail}`);
-
-        // We'll use a simplified send if we don't have an asset context
         try {
-            // Note: In a real scenario, we'd have a sendInternalNotification method
-            logger.debug(`Relaying to support: ${subject}`);
+            await EmailService.sendInternalNotification(`Support: ${subject}`, emailBody);
+            logger.info(`[HelpService] Support Message Relay to ${contactEmail}`);
         } catch (e: any) {
             logger.error("Failed to relay support email", e.message);
         }
@@ -104,7 +97,7 @@ ${message}
         const user = await prisma.user.findUnique({ where: { id: userId } });
         if (!user) throw new Error("User not found");
 
-        const contactEmail = process.env.SUPPORT_EMAIL || "support@expectedestate.com";
+        const contactEmail = process.env.SUPPORT_EMAIL || "expected.estate@gmail.com";
         const emailBody = `
 USER FEEDBACK
 -------------
@@ -116,6 +109,13 @@ Comment: ${comment}
         logger.info(`[HelpService] Feedback Received: ${rating}/5 from ${user.email}`);
 
         // Simple relay
+        const { EmailService } = await import("./emailService.js");
+        try {
+            await EmailService.sendInternalNotification(`Feedback: ${rating}/5 from ${user.fullName}`, emailBody);
+        } catch (e: any) {
+            logger.error("Failed to relay feedback email", e.message);
+        }
+
         return { success: true };
     }
 }

@@ -38,7 +38,7 @@ export function SupportDialog({ open, onOpenChange, defaultTab = "feedback" }: S
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "Authorization": `Bearer ${localStorage.getItem("token")}`
+                    "Authorization": `Bearer ${localStorage.getItem("auth_token")}`
                 },
                 body: JSON.stringify(data)
             }).then(res => res.json()),
@@ -58,14 +58,14 @@ export function SupportDialog({ open, onOpenChange, defaultTab = "feedback" }: S
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "Authorization": `Bearer ${localStorage.getItem("token")}`
+                    "Authorization": `Bearer ${localStorage.getItem("auth_token")}`
                 },
                 body: JSON.stringify(data)
             }).then(res => res.json()),
         onSuccess: () => {
             toast({
                 title: "Message Sent",
-                description: "Our support team will get back to you shortly at expectedestate@gmail.com.",
+                description: "Our support team will get back to you shortly at expected.estate@gmail.com.",
             });
             onOpenChange(false);
             resetForm();
@@ -220,7 +220,7 @@ export function SupportDialog({ open, onOpenChange, defaultTab = "feedback" }: S
                 </div>
                 <div className="p-4 bg-slate-50 text-center border-t border-slate-100">
                     <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest flex items-center justify-center gap-1.5">
-                        <Mail className="w-3 h-3" /> expectedestate@gmail.com
+                        <Mail className="w-3 h-3" /> expected.estate@gmail.com
                     </p>
                 </div>
             </DialogContent>

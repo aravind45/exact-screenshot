@@ -299,4 +299,45 @@ Which asset ID does this email most likely belong to? Return ONLY the ID. If non
 
         logger.info(`[EmailService] Reset email successfully accepted by Mailgun for ${to}`);
     }
+
+    /**
+     * Sends an internal notification email (support requests, feedback, etc.)
+     */
+    static async sendInternalNotification(subject: string, body: string) {
+        const to = await ConfigService.get("SUPPORT_EMAIL") || "expected.estate@gmail.com";
+        const domain = await ConfigService.get("MAILGUN_DOMAIN") || "expectedestate.com";
+        const apiKey = await ConfigService.get("MAILGUN_API_KEY");
+        const sender = `ExpectedEstate System <system@${domain}>`;
+
+        if (!apiKey) {
+            logger.info(`📧 [SIMULATED INTERNAL] To: ${to}, Subject: ${subject}`);
+            return { status: "sent", simulated: true };
+        }
+
+        const encodedKey = Buffer.from(`api:${apiKey}`).toString("base64");
+        const formData = new URLSearchParams();
+        formData.append("from", sender);
+        formData.append("to", to);
+        formData.append("subject", subject);
+        formData.append("text", body);
+
+        const baseUrl = process.env.MAILGUN_BASE_URL || "https://api.mailgun.net";
+
+        const response = await fetch(`${baseUrl}/v3/${domain}/messages`, {
+            method: "POST",
+            headers: {
+                "Authorization": `Basic ${encodedKey}`
+            },
+            body: formData
+        });
+
+        if (!response.ok) {
+            const error = await response.text();
+            logger.error("[EmailService] Internal Notification Error:", error);
+            throw new Error(`Failed to send internal notification`);
+        }
+
+        logger.info(`[EmailService] Internal notification sent: ${subject}`);
+        return { status: "sent" };
+    }
 }
