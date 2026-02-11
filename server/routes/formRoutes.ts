@@ -4,6 +4,13 @@ import { FormService } from "../services/formService.js";
 import { FORM_MAPPINGS, FORM_AUTHORITIES } from "../services/formMappings.js";
 import { DistributionService } from "../services/distributionService.js";
 import { AccountingService } from "../services/accountingService.js";
+import { z } from "zod";
+import { logger } from "../lib/logger.js";
+
+const generateFormSchema = z.object({
+    formId: z.string().min(1),
+    isPreview: z.boolean().optional()
+});
 
 const router = Router();
 
@@ -30,8 +37,8 @@ router.get("/templates", async (req: Request, res: Response) => {
         }));
 
         res.json(enriched);
-    } catch (error) {
-        console.error("Failed to fetch form templates:", error);
+    } catch (error: any) {
+        logger.error("Failed to fetch form templates:", error.message);
         res.status(500).json({ error: "Failed to fetch form templates" });
     }
 });
@@ -91,7 +98,8 @@ router.get("/readiness", async (req: any, res: Response) => {
 
 router.post("/generate", async (req: any, res: Response) => {
     try {
-        const { formId, isPreview } = req.body;
+        const validated = generateFormSchema.parse(req.body);
+        const { formId, isPreview } = validated;
         const estateId = await getEstateId(req.user.id);
 
         if (!estateId) {
@@ -142,8 +150,9 @@ router.post("/generate", async (req: any, res: Response) => {
         res.send(Buffer.from(pdfBytes));
 
     } catch (e: any) {
-        console.error(`Error generating ${req.body.formId}:`, e);
-        res.status(500).json({ error: e.message });
+        if (e instanceof z.ZodError) return res.status(400).json({ error: "Invalid form generation request", details: e.errors });
+        logger.error(`Error generating ${req.body.formId}:`, e.message);
+        res.status(500).json({ error: "Failed to generate form" });
     }
 });
 

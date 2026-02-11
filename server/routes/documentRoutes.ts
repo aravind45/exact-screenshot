@@ -6,11 +6,18 @@ import { prisma } from "../db.js";
 import { analyzeDocument } from "../services/ai.js";
 import { AgentService } from "../services/agentService.js";
 import { createRequire } from "module";
+import { z } from "zod";
+import { logger } from "../lib/logger.js";
 
 const require = createRequire(import.meta.url);
 const pdf = require("pdf-parse");
 
 const router = Router();
+
+const scanQuerySchema = z.object({
+    saveToVault: z.string().optional(),
+    documentType: z.string().optional()
+});
 
 const isVercel = process.env.VERCEL === "1";
 const uploadDir = isVercel
@@ -20,8 +27,8 @@ const uploadDir = isVercel
 if (!fs.existsSync(uploadDir)) {
     try {
         fs.mkdirSync(uploadDir, { recursive: true });
-    } catch (e) {
-        console.warn("Could not create upload directory:", e);
+    } catch (e: any) {
+        logger.warn("Could not create upload directory:", e.message);
     }
 }
 
@@ -75,10 +82,11 @@ router.post("/scan", uploadMemory.single("file"), async (req: any, res: Response
         const agentInsights = await AgentService.runDetectiveDiscovery(textToAnalyze, "");
 
         // If estateId is provided, we can optionally link/save this discovery
-        if (req.query.saveToVault === 'true' && req.user) {
+        const queryValidated = scanQuerySchema.parse(req.query);
+        if (queryValidated.saveToVault === 'true' && req.user) {
             const estate = await prisma.estate.findFirst({ where: { userId: req.user.id } });
             if (estate) {
-                const docType = (req.query.documentType as string) || "OTHER_DISCOVERY";
+                const docType = queryValidated.documentType || "OTHER_DISCOVERY";
                 const existing = docType !== "OTHER_DISCOVERY"
                     ? await prisma.estateDocument.findFirst({
                         where: { estateId: estate.id, documentType: docType }
@@ -116,7 +124,8 @@ router.post("/scan", uploadMemory.single("file"), async (req: any, res: Response
             agentInsights
         });
     } catch (error: any) {
-        console.error("Scan Error:", error);
+        if (error instanceof z.ZodError) return res.status(400).json({ error: "Invalid scan parameters", details: error.errors });
+        logger.error("Scan Error:", error.message);
         res.status(500).json({ error: "Failed to process document" });
     }
 });

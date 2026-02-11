@@ -5,6 +5,22 @@ import { encrypt, decrypt } from "../utils/encryption.js";
 import { RiskService } from "../services/riskService.js";
 import { AuditService } from "../services/auditService.js";
 import { requireRole } from "../middleware/rbac.js";
+import { z } from "zod";
+import { logger } from "../lib/logger.js";
+
+const liabilitySchema = z.object({
+    name: z.string().min(1),
+    amount: z.coerce.number().positive(),
+    status: z.string().optional(),
+    invoiceDate: z.string().optional().nullable(),
+    dueDate: z.string().optional().nullable(),
+    accountNumber: z.string().optional().nullable(),
+    notes: z.string().optional(),
+    contactPhone: z.string().optional(),
+    contactEmail: z.string().email().optional().or(z.literal("")),
+    priority: z.string().optional(),
+    priorityClass: z.string().optional()
+});
 
 const router = Router();
 
@@ -174,7 +190,8 @@ router.post("/", async (req: any, res: Response) => {
         const estateId = await getEstateId(req.user.id);
         if (!estateId) return res.status(404).json({ error: "Estate not found" });
 
-        const { name, amount, status, invoiceDate, dueDate, accountNumber, notes, contactPhone, contactEmail, priority, priorityClass } = req.body;
+        const validated = liabilitySchema.parse(req.body);
+        const { name, amount, status, invoiceDate, dueDate, accountNumber, notes, contactPhone, contactEmail, priority, priorityClass } = validated;
 
         const liability = await prisma.liability.create({
             data: {
@@ -211,7 +228,9 @@ router.post("/", async (req: any, res: Response) => {
 
         res.json(liability);
     } catch (e: any) {
-        res.status(500).json({ error: e.message });
+        if (e instanceof z.ZodError) return res.status(400).json({ error: "Validation failed", details: e.errors });
+        logger.error("Error creating liability:", e.message);
+        res.status(500).json({ error: "Failed to create liability" });
     }
 });
 
@@ -222,7 +241,8 @@ router.put("/:id", async (req: any, res: Response) => {
         if (!estateId) return res.status(404).json({ error: "Estate not found" });
 
         const { id } = req.params;
-        const data = req.body;
+        const validated = liabilitySchema.partial().parse(req.body);
+        const data: any = { ...validated };
 
         // Convert dates if present
         if (data.invoiceDate) data.invoiceDate = new Date(data.invoiceDate);
@@ -235,7 +255,7 @@ router.put("/:id", async (req: any, res: Response) => {
         }
 
         // PRIORITY & RISK CHECK: If trying to mark as PAID, run the validation
-        if (data.status === "PAID" && !data.forcePay) {
+        if (data.status === "PAID" && !req.body.forcePay) {
             const eligibility = await RiskService.validatePayment(estateId, id);
             if (!eligibility.allowed) {
                 return res.status(400).json({
@@ -268,7 +288,9 @@ router.put("/:id", async (req: any, res: Response) => {
 
         res.json(liability);
     } catch (e: any) {
-        res.status(500).json({ error: e.message });
+        if (e instanceof z.ZodError) return res.status(400).json({ error: "Validation failed", details: e.errors });
+        logger.error("Error updating liability:", e.message);
+        res.status(500).json({ error: "Failed to update liability" });
     }
 });
 

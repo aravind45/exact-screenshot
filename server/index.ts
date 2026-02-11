@@ -1,9 +1,11 @@
-// Deployment Trigger - Cloud Run Port & Express 5 Fix
 import "dotenv/config";
 import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
+import helmet from "helmet";
+import { rateLimit } from "express-rate-limit";
+import { logger } from "./lib/logger.js";
 import { execSync } from "child_process";
 import { AuthService } from "./services/authService.js";
 import { prisma } from "./db.js";
@@ -35,27 +37,79 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // the static 'dist' folder is at ../dist relative to the file.
 const distPath = path.resolve(__dirname, "../dist");
 
-console.log("🚀 Starting ExpectedEstate server...");
-console.log(`📦 Node environment: ${process.env.NODE_ENV}`);
-console.log(`🔌 Port: ${port}`);
-console.log(`📁 Dist path: ${distPath}`);
-console.log(`💾 Database URL: ${process.env.DATABASE_URL ? '✅ Set' : '❌ NOT SET'}`);
-console.log(`🔍 Serverless detection: ${isServerless ? 'YES' : 'NO'}`);
+logger.info("🚀 Starting ExpectedEstate server...");
+logger.info(`📦 Node environment: ${process.env.NODE_ENV}`);
+logger.info(`🔌 Port: ${port}`);
+logger.info(`📁 Dist path: ${distPath}`);
+logger.info(`💾 Database URL: ${process.env.DATABASE_URL ? '✅ Set' : '❌ NOT SET'}`);
+logger.info(`🔍 Serverless detection: ${isServerless ? 'YES' : 'NO'}`);
 
-app.use(cors());
-app.use(express.json());
+// 1. Security Headers
+app.use(helmet({
+    contentSecurityPolicy: {
+        directives: {
+            ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+            "connect-src": ["'self'", "https://api.mailgun.net", "https://api.stripe.com"],
+            "img-src": ["'self'", "data:", "https://*.stripe.com"],
+            "frame-src": ["'self'", "https://*.stripe.com"]
+        }
+    }
+}));
+
+// 2. HTTPS Enforcement (Production only)
+app.use((req, res, next) => {
+    if (req.header('x-forwarded-proto') !== 'https' && process.env.NODE_ENV === 'production' && !isServerless) {
+        return res.redirect(`https://${req.header('host')}${req.url}`);
+    }
+    next();
+});
+
+// 3. CORS Configuration
+const allowedOrigins = [
+    process.env.APP_URL,
+    'http://localhost:5173',
+    'http://localhost:3000',
+    'https://www.expectedestate.com',
+    'https://expected-estate.vercel.app'
+].filter(Boolean) as string[];
+
+app.use(cors({
+    origin: (origin, callback) => {
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            logger.warn(`🚫 [CORS] Blocked request from unauthorized origin: ${origin}`);
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+// 4. Rate Limiting
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    limit: 100, // Limit each IP to 100 requests per `window`
+    standardHeaders: 'draft-7',
+    legacyHeaders: false,
+    message: { error: "Too many requests from this IP, please try again after 15 minutes" },
+    skip: (req) => req.path === '/api/health' || req.path === '/api/ping'
+});
+
+app.use("/api/", limiter);
+
+app.use(express.json({ limit: '1mb' })); // Request size limit
 app.use(express.raw({
     type: ['application/pdf', 'image/jpeg', 'image/png'],
     limit: '10mb'
 }));
 
-// Logger
+// Logger (Sanitized)
 app.use((req, res, next) => {
-    console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+    logger.info(`${req.method} ${req.url}`);
     if (req.headers.authorization) {
-        console.log(`🔑 Auth Header present: ${req.headers.authorization.substring(0, 15)}...`);
-    } else {
-        console.log("🔑 No Auth Header present");
+        logger.debug(`🔑 Auth Header present (truncated): ${req.headers.authorization.substring(0, 10)}...`);
     }
     next();
 });
@@ -65,43 +119,46 @@ const authenticate = async (req: Request | any, res: Response, next: NextFunctio
     const authHeader = req.headers.authorization;
     const token = authHeader?.split(" ")[1] || req.query.token;
 
-    console.log(`🔒 [AUTH] Attempting ${req.method} ${req.url}`);
+    logger.debug(`🔒 [AUTH] Attempting ${req.method} ${req.url}`);
     if (!token) {
-        console.log("❌ [AUTH] No token found in Authorization header or query params");
-        return res.status(401).json({ error: "Unauthorized: No token provided" });
+        logger.debug("❌ [AUTH] No token found");
+        return res.status(401).json({ error: "Unauthorized" });
     }
 
     try {
-        console.log(`🔒 [AUTH] Token received (length: ${token.length}). Passing to verifyToken...`);
         const user = await AuthService.verifyToken(token as string);
         if (!user) {
-            console.log("❌ [AUTH] verifyToken returned null - token rejected or user deleted");
-            return res.status(401).json({ error: "Unauthorized: Invalid token or user not found" });
+            logger.debug("❌ [AUTH] verifyToken returned null");
+            return res.status(401).json({ error: "Unauthorized" });
         }
 
-        console.log(`✅ [AUTH] Success for user: ${user.email} (${user.id})`);
+        logger.debug(`✅ [AUTH] Success for user: ${user.id}`);
         req.user = user;
         next();
     } catch (err: any) {
-        console.error("❌ [AUTH] Middleware crash:", err.message);
-        console.error(err.stack);
+        logger.error("❌ [AUTH] Middleware error:", err.message);
         return res.status(500).json({ error: "Authentication service error" });
     }
 };
 
 // Health & Ping
-app.get("/api/health", (req, res) => {
-    console.log("✅ Health check called");
-    res.json({ status: "ok", timestamp: new Date().toISOString(), serverless: isServerless });
+app.get("/api/health", async (req, res) => {
+    try {
+        // Simple DB check as requested in audit
+        await prisma.$queryRaw`SELECT 1`;
+        res.json({ status: "ok", db: "connected", timestamp: new Date().toISOString() });
+    } catch (e) {
+        logger.error("💔 Health check DB failed");
+        res.status(500).json({ status: "error", db: "disconnected" });
+    }
 });
 
 app.get("/api/ping", (req, res) => {
-    console.log("🏓 Ping called");
     res.send("pong");
 });
 
 // Routes
-console.log("📋 Registering routes...");
+logger.info("📋 Registering routes...");
 app.use("/api/auth", authRoutes);
 app.use("/api/assets", authenticate, assetRoutes);
 app.use("/api/documents", authenticate, documentRoutes);
@@ -149,8 +206,16 @@ if (!isServerless) {
 
 // Error handler
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
-    console.error("❌ Server error:", err);
-    res.status(500).json({ error: "Internal server error" });
+    logger.error("❌ Server Error:", {
+        message: err.message,
+        stack: process.env.NODE_ENV === 'production' ? '🥞' : err.stack,
+        url: req.url,
+        method: req.method
+    });
+
+    res.status(err.status || 500).json({
+        error: process.env.NODE_ENV === 'production' ? "Internal server error" : err.message
+    });
 });
 
 // Always listen when in production or no specific VITE_API_URL is set

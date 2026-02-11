@@ -1,6 +1,7 @@
 import { prisma } from "../db.js";
 import { OpenAIEmbeddings } from "@langchain/openai";
 import crypto from 'crypto';
+import { logger } from "../lib/logger.js";
 
 const embeddings = process.env.OPENAI_API_KEY ? new OpenAIEmbeddings({
     apiKey: process.env.OPENAI_API_KEY,
@@ -44,7 +45,7 @@ export class KnowledgeService {
             chunks.push(text.slice(i, i + CHUNK_SIZE));
         }
 
-        console.log(`🧩 Admin Ingestion: Processing ${chunks.length} chunks for ${source}`);
+        logger.info(`🧩 Admin Ingestion: Processing ${chunks.length} chunks for ${source}`);
 
         let successCount = 0;
         for (const chunkText of chunks) {
@@ -57,8 +58,8 @@ export class KnowledgeService {
                     VALUES ($1, $2, $3, $4::vector, NOW())
                 `, crypto.randomUUID(), chunkText, source, vectorSql);
                 successCount++;
-            } catch (err) {
-                console.error(`❌ Ingestion error for ${source}:`, err);
+            } catch (err: any) {
+                logger.error(`❌ Ingestion error for ${source}:`, err.message);
             }
         }
 

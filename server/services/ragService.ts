@@ -1,6 +1,7 @@
 import { prisma } from "../db.js";
 import { OpenAIEmbeddings } from "@langchain/openai";
 import { ai } from "./ai.js";
+import { logger } from "../lib/logger.js";
 
 // Initialize embeddings (requires OPENAI_API_KEY)
 const embeddings = process.env.OPENAI_API_KEY ? new OpenAIEmbeddings({
@@ -14,7 +15,7 @@ export class RAGService {
      */
     static async searchKnowledge(query: string, limit = 5) {
         if (!embeddings) {
-            console.error("RAG Error: OPENAI_API_KEY is missing. Semantic search disabled.");
+            logger.error("RAG Error: OPENAI_API_KEY is missing. Semantic search disabled.");
             return [];
         }
         try {
@@ -32,11 +33,11 @@ export class RAGService {
             `, vectorSql, limit);
 
             const searchResults = results as { content: string; source: string; similarity: number }[];
-            console.log(`🤖 RAG Search for "${query}": Found ${searchResults.length} chunks. Max Similarity: ${searchResults[0]?.similarity?.toFixed(4) || 0}`);
+            logger.info(`🤖 RAG Search: Found ${searchResults.length} chunks. Max Similarity: ${searchResults[0]?.similarity?.toFixed(4) || 0}`);
 
             return searchResults;
         } catch (error) {
-            console.error("RAG Search Error:", error);
+            logger.error("RAG Search Error:", error);
             return [];
         }
     }

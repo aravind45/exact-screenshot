@@ -1,6 +1,13 @@
 import { Router, Response } from "express";
 import { prisma } from "../db.js";
 import { PdfService } from "../services/pdfService.js";
+import { z } from "zod";
+import { logger } from "../lib/logger.js";
+
+const pdfPreviewSchema = z.object({
+    formType: z.string().optional(),
+    beneficiaryName: z.string().optional()
+}).passthrough(); // Allow other fields for merge
 
 const router = Router();
 
@@ -80,8 +87,9 @@ router.post("/preview", async (req: any, res: Response) => {
         res.json({ pdfBase64: base64Pdf });
 
     } catch (e: any) {
-        console.error("CRITICAL PDF Preview Error:", e);
-        res.status(500).json({ error: e.message, stack: process.env.NODE_ENV === 'development' ? e.stack : undefined });
+        if (e instanceof z.ZodError) return res.status(400).json({ error: "Invalid PDF request data", details: e.errors });
+        logger.error("CRITICAL PDF Preview Error:", e.message);
+        res.status(500).json({ error: "Failed to generate PDF preview" });
     }
 });
 

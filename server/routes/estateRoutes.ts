@@ -4,6 +4,62 @@ import { EmailService } from "../services/emailService.js";
 import { encrypt, decrypt } from "../utils/encryption.js";
 import { AuditService } from "../services/auditService.js";
 import { requireRole } from "../middleware/rbac.js";
+import { z } from "zod";
+import { logger } from "../lib/logger.js";
+
+const estateUpdateSchema = z.object({
+    name: z.string().optional(),
+    deceasedFirstName: z.string().optional(),
+    deceasedLastName: z.string().optional(),
+    deceasedDateOfBirth: z.string().optional().nullable(),
+    deceasedDateOfDeath: z.string().optional().nullable(),
+    deceasedState: z.string().optional(),
+    estateType: z.string().optional(),
+    authorityType: z.string().optional(),
+    authorityStatus: z.string().optional(),
+    certifiedCopies: z.coerce.number().optional().nullable(),
+    authorityEffectiveDate: z.string().optional().nullable(),
+    iaeaType: z.string().optional(),
+    appointedDate: z.string().optional().nullable(),
+    probateStatus: z.string().optional(),
+    courtCaseNumber: z.string().optional(),
+    probateCounty: z.string().optional(),
+    status: z.string().optional(),
+    petitionerPhone: z.string().optional(),
+    petitionerIsAttorney: z.boolean().optional(),
+    hasWill: z.boolean().optional(),
+    willDate: z.string().optional().nullable(),
+    codicilDates: z.string().optional(),
+    estimatedPersonalProperty: z.coerce.number().optional().nullable(),
+    estimatedRealProperty: z.coerce.number().optional().nullable(),
+    estimatedAnnualIncome: z.coerce.number().optional().nullable(),
+    bondAmount: z.coerce.number().optional().nullable(),
+    bondWaived: z.boolean().optional(),
+    probateNotes: z.string().optional(),
+    hearingDate: z.string().optional().nullable(),
+    hearingTime: z.string().optional(),
+    hearingDept: z.string().optional(),
+    hearingAddress: z.string().optional(),
+    deceasedSsn: z.string().optional()
+});
+
+const roadmapUpdateSchema = z.object({
+    completedTaskIds: z.array(z.string()),
+    completedPhases: z.array(z.string()),
+    taskId: z.string().optional(),
+    action: z.string().optional(),
+    phase: z.string().optional(),
+    taskTitle: z.string().optional(),
+    phaseName: z.string().optional()
+});
+
+const deadlineSchema = z.object({
+    title: z.string().min(1),
+    description: z.string().optional(),
+    dueDate: z.string(),
+    priority: z.string().optional(),
+    category: z.string().optional()
+});
 
 const router = Router();
 
@@ -39,7 +95,7 @@ router.get("/my", async (req: any, res: Response) => {
         }
         res.json(estate);
     } catch (error: any) {
-        console.error("CRITICAL Estate Fetch Error:", error);
+        logger.error("CRITICAL Estate Fetch Error:", error.message);
         res.status(500).json({ error: "Failed to fetch estate", message: error.message });
     }
 });
@@ -57,48 +113,30 @@ router.put("/my", async (req: any, res: Response) => {
         if (!estate) return res.status(404).json({ error: "Estate not found" });
 
         // Whitelist allowed fields and parse dates
-        const allowedFields = [
-            'name', 'deceasedFirstName', 'deceasedLastName', 'deceasedDateOfBirth', 'deceasedDateOfDeath', 'deceasedState',
-            'estateType', 'authorityType', 'authorityStatus', 'certifiedCopies', 'authorityEffectiveDate',
-            'iaeaType', 'appointedDate', 'probateStatus', 'courtCaseNumber', 'probateCounty', 'status',
-            'petitionerPhone', 'petitionerIsAttorney', 'hasWill', 'willDate', 'codicilDates',
-            'estimatedPersonalProperty', 'estimatedRealProperty', 'estimatedAnnualIncome',
-            'bondAmount', 'bondWaived', 'probateNotes', 'hearingDate', 'hearingTime', 'hearingDept', 'hearingAddress',
-            'deceasedSsn' // Added for SEC-001
-        ];
+        const validated = estateUpdateSchema.parse(req.body);
 
         const updateData: any = {};
         const dateFields = ['deceasedDateOfDeath', 'deceasedDateOfBirth', 'authorityEffectiveDate', 'appointedDate', 'willDate', 'hearingDate'];
-
         const numericFields = ['certifiedCopies', 'estimatedPersonalProperty', 'estimatedRealProperty', 'estimatedAnnualIncome', 'bondAmount'];
-        for (const key of allowedFields) {
-            if (req.body[key] !== undefined) {
-                if (dateFields.includes(key)) {
-                    if (req.body[key]) {
-                        const date = new Date(req.body[key]);
-                        if (!isNaN(date.getTime())) {
-                            updateData[key] = date;
-                        } else {
-                            updateData[key] = null;
-                        }
-                    } else {
-                        updateData[key] = null;
-                    }
-                } else if (numericFields.includes(key)) {
-                    if (req.body[key] === "" || req.body[key] === null) {
-                        updateData[key] = null;
-                    } else {
-                        const val = parseFloat(req.body[key]);
-                        updateData[key] = isNaN(val) ? null : val;
-                    }
-                } else if (key === 'codicilDates' && typeof req.body[key] === 'string') {
-                    updateData[key] = req.body[key].split(',').map((s: string) => s.trim()).filter(Boolean);
-                } else if (key === 'deceasedSsn') {
-                    // SEC-001: Encrypt SSN
-                    updateData[key] = req.body[key] ? encrypt(req.body[key]) : req.body[key];
+
+        for (const [key, value] of Object.entries(validated)) {
+            if (value === undefined) continue;
+
+            if (dateFields.includes(key)) {
+                if (value) {
+                    const date = new Date(value as string);
+                    updateData[key] = isNaN(date.getTime()) ? null : date;
                 } else {
-                    updateData[key] = req.body[key];
+                    updateData[key] = null;
                 }
+            } else if (numericFields.includes(key)) {
+                updateData[key] = value === "" ? null : value;
+            } else if (key === 'codicilDates' && typeof value === 'string') {
+                updateData[key] = value.split(',').map((s: string) => s.trim()).filter(Boolean);
+            } else if (key === 'deceasedSsn') {
+                updateData[key] = value ? encrypt(value as string) : value;
+            } else {
+                updateData[key] = value;
             }
         }
 
@@ -186,7 +224,10 @@ router.put("/my", async (req: any, res: Response) => {
 
         res.json(updated);
     } catch (error: any) {
-        console.error("Estate Update Error:", error);
+        if (error instanceof z.ZodError) {
+            return res.status(400).json({ error: "Validation failed", details: error.errors });
+        }
+        logger.error("Estate Update Error:", error.message);
         res.status(500).json({ error: "Failed to update estate", message: error.message });
     }
 });
@@ -204,7 +245,8 @@ router.put("/my/roadmap", async (req: any, res: Response) => {
         });
         if (!estate) return res.status(404).json({ error: "Estate not found" });
 
-        const { completedTaskIds, completedPhases, taskId, action, phase } = req.body;
+        const validated = roadmapUpdateSchema.parse(req.body);
+        const { completedTaskIds, completedPhases, taskId, action, phase } = validated;
 
         const updateData: any = {
             roadmapProgress: {
@@ -248,7 +290,10 @@ router.put("/my/roadmap", async (req: any, res: Response) => {
 
         res.json(updated);
     } catch (e: any) {
-        console.error("Roadmap update error:", e);
+        if (e instanceof z.ZodError) {
+            return res.status(400).json({ error: "Validation failed", details: e.errors });
+        }
+        logger.error("Roadmap update error:", e.message);
         res.status(500).json({ error: "Failed to update roadmap" });
     }
 });
@@ -264,7 +309,7 @@ router.get("/my/activities", async (req: any, res: Response) => {
         });
         res.json(activities);
     } catch (e: any) {
-        console.error("Activities Fetch Error:", e);
+        logger.error("Activities Fetch Error:", e.message);
         res.status(500).json({ error: "Failed to fetch activities" });
     }
 });
@@ -279,12 +324,14 @@ router.put("/my/activities/:id", async (req: any, res: Response) => {
         });
         if (!activity) return res.status(404).json({ error: "Activity not found" });
 
+        const { notes } = z.object({ notes: z.string() }).parse(req.body);
         const updated = await prisma.settlementActivity.update({
             where: { id: req.params.id },
-            data: { notes: req.body.notes }
+            data: { notes }
         });
         res.json(updated);
     } catch (e: any) {
+        if (e instanceof z.ZodError) return res.status(400).json({ error: "Invalid notes" });
         res.status(500).json({ error: "Failed to update activity" });
     }
 });
@@ -356,8 +403,8 @@ router.get("/my/petition/pdf", async (req: any, res: Response) => {
         res.setHeader('Content-Disposition', 'attachment; filename=Petition_DE111.pdf');
         res.send(Buffer.from(pdfBytes));
     } catch (error: any) {
-        console.error("PDF Generation Error:", error);
-        res.status(500).json({ error: "Failed to generate PDF: " + error.message });
+        logger.error("PDF Generation Error:", error.message);
+        res.status(500).json({ error: "Failed to generate PDF" });
     }
 });
 
@@ -606,34 +653,41 @@ router.get("/:estateId/deadlines", async (req: any, res: Response) => {
         const { DeadlineService } = await import("../services/deadlineService.js");
         const deadlines = await DeadlineService.getDeadlines(req.params.estateId);
         res.json(deadlines);
-    } catch (error) {
+    } catch (error: any) {
+        logger.error("Deadline Fetch Error:", error.message);
         res.status(500).json({ error: "Failed to fetch deadlines" });
     }
 });
 
 router.post("/:estateId/deadlines", async (req: any, res: Response) => {
     try {
+        const validated = deadlineSchema.parse(req.body);
         const { DeadlineService } = await import("../services/deadlineService.js");
         const deadline = await DeadlineService.createDeadline(req.params.estateId, {
-            ...req.body,
-            dueDate: new Date(req.body.dueDate)
+            ...validated,
+            dueDate: new Date(validated.dueDate)
         });
         res.json(deadline);
-    } catch (error) {
+    } catch (error: any) {
+        if (error instanceof z.ZodError) return res.status(400).json({ error: "Invalid input", details: error.errors });
+        logger.error("Deadline Create Error:", error.message);
         res.status(500).json({ error: "Failed to create deadline" });
     }
 });
 
 router.put("/:estateId/deadlines/:id", async (req: any, res: Response) => {
     try {
+        const validated = deadlineSchema.partial().parse(req.body);
         const { DeadlineService } = await import("../services/deadlineService.js");
         const deadline = await DeadlineService.updateDeadline(
             req.params.id,
             req.params.estateId,
-            req.body.dueDate ? { ...req.body, dueDate: new Date(req.body.dueDate) } : req.body
+            validated.dueDate ? { ...validated, dueDate: new Date(validated.dueDate) } : validated
         );
         res.json(deadline);
-    } catch (error) {
+    } catch (error: any) {
+        if (error instanceof z.ZodError) return res.status(400).json({ error: "Invalid input", details: error.errors });
+        logger.error("Deadline Update Error:", error.message);
         res.status(500).json({ error: "Failed to update deadline" });
     }
 });
@@ -871,7 +925,7 @@ router.delete("/:id/tasks/:taskId/complete", async (req: any, res: Response) => 
         const result = await uncompleteTask(id, taskId, req.user.id);
         res.json(result);
     } catch (error: any) {
-        console.error("Error uncompleting task:", error);
-        res.status(500).json({ error: "Failed to uncomplete task", message: error.message });
+        logger.error("Error uncompleting task:", error.message);
+        res.status(500).json({ error: "Failed to uncomplete task" });
     }
 });

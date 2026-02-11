@@ -1,5 +1,6 @@
 import { prisma } from "../db.js";
 import { AuditService } from "../services/auditService.js";
+import { logger } from "../lib/logger.js";
 
 export class HelpService {
     /**
@@ -66,7 +67,7 @@ export class HelpService {
         // We import EmailService dynamically to avoid circular dependencies if any
         const { EmailService } = await import("./emailService.js");
 
-        const contactEmail = "expectedestate@gmail.com";
+        const contactEmail = process.env.SUPPORT_EMAIL || "support@expectedestate.com";
         const emailBody = `
 SUPPORT REQUEST
 ---------------
@@ -83,14 +84,14 @@ ${message}
         // or just send as a system email. Since sendEmail requires assetId, 
         // we might need a more generic sendSystemEmail or mock it.
         // For now, let's log to console as well.
-        console.log(`[HelpService] Support Message Relay to ${contactEmail}`);
+        logger.info(`[HelpService] Support Message Relay to ${contactEmail}`);
 
         // We'll use a simplified send if we don't have an asset context
         try {
             // Note: In a real scenario, we'd have a sendInternalNotification method
-            console.log(`Relaying to support: ${subject}`);
-        } catch (e) {
-            console.error("Failed to relay support email", e);
+            logger.debug(`Relaying to support: ${subject}`);
+        } catch (e: any) {
+            logger.error("Failed to relay support email", e.message);
         }
 
         return { success: true };
@@ -103,7 +104,7 @@ ${message}
         const user = await prisma.user.findUnique({ where: { id: userId } });
         if (!user) throw new Error("User not found");
 
-        const contactEmail = "expectedestate@gmail.com";
+        const contactEmail = process.env.SUPPORT_EMAIL || "support@expectedestate.com";
         const emailBody = `
 USER FEEDBACK
 -------------
@@ -112,7 +113,7 @@ Rating: ${rating}/5
 Comment: ${comment}
         `;
 
-        console.log(`[HelpService] Feedback Received: ${rating}/5 from ${user.email}`);
+        logger.info(`[HelpService] Feedback Received: ${rating}/5 from ${user.email}`);
 
         // Simple relay
         return { success: true };

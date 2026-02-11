@@ -3,6 +3,15 @@ import { prisma } from "../db.js";
 import { AgentService } from "../services/agentService.js";
 import { graph } from "../services/agent/graph.js";
 import { HumanMessage } from "@langchain/core/messages";
+import { z } from "zod";
+import { logger } from "../lib/logger.js";
+
+const chatSchema = z.object({
+    message: z.string().min(1),
+    estateId: z.string().min(1),
+    phase: z.string().optional(),
+    history: z.array(z.any()).optional()
+});
 
 const router = Router();
 
@@ -12,9 +21,10 @@ const router = Router();
  * Main endpoint for interacting with the Estate Settlement Agent.
  */
 router.post("/chat", async (req, res) => {
-    const { message, estateId, phase, history = [] } = req.body;
-
     try {
+        const validated = chatSchema.parse(req.body);
+        const { message, estateId, phase, history = [] } = validated;
+
         const input = {
             messages: [
                 ...history.map((m: any) => m.role === "user" ? new HumanMessage(m.content) : m),
@@ -34,8 +44,9 @@ router.post("/chat", async (req, res) => {
             history: result.messages,
         });
     } catch (error: any) {
-        console.error("Agent Route Error:", error);
-        res.status(500).json({ error: error.message });
+        if (error instanceof z.ZodError) return res.status(400).json({ error: "Invalid chat request", details: error.errors });
+        logger.error("Agent Route Error:", error.message);
+        res.status(500).json({ error: "Failed to process agent chat" });
     }
 });
 
@@ -69,8 +80,8 @@ router.get("/insights", async (req: any, res) => {
 
         res.json(insights);
     } catch (error: any) {
-        console.error("Agent Insights Error:", error);
-        res.status(500).json({ error: error.message });
+        logger.error("Agent Insights Error:", error.message);
+        res.status(500).json({ error: "Failed to fetch agent insights" });
     }
 });
 

@@ -1,7 +1,27 @@
 import { Router, Request, Response } from "express";
 import { AssetService } from "../services/assetService.js";
+import { z } from "zod";
+import { logger } from "../lib/logger.js";
 
 const router = Router();
+
+const assetSchema = z.object({
+    institution: z.string().min(1),
+    assetType: z.string().min(1),
+    estimatedValue: z.number().optional(),
+    accountNumber: z.string().optional(),
+    notes: z.string().optional(),
+    beneficiaries: z.string().optional(),
+    isDiscovered: z.boolean().optional(),
+    discoveryConfidence: z.number().optional(),
+    discoveryClue: z.string().optional()
+});
+
+const faxSchema = z.object({
+    faxNumber: z.string().min(5),
+    documentType: z.string().min(1),
+    subject: z.string().optional()
+});
 
 // Note: Authentication middleware is applied to these routes in index.ts
 
@@ -10,7 +30,7 @@ router.get("/", async (req: any, res: Response) => {
         const assets = await AssetService.getAll(req.user.id);
         res.json(assets);
     } catch (error: any) {
-        console.error("Error fetching assets:", error);
+        logger.error("Error fetching assets:", error.message);
         res.status(500).json({ error: "Failed to fetch assets" });
     }
 });
@@ -28,20 +48,28 @@ router.get("/:id", async (req: any, res: Response) => {
 
 router.post("/", async (req: any, res: Response) => {
     try {
-        const asset = await AssetService.create(req.user.id, req.body);
+        const validated = assetSchema.parse(req.body);
+        const asset = await AssetService.create(req.user.id, validated);
         res.json(asset);
     } catch (error: any) {
-        console.error("Error creating asset:", error);
+        if (error instanceof z.ZodError) {
+            return res.status(400).json({ error: "Validation failed", details: error.errors });
+        }
+        logger.error("Error creating asset:", error.message);
         res.status(400).json({ error: error.message });
     }
 });
 
 router.put("/:id", async (req: any, res: Response) => {
     try {
-        const asset = await AssetService.update(req.params.id, req.user.id, req.body);
+        const validated = assetSchema.partial().parse(req.body);
+        const asset = await AssetService.update(req.params.id, req.user.id, validated);
         res.json(asset);
     } catch (error: any) {
-        console.error("Error updating asset:", error);
+        if (error instanceof z.ZodError) {
+            return res.status(400).json({ error: "Validation failed", details: error.errors });
+        }
+        logger.error("Error updating asset:", error.message);
         res.status(403).json({ error: error.message });
     }
 });
@@ -58,17 +86,21 @@ router.delete("/:id", async (req: any, res: Response) => {
 
 router.post("/:id/fax", async (req: any, res: Response) => {
     try {
+        const { faxNumber, documentType, subject } = faxSchema.parse(req.body);
         const { FaxService } = await import("../services/faxService.js");
         const result = await FaxService.sendFax({
             assetId: req.params.id,
             userId: req.user.id,
-            faxNumber: req.body.faxNumber,
-            documentType: req.body.documentType,
-            subject: req.body.subject
+            faxNumber,
+            documentType,
+            subject
         });
         res.json(result);
     } catch (error: any) {
-        console.error("Error sending fax:", error);
+        if (error instanceof z.ZodError) {
+            return res.status(400).json({ error: "Validation failed", details: error.errors });
+        }
+        logger.error("Error sending fax:", error.message);
         res.status(500).json({ error: error.message });
     }
 });

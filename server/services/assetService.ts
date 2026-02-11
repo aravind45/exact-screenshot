@@ -2,6 +2,7 @@ import { prisma } from "../db.js";
 import { AgentService } from "./agentService.js";
 import { encrypt, decrypt } from "../utils/encryption.js";
 import { AuditService } from "../services/auditService.js";
+import { logger } from "../lib/logger.js";
 
 export const AssetService = {
     async getAll(userId: string) {
@@ -63,7 +64,7 @@ export const AssetService = {
         });
 
         if (existingAsset) {
-            console.log(`Asset already exists: ${institution} (${assetType})`);
+            logger.info(`Asset already exists: ${institution} (${assetType})`);
             return {
                 ...existingAsset,
                 accountNumber: existingAsset.accountNumber ? decrypt(existingAsset.accountNumber) : existingAsset.accountNumber
@@ -99,7 +100,7 @@ export const AssetService = {
 
         // Agent Action: The Concierge (Proactive Enrichment)
         AgentService.runConciergeEnrichment(asset.id).catch(err =>
-            console.error("Concierge Enrichment Error:", err)
+            logger.error("Concierge Enrichment Error:", err.message)
         );
 
         // Log Activity
@@ -123,8 +124,8 @@ export const AssetService = {
                 isSpouse: false // TODO: derive from session
             });
             await AuthorityService.handleReclassification(estate.id, userId, newRec);
-        } catch (authErr) {
-            console.warn("Authority re-assessment failed (non-fatal):", authErr);
+        } catch (authErr: any) {
+            logger.warn("Authority re-assessment failed (non-fatal):", authErr.message);
         }
 
         return {
@@ -227,8 +228,8 @@ export const AssetService = {
                 });
                 await AuthorityService.handleReclassification(estate.id, userId, newRec);
             }
-        } catch (authErr) {
-            console.warn("Authority re-assessment failed (non-fatal):", authErr);
+        } catch (authErr: any) {
+            logger.warn("Authority re-assessment failed (non-fatal):", authErr.message);
         }
 
         return {
@@ -270,7 +271,7 @@ export const AssetService = {
             }
         });
 
-        console.log(`Auto-synced ${updated.count} assets for estate ${estateId} to 'contacted' status.`);
+        logger.info(`Auto-synced ${updated.count} assets for estate ${estateId} to 'contacted' status.`);
         return updated;
     }
 };

@@ -1,19 +1,30 @@
-
 import { Router } from 'express';
 import multer from 'multer';
 import * as pdfLib from 'pdf-parse';
 import { DiscoveryService } from '../services/discoveryService.js';
 import { DiscoveryIntelligenceService } from '../services/discoveryIntelligenceService.js';
+import { z } from 'zod';
+import { logger } from '../lib/logger.js';
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
+
+const categoryUpdateSchema = z.object({
+    status: z.string(),
+    evidenceSource: z.string().optional()
+});
+
+const negativeAssuranceSchema = z.object({
+    statement: z.string().min(10)
+});
 
 // Get estate-wide discovery insights
 router.get('/:estateId/insights', async (req, res) => {
     try {
         const insights = await DiscoveryIntelligenceService.getDiscoveryInsights(req.params.estateId);
         res.json(insights);
-    } catch (error) {
+    } catch (error: any) {
+        logger.error("Error fetching discovery insights:", error.message);
         res.status(500).json({ error: 'Failed to fetch discovery insights' });
     }
 });
@@ -41,10 +52,12 @@ router.post('/:estateId/initialize', async (req, res) => {
 // Update category status
 router.patch('/category/:id', async (req: any, res) => {
     try {
-        const { status, evidenceSource } = req.body;
+        const { status, evidenceSource } = categoryUpdateSchema.parse(req.body);
         const updated = await DiscoveryService.updateCategoryStatus(req.params.id, req.user.id, status, evidenceSource);
         res.json(updated);
-    } catch (error) {
+    } catch (error: any) {
+        if (error instanceof z.ZodError) return res.status(400).json({ error: "Invalid status update" });
+        logger.error("Error updating discovery category:", error.message);
         res.status(500).json({ error: 'Failed to update category' });
     }
 });
@@ -52,10 +65,12 @@ router.patch('/category/:id', async (req: any, res) => {
 // Add negative assurance log
 router.post('/category/:id/negative-assurance', async (req: any, res) => {
     try {
-        const { statement } = req.body;
+        const { statement } = negativeAssuranceSchema.parse(req.body);
         const log = await DiscoveryService.addNegativeAssurance(req.params.id, req.user.id, statement);
         res.json(log);
-    } catch (error) {
+    } catch (error: any) {
+        if (error instanceof z.ZodError) return res.status(400).json({ error: "Statement must be at least 10 characters" });
+        logger.error("Error adding negative assurance:", error.message);
         res.status(500).json({ error: 'Failed to add negative assurance' });
     }
 });
@@ -63,15 +78,13 @@ router.post('/category/:id/negative-assurance', async (req: any, res) => {
 // Analyze uploaded document
 router.post('/analyze', upload.single('file'), async (req: any, res) => {
     try {
-        console.log(`[DiscoveryRoute] ========== NEW UPLOAD REQUEST ==========`);
-        console.log(`[DiscoveryRoute] Timestamp:`, new Date().toISOString());
+        logger.debug(`[DiscoveryRoute] ========== NEW UPLOAD REQUEST ==========`);
 
         if (!req.file) {
-            console.log(`[DiscoveryRoute] ERROR: No file in request`);
             return res.status(400).json({ error: "No file uploaded" });
         }
 
-        console.log(`[DiscoveryRoute] File details:`, {
+        logger.debug(`[DiscoveryRoute] File details:`, {
             originalname: req.file.originalname,
             mimetype: req.file.mimetype,
             size: req.file.size
@@ -82,67 +95,42 @@ router.post('/analyze', upload.single('file'), async (req: any, res) => {
 
         // Extract content based on file type
         if (req.file.mimetype === 'application/pdf') {
-            console.log(`[DiscoveryRoute] Processing PDF file`);
             try {
-                // pdf-parse import compatibility handle
                 const pdfParse = (pdfLib as any).default || pdfLib;
                 const data = await pdfParse(req.file.buffer);
                 text = data.text;
-                console.log(`[DiscoveryRoute] Extracted ${text.length} characters from PDF`);
-                console.log(`[DiscoveryRoute] PDF text preview:`, text.substring(0, 200));
+                logger.debug(`[DiscoveryRoute] Extracted characters from PDF: ${text.length}`);
 
                 if (text.length === 0) {
-                    console.log(`[DiscoveryRoute] WARNING: PDF text extraction returned 0 characters. PDF might be image-based or encrypted.`);
+                    logger.warn(`[DiscoveryRoute] WARNING: PDF text extraction returned 0 characters.`);
                 }
-            } catch (pdfErr) {
-                console.error(`[DiscoveryRoute] PDF Parsing Failed:`, pdfErr);
-                console.error(`[DiscoveryRoute] PDF Error stack:`, pdfErr instanceof Error ? pdfErr.stack : 'No stack');
-                // Don't crash, just continue with empty text (or maybe try OCR if available in future)
-                // We rely on user to upload readable PDF
+            } catch (pdfErr: any) {
+                logger.error(`[DiscoveryRoute] PDF Parsing Failed:`, pdfErr.message);
             }
         } else if (req.file.mimetype.startsWith('image/')) {
-            console.log(`[DiscoveryRoute] Processing image file`);
             imageBase64 = req.file.buffer.toString('base64');
-            console.log(`[DiscoveryRoute] Image base64 length: ${imageBase64.length}`);
+            logger.debug(`[DiscoveryRoute] Image processed`);
         } else {
-            console.log(`[DiscoveryRoute] Processing as text file`);
-            // For other text files, try simple string
             text = req.file.buffer.toString('utf-8');
-            console.log(`[DiscoveryRoute] Text file length: ${text.length}`);
+            logger.debug(`[DiscoveryRoute] Text file processed`);
         }
 
-        console.log(`[DiscoveryRoute] Content ready for analysis. Text length: ${text.length}, Image present: ${!!imageBase64}`);
-
-        // Send to DiscoveryService (handling Real AI)
-        console.log(`[DiscoveryRoute] Calling DiscoveryService.analyzeDocument...`);
         const estateId = req.query.estateId as string;
+        if (!estateId) return res.status(400).json({ error: "Missing estateId query parameter" });
+
         const result = await DiscoveryService.analyzeDocument({
             text,
             imageBase64,
             estateId
         });
-        console.log(`[DiscoveryRoute] Analysis complete. Found ${result.findings.length} findings.`);
 
-        if (result.findings.length > 0) {
-            console.log(`[DiscoveryRoute] Findings:`, JSON.stringify(result.findings, null, 2));
-        } else {
-            console.log(`[DiscoveryRoute] No findings returned. This could mean:`);
-            console.log(`[DiscoveryRoute]   1. The document doesn't contain financial institution names`);
-            console.log(`[DiscoveryRoute]   2. The AI service is not working correctly`);
-            console.log(`[DiscoveryRoute]   3. The text extraction failed`);
-        }
-
-        console.log(`[DiscoveryRoute] ========== REQUEST COMPLETE ==========`);
+        logger.info(`[DiscoveryRoute] Analysis complete. Found ${result.findings.length} findings.`);
         res.json(result);
-    } catch (error) {
-        console.error("[DiscoveryRoute] ========== REQUEST FAILED ==========");
-        console.error("[DiscoveryRoute] Discovery Analysis Failed:", error);
-        console.error("[DiscoveryRoute] Error stack:", error instanceof Error ? error.stack : 'No stack trace');
-        console.error("[DiscoveryRoute] ========================================");
+    } catch (error: any) {
+        logger.error("[DiscoveryRoute] Discovery Analysis Failed:", error.message);
         res.status(500).json({
             error: 'Failed to analyze document',
-            details: error instanceof Error ? error.message : 'Unknown error',
-            stack: error instanceof Error ? error.stack : undefined
+            details: error instanceof Error ? error.message : 'Unknown error'
         });
     }
 });

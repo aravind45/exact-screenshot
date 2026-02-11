@@ -2,8 +2,8 @@ import { prisma } from "../db.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { EmailService } from "./emailService.js";
-
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-this";
+import { logger } from "../lib/logger.js";
 
 export const AuthService = {
     async register(data: { email: string, password: string, fullName: string, state: string, ip?: string }) {
@@ -68,30 +68,30 @@ export const AuthService = {
     async verifyToken(token: string) {
         try {
             if (!token || token === 'null' || token === 'undefined') {
-                console.log("🔑 [VERIFY] Token is empty or literal 'null'/'undefined'");
+                logger.debug("🔑 [VERIFY] Token is empty or literal 'null'/'undefined'");
                 return null;
             }
 
-            // Diagnostic: Log secret status at verification time
-            const secretStatus = JWT_SECRET === "your-secret-key-change-this" ? "DEFAULT (INSECURE)" : `CUSTOM (${JWT_SECRET.length} chars)`;
-            console.log(`🔑 [VERIFY] Secret Status: ${secretStatus}`);
+            // Diagnostic: Log secret status at verification time (sanitized)
+            const isSecretDefault = JWT_SECRET === "your-secret-key-change-this";
+            logger.debug(`🔑 [VERIFY] Secret Status: ${isSecretDefault ? "DEFAULT (INSECURE)" : "CUSTOM"}`);
 
             const decoded: any = jwt.verify(token, JWT_SECRET);
-            console.log(`👤 [VERIFY] JWT Valid. Decoded userId: ${decoded.userId}`);
+            logger.debug(`👤 [VERIFY] JWT Valid for user ID: ${decoded.userId}`);
 
             const user = await prisma.user.findUnique({ where: { id: decoded.userId } });
             if (!user) {
-                console.log(`❌ [VERIFY] User ID ${decoded.userId} from token not found in DB`);
+                logger.debug(`❌ [VERIFY] User ID ${decoded.userId} not found`);
                 return null;
             }
 
             return user;
         } catch (error: any) {
-            console.error("🔑 [VERIFY] JWT rejection:", error.message);
+            logger.error("🔑 [VERIFY] JWT rejection:", error.message);
             if (error.name === 'TokenExpiredError') {
-                console.log(`⏰ [VERIFY] Expired at: ${error.expiredAt}`);
+                logger.debug(`⏰ [VERIFY] Expired at: ${error.expiredAt}`);
             } else if (error.name === 'JsonWebTokenError') {
-                console.log("🛠️ [VERIFY] Invalid signature (Check JWT_SECRET consistency)");
+                logger.debug("🛠️ [VERIFY] Invalid signature");
             }
             return null;
         }
