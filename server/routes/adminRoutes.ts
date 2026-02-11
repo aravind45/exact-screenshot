@@ -156,7 +156,15 @@ router.post("/institutions", isAdmin, async (req: any, res: Response) => {
         const validated = institutionSchema.parse(req.body);
 
         const institution = await prisma.institution.create({
-            data: validated
+            data: {
+                name: validated.name as string,
+                phone: validated.phone,
+                email: validated.email,
+                fax: validated.fax,
+                website: validated.website,
+                address: validated.address,
+                logoUrl: validated.logoUrl
+            }
         });
         res.status(201).json(institution);
     } catch (error: any) {
@@ -174,7 +182,7 @@ router.put("/institutions/:id", isAdmin, async (req: any, res: Response) => {
         const validated = institutionSchema.partial().parse(req.body);
         const institution = await prisma.institution.update({
             where: { id: req.params.id },
-            data: validated
+            data: validated as any
         });
         res.json(institution);
     } catch (error: any) {

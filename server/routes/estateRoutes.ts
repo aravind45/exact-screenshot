@@ -664,7 +664,7 @@ router.post("/:estateId/deadlines", async (req: any, res: Response) => {
         const validated = deadlineSchema.parse(req.body);
         const { DeadlineService } = await import("../services/deadlineService.js");
         const deadline = await DeadlineService.createDeadline(req.params.estateId, {
-            ...validated,
+            title: validated.title,
             dueDate: new Date(validated.dueDate)
         });
         res.json(deadline);
@@ -679,10 +679,16 @@ router.put("/:estateId/deadlines/:id", async (req: any, res: Response) => {
     try {
         const validated = deadlineSchema.partial().parse(req.body);
         const { DeadlineService } = await import("../services/deadlineService.js");
+
+        const updateData: any = { ...validated };
+        if (validated.dueDate) {
+            updateData.dueDate = new Date(validated.dueDate);
+        }
+
         const deadline = await DeadlineService.updateDeadline(
             req.params.id,
             req.params.estateId,
-            validated.dueDate ? { ...validated, dueDate: new Date(validated.dueDate) } : validated
+            updateData
         );
         res.json(deadline);
     } catch (error: any) {
