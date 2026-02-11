@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Check, Shield, Zap, FileCheck, Scale, AlertTriangle, Loader2, ArrowLeft, Gem } from "lucide-react";
+import { Check, Shield, ShieldCheck, Zap, FileCheck, Scale, AlertTriangle, Loader2, ArrowLeft, Gem } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { loadStripe } from "@stripe/stripe-js";
 import { EmbeddedCheckoutProvider, EmbeddedCheckout } from "@stripe/react-stripe-js";
@@ -12,9 +12,14 @@ import { motion, AnimatePresence } from "framer-motion";
 // Initialize Stripe
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || "pk_test_placeholder");
 
+import { useAuth } from "@/contexts/AuthContext";
+
+// ... existing code ...
+
 export default function Pricing() {
     const navigate = useNavigate();
     const { toast } = useToast();
+    const { user } = useAuth(); // Get user
     const [loading, setLoading] = useState(false);
     const [clientSecret, setClientSecret] = useState<string | null>(null);
 
@@ -34,8 +39,28 @@ export default function Pricing() {
         }
     }, [toast]);
 
+    // Admin Bypass
+    if (user?.email === 'aravind45@gmail.com') {
+        return (
+            <div className="min-h-screen bg-[#0f172a] text-slate-200 flex items-center justify-center">
+                <div className="text-center space-y-4">
+                    <div className="w-16 h-16 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto">
+                        <ShieldCheck className="w-8 h-8 text-amber-500" />
+                    </div>
+                    <h1 className="text-3xl font-bold text-white">Admin Access Granted</h1>
+                    <p className="text-slate-400">You have permanent premium access as a system administrator.</p>
+                    <Button onClick={() => navigate('/dashboard')} className="mt-4">
+                        Return to Dashboard
+                    </Button>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen bg-[#0f172a] text-slate-200 selection:bg-indigo-500/30">
+        // ... rest of component
+
             {/* Header */}
             <header className="border-b border-slate-800 bg-slate-900/50 backdrop-blur-xl sticky top-0 z-50">
                 <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">

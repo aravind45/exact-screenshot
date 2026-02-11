@@ -103,6 +103,24 @@ export default function AdminDashboard() {
         },
     });
 
+    const waiveFeesMutation = useMutation({
+        mutationFn: (userId: string) => api.admin.waiveFees(userId, "Admin granted premium status"),
+        onSuccess: () => {
+            toast({
+                title: "Fees Waived",
+                description: "User has been granted premium access.",
+            });
+            queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
+        },
+        onError: (error: any) => {
+            toast({
+                variant: "destructive",
+                title: "Action Failed",
+                description: error.message,
+            });
+        },
+    });
+
     const handleResetConfirm = () => {
         if (resetEstateId) {
             resetMutation.mutate(resetEstateId);
@@ -270,6 +288,13 @@ export default function AdminDashboard() {
                                                                 <DropdownMenuLabel>User Actions</DropdownMenuLabel>
                                                                 <DropdownMenuItem onClick={() => { /* View details logic */ }}>
                                                                     View Profile
+                                                                </DropdownMenuItem>
+                                                                <DropdownMenuItem
+                                                                    className="text-indigo-600 focus:text-indigo-600"
+                                                                    onClick={() => waiveFeesMutation.mutate(user.id)}
+                                                                >
+                                                                    <DollarSign className="w-4 h-4 mr-2" />
+                                                                    Grant Premium (Waive)
                                                                 </DropdownMenuItem>
                                                                 {user.estates && user.estates.map((estate: any) => (
                                                                     <DropdownMenuItem

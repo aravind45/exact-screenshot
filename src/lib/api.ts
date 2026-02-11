@@ -366,6 +366,14 @@ export const api = {
                 headers: getHeaders()
             });
             return parseResponse(response);
+        },
+        waiveFees: async (userId: string, notes?: string) => {
+            const response = await fetch(`${API_URL}/admin/waive-fees`, {
+                method: "POST",
+                headers: getHeaders(),
+                body: JSON.stringify({ userId, notes })
+            });
+            return parseResponse(response);
         }
     },
 
