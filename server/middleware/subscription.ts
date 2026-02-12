@@ -17,7 +17,8 @@ export const requireSubscription = async (req: any, res: Response, next: NextFun
                 subscriptionStatus: true,
                 fullName: true,
                 role: true,
-                email: true
+                email: true,
+                trialStartedAt: true
             }
         });
 
