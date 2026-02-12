@@ -28,11 +28,29 @@ export const SEO: React.FC<SEOProps> = ({
     const fullTitle = title ? `${title} | ${siteName}` : siteName;
     const defaultDescription = "Simplify estate settlement with clarity and peace of mind. ExpectedEstate helps executors navigate probate, track assets, and manage paperwork.";
 
+    // Default Structured Data for SoftwareApplication
+    const defaultStructuredData = {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": siteName,
+        "operatingSystem": "Web",
+        "applicationCategory": "LegalApplication",
+        "description": defaultDescription,
+        "offers": {
+            "@type": "Offer",
+            "price": "149.00",
+            "priceCurrency": "USD"
+        }
+    };
+
+    const finalStructuredData = structuredData || defaultStructuredData;
+
     return (
         <Helmet>
             {/* Basic Meta Tags */}
             <title>{fullTitle}</title>
             <meta name="description" content={description || defaultDescription} />
+            <meta name="keywords" content="estate settlement, probate software, executor tools, trust administration, asset tracking, legal tech, compassionate probate" />
             {canonical && <link rel="canonical" href={canonical} />}
 
             {/* Open Graph / Facebook */}
@@ -50,11 +68,9 @@ export const SEO: React.FC<SEOProps> = ({
             <meta name="twitter:site" content={twitterHandle} />
 
             {/* JSON-LD Structured Data */}
-            {structuredData && (
-                <script type="application/ld+json">
-                    {JSON.stringify(structuredData)}
-                </script>
-            )}
+            <script type="application/ld+json">
+                {JSON.stringify(finalStructuredData)}
+            </script>
         </Helmet>
     );
 };

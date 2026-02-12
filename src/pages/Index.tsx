@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { PricingSection } from "@/components/landing/PricingSection";
+import { TestimonialsSection } from "@/components/landing/TestimonialsSection";
 import { Mail } from "lucide-react";
 
 const Index = () => {
@@ -19,8 +20,8 @@ const Index = () => {
   return (
     <div className="min-h-screen selection:bg-primary/20">
       <SEO
-        title="Best Estate Settlement & Probate Software"
-        description="Simplify estate settlement and probate with ExpectedEstate. The all-in-one platform for executors to navigate legal requirements, track assets, and manage beneficiary communication."
+        title="Compassionate Estate Settlement & Probate Software"
+        description="Simplify estate settlement and probate with clarity. ExpectedEstate helps executors navigate legal requirements, track assets, and automate paperwork."
         canonical="https://expectedestate.com/"
       />
 
@@ -31,6 +32,7 @@ const Index = () => {
 
         <AboutSection />
         <ServicesSection />
+        <TestimonialsSection />
         <PricingSection />
 
         {/* Visual Proof Section */}
@@ -63,7 +65,7 @@ const Index = () => {
                   transition={{ delay: i * 0.1 }}
                   className="bg-white p-4 rounded-[2.5rem] shadow-xl border border-border/50"
                 >
-                  <img src={item.img} alt={item.title} className="w-full h-auto rounded-3xl mb-6 border border-border/30" />
+                  <img src={item.img} alt={item.title} className="w-full h-auto rounded-3xl mb-6 border border-border/30" loading="lazy" />
                   <div className="px-6 pb-4">
                     <h3 className="text-xl font-bold mb-2">{item.title}</h3>
                     <p className="text-sm text-muted-foreground font-medium">{item.caption}</p>

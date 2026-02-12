@@ -11,6 +11,7 @@ export function HeroSection() {
           src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=2000"
           alt="Professional Office"
           className="w-full h-full object-cover opacity-15"
+          loading="lazy"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-white via-white/70 to-white" />
       </div>
@@ -21,28 +22,28 @@ export function HeroSection() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="text-primary font-bold tracking-[0.3em] uppercase text-xs mb-8"
+            className="text-primary font-bold tracking-[0.3em] uppercase text-[10px] md:text-xs mb-8"
           >
-            Fiduciary Guidance & Protection
+            Compassionate Guidance for Families
           </motion.h3>
 
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="text-6xl md:text-8xl font-black text-foreground mb-10 tracking-tighter leading-[0.9]"
+            className="text-5xl md:text-8xl font-black text-foreground mb-10 tracking-tighter leading-[0.95]"
           >
-            Estate settlement, <br className="hidden md:block" />
-            step by step — <span className="text-primary text-5xl md:text-7xl">without legal guesswork.</span>
+            Simplify estate <br className="hidden md:block" />
+            settlement with <span className="text-primary">clarity and peace of mind.</span>
           </motion.h1>
 
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-2xl md:text-3xl text-muted-foreground font-medium mb-14 tracking-tight max-w-2xl mx-auto leading-relaxed"
+            className="text-xl md:text-2xl text-muted-foreground font-medium mb-14 tracking-tight max-w-2xl mx-auto leading-relaxed"
           >
-            ExpectedEstate helps families organize probate, trust, and beneficiary tasks in one guided workspace.
+            Navigating a loss is hard enough. ExpectedEstate automates the paperwork and tracks assets so you can focus on what matters most.
           </motion.p>
 
           <motion.div
@@ -51,15 +52,20 @@ export function HeroSection() {
             transition={{ duration: 0.6, delay: 0.4 }}
             className="flex flex-col sm:flex-row justify-center gap-6 items-center"
           >
-            <Link to="/dashboard">
-              <Button size="lg" className="h-20 px-14 text-xl font-black rounded-full bg-primary hover:bg-primary/90 shadow-[0_25px_60px_rgba(37,99,235,0.35)] transition-all hover:scale-105 active:scale-95 group">
-                Start guided intake
+            <Link to="/auth?mode=signup">
+              <Button size="lg" className="h-20 px-14 text-xl font-bold rounded-full bg-primary hover:bg-primary/90 shadow-[0_25px_60px_rgba(37,99,235,0.35)] transition-all hover:scale-105 active:scale-95 group">
+                Get Your Free Roadmap
                 <span className="ml-3 group-hover:translate-x-2 transition-transform">→</span>
               </Button>
             </Link>
-            <a href="#how-it-works" className="text-lg font-bold text-muted-foreground hover:text-primary transition-colors">
-              See how it works
-            </a>
+            <div className="flex flex-col items-center sm:items-start gap-1">
+              <a href="#services" className="text-lg font-bold text-muted-foreground hover:text-primary transition-colors">
+                How it works
+              </a>
+              <p className="text-[10px] text-muted-foreground/60 font-black uppercase tracking-widest flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-success" /> Trusted by Executors
+              </p>
+            </div>
           </motion.div>
         </div>
       </div>
