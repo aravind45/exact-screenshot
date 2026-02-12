@@ -26,14 +26,20 @@ export const requireSubscription = async (req: any, res: Response, next: NextFun
         // Logic sync with SubscriptionGuard.tsx
         const isAlphaUser = user.fullName?.includes("(Alpha)") || user.email?.endsWith("@expectedestate.com");
         const isAdmin = user.role === 'ADMIN';
-        const isActive = user.subscriptionStatus === 'ACTIVE'; // Basic check
+        const isActive = user.subscriptionStatus === 'ACTIVE';
 
-        const canAccess = isAdmin || isAlphaUser || isActive;
+        // 7-Day Trial Logic
+        const TRIAL_DAYS = 7;
+        const isTrialing = user.trialStartedAt
+            ? (new Date().getTime() - new Date(user.trialStartedAt).getTime() < TRIAL_DAYS * 24 * 60 * 60 * 1000)
+            : false;
+
+        const canAccess = isAdmin || isAlphaUser || isActive || isTrialing;
 
         if (!canAccess) {
             return res.status(403).json({
                 error: "Subscription Required",
-                message: "This feature requires an active premium subscription."
+                message: "This feature requires an active premium subscription or a valid 7-day trial."
             });
         }
 

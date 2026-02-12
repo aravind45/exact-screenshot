@@ -30,6 +30,7 @@ model User {
   stripeCustomerId        String?                   @map("stripe_customer_id")
   stripeSubscriptionId    String?                   @map("stripe_subscription_id")
   subscriptionStatus      String?                   @default("FREE") @map("subscription_status")
+  trialStartedAt         DateTime?                 @default(now()) @map("trial_started_at")
   communications          AssetCommunication[]
   uploadedAttachments     CommunicationAttachment[]
   createdCommunications   Communication[]           @relation("CommunicationCreator")

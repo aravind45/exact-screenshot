@@ -180,7 +180,14 @@ app.use("/api/marketing", marketingRoutes);
 app.use("/api/webhooks", webhookRoutes); // Auth handled via Mailgun signatures
 
 // Profile (simple, keep here or move if grows)
-app.get("/api/auth/me", authenticate, (req: any, res) => res.json(req.user));
+app.get("/api/auth/me", authenticate, (req: any, res) => {
+    const user = req.user;
+    const TRIAL_DAYS = 7;
+    const isTrialing = user.trialStartedAt
+        ? (new Date().getTime() - new Date(user.trialStartedAt).getTime() < TRIAL_DAYS * 24 * 60 * 60 * 1000)
+        : false;
+    res.json({ ...user, isTrialing });
+});
 app.put("/api/auth/me", authenticate, async (req: any, res) => {
     try {
         const updatedUser = await AuthService.updateProfile(req.user.id, req.body);
