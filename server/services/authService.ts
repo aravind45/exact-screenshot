@@ -2,7 +2,10 @@ import { prisma } from "../db.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { EmailService } from "./emailService.js";
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-this";
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+    throw new Error("Generic JWT_SECRET missing in environment variables. Server cannot start.");
+}
 import { logger } from "../lib/logger.js";
 
 export const AuthService = {
@@ -73,10 +76,10 @@ export const AuthService = {
             }
 
             // Diagnostic: Log secret status at verification time (sanitized)
-            const isSecretDefault = JWT_SECRET === "your-secret-key-change-this";
-            logger.debug(`🔑 [VERIFY] Secret Status: ${isSecretDefault ? "DEFAULT (INSECURE)" : "CUSTOM"}`);
+            const isSecretConfigured = !!JWT_SECRET;
+            logger.debug(`🔑 [VERIFY] Secret Configured: ${isSecretConfigured ? "YES" : "NO"}`);
 
-            const decoded: any = jwt.verify(token, JWT_SECRET);
+            const decoded: any = jwt.verify(token, JWT_SECRET as string);
             logger.debug(`👤 [VERIFY] JWT Valid for user ID: ${decoded.userId}`);
 
             const user = await prisma.user.findUnique({ where: { id: decoded.userId } });
@@ -105,26 +108,39 @@ export const AuthService = {
     },
 
     async forgotPassword(email: string) {
-        const user = await prisma.user.findUnique({ where: { email } });
-        if (!user) throw new Error("No user found with this email");
+        // Generic response to prevent email enumeration
+        const genericResponse = { message: "If an account exists with this email, a reset code has been sent." };
 
-        const token = Math.floor(100000 + Math.random() * 900000).toString(); // 6 digits for simplicity
+        const user = await prisma.user.findUnique({ where: { email } });
+        if (!user) {
+            // Simulate processing time to mitigate timing attacks
+            await new Promise(resolve => setTimeout(resolve, Math.floor(Math.random() * 200) + 100));
+            return genericResponse;
+        }
+
+        // Generate a cryptographically secure token (32 bytes hex = 64 chars)
+        const token = (await import("crypto")).randomBytes(32).toString('hex');
+
+        // Hash the token before storing it
+        const tokenHash = await bcrypt.hash(token, 10);
+
         const expires = new Date(Date.now() + 3600000); // 1 hour
 
         await prisma.user.update({
             where: { id: user.id },
             data: {
-                resetPasswordToken: token,
+                resetPasswordToken: tokenHash, // Store hash, not plain token
                 resetPasswordExpires: expires
             }
         });
 
-        const appUrl = (await EmailService.getAppUrl()).replace(/\/$/, ""); // Ensure no trailing slash
+        const appUrl = (await EmailService.getAppUrl()).replace(/\/$/, "");
+        // Send the raw token in the link (it will be hashed for verification)
         const resetLink = `${appUrl}/reset-password?email=${encodeURIComponent(email)}&token=${token}`;
 
         await EmailService.sendPasswordResetEmail(email, resetLink);
 
-        return { message: "Reset code sent successfully" };
+        return genericResponse;
     },
 
     async resetPassword(data: { email: string, token: string, newPassword: string }) {
@@ -134,7 +150,13 @@ export const AuthService = {
             where: { email }
         });
 
-        if (!user || user.resetPasswordToken !== token || !user.resetPasswordExpires || user.resetPasswordExpires < new Date()) {
+        if (!user || !user.resetPasswordToken || !user.resetPasswordExpires || user.resetPasswordExpires < new Date()) {
+            throw new Error("Invalid or expired reset token");
+        }
+
+        // Verify the provided token matches the stored hash
+        const isValidToken = await bcrypt.compare(token, user.resetPasswordToken);
+        if (!isValidToken) {
             throw new Error("Invalid or expired reset token");
         }
 

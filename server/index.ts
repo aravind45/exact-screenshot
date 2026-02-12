@@ -117,7 +117,7 @@ app.use((req, res, next) => {
 // Auth Middleware
 const authenticate = async (req: Request | any, res: Response, next: NextFunction) => {
     const authHeader = req.headers.authorization;
-    const token = authHeader?.split(" ")[1] || req.query.token;
+    const token = authHeader?.split(" ")[1];
 
     logger.debug(`🔒 [AUTH] Attempting ${req.method} ${req.url}`);
     if (!token) {
@@ -231,13 +231,7 @@ if (!isServerless) {
 
         // Background Database Sync & Seeding (Non-blocking)
         (async () => {
-            try {
-                console.log("🔄 Running prisma db push...");
-                execSync("npx prisma db push --accept-data-loss", { stdio: 'inherit' });
-                console.log("✅ Database schema synced");
-            } catch (syncErr) {
-                console.error("❌ Database sync failed:", syncErr);
-            }
+            console.log("ℹ️ Skipping auto-db-push in production for safety. Use 'prisma migrate deploy' in CI/CD.");
 
             try {
                 // Seed default forms if DB is empty
