@@ -1,9 +1,10 @@
 import { Router, Request, Response } from "express";
 import { prisma } from "../db.js";
 import { EmailService } from "../services/emailService.js";
-import { encrypt, decrypt } from "../utils/encryption.js";
+import { encrypt, decrypt, encryptBuffer, decryptBuffer } from "../utils/encryption.js";
 import { AuditService } from "../services/auditService.js";
 import { requireRole } from "../middleware/rbac.js";
+import { requireEstateAccess } from "../middleware/estateAuth.js";
 import { z } from "zod";
 import { logger } from "../lib/logger.js";
 import { requireSubscription } from "../middleware/subscription.js";
@@ -409,8 +410,8 @@ router.get("/my/petition/pdf", requireSubscription, async (req: any, res: Respon
     }
 });
 
-// Upload completed probate form
-router.post("/:estateId/documents", requireSubscription, async (req: any, res: Response) => {
+// Upload completed probate form (Secured)
+router.post("/:estateId/documents", requireSubscription, requireEstateAccess, async (req: any, res: Response) => {
     try {
         const { estateId } = req.params;
         const { documentType, name } = req.query;
@@ -436,7 +437,7 @@ router.post("/:estateId/documents", requireSubscription, async (req: any, res: R
         let document;
         const commonData = {
             fileUrl,
-            content: req.body,
+            content: encryptBuffer(req.body) as any, // Encrypt at rest (Cast for TS)
             status: "OBTAINED",
             obtainedDate: new Date(),
             name: name as string
@@ -494,9 +495,12 @@ router.get("/my/documents/:formCode/download", async (req: any, res: Response) =
             return res.status(404).json({ error: "Document content not found" });
         }
 
+        // Decrypt on the fly
+        const decryptedContent = decryptBuffer(document.content);
+
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `inline; filename=${document.documentType}_Completed.pdf`);
-        res.send(document.content);
+        res.send(decryptedContent);
     } catch (e: any) {
         res.status(500).json({ error: "Failed to download document" });
     }
@@ -607,7 +611,7 @@ router.post("/my/documents/:id/upload", async (req: any, res: Response) => {
             where: { id: req.params.id },
             data: {
                 fileUrl,
-                content: req.body,
+                content: encryptBuffer(req.body) as any,
                 status: "OBTAINED",
                 obtainedDate: new Date()
             }
@@ -620,8 +624,8 @@ router.post("/my/documents/:id/upload", async (req: any, res: Response) => {
     }
 });
 
-// Get estate documents
-router.get("/:estateId/documents", async (req: any, res: Response) => {
+// Get estate documents (Secured)
+router.get("/:estateId/documents", requireEstateAccess, async (req: any, res: Response) => {
     try {
         const { estateId } = req.params;
 
@@ -649,7 +653,7 @@ router.get("/:estateId/documents", async (req: any, res: Response) => {
 });
 
 // Deadline Management
-router.get("/:estateId/deadlines", async (req: any, res: Response) => {
+router.get("/:estateId/deadlines", requireEstateAccess, async (req: any, res: Response) => {
     try {
         const { DeadlineService } = await import("../services/deadlineService.js");
         const deadlines = await DeadlineService.getDeadlines(req.params.estateId);
@@ -660,7 +664,7 @@ router.get("/:estateId/deadlines", async (req: any, res: Response) => {
     }
 });
 
-router.post("/:estateId/deadlines", async (req: any, res: Response) => {
+router.post("/:estateId/deadlines", requireEstateAccess, async (req: any, res: Response) => {
     try {
         const validated = deadlineSchema.parse(req.body);
         const { DeadlineService } = await import("../services/deadlineService.js");
@@ -676,7 +680,7 @@ router.post("/:estateId/deadlines", async (req: any, res: Response) => {
     }
 });
 
-router.put("/:estateId/deadlines/:id", async (req: any, res: Response) => {
+router.put("/:estateId/deadlines/:id", requireEstateAccess, async (req: any, res: Response) => {
     try {
         const validated = deadlineSchema.partial().parse(req.body);
         const { DeadlineService } = await import("../services/deadlineService.js");
@@ -699,7 +703,7 @@ router.put("/:estateId/deadlines/:id", async (req: any, res: Response) => {
     }
 });
 
-router.delete("/:estateId/deadlines/:id", async (req: any, res: Response) => {
+router.delete("/:estateId/deadlines/:id", requireEstateAccess, async (req: any, res: Response) => {
     try {
         const { DeadlineService } = await import("../services/deadlineService.js");
         await DeadlineService.deleteDeadline(req.params.id, req.params.estateId);
@@ -709,7 +713,7 @@ router.delete("/:estateId/deadlines/:id", async (req: any, res: Response) => {
     }
 });
 
-router.post("/:estateId/deadlines/generate", async (req: any, res: Response) => {
+router.post("/:estateId/deadlines/generate", requireEstateAccess, async (req: any, res: Response) => {
     try {
         const { DeadlineService } = await import("../services/deadlineService.js");
         const deadlines = await DeadlineService.generateStatutoryDeadlines(req.params.estateId);

@@ -9,6 +9,7 @@ import { createRequire } from "module";
 import { z } from "zod";
 import { logger } from "../lib/logger.js";
 import { requireSubscription } from "../middleware/subscription.js";
+import { encryptBuffer } from "../utils/encryption.js";
 
 const require = createRequire(import.meta.url);
 const pdf = require("pdf-parse");
@@ -96,7 +97,7 @@ router.post("/scan", uploadMemory.single("file"), async (req: any, res: Response
                     : null;
 
                 const commonData = {
-                    content: req.file.buffer,
+                    content: encryptBuffer(req.file.buffer) as any, // Cast to any to resolve Buffer/Uint8Array mismatch
                     name: req.file.originalname,
                     status: "OBTAINED",
                     obtainedDate: new Date(),
@@ -113,7 +114,7 @@ router.post("/scan", uploadMemory.single("file"), async (req: any, res: Response
                         data: {
                             ...commonData,
                             estateId: estate.id,
-                            userId: req.user.id,
+                            userId: req.user.id as string,
                             documentType: docType
                         }
                     });
