@@ -27,6 +27,7 @@ import { pdfRoutes } from "./routes/pdfRoutes.js";
 import formRoutes from "./routes/formRoutes.js";
 import helpRoutes from "./routes/helpRoutes.js";
 import billingRoutes from "./routes/billingRoutes.js";
+import marketingRoutes from "./routes/marketingRoutes.js";
 
 const isServerless = process.env.VERCEL === '1' || process.env.NETLIFY === 'true' || !!process.env.AWS_EXECUTION_ENV || !!process.env.FUNCTION_NAME;
 const app = express();
@@ -175,6 +176,7 @@ app.use("/api/pdf", authenticate, pdfRoutes);
 app.use("/api/forms", authenticate, formRoutes);
 app.use("/api/help", authenticate, helpRoutes);
 app.use("/api/billing", authenticate, billingRoutes);
+app.use("/api/marketing", marketingRoutes);
 app.use("/api/webhooks", webhookRoutes); // Auth handled via Mailgun signatures
 
 // Profile (simple, keep here or move if grows)

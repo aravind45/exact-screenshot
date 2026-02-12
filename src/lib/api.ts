@@ -374,6 +374,10 @@ export const api = {
                 body: JSON.stringify({ userId, notes })
             });
             return parseResponse(response);
+        },
+        getMarketingEvents: async () => {
+            const response = await fetch(`${API_URL}/admin/marketing/events`, { headers: getHeaders() });
+            return parseResponse(response);
         }
     },
 

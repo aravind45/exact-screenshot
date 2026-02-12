@@ -617,5 +617,20 @@ model AgentExecution {
 
   @@index([userId])
   @@index([createdAt])
+
   @@map("agent_executions")
+}
+
+model MarketingEvent {
+  id          String   @id @default(uuid())
+  event       String   // checklist_viewed, checklist_submitted, intake_started, intake_completed
+  email       String?  
+  utmSource   String?  @map("utm_source")
+  utmMedium   String?  @map("utm_medium")
+  utmCampaign String?  @map("utm_campaign")
+  source      String?  // e.g. "whatsapp"
+  metadata    Json?    
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("marketing_events")
 }

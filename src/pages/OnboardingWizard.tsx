@@ -31,6 +31,7 @@ import { InstitutionSelect } from "@/components/InstitutionSelect";
 import { calculateAuthorityRecommendation } from "@/lib/authorityEngine";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { IntestacyDistributionPreview } from "@/components/IntestacyDistributionPreview";
+import { useTracking } from "@/hooks/useTracking";
 
 const STEPS = [
     { id: "welcome", title: "Welcome" },
@@ -47,6 +48,7 @@ export default function OnboardingWizard() {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
     const { toast } = useToast();
+    const { trackEvent } = useTracking();
     const [currentStep, setCurrentStep] = useState(0);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -211,6 +213,7 @@ export default function OnboardingWizard() {
             if (currentStep < STEPS.length - 1) {
                 setCurrentStep(prev => prev + 1);
             } else {
+                await trackEvent("intake_completed");
                 navigate("/dashboard");
             }
         } catch (error: any) {

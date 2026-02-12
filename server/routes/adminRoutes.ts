@@ -65,12 +65,19 @@ router.get("/stats", isAdmin, async (req: any, res: Response) => {
         const assetCount = await prisma.asset.count();
         const totalValue = await prisma.asset.aggregate({ _sum: { value: true } });
         const institutionCount = await prisma.institution.count();
+        const leadCount = await prisma.marketingEvent.groupBy({
+            by: ['email'],
+            where: { email: { not: null } }
+        });
+        const eventCount = await prisma.marketingEvent.count();
 
         res.json({
             users: userCount,
             assets: assetCount,
             totalValue: totalValue._sum.value || 0,
-            institutions: institutionCount
+            institutions: institutionCount,
+            leads: leadCount.length,
+            totalEvents: eventCount
         });
     } catch (error: any) {
         logger.error("Failed to fetch admin stats:", error.message);
@@ -518,6 +525,20 @@ router.put("/estates/:id/reset", isAdmin, async (req: any, res: Response) => {
     } catch (error: any) {
         logger.error('Estate reset error:', error.message);
         res.status(500).json({ error: "Failed to reset estate data" });
+    }
+});
+
+// Marketing & Leads Management
+router.get("/marketing/events", isAdmin, async (req: any, res: Response) => {
+    try {
+        const events = await prisma.marketingEvent.findMany({
+            orderBy: { createdAt: 'desc' },
+            take: 500 // Limit to recent 500 events
+        });
+        res.json(events);
+    } catch (error: any) {
+        logger.error("Failed to fetch marketing events:", error.message);
+        res.status(500).json({ error: "Failed to fetch marketing events" });
     }
 });
 

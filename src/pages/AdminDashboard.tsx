@@ -23,7 +23,8 @@ import {
     Ban,
     RefreshCcw,
     BookOpen,
-    Trash2
+    Trash2,
+    TrendingUp
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -202,6 +203,16 @@ export default function AdminDashboard() {
                                 </CardTitle>
                             </CardHeader>
                         </Card>
+                        <Card className="card-elevated border-none bg-indigo-600 text-white shadow-indigo-200">
+                            <CardHeader className="pb-2">
+                                <CardDescription className="flex items-center gap-2 text-indigo-100">
+                                    <TrendingUp className="w-4 h-4" /> Marketing Leads
+                                </CardDescription>
+                                <CardTitle className="text-3xl font-bold">
+                                    {statsLoading ? "..." : stats?.leads || 0}
+                                </CardTitle>
+                            </CardHeader>
+                        </Card>
                     </div>
 
                     <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -212,6 +223,7 @@ export default function AdminDashboard() {
                             <TabsTrigger value="templates">Form Templates</TabsTrigger>
                             <TabsTrigger value="knowledge">Knowledge Base</TabsTrigger>
                             <TabsTrigger value="communications">Communications</TabsTrigger>
+                            <TabsTrigger value="marketing">Marketing & Leads</TabsTrigger>
                         </TabsList>
 
                         <TabsContent value="overview" className="mt-0 space-y-4">
@@ -354,6 +366,10 @@ export default function AdminDashboard() {
 
                         <TabsContent value="communications" className="mt-0">
                             <CommunicationsManager />
+                        </TabsContent>
+
+                        <TabsContent value="marketing" className="mt-0">
+                            <MarketingManager />
                         </TabsContent>
                     </Tabs>
                 </main>
@@ -968,6 +984,125 @@ function CommunicationsManager() {
                         </div>
                     </div>
                 </CardContent>
+            </Card>
+        </div>
+    );
+}
+
+function MarketingManager() {
+    const { data: events, isLoading } = useQuery({
+        queryKey: ["admin", "marketing", "events"],
+        queryFn: () => api.admin.getMarketingEvents()
+    });
+
+    if (isLoading) return <div className="p-8 text-center text-muted-foreground">Loading marketing events...</div>;
+
+    const leads = events?.filter((e: any) => e.email) || [];
+
+    return (
+        <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Card className="card-elevated border-none">
+                    <CardHeader>
+                        <CardTitle>Recent Leads</CardTitle>
+                        <CardDescription>Latest email captures from the checklist landing page.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-4">
+                            {leads.slice(0, 5).map((lead: any) => (
+                                <div key={lead.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 bg-primary/10 rounded-full">
+                                            <Mail className="w-4 h-4 text-primary" />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-bold">{lead.email}</p>
+                                            <p className="text-[10px] text-muted-foreground">
+                                                {new Date(lead.createdAt).toLocaleDateString()} via {lead.utmSource || 'direct'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <Badge variant="outline" className="text-[10px]">NEW</Badge>
+                                </div>
+                            ))}
+                            {leads.length === 0 && <p className="text-center py-4 text-muted-foreground">No leads found yet.</p>}
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card className="card-elevated border-none">
+                    <CardHeader>
+                        <CardTitle>Campaign Performance</CardTitle>
+                        <CardDescription>Top sources for marketing events.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-2">
+                            {/* Simplified source breakdown */}
+                            {Array.from(new Set(events?.map((e: any) => e.utmSource || 'direct'))).map((source: any) => {
+                                const count = events?.filter((e: any) => (e.utmSource || 'direct') === source).length;
+                                const percentage = Math.round((count / (events?.length || 1)) * 100);
+                                return (
+                                    <div key={source} className="space-y-1">
+                                        <div className="flex justify-between text-xs font-medium">
+                                            <span className="capitalize">{source}</span>
+                                            <span>{count} events</span>
+                                        </div>
+                                        <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
+                                            <div
+                                                className="h-full bg-primary"
+                                                style={{ width: `${percentage}%` }}
+                                            />
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+
+            <Card className="card-elevated border-none overflow-hidden">
+                <CardHeader className="border-b bg-muted/10">
+                    <CardTitle>Marketing Event Log</CardTitle>
+                    <CardDescription>Raw stream of all captured marketing data.</CardDescription>
+                </CardHeader>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left text-sm">
+                        <thead className="bg-muted/50 text-muted-foreground font-medium uppercase tracking-wider text-[10px]">
+                            <tr>
+                                <th className="px-6 py-4">Event</th>
+                                <th className="px-6 py-4">Email</th>
+                                <th className="px-6 py-4">Source</th>
+                                <th className="px-6 py-4">Campaign</th>
+                                <th className="px-6 py-4">Date</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-border/50">
+                            {events?.map((event: any) => (
+                                <tr key={event.id} className="hover:bg-muted/10 transition-colors">
+                                    <td className="px-6 py-4">
+                                        <Badge variant="secondary" className="text-[10px] font-mono">
+                                            {event.event}
+                                        </Badge>
+                                    </td>
+                                    <td className="px-6 py-4 font-medium">{event.email || "—"}</td>
+                                    <td className="px-6 py-4">
+                                        <div className="flex flex-col">
+                                            <span className="text-xs">{event.utmSource || event.source || "—"}</span>
+                                            <span className="text-[10px] text-muted-foreground">{event.utmMedium || "—"}</span>
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4 text-xs">
+                                        {event.utmCampaign || "—"}
+                                    </td>
+                                    <td className="px-6 py-4 text-xs text-muted-foreground">
+                                        {new Date(event.createdAt).toLocaleString()}
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
             </Card>
         </div>
     );

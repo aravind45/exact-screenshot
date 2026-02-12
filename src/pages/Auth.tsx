@@ -11,6 +11,8 @@ import { useToast } from '@/hooks/use-toast';
 import { z } from 'zod';
 import { useSearchParams } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import { useTracking } from '@/hooks/useTracking';
+import { useEffect } from 'react';
 
 // Validation schemas
 const emailSchema = z.string().trim().email('Please enter a valid email address');
@@ -31,6 +33,11 @@ export default function Auth() {
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { trackEvent } = useTracking();
+
+  useEffect(() => {
+    trackEvent('intake_started');
+  }, []);
 
   const validateForm = () => {
     const newErrors: { email?: string; password?: string; name?: string } = {};
