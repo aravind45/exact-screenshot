@@ -496,7 +496,7 @@ router.get("/my/documents/:formCode/download", async (req: any, res: Response) =
         }
 
         // Decrypt on the fly
-        const decryptedContent = decryptBuffer(document.content);
+        const decryptedContent = decryptBuffer(Buffer.from(document.content));
 
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `inline; filename=${document.documentType}_Completed.pdf`);
