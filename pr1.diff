@@ -1,0 +1,83 @@
+diff --git a/src/components/Sidebar.tsx b/src/components/Sidebar.tsx
+index a0ed162..4dc0c6d 100644
+--- a/src/components/Sidebar.tsx
++++ b/src/components/Sidebar.tsx
+@@ -2,32 +2,24 @@
+ import React, { useState } from "react";
+ import {
+     Landmark,
+-    Plus,
+     Search,
+     User,
+     LogOut,
+     LayoutDashboard,
+-    FileText,
+-    Scale,
+     Zap,
+     ShieldCheck,
+     Inbox,
+     History,
+     Bell,
+     Map,
+-    BookOpen,
+     Calculator,
+     AlertCircle,
+     CheckCircle2,
+     Settings,
+-    Gavel,
+-    CheckSquare,
+-    Heart,
+     HelpCircle,
+     ScrollText,
+     MessageSquare,
+ } from "lucide-react";
+-import { Button } from "./ui/button";
+ import { useNavigate, useLocation } from "react-router-dom";
+ import { useAuth } from "@/contexts/AuthContext";
+ import { motion } from "framer-motion";
+@@ -35,6 +27,13 @@ import { useQuery } from "@tanstack/react-query";
+ import { api } from "@/lib/api";
+ import { SupportDialog } from "./SupportDialog";
+ 
++type NavItem = {
++    label: string;
++    icon: React.ComponentType<{ className?: string }>;
++    path?: string;
++    onClick?: () => void;
++};
++
+ export function Sidebar() {
+     const navigate = useNavigate();
+     const location = useLocation();
+@@ -63,7 +62,7 @@ export function Sidebar() {
+ 
+     const isActive = (path: string) => location.pathname === path;
+ 
+-    const NAV_CATEGORIES = [
++    const NAV_CATEGORIES: { title: string; items: NavItem[] }[] = [
+         {
+             title: "Navigation",
+             items: [
+@@ -116,13 +115,6 @@ export function Sidebar() {
+         }
+     ];
+ 
+-    const { data: estateData } = useQuery({
+-        queryKey: ["estate"],
+-        queryFn: api.getMyEstate,
+-    });
+-
+-    const hasPendingDocs = estateData?.roadmapProgress?.completedTaskIds?.length === 0 || false; // Simple logic for demo
+-
+     return (
+         <div className="w-64 h-screen bg-slate-950 text-slate-400 flex flex-col fixed left-0 top-0 z-50 border-r border-white/5">
+             {/* Brand */}
+@@ -156,7 +148,7 @@ export function Sidebar() {
+                         {category.items.map((item) => (
+                             <button
+                                 key={item.label}
+-                                onClick={() => (item as any).onClick ? (item as any).onClick() : navigate(item.path!)}
++                                onClick={() => (item.onClick ? item.onClick() : item.path && navigate(item.path))}
+                                 className={`
+                                     w-full flex items-center justify-between px-4 py-2.5 rounded-xl transition-all group
+                                     ${item.path && isActive(item.path) ? "bg-primary/10 text-primary shadow-[inset_0_0_20px_rgba(37,99,235,0.05)]" : "hover:bg-white/5"}
