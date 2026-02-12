@@ -12,6 +12,7 @@ router.use(requireSubscription);
 const assetSchema = z.object({
     institution: z.string().min(1),
     assetType: z.string().min(1),
+    category: z.string().min(1),
     estimatedValue: z.number().optional(),
     accountNumber: z.string().optional(),
     notes: z.string().optional(),
