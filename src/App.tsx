@@ -68,6 +68,8 @@ import AcceptInvite from "./pages/AcceptInvite";
 import EstateAgents from "./pages/EstateAgents";
 import ChecklistLanding from "./pages/ChecklistLanding";
 import DiscoveryQuiz from "./components/landing/DiscoveryQuiz";
+import AdvisorMarketplace from "./pages/AdvisorMarketplace";
+import AdvisorOnboarding from "./pages/AdvisorOnboarding";
 
 
 const queryClient = new QueryClient();
@@ -145,6 +147,8 @@ const App = () => (
                     <Route path="/estates/:estateId/agents" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><EstateAgents /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
                     <Route path="/checklist" element={<ChecklistLanding />} />
                     <Route path="/start" element={<DiscoveryQuiz />} />
+                    <Route path="/marketplace" element={<ProtectedRoute><ProfileGuard><AdvisorMarketplace /></ProfileGuard></ProtectedRoute>} />
+                    <Route path="/advisor/onboarding" element={<ProtectedRoute><ProfileGuard><AdvisorOnboarding /></ProfileGuard></ProtectedRoute>} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                   <LegalDisclaimer />

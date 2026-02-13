@@ -30,7 +30,8 @@ model User {
   stripeCustomerId        String?                   @map("stripe_customer_id")
   stripeSubscriptionId    String?                   @map("stripe_subscription_id")
   subscriptionStatus      String?                   @default("FREE") @map("subscription_status")
-  trialStartedAt         DateTime?                 @default(now()) @map("trial_started_at")
+  trialStartedAt          DateTime?                 @default(now()) @map("trial_started_at")
+  agentExecutions         AgentExecution[]
   communications          AssetCommunication[]
   uploadedAttachments     CommunicationAttachment[]
   createdCommunications   Communication[]           @relation("CommunicationCreator")
@@ -40,10 +41,11 @@ model User {
   grants                  EstateGrant[]
   invitations             Invitation[]
   estates                 Estate[]
+  heirs                   Heir[]
   settlementActivities    SettlementActivity[]
   transactions            Transaction[]
-  heirs                   Heir[]
-  agentExecutions         AgentExecution[]
+  advisorProfile          AdvisorProfile?
+  bookings                Booking[]
 
   @@map("profiles")
 }
@@ -121,6 +123,7 @@ model Estate {
   liabilities               Liability[]
   activities                SettlementActivity[]
   taskCompletions           TaskCompletion[]
+  bookings                  Booking[]
 
   @@map("estates")
 }
@@ -366,7 +369,6 @@ model EstateDocument {
 model Heir {
   id            String         @id @default(uuid())
   estateId      String         @map("estate_id")
-  userId        String?        @map("user_id")
   name          String
   relationship  String
   isAdult       Boolean        @default(true) @map("is_adult")
@@ -375,6 +377,7 @@ model Heir {
   phone         String?
   createdAt     DateTime       @default(now()) @map("created_at")
   updatedAt     DateTime       @updatedAt @map("updated_at")
+  userId        String?        @map("user_id")
   distributions Distribution[]
   estate        Estate         @relation(fields: [estateId], references: [id], onDelete: Cascade)
   user          User?          @relation(fields: [userId], references: [id])
@@ -593,12 +596,12 @@ model Transaction {
 }
 
 model KnowledgeChunk {
-  id        String   @id @default(uuid())
+  id        String                 @id @default(uuid())
   content   String
   metadata  Json?
-  embedding Unsupported("vector(1536)")? // For OpenAI embeddings (1536 dims)
+  embedding Unsupported("vector")?
   source    String?
-  createdAt DateTime @default(now()) @map("created_at")
+  createdAt DateTime               @default(now()) @map("created_at")
 
   @@map("knowledge_chunks")
 }
@@ -610,28 +613,67 @@ model AgentExecution {
   question        String
   answer          String
   sources         String[]
-  evidence        Json     // Array of evidence objects with IDs, sources, scores
-  metadata        Json     // Agent flow metadata (retrieval, draft, citation, validation)
+  evidence        Json
+  metadata        Json
   executionTimeMs Int      @map("execution_time_ms")
   createdAt       DateTime @default(now()) @map("created_at")
   user            User?    @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([createdAt])
-
   @@map("agent_executions")
 }
 
 model MarketingEvent {
   id          String   @id @default(uuid())
-  event       String   // checklist_viewed, checklist_submitted, intake_started, intake_completed
-  email       String?  
+  event       String
+  email       String?
   utmSource   String?  @map("utm_source")
   utmMedium   String?  @map("utm_medium")
   utmCampaign String?  @map("utm_campaign")
-  source      String?  // e.g. "whatsapp"
-  metadata    Json?    
+  source      String?
+  metadata    Json?
   createdAt   DateTime @default(now()) @map("created_at")
 
   @@map("marketing_events")
+}
+
+model AdvisorProfile {
+  id                 String   @id @default(uuid())
+  userId             String   @unique @map("user_id")
+  bio                String?
+  expertise          String[]
+  hourlyRate         Decimal  @map("hourly_rate") @db.Decimal(10, 2)
+  stripeAccountId    String?  @map("stripe_account_id")
+  verificationStatus String   @default("PENDING") @map("verification_status")
+  licenseNumber      String?  @map("license_number")
+  licenseDocument    String?  @map("license_document")
+  isVerified         Boolean  @default(false) @map("is_verified")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bookings           Booking[]
+
+  @@map("advisor_profiles")
+}
+
+model Booking {
+  id                String   @id @default(uuid())
+  userId            String   @map("user_id")
+  advisorId         String   @map("advisor_id")
+  estateId          String?  @map("estate_id")
+  status            String   @default("PENDING")
+  totalAmount       Decimal  @map("total_amount") @db.Decimal(10, 2)
+  platformFee       Decimal  @map("platform_fee") @db.Decimal(10, 2)
+  advisorPayout     Decimal  @map("advisor_payout") @db.Decimal(10, 2)
+  escrowReleaseDate DateTime? @map("escrow_release_date")
+  payoutStatus      String   @default("UNPAID")
+  stripePaymentId   String?  @map("stripe_payment_id")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+  user              User     @relation(fields: [userId], references: [id])
+  advisor           AdvisorProfile @relation(fields: [advisorId], references: [id])
+  estate            Estate?  @relation(fields: [estateId], references: [id])
+
+  @@map("bookings")
 }

@@ -354,4 +354,53 @@ export class StripeService {
             subscription,
         };
     }
+
+    /**
+     * Create a Stripe Connect Express account for an advisor
+     */
+    static async createConnectAccount(userId: string) {
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+        if (!user) throw new Error('User not found');
+
+        const account = await this.stripe.accounts.create({
+            type: 'express',
+            email: user.email,
+            capabilities: {
+                card_payments: { requested: true },
+                transfers: { requested: true },
+            },
+            metadata: { userId },
+        });
+
+        await prisma.advisorProfile.update({
+            where: { userId },
+            data: { stripeAccountId: account.id },
+        });
+
+        return account;
+    }
+
+    /**
+     * Create an account link for Stripe Connect onboarding
+     */
+    static async createAccountLink(accountId: string, returnUrl: string, refreshUrl: string) {
+        return this.stripe.accountLinks.create({
+            account: accountId,
+            refresh_url: refreshUrl,
+            return_url: returnUrl,
+            type: 'account_onboarding',
+        });
+    }
+
+    /**
+     * Create a Transfer to an advisor's Connect account
+     */
+    static async transferToAdvisor(accountId: string, amount: number, paymentIntentId: string) {
+        return this.stripe.transfers.create({
+            amount: Math.round(amount * 100),
+            currency: 'usd',
+            destination: accountId,
+            source_transaction: paymentIntentId,
+        });
+    }
 }

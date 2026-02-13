@@ -224,6 +224,7 @@ export default function AdminDashboard() {
                             <TabsTrigger value="knowledge">Knowledge Base</TabsTrigger>
                             <TabsTrigger value="communications">Communications</TabsTrigger>
                             <TabsTrigger value="marketing">Marketing & Leads</TabsTrigger>
+                            <TabsTrigger value="advisors">Advisors</TabsTrigger>
                         </TabsList>
 
                         <TabsContent value="overview" className="mt-0 space-y-4">
@@ -370,6 +371,10 @@ export default function AdminDashboard() {
 
                         <TabsContent value="marketing" className="mt-0">
                             <MarketingManager />
+                        </TabsContent>
+
+                        <TabsContent value="advisors" className="mt-0">
+                            <AdvisorManager />
                         </TabsContent>
                     </Tabs>
                 </main>
@@ -1105,5 +1110,114 @@ function MarketingManager() {
                 </div>
             </Card>
         </div>
+    );
+}
+
+function AdvisorManager() {
+    const { toast } = useToast();
+    const queryClient = useQueryClient();
+
+    const { data: advisors, isLoading } = useQuery({
+        queryKey: ["admin", "advisors"],
+        queryFn: async () => {
+            const res = await fetch("/api/advisors/marketplace"); // In a real app, use an admin-specific endpoint
+            return res.json();
+        }
+    });
+
+    const verifyMutation = useMutation({
+        mutationFn: async ({ id, status }: { id: string, status: string }) => {
+            const res = await fetch(`/api/advisors/${id}/verify`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ status })
+            });
+            return res.json();
+        },
+        onSuccess: () => {
+            toast({ title: "Advisor Updated" });
+            queryClient.invalidateQueries({ queryKey: ["admin", "advisors"] });
+        }
+    });
+
+    return (
+        <Card className="card-elevated border-none overflow-hidden">
+            <CardHeader className="bg-slate-50/50 border-b">
+                <CardTitle>Advisor Verification Queue</CardTitle>
+                <CardDescription>Review and verify professional credentials of advisor marketplace applicants.</CardDescription>
+            </CardHeader>
+            <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                    <thead className="bg-muted/50 text-muted-foreground font-medium uppercase tracking-wider text-[10px]">
+                        <tr>
+                            <th className="px-6 py-4">Advisor</th>
+                            <th className="px-6 py-4">Expertise</th>
+                            <th className="px-6 py-4">License</th>
+                            <th className="px-6 py-4">Status</th>
+                            <th className="px-6 py-4 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border/50">
+                        {isLoading ? (
+                            <tr>
+                                <td colSpan={5} className="px-6 py-20 text-center text-muted-foreground">Loading advisors...</td>
+                            </tr>
+                        ) : advisors?.map((advisor: any) => (
+                            <tr key={advisor.id} className="hover:bg-muted/30 transition-colors">
+                                <td className="px-6 py-4">
+                                    <div className="flex flex-col">
+                                        <span className="font-semibold">{advisor.user.fullName}</span>
+                                        <span className="text-xs text-muted-foreground">{advisor.user.email}</span>
+                                    </div>
+                                </td>
+                                <td className="px-6 py-4">
+                                    <div className="flex flex-wrap gap-1">
+                                        {advisor.expertise.map((e: string) => (
+                                            <Badge key={e} variant="outline" className="text-[10px]">{e}</Badge>
+                                        ))}
+                                    </div>
+                                </td>
+                                <td className="px-6 py-4">
+                                    <div className="flex flex-col">
+                                        <span className="text-xs font-mono">{advisor.licenseNumber}</span>
+                                        {advisor.licenseDocument && (
+                                            <a href={advisor.licenseDocument} target="_blank" className="text-[10px] text-blue-600 hover:underline flex items-center gap-1">
+                                                View Document <ExternalLink className="w-3 h-3" />
+                                            </a>
+                                        )}
+                                    </div>
+                                </td>
+                                <td className="px-6 py-4">
+                                    <Badge variant={advisor.verificationStatus === 'VERIFIED' ? 'default' : (advisor.verificationStatus === 'REJECTED' ? 'destructive' : 'secondary')} className="text-[10px]">
+                                        {advisor.verificationStatus}
+                                    </Badge>
+                                </td>
+                                <td className="px-6 py-4 text-right">
+                                    <div className="flex justify-end gap-2">
+                                        <Button
+                                            size="sm"
+                                            className="bg-green-600 hover:bg-green-700 text-white h-8"
+                                            onClick={() => verifyMutation.mutate({ id: advisor.id, status: 'VERIFIED' })}
+                                            disabled={advisor.verificationStatus === 'VERIFIED' || verifyMutation.isPending}
+                                        >
+                                            Verify
+                                        </Button>
+                                        <Button
+                                            size="sm"
+                                            variant="destructive"
+                                            className="h-8"
+                                            onClick={() => verifyMutation.mutate({ id: advisor.id, status: 'REJECTED' })}
+                                            disabled={advisor.verificationStatus === 'REJECTED' || verifyMutation.isPending}
+                                        >
+                                            Reject
+                                        </Button>
+                                    </div>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        </Card>
     );
 }

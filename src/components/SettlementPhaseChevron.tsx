@@ -94,52 +94,52 @@ export function SettlementPhaseChevron({
                 {/* Main Chevron Body */}
                 <div
                   className={cn(
-                    "relative h-14 w-44 flex items-center justify-center transition-all duration-300",
+                    "relative h-20 w-52 flex items-center justify-center transition-all duration-300",
                     "clip-chevron",
-                    isCompleted && "bg-green-600",
-                    isCurrent && (phase.isEscalationPath ? "bg-amber-600" : phase.color),
-                    isUpcoming && (phase.isEscalationPath ? "bg-amber-100 border-l border-amber-200" : "bg-slate-200"),
-                    isCurrent && "scale-105 z-20 shadow-xl ring-2 ring-white/30"
+                    isCompleted && "bg-gradient-to-r from-green-600 to-green-500",
+                    isCurrent && (phase.isEscalationPath ? "bg-gradient-to-r from-amber-600 to-amber-500" : "bg-gradient-to-r from-indigo-600 to-indigo-500"),
+                    isUpcoming && (phase.isEscalationPath ? "bg-amber-50 border-l border-amber-200" : "bg-slate-100"),
+                    isCurrent && "scale-[1.03] z-20 shadow-2xl ring-4 ring-white/40"
                   )}
                   style={{
                     clipPath: index === 0
-                      ? "polygon(0 0, calc(100% - 20px) 0, 100% 50%, calc(100% - 20px) 100%, 0 100%)"
-                      : "polygon(20px 0, calc(100% - 20px) 0, 100% 50%, calc(100% - 20px) 100%, 20px 100%, 0 50%)"
+                      ? "polygon(0 0, calc(100% - 24px) 0, 100% 50%, calc(100% - 24px) 100%, 0 100%)"
+                      : "polygon(24px 0, calc(100% - 24px) 0, 100% 50%, calc(100% - 24px) 100%, 24px 100%, 0 50%)"
                   }}
                 >
-                  <div className="flex items-center gap-3 px-6">
+                  <div className="flex items-center gap-4 px-8">
                     {/* Status Icon */}
                     <div className={cn(
-                      "flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center",
-                      isCompleted && "bg-white/20",
-                      isCurrent && "bg-white/20",
-                      isUpcoming && "bg-slate-300"
+                      "flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center shadow-sm",
+                      isCompleted && "bg-white/20 backdrop-blur-sm",
+                      isCurrent && "bg-white/30 backdrop-blur-sm ring-2 ring-white/50",
+                      isUpcoming && "bg-slate-200"
                     )}>
-                      {isCompleted && <Check className="w-4 h-4 text-white" />}
-                      {isCurrent && <Clock className="w-4 h-4 text-white" />}
-                      {isUpcoming && <Lock className="w-3 h-3 text-slate-500" />}
+                      {isCompleted && <Check className="w-5 h-5 text-white" />}
+                      {isCurrent && <Clock className="w-5 h-5 text-white animate-pulse" />}
+                      {isUpcoming && <Lock className="w-4 h-4 text-slate-400" />}
                     </div>
 
                     {/* Phase Info */}
-                    <div className="flex flex-col">
+                    <div className="flex flex-col min-w-0">
                       <span className={cn(
-                        "text-xs font-bold leading-tight",
+                        "text-sm font-black tracking-tight leading-tight",
                         (isCompleted || isCurrent) && "text-white",
-                        isUpcoming && (phase.isEscalationPath ? "text-amber-900" : "text-slate-600")
+                        isUpcoming && (phase.isEscalationPath ? "text-amber-900" : "text-slate-900")
                       )}>
                         {phase.title}
                       </span>
                       <span className={cn(
-                        "text-[10px] leading-tight",
-                        (isCompleted || isCurrent) && "text-white/80",
+                        "text-[11px] font-bold leading-tight mt-0.5",
+                        (isCompleted || isCurrent) && "text-white/90",
                         isUpcoming && (phase.isEscalationPath ? "text-amber-800" : "text-slate-500")
                       )}>
                         {phase.subtitle}
                       </span>
                       <span className={cn(
-                        "text-[9px] leading-tight mt-0.5 opacity-80",
-                        (isCompleted || isCurrent) && "text-white/60",
-                        isUpcoming && (phase.isEscalationPath ? "text-amber-700/60" : "text-slate-400")
+                        "text-[10px] font-medium leading-tight mt-1 opacity-80 uppercase tracking-wider",
+                        (isCompleted || isCurrent) && "text-white/70",
+                        isUpcoming && (phase.isEscalationPath ? "text-amber-700/70" : "text-slate-400")
                       )}>
                         {phase.milestone}
                       </span>
