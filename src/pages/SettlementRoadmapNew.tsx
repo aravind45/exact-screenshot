@@ -8,7 +8,7 @@ import { api } from "@/lib/api";
 import { Badge } from "@/components/ui/badge";
 import { Clock, CheckCircle, Scale, ShieldCheck } from "lucide-react";
 import { SettlementPhaseChevron } from "@/components/SettlementPhaseChevron";
-import { type SettlementPhase } from "@/components/SettlementPhaseChevron";
+import { type SettlementPhase } from "@/config/settlementPhases";
 import { calculateAuthorityRecommendation } from "@/lib/authorityEngine";
 import { SEO } from "@/components/SEO";
 
@@ -102,7 +102,7 @@ export default function SettlementRoadmapNew() {
         </header>
 
         {/* Main Content */}
-        <main className="max-w-[1000px] w-full mx-auto px-8 py-8 space-y-5">
+        <main className="max-w-[1440px] w-full mx-auto px-4 sm:px-8 py-8 space-y-5">
           {/* Risk Signaling */}
           <RiskBanner />
 
