@@ -1,10 +1,17 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Landmark } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 export function Header() {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSignOut = () => {
+    signOut();
+    navigate("/");
+  };
+
   return (
     <header className="fixed top-0 left-0 right-0 z-50 glass border-b border-border/50">
       <div className="section-container">
@@ -54,9 +61,17 @@ export function Header() {
                 </Button>
               </>
             ) : (
-              <Button size="sm" className="font-bold px-6 rounded-full" asChild>
-                <Link to="/dashboard">Dashboard</Link>
-              </Button>
+              <>
+                <button
+                  onClick={handleSignOut}
+                  className="text-sm font-semibold text-foreground/70 hover:text-red-500 transition-colors"
+                >
+                  Sign Out
+                </button>
+                <Button size="sm" className="font-bold px-6 rounded-full" asChild>
+                  <Link to="/dashboard">Dashboard</Link>
+                </Button>
+              </>
             )}
           </div>
         </div>

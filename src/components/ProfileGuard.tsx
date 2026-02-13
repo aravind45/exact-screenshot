@@ -15,7 +15,7 @@ export function ProfileGuard({ children }: ProfileGuardProps) {
     const navigate = useNavigate();
     const location = useLocation();
 
-    const { data: estate, isLoading } = useQuery({
+    const { data: estate, isLoading, isError } = useQuery({
         queryKey: ["estate"],
         queryFn: api.getMyEstate,
         // Don't retry on 401/403 as AuthContext handles that
@@ -24,17 +24,24 @@ export function ProfileGuard({ children }: ProfileGuardProps) {
     });
 
     useEffect(() => {
-        if (!isLoading && estate) {
-            const complete = isProfileComplete(estate);
-            const isAtOnboarding = location.pathname === "/onboarding";
-            const isAdvisorRoute = location.pathname.startsWith("/advisor") || location.pathname === "/marketplace";
+        if (isLoading || isError) return;
+        // No estate yet — user hasn't started onboarding at all
+        if (!estate) return;
 
-            if (!complete && !isAtOnboarding && !isAdvisorRoute) {
-                console.log("Profile incomplete, redirecting to onboarding...");
-                navigate("/onboarding", { replace: true });
-            }
+        const complete = isProfileComplete(estate);
+        const isAtOnboarding = location.pathname === "/onboarding";
+        const isAdvisorRoute = location.pathname.startsWith("/advisor") || location.pathname === "/marketplace";
+
+        if (!complete && !isAtOnboarding && !isAdvisorRoute) {
+            console.log("Profile incomplete, redirecting to onboarding. Missing fields:", {
+                deceasedFirstName: !!estate.deceasedFirstName,
+                deceasedLastName: !!estate.deceasedLastName,
+                deceasedState: !!estate.deceasedState,
+                authorityType: estate.authorityType,
+            });
+            navigate("/onboarding", { replace: true });
         }
-    }, [estate, isLoading, navigate, location.pathname]);
+    }, [estate, isLoading, isError, navigate, location.pathname]);
 
     if (isLoading) {
         return (
