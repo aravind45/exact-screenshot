@@ -34,6 +34,9 @@ export function Header() {
             <a href="/#contact" className="text-sm font-semibold text-foreground/70 hover:text-primary transition-colors">
               Contact Us
             </a>
+            <Link to="/advisor/onboarding" className="text-sm font-semibold text-foreground/70 hover:text-primary transition-colors">
+              Become an Advisor
+            </Link>
           </nav>
 
           {/* CTA */}
