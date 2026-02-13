@@ -4,7 +4,15 @@ import { FormService } from "../services/formService.js";
 import { FORM_MAPPINGS, FORM_AUTHORITIES } from "../services/formMappings.js";
 import { DistributionService } from "../services/distributionService.js";
 import { AccountingService } from "../services/accountingService.js";
+import { z } from "zod";
+import { logger } from "../lib/logger.js";
+import { requireSubscription } from "../middleware/subscription.js";
+const generateFormSchema = z.object({
+    formId: z.string().min(1),
+    isPreview: z.boolean().optional()
+});
 const router = Router();
+router.use(requireSubscription);
 // List all available form templates (public)
 router.get("/templates", async (req, res) => {
     try {
@@ -28,7 +36,7 @@ router.get("/templates", async (req, res) => {
         res.json(enriched);
     }
     catch (error) {
-        console.error("Failed to fetch form templates:", error);
+        logger.error("Failed to fetch form templates:", error.message);
         res.status(500).json({ error: "Failed to fetch form templates" });
     }
 });
@@ -84,7 +92,8 @@ router.get("/readiness", async (req, res) => {
 });
 router.post("/generate", async (req, res) => {
     try {
-        const { formId, isPreview } = req.body;
+        const validated = generateFormSchema.parse(req.body);
+        const { formId, isPreview } = validated;
         const estateId = await getEstateId(req.user.id);
         if (!estateId) {
             return res.status(404).json({ error: "Estate not found" });
@@ -124,8 +133,10 @@ router.post("/generate", async (req, res) => {
         res.send(Buffer.from(pdfBytes));
     }
     catch (e) {
-        console.error(`Error generating ${req.body.formId}:`, e);
-        res.status(500).json({ error: e.message });
+        if (e instanceof z.ZodError)
+            return res.status(400).json({ error: "Invalid form generation request", details: e.errors });
+        logger.error(`Error generating ${req.body.formId}:`, e.message);
+        res.status(500).json({ error: "Failed to generate form" });
     }
 });
 router.get("/templates/:name/download", async (req, res) => {

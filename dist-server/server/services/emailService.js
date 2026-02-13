@@ -4,6 +4,7 @@ import { CommunicationService } from "./communicationService.js";
 import { ai } from "./ai.js";
 import { ConfigService } from "./configService.js";
 import "dotenv/config";
+import { logger } from "../lib/logger.js";
 export class EmailService {
     /**
      * Generates a unique handle for an estate if none exists.
@@ -73,7 +74,7 @@ Which asset ID does this email most likely belong to? Return ONLY the ID. If non
                 }
             }
             catch (e) {
-                console.error("AI Triage Error:", e);
+                logger.error("AI Triage Error:", e);
                 // Fallback: pick first if only one, or leave blank
                 if (estate.assets.length === 1)
                     assetId = estate.assets[0].id;
@@ -125,7 +126,7 @@ Which asset ID does this email most likely belong to? Return ONLY the ID. If non
         }
         // SIMULATED MODE: Log and succeed if no API key
         if (!apiKey) {
-            console.log(`[EmailService] SIMULATED SEND - To: ${params.to}, From: ${sender}, Subject: ${params.subject}${ccEmail ? ` (CC: ${ccEmail})` : ''}`);
+            logger.info(`[EmailService] SIMULATED SEND - To: ${params.to}, Subject: ${params.subject}`);
             // Auto-log the outbound communication
             await CommunicationService.create(estate.userId, {
                 estateId: params.estateId,
@@ -150,7 +151,7 @@ Which asset ID does this email most likely belong to? Return ONLY the ID. If non
         if (ccEmail) {
             formData.append("cc", ccEmail);
         }
-        console.log(`[EmailService] Sending email to ${params.to} from ${sender}${ccEmail ? ` (CC: ${ccEmail})` : ''}`);
+        logger.info(`[EmailService] Sending email to ${params.to}`);
         const baseUrl = process.env.MAILGUN_BASE_URL || "https://api.mailgun.net";
         const response = await fetch(`${baseUrl}/v3/${domain}/messages`, {
             method: "POST",
@@ -161,8 +162,8 @@ Which asset ID does this email most likely belong to? Return ONLY the ID. If non
         });
         if (!response.ok) {
             const error = await response.text();
-            console.error("[EmailService] Mailgun Error:", error);
-            throw new Error(`Failed to send email: ${error}`);
+            logger.error("[EmailService] Mailgun Error:", error);
+            throw new Error(`Failed to send email`);
         }
         // Auto-log the outbound communication
         await CommunicationService.create(estate.userId, {
@@ -187,18 +188,11 @@ Which asset ID does this email most likely belong to? Return ONLY the ID. If non
         const appUrl = (await this.getAppUrl()).replace(/\/$/, "");
         const inviteUrl = `${appUrl}/invite/${data.token}`;
         const apiKey = await ConfigService.get("MAILGUN_API_KEY");
-        console.log(`[EmailService] Attempting to send invite to: ${to}`);
-        console.log(`[EmailService] Using domain: ${domain}`);
-        console.log(`[EmailService] API Key Found: ${!!apiKey}`);
+        logger.debug(`[EmailService] Attempting to send invite to: ${to}`);
+        logger.debug(`[EmailService] API Key Found: ${!!apiKey}`);
         // SIMULATED MODE: Log invitation details if no API key
         if (!apiKey) {
-            console.log("-----------------------------------------");
-            console.log(`📧 [SIMULATED] COLLABORATION INVITE for ${to}`);
-            console.log(`👤 Inviter: ${data.inviterName}`);
-            console.log(`🏛️  Estate: ${data.estateName}`);
-            console.log(`🔗 Invite Link: ${inviteUrl}`);
-            console.log(`⏰ Expires: 7 days`);
-            console.log("-----------------------------------------");
+            logger.info(`📧 [SIMULATED] COLLABORATION INVITE for ${to}`);
             return;
         }
         const encodedKey = Buffer.from(`api:${apiKey}`).toString("base64");
@@ -207,7 +201,7 @@ Which asset ID does this email most likely belong to? Return ONLY the ID. If non
         formData.append("to", to);
         formData.append("subject", `Invitation to collaborate on ${data.estateName}`);
         formData.append("text", `${data.inviterName} has invited you to collaborate on the estate of ${data.estateName} on ExpectedEstate.\n\nClick the link below to accept the invitation:\n${inviteUrl}\n\nThis invitation will expire in 7 days.`);
-        console.log(`[EmailService] Sending invite to ${to}`);
+        logger.info(`[EmailService] Sending invite to ${to}`);
         const baseUrl = process.env.MAILGUN_BASE_URL || "https://api.mailgun.net";
         const response = await fetch(`${baseUrl}/v3/${domain}/messages`, {
             method: "POST",
@@ -219,22 +213,18 @@ Which asset ID does this email most likely belong to? Return ONLY the ID. If non
         console.log(`[EmailService] Mailgun Response Status: ${response.status}`);
         if (!response.ok) {
             const error = await response.text();
-            console.error("[EmailService] Invitation Email Error:", error);
-            throw new Error(`Failed to send invitation email: ${error}`);
+            logger.error("[EmailService] Invitation Email Error:", error);
+            throw new Error(`Failed to send invitation email`);
         }
-        console.log(`[EmailService] Invitation email successfully sent to ${to}`);
+        logger.info(`[EmailService] Invitation email successfully sent to ${to}`);
     }
     static async sendPasswordResetEmail(to, resetLink) {
         const domain = await ConfigService.get("MAILGUN_DOMAIN") || "expectedestate.com";
         const apiKey = await ConfigService.get("MAILGUN_API_KEY");
-        console.log(`[EmailService] Attempting to send reset email to: ${to}`);
-        console.log(`[EmailService] Using domain: ${domain}`);
-        console.log(`[EmailService] API Key Found: ${!!apiKey}`);
+        logger.debug(`[EmailService] Attempting to send reset email to: ${to}`);
+        logger.debug(`[EmailService] API Key Found: ${!!apiKey}`);
         if (!apiKey) {
-            console.log("-----------------------------------------");
-            console.log(`📧 [SIMULATED] PASSWORD RESET for ${to}`);
-            console.log(`🔗 Link: ${resetLink}`);
-            console.log("-----------------------------------------");
+            logger.info(`📧 [SIMULATED] PASSWORD RESET for ${to}`);
             return;
         }
         const encodedKey = Buffer.from(`api:${apiKey}`).toString("base64");
@@ -256,9 +246,43 @@ Which asset ID does this email most likely belong to? Return ONLY the ID. If non
         console.log(`[EmailService] Mailgun Response Status: ${response.status}`);
         if (!response.ok) {
             const error = await response.text();
-            console.error("[EmailService] Password Reset Email Error:", error);
-            throw new Error(`Failed to send reset email: ${error}`);
+            logger.error("[EmailService] Password Reset Email Error:", error);
+            throw new Error(`Failed to send reset email`);
         }
-        console.log(`[EmailService] Reset email successfully accepted by Mailgun for ${to}`);
+        logger.info(`[EmailService] Reset email successfully accepted by Mailgun for ${to}`);
+    }
+    /**
+     * Sends an internal notification email (support requests, feedback, etc.)
+     */
+    static async sendInternalNotification(subject, body) {
+        const to = await ConfigService.get("SUPPORT_EMAIL") || "expected.estate@gmail.com";
+        const domain = await ConfigService.get("MAILGUN_DOMAIN") || "expectedestate.com";
+        const apiKey = await ConfigService.get("MAILGUN_API_KEY");
+        const sender = `ExpectedEstate System <system@${domain}>`;
+        if (!apiKey) {
+            logger.info(`📧 [SIMULATED INTERNAL] To: ${to}, Subject: ${subject}`);
+            return { status: "sent", simulated: true };
+        }
+        const encodedKey = Buffer.from(`api:${apiKey}`).toString("base64");
+        const formData = new URLSearchParams();
+        formData.append("from", sender);
+        formData.append("to", to);
+        formData.append("subject", subject);
+        formData.append("text", body);
+        const baseUrl = process.env.MAILGUN_BASE_URL || "https://api.mailgun.net";
+        const response = await fetch(`${baseUrl}/v3/${domain}/messages`, {
+            method: "POST",
+            headers: {
+                "Authorization": `Basic ${encodedKey}`
+            },
+            body: formData
+        });
+        if (!response.ok) {
+            const error = await response.text();
+            logger.error("[EmailService] Internal Notification Error:", error);
+            throw new Error(`Failed to send internal notification`);
+        }
+        logger.info(`[EmailService] Internal notification sent: ${subject}`);
+        return { status: "sent" };
     }
 }

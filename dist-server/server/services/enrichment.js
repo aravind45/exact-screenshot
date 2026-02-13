@@ -1,5 +1,6 @@
 import FirecrawlApp from "@mendable/firecrawl-js";
 import { extractContactInfo } from "./ai.js";
+import { logger } from "../lib/logger.js";
 let app = null;
 export async function enrichInstitutionData(institutionName) {
     try {
@@ -16,12 +17,12 @@ export async function enrichInstitutionData(institutionName) {
             scrapeOptions: { formats: ['markdown'] }
         });
         // Debug response structure
-        console.log("Firecrawl Response Keys:", Object.keys(searchResults || {}));
+        logger.debug("Firecrawl Response Keys:", Object.keys(searchResults || {}));
         // Handle different response formats (SDK v0 vs v1/Raw)
         // @ts-ignore
         const data = searchResults.data || searchResults.web || [];
         if (!data || data.length === 0) {
-            console.log("Firecrawl: No search results found.");
+            logger.info("Firecrawl: No search results found.");
             return null;
         }
         // Combine content from top 3 results
@@ -37,7 +38,7 @@ export async function enrichInstitutionData(institutionName) {
             return { sourceUrl: mainUrl, extracted: null };
         }
         const extracted = await extractContactInfo(combinedContent);
-        console.log("Extracted Data:", extracted);
+        logger.debug("Extracted Data (sanitized check)");
         return {
             sourceUrl: mainUrl,
             extracted,
@@ -45,7 +46,7 @@ export async function enrichInstitutionData(institutionName) {
         };
     }
     catch (error) {
-        console.error("Firecrawl Error:", error);
+        logger.error("Firecrawl Error:", error);
         return null; // Don't crash the server
     }
 }

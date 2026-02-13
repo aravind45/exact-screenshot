@@ -1,67 +1,167 @@
-import { Router } from "express";
+import express from "express";
+import { OrchestratorService } from "../services/orchestratorService.js";
 import { prisma } from "../db.js";
-import { AgentService } from "../services/agentService.js";
-import { graph } from "../services/agent/graph.js";
-import { HumanMessage } from "@langchain/core/messages";
-const router = Router();
+import { z } from "zod";
+import { logger } from "../lib/logger.js";
+const router = express.Router();
+// Validation schemas
+const fillFormSchema = z.object({
+    formType: z.enum(['DE-111', 'DE-221', 'DE-150', 'DE-160'])
+});
 /**
- * POST /api/agent/chat
- *
- * Main endpoint for interacting with the Estate Settlement Agent.
+ * Form-Filling Agent Endpoint
+ * POST /api/agents/estates/:estateId/forms/fill
  */
-router.post("/chat", async (req, res) => {
-    const { message, estateId, phase, history = [] } = req.body;
+router.post("/estates/:estateId/forms/fill", async (req, res) => {
     try {
-        const input = {
-            messages: [
-                ...history.map((m) => m.role === "user" ? new HumanMessage(m.content) : m),
-                new HumanMessage(message)
-            ],
-            estateId,
-            phase: phase || "Initial Discovery",
-        };
-        const config = { configurable: { thread_id: estateId } };
-        const result = await graph.invoke(input, config);
-        const lastMessage = result.messages[result.messages.length - 1];
-        res.json({
-            reply: lastMessage.content,
-            history: result.messages,
+        const validated = fillFormSchema.parse(req.body);
+        const { formType } = validated;
+        // Get estate data
+        const estate = await prisma.estate.findUnique({
+            where: { id: req.params.estateId },
+            include: {
+                user: true,
+                heirs: true,
+                assets: true
+            }
         });
+        if (!estate) {
+            return res.status(404).json({ error: "Estate not found" });
+        }
+        // Check authorization
+        if (estate.userId !== req.user.id) {
+            return res.status(403).json({ error: "Not authorized to access this estate" });
+        }
+        // Run Form-Filling Agent
+        const result = await OrchestratorService.fillForm(estate, formType);
+        res.json(result);
     }
     catch (error) {
-        console.error("Agent Route Error:", error);
-        res.status(500).json({ error: error.message });
+        if (error instanceof z.ZodError) {
+            return res.status(400).json({ error: "Invalid form type", details: error.errors });
+        }
+        logger.error("Form-filling agent error:", error.message);
+        res.status(500).json({ error: "Failed to fill form" });
     }
 });
 /**
- * GET /api/agent/insights
- *
- * Returns proactive insights for the current estate.
+ * Checklist Agent Endpoint
+ * GET /api/agents/estates/:estateId/checklist
  */
-router.get("/insights", async (req, res) => {
+router.get("/estates/:estateId/checklist", async (req, res) => {
     try {
-        const estate = await prisma.estate.findFirst({
-            where: { userId: req.user.id }
+        // Get estate data
+        const estate = await prisma.estate.findUnique({
+            where: { id: req.params.estateId },
+            include: {
+                user: true,
+                heirs: true,
+                assets: true,
+                liabilities: true
+            }
         });
         if (!estate) {
-            return res.json([]);
+            return res.status(404).json({ error: "Estate not found" });
         }
-        const insights = await AgentService.runWatchdogScan(estate.id);
-        // Add a generic welcome insight if empty
-        if (insights.length === 0) {
-            insights.push({
-                assetId: "system",
-                type: "WELCOME",
-                title: "Agent Ready",
-                message: "I am monitoring your estate for deadlines and delays. I'll post insights here as I find them.",
-                priority: "low"
-            });
+        // Check authorization
+        if (estate.userId !== req.user.id) {
+            return res.status(403).json({ error: "Not authorized to access this estate" });
         }
-        res.json(insights);
+        // Get user context (current phase, progress)
+        const userContext = {
+            currentPhase: req.query.phase || 'discovery',
+            completedTasks: req.query.completed ? JSON.parse(req.query.completed) : []
+        };
+        // Run Checklist Agent
+        const result = await OrchestratorService.createChecklist(estate, userContext);
+        res.json(result);
     }
     catch (error) {
-        console.error("Agent Insights Error:", error);
-        res.status(500).json({ error: error.message });
+        logger.error("Checklist agent error:", error.message);
+        res.status(500).json({ error: "Failed to generate checklist" });
+    }
+});
+/**
+ * Timeline Agent Endpoint
+ * GET /api/agents/estates/:estateId/timeline
+ */
+router.get("/estates/:estateId/timeline", async (req, res) => {
+    try {
+        // Get estate data
+        const estate = await prisma.estate.findUnique({
+            where: { id: req.params.estateId },
+            include: {
+                user: true,
+                deadlines: true
+            }
+        });
+        if (!estate) {
+            return res.status(404).json({ error: "Estate not found" });
+        }
+        // Check authorization
+        if (estate.userId !== req.user.id) {
+            return res.status(403).json({ error: "Not authorized to access this estate" });
+        }
+        // Run Timeline Agent
+        const result = await OrchestratorService.createTimeline(estate);
+        res.json(result);
+    }
+    catch (error) {
+        logger.error("Timeline agent error:", error.message);
+        res.status(500).json({ error: "Failed to generate timeline" });
+    }
+});
+/**
+ * Get all available forms for an estate
+ * GET /api/agents/estates/:estateId/forms/available
+ */
+router.get("/estates/:estateId/forms/available", async (req, res) => {
+    try {
+        const estate = await prisma.estate.findUnique({
+            where: { id: req.params.estateId }
+        });
+        if (!estate) {
+            return res.status(404).json({ error: "Estate not found" });
+        }
+        // Check authorization
+        if (estate.userId !== req.user.id) {
+            return res.status(403).json({ error: "Not authorized to access this estate" });
+        }
+        // Determine which forms are relevant based on estate type
+        const availableForms = [];
+        if (estate.estateType === 'FULL_PROBATE') {
+            availableForms.push({
+                code: 'DE-111',
+                name: 'Petition for Probate',
+                description: 'Start the probate process',
+                required: true
+            });
+            availableForms.push({
+                code: 'DE-150',
+                name: 'Letters of Administration',
+                description: 'Court authority to act as executor',
+                required: true
+            });
+            availableForms.push({
+                code: 'DE-160',
+                name: 'Inventory and Appraisal',
+                description: 'List all estate assets',
+                required: true
+            });
+        }
+        if (estate.authorityType === 'SPOUSAL_PETITION') {
+            availableForms.push({
+                code: 'DE-221',
+                name: 'Spousal Property Petition',
+                description: 'Transfer property to surviving spouse',
+                required: true
+            });
+        }
+        res.json({ forms: availableForms });
+    }
+    catch (error) {
+        logger.error("Available forms error:", error.message);
+        res.status(500).json({ error: "Failed to get available forms" });
     }
 });
 export default router;

@@ -2,7 +2,19 @@ import { Router } from "express";
 import { prisma } from "../db.js";
 import { AuditService } from "../services/auditService.js";
 import { CollaborationService } from "../services/collaborationService.js";
+import { z } from "zod";
+import { logger } from "../lib/logger.js";
+import { requireSubscription } from "../middleware/subscription.js";
+const heirSchema = z.object({
+    name: z.string().min(1),
+    relationship: z.string().min(1),
+    email: z.string().email().optional().or(z.literal("")),
+    phone: z.string().optional(),
+    address: z.string().optional(),
+    isAdult: z.boolean().optional()
+});
 const router = Router();
+router.use(requireSubscription);
 // Middleware to get estateId (assumes user has one estate for now)
 const getEstateId = async (req) => {
     const estate = await prisma.estate.findFirst({ where: { userId: req.user.id } });
@@ -33,7 +45,8 @@ router.get("/", async (req, res) => {
         res.json(heirsWithStatus);
     }
     catch (e) {
-        res.status(500).json({ error: e.message });
+        logger.error("Error fetching heirs:", e.message);
+        res.status(500).json({ error: "Failed to fetch heirs" });
     }
 });
 // POST /api/heirs
@@ -42,7 +55,8 @@ router.post("/", async (req, res) => {
         const estateId = await getEstateId(req);
         if (!estateId)
             return res.status(404).json({ error: "Estate not found" });
-        const { name, relationship, email, phone, address, isAdult } = req.body;
+        const validated = heirSchema.parse(req.body);
+        const { name, relationship, email, phone, address, isAdult } = validated;
         const heir = await prisma.heir.create({
             data: {
                 estateId,
@@ -59,29 +73,28 @@ router.post("/", async (req, res) => {
         res.json(heir);
     }
     catch (e) {
-        res.status(500).json({ error: e.message });
+        if (e instanceof z.ZodError)
+            return res.status(400).json({ error: "Validation failed", details: e.errors });
+        logger.error("Error creating heir:", e.message);
+        res.status(500).json({ error: "Failed to create heir" });
     }
 });
 // PUT /api/heirs/:id
 router.put("/:id", async (req, res) => {
     try {
         const { id } = req.params;
-        const { name, relationship, email, phone, address, isAdult } = req.body;
+        const validated = heirSchema.partial().parse(req.body);
         const heir = await prisma.heir.update({
             where: { id },
-            data: {
-                name,
-                relationship,
-                email,
-                phone,
-                address,
-                isAdult
-            }
+            data: validated
         });
         res.json(heir);
     }
     catch (e) {
-        res.status(500).json({ error: e.message });
+        if (e instanceof z.ZodError)
+            return res.status(400).json({ error: "Validation failed", details: e.errors });
+        logger.error("Error updating heir:", e.message);
+        res.status(500).json({ error: "Failed to update heir" });
     }
 });
 // DELETE /api/heirs/:id

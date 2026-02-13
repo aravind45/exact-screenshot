@@ -3,10 +3,47 @@ import { prisma } from "../db.js";
 import { FormSeedingService } from "../services/formSeedingService.js";
 import { StripeService } from "../services/stripeService.js";
 import { KnowledgeService } from "../services/knowledgeService.js";
+import { z } from "zod";
+import { logger } from "../lib/logger.js";
 const router = Router();
+const AUTHORIZED_ADMINS = ['aravind45@gmail.com'];
+// Schemas
+const institutionSchema = z.object({
+    name: z.string().min(1),
+    phone: z.string().optional(),
+    email: z.string().email().optional().or(z.literal("")),
+    fax: z.string().optional(),
+    website: z.string().url().optional().or(z.literal("")),
+    address: z.string().optional(),
+    logoUrl: z.string().url().optional().or(z.literal(""))
+});
+const settingsSchema = z.object({
+    key: z.string().min(1),
+    value: z.any(),
+    isSecret: z.boolean().optional()
+});
+const waiveFeesSchema = z.object({
+    userId: z.string().min(1),
+    notes: z.string().optional()
+});
+const refundSchema = z.object({
+    transactionId: z.string().min(1),
+    notes: z.string().optional()
+});
+const ingestSchema = z.object({
+    text: z.string().min(1),
+    source: z.string().min(1)
+});
+const templateMetadataSchema = z.object({
+    name: z.string().min(1),
+    state: z.string().optional().default("CA"),
+    category: z.string().optional().default("General"),
+    title: z.string().optional(),
+    description: z.string().optional(),
+    icon: z.string().optional()
+});
 // Admin Middleware check
 const isAdmin = (req, res, next) => {
-    const AUTHORIZED_ADMINS = ['aravind45@gmail.com'];
     if (!req.user || !AUTHORIZED_ADMINS.includes(req.user.email)) {
         return res.status(403).json({ error: "Admin access restricted to authorized personnel" });
     }
@@ -18,25 +55,37 @@ router.get("/stats", isAdmin, async (req, res) => {
         const assetCount = await prisma.asset.count();
         const totalValue = await prisma.asset.aggregate({ _sum: { value: true } });
         const institutionCount = await prisma.institution.count();
+        const leadCount = await prisma.marketingEvent.groupBy({
+            by: ['email'],
+            where: { email: { not: null } }
+        });
+        const eventCount = await prisma.marketingEvent.count();
         res.json({
             users: userCount,
             assets: assetCount,
             totalValue: totalValue._sum.value || 0,
-            institutions: institutionCount
+            institutions: institutionCount,
+            leads: leadCount.length,
+            totalEvents: eventCount
         });
     }
     catch (error) {
+        logger.error("Failed to fetch admin stats:", error.message);
         res.status(500).json({ error: "Failed to fetch stats" });
     }
 });
 router.get("/users", isAdmin, async (req, res) => {
     try {
         const users = await prisma.user.findMany({
-            include: { _count: { select: { estates: true, communications: true } } }
+            include: {
+                _count: { select: { estates: true, communications: true } },
+                estates: { select: { id: true, name: true } }
+            }
         });
         res.json(users);
     }
     catch (error) {
+        logger.error("Failed to fetch admin users:", error.message);
         res.status(500).json({ error: "Failed to fetch users" });
     }
 });
@@ -49,19 +98,14 @@ router.get("/templates", isAdmin, async (req, res) => {
         res.json(templates);
     }
     catch (e) {
+        logger.error("Failed to list admin templates:", e.message);
         res.status(500).json({ error: "Failed to list templates" });
     }
 });
 router.post("/templates", isAdmin, async (req, res) => {
     try {
-        const name = req.query.name;
-        const state = req.query.state || "CA";
-        const category = req.query.category || "General";
-        const title = req.query.title;
-        const description = req.query.description;
-        const icon = req.query.icon;
-        if (!name)
-            return res.status(400).json({ error: "Name query param required" });
+        const validated = templateMetadataSchema.parse(req.query);
+        const { name, state, category, title, description, icon } = validated;
         // req.body is Buffer because of express.raw
         if (!req.body || !Buffer.isBuffer(req.body)) {
             return res.status(400).json({ error: "Binary PDF body required" });
@@ -74,7 +118,9 @@ router.post("/templates", isAdmin, async (req, res) => {
         res.json({ success: true, id: template.id });
     }
     catch (e) {
-        console.error("Upload error:", e);
+        if (e instanceof z.ZodError)
+            return res.status(400).json({ error: "Invalid template metadata", details: e.errors });
+        logger.error("Upload error:", e.message);
         res.status(500).json({ error: "Failed to upload template" });
     }
 });
@@ -96,36 +142,49 @@ router.get("/institutions", isAdmin, async (req, res) => {
         res.json(institutions);
     }
     catch (error) {
+        logger.error("Failed to fetch institutions:", error.message);
         res.status(500).json({ error: "Failed to fetch institutions" });
     }
 });
 router.post("/institutions", isAdmin, async (req, res) => {
     try {
-        const { name, phone, email, fax, website, address, logoUrl } = req.body;
-        if (!name)
-            return res.status(400).json({ error: "Institution name required" });
+        const validated = institutionSchema.parse(req.body);
         const institution = await prisma.institution.create({
-            data: { name, phone, email, fax, website, address, logoUrl }
+            data: {
+                name: validated.name,
+                phone: validated.phone,
+                email: validated.email,
+                fax: validated.fax,
+                website: validated.website,
+                address: validated.address,
+                logoUrl: validated.logoUrl
+            }
         });
         res.status(201).json(institution);
     }
     catch (error) {
+        if (error instanceof z.ZodError)
+            return res.status(400).json({ error: "Invalid institution data", details: error.errors });
         if (error.code === 'P2002') {
             return res.status(409).json({ error: "Institution already exists" });
         }
+        logger.error("Failed to create institution:", error.message);
         res.status(500).json({ error: "Failed to create institution" });
     }
 });
 router.put("/institutions/:id", isAdmin, async (req, res) => {
     try {
-        const { name, phone, email, fax, website, address, logoUrl } = req.body;
+        const validated = institutionSchema.partial().parse(req.body);
         const institution = await prisma.institution.update({
             where: { id: req.params.id },
-            data: { name, phone, email, fax, website, address, logoUrl }
+            data: validated
         });
         res.json(institution);
     }
     catch (error) {
+        if (error instanceof z.ZodError)
+            return res.status(400).json({ error: "Invalid institution update", details: error.errors });
+        logger.error("Failed to update institution:", error.message);
         res.status(500).json({ error: "Failed to update institution" });
     }
 });
@@ -135,6 +194,7 @@ router.delete("/institutions/:id", isAdmin, async (req, res) => {
         res.json({ success: true });
     }
     catch (error) {
+        logger.error("Failed to delete institution:", error.message);
         res.status(500).json({ error: "Failed to delete institution" });
     }
 });
@@ -152,13 +212,15 @@ router.get("/settings", isAdmin, async (req, res) => {
 router.post("/settings", isAdmin, async (req, res) => {
     try {
         const { ConfigService } = await import("../services/configService.js");
-        const { key, value, isSecret } = req.body;
-        if (!key)
-            return res.status(400).json({ error: "Key required" });
+        const validated = settingsSchema.parse(req.body);
+        const { key, value, isSecret } = validated;
         await ConfigService.set(key, value, isSecret);
         res.json({ success: true });
     }
     catch (error) {
+        if (error instanceof z.ZodError)
+            return res.status(400).json({ error: "Invalid settings data", details: error.errors });
+        logger.error("Failed to save setting:", error.message);
         res.status(500).json({ error: "Failed to save setting" });
     }
 });
@@ -279,7 +341,7 @@ router.get("/user-progress", isAdmin, async (req, res) => {
         });
     }
     catch (error) {
-        console.error('Error fetching user progress:', error);
+        logger.error('Error fetching user progress:', error.message);
         res.status(500).json({ error: 'Failed to fetch user progress' });
     }
 });
@@ -311,34 +373,46 @@ router.get("/transactions", isAdmin, async (req, res) => {
         res.json(transactions);
     }
     catch (error) {
-        console.error('❌ Failed to fetch transactions:', error);
+        logger.error('Failed to fetch transactions:', error.message);
         res.status(500).json({ error: "Failed to fetch transactions" });
     }
 });
 router.post("/waive-fees", isAdmin, async (req, res) => {
     try {
-        const { userId, notes } = req.body;
-        if (!userId)
-            return res.status(400).json({ error: "userId required" });
+        const validated = waiveFeesSchema.parse(req.body);
+        let { userId, notes } = validated;
+        // Validating if the input looks like an email
+        if (userId.includes('@')) {
+            const user = await prisma.user.findUnique({
+                where: { email: userId }
+            });
+            if (!user) {
+                return res.status(404).json({ error: "User not found with that email" });
+            }
+            userId = user.id;
+        }
         await StripeService.waiveFees(userId, notes || 'Admin waived fees');
         res.json({ success: true, message: 'Fees waived successfully' });
     }
     catch (error) {
-        console.error('❌ Waive fees error:', error);
-        res.status(500).json({ error: error.message });
+        if (error instanceof z.ZodError)
+            return res.status(400).json({ error: "Invalid waive-fees request", details: error.errors });
+        logger.error('Waive fees error:', error.message);
+        res.status(500).json({ error: "Failed to waive fees" });
     }
 });
 router.post("/refund", isAdmin, async (req, res) => {
     try {
-        const { transactionId, notes } = req.body;
-        if (!transactionId)
-            return res.status(400).json({ error: "transactionId required" });
+        const validated = refundSchema.parse(req.body);
+        const { transactionId, notes } = validated;
         const refund = await StripeService.issueRefund(transactionId, notes || 'Admin issued refund');
         res.json({ success: true, refund });
     }
     catch (error) {
-        console.error('❌ Refund error:', error);
-        res.status(500).json({ error: error.message });
+        if (error instanceof z.ZodError)
+            return res.status(400).json({ error: "Invalid refund request", details: error.errors });
+        logger.error('Refund error:', error.message);
+        res.status(500).json({ error: "Failed to issue refund" });
     }
 });
 // Knowledge Base Management
@@ -364,14 +438,16 @@ router.get("/knowledge/chunks", isAdmin, async (req, res) => {
 });
 router.post("/knowledge/ingest", isAdmin, async (req, res) => {
     try {
-        const { text, source } = req.body;
-        if (!text || !source)
-            return res.status(400).json({ error: "Text and source required" });
+        const validated = ingestSchema.parse(req.body);
+        const { text, source } = validated;
         const result = await KnowledgeService.ingestText(text, source);
         res.json(result);
     }
     catch (error) {
-        res.status(500).json({ error: error.message });
+        if (error instanceof z.ZodError)
+            return res.status(400).json({ error: "Invalid ingestion request", details: error.errors });
+        logger.error("Ingestion error:", error.message);
+        res.status(500).json({ error: "Failed to ingest text" });
     }
 });
 router.delete("/knowledge/chunks/:id", isAdmin, async (req, res) => {
@@ -425,8 +501,22 @@ router.put("/estates/:id/reset", isAdmin, async (req, res) => {
         res.json({ success: true, estate: updatedEstate });
     }
     catch (error) {
-        console.error('❌ Estate reset error:', error);
+        logger.error('Estate reset error:', error.message);
         res.status(500).json({ error: "Failed to reset estate data" });
+    }
+});
+// Marketing & Leads Management
+router.get("/marketing/events", isAdmin, async (req, res) => {
+    try {
+        const events = await prisma.marketingEvent.findMany({
+            orderBy: { createdAt: 'desc' },
+            take: 500 // Limit to recent 500 events
+        });
+        res.json(events);
+    }
+    catch (error) {
+        logger.error("Failed to fetch marketing events:", error.message);
+        res.status(500).json({ error: "Failed to fetch marketing events" });
     }
 });
 export default router;

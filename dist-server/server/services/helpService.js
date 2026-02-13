@@ -1,5 +1,6 @@
 import { prisma } from "../db.js";
 import { AuditService } from "../services/auditService.js";
+import { logger } from "../lib/logger.js";
 export class HelpService {
     /**
      * Log that an executor referenced a specific help topic for defensibility
@@ -50,7 +51,7 @@ export class HelpService {
         // 2. Relay via Email (Simulated/Actual via EmailService)
         // We import EmailService dynamically to avoid circular dependencies if any
         const { EmailService } = await import("./emailService.js");
-        const contactEmail = "expectedestate@gmail.com";
+        const contactEmail = process.env.SUPPORT_EMAIL || "expected.estate@gmail.com";
         const emailBody = `
 SUPPORT REQUEST
 ---------------
@@ -62,18 +63,12 @@ Subject: ${subject}
 Message:
 ${message}
         `;
-        // If we have an estateId, we can attach it to a 'General' asset if exists, 
-        // or just send as a system email. Since sendEmail requires assetId, 
-        // we might need a more generic sendSystemEmail or mock it.
-        // For now, let's log to console as well.
-        console.log(`[HelpService] Support Message Relay to ${contactEmail}`);
-        // We'll use a simplified send if we don't have an asset context
         try {
-            // Note: In a real scenario, we'd have a sendInternalNotification method
-            console.log(`Relaying to support: ${subject}`);
+            await EmailService.sendInternalNotification(`Support: ${subject}`, emailBody);
+            logger.info(`[HelpService] Support Message Relay to ${contactEmail}`);
         }
         catch (e) {
-            console.error("Failed to relay support email", e);
+            logger.error("Failed to relay support email", e.message);
         }
         return { success: true };
     }
@@ -84,7 +79,7 @@ ${message}
         const user = await prisma.user.findUnique({ where: { id: userId } });
         if (!user)
             throw new Error("User not found");
-        const contactEmail = "expectedestate@gmail.com";
+        const contactEmail = process.env.SUPPORT_EMAIL || "expected.estate@gmail.com";
         const emailBody = `
 USER FEEDBACK
 -------------
@@ -92,8 +87,15 @@ From: ${user.fullName} (${user.email})
 Rating: ${rating}/5
 Comment: ${comment}
         `;
-        console.log(`[HelpService] Feedback Received: ${rating}/5 from ${user.email}`);
+        logger.info(`[HelpService] Feedback Received: ${rating}/5 from ${user.email}`);
         // Simple relay
+        const { EmailService } = await import("./emailService.js");
+        try {
+            await EmailService.sendInternalNotification(`Feedback: ${rating}/5 from ${user.fullName}`, emailBody);
+        }
+        catch (e) {
+            logger.error("Failed to relay feedback email", e.message);
+        }
         return { success: true };
     }
 }

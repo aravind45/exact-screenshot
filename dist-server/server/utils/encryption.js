@@ -73,3 +73,37 @@ export const isEncrypted = (text) => {
         parts[0].length === IV_LENGTH * 2 &&
         parts[1].length === TAG_LENGTH * 2;
 };
+// Binary / Buffer Encryption Support
+export const encryptBuffer = (buffer) => {
+    if (!buffer)
+        return buffer;
+    const iv = crypto.randomBytes(IV_LENGTH);
+    const cipher = crypto.createCipheriv(ALGORITHM, KEY, iv);
+    const encrypted = Buffer.concat([cipher.update(buffer), cipher.final()]);
+    const authTag = cipher.getAuthTag();
+    // Format: IV (16 bytes) + AuthTag (16 bytes) + EncryptedData
+    return Buffer.concat([iv, authTag, encrypted]);
+};
+export const decryptBuffer = (buffer) => {
+    if (!buffer)
+        return buffer;
+    // Sanity check length: needs at least IV + Tag = 32 bytes
+    if (buffer.length < IV_LENGTH + TAG_LENGTH) {
+        // Not encrypted or corrupted
+        return buffer;
+    }
+    try {
+        const iv = buffer.subarray(0, IV_LENGTH);
+        const authTag = buffer.subarray(IV_LENGTH, IV_LENGTH + TAG_LENGTH);
+        const encrypted = buffer.subarray(IV_LENGTH + TAG_LENGTH);
+        const decipher = crypto.createDecipheriv(ALGORITHM, KEY, iv);
+        decipher.setAuthTag(authTag);
+        return Buffer.concat([decipher.update(encrypted), decipher.final()]);
+    }
+    catch (error) {
+        // If decryption fails (e.g. invalid tag, wrong key, or wasn't encrypt), return original
+        // This allows gradual migration if we have mixed content
+        // console.error("Buffer decryption failed (returning original):", error);
+        return buffer;
+    }
+};

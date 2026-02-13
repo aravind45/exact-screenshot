@@ -2,48 +2,59 @@ import { Router } from "express";
 import { CollaborationService } from "../services/collaborationService.js";
 import { StripeService } from "../services/stripeService.js";
 import { prisma } from "../db.js";
+import { z } from "zod";
+import { logger } from "../lib/logger.js";
+const invitationSchema = z.object({
+    estateId: z.string().min(1),
+    email: z.string().email(),
+    role: z.enum(["VIEWER", "EDITOR", "ADMIN"])
+});
+const acceptInviteSchema = z.object({
+    token: z.string().min(1)
+});
 const router = Router();
 // Create a Stripe checkout session for an extra collaborator seat ($9.99)
 router.post("/extra-seat-session", async (req, res) => {
     try {
-        const { estateId, email, role } = req.body;
-        if (!estateId || !email || !role) {
-            return res.status(400).json({ error: "Missing required fields: estateId, email, role" });
-        }
+        const validated = invitationSchema.parse(req.body);
+        const { estateId, email, role } = validated;
         const session = await StripeService.createExtraSeatCheckoutSession(req.user.id, estateId, email, role);
         res.json(session);
     }
     catch (error) {
-        console.error("Extra Seat Session Error:", error);
-        res.status(500).json({ error: error.message });
+        if (error instanceof z.ZodError)
+            return res.status(400).json({ error: "Invalid seat session request", details: error.errors });
+        logger.error("Extra Seat Session Error:", error.message);
+        res.status(500).json({ error: "Failed to create seat session" });
     }
 });
 // Send an invitation
 router.post("/invitations", async (req, res) => {
     try {
-        const { estateId, email, role } = req.body;
-        if (!estateId || !email || !role) {
-            return res.status(400).json({ error: "Missing required fields: estateId, email, role" });
-        }
+        const validated = invitationSchema.parse(req.body);
+        const { estateId, email, role } = validated;
         const invitation = await CollaborationService.invite(req.user.id, estateId, email, role);
         res.status(201).json(invitation);
     }
     catch (error) {
-        console.error("Invite Error:", error);
-        res.status(500).json({ error: error.message });
+        if (error instanceof z.ZodError)
+            return res.status(400).json({ error: "Invalid invitation request", details: error.errors });
+        logger.error("Invite Error:", error.message);
+        res.status(500).json({ error: "Failed to send invitation" });
     }
 });
 // Accept an invitation
 router.post("/invitations/accept", async (req, res) => {
     try {
-        const { token } = req.body;
-        if (!token)
-            return res.status(400).json({ error: "Token is required" });
+        const validated = acceptInviteSchema.parse(req.body);
+        const { token } = validated;
         const grant = await CollaborationService.acceptInvitation(req.user.id, token);
         res.json(grant);
     }
     catch (error) {
-        console.error("Accept Invite Error:", error);
+        if (error instanceof z.ZodError)
+            return res.status(400).json({ error: "Invalid accept request", details: error.errors });
+        logger.error("Accept Invite Error:", error.message);
         res.status(400).json({ error: error.message });
     }
 });
@@ -62,6 +73,7 @@ router.get("/my-estates", async (req, res) => {
         res.json(allEstates);
     }
     catch (error) {
+        logger.error("Failed to fetch my estates:", error.message);
         res.status(500).json({ error: "Failed to fetch estates" });
     }
 });
@@ -78,6 +90,7 @@ router.get("/:estateId/collaborators", async (req, res) => {
         res.json({ grants, invitations });
     }
     catch (error) {
+        logger.error("Failed to fetch collaborators:", error.message);
         res.status(500).json({ error: "Failed to fetch collaborators" });
     }
 });
@@ -88,7 +101,7 @@ router.delete("/invitations/:id", async (req, res) => {
         res.json({ success: true });
     }
     catch (error) {
-        console.error("Delete Invite Error:", error);
+        logger.error("Delete Invite Error:", error.message);
         res.status(400).json({ error: error.message });
     }
 });

@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { prisma } from '../db.js';
+import { logger } from '../lib/logger.js';
 // California Forms
 const CA_TEMPLATES = [
     {
@@ -576,12 +577,12 @@ const DEFAULT_TEMPLATES = [
 ];
 export class FormSeedingService {
     static async seedDefaults() {
-        console.log("🌱 Seeding default form templates...");
+        logger.info("🌱 Seeding default form templates...");
         for (const t of DEFAULT_TEMPLATES) {
             try {
                 const filePath = path.join(this.TEMPLATES_DIR, t.filename);
                 if (!fs.existsSync(filePath)) {
-                    console.warn(`⚠️  Skip seeding ${t.name}: File not found at ${filePath}`);
+                    logger.warn(`⚠️  Skip seeding ${t.name}: File not found at ${filePath}`);
                     continue;
                 }
                 const fileData = fs.readFileSync(filePath);
@@ -605,13 +606,13 @@ export class FormSeedingService {
                         state: t.state || "CA"
                     }
                 });
-                console.log(`✅ Seeded template: ${t.name} (${t.state || "CA"})`);
+                logger.info(`✅ Seeded template: ${t.name} (${t.state || "CA"})`);
             }
             catch (error) {
-                console.error(`❌ Failed to seed template ${t.name}:`, error);
+                logger.error(`❌ Failed to seed template ${t.name}:`, error.message);
             }
         }
-        console.log("🏁 Default form templates seeding complete.");
+        logger.info("🏁 Default form templates seeding complete.");
     }
 }
 FormSeedingService.TEMPLATES_DIR = path.join(process.cwd(), 'server', 'templates');

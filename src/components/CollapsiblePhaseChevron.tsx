@@ -25,7 +25,7 @@ import { cn } from '@/lib/utils';
 import { useWorkflow } from '@/contexts/WorkflowContext';
 import { SETTLEMENT_PHASE_TASKS, type PhaseTask } from '@/config/settlementPhases';
 import { TASK_ACTIONS } from '@/config/taskActions';
-import type { SettlementPhase } from './SettlementPhaseChevron';
+import { type SettlementPhase } from '@/config/settlementPhases';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
@@ -36,6 +36,71 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 interface CollapsiblePhaseChevronProps {
   onTaskToggle: (taskId: string, completed: boolean, taskTitle: string, phaseName: string) => void;
 }
+
+const PHASE_COLORS: Record<string, {
+  border: string;
+  bgActive: string;
+  bgLight: string;
+  text: string;
+  progress: string;
+  badge: string;
+  icon: string;
+}> = {
+  immediate_actions: {
+    border: 'border-indigo-200 hover:border-indigo-400',
+    bgActive: 'bg-indigo-50/60',
+    bgLight: 'bg-indigo-50/20',
+    text: 'text-indigo-900',
+    progress: 'bg-indigo-600',
+    badge: 'bg-indigo-100 text-indigo-700 border-indigo-200',
+    icon: 'text-indigo-600'
+  },
+  court_filing: {
+    border: 'border-violet-200 hover:border-violet-400',
+    bgActive: 'bg-violet-50/60',
+    bgLight: 'bg-violet-50/20',
+    text: 'text-violet-900',
+    progress: 'bg-violet-600',
+    badge: 'bg-violet-100 text-violet-700 border-violet-200',
+    icon: 'text-violet-600'
+  },
+  asset_discovery: {
+    border: 'border-blue-200 hover:border-blue-400',
+    bgActive: 'bg-blue-50/60',
+    bgLight: 'bg-blue-50/20',
+    text: 'text-blue-900',
+    progress: 'bg-blue-600',
+    badge: 'bg-blue-100 text-blue-700 border-blue-200',
+    icon: 'text-blue-600'
+  },
+  creditor_claims: {
+    border: 'border-amber-200 hover:border-amber-400',
+    bgActive: 'bg-amber-50/60',
+    bgLight: 'bg-amber-50/20',
+    text: 'text-amber-900',
+    progress: 'bg-amber-600',
+    badge: 'bg-amber-100 text-amber-700 border-amber-200',
+    icon: 'text-amber-600'
+  },
+  asset_liquidation: {
+    border: 'border-emerald-200 hover:border-emerald-400',
+    bgActive: 'bg-emerald-50/60',
+    bgLight: 'bg-emerald-50/20',
+    text: 'text-emerald-900',
+    progress: 'bg-emerald-600',
+    badge: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+    icon: 'text-emerald-600'
+  },
+  final_distribution: {
+    border: 'border-orange-200 hover:border-orange-400',
+    bgActive: 'bg-orange-50/60',
+    bgLight: 'bg-orange-50/20',
+    text: 'text-orange-900',
+    progress: 'bg-orange-600',
+    badge: 'bg-orange-100 text-orange-700 border-orange-200',
+    icon: 'text-orange-600'
+  }
+};
 
 export function CollapsiblePhaseChevron({ onTaskToggle }: CollapsiblePhaseChevronProps) {
   const navigate = useNavigate();
@@ -184,6 +249,16 @@ export function CollapsiblePhaseChevron({ onTaskToggle }: CollapsiblePhaseChevro
     <div className="space-y-3">
       {dynamicRoadmap.map((phaseData) => {
         const phase = phaseData.phase;
+        const phaseTheme = PHASE_COLORS[phase] || {
+          border: 'border-slate-200',
+          bgActive: 'bg-slate-50',
+          bgLight: 'bg-white',
+          text: 'text-slate-900',
+          progress: 'bg-slate-600',
+          badge: 'bg-slate-100 text-slate-700',
+          icon: 'text-slate-400'
+        };
+
         const isExpanded = expandedPhases.has(phase);
         const isCompleted = completedPhases.includes(phase);
         const isCurrent = phase === currentPhase;
@@ -197,11 +272,11 @@ export function CollapsiblePhaseChevron({ onTaskToggle }: CollapsiblePhaseChevro
           <div
             key={phase}
             className={cn(
-              "rounded-2xl border-2 overflow-hidden transition-all",
-              isCompleted && "border-green-500 bg-green-50/50",
-              isCurrent && !isCompleted && "border-primary bg-primary/5",
-              lockStatus.isLocked && "border-slate-200 bg-slate-50/50",
-              !isCompleted && !isCurrent && !lockStatus.isLocked && "border-slate-200 bg-white"
+              "rounded-2xl border-2 overflow-hidden transition-all shadow-sm",
+              isCompleted && "border-green-500 bg-green-50/40",
+              isCurrent && !isCompleted && cn(phaseTheme.border.replace('hover:', ''), phaseTheme.bgActive),
+              lockStatus.isLocked && "border-slate-100 bg-slate-50/30 opacity-80",
+              !isCompleted && !isCurrent && !lockStatus.isLocked && cn(phaseTheme.border, "bg-white")
             )}
           >
             {/* Phase Header */}
@@ -214,11 +289,19 @@ export function CollapsiblePhaseChevron({ onTaskToggle }: CollapsiblePhaseChevro
                 {/* Status Icon */}
                 <div className="flex-shrink-0">
                   {isCompleted ? (
-                    <CheckCircle className="w-5 h-5 text-green-600" />
+                    <CheckCircle className="w-5 h-5 text-green-600 focus:outline-none" />
                   ) : lockStatus.isLocked ? (
                     <Lock className="w-5 h-5 text-slate-400" />
                   ) : isCurrent ? (
-                    <Circle className="w-5 h-5 text-primary fill-primary" />
+                    <div className={cn("relative flex items-center justify-center")}>
+                      <Circle className={cn("w-5 h-5 fill-current", phaseTheme.icon)} />
+                      <motion.div
+                        initial={{ scale: 0.8, opacity: 0.5 }}
+                        animate={{ scale: 1.5, opacity: 0 }}
+                        transition={{ repeat: Infinity, duration: 2, ease: "easeOut" }}
+                        className={cn("absolute w-5 h-5 rounded-full border-2", phaseTheme.border.split(' ')[0])}
+                      />
+                    </div>
                   ) : (
                     <Circle className="w-5 h-5 text-slate-300" />
                   )}
@@ -228,34 +311,34 @@ export function CollapsiblePhaseChevron({ onTaskToggle }: CollapsiblePhaseChevro
                 <div className="flex-1 text-left">
                   <div className="flex items-center gap-2 mb-1">
                     <h3 className={cn(
-                      "font-bold text-sm",
+                      "font-bold text-sm tracking-tight",
                       isCompleted && "text-green-900",
-                      isCurrent && !isCompleted && "text-primary",
+                      isCurrent && !isCompleted && phaseTheme.text,
                       lockStatus.isLocked && "text-slate-500"
                     )}>
                       {phaseData.title}
                     </h3>
                     {isCurrent && !isCompleted && (
-                      <Badge variant="default" className="text-xs">Current</Badge>
+                      <Badge variant="default" className={cn("text-[10px] h-4 px-1.5 uppercase font-black tracking-widest leading-none", phaseTheme.badge)}>Current</Badge>
                     )}
                   </div>
 
                   {/* Progress Bar */}
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1 h-1 bg-slate-200 rounded-full overflow-hidden max-w-[150px]">
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden max-w-[150px] border border-slate-200/50">
                       <div
                         className={cn(
-                          "h-full transition-all",
-                          isCompleted ? "bg-green-600" : "bg-primary"
+                          "h-full transition-all duration-700 ease-in-out shadow-sm",
+                          isCompleted ? "bg-green-500" : phaseTheme.progress
                         )}
                         style={{ width: `${progress.percentage}%` }}
                       />
                     </div>
-                    <span className="text-[10px] font-medium text-slate-600">
+                    <span className="text-[10px] font-bold text-slate-400 tabular-nums">
                       {progress.completed}/{progress.total}
                     </span>
                     {assetCount > 0 && (
-                      <Badge variant="secondary" className="text-xs">
+                      <Badge variant="secondary" className={cn("text-[10px] font-black h-4 px-1.5 border uppercase tracking-tight", phaseTheme.badge)}>
                         {assetCount} asset{assetCount !== 1 ? 's' : ''}
                       </Badge>
                     )}

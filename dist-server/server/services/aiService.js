@@ -2,33 +2,34 @@ import path from 'path';
 import pdfParse from 'pdf-parse';
 import fs from 'fs/promises';
 import Tesseract from 'tesseract.js';
+import { logger } from '../lib/logger.js';
 export const AiService = {
     /**
      * Analyzes a document to find potential assets.
      * Uses advanced pattern matching and entity recognition.
      */
     async analyzeDocument(filePath) {
-        console.log(`[AI Service] Analyzing document: ${filePath}`);
+        logger.debug(`[AI Service] Analyzing document: ${filePath}`);
         try {
             // 1. Extract text based on file type
             const text = await this.extractText(filePath);
-            console.log(`[AI Service] Extracted ${text.length} characters`);
+            logger.debug(`[AI Service] Extracted ${text.length} characters`);
             // 2. Advanced pattern matching
             const patterns = await this.detectPatterns(text);
-            console.log(`[AI Service] Found ${patterns.length} patterns`);
+            logger.debug(`[AI Service] Found ${patterns.length} patterns`);
             // 3. Entity recognition
             const entities = await this.extractEntities(text);
-            console.log(`[AI Service] Found ${entities.length} entities`);
+            logger.debug(`[AI Service] Found ${entities.length} entities`);
             // 4. Correlation analysis
             const correlations = await this.findCorrelations(patterns, entities);
-            console.log(`[AI Service] Found ${correlations.length} correlations`);
+            logger.debug(`[AI Service] Found ${correlations.length} correlations`);
             // 5. Generate findings with education
             const findings = this.generateFindings(correlations);
-            console.log(`[AI Service] Generated ${findings.length} findings`);
+            logger.debug(`[AI Service] Generated ${findings.length} findings`);
             return findings;
         }
         catch (error) {
-            console.error('[AI Service] Error analyzing document:', error);
+            logger.error('[AI Service] Error analyzing document:', error.message);
             throw error;
         }
     },
@@ -41,7 +42,7 @@ export const AiService = {
         }
         else if (['.jpg', '.png', '.jpeg'].includes(ext)) {
             const { data: { text } } = await Tesseract.recognize(filePath, 'eng', {
-                logger: m => console.log(`[OCR] ${m.status}: ${m.progress}`)
+                logger: m => logger.debug(`[OCR] ${m.status}: ${m.progress}`)
             });
             return text;
         }

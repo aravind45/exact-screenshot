@@ -6,9 +6,18 @@ import { prisma } from "../db.js";
 import { analyzeDocument } from "../services/ai.js";
 import { AgentService } from "../services/agentService.js";
 import { createRequire } from "module";
+import { z } from "zod";
+import { logger } from "../lib/logger.js";
+import { requireSubscription } from "../middleware/subscription.js";
+import { encryptBuffer } from "../utils/encryption.js";
 const require = createRequire(import.meta.url);
 const pdf = require("pdf-parse");
 const router = Router();
+router.use(requireSubscription);
+const scanQuerySchema = z.object({
+    saveToVault: z.string().optional(),
+    documentType: z.string().optional()
+});
 const isVercel = process.env.VERCEL === "1";
 const uploadDir = isVercel
     ? path.join("/tmp", "uploads")
@@ -18,7 +27,7 @@ if (!fs.existsSync(uploadDir)) {
         fs.mkdirSync(uploadDir, { recursive: true });
     }
     catch (e) {
-        console.warn("Could not create upload directory:", e);
+        logger.warn("Could not create upload directory:", e.message);
     }
 }
 // Configuration for Document Repository (Persistence)
@@ -70,17 +79,18 @@ router.post("/scan", uploadMemory.single("file"), async (req, res) => {
         const extractedData = await analyzeDocument(textToAnalyze);
         const agentInsights = await AgentService.runDetectiveDiscovery(textToAnalyze, "");
         // If estateId is provided, we can optionally link/save this discovery
-        if (req.query.saveToVault === 'true' && req.user) {
+        const queryValidated = scanQuerySchema.parse(req.query);
+        if (queryValidated.saveToVault === 'true' && req.user) {
             const estate = await prisma.estate.findFirst({ where: { userId: req.user.id } });
             if (estate) {
-                const docType = req.query.documentType || "OTHER_DISCOVERY";
+                const docType = queryValidated.documentType || "OTHER_DISCOVERY";
                 const existing = docType !== "OTHER_DISCOVERY"
                     ? await prisma.estateDocument.findFirst({
                         where: { estateId: estate.id, documentType: docType }
                     })
                     : null;
                 const commonData = {
-                    content: req.file.buffer,
+                    content: encryptBuffer(req.file.buffer), // Cast to any to resolve Buffer/Uint8Array mismatch
                     name: req.file.originalname,
                     status: "OBTAINED",
                     obtainedDate: new Date(),
@@ -110,7 +120,9 @@ router.post("/scan", uploadMemory.single("file"), async (req, res) => {
         });
     }
     catch (error) {
-        console.error("Scan Error:", error);
+        if (error instanceof z.ZodError)
+            return res.status(400).json({ error: "Invalid scan parameters", details: error.errors });
+        logger.error("Scan Error:", error.message);
         res.status(500).json({ error: "Failed to process document" });
     }
 });

@@ -1,6 +1,7 @@
 import Stripe from 'stripe';
 import { prisma } from '../db.js';
 import crypto from 'crypto';
+import { logger } from '../lib/logger.js';
 const PRICE_ID = process.env.STRIPE_PRICE_ID || 'price_1234567890'; // $49/mo product
 const EXTRA_SEAT_PRICE_ID = process.env.STRIPE_EXTRA_SEAT_PRICE_ID || 'price_extraseat_placeholder'; // $9.99 extra seat
 export class StripeService {
@@ -109,7 +110,7 @@ export class StripeService {
      * Handle Stripe webhook events
      */
     static async handleWebhook(event) {
-        console.log(`📨 Stripe webhook received: ${event.type}`);
+        logger.info(`📨 Stripe webhook received: ${event.type}`);
         switch (event.type) {
             case 'checkout.session.completed': {
                 const session = event.data.object;
@@ -138,7 +139,7 @@ export class StripeService {
                             notes: 'Subscription activated',
                         },
                     });
-                    console.log(`✅ Subscription activated for user ${userId}`);
+                    logger.info(`✅ Subscription activated for user ${userId}`);
                 }
                 // Handle Extra Seats
                 if (session.metadata?.type === 'EXTRA_SEAT') {
@@ -171,7 +172,7 @@ export class StripeService {
                             notes: `Extra seat for ${inviteeEmail} in estate ${estateId}`,
                         },
                     });
-                    console.log(`✅ Extra seat invitation created for ${inviteeEmail}`);
+                    logger.info(`✅ Extra seat invitation created for ${inviteeEmail}`);
                 }
                 break;
             }
@@ -188,7 +189,7 @@ export class StripeService {
                             subscriptionStatus: subscription.status.toUpperCase(),
                         },
                     });
-                    console.log(`✅ Subscription status updated for user ${user.id}: ${subscription.status}`);
+                    logger.info(`✅ Subscription status updated for user ${user.id}: ${subscription.status}`);
                 }
                 break;
             }
@@ -206,7 +207,7 @@ export class StripeService {
                             stripeSubscriptionId: null,
                         },
                     });
-                    console.log(`✅ Subscription cancelled for user ${user.id}`);
+                    logger.info(`✅ Subscription cancelled for user ${user.id}`);
                 }
                 break;
             }
@@ -228,12 +229,12 @@ export class StripeService {
                             notes: `Invoice ${invoice.number} paid`,
                         },
                     });
-                    console.log(`✅ Payment logged for user ${user.id}`);
+                    logger.info(`✅ Payment logged for user ${user.id}`);
                 }
                 break;
             }
             default:
-                console.log(`⚠️ Unhandled event type: ${event.type}`);
+                logger.warn(`⚠️ Unhandled event type: ${event.type}`);
         }
     }
     /**
@@ -254,7 +255,7 @@ export class StripeService {
                 notes: adminNotes,
             },
         });
-        console.log(`✅ Fees waived for user ${userId}`);
+        logger.info(`✅ Fees waived for user ${userId}`);
     }
     /**
      * Admin: Issue a refund
@@ -284,7 +285,7 @@ export class StripeService {
                 notes: adminNotes,
             },
         });
-        console.log(`✅ Refund issued for transaction ${transactionId}`);
+        logger.info(`✅ Refund issued for transaction ${transactionId}`);
         return refund;
     }
     /**

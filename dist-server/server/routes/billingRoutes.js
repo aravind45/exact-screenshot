@@ -1,6 +1,16 @@
 import { Router } from 'express';
 import { StripeService } from '../services/stripeService.js';
 import Stripe from 'stripe';
+import { z } from 'zod';
+import { logger } from '../lib/logger.js';
+const checkoutSchema = z.object({
+    successUrl: z.string().url().optional(),
+    cancelUrl: z.string().url().optional(),
+    skipTrial: z.boolean().optional()
+});
+const portalSchema = z.object({
+    returnUrl: z.string().url().optional()
+});
 const router = Router();
 /**
  * POST /api/billing/checkout
@@ -9,13 +19,17 @@ const router = Router();
 router.post('/checkout', async (req, res) => {
     try {
         const userId = req.user.id;
-        const { successUrl, cancelUrl, skipTrial } = req.body;
+        const validated = checkoutSchema.parse(req.body);
+        const { successUrl, cancelUrl, skipTrial } = validated;
         const session = await StripeService.createCheckoutSession(userId, successUrl || `${process.env.APP_URL || 'http://localhost:5173'}/dashboard?payment=success`, cancelUrl || `${process.env.APP_URL || 'http://localhost:5173'}/pricing?payment=cancelled`, !!skipTrial);
         res.json(session);
     }
     catch (error) {
-        console.error('❌ Checkout error:', error);
-        res.status(500).json({ error: error.message });
+        if (error instanceof z.ZodError) {
+            return res.status(400).json({ error: "Invalid URL parameters", details: error.errors });
+        }
+        logger.error('❌ Checkout error:', error.message);
+        res.status(500).json({ error: "Failed to create checkout session" });
     }
 });
 /**
@@ -25,13 +39,17 @@ router.post('/checkout', async (req, res) => {
 router.post('/portal', async (req, res) => {
     try {
         const userId = req.user.id;
-        const { returnUrl } = req.body;
+        const validated = portalSchema.parse(req.body);
+        const { returnUrl } = validated;
         const session = await StripeService.createPortalSession(userId, returnUrl || `${process.env.APP_URL || 'http://localhost:5173'}/profile`);
         res.json(session);
     }
     catch (error) {
-        console.error('❌ Portal error:', error);
-        res.status(500).json({ error: error.message });
+        if (error instanceof z.ZodError) {
+            return res.status(400).json({ error: "Invalid return URL", details: error.errors });
+        }
+        logger.error('❌ Portal error:', error.message);
+        res.status(500).json({ error: "Failed to create portal session" });
     }
 });
 /**
@@ -42,7 +60,7 @@ router.post('/webhook', async (req, res) => {
     const sig = req.headers['stripe-signature'];
     const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
     if (!webhookSecret) {
-        console.error('❌ STRIPE_WEBHOOK_SECRET not configured');
+        logger.error('❌ [CONFIG] STRIPE_WEBHOOK_SECRET not configured');
         return res.status(500).json({ error: 'Webhook secret not configured' });
     }
     try {
@@ -54,7 +72,7 @@ router.post('/webhook', async (req, res) => {
         res.json({ received: true });
     }
     catch (error) {
-        console.error('❌ Webhook error:', error.message);
+        logger.error('❌ Webhook error:', error.message);
         res.status(400).json({ error: `Webhook Error: ${error.message}` });
     }
 });

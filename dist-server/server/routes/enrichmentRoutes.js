@@ -1,12 +1,18 @@
 import { Router } from "express";
 import { prisma } from "../db.js";
 import { enrichInstitutionData } from "../services/enrichment.js";
+import { z } from "zod";
+import { logger } from "../lib/logger.js";
+import { requireSubscription } from "../middleware/subscription.js";
+const searchQuerySchema = z.object({
+    query: z.string().min(2)
+});
 const router = Router();
+router.use(requireSubscription);
 router.get("/search", async (req, res) => {
     try {
-        const { query } = req.query;
-        if (!query || typeof query !== 'string' || query.length < 2)
-            return res.json([]);
+        const validated = searchQuerySchema.parse(req.query);
+        const { query } = validated;
         const institutions = await prisma.institution.findMany({
             where: { name: { contains: query, mode: 'insensitive' } },
             take: 5
@@ -14,6 +20,9 @@ router.get("/search", async (req, res) => {
         res.json(institutions);
     }
     catch (error) {
+        if (error instanceof z.ZodError)
+            return res.json([]);
+        logger.error("Institution search failed:", error.message);
         res.status(500).json({ error: "Search failed" });
     }
 });
@@ -42,6 +51,7 @@ router.post("/asset/:id", async (req, res) => {
         res.json(enriched);
     }
     catch (error) {
+        logger.error("Enrichment failed:", error.message);
         res.status(500).json({ error: "Enrichment failed" });
     }
 });

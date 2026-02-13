@@ -4,6 +4,34 @@ import { EmailService } from "../services/emailService.js";
 import { DocumentRecommendationService } from "../services/documentRecommendationService.js";
 import { prisma } from "../db.js";
 import { fileUpload, FileService } from "../services/fileService.js";
+import { z } from "zod";
+import { logger } from "../lib/logger.js";
+const communicationSchema = z.object({
+    assetId: z.string(),
+    type: z.string(),
+    direction: z.enum(["INBOUND", "OUTBOUND"]),
+    content: z.string().min(1),
+    subject: z.string().optional(),
+    sender: z.string().optional(),
+    recipient: z.string().optional(),
+    channel: z.enum(["EMAIL", "FAX", "MAIL", "PHONE", "PORTAL", "OTHER"]),
+    status: z.string().optional(),
+    followUpDueAt: z.string().optional().nullable(),
+    attachments: z.array(z.string()).optional()
+});
+const sendEmailSchema = z.object({
+    assetId: z.string(),
+    to: z.string().email(),
+    subject: z.string().min(1),
+    body: z.string().min(1),
+    ccPersonalEmail: z.boolean().optional()
+});
+const communicationUpdateSchema = z.object({
+    status: z.string().optional(),
+    content: z.string().optional(),
+    followUpCompletedAt: z.string().optional().nullable(),
+    followUpDueAt: z.string().optional().nullable()
+});
 const router = Router();
 // Upload attachment
 router.post("/:id/attachments", fileUpload.single("file"), async (req, res) => {
@@ -39,20 +67,23 @@ router.get("/attachments/:id", async (req, res) => {
 // Create a new communication
 router.post("/", async (req, res) => {
     try {
+        const validated = communicationSchema.parse(req.body);
         // Validation: Verify asset belongs to user
         const asset = await prisma.asset.findFirst({
-            where: { id: req.body.assetId, userId: req.user.id }
+            where: { id: validated.assetId, userId: req.user.id }
         });
         if (!asset)
             return res.status(403).json({ error: "Asset not found or access denied" });
         const communication = await CommunicationService.create(req.user.id, {
-            ...req.body,
+            ...validated,
             estateId: asset.estateId
         });
         res.status(201).json(communication);
     }
     catch (error) {
-        console.error("Create Communication Error:", error);
+        if (error instanceof z.ZodError)
+            return res.status(400).json({ error: "Validation failed", details: error.errors });
+        logger.error("Create Communication Error:", error.message);
         res.status(400).json({ error: error.message });
     }
 });
@@ -128,17 +159,22 @@ router.get("/search", async (req, res) => {
         const results = await CommunicationService.search(estate.id, query);
         res.json(results);
     }
-    catch (error) {
-        res.status(500).json({ error: error.message });
+    catch (e) {
+        logger.error("Error searching communications:", e.message);
+        res.status(500).json({ error: "Failed to search communications" });
     }
 });
 // Update a communication
 router.patch("/:id", async (req, res) => {
     try {
-        const result = await CommunicationService.update(req.params.id, req.user.id, req.body);
+        const validated = communicationUpdateSchema.parse(req.body);
+        const result = await CommunicationService.update(req.params.id, req.user.id, validated);
         res.json(result);
     }
     catch (error) {
+        if (error instanceof z.ZodError)
+            return res.status(400).json({ error: "Validation failed", details: error.errors });
+        logger.error("Update Communication Error:", error.message);
         res.status(403).json({ error: error.message });
     }
 });
@@ -158,7 +194,8 @@ router.delete("/:id", async (req, res) => {
 // Send an outbound email via Mailgun
 router.post("/send-email", async (req, res) => {
     try {
-        const { assetId, to, subject, body, ccPersonalEmail } = req.body;
+        const validated = sendEmailSchema.parse(req.body);
+        const { assetId, to, subject, body, ccPersonalEmail } = validated;
         // Security check
         const asset = await prisma.asset.findFirst({
             where: { id: assetId, userId: req.user.id }
@@ -176,8 +213,10 @@ router.post("/send-email", async (req, res) => {
         res.json(result);
     }
     catch (error) {
-        console.error("Send Email Error:", error);
-        res.status(500).json({ error: error.message });
+        if (error instanceof z.ZodError)
+            return res.status(400).json({ error: "Validation failed", details: error.errors });
+        logger.error("Send Email Error:", error.message);
+        res.status(500).json({ error: "Failed to send email" });
     }
 });
 router.get("/timeline", async (req, res) => {

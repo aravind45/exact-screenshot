@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { ai } from './ai.js';
+import { logger } from '../lib/logger.js';
 const prisma = new PrismaClient();
 export const DISCOVERY_CATEGORIES = [
     { id: 'BANK_ACCOUNTS', label: 'Bank Accounts', examples: 'Checking, Savings' },
@@ -122,15 +123,16 @@ export class DiscoveryService {
      * Analyze uploaded document for assets using Real AI
      */
     static async analyzeDocument({ text, imageBase64, estateId }) {
-        console.log(`[DiscoveryService] Starting analysis. Text length: ${text?.length || 0}, Image: ${!!imageBase64}, Estate: ${estateId}`);
+        logger.info(`[DiscoveryService] Starting document analysis.`);
+        logger.debug(`[DiscoveryService] Text length: ${text?.length || 0}, Image: ${!!imageBase64}, Estate: ${estateId}`);
         if (!text && !imageBase64) {
-            console.log(`[DiscoveryService] No content provided`);
+            logger.info(`[DiscoveryService] No content provided`);
             return { findings: [], summary: "No content extracted from document." };
         }
         try {
-            console.log(`[DiscoveryService] Calling ai.discoverRelatedAssets...`);
+            logger.debug(`[DiscoveryService] Calling ai.discoverRelatedAssets...`);
             const clues = await ai.discoverRelatedAssets(text, imageBase64);
-            console.log(`[DiscoveryService] AI returned ${clues.length} clues`);
+            logger.info(`[DiscoveryService] AI returned ${clues.length} clues`);
             const findings = clues.map(clue => {
                 let category = 'INVESTMENTS';
                 const lowerAsset = (clue.potentialAsset || '').toLowerCase();
@@ -158,7 +160,7 @@ export class DiscoveryService {
             });
             // PERSISTENCE: Save clues to the estate's discovery trail
             if (estateId && findings.length > 0) {
-                console.log(`[DiscoveryService] Persisting findings for estate ${estateId}`);
+                logger.debug(`[DiscoveryService] Persisting findings for estate ${estateId}`);
                 const estate = await prisma.estate.findUnique({ where: { id: estateId } });
                 if (estate) {
                     await prisma.estateDocument.create({
@@ -179,7 +181,7 @@ export class DiscoveryService {
             };
         }
         catch (error) {
-            console.error("[DiscoveryService] AI Analysis Error:", error);
+            logger.error("[DiscoveryService] AI Analysis Error:", error);
             throw error;
         }
     }
