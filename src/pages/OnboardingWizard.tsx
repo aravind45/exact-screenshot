@@ -257,7 +257,14 @@ export default function OnboardingWizard() {
     const stepId = STEPS[currentStep].id;
 
     return (
-        <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
+        <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4 relative">
+            <Button
+                variant="ghost"
+                onClick={() => navigate("/")}
+                className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-medium z-50"
+            >
+                Cancel & Exit
+            </Button>
             <div className="max-w-xl w-full">
                 {/* Progress Bar */}
                 <div className="mb-8 flex gap-2">

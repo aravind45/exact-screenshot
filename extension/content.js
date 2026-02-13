@@ -16,6 +16,26 @@ const MAPPINGS = {
             deceasedSSN: "#deceased-ssn",
             deceasedDOB: "#deceased-dob",
         }
+    },
+    "localhost": {
+        fields: {
+            deceasedFirstName: "#deceasedFirstName",
+            deceasedLastName: "#deceasedLastName",
+            bio: "#bio",
+            expertise: "#expertise",
+            hourlyRate: "#hourlyRate",
+            licenseNumber: "#licenseNumber"
+        }
+    },
+    "expectedestate.com": {
+        fields: {
+            deceasedFirstName: "#deceasedFirstName",
+            deceasedLastName: "#deceasedLastName",
+            bio: "#bio",
+            expertise: "#expertise",
+            hourlyRate: "#hourlyRate",
+            licenseNumber: "#licenseNumber"
+        }
     }
 };
 
@@ -53,7 +73,6 @@ async function handleAutoFill() {
 
 function injectFillButton() {
     const currentDomain = window.location.hostname.replace("www.", "");
-    if (currentDomain.includes("localhost")) return;
 
     let config = null;
     for (const domain in MAPPINGS) {

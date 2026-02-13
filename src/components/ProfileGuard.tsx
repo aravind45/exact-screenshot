@@ -27,13 +27,11 @@ export function ProfileGuard({ children }: ProfileGuardProps) {
         if (!isLoading && estate) {
             const complete = isProfileComplete(estate);
             const isAtOnboarding = location.pathname === "/onboarding";
+            const isAdvisorRoute = location.pathname.startsWith("/advisor") || location.pathname === "/marketplace";
 
-            if (!complete && !isAtOnboarding) {
+            if (!complete && !isAtOnboarding && !isAdvisorRoute) {
                 console.log("Profile incomplete, redirecting to onboarding...");
                 navigate("/onboarding", { replace: true });
-            } else if (complete && isAtOnboarding) {
-                // Optional: redirect to dashboard if they try to go to onboarding after completion
-                // navigate("/dashboard", { replace: true });
             }
         }
     }, [estate, isLoading, navigate, location.pathname]);

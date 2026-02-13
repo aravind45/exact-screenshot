@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "sonner";
 
 export default function AdvisorOnboarding() {
+    const navigate = useNavigate();
     const queryClient = useQueryClient();
     const [formData, setFormData] = useState({
         bio: '',
@@ -62,14 +64,19 @@ export default function AdvisorOnboarding() {
 
     return (
         <div className="container mx-auto py-10 max-w-3xl">
-            <div className="mb-8 space-y-2">
-                <h1 className="text-4xl font-black tracking-tight flex items-center gap-3">
-                    Advisor Onboarding
-                    {isVerified && <Badge className="bg-green-100 text-green-700 border-green-200">Verified</Badge>}
-                </h1>
-                <p className="text-slate-500 text-lg">
-                    Join our marketplace and help estates navigate their settlement process.
-                </p>
+            <div className="mb-8 flex justify-between items-start">
+                <div className="space-y-2">
+                    <h1 className="text-4xl font-black tracking-tight flex items-center gap-3">
+                        Advisor Onboarding
+                        {isVerified && <Badge className="bg-green-100 text-green-700 border-green-200">Verified</Badge>}
+                    </h1>
+                    <p className="text-slate-500 text-lg">
+                        Join our marketplace and help estates navigate their settlement process.
+                    </p>
+                </div>
+                <Button variant="outline" onClick={() => navigate("/")} className="text-slate-500 bg-white shadow-sm border-slate-200">
+                    Cancel & Exit
+                </Button>
             </div>
 
             {(isPending || !profile) && (
@@ -105,6 +112,7 @@ export default function AdvisorOnboarding() {
                             <Label htmlFor="bio">Professional Bio</Label>
                             <Textarea
                                 id="bio"
+                                name="bio"
                                 placeholder="Tell users about your experience with estate settlement..."
                                 defaultValue={profile?.bio}
                                 onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
@@ -118,6 +126,7 @@ export default function AdvisorOnboarding() {
                                 <Label htmlFor="expertise">Expertise (comma separated)</Label>
                                 <Input
                                     id="expertise"
+                                    name="expertise"
                                     placeholder="Probate, Tax, Real Estate, Trusts"
                                     defaultValue={profile?.expertise?.join(', ')}
                                     onChange={(e) => setFormData({ ...formData, expertise: e.target.value })}
@@ -128,6 +137,7 @@ export default function AdvisorOnboarding() {
                                 <Label htmlFor="hourlyRate">Hourly Rate ($)</Label>
                                 <Input
                                     id="hourlyRate"
+                                    name="hourlyRate"
                                     type="number"
                                     placeholder="150"
                                     defaultValue={profile?.hourlyRate}
@@ -142,6 +152,7 @@ export default function AdvisorOnboarding() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <Input
                                     id="licenseNumber"
+                                    name="licenseNumber"
                                     placeholder="License Number (e.g. Bar ID #12345)"
                                     defaultValue={profile?.licenseNumber}
                                     onChange={(e) => setFormData({ ...formData, licenseNumber: e.target.value })}
