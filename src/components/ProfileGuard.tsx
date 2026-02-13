@@ -18,22 +18,29 @@ export function ProfileGuard({ children }: ProfileGuardProps) {
     const { data: estate, isLoading, isError } = useQuery({
         queryKey: ["estate"],
         queryFn: api.getMyEstate,
-        // Don't retry on 401/403 as AuthContext handles that
         retry: false,
-        enabled: !!user,
+        enabled: !!user && user.role !== 'ADMIN' && user.role !== 'ADVISOR',
     });
 
     useEffect(() => {
+        // Skip profile check for non-executor users
+        if (!user || user.role === 'ADMIN' || user.role === 'ADVISOR') return;
+
+        // Skip if still loading or error occurred
         if (isLoading || isError) return;
-        // No estate yet — user hasn't started onboarding at all
+
+        // Skip if no estate data yet (brand new user)
         if (!estate) return;
 
-        const complete = isProfileComplete(estate);
+        // Skip if already on onboarding or advisor routes
         const isAtOnboarding = location.pathname === "/onboarding";
         const isAdvisorRoute = location.pathname.startsWith("/advisor") || location.pathname === "/marketplace";
+        if (isAtOnboarding || isAdvisorRoute) return;
 
-        if (!complete && !isAtOnboarding && !isAdvisorRoute) {
-            console.log("Profile incomplete, redirecting to onboarding. Missing fields:", {
+        // Check if executor profile is complete
+        const complete = isProfileComplete(estate);
+        if (!complete) {
+            console.log("Executor profile incomplete, redirecting to onboarding. Missing:", {
                 deceasedFirstName: !!estate.deceasedFirstName,
                 deceasedLastName: !!estate.deceasedLastName,
                 deceasedState: !!estate.deceasedState,
@@ -41,7 +48,7 @@ export function ProfileGuard({ children }: ProfileGuardProps) {
             });
             navigate("/onboarding", { replace: true });
         }
-    }, [estate, isLoading, isError, navigate, location.pathname]);
+    }, [user, estate, isLoading, isError, navigate, location.pathname]);
 
     if (isLoading) {
         return (
