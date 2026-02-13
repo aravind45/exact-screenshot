@@ -155,81 +155,22 @@ export default function AdvisorOnboarding() {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2 space-y-8">
-                    {/* Step 1: Stripe Connect */}
-                    <Card className={cn(
-                        "relative transition-all duration-300",
-                        isStripeComplete ? "border-emerald-200 bg-emerald-50/10" : "border-slate-200"
-                    )}>
-                        <CardHeader>
-                            <div className="flex justify-between items-start">
-                                <div className="space-y-1">
-                                    <div className="flex items-center gap-3">
-                                        <div className={cn(
-                                            "w-10 h-10 rounded-xl flex items-center justify-center font-bold text-lg",
-                                            isStripeComplete ? "bg-emerald-100 text-emerald-700" : "bg-indigo-100 text-indigo-700"
-                                        )}>
-                                            1
-                                        </div>
-                                        <CardTitle className="text-xl">Payout Account Setup</CardTitle>
-                                    </div>
-                                    <CardDescription className="pl-13">
-                                        Securely link your bank account to receive payments via Stripe.
-                                    </CardDescription>
-                                </div>
-                                {isStripeComplete && <CheckCircle2 className="w-6 h-6 text-emerald-500" />}
-                            </div>
-                        </CardHeader>
-                        <CardFooter className="bg-slate-50/50 border-t border-slate-100 py-6">
-                            {isStripeComplete ? (
-                                <p className="text-sm text-emerald-700 font-medium flex items-center gap-2">
-                                    <CheckCircle2 className="w-4 h-4" />
-                                    Your payout account is verified and ready.
-                                </p>
-                            ) : (
-                                <div className="w-full space-y-4">
-                                    <div className="bg-white p-4 rounded-xl border border-slate-100 flex items-start gap-3">
-                                        <ShieldCheck className="w-5 h-5 text-indigo-600 flex-shrink-0 mt-0.5" />
-                                        <div className="text-xs text-slate-500 leading-relaxed">
-                                            We use <a href="https://stripe.com/connect" target="_blank" className="underline font-bold">Stripe Connect</a> for all financial operations. Your data is encrypted and ExpectedEstate never stores your bank details.
-                                        </div>
-                                    </div>
-                                    <Button
-                                        onClick={handleStartStripe}
-                                        className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black h-12 rounded-xl group shadow-lg shadow-indigo-100"
-                                        disabled={stripeLoading}
-                                    >
-                                        {stripeLoading ? (
-                                            <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                                        ) : (
-                                            <CreditCard className="w-4 h-4 mr-2" />
-                                        )}
-                                        {isStripeDetailsSubmitted ? "Resume / Check Status" : "Connect with Stripe"}
-                                        <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                                    </Button>
-                                </div>
-                            )}
-                        </CardFooter>
-                    </Card>
-
-                    {/* Step 2: Professional Profile */}
-                    <Card className={cn(
-                        "relative transition-all duration-300",
-                        !isStripeComplete && "opacity-60 grayscale pointer-events-none"
-                    )}>
+                    {/* Step 1: Professional Profile */}
+                    <Card className="relative transition-all duration-300 border-slate-200">
                         <CardHeader className="bg-slate-50/50 border-b border-slate-100">
                             <div className="flex justify-between items-start">
                                 <div className="space-y-1">
                                     <div className="flex items-center gap-3">
                                         <div className={cn(
                                             "w-10 h-10 rounded-xl flex items-center justify-center font-bold text-lg",
-                                            isVerified ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-400"
+                                            isVerified ? "bg-emerald-100 text-emerald-700" : "bg-indigo-100 text-indigo-700"
                                         )}>
-                                            2
+                                            1
                                         </div>
                                         <CardTitle className="text-xl">Marketplace Profile</CardTitle>
                                     </div>
                                     <CardDescription className="pl-13">
-                                        Update your expertise, bio, and hourly rate.
+                                        Start by setting up your professional profile and expertise.
                                     </CardDescription>
                                 </div>
                                 {isVerified && <CheckCircle2 className="w-6 h-6 text-emerald-500" />}
@@ -333,6 +274,66 @@ export default function AdvisorOnboarding() {
                                 </Button>
                             </form>
                         </CardContent>
+                    </Card>
+
+                    {/* Step 2: Stripe Connect */}
+                    <Card className={cn(
+                        "relative transition-all duration-300",
+                        isStripeComplete ? "border-emerald-200 bg-emerald-50/10" : "border-slate-200",
+                        !profile?.bio && "opacity-60 grayscale pointer-events-none"
+                    )}>
+                        <CardHeader>
+                            <div className="flex justify-between items-start">
+                                <div className="space-y-1">
+                                    <div className="flex items-center gap-3">
+                                        <div className={cn(
+                                            "w-10 h-10 rounded-xl flex items-center justify-center font-bold text-lg",
+                                            isStripeComplete ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-400"
+                                        )}>
+                                            2
+                                        </div>
+                                        <CardTitle className="text-xl">Payout Account Setup</CardTitle>
+                                    </div>
+                                    <CardDescription className="pl-13">
+                                        {!profile?.bio 
+                                            ? "Complete your profile first, then link your bank account."
+                                            : "Securely link your bank account to receive payments via Stripe."
+                                        }
+                                    </CardDescription>
+                                </div>
+                                {isStripeComplete && <CheckCircle2 className="w-6 h-6 text-emerald-500" />}
+                            </div>
+                        </CardHeader>
+                        <CardFooter className="bg-slate-50/50 border-t border-slate-100 py-6">
+                            {isStripeComplete ? (
+                                <p className="text-sm text-emerald-700 font-medium flex items-center gap-2">
+                                    <CheckCircle2 className="w-4 h-4" />
+                                    Your payout account is verified and ready.
+                                </p>
+                            ) : (
+                                <div className="w-full space-y-4">
+                                    <div className="bg-white p-4 rounded-xl border border-slate-100 flex items-start gap-3">
+                                        <ShieldCheck className="w-5 h-5 text-indigo-600 flex-shrink-0 mt-0.5" />
+                                        <div className="text-xs text-slate-500 leading-relaxed">
+                                            We use <a href="https://stripe.com/connect" target="_blank" className="underline font-bold">Stripe Connect</a> for all financial operations. Your data is encrypted and ExpectedEstate never stores your bank details.
+                                        </div>
+                                    </div>
+                                    <Button
+                                        onClick={handleStartStripe}
+                                        className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black h-12 rounded-xl group shadow-lg shadow-indigo-100"
+                                        disabled={stripeLoading || !profile?.bio}
+                                    >
+                                        {stripeLoading ? (
+                                            <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                                        ) : (
+                                            <CreditCard className="w-4 h-4 mr-2" />
+                                        )}
+                                        {isStripeDetailsSubmitted ? "Resume / Check Status" : "Connect with Stripe"}
+                                        <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                                    </Button>
+                                </div>
+                            )}
+                        </CardFooter>
                     </Card>
                 </div>
 
