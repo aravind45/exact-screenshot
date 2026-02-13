@@ -12,9 +12,15 @@ const router = Router();
  * GET /api/advisors/me
  * Get current user's advisor profile
  */
-router.get('/me', authenticate, requireAdvisor, async (req: any, res) => {
+router.get('/me', authenticate, async (req: any, res) => {
     try {
         const profile = await AdvisorService.getAdvisorProfile(req.user!.id);
+        
+        // Return null if no profile exists (don't error)
+        if (!profile) {
+            return res.json(null);
+        }
+        
         res.json(profile);
     } catch (error: any) {
         logger.error(`❌ Error fetching advisor profile: ${error.message}`);
@@ -136,16 +142,21 @@ router.get('/stripe/connect/status', authenticate, async (req: any, res) => {
         if (!advisor?.stripeAccountId) {
             return res.json({
                 connected: false,
-                detailsSubmitted: false,
+                stripeOnboardingComplete: false,
+                stripeDetailsSubmitted: false,
                 chargesEnabled: false,
                 payoutsEnabled: false
-            })
+            });
         }
 
         const status = await StripeService.getAccountStatus(advisor.stripeAccountId);
 
         res.json({
             connected: true,
+            stripeOnboardingComplete: status.detailsSubmitted && status.chargesEnabled,
+            stripeDetailsSubmitted: status.detailsSubmitted,
+            chargesEnabled: status.chargesEnabled,
+            payoutsEnabled: status.payoutsEnabled,
             ...status
         });
     } catch (error: any) {

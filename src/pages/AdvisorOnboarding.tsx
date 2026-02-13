@@ -39,9 +39,11 @@ export default function AdvisorOnboarding() {
         hourlyRate: '',
         licenseNumber: '',
         profileImage: '',
+        licenseDocument: '',
     });
     const [file, setFile] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
+    const [documentFile, setDocumentFile] = useState<File | null>(null);
 
     // Fetch advisor profile and stripe status
     const { data: profile, isLoading: isProfileLoading } = useQuery({
@@ -107,6 +109,19 @@ export default function AdvisorOnboarding() {
         }
     };
 
+    const handleDocumentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setDocumentFile(file);
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                const base64String = reader.result as string;
+                setFormData(prev => ({ ...prev, licenseDocument: base64String }));
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
     const handleSubmitProfile = (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -117,6 +132,7 @@ export default function AdvisorOnboarding() {
             hourlyRate: parseFloat(formData.hourlyRate) || parseFloat(profile?.hourlyRate) || 0,
             licenseNumber: formData.licenseNumber || profile?.licenseNumber || '',
             profileImage: formData.profileImage || profile?.profileImage || '',
+            licenseDocument: formData.licenseDocument || profile?.licenseDocument || '',
         };
 
         profileMutation.mutate(payload);
@@ -249,17 +265,36 @@ export default function AdvisorOnboarding() {
 
                                 <div className="space-y-4 p-4 rounded-xl border border-slate-100 bg-slate-50/30">
                                     <Label className="font-bold text-slate-700">Professional Verification</Label>
-                                    <div className="flex gap-4">
+                                    <div className="space-y-3">
                                         <Input
                                             placeholder="License Number (e.g. Bar ID)"
                                             className="bg-white"
                                             defaultValue={profile?.licenseNumber}
                                             onChange={(e) => setFormData({ ...formData, licenseNumber: e.target.value })}
                                         />
-                                        <Button type="button" variant="outline" className="bg-white whitespace-nowrap">
-                                            <FileText className="w-4 h-4 mr-2" />
-                                            Update Document
-                                        </Button>
+                                        <div className="flex items-center gap-3">
+                                            <Button 
+                                                type="button" 
+                                                variant="outline" 
+                                                className="bg-white whitespace-nowrap flex-1"
+                                                onClick={() => document.getElementById('license-upload')?.click()}
+                                            >
+                                                <FileText className="w-4 h-4 mr-2" />
+                                                {documentFile ? 'Change Document' : 'Upload Document'}
+                                            </Button>
+                                            <input
+                                                id="license-upload"
+                                                type="file"
+                                                accept=".pdf,.jpg,.jpeg,.png"
+                                                className="hidden"
+                                                onChange={handleDocumentChange}
+                                            />
+                                            {documentFile && (
+                                                <span className="text-xs text-slate-600 truncate max-w-[200px]">
+                                                    {documentFile.name}
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
                                     <p className="text-[10px] text-slate-400 italic">Verification ensures marketplace integrity. Submitted documents are encrypted.</p>
                                 </div>
