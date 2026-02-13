@@ -91,6 +91,17 @@ export function Sidebar() {
             ]
         },
         {
+            title: "Advisor Marketplace",
+            items: [
+                { label: "Marketplace", icon: Search, path: "/marketplace" },
+                { label: "My Consultations", icon: MessageSquare, path: "/my-bookings" },
+                ...(user?.role === 'ADVISOR'
+                    ? [{ label: "Advisor Dashboard", icon: LayoutDashboard, path: "/advisor/dashboard" }]
+                    : [{ label: "Become an Advisor", icon: Zap, path: "/advisor/onboarding" }]
+                ),
+            ]
+        },
+        {
             title: "Support",
             items: [
                 { label: "Help Center", icon: HelpCircle, path: "/help" },
@@ -102,7 +113,6 @@ export function Sidebar() {
                         setSupportOpen(true);
                     }
                 },
-                { label: "Find an Advisor", icon: ShieldCheck, path: "/marketplace" },
                 { label: "Settings", icon: Settings, path: "/settings" },
             ]
         },

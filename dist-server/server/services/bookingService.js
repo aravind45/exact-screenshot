@@ -3,38 +3,148 @@ import { logger } from '../lib/logger.js';
 import { StripeService } from './stripeService.js';
 export class BookingService {
     /**
-     * Create a new booking and return a Stripe Checkout session
+     * Create a new booking with session details
      */
-    static async createBooking(userId, advisorId, estateId, hours = 1) {
-        logger.info(`📅 Creating booking for user ${userId} with advisor ${advisorId}`);
+    static async createBooking(data) {
+        logger.info(`📅 Creating booking for user ${data.userId} with advisor ${data.advisorId}`);
         const advisor = await prisma.advisorProfile.findUnique({
-            where: { id: advisorId },
+            where: { id: data.advisorId },
             include: { user: true }
         });
         if (!advisor || !advisor.isVerified) {
             throw new Error('Advisor not found or not verified');
         }
+        if (!advisor.stripeAccountId) {
+            throw new Error('Advisor has not completed Stripe onboarding');
+        }
         const hourlyRate = Number(advisor.hourlyRate);
-        const totalAmount = hourlyRate * hours;
+        const totalAmount = hourlyRate * data.sessionDuration;
         const platformFee = totalAmount * this.PLATFORM_FEE_PERCENT;
         const advisorPayout = totalAmount - platformFee;
         const escrowReleaseDate = new Date();
         escrowReleaseDate.setDate(escrowReleaseDate.getDate() + this.ESCROW_DAYS);
         const booking = await prisma.booking.create({
             data: {
-                userId,
-                advisorId,
-                estateId,
+                userId: data.userId,
+                advisorId: data.advisorId,
+                estateId: data.estateId,
+                sessionDuration: data.sessionDuration,
+                sessionDate: data.sessionDate,
                 totalAmount,
                 platformFee,
                 advisorPayout,
                 escrowReleaseDate,
                 status: 'PENDING',
                 payoutStatus: 'UNPAID'
+            },
+            include: {
+                user: true,
+                advisor: { include: { user: true } },
+                estate: true
             }
         });
-        // In a real app, we'd use Stripe Checkout here
-        // For this prototype, we'll simulate the payment completion if needed
+        logger.info(`✅ Booking created: ${booking.id}`);
+        return booking;
+    }
+    /**
+     * Create payment intent for a booking
+     */
+    static async createPaymentIntent(bookingId) {
+        const booking = await prisma.booking.findUnique({
+            where: { id: bookingId },
+            include: { advisor: true }
+        });
+        if (!booking) {
+            throw new Error('Booking not found');
+        }
+        if (!booking.advisor.stripeAccountId) {
+            throw new Error('Advisor does not have a Stripe account');
+        }
+        const paymentIntent = await StripeService.createBookingPaymentIntent(bookingId, Number(booking.totalAmount), booking.advisor.stripeAccountId);
+        return paymentIntent;
+    }
+    /**
+     * Confirm a booking (advisor accepts)
+     */
+    static async confirmBooking(bookingId, advisorId) {
+        const booking = await prisma.booking.findUnique({
+            where: { id: bookingId }
+        });
+        if (!booking) {
+            throw new Error('Booking not found');
+        }
+        if (booking.advisorId !== advisorId) {
+            throw new Error('Unauthorized');
+        }
+        if (booking.status !== 'PENDING' && booking.status !== 'CONFIRMED') {
+            throw new Error('Booking cannot be confirmed');
+        }
+        const updated = await prisma.booking.update({
+            where: { id: bookingId },
+            data: { status: 'CONFIRMED' },
+            include: {
+                user: true,
+                advisor: { include: { user: true } }
+            }
+        });
+        logger.info(`✅ Booking confirmed: ${bookingId}`);
+        return updated;
+    }
+    /**
+     * Cancel a booking
+     */
+    static async cancelBooking(bookingId, userId, reason) {
+        const booking = await prisma.booking.findUnique({
+            where: { id: bookingId }
+        });
+        if (!booking) {
+            throw new Error('Booking not found');
+        }
+        if (booking.userId !== userId) {
+            throw new Error('Unauthorized');
+        }
+        if (booking.status === 'CANCELLED' || booking.status === 'REFUNDED') {
+            throw new Error('Booking is already cancelled');
+        }
+        // If payment was made, process refund
+        if (booking.stripePaymentId && booking.status === 'CONFIRMED') {
+            await StripeService.processBookingRefund(bookingId, Number(booking.totalAmount), reason);
+        }
+        else {
+            // Just update status if no payment was made
+            await prisma.booking.update({
+                where: { id: bookingId },
+                data: {
+                    status: 'CANCELLED',
+                    cancellationReason: reason
+                }
+            });
+        }
+        logger.info(`✅ Booking cancelled: ${bookingId}`);
+        return { success: true };
+    }
+    /**
+     * Get a single booking by ID
+     */
+    static async getBooking(bookingId, userId) {
+        const booking = await prisma.booking.findUnique({
+            where: { id: bookingId },
+            include: {
+                user: true,
+                advisor: { include: { user: true } },
+                estate: true
+            }
+        });
+        if (!booking) {
+            throw new Error('Booking not found');
+        }
+        // Check authorization
+        const advisor = await prisma.advisorProfile.findUnique({
+            where: { id: booking.advisorId }
+        });
+        if (booking.userId !== userId && advisor?.userId !== userId) {
+            throw new Error('Unauthorized');
+        }
         return booking;
     }
     /**
@@ -61,12 +171,7 @@ export class BookingService {
                     continue;
                 }
                 // Send transfer via Stripe Connect
-                await StripeService.transferToAdvisor(booking.advisor.stripeAccountId, Number(booking.advisorPayout), booking.stripePaymentId || '' // In real app, this would be the actual PI ID
-                );
-                await prisma.booking.update({
-                    where: { id: booking.id },
-                    data: { payoutStatus: 'PAID' }
-                });
+                await StripeService.releaseBookingEscrow(booking.id);
                 logger.info(`✅ Paid advisor for booking ${booking.id}`);
             }
             catch (error) {
@@ -80,7 +185,8 @@ export class BookingService {
     static async getUserBookings(userId) {
         return prisma.booking.findMany({
             where: { userId },
-            include: { advisor: { include: { user: true } } }
+            include: { advisor: { include: { user: true } }, estate: true },
+            orderBy: { createdAt: 'desc' }
         });
     }
     /**
@@ -89,7 +195,8 @@ export class BookingService {
     static async getAdvisorBookings(advisorId) {
         return prisma.booking.findMany({
             where: { advisorId },
-            include: { user: true }
+            include: { user: true, estate: true },
+            orderBy: { createdAt: 'desc' }
         });
     }
 }

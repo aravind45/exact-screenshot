@@ -6,18 +6,24 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Search, Filter, Star, ShieldCheck, MapPin, DollarSign, Clock } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { BookingModal } from "@/components/advisor/BookingModal";
+import ReviewList from "@/components/advisor/ReviewList";
+import { useAuth } from "@/contexts/AuthContext";
+import { api } from "@/lib/api";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
 export default function AdvisorMarketplace() {
+    const { user } = useAuth();
     const [searchTerm, setSearchTerm] = useState('');
     const [expertiseFilter, setExpertiseFilter] = useState('');
+    const [selectedAdvisor, setSelectedAdvisor] = useState<any>(null);
+    const [isBookingOpen, setIsBookingOpen] = useState(false);
+    const [expandedReviews, setExpandedReviews] = useState<string | null>(null);
 
     const { data: advisors, isLoading } = useQuery({
         queryKey: ['marketplace-advisors', expertiseFilter],
         queryFn: async () => {
-            const url = new URL('/api/advisors/marketplace', window.location.origin);
-            if (expertiseFilter) url.searchParams.append('expertise', expertiseFilter);
-            const res = await fetch(url);
-            return res.json();
+            return await api.advisors.getMarketplace({ expertise: expertiseFilter });
         }
     });
 
@@ -25,6 +31,11 @@ export default function AdvisorMarketplace() {
         a.user.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         a.expertise.some((e: string) => e.toLowerCase().includes(searchTerm.toLowerCase()))
     );
+
+    const handleBook = (advisor: any) => {
+        setSelectedAdvisor(advisor);
+        setIsBookingOpen(true);
+    };
 
     return (
         <div className="container mx-auto py-10">
@@ -103,8 +114,17 @@ export default function AdvisorMarketplace() {
                                             </CardTitle>
                                             <div className="flex items-center gap-2 text-sm text-slate-500">
                                                 <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
-                                                <span className="font-bold text-slate-900">4.9</span>
-                                                <span>(24 reviews)</span>
+                                                <span className="font-bold text-slate-900">{advisor.averageRating?.toFixed(1) || "5.0"}</span>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setExpandedReviews(expandedReviews === advisor.id ? null : advisor.id);
+                                                    }}
+                                                    className="flex items-center gap-1 hover:text-indigo-600 transition-colors"
+                                                >
+                                                    ({advisor.totalReviews || 0} reviews)
+                                                    {expandedReviews === advisor.id ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
@@ -125,9 +145,18 @@ export default function AdvisorMarketplace() {
                                         </Badge>
                                     ))}
                                 </div>
+
+                                {expandedReviews === advisor.id && (
+                                    <div className="mt-6 pt-6 border-t border-slate-100">
+                                        <ReviewList advisorId={advisor.id} />
+                                    </div>
+                                )}
                             </CardContent>
                             <CardFooter className="bg-slate-50/50 border-t border-slate-100 py-4">
-                                <Button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-lg shadow-indigo-100 transition-all active:scale-[0.98]">
+                                <Button
+                                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-lg shadow-indigo-100 transition-all active:scale-[0.98]"
+                                    onClick={() => handleBook(advisor)}
+                                >
                                     Book a Consultation
                                 </Button>
                             </CardFooter>
@@ -135,6 +164,13 @@ export default function AdvisorMarketplace() {
                     ))
                 )}
             </div>
+
+            <BookingModal
+                isOpen={isBookingOpen}
+                onClose={() => setIsBookingOpen(false)}
+                advisor={selectedAdvisor}
+                user={user}
+            />
 
             <div className="mt-20 p-8 bg-indigo-50/50 rounded-2xl border border-indigo-100 flex flex-col md:flex-row items-center justify-between gap-6">
                 <div className="space-y-1">

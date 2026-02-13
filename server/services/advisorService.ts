@@ -16,10 +16,20 @@ export class AdvisorService {
     }) {
         logger.info(`📝 Updating advisor profile for user ${userId}`);
 
+        // Sanitize data to only include fields defined in Prisma schema
+        const sanitizedData = {
+            bio: data.bio,
+            expertise: data.expertise,
+            hourlyRate: data.hourlyRate,
+            licenseNumber: data.licenseNumber,
+            licenseDocument: data.licenseDocument,
+            profileImage: data.profileImage,
+        };
+
         const profile = await prisma.advisorProfile.upsert({
             where: { userId },
             update: {
-                ...data,
+                ...sanitizedData,
                 verificationStatus: data.licenseDocument ? 'PENDING' : undefined, // Reset to pending if doc updated
             },
             create: {

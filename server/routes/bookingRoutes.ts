@@ -1,22 +1,67 @@
 import { Router, Response } from 'express';
 import { BookingService } from '../services/bookingService.js';
 import { authenticate } from '../middleware/auth.js';
+import { bookingCreationLimiter, paymentIntentLimiter } from '../middleware/rateLimiter.js';
 import { logger } from '../lib/logger.js';
+import { z } from 'zod';
 
 const router = Router();
+
+// Validation schemas
+const createBookingSchema = z.object({
+    advisorId: z.string(),
+    estateId: z.string().optional(),
+    sessionDuration: z.number().min(1).max(8),
+    sessionDate: z.string().datetime()
+});
+
+const cancelBookingSchema = z.object({
+    reason: z.string().optional()
+});
 
 /**
  * POST /api/bookings
  * Create a new booking
  */
-router.post('/', authenticate, async (req: any, res: Response) => {
+router.post('/', authenticate, bookingCreationLimiter, async (req: any, res: Response) => {
     try {
-        const { advisorId, estateId, hours } = req.body;
-        const booking = await BookingService.createBooking(req.user.id, advisorId, estateId, hours);
-        res.json(booking);
+        const data = createBookingSchema.parse(req.body);
+
+        const booking = await BookingService.createBooking({
+            userId: req.user.id,
+            advisorId: data.advisorId,
+            estateId: data.estateId,
+            sessionDuration: data.sessionDuration,
+            sessionDate: new Date(data.sessionDate)
+        });
+
+        res.status(201).json(booking);
     } catch (error: any) {
+        if (error instanceof z.ZodError) {
+            return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+        }
         logger.error(`❌ Error creating booking: ${error.message}`);
         res.status(400).json({ error: error.message });
+    }
+});
+
+/**
+ * POST /api/bookings/:id/payment
+ * Create payment intent for a booking
+ */
+router.post('/:id/payment', authenticate, paymentIntentLimiter, async (req: any, res: Response) => {
+    try {
+        const bookingId = req.params.id;
+
+        // Verify user owns this booking
+        await BookingService.getBooking(bookingId, req.user.id);
+
+        const paymentIntent = await BookingService.createPaymentIntent(bookingId);
+
+        res.json(paymentIntent);
+    } catch (error: any) {
+        logger.error(`❌ Error creating payment intent: ${error.message}`);
+        res.status(500).json({ error: error.message || 'Failed to create payment intent' });
     }
 });
 
@@ -55,6 +100,69 @@ router.get('/advisor-bookings', authenticate, async (req: any, res: Response) =>
     } catch (error: any) {
         logger.error(`❌ Error fetching advisor bookings: ${error.message}`);
         res.status(500).json({ error: 'Failed to fetch advisor bookings' });
+    }
+});
+
+/**
+ * GET /api/bookings/:id
+ * Get a single booking
+ */
+router.get('/:id', authenticate, async (req: any, res: Response) => {
+    try {
+        const booking = await BookingService.getBooking(req.params.id, req.user.id);
+        res.json(booking);
+    } catch (error: any) {
+        logger.error(`❌ Error fetching booking: ${error.message}`);
+        res.status(error.message === 'Unauthorized' ? 403 : 500).json({
+            error: error.message || 'Failed to fetch booking'
+        });
+    }
+});
+
+/**
+ * POST /api/bookings/:id/confirm
+ * Confirm a booking (advisor only)
+ */
+router.post('/:id/confirm', authenticate, async (req: any, res: Response) => {
+    try {
+        const { prisma } = await import('../db.js');
+        const advisor = await prisma.advisorProfile.findUnique({
+            where: { userId: req.user.id }
+        });
+
+        if (!advisor) {
+            return res.status(403).json({ error: 'Only advisors can confirm bookings' });
+        }
+
+        const booking = await BookingService.confirmBooking(req.params.id, advisor.id);
+        res.json(booking);
+    } catch (error: any) {
+        logger.error(`❌ Error confirming booking: ${error.message}`);
+        res.status(500).json({ error: error.message || 'Failed to confirm booking' });
+    }
+});
+
+/**
+ * POST /api/bookings/:id/cancel
+ * Cancel a booking
+ */
+router.post('/:id/cancel', authenticate, async (req: any, res: Response) => {
+    try {
+        const data = cancelBookingSchema.parse(req.body);
+
+        const result = await BookingService.cancelBooking(
+            req.params.id,
+            req.user.id,
+            data.reason
+        );
+
+        res.json(result);
+    } catch (error: any) {
+        if (error instanceof z.ZodError) {
+            return res.status(400).json({ error: 'Invalid request data', details: error.errors });
+        }
+        logger.error(`❌ Error cancelling booking: ${error.message}`);
+        res.status(500).json({ error: error.message || 'Failed to cancel booking' });
     }
 });
 

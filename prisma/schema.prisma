@@ -46,6 +46,7 @@ model User {
   transactions            Transaction[]
   advisorProfile          AdvisorProfile?
   bookings                Booking[]
+  reviews                 Review[]
 
   @@map("profiles")
 }
@@ -639,44 +640,76 @@ model MarketingEvent {
 }
 
 model AdvisorProfile {
-  id                 String   @id @default(uuid())
-  userId             String   @unique @map("user_id")
-  bio                String?
-  expertise          String[]
-  hourlyRate         Decimal  @map("hourly_rate") @db.Decimal(10, 2)
-  stripeAccountId    String?  @map("stripe_account_id")
-  verificationStatus String   @default("PENDING") @map("verification_status")
-  profileImage       String?  @map("profile_image")
-  licenseNumber      String?  @map("license_number")
-  licenseDocument    String?  @map("license_document")
-  isVerified         Boolean  @default(false) @map("is_verified")
-  createdAt          DateTime @default(now()) @map("created_at")
-  updatedAt          DateTime @updatedAt @map("updated_at")
-  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  bookings           Booking[]
+  id                       String   @id @default(uuid())
+  userId                   String   @unique @map("user_id")
+  bio                      String?
+  expertise                String[]
+  hourlyRate               Decimal  @map("hourly_rate") @db.Decimal(10, 2)
+  stripeAccountId          String?  @map("stripe_account_id")
+  stripeOnboardingComplete Boolean  @default(false) @map("stripe_onboarding_complete")
+  stripeDetailsSubmitted   Boolean  @default(false) @map("stripe_details_submitted")
+  verificationStatus       String   @default("PENDING") @map("verification_status")
+  profileImage             String?  @map("profile_image")
+  licenseNumber            String?  @map("license_number")
+  licenseDocument          String?  @map("license_document")
+  isVerified               Boolean  @default(false) @map("is_verified")
+  createdAt                DateTime @default(now()) @map("created_at")
+  updatedAt                DateTime @updatedAt @map("updated_at")
+  user                     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bookings                 Booking[]
+  reviews                  Review[]
 
   @@map("advisor_profiles")
 }
 
 model Booking {
-  id                String   @id @default(uuid())
-  userId            String   @map("user_id")
-  advisorId         String   @map("advisor_id")
-  estateId          String?  @map("estate_id")
-  status            String   @default("PENDING")
-  totalAmount       Decimal  @map("total_amount") @db.Decimal(10, 2)
-  platformFee       Decimal  @map("platform_fee") @db.Decimal(10, 2)
-  advisorPayout     Decimal  @map("advisor_payout") @db.Decimal(10, 2)
-  escrowReleaseDate DateTime? @map("escrow_release_date")
-  payoutStatus      String   @default("UNPAID")
-  stripePaymentId   String?  @map("stripe_payment_id")
-  createdAt         DateTime @default(now()) @map("created_at")
-  updatedAt         DateTime @updatedAt @map("updated_at")
-  user              User     @relation(fields: [userId], references: [id])
-  advisor           AdvisorProfile @relation(fields: [advisorId], references: [id])
-  estate            Estate?  @relation(fields: [estateId], references: [id])
+  id                 String    @id @default(uuid())
+  userId             String    @map("user_id")
+  advisorId          String    @map("advisor_id")
+  estateId           String?   @map("estate_id")
+  status             String    @default("PENDING")
+  sessionDuration    Int?      // Hours booked
+  sessionDate        DateTime? @map("session_date")
+  totalAmount        Decimal   @map("total_amount") @db.Decimal(10, 2)
+  platformFee        Decimal   @map("platform_fee") @db.Decimal(10, 2)
+  advisorPayout      Decimal   @map("advisor_payout") @db.Decimal(10, 2)
+  escrowReleaseDate  DateTime? @map("escrow_release_date")
+  payoutStatus       String    @default("UNPAID") @map("payout_status")
+  stripePaymentId    String?   @map("stripe_payment_id")
+  cancellationReason String?   @map("cancellation_reason")
+  refundAmount       Decimal?  @map("refund_amount") @db.Decimal(10, 2)
+  refundedAt         DateTime? @map("refunded_at")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+  user               User      @relation(fields: [userId], references: [id])
+  advisor            AdvisorProfile @relation(fields: [advisorId], references: [id])
+  estate             Estate?   @relation(fields: [estateId], references: [id])
+  review             Review?
 
+  @@index([userId])
+  @@index([advisorId])
+  @@index([status])
   @@map("bookings")
+}
+
+model Review {
+  id         String   @id @default(uuid())
+  bookingId  String   @unique @map("booking_id")
+  userId     String   @map("user_id")
+  advisorId  String   @map("advisor_id")
+  rating     Int      // 1-5 stars
+  comment    String?  @db.Text
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+  
+  user       User           @relation(fields: [userId], references: [id])
+  advisor    AdvisorProfile @relation(fields: [advisorId], references: [id])
+  booking    Booking        @relation(fields: [bookingId], references: [id])
+
+  @@index([advisorId])
+  @@index([userId])
+  @@index([rating])
+  @@map("reviews")
 }
 
 model TokenBlacklist {

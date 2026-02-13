@@ -1,6 +1,9 @@
 import { Router } from 'express';
 import { AdvisorService } from '../services/advisorService.js';
+import { StripeService } from '../services/stripeService.js';
 import { authenticate } from '../middleware/auth.js';
+import { requireAdvisor, requireAdmin } from '../middleware/authorization.js';
+import { profileUpdateLimiter } from '../middleware/rateLimiter.js';
 import { logger } from '../lib/logger.js';
 
 const router = Router();
@@ -9,7 +12,7 @@ const router = Router();
  * GET /api/advisors/me
  * Get current user's advisor profile
  */
-router.get('/me', authenticate, async (req: any, res) => {
+router.get('/me', authenticate, requireAdvisor, async (req: any, res) => {
     try {
         const profile = await AdvisorService.getAdvisorProfile(req.user!.id);
         res.json(profile);
@@ -23,7 +26,7 @@ router.get('/me', authenticate, async (req: any, res) => {
  * POST /api/advisors/profile
  * Create or update advisor profile
  */
-router.post('/profile', authenticate, async (req: any, res) => {
+router.post('/profile', authenticate, profileUpdateLimiter, async (req: any, res) => {
     try {
         const profile = await AdvisorService.updateAdvisorProfile(req.user!.id, req.body);
         res.json(profile);
@@ -83,6 +86,178 @@ router.post('/:id/verify', authenticate, async (req: any, res) => {
     } catch (error: any) {
         logger.error(`❌ Error verifying advisor: ${error.message}`);
         res.status(500).json({ error: 'Failed to verify advisor' });
+    }
+});
+
+/**
+ * POST /api/advisors/stripe/connect/onboard
+ * Start Stripe Connect onboarding for advisor
+ */
+router.post('/stripe/connect/onboard', authenticate, async (req: any, res) => {
+    try {
+        const userId = req.user!.id;
+        const { returnUrl, refreshUrl } = req.body;
+
+        // Get or create advisor profile
+        let advisor = await AdvisorService.getAdvisorProfile(userId);
+
+        if (!advisor) {
+            return res.status(404).json({ error: 'Advisor profile not found' });
+        }
+
+        // Create Connect account if doesn't exist
+        if (!advisor.stripeAccountId) {
+            const account = await StripeService.createConnectAccount(userId);
+            advisor = await AdvisorService.getAdvisorProfile(userId);
+        }
+
+        // Create account link for onboarding
+        const accountLink = await StripeService.createAccountLink(
+            advisor!.stripeAccountId!,
+            returnUrl || `${process.env.APP_URL}/advisor/dashboard`,
+            refreshUrl || `${process.env.APP_URL}/advisor/onboarding`
+        );
+
+        res.json({ url: accountLink.url });
+    } catch (error: any) {
+        logger.error(`❌ Error starting Stripe onboarding: ${error.message}`);
+        res.status(500).json({ error: 'Failed to start Stripe onboarding' });
+    }
+});
+
+/**
+ * GET /api/advisors/stripe/connect/status
+ * Check Stripe Connect account status
+ */
+router.get('/stripe/connect/status', authenticate, async (req: any, res) => {
+    try {
+        const advisor = await AdvisorService.getAdvisorProfile(req.user!.id);
+
+        if (!advisor?.stripeAccountId) {
+            return res.json({
+                connected: false,
+                detailsSubmitted: false,
+                chargesEnabled: false,
+                payoutsEnabled: false
+            })
+        }
+
+        const status = await StripeService.getAccountStatus(advisor.stripeAccountId);
+
+        res.json({
+            connected: true,
+            ...status
+        });
+    } catch (error: any) {
+        logger.error(`❌ Error checking Stripe status: ${error.message}`);
+        res.status(500).json({ error: 'Failed to check Stripe status' });
+    }
+});
+
+/**
+ * GET /api/advisors/dashboard/stats
+ * Get dashboard statistics for advisor
+ */
+router.get('/dashboard/stats', authenticate, async (req: any, res) => {
+    try {
+        const { prisma } = await import('../db.js');
+        const advisor = await prisma.advisorProfile.findUnique({
+            where: { userId: req.user!.id }
+        });
+
+        if (!advisor) {
+            return res.status(404).json({ error: 'Advisor profile not found' });
+        }
+
+        // Get booking statistics
+        const bookings = await prisma.booking.findMany({
+            where: { advisorId: advisor.id }
+        });
+
+        const totalBookings = bookings.length;
+        const pendingBookings = bookings.filter(b => b.status === 'PENDING').length;
+        const confirmedBookings = bookings.filter(b => b.status === 'CONFIRMED').length;
+        const completedBookings = bookings.filter(b => b.status === 'COMPLETED').length;
+
+        // Calculate earnings
+        const totalEarnings = bookings
+            .filter(b => b.status === 'COMPLETED' || b.status === 'CONFIRMED')
+            .reduce((sum, b) => sum + Number(b.advisorPayout), 0);
+
+        const paidEarnings = bookings
+            .filter(b => b.payoutStatus === 'PAID')
+            .reduce((sum, b) => sum + Number(b.advisorPayout), 0);
+
+        const pendingEarnings = totalEarnings - paidEarnings;
+
+        // Get upcoming sessions
+        const upcomingSessions = await prisma.booking.findMany({
+            where: {
+                advisorId: advisor.id,
+                status: 'CONFIRMED',
+                sessionDate: { gte: new Date() }
+            },
+            orderBy: { sessionDate: 'asc' },
+            take: 5,
+            include: { user: true, estate: true }
+        });
+
+        res.json({
+            stats: {
+                totalBookings,
+                pendingBookings,
+                confirmedBookings,
+                completedBookings,
+                totalEarnings,
+                paidEarnings,
+                pendingEarnings
+            },
+            upcomingSessions
+        });
+    } catch (error: any) {
+        logger.error(`❌ Error fetching dashboard stats: ${error.message}`);
+        res.status(500).json({ error: 'Failed to fetch dashboard statistics' });
+    }
+});
+
+/**
+ * GET /api/advisors/dashboard/earnings
+ * Get detailed earnings breakdown
+ */
+router.get('/dashboard/earnings', authenticate, async (req: any, res) => {
+    try {
+        const { prisma } = await import('../db.js');
+        const advisor = await prisma.advisorProfile.findUnique({
+            where: { userId: req.user!.id }
+        });
+
+        if (!advisor) {
+            return res.status(404).json({ error: 'Advisor profile not found' });
+        }
+
+        const bookings = await prisma.booking.findMany({
+            where: { advisorId: advisor.id },
+            include: { user: true },
+            orderBy: { createdAt: 'desc' }
+        });
+
+        const earnings = bookings.map(booking => ({
+            id: booking.id,
+            date: booking.createdAt,
+            sessionDate: booking.sessionDate,
+            clientName: booking.user.fullName || booking.user.email,
+            amount: Number(booking.advisorPayout),
+            platformFee: Number(booking.platformFee),
+            totalAmount: Number(booking.totalAmount),
+            status: booking.status,
+            payoutStatus: booking.payoutStatus,
+            escrowReleaseDate: booking.escrowReleaseDate
+        }));
+
+        res.json({ earnings });
+    } catch (error: any) {
+        logger.error(`❌ Error fetching earnings: ${error.message}`);
+        res.status(500).json({ error: 'Failed to fetch earnings' });
     }
 });
 

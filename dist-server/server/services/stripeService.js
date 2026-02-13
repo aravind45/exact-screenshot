@@ -355,5 +355,172 @@ export class StripeService {
             source_transaction: paymentIntentId,
         });
     }
+    /**
+     * Get the status of a Stripe Connect account
+     */
+    static async getAccountStatus(stripeAccountId) {
+        try {
+            const account = await this.stripe.accounts.retrieve(stripeAccountId);
+            return {
+                detailsSubmitted: account.details_submitted,
+                chargesEnabled: account.charges_enabled,
+                payoutsEnabled: account.payouts_enabled,
+            };
+        }
+        catch (error) {
+            logger.error('Error getting account status:', error.message);
+            throw error;
+        }
+    }
+    /**
+     * Create a payment intent for a booking
+     */
+    static async createBookingPaymentIntent(bookingId, amount, advisorStripeAccountId) {
+        try {
+            const platformFee = Math.round(amount * this.PLATFORM_FEE_PERCENTAGE);
+            const paymentIntent = await this.stripe.paymentIntents.create({
+                amount: Math.round(amount * 100), // Convert to cents
+                currency: 'usd',
+                application_fee_amount: platformFee * 100,
+                transfer_data: {
+                    destination: advisorStripeAccountId,
+                },
+                metadata: {
+                    bookingId,
+                    type: 'ADVISOR_BOOKING',
+                },
+            });
+            // Update booking with payment intent ID
+            await prisma.booking.update({
+                where: { id: bookingId },
+                data: { stripePaymentId: paymentIntent.id }
+            });
+            logger.info(`Payment intent created for booking ${bookingId}: ${paymentIntent.id}`);
+            return {
+                clientSecret: paymentIntent.client_secret,
+                paymentIntentId: paymentIntent.id,
+            };
+        }
+        catch (error) {
+            logger.error('Error creating booking payment intent:', error.message);
+            throw error;
+        }
+    }
+    /**
+     * Capture a booking payment (called after payment intent succeeds)
+     */
+    static async captureBookingPayment(paymentIntentId) {
+        try {
+            const paymentIntent = await this.stripe.paymentIntents.retrieve(paymentIntentId);
+            if (paymentIntent.status !== 'succeeded') {
+                throw new Error('Payment intent has not succeeded');
+            }
+            const bookingId = paymentIntent.metadata.bookingId;
+            // Update booking status and set escrow release date
+            await prisma.booking.update({
+                where: { id: bookingId },
+                data: {
+                    status: 'CONFIRMED',
+                    payoutStatus: 'ESCROWED',
+                    escrowReleaseDate: new Date(Date.now() + this.ESCROW_DAYS * 24 * 60 * 60 * 1000)
+                }
+            });
+            logger.info(`✅ Booking payment captured for ${bookingId}`);
+            return { success: true };
+        }
+        catch (error) {
+            logger.error('Error capturing booking payment:', error.message);
+            throw error;
+        }
+    }
+    /**
+     * Release escrow and payout to advisor
+     */
+    static async releaseBookingEscrow(bookingId) {
+        try {
+            const booking = await prisma.booking.findUnique({
+                where: { id: bookingId },
+                include: { advisor: true }
+            });
+            if (!booking) {
+                throw new Error('Booking not found');
+            }
+            if (!booking.advisor.stripeAccountId) {
+                throw new Error('Advisor does not have a Stripe account');
+            }
+            if (booking.payoutStatus === 'PAID') {
+                throw new Error('Escrow already released');
+            }
+            // Create transfer to advisor
+            const transfer = await this.stripe.transfers.create({
+                amount: Math.round(Number(booking.advisorPayout) * 100),
+                currency: 'usd',
+                destination: booking.advisor.stripeAccountId,
+                metadata: {
+                    bookingId: booking.id,
+                },
+            });
+            // Update booking payout status
+            await prisma.booking.update({
+                where: { id: bookingId },
+                data: { payoutStatus: 'PAID' }
+            });
+            logger.info(`✅ Escrow released for booking ${bookingId}, transfer: ${transfer.id}`);
+            return { transferId: transfer.id };
+        }
+        catch (error) {
+            logger.error('Error releasing booking escrow:', error.message);
+            throw error;
+        }
+    }
+    /**
+     * Calculate platform fee and advisor payout for a booking
+     */
+    static calculateBookingFees(totalAmount) {
+        const platformFee = totalAmount * this.PLATFORM_FEE_PERCENTAGE;
+        const advisorPayout = totalAmount - platformFee;
+        return {
+            totalAmount,
+            platformFee,
+            advisorPayout,
+        };
+    }
+    /**
+     * Process a refund for a cancelled booking
+     */
+    static async processBookingRefund(bookingId, amount, reason) {
+        try {
+            const booking = await prisma.booking.findUnique({
+                where: { id: bookingId }
+            });
+            if (!booking?.stripePaymentId) {
+                throw new Error('Booking does not have a payment ID');
+            }
+            const refund = await this.stripe.refunds.create({
+                payment_intent: booking.stripePaymentId,
+                amount: Math.round(amount * 100),
+                reason: 'requested_by_customer',
+            });
+            // Update booking with refund info
+            await prisma.booking.update({
+                where: { id: bookingId },
+                data: {
+                    status: 'REFUNDED',
+                    refundAmount: amount,
+                    refundedAt: new Date(),
+                    cancellationReason: reason,
+                }
+            });
+            logger.info(`✅ Refund processed for booking ${bookingId}: ${refund.id}`);
+            return { refundId: refund.id };
+        }
+        catch (error) {
+            logger.error('Error processing booking refund:', error.message);
+            throw error;
+        }
+    }
 }
 StripeService._stripe = null;
+// ========== ADVISOR BOOKING PAYMENT METHODS ==========
+StripeService.PLATFORM_FEE_PERCENTAGE = 0.20; // 20% platform fee
+StripeService.ESCROW_DAYS = 90; // 90-day escrow period

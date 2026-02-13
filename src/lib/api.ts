@@ -1416,6 +1416,20 @@ export const api = {
             return parseResponse(response);
         }
     },
+    estates: {
+        list: async () => {
+            const response = await fetch(`${API_URL}/estates`, {
+                headers: getHeaders(),
+            });
+            return parseResponse(response);
+        },
+        getById: async (id: string) => {
+            const response = await fetch(`${API_URL}/estates/${id}`, {
+                headers: getHeaders(),
+            });
+            return parseResponse(response);
+        }
+    },
     advisors: {
         getMe: async () => {
             const response = await fetch(`${API_URL}/advisors/me`, { headers: getHeaders() });
@@ -1445,6 +1459,107 @@ export const api = {
                 method: "POST",
                 headers: getHeaders(),
                 body: JSON.stringify({ status }),
+            });
+            return parseResponse(response);
+        },
+        startStripeOnboarding: async (data: { returnUrl: string, refreshUrl: string }) => {
+            const response = await fetch(`${API_URL}/advisors/stripe/connect/onboard`, {
+                method: "POST",
+                headers: getHeaders(),
+                body: JSON.stringify(data),
+            });
+            return parseResponse(response);
+        },
+        getStripeStatus: async () => {
+            const response = await fetch(`${API_URL}/advisors/stripe/connect/status`, { headers: getHeaders() });
+            return parseResponse(response);
+        },
+        getDashboardStats: async () => {
+            const response = await fetch(`${API_URL}/advisors/dashboard/stats`, { headers: getHeaders() });
+            return parseResponse(response);
+        },
+        getDashboardEarnings: async () => {
+            const response = await fetch(`${API_URL}/advisors/dashboard/earnings`, { headers: getHeaders() });
+            return parseResponse(response);
+        }
+    },
+    bookings: {
+        create: async (data: { advisorId: string, estateId?: string, sessionDuration: number, sessionDate: string }) => {
+            const response = await fetch(`${API_URL}/bookings`, {
+                method: "POST",
+                headers: getHeaders(),
+                body: JSON.stringify(data),
+            });
+            return parseResponse(response);
+        },
+        createPaymentIntent: async (bookingId: string) => {
+            const response = await fetch(`${API_URL}/bookings/${bookingId}/payment`, {
+                method: "POST",
+                headers: getHeaders(),
+            });
+            return parseResponse(response);
+        },
+        confirm: async (bookingId: string) => {
+            const response = await fetch(`${API_URL}/bookings/${bookingId}/confirm`, {
+                method: "POST",
+                headers: getHeaders(),
+            });
+            return parseResponse(response);
+        },
+        cancel: async (bookingId: string, reason?: string) => {
+            const response = await fetch(`${API_URL}/bookings/${bookingId}/cancel`, {
+                method: "POST",
+                headers: getHeaders(),
+                body: JSON.stringify({ reason }),
+            });
+            return parseResponse(response);
+        },
+        getMyBookings: async () => {
+            const response = await fetch(`${API_URL}/bookings/my-bookings`, { headers: getHeaders() });
+            return parseResponse(response);
+        },
+        getAdvisorBookings: async () => {
+            const response = await fetch(`${API_URL}/bookings/advisor-bookings`, { headers: getHeaders() });
+            return parseResponse(response);
+        },
+        getById: async (id: string) => {
+            const response = await fetch(`${API_URL}/bookings/${id}`, { headers: getHeaders() });
+            return parseResponse(response);
+        }
+    },
+    reviews: {
+        create: async (data: { bookingId: string, rating: number, comment?: string }) => {
+            const response = await fetch(`${API_URL}/reviews`, {
+                method: "POST",
+                headers: getHeaders(),
+                body: JSON.stringify(data),
+            });
+            return parseResponse(response);
+        },
+        getAdvisorReviews: async (advisorId: string) => {
+            const response = await fetch(`${API_URL}/reviews/advisor/${advisorId}`, { headers: getHeaders() });
+            return parseResponse(response);
+        },
+        getAdvisorStats: async (advisorId: string) => {
+            const response = await fetch(`${API_URL}/reviews/advisor/${advisorId}/stats`, { headers: getHeaders() });
+            return parseResponse(response);
+        },
+        getMyReviews: async () => {
+            const response = await fetch(`${API_URL}/reviews/my-reviews`, { headers: getHeaders() });
+            return parseResponse(response);
+        },
+        update: async (id: string, data: { rating?: number, comment?: string }) => {
+            const response = await fetch(`${API_URL}/reviews/${id}`, {
+                method: "PATCH",
+                headers: getHeaders(),
+                body: JSON.stringify(data),
+            });
+            return parseResponse(response);
+        },
+        delete: async (id: string) => {
+            const response = await fetch(`${API_URL}/reviews/${id}`, {
+                method: "DELETE",
+                headers: getHeaders(),
             });
             return parseResponse(response);
         }

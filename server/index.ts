@@ -72,6 +72,7 @@ app.use((req, res, next) => {
 const allowedOrigins = [
     process.env.APP_URL,
     'http://localhost:5173',
+    'http://localhost:8080',
     'http://localhost:3000',
     'https://www.expectedestate.com',
     'https://expected-estate.vercel.app'
@@ -156,6 +157,7 @@ app.use("/api/help", authenticate, helpRoutes);
 app.use("/api/billing", authenticate, billingRoutes);
 app.use("/api/marketing", marketingRoutes);
 app.use("/api/advisors", advisorRoutes);
+app.use("/api/bookings", authenticate, bookingRoutes);
 app.use("/api/webhooks", webhookRoutes); // Auth handled via Mailgun signatures
 
 // Profile (simple, keep here or move if grows)
