@@ -1,321 +1,400 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-    Card,
-    CardContent,
-    CardHeader,
-    CardTitle,
-    CardDescription,
-    CardFooter
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { format } from 'date-fns';
 import {
     Calendar,
     Clock,
     DollarSign,
-    Users,
-    Star,
-    ArrowUpRight,
-    CheckCircle2,
+    User,
+    TrendingUp,
+    CheckCircle,
     XCircle,
     Loader2,
-    TrendingUp,
-    ExternalLink,
-    ChevronRight
-} from "lucide-react";
-import { api } from "@/lib/api";
-import { format } from "date-fns";
-import { toast } from "sonner";
-import { useAuth } from "@/contexts/AuthContext";
-import { cn } from "@/lib/utils";
+    AlertCircle,
+    CreditCard,
+    Users
+} from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
+import { api } from '@/lib/api';
+import { toast } from 'sonner';
 
 export default function AdvisorDashboard() {
-    const { user } = useAuth();
     const queryClient = useQueryClient();
 
-    // Fetch dashboard stats
-    const { data: stats, isLoading: isStatsLoading } = useQuery({
-        queryKey: ['advisor-stats'],
+    const { data: stats, isLoading: statsLoading } = useQuery({
+        queryKey: ['advisor-dashboard-stats'],
         queryFn: () => api.advisors.getDashboardStats()
     });
 
-    // Fetch advisor bookings
-    const { data: bookings, isLoading: isBookingsLoading } = useQuery({
+    const { data: bookings, isLoading: bookingsLoading } = useQuery({
         queryKey: ['advisor-bookings'],
         queryFn: () => api.bookings.getAdvisorBookings()
     });
 
-    // Mutations for booking actions
+    const { data: earnings, isLoading: earningsLoading } = useQuery({
+        queryKey: ['advisor-earnings'],
+        queryFn: () => api.advisors.getDashboardEarnings()
+    });
+
     const confirmMutation = useMutation({
-        mutationFn: (id: string) => api.bookings.confirm(id),
+        mutationFn: (bookingId: string) => api.bookings.confirm(bookingId),
         onSuccess: () => {
+            toast.success('Booking confirmed successfully');
             queryClient.invalidateQueries({ queryKey: ['advisor-bookings'] });
-            queryClient.invalidateQueries({ queryKey: ['advisor-stats'] });
-            toast.success("Booking confirmed!");
+            queryClient.invalidateQueries({ queryKey: ['advisor-dashboard-stats'] });
+        },
+        onError: (error: any) => {
+            toast.error(error.message || 'Failed to confirm booking');
         }
     });
 
-    const cancelMutation = useMutation({
-        mutationFn: ({ id, reason }: { id: string, reason: string }) => api.bookings.cancel(id, reason),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['advisor-bookings'] });
-            toast.success("Booking cancelled.");
-        }
-    });
+    const getStatusBadge = (status: string) => {
+        const variants: Record<string, { variant: any; icon: any; label: string }> = {
+            PENDING: { variant: 'secondary', icon: Clock, label: 'Pending' },
+            CONFIRMED: { variant: 'default', icon: CheckCircle, label: 'Confirmed' },
+            COMPLETED: { variant: 'default', icon: CheckCircle, label: 'Completed' },
+            CANCELLED: { variant: 'destructive', icon: XCircle, label: 'Cancelled' }
+        };
 
-    if (isStatsLoading || isBookingsLoading) {
+        const config = variants[status] || variants.PENDING;
+        const Icon = config.icon;
+
         return (
-            <div className="container mx-auto py-20 flex flex-col items-center justify-center space-y-4">
-                <Loader2 className="w-10 h-10 animate-spin text-indigo-600" />
-                <p className="text-slate-500 font-medium">Preparing your dashboard...</p>
+            <Badge variant={config.variant} className="flex items-center gap-1 w-fit">
+                <Icon className="w-3 h-3" />
+                {config.label}
+            </Badge>
+        );
+    };
+
+    if (statsLoading || bookingsLoading) {
+        return (
+            <div className="container mx-auto py-10">
+                <div className="space-y-6">
+                    <Skeleton className="h-12 w-64" />
+                    <div className="grid md:grid-cols-4 gap-6">
+                        {[1, 2, 3, 4].map((i) => (
+                            <Card key={i}>
+                                <CardHeader>
+                                    <Skeleton className="h-6 w-24" />
+                                </CardHeader>
+                                <CardContent>
+                                    <Skeleton className="h-10 w-32" />
+                                </CardContent>
+                            </Card>
+                        ))}
+                    </div>
+                </div>
             </div>
         );
     }
 
-    const upcomingBookings = bookings?.filter((b: any) => b.status === 'CONFIRMED' || b.status === 'PAID') || [];
     const pendingBookings = bookings?.filter((b: any) => b.status === 'PENDING') || [];
+    const upcomingSessions = stats?.upcomingSessions || [];
 
     return (
-        <div className="container mx-auto py-10 space-y-10">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div className="space-y-1">
+        <div className="container mx-auto py-10">
+            <div className="space-y-8">
+                <div className="space-y-2">
                     <h1 className="text-4xl font-black tracking-tight">Advisor Dashboard</h1>
-                    <p className="text-slate-500">Welcome back, {user?.fullName}. Here's your business performance.</p>
+                    <p className="text-slate-500 text-lg">
+                        Manage your bookings and track your earnings.
+                    </p>
                 </div>
-                <div className="flex gap-3">
-                    <Button variant="outline" className="bg-white" onClick={() => window.open('https://dashboard.stripe.com', '_blank')}>
-                        <ExternalLink className="w-4 h-4 mr-2" />
-                        Stripe Dashboard
-                    </Button>
-                    <Button className="bg-indigo-600 hover:bg-indigo-700 font-bold" onClick={() => window.location.href = '/marketplace'}>
-                        View My Listing
-                    </Button>
-                </div>
-            </div>
 
-            {/* Stats Overview */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <StatCard
-                    title="Total Shared Volume"
-                    value={`$${stats?.totalEarnings || 0}`}
-                    subValue="All-time processed"
-                    icon={<DollarSign className="w-5 h-5 text-emerald-600" />}
-                    trend="+12% from last month"
-                />
-                <StatCard
-                    title="Pending Payouts"
-                    value={`$${stats?.pendingPayouts || 0}`}
-                    subValue="Held in escrow"
-                    icon={<Clock className="w-5 h-5 text-amber-600" />}
-                />
-                <StatCard
-                    title="Total Sessions"
-                    value={stats?.totalSessions || 0}
-                    subValue="Completed consultations"
-                    icon={<Users className="w-5 h-5 text-indigo-600" />}
-                    trend="+3 this week"
-                />
-                <StatCard
-                    title="Average Rating"
-                    value={stats?.averageRating || "N/A"}
-                    subValue="From clients"
-                    icon={<Star className="w-5 h-5 text-indigo-600 fill-indigo-100" />}
-                />
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Bookings Section */}
-                <div className="lg:col-span-2 space-y-8">
-                    {/* Pending Approvals */}
-                    <Card className="border-slate-200">
+                {/* Stats Overview */}
+                <div className="grid md:grid-cols-4 gap-6">
+                    <Card>
                         <CardHeader className="flex flex-row items-center justify-between pb-2">
-                            <div className="space-y-1">
-                                <CardTitle className="text-xl font-bold">Pending Approvals</CardTitle>
-                                <CardDescription>New session requests requiring your confirmation.</CardDescription>
-                            </div>
-                            <Badge variant="secondary" className="bg-amber-100 text-amber-700 border-none">
-                                {pendingBookings.length} New
-                            </Badge>
+                            <CardTitle className="text-sm font-medium text-slate-600">
+                                Total Bookings
+                            </CardTitle>
+                            <Users className="w-4 h-4 text-slate-400" />
                         </CardHeader>
                         <CardContent>
-                            <div className="space-y-4">
-                                {pendingBookings.length === 0 ? (
-                                    <div className="py-8 text-center text-slate-400 text-sm italic">
-                                        No pending requests at the moment.
-                                    </div>
-                                ) : (
-                                    pendingBookings.map((booking: any) => (
-                                        <BookingRow
-                                            key={booking.id}
-                                            booking={booking}
-                                            onConfirm={() => confirmMutation.mutate(booking.id)}
-                                            onCancel={() => cancelMutation.mutate({ id: booking.id, reason: 'Advisor rejected' })}
-                                            isLoading={confirmMutation.isPending || cancelMutation.isPending}
-                                        />
-                                    ))
-                                )}
-                            </div>
+                            <div className="text-3xl font-bold">{stats?.stats.totalBookings || 0}</div>
+                            <p className="text-xs text-slate-500 mt-1">All time</p>
                         </CardContent>
                     </Card>
 
-                    {/* Upcoming Schedule */}
-                    <Card className="border-slate-200">
-                        <CardHeader>
-                            <CardTitle className="text-xl font-bold">Upcoming Schedule</CardTitle>
-                            <CardDescription>Your confirmed sessions for the next 30 days.</CardDescription>
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between pb-2">
+                            <CardTitle className="text-sm font-medium text-slate-600">
+                                Pending
+                            </CardTitle>
+                            <Clock className="w-4 h-4 text-amber-500" />
                         </CardHeader>
                         <CardContent>
-                            <div className="space-y-4">
-                                {upcomingBookings.length === 0 ? (
-                                    <div className="py-8 text-center text-slate-400 text-sm italic">
-                                        No upcoming sessions scheduled.
-                                    </div>
-                                ) : (
-                                    upcomingBookings.map((booking: any) => (
-                                        <div key={booking.id} className="flex items-center justify-between p-4 rounded-xl border border-slate-100 bg-slate-50/30">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-12 h-12 rounded-xl bg-white border border-slate-100 flex flex-col items-center justify-center shadow-sm">
-                                                    <span className="text-[10px] font-black uppercase text-indigo-600">{format(new Date(booking.sessionDate), "MMM")}</span>
-                                                    <span className="text-lg font-black leading-none">{format(new Date(booking.sessionDate), "dd")}</span>
-                                                </div>
-                                                <div className="space-y-1">
-                                                    <div className="font-bold text-slate-900">{booking.user.fullName}</div>
-                                                    <div className="flex items-center gap-3 text-xs text-slate-500">
-                                                        <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {booking.sessionDuration} Hours</span>
-                                                        <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {format(new Date(booking.sessionDate), "p")}</span>
+                            <div className="text-3xl font-bold text-amber-600">
+                                {stats?.stats.pendingBookings || 0}
+                            </div>
+                            <p className="text-xs text-slate-500 mt-1">Awaiting confirmation</p>
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between pb-2">
+                            <CardTitle className="text-sm font-medium text-slate-600">
+                                Total Earnings
+                            </CardTitle>
+                            <DollarSign className="w-4 h-4 text-green-500" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-3xl font-bold text-green-600">
+                                ${Number(stats?.stats.totalEarnings || 0).toFixed(0)}
+                            </div>
+                            <p className="text-xs text-slate-500 mt-1">All time</p>
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between pb-2">
+                            <CardTitle className="text-sm font-medium text-slate-600">
+                                Pending Payout
+                            </CardTitle>
+                            <CreditCard className="w-4 h-4 text-indigo-500" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-3xl font-bold text-indigo-600">
+                                ${Number(stats?.stats.pendingEarnings || 0).toFixed(0)}
+                            </div>
+                            <p className="text-xs text-slate-500 mt-1">In escrow</p>
+                        </CardContent>
+                    </Card>
+                </div>
+
+                {/* Pending Bookings */}
+                {pendingBookings.length > 0 && (
+                    <div className="space-y-4">
+                        <h2 className="text-2xl font-bold flex items-center gap-2">
+                            <AlertCircle className="w-6 h-6 text-amber-500" />
+                            Pending Bookings
+                            <Badge variant="secondary">{pendingBookings.length}</Badge>
+                        </h2>
+
+                        <div className="grid gap-4">
+                            {pendingBookings.map((booking: any) => (
+                                <Card key={booking.id} className="border-amber-200 bg-amber-50/30">
+                                    <CardContent className="pt-6">
+                                        <div className="flex justify-between items-start">
+                                            <div className="space-y-3 flex-1">
+                                                <div className="flex items-center gap-3">
+                                                    <User className="w-5 h-5 text-slate-400" />
+                                                    <div>
+                                                        <div className="font-bold">{booking.user.fullName}</div>
+                                                        <div className="text-sm text-slate-500">{booking.user.email}</div>
                                                     </div>
                                                 </div>
+
+                                                <div className="flex items-center gap-6 text-sm">
+                                                    <div className="flex items-center gap-2">
+                                                        <Calendar className="w-4 h-4 text-slate-400" />
+                                                        <span>
+                                                            {booking.sessionDate
+                                                                ? format(new Date(booking.sessionDate), 'PPP')
+                                                                : 'Not scheduled'}
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <Clock className="w-4 h-4 text-slate-400" />
+                                                        <span>{booking.sessionDuration || 1} Hours</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <DollarSign className="w-4 h-4 text-slate-400" />
+                                                        <span className="font-bold text-green-600">
+                                                            ${Number(booking.advisorPayout).toFixed(2)}
+                                                        </span>
+                                                    </div>
+                                                </div>
+
+                                                {booking.estate && (
+                                                    <div className="text-sm text-slate-600">
+                                                        <strong>Estate:</strong> {booking.estate.name}
+                                                    </div>
+                                                )}
                                             </div>
-                                            <Button variant="ghost" size="icon" className="text-slate-400 hover:text-indigo-600">
-                                                <ChevronRight className="w-5 h-5" />
+
+                                            <Button
+                                                onClick={() => confirmMutation.mutate(booking.id)}
+                                                disabled={confirmMutation.isPending}
+                                                className="bg-green-600 hover:bg-green-700"
+                                            >
+                                                {confirmMutation.isPending ? (
+                                                    <>
+                                                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                                        Confirming...
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <CheckCircle className="w-4 h-4 mr-2" />
+                                                        Confirm Booking
+                                                    </>
+                                                )}
                                             </Button>
                                         </div>
-                                    ))
-                                )}
-                            </div>
-                        </CardContent>
-                        <CardFooter className="bg-slate-50/50 border-t border-slate-100 justify-center">
-                            <Button variant="link" className="text-slate-500 hover:text-indigo-600 text-sm">View Full Calendar</Button>
-                        </CardFooter>
-                    </Card>
-                </div>
-
-                {/* Sidebar Info */}
-                <div className="space-y-8">
-                    {/* Performance Widget */}
-                    <Card className="bg-slate-900 text-white border-none shadow-xl shadow-slate-200 overflow-hidden relative">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full -mr-16 -mt-16" />
-                        <CardHeader>
-                            <CardTitle className="text-lg flex items-center gap-2">
-                                <TrendingUp className="w-5 h-5 text-indigo-400" />
-                                Growth Potential
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <p className="text-sm text-slate-400 leading-relaxed">
-                                Your average rating is in the top 10%. Complete 5 more sessions to earn the "Top Rated" badge.
-                            </p>
-                            <div className="space-y-2">
-                                <div className="flex justify-between text-xs">
-                                    <span>Milestone Progress</span>
-                                    <span>70%</span>
-                                </div>
-                                <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                                    <div className="h-full bg-indigo-500 w-[70%]" />
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    {/* Resources */}
-                    <Card className="border-slate-200 shadow-none bg-slate-50/50">
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-sm font-bold text-slate-900 uppercase tracking-wider">Advisor Resources</CardTitle>
-                        </CardHeader>
-                        <CardContent className="grid gap-2">
-                            <ResourceLink title="Best practices for consultations" />
-                            <ResourceLink title="Understanding platform fees" />
-                            <ResourceLink title="Optimizing your profile" />
-                            <ResourceLink title="Escrow & Payout policy" />
-                        </CardContent>
-                    </Card>
-                </div>
-            </div>
-        </div>
-    );
-}
-
-function StatCard({ title, value, subValue, icon, trend }: any) {
-    return (
-        <Card className="border-slate-100 shadow-sm border-b-2 border-b-slate-100 hover:border-b-indigo-500 transition-all duration-300">
-            <CardContent className="pt-6">
-                <div className="flex justify-between items-start mb-4">
-                    <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center">
-                        {icon}
-                    </div>
-                    {trend && (
-                        <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 border-none text-[10px]">
-                            {trend}
-                        </Badge>
-                    )}
-                </div>
-                <div className="space-y-1">
-                    <div className="text-2xl font-black text-slate-900">{value}</div>
-                    <div className="text-xs font-bold text-slate-400 uppercase tracking-tight">{title}</div>
-                    <div className="text-[10px] text-slate-400">{subValue}</div>
-                </div>
-            </CardContent>
-        </Card>
-    );
-}
-
-function BookingRow({ booking, onConfirm, onCancel, isLoading }: any) {
-    return (
-        <div className="p-4 rounded-xl border border-slate-100 hover:border-indigo-100 hover:bg-indigo-50/10 transition-all group">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-400">
-                        {booking.user.fullName.charAt(0)}
-                    </div>
-                    <div className="space-y-0.5">
-                        <div className="font-bold text-slate-900">{booking.user.fullName}</div>
-                        <div className="text-xs text-slate-500 flex items-center gap-2">
-                            <Clock className="w-3 h-3" /> {format(new Date(booking.sessionDate), "PPP p")}
+                                    </CardContent>
+                                </Card>
+                            ))}
                         </div>
                     </div>
+                )}
+
+                {/* Upcoming Sessions */}
+                {upcomingSessions.length > 0 && (
+                    <div className="space-y-4">
+                        <h2 className="text-2xl font-bold flex items-center gap-2">
+                            <Calendar className="w-6 h-6 text-indigo-600" />
+                            Upcoming Sessions
+                        </h2>
+
+                        <div className="grid gap-4">
+                            {upcomingSessions.map((session: any) => (
+                                <Card key={session.id}>
+                                    <CardContent className="pt-6">
+                                        <div className="flex justify-between items-start">
+                                            <div className="space-y-3 flex-1">
+                                                <div className="flex items-center gap-3">
+                                                    <User className="w-5 h-5 text-slate-400" />
+                                                    <div>
+                                                        <div className="font-bold">{session.user.fullName}</div>
+                                                        <div className="text-sm text-slate-500">{session.user.email}</div>
+                                                    </div>
+                                                </div>
+
+                                                <div className="flex items-center gap-6 text-sm">
+                                                    <div className="flex items-center gap-2">
+                                                        <Calendar className="w-4 h-4 text-slate-400" />
+                                                        <span className="font-semibold">
+                                                            {format(new Date(session.sessionDate), 'PPP')}
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <Clock className="w-4 h-4 text-slate-400" />
+                                                        <span>{session.sessionDuration} Hours</span>
+                                                    </div>
+                                                </div>
+
+                                                {session.estate && (
+                                                    <div className="text-sm text-slate-600">
+                                                        <strong>Estate:</strong> {session.estate.name}
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {getStatusBadge(session.status)}
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* Earnings Breakdown */}
+                <div className="space-y-4">
+                    <h2 className="text-2xl font-bold flex items-center gap-2">
+                        <TrendingUp className="w-6 h-6 text-green-600" />
+                        Earnings History
+                    </h2>
+
+                    {earningsLoading ? (
+                        <Card>
+                            <CardContent className="py-10">
+                                <div className="flex justify-center">
+                                    <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
+                                </div>
+                            </CardContent>
+                        </Card>
+                    ) : !earnings?.earnings || earnings.earnings.length === 0 ? (
+                        <Card className="border-dashed">
+                            <CardContent className="py-10 text-center">
+                                <DollarSign className="w-12 h-12 text-slate-200 mx-auto mb-3" />
+                                <p className="text-slate-500">No earnings yet</p>
+                            </CardContent>
+                        </Card>
+                    ) : (
+                        <Card>
+                            <CardContent className="p-0">
+                                <div className="overflow-x-auto">
+                                    <table className="w-full">
+                                        <thead className="bg-slate-50 border-b">
+                                            <tr>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                                                    Client
+                                                </th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                                                    Session Date
+                                                </th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                                                    Amount
+                                                </th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                                                    Platform Fee
+                                                </th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                                                    Your Payout
+                                                </th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                                                    Status
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-slate-100">
+                                            {earnings.earnings.map((earning: any) => (
+                                                <tr key={earning.id} className="hover:bg-slate-50">
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <div className="font-medium">{earning.clientName}</div>
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
+                                                        {earning.sessionDate
+                                                            ? format(new Date(earning.sessionDate), 'MMM d, yyyy')
+                                                            : 'Not scheduled'}
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                                        ${earning.totalAmount.toFixed(2)}
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
+                                                        ${earning.platformFee.toFixed(2)}
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-green-600">
+                                                        ${earning.amount.toFixed(2)}
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <Badge
+                                                            variant={earning.payoutStatus === 'PAID' ? 'default' : 'secondary'}
+                                                        >
+                                                            {earning.payoutStatus}
+                                                        </Badge>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
                 </div>
-                <div className="flex items-center gap-2 w-full md:w-auto">
-                    <Button
-                        size="sm"
-                        variant="outline"
-                        className="flex-1 md:flex-none border-slate-200 text-slate-600 hover:bg-slate-50"
-                        onClick={onCancel}
-                        disabled={isLoading}
-                    >
-                        <XCircle className="w-4 h-4 mr-2" />
-                        Reject
-                    </Button>
-                    <Button
-                        size="sm"
-                        className="flex-1 md:flex-none bg-indigo-600 hover:bg-indigo-700 text-white font-bold"
-                        onClick={onConfirm}
-                        disabled={isLoading}
-                    >
-                        {isLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <CheckCircle2 className="w-4 h-4 mr-2" />}
-                        Accept
-                    </Button>
-                </div>
+
+                {/* Escrow Notice */}
+                <Card className="bg-indigo-50 border-indigo-200">
+                    <CardContent className="pt-6">
+                        <div className="flex items-start gap-3">
+                            <AlertCircle className="w-5 h-5 text-indigo-600 mt-0.5" />
+                            <div className="space-y-1">
+                                <h3 className="font-bold text-indigo-900">About Escrow & Payouts</h3>
+                                <p className="text-sm text-indigo-700">
+                                    Payments are held in escrow for 90 days after the session to ensure quality service.
+                                    Funds are automatically released to your connected Stripe account after the escrow period.
+                                </p>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
             </div>
         </div>
-    );
-}
-
-function ResourceLink({ title }: { title: string }) {
-    return (
-        <a href="#" className="flex items-center justify-between p-2 rounded-lg hover:bg-white hover:text-indigo-600 text-slate-500 transition-all text-sm group">
-            <span className="truncate">{title}</span>
-            <ArrowUpRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-        </a>
     );
 }
