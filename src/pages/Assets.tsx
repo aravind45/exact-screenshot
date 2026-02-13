@@ -22,21 +22,9 @@ import {
     Scale,
     FileText,
     Lock,
-    Users
-} from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { getAssetTaxonomyState } from "@/lib/taxonomy";
-import { useToast } from "@/hooks/use-toast";
-import { cn } from "@/lib/utils";
-import {
-    Tabs,
-    TabsContent,
-    TabsList,
-    TabsTrigger,
-} from "@/components/ui/tabs";
-import { DocumentScanner } from "@/components/DocumentScanner";
-import {
+    Users,
+    Gavel,
+    HelpCircle,
     Sparkles,
     FileSearch,
     TrendingUp,
@@ -48,6 +36,60 @@ import type { AssetCategory } from "@/components/CategoryBadge";
 import type { AssetStatus } from "@/components/StatusBadge";
 import type { Priority } from "@/components/PriorityBadge";
 import { SEO } from "@/components/SEO";
+import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
+import { getAssetTaxonomyState } from "@/lib/taxonomy";
+import { classifyAsset, getSuggestedActions } from "@/lib/assetClassification";
+import {
+    Tabs,
+    TabsContent,
+    TabsList,
+    TabsTrigger,
+} from "@/components/ui/tabs";
+import { DocumentScanner } from "@/components/DocumentScanner";
+
+function AssetItem({
+    asset,
+    index,
+    isSelectionMode,
+    selectedAssetIds,
+    handleAssetClick,
+    handleSelectAsset,
+    normalize
+}: any) {
+    return (
+        <motion.div
+            key={asset.id}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: index * 0.05 }}
+        >
+            <AssetCard
+                asset={{
+                    ...asset,
+                    type: normalize(asset.assetType),
+                    category: normalize(asset.category),
+                    status: normalize(asset.status),
+                    priority: normalize(asset.priority),
+                    authorityType: asset.authorityType,
+                    lastContactDate: asset.lastContactDate ? String(asset.lastContactDate).split('T')[0] : null,
+                    nextFollowUpDate: asset.nextFollowUpDate ? String(asset.nextFollowUpDate).split('T')[0] : null,
+                    daysSinceContact: 0
+                }}
+                onClick={() => !isSelectionMode && handleAssetClick(asset.id)}
+                onSelect={(sel: boolean) => handleSelectAsset(asset.id, sel)}
+                selected={selectedAssetIds.includes(asset.id)}
+                selectable={isSelectionMode}
+                className={cn(
+                    "bg-white border-slate-200 hover:border-primary/20 hover:shadow-md transition-all rounded-3xl p-6",
+                    selectedAssetIds.includes(asset.id) && "border-primary ring-4 ring-primary/5 shadow-lg bg-primary/[0.02]"
+                )}
+            />
+        </motion.div>
+    );
+}
 
 export default function Assets() {
     const navigate = useNavigate();
@@ -111,6 +153,34 @@ export default function Assets() {
             else counts.UNSET++;
         });
         return counts;
+    }, [assets]);
+
+    const groupedAssets = useMemo(() => {
+        const groups = {
+            PROBATE: [] as any[],
+            NON_PROBATE: [] as any[],
+            UNKNOWN: [] as any[]
+        };
+        sortedAssets.forEach((a: any) => {
+            const legalClass = classifyAsset(a);
+            groups[legalClass].push(a);
+        });
+        return groups;
+    }, [sortedAssets]);
+
+    const allSuggestedActions = useMemo(() => {
+        const actionMap = new Map<string, any>();
+        assets.forEach((a: any) => {
+            const actions = getSuggestedActions(a);
+            actions.forEach(action => {
+                if (!actionMap.has(action.id)) {
+                    actionMap.set(action.id, { ...action, relatedAssets: [a] });
+                } else {
+                    actionMap.get(action.id).relatedAssets.push(a);
+                }
+            });
+        });
+        return Array.from(actionMap.values()).sort((a, b) => b.priority === 'high' ? 1 : -1);
     }, [assets]);
 
     const normalize = (val: string | undefined) => (val || "").toLowerCase().replace(/ /g, "_");
@@ -399,66 +469,194 @@ export default function Assets() {
                                 </select>
                             </div>
 
-                            <div className="grid grid-cols-1 gap-4">
-                                {isLoading ? (
-                                    [1, 2, 3].map(i => (
-                                        <div key={i} className="h-32 bg-white border border-slate-100 rounded-2xl animate-pulse" />
-                                    ))
-                                ) : assets.length === 0 ? (
-                                    <div className="py-24 border-2 border-dashed border-slate-200 rounded-[40px] text-center bg-white/50">
-                                        <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                            <Landmark className="w-8 h-8 text-slate-400" />
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                                <div className="lg:col-span-2 space-y-10">
+                                    {isLoading ? (
+                                        [1, 2, 3].map(i => (
+                                            <div key={i} className="h-32 bg-white border border-slate-100 rounded-2xl animate-pulse" />
+                                        ))
+                                    ) : assets.length === 0 ? (
+                                        <div className="py-24 border-2 border-dashed border-slate-200 rounded-[40px] text-center bg-white/50">
+                                            {/* ... existing empty state ... */}
+                                            <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                                <Landmark className="w-8 h-8 text-slate-400" />
+                                            </div>
+                                            <h3 className="text-lg font-black text-slate-900">No assets identified yet</h3>
+                                            <p className="text-slate-500 text-sm mb-6 max-w-xs mx-auto">Start by adding your first financial account or property to the estate.</p>
+                                            <div className="flex items-center justify-center gap-4">
+                                                <Button
+                                                    onClick={() => navigate('/add-asset')}
+                                                    className="rounded-xl font-bold px-8 shadow-lg shadow-indigo-100"
+                                                >
+                                                    Add Your First Asset
+                                                </Button>
+                                                <Button
+                                                    variant="outline"
+                                                    onClick={() => setActiveTab("detective")}
+                                                    className="rounded-xl font-bold px-8 border-slate-200"
+                                                >
+                                                    Run Detective Scan
+                                                </Button>
+                                            </div>
                                         </div>
-                                        <h3 className="text-lg font-black text-slate-900">No assets identified yet</h3>
-                                        <p className="text-slate-500 text-sm mb-6 max-w-xs mx-auto">Start by adding your first financial account or property to the estate.</p>
-                                        <div className="flex items-center justify-center gap-4">
-                                            <Button
-                                                onClick={() => navigate('/add-asset')}
-                                                className="rounded-xl font-bold px-8 shadow-lg shadow-indigo-100"
-                                            >
-                                                Add Your First Asset
-                                            </Button>
-                                            <Button
-                                                variant="outline"
-                                                onClick={() => setActiveTab("detective")}
-                                                className="rounded-xl font-bold px-8 border-slate-200"
-                                            >
-                                                Run Detective Scan
+                                    ) : (
+                                        <>
+                                            {groupedAssets.PROBATE.length > 0 && (
+                                                <section className="space-y-4">
+                                                    <div className="flex items-center justify-between">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="p-2 rounded-xl bg-rose-50 text-rose-600 border border-rose-100">
+                                                                <Scale className="w-5 h-5" />
+                                                            </div>
+                                                            <div>
+                                                                <h2 className="text-lg font-black text-slate-900">Probate Estate</h2>
+                                                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Managed by Executor under Court Authority</p>
+                                                            </div>
+                                                        </div>
+                                                        <Badge variant="outline" className="rounded-full border-rose-100 text-rose-600 font-bold">
+                                                            {groupedAssets.PROBATE.length} Assets
+                                                        </Badge>
+                                                    </div>
+                                                    <div className="grid grid-cols-1 gap-4">
+                                                        {groupedAssets.PROBATE.map((asset, index) => (
+                                                            <AssetItem
+                                                                key={asset.id}
+                                                                asset={asset}
+                                                                index={index}
+                                                                isSelectionMode={isSelectionMode}
+                                                                selectedAssetIds={selectedAssetIds}
+                                                                handleAssetClick={handleAssetClick}
+                                                                handleSelectAsset={handleSelectAsset}
+                                                                normalize={normalize}
+                                                            />
+                                                        ))}
+                                                    </div>
+                                                </section>
+                                            )}
+
+                                            {groupedAssets.NON_PROBATE.length > 0 && (
+                                                <section className="space-y-4">
+                                                    <div className="flex items-center justify-between">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="p-2 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100">
+                                                                <ArrowRight className="w-5 h-5" />
+                                                            </div>
+                                                            <div>
+                                                                <h2 className="text-lg font-black text-slate-900">Non-Probate Transfers</h2>
+                                                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Direct transfers to Beneficiaries or Trust</p>
+                                                            </div>
+                                                        </div>
+                                                        <Badge variant="outline" className="rounded-full border-emerald-100 text-emerald-600 font-bold">
+                                                            {groupedAssets.NON_PROBATE.length} Assets
+                                                        </Badge>
+                                                    </div>
+                                                    <div className="grid grid-cols-1 gap-4">
+                                                        {groupedAssets.NON_PROBATE.map((asset, index) => (
+                                                            <AssetItem
+                                                                key={asset.id}
+                                                                asset={asset}
+                                                                index={index}
+                                                                isSelectionMode={isSelectionMode}
+                                                                selectedAssetIds={selectedAssetIds}
+                                                                handleAssetClick={handleAssetClick}
+                                                                handleSelectAsset={handleSelectAsset}
+                                                                normalize={normalize}
+                                                            />
+                                                        ))}
+                                                    </div>
+                                                </section>
+                                            )}
+
+                                            {groupedAssets.UNKNOWN.length > 0 && (
+                                                <section className="space-y-4">
+                                                    <div className="flex items-center gap-3 opacity-50">
+                                                        <div className="p-2 rounded-xl bg-slate-50 text-slate-500 border border-slate-100">
+                                                            <HelpCircle className="w-5 h-5" />
+                                                        </div>
+                                                        <h2 className="text-lg font-black text-slate-900">Unclassified Items</h2>
+                                                    </div>
+                                                    <div className="grid grid-cols-1 gap-4">
+                                                        {groupedAssets.UNKNOWN.map((asset, index) => (
+                                                            <AssetItem
+                                                                key={asset.id}
+                                                                asset={asset}
+                                                                index={index}
+                                                                isSelectionMode={isSelectionMode}
+                                                                selectedAssetIds={selectedAssetIds}
+                                                                handleAssetClick={handleAssetClick}
+                                                                handleSelectAsset={handleSelectAsset}
+                                                                normalize={normalize}
+                                                            />
+                                                        ))}
+                                                    </div>
+                                                </section>
+                                            )}
+                                        </>
+                                    )}
+                                </div>
+
+                                <div className="space-y-6">
+                                    <div className="bg-white border border-slate-200 rounded-[32px] p-6 shadow-sm sticky top-24">
+                                        <div className="flex items-center gap-3 mb-6">
+                                            <div className="p-2.5 rounded-2xl bg-indigo-50 text-indigo-600">
+                                                <Sparkles className="w-5 h-5" />
+                                            </div>
+                                            <h3 className="font-black text-lg tracking-tight">Suggested Actions</h3>
+                                        </div>
+
+                                        <div className="space-y-4">
+                                            {allSuggestedActions.length === 0 ? (
+                                                <div className="text-center py-8">
+                                                    <p className="text-xs font-bold text-slate-400 italic">No pending recommendations</p>
+                                                </div>
+                                            ) : (
+                                                allSuggestedActions.map((action, idx) => (
+                                                    <div key={idx} className="group p-4 rounded-2xl border border-slate-100 hover:border-indigo-200 hover:bg-indigo-50/30 transition-all cursor-pointer">
+                                                        <div className="flex gap-3">
+                                                            <div className={cn(
+                                                                "h-8 w-8 rounded-lg flex items-center justify-center shrink-0",
+                                                                action.priority === 'high' ? "bg-rose-100 text-rose-600" : "bg-slate-100 text-slate-600"
+                                                            )}>
+                                                                {action.icon === 'Mail' && <Mail className="w-4 h-4" />}
+                                                                {action.icon === 'Gavel' && <Gavel className="w-4 h-4" />}
+                                                                {action.icon === 'FileText' && <FileText className="w-4 h-4" />}
+                                                                {action.icon === 'ArrowRight' && <ArrowRight className="w-4 h-4" />}
+                                                                {action.icon === 'Users' && <Users className="w-4 h-4" />}
+                                                                {action.icon === 'ShieldCheck' && <ShieldCheck className="w-4 h-4" />}
+                                                            </div>
+                                                            <div className="space-y-1">
+                                                                <h4 className="text-xs font-black text-slate-900 group-hover:text-indigo-600 transition-colors">{action.title}</h4>
+                                                                <p className="text-[10px] font-bold text-slate-400 leading-relaxed uppercase tracking-wider line-clamp-2">
+                                                                    {action.description}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                        {action.relatedAssets.length > 0 && (
+                                                            <div className="mt-3 flex flex-wrap gap-1">
+                                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mr-1">For:</span>
+                                                                {action.relatedAssets.slice(0, 2).map((a: any) => (
+                                                                    <Badge key={a.id} variant="secondary" className="text-[8px] bg-white border-slate-200 px-1.5 py-0">
+                                                                        {a.institution}
+                                                                    </Badge>
+                                                                ))}
+                                                                {action.relatedAssets.length > 2 && (
+                                                                    <span className="text-[8px] font-bold text-slate-400">+{action.relatedAssets.length - 2} more</span>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                ))
+                                            )}
+                                        </div>
+
+                                        <div className="mt-8 pt-6 border-t border-slate-100">
+                                            <Button variant="outline" className="w-full rounded-2xl border-slate-200 font-black text-xs h-12 gap-2" onClick={() => setActiveTab("detective")}>
+                                                <SearchIcon className="w-4 h-4" />
+                                                Discover More Assets
                                             </Button>
                                         </div>
                                     </div>
-                                ) : (
-                                    sortedAssets.map((asset: any, index: number) => (
-                                        <motion.div
-                                            key={asset.id}
-                                            initial={{ opacity: 0, y: 10 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            transition={{ duration: 0.3, delay: index * 0.05 }}
-                                        >
-                                            <AssetCard
-                                                asset={{
-                                                    ...asset,
-                                                    type: normalize(asset.assetType),
-                                                    category: normalize(asset.category) as AssetCategory,
-                                                    status: normalize(asset.status) as AssetStatus,
-                                                    priority: normalize(asset.priority) as Priority,
-                                                    authorityType: asset.authorityType,
-                                                    lastContactDate: asset.lastContactDate ? String(asset.lastContactDate).split('T')[0] : null,
-                                                    nextFollowUpDate: asset.nextFollowUpDate ? String(asset.nextFollowUpDate).split('T')[0] : null,
-                                                    daysSinceContact: 0
-                                                }}
-                                                onClick={() => !isSelectionMode && handleAssetClick(asset.id)}
-                                                onSelect={(sel) => handleSelectAsset(asset.id, sel)}
-                                                selected={selectedAssetIds.includes(asset.id)}
-                                                selectable={isSelectionMode}
-                                                className={cn(
-                                                    "bg-white border-slate-200 hover:border-primary/20 hover:shadow-md transition-all rounded-3xl p-6",
-                                                    selectedAssetIds.includes(asset.id) && "border-primary ring-4 ring-primary/5 shadow-lg bg-primary/[0.02]"
-                                                )}
-                                            />
-                                        </motion.div>
-                                    ))
-                                )}
+                                </div>
                             </div>
                         </TabsContent>
 
@@ -679,6 +877,7 @@ export default function Assets() {
         </div>
     );
 }
+
 
 function AuthoritySummaryCard({ label, count, icon: Icon, color, bgColor }: any) {
     return (

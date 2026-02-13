@@ -7,6 +7,8 @@ import { motion } from "framer-motion";
 import { AssetTaxonomyBadge } from "./AssetTaxonomyBadge";
 import { getAssetTaxonomyState, getTaxonomyInfo } from "@/lib/taxonomy";
 import { AuthorityBadge, AuthorityType } from "./AuthorityBadge";
+import { classifyAsset } from "@/lib/assetClassification";
+import { Scale, Share2 } from "lucide-react";
 
 interface Asset {
   id: string;
@@ -137,6 +139,7 @@ export function AssetCard({ asset, onClick, onSelect, selected, selectable, clas
             <div className="flex flex-wrap items-center gap-2">
               <AuthorityBadge type={asset.authorityType} />
               <StatusBadge status={asset.status} />
+              <LegalClassBadge asset={asset} />
               {needsFollowUp && (
                 <span className="status-badge bg-orange-500/10 text-orange-600 font-bold">
                   <Clock className="w-3 h-3" />
@@ -168,5 +171,25 @@ export function AssetCard({ asset, onClick, onSelect, selected, selectable, clas
         </div>
       </button>
     </motion.div>
+  );
+}
+
+function LegalClassBadge({ asset }: { asset: any }) {
+  const legalClass = classifyAsset(asset);
+
+  if (legalClass === 'UNKNOWN') return null;
+
+  const isProbate = legalClass === 'PROBATE';
+
+  return (
+    <div className={cn(
+      "flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest border transition-all",
+      isProbate
+        ? "bg-rose-50 text-rose-600 border-rose-200"
+        : "bg-emerald-50 text-emerald-600 border-emerald-200"
+    )}>
+      {isProbate ? <Scale className="w-3 h-3" /> : <Share2 className="w-3 h-3" />}
+      <span>{isProbate ? 'Probate Estate' : 'Non-Probate'}</span>
+    </div>
   );
 }
