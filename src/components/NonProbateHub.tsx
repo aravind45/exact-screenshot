@@ -20,11 +20,17 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { generateMagicPipeUrl } from "@/lib/autofill";
 
 export function NonProbateHub() {
     const { data: assetsData } = useQuery({
         queryKey: ["assets"],
         queryFn: api.getAssets,
+    });
+
+    const { data: estate } = useQuery({
+        queryKey: ["estate"],
+        queryFn: api.getMyEstate,
     });
 
     const assets = Array.isArray(assetsData) ? assetsData : [];
@@ -220,11 +226,19 @@ export function NonProbateHub() {
                                 <h4 className="text-xs font-bold text-slate-900">Institution Links</h4>
                             </div>
                             <div className="space-y-2">
-                                <a href="https://www.fidelity.com/customer-service/how-to-claim-inherited-assets" target="_blank" className="flex items-center justify-between p-2 rounded bg-slate-50 hover:bg-blue-50 transition-colors">
+                                <a
+                                    href={generateMagicPipeUrl("https://www.fidelity.com/customer-service/how-to-claim-inherited-assets", estate)}
+                                    target="_blank"
+                                    className="flex items-center justify-between p-2 rounded bg-slate-50 hover:bg-blue-50 transition-colors"
+                                >
                                     <span className="text-[10px] font-bold text-slate-700">Fidelity Claims</span>
                                     <ExternalLink className="w-3 h-3 text-slate-400" />
                                 </a>
-                                <a href="https://www.vanguard.com/service/inherited-accounts/index.html" target="_blank" className="flex items-center justify-between p-2 rounded bg-slate-50 hover:bg-blue-50 transition-colors">
+                                <a
+                                    href={generateMagicPipeUrl("https://www.vanguard.com/service/inherited-accounts/index.html", estate)}
+                                    target="_blank"
+                                    className="flex items-center justify-between p-2 rounded bg-slate-50 hover:bg-blue-50 transition-colors"
+                                >
                                     <span className="text-[10px] font-bold text-slate-700">Vanguard Inherited</span>
                                     <ExternalLink className="w-3 h-3 text-slate-400" />
                                 </a>

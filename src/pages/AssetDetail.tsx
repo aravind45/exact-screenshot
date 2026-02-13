@@ -69,6 +69,8 @@ import { AssetAuthorityBlocker } from "@/components/assets/AssetAuthorityBlocker
 import { PhysicalAssetProtector } from "@/components/assets/PhysicalAssetProtector";
 import { SubscriptionAudit } from "@/components/assets/SubscriptionAudit";
 import { LetterPreviewDialog } from "@/components/LetterPreviewDialog";
+import { generateMagicPipeUrl } from "@/lib/autofill";
+import { AUTOMATION_MAPPINGS } from "@/config/automation";
 
 // Helper to normalize status/priority from DB
 const normalize = (str: string | null) => str?.toLowerCase() || '';
@@ -144,6 +146,37 @@ function EnrichDataButton({ assetId, onEnrichComplete }: { assetId: string, onEn
       {enriching ? "Searching Web..." : "Auto-Find Contact Info"}
     </Button>
   )
+}
+
+function AutomateButton({ estate, asset }: { estate: any, asset: any }) {
+  const currentDomain = asset?.institutionUrl || "";
+  let config = null;
+  let baseUrl = asset?.institutionUrl;
+
+  for (const key in AUTOMATION_MAPPINGS) {
+    if (currentDomain.includes(AUTOMATION_MAPPINGS[key].urlPattern) ||
+      asset?.institution?.toLowerCase().includes(key)) {
+      config = AUTOMATION_MAPPINGS[key];
+      // If we don't have a specific URL but know it's Fidelity, use a default
+      if (!baseUrl && key === 'fidelity') baseUrl = "https://www.fidelity.com/estate-services/overview";
+      if (!baseUrl && key === 'robinhood') baseUrl = "https://robinhood.com/contact";
+      break;
+    }
+  }
+
+  if (!config || !baseUrl) return null;
+
+  return (
+    <Button
+      variant="outline"
+      size="sm"
+      className="w-full gap-2 border-primary/20 text-primary bg-primary/5 hover:bg-primary/10"
+      onClick={() => window.open(generateMagicPipeUrl(baseUrl, estate, asset), "_blank")}
+    >
+      <Zap className="w-4 h-4" />
+      Automate with Extension
+    </Button>
+  );
 }
 
 export default function AssetDetail() {
@@ -1089,6 +1122,7 @@ export default function AssetDetail() {
                       <p className="text-xs font-bold text-slate-700">{uiAsset.institutionFax}</p>
                     </div>
                   </div>
+                  <AutomateButton estate={estate} asset={uiAsset} />
                 </div>
               )}
 

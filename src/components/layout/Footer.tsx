@@ -33,7 +33,21 @@ export function Footer() {
             <nav className="flex flex-col gap-4 text-sm font-bold">
               <Link to="/#services" className="text-background/70 hover:text-primary transition-colors">Services</Link>
               <Link to="/#pricing" className="text-background/70 hover:text-primary transition-colors">Pricing</Link>
+              <Link to="/marketplace" className="text-background/70 hover:text-primary transition-colors">Find an Advisor</Link>
               <Link to="/auth?mode=signup" className="text-background/70 hover:text-primary transition-colors font-black">Get Started</Link>
+            </nav>
+          </div>
+
+          {/* Advisors */}
+          <div>
+            <h4 className="font-black text-xs uppercase tracking-[0.2em] mb-6 text-background/40">Professionals</h4>
+            <nav className="flex flex-col gap-4 text-sm font-bold">
+              <Link to="/advisor/onboarding" className="text-background/70 hover:text-primary transition-colors">Become an Advisor</Link>
+              <Link to="/auth?mode=login" className="text-background/70 hover:text-primary transition-colors">Advisor Login</Link>
+              <div className="flex items-center gap-2 text-primary text-xs mt-4">
+                <ShieldCheck className="w-3.5 h-3.5" />
+                <span>Verified Partners</span>
+              </div>
             </nav>
           </div>
 

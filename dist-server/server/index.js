@@ -27,6 +27,7 @@ import formRoutes from "./routes/formRoutes.js";
 import helpRoutes from "./routes/helpRoutes.js";
 import billingRoutes from "./routes/billingRoutes.js";
 import marketingRoutes from "./routes/marketingRoutes.js";
+import advisorRoutes from "./routes/advisorRoutes.js";
 const isServerless = process.env.VERCEL === '1' || process.env.NETLIFY === 'true' || !!process.env.AWS_EXECUTION_ENV || !!process.env.FUNCTION_NAME;
 const app = express();
 const port = Number(process.env.PORT) || 3000;
@@ -103,30 +104,7 @@ app.use((req, res, next) => {
     }
     next();
 });
-// Auth Middleware
-const authenticate = async (req, res, next) => {
-    const authHeader = req.headers.authorization;
-    const token = authHeader?.split(" ")[1];
-    logger.debug(`🔒 [AUTH] Attempting ${req.method} ${req.url}`);
-    if (!token) {
-        logger.debug("❌ [AUTH] No token found");
-        return res.status(401).json({ error: "Unauthorized" });
-    }
-    try {
-        const user = await AuthService.verifyToken(token);
-        if (!user) {
-            logger.debug("❌ [AUTH] verifyToken returned null");
-            return res.status(401).json({ error: "Unauthorized" });
-        }
-        logger.debug(`✅ [AUTH] Success for user: ${user.id}`);
-        req.user = user;
-        next();
-    }
-    catch (err) {
-        logger.error("❌ [AUTH] Middleware error:", err.message);
-        return res.status(500).json({ error: "Authentication service error" });
-    }
-};
+import { authenticate } from "./middleware/auth.js";
 // Health & Ping
 app.get("/api/health", async (req, res) => {
     try {
@@ -161,6 +139,7 @@ app.use("/api/forms", authenticate, formRoutes);
 app.use("/api/help", authenticate, helpRoutes);
 app.use("/api/billing", authenticate, billingRoutes);
 app.use("/api/marketing", marketingRoutes);
+app.use("/api/advisors", advisorRoutes);
 app.use("/api/webhooks", webhookRoutes); // Auth handled via Mailgun signatures
 // Profile (simple, keep here or move if grows)
 app.get("/api/auth/me", authenticate, (req, res) => {

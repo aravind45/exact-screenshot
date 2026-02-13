@@ -37,6 +37,9 @@ export function Header() {
             <Link to="/marketplace" className="text-sm font-semibold text-foreground/70 hover:text-primary transition-colors">
               Find an Advisor
             </Link>
+            <Link to="/advisor/onboarding" className="text-sm font-semibold text-foreground/70 hover:text-primary transition-colors hidden lg:block">
+              Become an Advisor
+            </Link>
           </nav>
 
           {/* CTA */}
