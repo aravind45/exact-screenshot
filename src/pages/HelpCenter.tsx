@@ -20,8 +20,12 @@ import {
     Heart,
     FileText,
     History,
-    Sparkles
+    Sparkles,
+    LayoutGrid,
+    CheckCircle2,
+    Landmark
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -49,7 +53,8 @@ export default function HelpCenter() {
         "What does 'Blocked' mean?",
         "Why is my task locked?",
         "Prioritizing creditor payments",
-        "How do I minimize liability risk?"
+        "How do I minimize liability risk?",
+        "Probate vs Non-Probate"
     ];
 
     const { data: recommendations } = useQuery({
@@ -243,6 +248,26 @@ export default function HelpCenter() {
                     id: "small-estate-affidavit",
                     q: "How does the Small Estate Affidavit work?",
                     a: "For estates under a specific state threshold (e.g., $184,500), you can use a Small Estate Affidavit to claim assets without going through court probate. You must wait a required period (often 40 days) after death, then present the notarized affidavit directly to financial institutions. This is the fastest way to settle a small estate."
+                }
+            ]
+        },
+        {
+            category: "Asset Ledger: Classification & Actions",
+            items: [
+                {
+                    id: "probate-vs-nonprobate",
+                    q: "What is the difference between Probate and Non-Probate assets?",
+                    a: "Probate assets are those owned individually by the deceased without a named beneficiary. These are 'locked' by operation of law and require court authority (Letters) to access. Non-Probate assets—like Trusts, Joint accounts, or POD/TOD accounts—transfer automatically to beneficiaries outside of court."
+                },
+                {
+                    id: "ledger-help",
+                    q: "How does the Asset Ledger help me manage these?",
+                    a: "Our Ledger automatically color-codes assets: Rose for Probate (Court Required) and Emerald for Non-Probate (Direct Transfer). This tells you at a glance which accounts are blocked and which can be collected immediately."
+                },
+                {
+                    id: "suggested-actions",
+                    q: "What are 'Suggested Actions' on the Asset Ledger?",
+                    a: "Every asset generates smart recommendations. For Probate items, we prompt for 'DOD Values' needed for court inventory. For Non-Probate items, we guide you through 'Direct Transfer' claims. For newly found items, we remind you to 'Notify the Institution' to freeze the account."
                 }
             ]
         }
@@ -535,6 +560,57 @@ export default function HelpCenter() {
                                                     {m}
                                                 </div>
                                             ))}
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+
+                            {/* Asset Ledger Segregation */}
+                            <Card className="border-none shadow-premium bg-slate-900 text-white overflow-hidden group hover:shadow-xl transition-all rounded-[2rem] md:col-span-2">
+                                <CardContent className="p-0">
+                                    <div className="grid grid-cols-1 lg:grid-cols-2">
+                                        <div className="p-8 space-y-6">
+                                            <div className="flex items-center justify-between">
+                                                <div className="w-12 h-12 rounded-2xl bg-primary/20 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                                                    <LayoutGrid className="w-6 h-6" />
+                                                </div>
+                                                <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 text-[10px] font-black tracking-widest uppercase">New Feature</Badge>
+                                            </div>
+                                            <div>
+                                                <h3 className="text-xl font-black tracking-tight">Asset Ledger Mastery</h3>
+                                                <p className="text-slate-400 text-sm mt-2 leading-relaxed">
+                                                    Our dynamic ledger automatically transforms a flat list of accounts into a strategic legal map of the estate.
+                                                </p>
+                                            </div>
+                                            <div className="grid grid-cols-1 gap-3">
+                                                {[
+                                                    { icon: Scale, text: "Auto-Sorting: Probate vs Non-Probate", color: "text-rose-400" },
+                                                    { icon: Zap, text: "Dynamic Action Suggestions", color: "text-emerald-400" },
+                                                    { icon: Landmark, text: "Authority Summary Dashboard", color: "text-blue-400" }
+                                                ].map((item, i) => (
+                                                    <div key={i} className="flex items-center gap-3 text-xs font-bold">
+                                                        <item.icon className={cn("w-4 h-4", item.color)} />
+                                                        <span className="text-slate-300">{item.text}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                        <div className="bg-slate-800/50 p-8 border-l border-white/5 flex flex-col justify-center">
+                                            <div className="space-y-4">
+                                                <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
+                                                    <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-1">Executor Strategy</p>
+                                                    <p className="text-xs text-slate-300 italic leading-relaxed">
+                                                        "This feature prevents the most common executor mistake: trying to move probate assets before receiving court letters."
+                                                    </p>
+                                                </div>
+                                                <Button
+                                                    onClick={() => navigate('/assets')}
+                                                    className="w-full bg-white text-slate-900 hover:bg-slate-100 font-black rounded-xl h-11 gap-2"
+                                                >
+                                                    Open Asset Ledger
+                                                    <ArrowRight className="w-4 h-4" />
+                                                </Button>
+                                            </div>
                                         </div>
                                     </div>
                                 </CardContent>
