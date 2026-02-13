@@ -105,6 +105,30 @@ export default function OnboardingWizard() {
                 hasUnknownHeirs: estate.hasUnknownHeirs ?? prev.hasUnknownHeirs,
                 isTrustRevocable: estate.isTrustRevocable ?? prev.isTrustRevocable
             }));
+        } else {
+            // Check for discovery data if no estate data exists yet (fresh registration)
+            try {
+                const saved = sessionStorage.getItem("discovery_data");
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    setRole(parsed.role || "executor");
+                    setEstateData(prev => ({
+                        ...prev,
+                        deceasedName: parsed.deceasedName || prev.deceasedName,
+                        location: parsed.state || prev.location,
+                        estimatedValue: parsed.estimatedValue || prev.estimatedValue,
+                        hasWill: parsed.hasWill ?? prev.hasWill,
+                        isSpouse: parsed.role === "executor" // Assumed for discovery results
+                    }));
+                    // Move to step 1 (Estate Basics) if we have data, skipping intro
+                    if (parsed.deceasedName || parsed.state) {
+                        setCurrentStep(1);
+                    }
+                    // We'll clear it after the first update completes or when they move forward
+                }
+            } catch (e) {
+                console.warn("Failed to parse discovery data", e);
+            }
         }
     }, [estate]);
 
@@ -143,6 +167,9 @@ export default function OnboardingWizard() {
                     estimatedLiabilities: parseFloat(estateData.estimatedDebt) || 0,
                     hasContest: estateData.hasContest
                 });
+
+                // Clear discovery data since it's now persisted to the backend
+                sessionStorage.removeItem("discovery_data");
             } else if (currentStep === 2) { // Track Scout
                 await api.updateMyEstate({
                     estateType: recommendation.type,

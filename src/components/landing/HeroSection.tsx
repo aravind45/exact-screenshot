@@ -52,7 +52,7 @@ export function HeroSection() {
             transition={{ duration: 0.6, delay: 0.4 }}
             className="flex flex-col sm:flex-row justify-center gap-6 items-center"
           >
-            <Link to="/auth?mode=signup">
+            <Link to="/start">
               <Button size="lg" className="h-20 px-14 text-xl font-bold rounded-full bg-primary hover:bg-primary/90 shadow-[0_25px_60px_rgba(37,99,235,0.35)] transition-all hover:scale-105 active:scale-95 group">
                 Get Your Free Roadmap
                 <span className="ml-3 group-hover:translate-x-2 transition-transform">→</span>

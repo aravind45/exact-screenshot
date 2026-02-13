@@ -37,6 +37,20 @@ export default function Auth() {
 
   useEffect(() => {
     trackEvent('intake_started');
+
+    // Check for pre-filled data from discovery quiz
+    try {
+      const saved = sessionStorage.getItem("discovery_data");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.deceasedName) {
+          // You might not want to pre-fill name if it was deceased name, 
+          // but we can at least log or handle it.
+        }
+      }
+    } catch (e) {
+      console.warn("Failed to load discovery data", e);
+    }
   }, []);
 
   const validateForm = () => {

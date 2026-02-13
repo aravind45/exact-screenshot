@@ -7,6 +7,7 @@ if (!JWT_SECRET) {
     throw new Error("Generic JWT_SECRET missing in environment variables. Server cannot start.");
 }
 import { logger } from "../lib/logger.js";
+import { calculateIsTrialing } from "../utils/trialUtils.js";
 
 export const AuthService = {
     async register(data: { email: string, password: string, fullName: string, state?: string, ip?: string }) {
@@ -25,7 +26,8 @@ export const AuthService = {
                 state,
                 role: 'EXECUTOR',
                 lastIp: ip,
-                lastLoginAt: new Date()
+                lastLoginAt: new Date(),
+                trialStartedAt: new Date()
             }
         });
 
@@ -43,7 +45,8 @@ export const AuthService = {
         });
 
         const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: "30d" });
-        return { user, token };
+        const isTrialing = calculateIsTrialing(user.trialStartedAt);
+        return { user: { ...user, isTrialing }, token };
     },
 
     async login(email: string, password: string, ip?: string) {
@@ -65,7 +68,8 @@ export const AuthService = {
         });
 
         const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: "30d" });
-        return { user, token };
+        const isTrialing = calculateIsTrialing(user.trialStartedAt);
+        return { user: { ...user, isTrialing }, token };
     },
 
     async verifyToken(token: string) {
