@@ -2,6 +2,8 @@ import { Router } from "express";
 import { AuthService } from "../services/authService.js";
 import { z } from "zod";
 import { logger } from "../lib/logger.js";
+import { authenticate } from "../middleware/auth.js";
+import { prisma } from "../db.js";
 const router = Router();
 const registerSchema = z.object({
     email: z.string().email(),
@@ -90,6 +92,26 @@ router.post("/reset-password", async (req, res) => {
         }
         logger.error("Reset Password Error:", error.message);
         res.status(400).json({ error: error.message });
+    }
+});
+router.post("/logout", authenticate, async (req, res) => {
+    try {
+        const token = req.headers.authorization?.split(" ")[1];
+        if (token) {
+            // Add token to blacklist - expires in 30 days (same as JWT expiry)
+            await prisma.tokenBlacklist.create({
+                data: {
+                    token,
+                    expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+                }
+            });
+            logger.debug(`✅ [AUTH] Token blacklisted for user: ${req.user?.id}`);
+        }
+        res.json({ message: "Logged out successfully" });
+    }
+    catch (error) {
+        logger.error("Logout Error:", error.message);
+        res.status(500).json({ error: "Logout failed" });
     }
 });
 // The /me route requires authentication, which is handled in index.ts for simplicity

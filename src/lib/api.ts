@@ -302,7 +302,23 @@ export const api = {
         return parseResponse(response);
     },
 
-    logout: () => {
+    logout: async () => {
+        const token = localStorage.getItem("auth_token");
+        if (token) {
+            try {
+                // Call server to blacklist token
+                await fetch(`${API_URL}/auth/logout`, {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${token}`,
+                        "Content-Type": "application/json"
+                    }
+                });
+            } catch (error) {
+                console.error("Logout API call failed:", error);
+                // Continue with local logout even if server call fails
+            }
+        }
         localStorage.removeItem("auth_token");
     },
 

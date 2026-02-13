@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { AuthService } from "../services/authService.js";
 import { logger } from "../lib/logger.js";
+import { prisma } from "../db.js";
 
 export const authenticate = async (req: Request | any, res: Response, next: NextFunction) => {
     const authHeader = req.headers.authorization;
@@ -12,6 +13,25 @@ export const authenticate = async (req: Request | any, res: Response, next: Next
         return res.status(401).json({ error: "Unauthorized" });
     }
 
+    // Check if token is blacklisted
+    try {
+        const blacklisted = await prisma.tokenBlacklist.findFirst({
+            where: {
+                token: token,
+                expiresAt: { gt: new Date() }
+            }
+        });
+
+        if (blacklisted) {
+            logger.debug("❌ [AUTH] Token is blacklisted");
+            return res.status(401).json({ error: "Token has been revoked" });
+        }
+    } catch (err: any) {
+        logger.error("❌ [AUTH] Blacklist check error:", err.message);
+        return res.status(500).json({ error: "Authentication service error" });
+    }
+
+    // Verify token
     try {
         const user = await AuthService.verifyToken(token as string);
         if (!user) {

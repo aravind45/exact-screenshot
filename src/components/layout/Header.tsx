@@ -7,8 +7,8 @@ export function Header() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
 
-  const handleSignOut = () => {
-    signOut();
+  const handleSignOut = async () => {
+    await signOut();
     navigate("/");
   };
 

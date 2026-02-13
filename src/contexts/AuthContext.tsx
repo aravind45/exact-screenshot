@@ -19,7 +19,7 @@ interface AuthContextType {
   loading: boolean;
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
-  signOut: () => void;
+  signOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -67,9 +67,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const signOut = () => {
-    api.logout();
-    setUser(null);
+  const signOut = async () => {
+    try {
+      await api.logout();
+      setUser(null);
+    } catch (error) {
+      console.error("Sign out error:", error);
+      // Still clear user state even if API call fails
+      setUser(null);
+    }
   };
 
   return (

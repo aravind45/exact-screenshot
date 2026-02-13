@@ -16,7 +16,7 @@ import { useEffect } from 'react';
 
 // Validation schemas
 const emailSchema = z.string().trim().email('Please enter a valid email address');
-const passwordSchema = z.string().min(6, 'Password must be at least 6 characters');
+const passwordSchema = z.string().min(8, 'Password must be at least 8 characters');
 const nameSchema = z.string().trim().min(1, 'Name is required').max(100, 'Name is too long');
 
 export default function Auth() {
