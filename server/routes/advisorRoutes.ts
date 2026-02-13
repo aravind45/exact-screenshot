@@ -108,7 +108,12 @@ router.post('/stripe/connect/onboard', authenticate, async (req: any, res) => {
         let advisor = await AdvisorService.getAdvisorProfile(userId);
 
         if (!advisor) {
-            return res.status(404).json({ error: 'Advisor profile not found' });
+            // Create a minimal advisor profile if it doesn't exist
+            advisor = await AdvisorService.updateAdvisorProfile(userId, {
+                bio: '',
+                expertise: [],
+                hourlyRate: 0,
+            });
         }
 
         // Create Connect account if doesn't exist
