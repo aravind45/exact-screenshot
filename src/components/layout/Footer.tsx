@@ -33,7 +33,6 @@ export function Footer() {
             <nav className="flex flex-col gap-4 text-sm font-bold">
               <Link to="/#services" className="text-background/70 hover:text-primary transition-colors">Services</Link>
               <Link to="/#pricing" className="text-background/70 hover:text-primary transition-colors">Pricing</Link>
-              <Link to="/marketplace" className="text-background/70 hover:text-primary transition-colors">Find an Advisor</Link>
               <Link to="/auth?mode=signup" className="text-background/70 hover:text-primary transition-colors font-black">Get Started</Link>
             </nav>
           </div>

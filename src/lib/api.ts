@@ -1399,5 +1399,38 @@ export const api = {
             });
             return parseResponse(response);
         }
+    },
+    advisors: {
+        getMe: async () => {
+            const response = await fetch(`${API_URL}/advisors/me`, { headers: getHeaders() });
+            return parseResponse(response);
+        },
+        updateProfile: async (data: { bio?: string, expertise?: string[], hourlyRate?: number, licenseNumber?: string, licenseDocument?: string, profileImage?: string }) => {
+            const response = await fetch(`${API_URL}/advisors/profile`, {
+                method: "POST",
+                headers: getHeaders(),
+                body: JSON.stringify(data),
+            });
+            return parseResponse(response);
+        },
+        getMarketplace: async (filters?: { expertise?: string, maxRate?: number }) => {
+            const url = new URL(`${API_URL}/advisors/marketplace`, window.location.origin);
+            if (filters?.expertise) url.searchParams.append('expertise', filters.expertise);
+            if (filters?.maxRate) url.searchParams.append('maxRate', filters.maxRate.toString());
+            const response = await fetch(url.toString(), { headers: getHeaders() });
+            return parseResponse(response);
+        },
+        adminList: async () => {
+            const response = await fetch(`${API_URL}/advisors/admin/list`, { headers: getHeaders() });
+            return parseResponse(response);
+        },
+        adminVerify: async (id: string, status: 'VERIFIED' | 'REJECTED') => {
+            const response = await fetch(`${API_URL}/advisors/${id}/verify`, {
+                method: "POST",
+                headers: getHeaders(),
+                body: JSON.stringify({ status }),
+            });
+            return parseResponse(response);
+        }
     }
 };

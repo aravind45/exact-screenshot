@@ -646,6 +646,7 @@ model AdvisorProfile {
   hourlyRate         Decimal  @map("hourly_rate") @db.Decimal(10, 2)
   stripeAccountId    String?  @map("stripe_account_id")
   verificationStatus String   @default("PENDING") @map("verification_status")
+  profileImage       String?  @map("profile_image")
   licenseNumber      String?  @map("license_number")
   licenseDocument    String?  @map("license_document")
   isVerified         Boolean  @default(false) @map("is_verified")

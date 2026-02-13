@@ -19,6 +19,7 @@ export class AdvisorService {
                 hourlyRate: data.hourlyRate || 0,
                 licenseNumber: data.licenseNumber,
                 licenseDocument: data.licenseDocument,
+                profileImage: data.profileImage,
                 verificationStatus: 'PENDING',
             }
         });
@@ -65,6 +66,23 @@ export class AdvisorService {
                 verificationStatus: status,
                 isVerified: status === 'VERIFIED'
             }
+        });
+    }
+    /**
+     * Admin: List all advisors regardless of status
+     */
+    static async listAllAdvisors() {
+        return prisma.advisorProfile.findMany({
+            include: {
+                user: {
+                    select: {
+                        id: true,
+                        fullName: true,
+                        email: true,
+                    }
+                }
+            },
+            orderBy: { createdAt: 'desc' }
         });
     }
 }

@@ -19,15 +19,19 @@ export default function AdvisorOnboarding() {
         expertise: '',
         hourlyRate: '',
         licenseNumber: '',
+        profileImage: '',
     });
     const [file, setFile] = useState<File | null>(null);
+    const [imagePreview, setImagePreview] = useState<string | null>(null);
 
     const { data: profile, isLoading } = useQuery({
         queryKey: ['advisor-profile'],
         queryFn: async () => {
             const res = await fetch('/api/advisors/me');
             if (res.status === 404) return null;
-            return res.json();
+            const data = await res.json();
+            if (data?.profileImage) setImagePreview(data.profileImage);
+            return data;
         }
     });
 
@@ -46,18 +50,34 @@ export default function AdvisorOnboarding() {
         }
     });
 
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                const base64String = reader.result as string;
+                setImagePreview(base64String);
+                setFormData(prev => ({ ...prev, profileImage: base64String }));
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         mutation.mutate({
             ...formData,
-            expertise: formData.expertise.split(',').map(s => s.trim()).filter(Boolean),
-            hourlyRate: parseFloat(formData.hourlyRate),
+            bio: formData.bio || profile?.bio,
+            expertise: (formData.expertise || profile?.expertise?.join(', ') || '').split(',').map((s: string) => s.trim()).filter(Boolean),
+            hourlyRate: parseFloat(formData.hourlyRate) || parseFloat(profile?.hourlyRate),
+            licenseNumber: formData.licenseNumber || profile?.licenseNumber,
+            profileImage: formData.profileImage || profile?.profileImage,
             // In a real app, we'd upload the file to S3 first and pass the URL
             licenseDocument: file ? 'https://placeholder-url.com/doc.pdf' : profile?.licenseDocument
         });
     };
 
-    if (isLoading) return <div className="p-8 text-center">Loading...</div>;
+    if (isLoading) return <div className="p-8 text-center text-muted-foreground"><Clock className="w-8 h-8 animate-spin mx-auto mb-2" />Loading profile...</div>;
 
     const isVerified = profile?.verificationStatus === 'VERIFIED';
     const isPending = profile?.verificationStatus === 'PENDING';
@@ -102,12 +122,47 @@ export default function AdvisorOnboarding() {
             )}
 
             <form onSubmit={handleSubmit}>
-                <Card className="shadow-xl border-slate-200">
+                <Card className="shadow-xl border-slate-200 overflow-hidden">
                     <CardHeader className="bg-slate-50 border-b border-slate-100">
                         <CardTitle className="text-2xl font-bold">Advisor Profile Settings</CardTitle>
                         <CardDescription>Set up your expertise and rates.</CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-6 pt-8">
+                    <CardContent className="space-y-8 pt-8">
+                        {/* Profile Image Section */}
+                        <div className="flex flex-col md:flex-row items-center gap-6 pb-6 border-b border-slate-100">
+                            <div className="relative group">
+                                <div className="w-32 h-32 rounded-2xl bg-slate-100 border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden">
+                                    {imagePreview ? (
+                                        <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                                    ) : (
+                                        <Upload className="w-8 h-8 text-slate-300" />
+                                    )}
+                                </div>
+                                <Button
+                                    type="button"
+                                    size="icon"
+                                    className="absolute -bottom-2 -right-2 rounded-full w-8 h-8 bg-indigo-600 hover:bg-indigo-700 shadow-md"
+                                    onClick={() => document.getElementById('profile-upload')?.click()}
+                                >
+                                    <Upload className="w-4 h-4 text-white" />
+                                </Button>
+                                <input
+                                    id="profile-upload"
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={handleImageChange}
+                                />
+                            </div>
+                            <div className="flex-1 space-y-1 text-center md:text-left">
+                                <h4 className="font-bold text-slate-900">Profile Picture</h4>
+                                <p className="text-sm text-slate-500">
+                                    A professional photo helps build trust with potential clients.
+                                    JPG, PNG, or GIF. Max 2MB.
+                                </p>
+                            </div>
+                        </div>
+
                         <div className="space-y-2">
                             <Label htmlFor="bio">Professional Bio</Label>
                             <Textarea

@@ -50,6 +50,22 @@ router.get('/marketplace', async (req, res) => {
     }
 });
 /**
+ * GET /api/advisors/admin/list (Admin Only)
+ */
+router.get('/admin/list', authenticate, async (req, res) => {
+    try {
+        if (req.user.role !== 'ADMIN') {
+            return res.status(403).json({ error: 'Unauthorized' });
+        }
+        const advisors = await AdvisorService.listAllAdvisors();
+        res.json(advisors);
+    }
+    catch (error) {
+        logger.error(`❌ Error listing all advisors: ${error.message}`);
+        res.status(500).json({ error: 'Failed to list advisors' });
+    }
+});
+/**
  * POST /api/advisors/:id/verify (Admin Only)
  */
 router.post('/:id/verify', authenticate, async (req, res) => {

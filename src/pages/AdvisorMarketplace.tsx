@@ -86,15 +86,26 @@ export default function AdvisorMarketplace() {
                         <Card key={advisor.id} className="group hover:shadow-2xl transition-all duration-300 border-slate-200 overflow-hidden flex flex-col">
                             <CardHeader className="bg-slate-50/50 border-b border-slate-100 pb-4">
                                 <div className="flex justify-between items-start">
-                                    <div className="space-y-1">
-                                        <CardTitle className="text-xl font-bold flex items-center gap-2">
-                                            {advisor.user.fullName}
-                                            <ShieldCheck className="w-5 h-5 text-indigo-600 fill-indigo-50" />
-                                        </CardTitle>
-                                        <div className="flex items-center gap-2 text-sm text-slate-500">
-                                            <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
-                                            <span className="font-bold text-slate-900">4.9</span>
-                                            <span>(24 reviews)</span>
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-16 h-16 rounded-2xl bg-slate-100 border border-slate-200 overflow-hidden flex-shrink-0 shadow-sm">
+                                            {advisor.profileImage ? (
+                                                <img src={advisor.profileImage} alt={advisor.user.fullName} className="w-full h-full object-cover" />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center text-slate-300">
+                                                    <ShieldCheck className="w-8 h-8" />
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="space-y-1">
+                                            <CardTitle className="text-xl font-bold flex items-center gap-2">
+                                                {advisor.user.fullName}
+                                                <ShieldCheck className="w-5 h-5 text-indigo-600 fill-indigo-50" />
+                                            </CardTitle>
+                                            <div className="flex items-center gap-2 text-sm text-slate-500">
+                                                <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
+                                                <span className="font-bold text-slate-900">4.9</span>
+                                                <span>(24 reviews)</span>
+                                            </div>
                                         </div>
                                     </div>
                                     <div className="text-right">

@@ -102,6 +102,7 @@ export function Sidebar() {
                         setSupportOpen(true);
                     }
                 },
+                { label: "Find an Advisor", icon: ShieldCheck, path: "/marketplace" },
                 { label: "Settings", icon: Settings, path: "/settings" },
             ]
         },

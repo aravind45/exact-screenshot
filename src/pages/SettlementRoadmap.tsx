@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { Sidebar } from "@/components/Sidebar";
-import { SettlementPhaseChevron, type SettlementPhase } from "@/components/SettlementPhaseChevron";
+import { SettlementPhaseChevron } from "@/components/SettlementPhaseChevron";
 import { PhaseTaskList } from "@/components/PhaseTaskList";
-import { SETTLEMENT_PHASE_TASKS } from "@/config/settlementPhases";
+import { SETTLEMENT_PHASE_TASKS, type SettlementPhase } from "@/config/settlementPhases";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,13 +18,12 @@ import {
 import { cn } from "@/lib/utils";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import { useEffect, useMemo } from "react";
 import { calculateAuthorityRecommendation } from "@/lib/authorityEngine";
-
 import { generateRoadmap } from "@/config/roadmapGenerator";
 import { getMasterMode } from "@/lib/authorityEngine";
 
 export default function SettlementRoadmap() {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [currentPhase, setCurrentPhase] = useState<SettlementPhase>("immediate_actions");
 
@@ -314,6 +314,29 @@ export default function SettlementRoadmap() {
                 </div>
               )}
             </div>
+          </div>
+
+          {/* Expert Help CTA */}
+          <div className="bg-indigo-50 border border-indigo-100 rounded-[32px] p-6 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm overflow-hidden relative">
+            <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
+              <ShieldCheck className="w-32 h-32 text-indigo-900" />
+            </div>
+            <div className="flex items-center gap-5 relative z-10">
+              <div className="w-14 h-14 rounded-2xl bg-white shadow-sm flex items-center justify-center border border-indigo-100 shrink-0">
+                <ShieldCheck className="w-7 h-7 text-indigo-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-black text-slate-900 tracking-tight leading-none mb-1">Stuck or overwhelmed?</h3>
+                <p className="text-sm text-slate-600 font-medium">Connect with a verified specialist to handle complex probate or tax tasks for you.</p>
+              </div>
+            </div>
+            <Button
+              onClick={() => navigate("/marketplace")}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-8 h-12 rounded-2xl shadow-lg shadow-indigo-200 shrink-0 relative z-10"
+            >
+              Find an Advisor
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
           </div>
 
           {/* Phase Chevron */}

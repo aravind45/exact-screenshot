@@ -1119,21 +1119,11 @@ function AdvisorManager() {
 
     const { data: advisors, isLoading } = useQuery({
         queryKey: ["admin", "advisors"],
-        queryFn: async () => {
-            const res = await fetch("/api/advisors/marketplace"); // In a real app, use an admin-specific endpoint
-            return res.json();
-        }
+        queryFn: () => api.advisors.adminList()
     });
-
     const verifyMutation = useMutation({
-        mutationFn: async ({ id, status }: { id: string, status: string }) => {
-            const res = await fetch(`/api/advisors/${id}/verify`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ status })
-            });
-            return res.json();
-        },
+        mutationFn: ({ id, status }: { id: string, status: 'VERIFIED' | 'REJECTED' }) =>
+            api.advisors.adminVerify(id, status),
         onSuccess: () => {
             toast({ title: "Advisor Updated" });
             queryClient.invalidateQueries({ queryKey: ["admin", "advisors"] });
@@ -1165,9 +1155,20 @@ function AdvisorManager() {
                         ) : advisors?.map((advisor: any) => (
                             <tr key={advisor.id} className="hover:bg-muted/30 transition-colors">
                                 <td className="px-6 py-4">
-                                    <div className="flex flex-col">
-                                        <span className="font-semibold">{advisor.user.fullName}</span>
-                                        <span className="text-xs text-muted-foreground">{advisor.user.email}</span>
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 overflow-hidden flex-shrink-0">
+                                            {advisor.profileImage ? (
+                                                <img src={advisor.profileImage} alt="" className="w-full h-full object-cover" />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center text-slate-300">
+                                                    <ShieldCheck className="w-5 h-5" />
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <span className="font-semibold">{advisor.user.fullName}</span>
+                                            <span className="text-xs text-muted-foreground">{advisor.user.email}</span>
+                                        </div>
                                     </div>
                                 </td>
                                 <td className="px-6 py-4">
