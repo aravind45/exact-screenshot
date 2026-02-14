@@ -24,18 +24,25 @@ export function ProfileGuard({ children }: ProfileGuardProps) {
 
     useEffect(() => {
         // Skip profile check for non-executor users
-        if (!user || user.role === 'ADMIN' || user.role === 'ADVISOR') return;
+        if (!user || user.role === 'ADMIN' || user.role === 'ADVISOR' || user.userType === 'ADVISOR') return;
 
-        // Skip if still loading or error occurred
-        if (isLoading || isError) return;
-
-        // Skip if no estate data yet (brand new user)
-        if (!estate) return;
+        // Skip if still loading
+        if (isLoading) return;
 
         // Skip if already on onboarding or advisor routes
         const isAtOnboarding = location.pathname === "/onboarding";
         const isAdvisorRoute = location.pathname.startsWith("/advisor") || location.pathname === "/marketplace";
         if (isAtOnboarding || isAdvisorRoute) return;
+
+        // If there's an error fetching estate (404 = no estate yet), redirect to onboarding
+        if (isError) {
+            console.log("No estate found, redirecting to onboarding");
+            navigate("/onboarding", { replace: true });
+            return;
+        }
+
+        // Skip if no estate data yet (still loading or brand new user)
+        if (!estate) return;
 
         // Check if executor profile is complete
         const complete = isProfileComplete(estate);
