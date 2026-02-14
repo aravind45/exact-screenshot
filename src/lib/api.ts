@@ -1426,6 +1426,16 @@ export const api = {
             return parseResponse(response);
         }
     },
+    marketing: {
+        submitChecklist: async (data: { email: string, source?: string, utmSource?: string }) => {
+            const response = await fetch(`${API_URL}/marketing/checklist`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data),
+            });
+            return parseResponse(response);
+        }
+    },
     advisors: {
         getMe: async () => {
             const response = await fetch(`${API_URL}/advisors/me`, { headers: getHeaders() });

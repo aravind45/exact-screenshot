@@ -11,7 +11,9 @@ import { Badge } from "@/components/ui/badge";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { PricingSection } from "@/components/landing/PricingSection";
+import { ExitIntentPopup } from "@/components/landing/ExitIntentPopup";
 import { TestimonialsSection } from "@/components/landing/TestimonialsSection";
+import { TrustBar } from "@/components/landing/TrustBar";
 import { Mail } from "lucide-react";
 
 const Index = () => {
@@ -29,6 +31,7 @@ const Index = () => {
 
       <main>
         <HeroSection />
+        <TrustBar />
 
         <AboutSection />
         <ServicesSection />
@@ -207,9 +210,9 @@ const Index = () => {
                 <Button
                   size="lg"
                   className="h-20 px-16 text-2xl font-black rounded-full shadow-2xl hover:scale-105 transition-all bg-primary"
-                  onClick={() => navigate("/dashboard")}
+                  onClick={() => navigate("/start")}
                 >
-                  Start guided intake
+                  Get My Free Roadmap
                   <span className="ml-3">→</span>
                 </Button>
 
@@ -233,6 +236,7 @@ const Index = () => {
       </main>
 
       <Footer />
+      <ExitIntentPopup />
     </div>
   );
 };
