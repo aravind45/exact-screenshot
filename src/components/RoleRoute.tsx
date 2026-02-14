@@ -52,19 +52,30 @@ export function RoleRoute({ children, allowedRoles, fallbackPath = '/dashboard' 
         }
     }, [user, loading, navigate, allowedRoles, fallbackPath, isAdmin, isAdvisor, isAttorney, isExecutor, isHeir]);
 
-    if (loading) {
+    // Use the same access logic for rendering as for redirecting
+    const hasAccess = (() => {
+        if (!user) return false;
+        if (allowedRoles.includes('ADMIN') && isAdmin) return true;
+        if (allowedRoles.includes('ADVISOR') && isAdvisor) return true;
+        if (allowedRoles.includes('ATTORNEY') && isAttorney) return true;
+        if (allowedRoles.includes('EXECUTOR') && isExecutor) return true;
+        if (allowedRoles.includes('HEIR') && isHeir) return true;
+        if (allowedRoles.includes('USER') && user) return true;
+        return allowedRoles.includes(user.role);
+    })();
+
+    if (loading || (!hasAccess && user)) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-background">
                 <div className="flex flex-col items-center gap-4">
                     <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                    <p className="text-muted-foreground">Verifying access...</p>
+                    <p className="text-muted-foreground">{!user ? 'Verifying session...' : 'Verifying access...'}</p>
                 </div>
             </div>
         );
     }
 
-    // Only render children if the role is allowed
-    if (!user || (user.role && !allowedRoles.includes(user.role))) {
+    if (!user || !hasAccess) {
         return null;
     }
 

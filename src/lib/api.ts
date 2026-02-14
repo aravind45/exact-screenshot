@@ -245,14 +245,10 @@ const parseResponse = async (response: Response) => {
     }
 
     if (!response.ok) {
-        // Handle 401 Unauthorized specifically
-        if (response.status === 401) {
-            const error = new Error(`Authentication required (401): ${text.substring(0, 100)}`);
-            (error as any).status = 401;
-            throw error;
-        }
-        const error = new Error(data.error || data.message || `Request failed with status ${response.status}`);
+        const errorMessage = data?.error || data?.message || `Request failed with status ${response.status}`;
+        const error = new Error(errorMessage);
         (error as any).status = response.status;
+        (error as any).data = data;
         throw error;
     }
 

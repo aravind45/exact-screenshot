@@ -22,13 +22,13 @@ type UserType = 'EXECUTOR' | 'ADVISOR';
 // Helper function to determine default dashboard based on user role/type
 const getDefaultDashboard = (user: { role?: string; userType?: 'EXECUTOR' | 'ADVISOR' } | null): string => {
   if (!user) return '/dashboard';
-  
+
   if (user.role === 'ADVISOR' || user.userType === 'ADVISOR') {
     return '/advisor/dashboard';
   } else if (user.role === 'ADMIN') {
     return '/admin';
   }
-  
+
   return '/dashboard';
 };
 
@@ -38,18 +38,18 @@ const validateRedirectPath = (
   user: { role?: string; userType?: 'EXECUTOR' | 'ADVISOR' } | null
 ): string | null => {
   if (!redirect || !user) return null;
-  
+
   const isAdvisorPath = redirect.startsWith('/advisor');
   const isAdminPath = redirect.startsWith('/admin');
   const isExecutorPath = !isAdvisorPath && !isAdminPath;
   const isAdvisor = user.role === 'ADVISOR' || user.userType === 'ADVISOR';
   const isAdmin = user.role === 'ADMIN';
-  
+
   // Validate path matches user type
   if (isAdvisorPath && isAdvisor) return redirect;
   if (isAdminPath && isAdmin) return redirect;
   if (isExecutorPath && !isAdvisor && !isAdmin) return redirect;
-  
+
   return null;
 };
 
@@ -137,7 +137,8 @@ export default function Auth() {
       if (authMode === 'login') {
         const { user: authedUser, error } = await signIn(email, password);
         if (error) {
-          if (error.message.includes('Invalid login credentials')) {
+          const errorMessage = error.message?.toLowerCase() || '';
+          if (errorMessage.includes('invalid') && (errorMessage.includes('credentials') || errorMessage.includes('email') || errorMessage.includes('password'))) {
             toast({
               title: 'Invalid credentials',
               description: 'Please check your email and password and try again.',
@@ -146,7 +147,7 @@ export default function Auth() {
           } else {
             toast({
               title: 'Sign in failed',
-              description: error.message,
+              description: error.message || 'An unexpected error occurred during sign in.',
               variant: 'destructive',
             });
           }
@@ -155,16 +156,16 @@ export default function Auth() {
             title: 'Welcome back!',
             description: 'You have successfully signed in.',
           });
-          
+
           // Get stored redirect and validate it
           const redirect = sessionStorage.getItem("after_login_redirect");
           if (redirect) {
             sessionStorage.removeItem("after_login_redirect");
           }
-          
+
           // Validate redirect path matches user type
           const validatedRedirect = validateRedirectPath(redirect, authedUser);
-          
+
           if (validatedRedirect) {
             navigate(validatedRedirect);
           } else {
@@ -220,7 +221,7 @@ export default function Auth() {
             console.log('[AUTH] Routing executor to /onboarding');
             // Validate redirect for executors (must not be advisor or admin routes)
             const validatedRedirect = validateRedirectPath(redirect, newUser);
-            
+
             if (validatedRedirect) {
               navigate(validatedRedirect);
             } else {
