@@ -125,7 +125,31 @@ export default function Auth() {
           }
         }
       } else if (authMode === 'signup') {
-        const { user: newUser, error } = await signUp(email, password, fullName);
+        // Check for role intention
+        const searchParams = new URLSearchParams(window.location.search);
+        let role = searchParams.get('role');
+
+        if (!role) {
+          try {
+            const discoveryData = sessionStorage.getItem("discovery_data");
+            if (discoveryData) {
+              const parsed = JSON.parse(discoveryData);
+              if (parsed.role === 'ADVISOR') role = 'ADVISOR';
+            }
+          } catch (e) {
+            console.warn("Error parsing discovery data", e);
+          }
+
+          // Infer from redirect intent
+          if (!role) {
+            const redirectPath = sessionStorage.getItem("after_login_redirect");
+            if (redirectPath && (redirectPath.includes('/advisor/') || redirectPath.includes('role=ADVISOR'))) {
+              role = 'ADVISOR';
+            }
+          }
+        }
+
+        const { user: newUser, error } = await signUp(email, password, fullName, role?.toUpperCase());
         if (error) {
           if (error.message.includes('User already registered')) {
             toast({
@@ -150,7 +174,11 @@ export default function Auth() {
             sessionStorage.removeItem("after_login_redirect");
             navigate(redirect);
           } else {
-            navigate(buyMode ? '/pricing?mode=buy' : '/onboarding');
+            if (newUser?.role === 'ADVISOR') {
+              navigate('/advisor/dashboard');
+            } else {
+              navigate(buyMode ? '/pricing?mode=buy' : '/onboarding');
+            }
           }
         }
       } else if (authMode === 'forgot-password') {

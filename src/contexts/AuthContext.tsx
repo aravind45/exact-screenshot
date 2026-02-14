@@ -17,7 +17,7 @@ interface User {
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  signUp: (email: string, password: string, fullName: string) => Promise<{ user: User | null; error: Error | null }>;
+  signUp: (email: string, password: string, fullName: string, role?: string) => Promise<{ user: User | null; error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ user: User | null; error: Error | null }>;
   signOut: () => Promise<void>;
   refreshUser: () => Promise<void>;
@@ -48,9 +48,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     initAuth();
   }, []);
 
-  const signUp = async (email: string, password: string, fullName: string) => {
+  const signUp = async (email: string, password: string, fullName: string, role?: string) => {
     try {
-      const { user: newUser } = await api.register({ email, password, fullName });
+      const { user: newUser } = await api.register({ email, password, fullName, role });
       setUser(newUser);
       return { user: newUser, error: null };
     } catch (error: any) {

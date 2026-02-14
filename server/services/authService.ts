@@ -10,8 +10,8 @@ import { logger } from "../lib/logger.js";
 import { calculateIsTrialing } from "../utils/trialUtils.js";
 
 export const AuthService = {
-    async register(data: { email: string, password: string, fullName: string, state?: string, ip?: string }) {
-        const { email, password, fullName, state, ip } = data;
+    async register(data: { email: string, password: string, fullName: string, state?: string, role?: "EXECUTOR" | "ADVISOR", ip?: string }) {
+        const { email, password, fullName, state, role, ip } = data;
 
         const existingUser = await prisma.user.findUnique({ where: { email } });
         if (existingUser) throw new Error("Email already registered");
@@ -24,7 +24,7 @@ export const AuthService = {
                 passwordHash,
                 fullName,
                 state,
-                role: 'EXECUTOR',
+                role: role || 'EXECUTOR',
                 lastIp: ip,
                 lastLoginAt: new Date(),
                 trialStartedAt: new Date()
