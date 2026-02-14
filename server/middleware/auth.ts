@@ -3,7 +3,11 @@ import { AuthService } from "../services/authService.js";
 import { logger } from "../lib/logger.js";
 import { prisma } from "../db.js";
 
-export const authenticate = async (req: Request | any, res: Response, next: NextFunction) => {
+interface AuthenticatedRequest extends Request {
+    user?: any;
+}
+
+export const authenticate = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     const authHeader = req.headers.authorization;
     const token = authHeader?.split(" ")[1];
 
@@ -26,8 +30,9 @@ export const authenticate = async (req: Request | any, res: Response, next: Next
             logger.debug("❌ [AUTH] Token is blacklisted");
             return res.status(401).json({ error: "Token has been revoked" });
         }
-    } catch (err: any) {
-        logger.error("❌ [AUTH] Blacklist check error:", err.message);
+    } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : "Unknown error";
+        logger.error("❌ [AUTH] Blacklist check error:", message);
         return res.status(500).json({ error: "Authentication service error" });
     }
 
@@ -42,8 +47,9 @@ export const authenticate = async (req: Request | any, res: Response, next: Next
         logger.debug(`✅ [AUTH] Success for user: ${user.id}`);
         req.user = user;
         next();
-    } catch (err: any) {
-        logger.error("❌ [AUTH] Middleware error:", err.message);
+    } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : "Unknown error";
+        logger.error("❌ [AUTH] Middleware error:", message);
         return res.status(500).json({ error: "Authentication service error" });
     }
 };

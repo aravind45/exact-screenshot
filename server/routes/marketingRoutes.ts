@@ -61,23 +61,27 @@ router.post("/checklist", async (req, res) => {
 
         const subject = "Your First 30 Days Action Plan";
         const body = `
-Hi there!
+Hi there,
 
-Thank you for requesting the "First 30 Days Action Plan". The first month after a loss is critical for securing assets and avoiding liability.
+Thank you for requesting the **First 30 Days Action Plan**. We know this is a difficult time, and our goal is to make the next few weeks as simple as possible for you.
 
-We've prepared this guide to help you focus on what matters most right now.
+We have attached the PDF guide to this email (simulated).
 
-You can access the full interactive guide and start tracking your progress here:
-${intakeUrl}
+**Want to make this easier?**
+You don't have to track this on paper. ExpectedEstate creates a personalized digital roadmap for your specific situation.
 
-Key Priorities for the First 30 Days:
-1.  **Immediate (Days 1-3):** Secure property, pets, and perishables. Locate the Will.
-2.  **Short Term (Days 4-14):** Order death certificates, cancel subscriptions, forward mail.
-3.  **End of Month (Days 15-30):** Determine if probate is needed and identify all assets.
+[Start Your Free Estate Roadmap](${intakeUrl})
 
-If you have any questions, feel free to reply to this email.
+---
 
-Best,
+**Your Immediate Top 3 Priorities:**
+1.  **Secure the Home & Assets:** Ensure property is locked and pets are cared for.
+2.  **Locate the Will:** Check safe deposit boxes, home safes, or attorney files.
+3.  **Order Death Certificates:** You will likely need 5-10 certified copies.
+
+If you ever feel overwhelmed, you can reply to this email or chat with an expert advisor on our platform.
+
+With sympathy,
 The ExpectedEstate Team
         `.trim();
 

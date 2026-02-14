@@ -33,8 +33,8 @@ export function HeroSection() {
             transition={{ duration: 0.6, delay: 0.1 }}
             className="text-5xl md:text-8xl font-black text-foreground mb-10 tracking-tighter leading-[0.95]"
           >
-            Simplify estate <br className="hidden md:block" />
-            settlement with <span className="text-primary">clarity and peace of mind.</span>
+            Your step-by-step <br className="hidden md:block" />
+            <span className="text-primary">executor roadmap.</span>
           </motion.h1>
 
           <motion.p
@@ -43,7 +43,7 @@ export function HeroSection() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="text-xl md:text-2xl text-muted-foreground font-medium mb-14 tracking-tight max-w-2xl mx-auto leading-relaxed"
           >
-            Navigating a loss is hard enough. ExpectedEstate automates the paperwork and tracks assets so you can focus on what matters most.
+            Stop guessing what to do next. Get a personalized, state-specific plan to settle the estate in minutes.
           </motion.p>
 
           <motion.div
@@ -54,7 +54,7 @@ export function HeroSection() {
           >
             <Link to="/start">
               <Button size="lg" className="h-20 px-14 text-xl font-bold rounded-full bg-primary hover:bg-primary/90 shadow-[0_25px_60px_rgba(37,99,235,0.35)] transition-all hover:scale-105 active:scale-95 group">
-                Get My Executor Roadmap (2 min)
+                Get My Free Roadmap
                 <span className="ml-3 group-hover:translate-x-2 transition-transform">→</span>
               </Button>
             </Link>

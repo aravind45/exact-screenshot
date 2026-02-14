@@ -52,10 +52,16 @@ export function LeadMagnetForm({
                 <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-3">
                     <CheckCircle className="w-6 h-6 text-green-600" />
                 </div>
-                <h3 className="text-lg font-bold text-slate-900 mb-1">It's on the way!</h3>
-                <p className="text-sm text-slate-600">
-                    Check your inbox for the <strong>First 30 Days Action Plan</strong>.
+                <h3 className="text-lg font-bold text-slate-900 mb-1">Checklist Sent!</h3>
+                <p className="text-sm text-slate-600 mb-6 px-4">
+                    We've emailed you the PDF. While you wait, why not start tracking these steps in your free account?
                 </p>
+                <Button
+                    className="bg-primary hover:bg-primary/90 text-white font-bold rounded-xl shadow-lg shadow-primary/20"
+                    onClick={() => window.location.href = '/start'}
+                >
+                    Start My Roadmap Now <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
             </div>
         );
     }

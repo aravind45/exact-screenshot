@@ -29,7 +29,7 @@ export function AboutSection() {
                             </p>
                         </div>
                         <Button variant="outline" size="lg" className="rounded-full border-primary text-primary font-semibold hover:bg-primary/5 px-10" asChild>
-                            <Link to="/auth">Read Our Full Story</Link>
+                            <Link to="/start">Get Your Free Roadmap</Link>
                         </Button>
                     </motion.div>
 

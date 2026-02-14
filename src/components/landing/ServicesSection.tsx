@@ -41,7 +41,7 @@ export function ServicesSection() {
                         transition={{ delay: 0.1 }}
                         className="text-4xl md:text-5xl font-black text-foreground mb-6"
                     >
-                        What ExpectedEstate Actually Does
+                        Your Personal Probate GPS
                     </motion.h2>
                     <motion.p
                         initial={{ opacity: 0, y: 20 }}
@@ -50,7 +50,7 @@ export function ServicesSection() {
                         transition={{ delay: 0.2 }}
                         className="text-lg text-muted-foreground max-w-2xl mx-auto font-medium"
                     >
-                        Concrete tools built for families navigating the complexities of estate settlement.
+                        We turn the complex legal process into a simple, step-by-step checklist tailored to your state and situation.
                     </motion.p>
                 </div>
 
@@ -82,9 +82,9 @@ export function ServicesSection() {
                     transition={{ delay: 0.6 }}
                     className="text-center mt-20"
                 >
-                    <Link to="/dashboard">
+                    <Link to="/start">
                         <Button size="lg" className="h-16 px-12 text-lg font-bold rounded-full group bg-primary">
-                            Start guided intake
+                            Get My Free Roadmap
                             <span className="ml-3 group-hover:translate-x-1 transition-transform">→</span>
                         </Button>
                     </Link>

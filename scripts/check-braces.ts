@@ -4,7 +4,7 @@ import fs from 'fs';
 const filePath = 'server/services/pdfService.ts';
 const content = fs.readFileSync(filePath, 'utf8');
 
-let stack = [];
+const stack: { line: number; col: number }[] = [];
 let line = 1;
 let col = 1;
 
@@ -30,7 +30,7 @@ for (let i = 0; i < content.length; i++) {
 
 if (stack.length > 0) {
     console.log(`❌ Unmatched opening brace(s) remaining: ${stack.length}`);
-    stack.forEach(s => console.log(`  - Opened at line ${s.line}, col ${s.col}`));
+    stack.forEach((s) => console.log(`  - Opened at line ${s.line}, col ${s.col}`));
 } else {
     console.log("✅ All braces matched!");
 }
