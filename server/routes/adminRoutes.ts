@@ -5,6 +5,7 @@ import { StripeService } from "../services/stripeService.js";
 import { KnowledgeService } from "../services/knowledgeService.js";
 import { z } from "zod";
 import { logger } from "../lib/logger.js";
+import { RoleUtils } from "../utils/userUtils.js";
 
 const router = Router();
 

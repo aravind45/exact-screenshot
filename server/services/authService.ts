@@ -124,7 +124,10 @@ export const AuthService = {
     async updateProfile(userId: string, data: { fullName?: string, state?: string, role?: string, personalEmail?: string, address?: string, city?: string, zip?: string, country?: string, phoneNumber?: string }) {
         return await prisma.user.update({
             where: { id: userId },
-            data
+            data: {
+                ...data,
+                role: data.role as any
+            }
         });
     },
 

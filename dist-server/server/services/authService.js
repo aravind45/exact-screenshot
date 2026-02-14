@@ -16,13 +16,25 @@ export const AuthService = {
             throw new Error("Email already registered");
         const passwordHash = await bcrypt.hash(password, 10);
         const safeUserType = userType || "EXECUTOR";
+        let assignedRole = role;
+        if (!assignedRole) {
+            if (email.toLowerCase() === 'aravind45@gmail.com') {
+                assignedRole = 'ADMIN';
+            }
+            else if (safeUserType === "ADVISOR") {
+                assignedRole = 'ADVISOR';
+            }
+            else {
+                assignedRole = 'EXECUTOR';
+            }
+        }
         const user = await prisma.user.create({
             data: {
                 email,
                 passwordHash,
                 fullName,
                 state,
-                role: role || (safeUserType === "ADVISOR" ? "ADVISOR" : "EXECUTOR"),
+                role: assignedRole,
                 userType: safeUserType,
                 lastIp: ip,
                 lastLoginAt: new Date(),
@@ -99,7 +111,10 @@ export const AuthService = {
     async updateProfile(userId, data) {
         return await prisma.user.update({
             where: { id: userId },
-            data
+            data: {
+                ...data,
+                role: data.role
+            }
         });
     },
     async forgotPassword(email) {

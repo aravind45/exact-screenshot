@@ -5,6 +5,7 @@ import { StripeService } from "../services/stripeService.js";
 import { KnowledgeService } from "../services/knowledgeService.js";
 import { z } from "zod";
 import { logger } from "../lib/logger.js";
+import { RoleUtils } from "../utils/userUtils.js";
 const router = Router();
 const AUTHORIZED_ADMINS = ['aravind45@gmail.com'];
 // Schemas
@@ -44,7 +45,7 @@ const templateMetadataSchema = z.object({
 });
 // Admin Middleware check
 const isAdmin = (req, res, next) => {
-    if (!req.user || !AUTHORIZED_ADMINS.includes(req.user.email)) {
+    if (!req.user || !RoleUtils.isAdmin(req.user)) {
         return res.status(403).json({ error: "Admin access restricted to authorized personnel" });
     }
     next();
