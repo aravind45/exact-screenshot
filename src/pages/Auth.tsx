@@ -19,6 +19,40 @@ const nameSchema = z.string().trim().min(1, 'Name is required').max(100, 'Name i
 
 type UserType = 'EXECUTOR' | 'ADVISOR';
 
+// Helper function to determine default dashboard based on user role/type
+const getDefaultDashboard = (user: { role?: string; userType?: 'EXECUTOR' | 'ADVISOR' } | null): string => {
+  if (!user) return '/dashboard';
+  
+  if (user.role === 'ADVISOR' || user.userType === 'ADVISOR') {
+    return '/advisor/dashboard';
+  } else if (user.role === 'ADMIN') {
+    return '/admin';
+  }
+  
+  return '/dashboard';
+};
+
+// Helper function to validate redirect path matches user type
+const validateRedirectPath = (
+  redirect: string | null,
+  user: { role?: string; userType?: 'EXECUTOR' | 'ADVISOR' } | null
+): string | null => {
+  if (!redirect || !user) return null;
+  
+  const isAdvisorPath = redirect.startsWith('/advisor');
+  const isAdminPath = redirect.startsWith('/admin');
+  const isExecutorPath = !isAdvisorPath && !isAdminPath;
+  const isAdvisor = user.role === 'ADVISOR' || user.userType === 'ADVISOR';
+  const isAdmin = user.role === 'ADMIN';
+  
+  // Validate path matches user type
+  if (isAdvisorPath && isAdvisor) return redirect;
+  if (isAdminPath && isAdmin) return redirect;
+  if (isExecutorPath && !isAdvisor && !isAdmin) return redirect;
+  
+  return null;
+};
+
 export default function Auth() {
   const [searchParams] = useSearchParams();
   const buyMode = searchParams.get('mode') === 'buy';
@@ -121,19 +155,22 @@ export default function Auth() {
             title: 'Welcome back!',
             description: 'You have successfully signed in.',
           });
+          
+          // Get stored redirect and validate it
           const redirect = sessionStorage.getItem("after_login_redirect");
           if (redirect) {
             sessionStorage.removeItem("after_login_redirect");
-            navigate(redirect);
+          }
+          
+          // Validate redirect path matches user type
+          const validatedRedirect = validateRedirectPath(redirect, authedUser);
+          
+          if (validatedRedirect) {
+            navigate(validatedRedirect);
           } else {
-            // Role-based redirection
-            if (authedUser?.role === 'ADVISOR' || authedUser?.userType === 'ADVISOR') {
-              navigate('/advisor/dashboard');
-            } else if (authedUser?.role === 'ADMIN') {
-              navigate('/admin');
-            } else {
-              navigate(buyMode ? '/pricing?mode=buy' : '/dashboard');
-            }
+            // Use default dashboard based on role/userType
+            const defaultPath = getDefaultDashboard(authedUser);
+            navigate(buyMode && defaultPath === '/dashboard' ? '/pricing?mode=buy' : defaultPath);
           }
         }
       } else if (authMode === 'signup') {
@@ -162,13 +199,21 @@ export default function Auth() {
             description: 'Welcome to ExpectedEstate.',
           });
 
+          // Get stored redirect and clear it
+          const redirect = sessionStorage.getItem("after_login_redirect");
+          if (redirect) {
+            sessionStorage.removeItem("after_login_redirect");
+          }
+
+          // Route to appropriate onboarding based on user type
           if (newUser?.userType === 'ADVISOR' || newUser?.role === 'ADVISOR') {
             navigate('/advisor/onboarding');
           } else {
-            const redirect = sessionStorage.getItem("after_login_redirect");
-            if (redirect) {
-              sessionStorage.removeItem("after_login_redirect");
-              navigate(redirect);
+            // Validate redirect for executors (must not be advisor or admin routes)
+            const validatedRedirect = validateRedirectPath(redirect, newUser);
+            
+            if (validatedRedirect) {
+              navigate(validatedRedirect);
             } else {
               navigate(buyMode ? '/pricing?mode=buy' : '/onboarding');
             }

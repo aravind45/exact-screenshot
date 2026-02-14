@@ -15,24 +15,33 @@ export function ProfileGuard({ children }: ProfileGuardProps) {
     const navigate = useNavigate();
     const location = useLocation();
 
+    // CRITICAL FIX: Skip all checks for advisors and admins
+    const shouldSkipCheck = 
+        !user || 
+        user.role === 'ADMIN' || 
+        user.role === 'ADVISOR' || 
+        user.userType === 'ADVISOR';
+
     const { data: estate, isLoading, isError } = useQuery({
         queryKey: ["estate"],
         queryFn: api.getMyEstate,
         retry: false,
-        enabled: !!user && user.role !== 'ADMIN' && user.role !== 'ADVISOR',
+        enabled: !!user && !shouldSkipCheck, // Only fetch for executors
     });
 
     useEffect(() => {
         // Skip profile check for non-executor users
-        if (!user || user.role === 'ADMIN' || user.role === 'ADVISOR' || user.userType === 'ADVISOR') return;
+        if (shouldSkipCheck) return;
 
         // Skip if still loading
         if (isLoading) return;
 
-        // Skip if already on onboarding or advisor routes
+        // Skip if already on onboarding routes
         const isAtOnboarding = location.pathname === "/onboarding";
+        const isAtAdvisorOnboarding = location.pathname === "/advisor/onboarding";
         const isAdvisorRoute = location.pathname.startsWith("/advisor") || location.pathname === "/marketplace";
-        if (isAtOnboarding || isAdvisorRoute) return;
+        
+        if (isAtOnboarding || isAtAdvisorOnboarding || isAdvisorRoute) return;
 
         // If there's an error fetching estate (404 = no estate yet), redirect to onboarding
         if (isError) {
@@ -55,9 +64,10 @@ export function ProfileGuard({ children }: ProfileGuardProps) {
             });
             navigate("/onboarding", { replace: true });
         }
-    }, [user, estate, isLoading, isError, navigate, location.pathname]);
+    }, [user, estate, isLoading, isError, navigate, location.pathname, shouldSkipCheck]);
 
-    if (isLoading) {
+    // Show loading only for executors
+    if (!shouldSkipCheck && isLoading) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-slate-50/30">
                 <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />

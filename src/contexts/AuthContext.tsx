@@ -72,11 +72,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = async () => {
     try {
       await api.logout();
-      setUser(null);
     } catch (error) {
       console.error("Sign out error:", error);
-      // Still clear user state even if API call fails
+      // Continue with local cleanup even if API call fails
+    } finally {
+      // Always clear local state even if API fails
+      localStorage.removeItem("auth_token");
+      sessionStorage.removeItem("after_login_redirect");
+      sessionStorage.removeItem("discovery_data");
       setUser(null);
+      
+      // Navigate to landing page using window.location to ensure clean state
+      window.location.href = '/';
     }
   };
 
