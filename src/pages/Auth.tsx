@@ -88,7 +88,7 @@ export default function Auth() {
 
     try {
       if (authMode === 'login') {
-        const { error } = await signIn(email, password);
+        const { user: authedUser, error } = await signIn(email, password);
         if (error) {
           if (error.message.includes('Invalid login credentials')) {
             toast({
@@ -113,11 +113,19 @@ export default function Auth() {
             sessionStorage.removeItem("after_login_redirect");
             navigate(redirect);
           } else {
-            navigate(buyMode ? '/pricing?mode=buy' : '/dashboard');
+            // Role-based redirection
+            let redirectPath = '/dashboard';
+            if (authedUser?.role === 'ADVISOR') {
+              redirectPath = '/advisor/dashboard';
+            } else if (authedUser?.role === 'ADMIN' || authedUser?.email === 'aravind45@gmail.com') {
+              redirectPath = '/admin';
+            }
+
+            navigate(buyMode ? '/pricing?mode=buy' : redirectPath);
           }
         }
       } else if (authMode === 'signup') {
-        const { error } = await signUp(email, password, fullName);
+        const { user: newUser, error } = await signUp(email, password, fullName);
         if (error) {
           if (error.message.includes('User already registered')) {
             toast({

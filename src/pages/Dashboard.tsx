@@ -102,11 +102,14 @@ export default function Dashboard() {
 
   // Automatically redirect to onboarding if estate profile is incomplete or track is unset
   useEffect(() => {
+    // Advisors and Admins should not be redirected to executor onboarding
+    if (user?.role === 'ADVISOR' || user?.role === 'ADMIN') return;
+
     if (estate && !isProfileComplete(estate)) {
       console.log("Estate profile incomplete, redirecting to onboarding...");
       navigate('/onboarding');
     }
-  }, [estate, navigate]);
+  }, [estate, navigate, user?.role]);
 
   const totalValue = assets.reduce((sum: number, asset: any) => sum + (asset.value || 0), 0);
 

@@ -150,11 +150,11 @@ const App = () => (
                     <Route path="/estates/:estateId/agents" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><EstateAgents /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
                     <Route path="/checklist" element={<ChecklistLanding />} />
                     <Route path="/start" element={<DiscoveryQuiz />} />
-                    <Route path="/marketplace" element={<ProtectedRoute><ProfileGuard><AdvisorMarketplace /></ProfileGuard></ProtectedRoute>} />
-                    <Route path="/advisor/onboarding" element={<ProtectedRoute><ProfileGuard><AdvisorOnboarding /></ProfileGuard></ProtectedRoute>} />
-                    <Route path="/advisor/dashboard" element={<ProtectedRoute><ProfileGuard><AdvisorDashboard /></ProfileGuard></ProtectedRoute>} />
-                    <Route path="/advisor/payouts" element={<ProtectedRoute><ProfileGuard><AdvisorPayouts /></ProfileGuard></ProtectedRoute>} />
-                    <Route path="/my-bookings" element={<ProtectedRoute><ProfileGuard><MyBookings /></ProfileGuard></ProtectedRoute>} />
+                    <Route path="/marketplace" element={<ProtectedRoute><AdvisorMarketplace /></ProtectedRoute>} />
+                    <Route path="/advisor/onboarding" element={<ProtectedRoute><AdvisorOnboarding /></ProtectedRoute>} />
+                    <Route path="/advisor/dashboard" element={<ProtectedRoute><AdvisorDashboard /></ProtectedRoute>} />
+                    <Route path="/advisor/payouts" element={<ProtectedRoute><AdvisorPayouts /></ProtectedRoute>} />
+                    <Route path="/my-bookings" element={<ProtectedRoute><MyBookings /></ProtectedRoute>} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                   <LegalDisclaimer />
