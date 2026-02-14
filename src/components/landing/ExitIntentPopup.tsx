@@ -1,15 +1,10 @@
 import { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { X, CheckCircle, ArrowRight, ShieldCheck } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { api } from "@/lib/api";
-import { toast } from "sonner";
+import { X, ShieldCheck } from "lucide-react";
+import { LeadMagnetForm } from "./LeadMagnetForm";
 
 export function ExitIntentPopup() {
     const [isVisible, setIsVisible] = useState(false);
-    const [email, setEmail] = useState("");
-    const [status, setStatus] = useState<"IDLE" | "LOADING" | "SUCCESS">("IDLE");
     const [hasLeft, setHasLeft] = useState(false);
 
     useEffect(() => {
@@ -34,43 +29,24 @@ export function ExitIntentPopup() {
         localStorage.setItem("marketing_popup_dismissed", "true");
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!email) return;
-
-        setStatus("LOADING");
-        try {
-            await api.marketing.submitChecklist({
-                email,
-                source: "exit_intent_popup",
-                utmSource: "website_popup"
-            });
-            setStatus("SUCCESS");
-            toast.success("Checklist sent to your inbox!");
-
-            // Keep success message for 3 seconds then close
-            setTimeout(() => {
-                handleDismiss();
-            }, 3000);
-
-        } catch (error) {
-            console.error(error);
-            toast.error("Something went wrong. Please try again.");
-            setStatus("IDLE");
-        }
+    const handleSuccess = () => {
+        // Keep popup open for a moment to show success message, then close
+        setTimeout(() => {
+            handleDismiss();
+        }, 3000);
     };
 
     return (
         <AnimatePresence>
             {isVisible && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
                     {/* Backdrop */}
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={handleDismiss}
-                        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+                        className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
                     />
 
                     {/* Modal */}
@@ -98,58 +74,23 @@ export function ExitIntentPopup() {
 
                             {/* Content */}
                             <div className="p-8 md:p-10 flex-1">
-                                {status === "SUCCESS" ? (
-                                    <div className="flex flex-col items-center text-center py-8">
-                                        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-6">
-                                            <CheckCircle className="w-8 h-8 text-green-600" />
-                                        </div>
-                                        <h3 className="text-2xl font-bold text-slate-900 mb-2">On its way!</h3>
-                                        <p className="text-slate-600">
-                                            Check your inbox for the <strong>Ultimate Executor Checklist</strong>.
-                                        </p>
-                                    </div>
-                                ) : (
-                                    <>
-                                        <div className="mb-6">
-                                            <span className="inline-block px-3 py-1 rounded-full bg-amber-100 text-amber-700 text-xs font-bold uppercase tracking-wider mb-3">
-                                                Wait! Don't leave empty handed
-                                            </span>
-                                            <h3 className="text-3xl font-black text-slate-900 leading-tight mb-3">
-                                                Grab the Free Executor Checklist
-                                            </h3>
-                                            <p className="text-slate-500 font-medium">
-                                                Join 500+ executors who use our 7-day roadmap to avoid common probate mistakes.
-                                            </p>
-                                        </div>
+                                <div className="mb-6">
+                                    <span className="inline-block px-3 py-1 rounded-full bg-amber-100 text-amber-800 text-xs font-bold uppercase tracking-wider mb-3">
+                                        Wait! Don't leave empty handed
+                                    </span>
+                                    <h3 className="text-2xl font-black text-slate-900 leading-tight mb-2">
+                                        First 30 Days Action Plan
+                                    </h3>
+                                    <p className="text-slate-500 font-medium text-sm">
+                                        Download our free guide on the exact first steps needed to protect the estate and avoid liability.
+                                    </p>
+                                </div>
 
-                                        <form onSubmit={handleSubmit} className="space-y-4">
-                                            <div>
-                                                <Input
-                                                    type="email"
-                                                    placeholder="Enter your email address"
-                                                    value={email}
-                                                    onChange={(e) => setEmail(e.target.value)}
-                                                    required
-                                                    className="h-12 text-lg bg-slate-50 border-slate-200 focus:ring-primary"
-                                                />
-                                            </div>
-                                            <Button
-                                                type="submit"
-                                                disabled={status === "LOADING"}
-                                                className="w-full h-12 text-lg font-bold bg-primary hover:bg-primary/90 text-white shadow-xl hover:shadow-2xl hover:-translate-y-0.5 transition-all"
-                                            >
-                                                {status === "LOADING" ? "Sending..." : (
-                                                    <span className="flex items-center gap-2">
-                                                        Send Me The Checklist <ArrowRight className="w-5 h-5" />
-                                                    </span>
-                                                )}
-                                            </Button>
-                                            <p className="text-xs text-center text-slate-400 mt-4">
-                                                100% Free. Unsubscribe anytime. No spam.
-                                            </p>
-                                        </form>
-                                    </>
-                                )}
+                                <LeadMagnetForm
+                                    source="exit_intent"
+                                    onSuccess={handleSuccess}
+                                    buttonText="Send Me The Plan"
+                                />
                             </div>
                         </div>
                     </motion.div>

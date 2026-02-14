@@ -13,6 +13,7 @@ import { motion, AnimatePresence } from "framer-motion";
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || "pk_test_placeholder");
 
 import { useAuth } from "@/contexts/AuthContext";
+import { SEO } from "@/components/SEO";
 
 // ... existing code ...
 
@@ -59,6 +60,11 @@ export default function Pricing() {
 
     return (
         <div className="min-h-screen bg-[#0f172a] text-slate-200 selection:bg-indigo-500/30">
+            <SEO
+                title="Pricing & Plans"
+                description="Simple, transparent pricing for estate settlement. One plan includes all assets, unlimited document generation, and court forms."
+                canonical="https://expectedestate.com/pricing"
+            />
         // ... rest of component
 
             {/* Header */}

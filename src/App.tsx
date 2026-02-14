@@ -94,6 +94,7 @@ const ProbateGuide = lazy(() => import("./pages/guides/ProbateGuide"));
 // SEO Pillar Pages
 const ProbateProcess = lazy(() => import("./pages/content/ProbateProcess"));
 const ExecutorChecklist = lazy(() => import("./pages/content/ExecutorChecklist"));
+const ProbateTimeline = lazy(() => import("./pages/content/ProbateTimeline"));
 const SmallEstateAffidavitPage = lazy(() => import("./pages/content/SmallEstateAffidavit"));
 const ProbateTexas = lazy(() => import("./pages/content/ProbateTexas"));
 const WhatToDoWhenSomeoneDies = lazy(() => import("./pages/content/WhatToDoWhenSomeoneDies"));
@@ -138,6 +139,7 @@ const App = () => (
 
                       {/* SEO Pillar Pages */}
                       <Route path="/probate-process" element={<ProbateProcess />} />
+                      <Route path="/probate-timeline" element={<ProbateTimeline />} />
                       <Route path="/executor-checklist" element={<ExecutorChecklist />} />
                       <Route path="/small-estate-affidavit" element={<SmallEstateAffidavitPage />} />
                       <Route path="/probate-texas" element={<ProbateTexas />} />

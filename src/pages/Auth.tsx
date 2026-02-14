@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { z } from 'zod';
 import { cn } from '@/lib/utils';
 import { useTracking } from '@/hooks/useTracking';
+import { SEO } from "@/components/SEO";
 
 // Validation schemas
 const emailSchema = z.string().trim().email('Please enter a valid email address');
@@ -20,7 +21,7 @@ const nameSchema = z.string().trim().min(1, 'Name is required').max(100, 'Name i
 type UserType = 'EXECUTOR' | 'ADVISOR';
 
 // Helper function to determine default dashboard based on user role/type
-const getDefaultDashboard = (user: { role?: string; userType?: 'EXECUTOR' | 'ADVISOR' } | null): string => {
+const getDefaultDashboard = (user: { role?: string; userType?: string } | null): string => {
   if (!user) return '/dashboard';
 
   if (user.role === 'ADVISOR' || user.userType === 'ADVISOR') {
@@ -35,7 +36,7 @@ const getDefaultDashboard = (user: { role?: string; userType?: 'EXECUTOR' | 'ADV
 // Helper function to validate redirect path matches user type
 const validateRedirectPath = (
   redirect: string | null,
-  user: { role?: string; userType?: 'EXECUTOR' | 'ADVISOR' } | null
+  user: { role?: string; userType?: string } | null
 ): string | null => {
   if (!redirect || !user) return null;
 
@@ -215,9 +216,11 @@ export default function Auth() {
 
           // Route to appropriate onboarding based on user type
           if (newUser?.userType === 'ADVISOR' || newUser?.role === 'ADVISOR') {
+            trackEvent('intake_started', { role: 'ADVISOR', email });
             console.log('[AUTH] Routing advisor to /advisor/onboarding');
             navigate('/advisor/onboarding');
           } else {
+            trackEvent('intake_started', { role: 'EXECUTOR', email });
             console.log('[AUTH] Routing executor to /onboarding');
             // Validate redirect for executors (must not be advisor or admin routes)
             const validatedRedirect = validateRedirectPath(redirect, newUser);
@@ -270,6 +273,10 @@ export default function Auth() {
 
   return (
     <div className="min-h-screen bg-white flex overflow-hidden">
+      <SEO
+        title={authMode === 'login' ? 'Sign In - ExpectedEstate' : 'Create Account - ExpectedEstate'}
+        description="Secure login for executors and advisors. Manage estate settlement, track assets, and generate probate forms."
+      />
       {/* Left side: branding and value propositions (Visual) */}
       <div className="hidden lg:flex lg:w-1/2 relative bg-slate-900 items-center justify-center p-12 overflow-hidden">
         {/* Soft aesthetic background accents */}

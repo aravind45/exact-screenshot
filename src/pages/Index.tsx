@@ -12,6 +12,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { PricingSection } from "@/components/landing/PricingSection";
 import { ExitIntentPopup } from "@/components/landing/ExitIntentPopup";
+import { StickyCTA } from "@/components/landing/StickyCTA";
+import { LeadMagnetSection } from "@/components/landing/LeadMagnetSection";
 import { TestimonialsSection } from "@/components/landing/TestimonialsSection";
 import { TrustBar } from "@/components/landing/TrustBar";
 import { Mail } from "lucide-react";
@@ -35,6 +37,7 @@ const Index = () => {
 
         <AboutSection />
         <ServicesSection />
+        <LeadMagnetSection />
         <TestimonialsSection />
         <PricingSection />
 
@@ -156,6 +159,7 @@ const Index = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {[
                 { title: "The Probate Process", path: "/probate-process", desc: "A 7-step guide to formal court proceedings." },
+                { title: "Probate Timeline", path: "/probate-timeline", desc: "Realistic 12-month schedule & delays.", isNew: true },
                 { title: "Executor Checklist", path: "/executor-checklist", desc: "The ultimate workflow for estate executors." },
                 { title: "Small Estate Affidavit", path: "/small-estate-affidavit", desc: "Skip probate for smaller estates." },
                 { title: "What to Do After Death", path: "/what-to-do-when-someone-dies", desc: "Immediate steps to take in the first 72 hours." },
@@ -212,7 +216,7 @@ const Index = () => {
                   className="h-20 px-16 text-2xl font-black rounded-full shadow-2xl hover:scale-105 transition-all bg-primary"
                   onClick={() => navigate("/start")}
                 >
-                  Get My Free Roadmap
+                  Get My Executor Roadmap
                   <span className="ml-3">→</span>
                 </Button>
 
@@ -237,6 +241,7 @@ const Index = () => {
 
       <Footer />
       <ExitIntentPopup />
+      <StickyCTA />
     </div>
   );
 };

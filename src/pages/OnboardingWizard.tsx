@@ -178,6 +178,13 @@ export default function OnboardingWizard() {
                     hasContest: estateData.hasContest
                 });
 
+                // Track meaningful Lead event (User has committed real data)
+                trackEvent('lead', {
+                    step: 'estate_info_saved',
+                    state: estateData.location,
+                    value: estateData.estimatedValue
+                });
+
                 // Clear discovery data since it's now persisted to the backend
                 sessionStorage.removeItem("discovery_data");
             } else if (currentStep === 2) { // Track Scout
@@ -248,6 +255,11 @@ export default function OnboardingWizard() {
             }
 
             if (currentStep < STEPS.length - 1) {
+                toast({
+                    description: "Progress saved",
+                    duration: 2000,
+                    className: "bg-emerald-50 text-emerald-900 border-none"
+                });
                 setCurrentStep(prev => prev + 1);
             } else {
                 await trackEvent("intake_completed");

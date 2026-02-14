@@ -8,6 +8,7 @@ export interface TrackingData {
     source?: string;
     email?: string;
     metadata?: any;
+    [key: string]: any; // Allow arbitrary extra data for pixels
 }
 
 export const useTracking = () => {
@@ -45,6 +46,7 @@ export const useTracking = () => {
             ...extraData
         };
 
+        // 1. Fire Internal Tracking
         try {
             await fetch("/api/marketing/event", {
                 method: "POST",
@@ -53,6 +55,34 @@ export const useTracking = () => {
             });
         } catch (error) {
             console.error("Failed to track event:", error);
+        }
+
+        // 2. Fire External Pixels (Safe Checks)
+        try {
+            // Facebook Pixel
+            if (typeof window !== 'undefined' && (window as any).fbq) {
+                const fbEventMap: Record<string, string> = {
+                    'intake_started': 'InitiateCheckout',
+                    'intake_completed': 'CompleteRegistration', // or Purchase if paid
+                    'purchase': 'Purchase',
+                    'lead': 'Lead',
+                    'view_content': 'ViewContent'
+                };
+                const fbEvent = fbEventMap[event] || 'CustomEvent';
+                (window as any).fbq('track', fbEvent, extraData);
+            }
+
+            // Google Tag (gtag)
+            if (typeof window !== 'undefined' && (window as any).gtag) {
+                (window as any).gtag('event', event, extraData);
+            }
+
+            // TikTok Pixel
+            if (typeof window !== 'undefined' && (window as any).ttq) {
+                (window as any).ttq.track(event, extraData);
+            }
+        } catch (e) {
+            console.warn("External pixel error", e);
         }
     }, [getTrackingData]);
 

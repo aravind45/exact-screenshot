@@ -59,19 +59,21 @@ router.post("/checklist", async (req, res) => {
         const appUrl = (await EmailService.getAppUrl()).replace(/\/$/, "");
         const intakeUrl = `${appUrl}/auth`;
 
-        const subject = "Your Executor 7-Day Checklist";
+        const subject = "Your First 30 Days Action Plan";
         const body = `
 Hi there!
 
-Thank you for requesting our Executor 7-Day Checklist. Starting the probate process can be overwhelming, but we're here to help you navigate it step-by-step.
+Thank you for requesting the "First 30 Days Action Plan". The first month after a loss is critical for securing assets and avoiding liability.
 
-You can start your estate intake and get organized today by clicking here:
+We've prepared this guide to help you focus on what matters most right now.
+
+You can access the full interactive guide and start tracking your progress here:
 ${intakeUrl}
 
-What's in the 7-Day Checklist?
-1. Immediate Actions (Days 1-2): Secure property, notify immediate family.
-2. Documentation (Days 3-4): Gather death certificates and the Will.
-3. Legal Intake (Days 5-7): Determine if probate is required and start your petition.
+Key Priorities for the First 30 Days:
+1.  **Immediate (Days 1-3):** Secure property, pets, and perishables. Locate the Will.
+2.  **Short Term (Days 4-14):** Order death certificates, cancel subscriptions, forward mail.
+3.  **End of Month (Days 15-30):** Determine if probate is needed and identify all assets.
 
 If you have any questions, feel free to reply to this email.
 
