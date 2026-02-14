@@ -23,22 +23,28 @@ export function RoleRoute({ children, allowedRoles, fallbackPath = '/dashboard' 
                 // Not logged in
                 sessionStorage.setItem("after_login_redirect", window.location.pathname + window.location.search);
                 navigate('/auth');
-            } else if (user.role && !allowedRoles.includes(user.role)) {
-                // Logged in but wrong role - determine appropriate fallback based on user type
-                console.warn(`[RoleRoute] Access denied for role: ${user.role}. Allowed: ${allowedRoles.join(', ')}. Redirecting to appropriate dashboard.`);
+            } else {
+                const userEmail = user.email?.toLowerCase();
+                const isAdminEmail = userEmail === 'aravind45@gmail.com';
+                const hasRequiredRole = allowedRoles.includes(user.role || '') || (allowedRoles.includes('ADMIN') && isAdminEmail);
 
-                // Determine appropriate fallback based on user type
-                let redirectPath = fallbackPath;
-                
-                if (user.role === 'ADVISOR' || user.userType === 'ADVISOR') {
-                    redirectPath = '/advisor/dashboard';
-                } else if (user.role === 'ADMIN') {
-                    redirectPath = '/admin';
-                } else {
-                    redirectPath = fallbackPath || '/dashboard';
+                if (!hasRequiredRole) {
+                    // Logged in but wrong role - determine appropriate fallback based on user type
+                    console.warn(`[RoleRoute] Access denied for role: ${user.role}. Allowed: ${allowedRoles.join(', ')}. Redirecting to appropriate dashboard.`);
+
+                    // Determine appropriate fallback based on user type
+                    let redirectPath = fallbackPath;
+
+                    if (user.role === 'ADVISOR' || user.userType === 'ADVISOR') {
+                        redirectPath = '/advisor/dashboard';
+                    } else if (user.role === 'ADMIN' || isAdminEmail) {
+                        redirectPath = '/admin';
+                    } else {
+                        redirectPath = fallbackPath || '/dashboard';
+                    }
+
+                    navigate(redirectPath, { replace: true });
                 }
-                
-                navigate(redirectPath, { replace: true });
             }
         }
     }, [user, loading, navigate, allowedRoles, fallbackPath]);
