@@ -117,7 +117,7 @@ export default function Auth() {
             let redirectPath = '/dashboard';
             if (authedUser?.role === 'ADVISOR') {
               redirectPath = '/advisor/dashboard';
-            } else if (authedUser?.role === 'ADMIN' || authedUser?.email === 'aravind45@gmail.com') {
+            } else if (authedUser?.role === 'ADMIN') {
               redirectPath = '/admin';
             }
 

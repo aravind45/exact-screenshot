@@ -73,6 +73,7 @@ const allowedOrigins = [
     process.env.APP_URL,
     'http://localhost:5173',
     'http://localhost:8080',
+    'http://localhost:8081',
     'http://localhost:3000',
     'https://www.expectedestate.com',
     'https://expected-estate.vercel.app'

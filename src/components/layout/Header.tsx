@@ -69,7 +69,9 @@ export function Header() {
                   Sign Out
                 </button>
                 <Button size="sm" className="font-bold px-6 rounded-full" asChild>
-                  <Link to="/dashboard">Dashboard</Link>
+                  <Link to={user?.role === 'ADVISOR' ? "/advisor/dashboard" : "/dashboard"}>
+                    Dashboard
+                  </Link>
                 </Button>
               </>
             )}

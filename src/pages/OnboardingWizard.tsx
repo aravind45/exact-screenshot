@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -82,6 +83,15 @@ export default function OnboardingWizard() {
         queryFn: api.getMyEstate,
         retry: false,
     });
+
+    const { user } = useAuth(); // Import useAuth if needed
+
+    // Redirect Advisors out of executor onboarding
+    useEffect(() => {
+        if (user?.role === 'ADVISOR') {
+            navigate('/advisor/dashboard');
+        }
+    }, [user, navigate]);
 
     // Populate data from existing estate
     useEffect(() => {

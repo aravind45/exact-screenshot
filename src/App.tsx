@@ -7,6 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { NavigationProvider } from "@/contexts/NavigationContext";
 import { WorkflowProvider } from "@/contexts/WorkflowContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { RoleRoute } from "@/components/RoleRoute";
 import { ProfileGuard } from "@/components/ProfileGuard";
 import { SubscriptionGuard } from "@/components/SubscriptionGuard";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
@@ -95,12 +96,21 @@ const App = () => (
                     <Route
                       path="/onboarding"
                       element={
-                        <ProtectedRoute>
+                        <RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}>
                           <OnboardingWizard />
-                        </ProtectedRoute>
+                        </RoleRoute>
                       }
                     />
-                    <Route path="/dashboard" element={<ProtectedRoute><ProfileGuard><Dashboard /></ProfileGuard></ProtectedRoute>} />
+                    <Route
+                      path="/dashboard"
+                      element={
+                        <RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}>
+                          <ProfileGuard>
+                            <Dashboard />
+                          </ProfileGuard>
+                        </RoleRoute>
+                      }
+                    />
                     <Route path="/asset/:id" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><AssetDetail /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
                     <Route path="/add-asset" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><AddAsset /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
                     <Route path="/upload" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><UploadDocument /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
@@ -152,8 +162,22 @@ const App = () => (
                     <Route path="/start" element={<DiscoveryQuiz />} />
                     <Route path="/marketplace" element={<ProtectedRoute><AdvisorMarketplace /></ProtectedRoute>} />
                     <Route path="/advisor/onboarding" element={<ProtectedRoute><AdvisorOnboarding /></ProtectedRoute>} />
-                    <Route path="/advisor/dashboard" element={<ProtectedRoute><AdvisorDashboard /></ProtectedRoute>} />
-                    <Route path="/advisor/payouts" element={<ProtectedRoute><AdvisorPayouts /></ProtectedRoute>} />
+                    <Route
+                      path="/advisor/dashboard"
+                      element={
+                        <RoleRoute allowedRoles={['ADVISOR']}>
+                          <AdvisorDashboard />
+                        </RoleRoute>
+                      }
+                    />
+                    <Route
+                      path="/advisor/payouts"
+                      element={
+                        <RoleRoute allowedRoles={['ADVISOR']}>
+                          <AdvisorPayouts />
+                        </RoleRoute>
+                      }
+                    />
                     <Route path="/my-bookings" element={<ProtectedRoute><MyBookings /></ProtectedRoute>} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
