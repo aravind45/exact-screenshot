@@ -19,7 +19,8 @@ interface AuthContextType {
   isAttorney: boolean;
   isExecutor: boolean;
   isHeir: boolean;
-  signIn: (token: string, userData: any) => void;
+  signIn: (email: string, password: string) => Promise<{ user: User | null; error: any }>;
+  signUp: (email: string, password: string, fullName: string, role?: string, userType?: string) => Promise<{ user: User | null; error: any }>;
   signOut: () => void;
   refreshUser: () => Promise<void>;
 }
@@ -53,23 +54,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     initAuth();
   }, []);
 
-  // Removed the old signUp function as per the instruction's implied change in AuthContextType
+  const signIn = async (email: string, password: string) => {
+    try {
+      const data = await api.login(email, password);
+      let userData = data.user;
 
-  const signIn = (token: string, userData: any) => {
-    localStorage.setItem("auth_token", token);
-    // Ensure admin email gets 'ADMIN' role if no role is present
-    if (!userData.role && userData.email?.toLowerCase() === 'aravind45@gmail.com') {
-      userData.role = 'ADMIN';
+      // Ensure admin email gets 'ADMIN' role if no role is present
+      if (!userData.role && userData.email?.toLowerCase() === 'aravind45@gmail.com') {
+        userData.role = 'ADMIN';
+      }
+
+      setUser(userData);
+      return { user: userData, error: null };
+    } catch (error: any) {
+      console.error("Sign in failed:", error);
+      return { user: null, error };
     }
-    setUser(userData);
   };
 
-  const signOut = () => {
+  const signUp = async (email: string, password: string, fullName: string, role?: string, userType?: string) => {
     try {
-      // await api.logout(); // Assuming logout API call is handled elsewhere or not critical for local state
+      const data = await api.register({ email, password, fullName, role, userType: userType as any });
+      let userData = data.user;
+
+      // Ensure admin email gets 'ADMIN' role if no role is present
+      if (!userData.role && userData.email?.toLowerCase() === 'aravind45@gmail.com') {
+        userData.role = 'ADMIN';
+      }
+
+      setUser(userData);
+      return { user: userData, error: null };
+    } catch (error: any) {
+      console.error("Sign up failed:", error);
+      return { user: null, error };
+    }
+  };
+
+  const signOut = async () => {
+    try {
+      await api.logout();
     } catch (error) {
       console.error("Sign out error:", error);
-      // Continue with local cleanup even if API call fails
     } finally {
       // Always clear local state even if API fails
       localStorage.removeItem("auth_token");
@@ -113,6 +138,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isExecutor,
       isHeir,
       signIn,
+      signUp,
       signOut,
       refreshUser
     }}>
