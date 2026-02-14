@@ -205,10 +205,19 @@ export default function Auth() {
             sessionStorage.removeItem("after_login_redirect");
           }
 
+          // Debug: Log user data to see what we received
+          console.log('[AUTH] Registration successful. User data:', {
+            userType: newUser?.userType,
+            role: newUser?.role,
+            id: newUser?.id
+          });
+
           // Route to appropriate onboarding based on user type
           if (newUser?.userType === 'ADVISOR' || newUser?.role === 'ADVISOR') {
+            console.log('[AUTH] Routing advisor to /advisor/onboarding');
             navigate('/advisor/onboarding');
           } else {
+            console.log('[AUTH] Routing executor to /onboarding');
             // Validate redirect for executors (must not be advisor or admin routes)
             const validatedRedirect = validateRedirectPath(redirect, newUser);
             
