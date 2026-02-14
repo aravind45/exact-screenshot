@@ -8,7 +8,7 @@ import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { PricingSection } from "@/components/landing/PricingSection";
 import { TestimonialsSection } from "@/components/landing/TestimonialsSection";
@@ -129,6 +129,49 @@ const Index = () => {
                     </li>
                   ))}
                 </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* SEO / Educational Resources Section */}
+        <section className="py-24 bg-slate-50 border-y border-slate-100">
+          <div className="section-container">
+            <div className="flex flex-col md:flex-row items-end justify-between gap-8 mb-16">
+              <div className="max-w-2xl">
+                <Badge variant="outline" className="mb-6 uppercase tracking-widest font-black py-1.5 px-4 bg-white text-primary border-primary/20">Knowledge Base</Badge>
+                <h2 className="text-4xl md:text-5xl font-black text-slate-900 mb-6">Navigating the Maze</h2>
+                <p className="text-lg text-slate-500 font-medium leading-relaxed">
+                  Estate settlement shouldn't be a mystery. Explore our expert guides to understand your legal path and fiduciary responsibilities.
+                </p>
+              </div>
+              <Button variant="ghost" className="font-bold text-primary group" onClick={() => navigate("/probate-process")}>
+                View all guides <span className="ml-2 group-hover:translate-x-1 transition-transform">→</span>
+              </Button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[
+                { title: "Probate Process", path: "/probate-process", desc: "Detailed timeline from filing to final distribution." },
+                { title: "Executor Checklist", path: "/executor-checklist", desc: "Critical steps for the first 48 hours and beyond." },
+                { title: "Small Estates", path: "/small-estate-affidavit-guide", desc: "How to bypass court for smaller estate values." },
+                { title: "Texas Probate", path: "/probate-texas", desc: "Lone Star specific independent administration rules." },
+                { title: "After Death", path: "/what-to-do-after-death", desc: "Immediate logistical and emotional support steps." }
+              ].map((item, i) => (
+                <Link
+                  key={i}
+                  to={item.path}
+                  className="group p-8 bg-white border border-slate-100 rounded-[2rem] hover:border-primary/30 hover:shadow-xl transition-all"
+                >
+                  <h3 className="text-xl font-bold mb-3 group-hover:text-primary transition-colors">{item.title}</h3>
+                  <p className="text-sm text-slate-500 font-medium mb-6 leading-relaxed">{item.desc}</p>
+                  <div className="text-xs font-black uppercase tracking-widest text-primary/40 group-hover:text-primary transition-colors">Read Guide →</div>
+                </Link>
+              ))}
+              <div className="p-8 bg-primary rounded-[2rem] text-white flex flex-col justify-center">
+                <h3 className="text-xl font-bold mb-2 text-white">Need a human?</h3>
+                <p className="text-sm text-primary-foreground/90 mb-6 font-medium leading-relaxed">Consult with our verified estate advisors for 1-on-1 guidance.</p>
+                <Button className="w-full bg-white text-primary hover:bg-slate-100 font-black rounded-xl" onClick={() => navigate("/marketplace")}>Find an Advisor</Button>
               </div>
             </div>
           </div>

@@ -50,7 +50,19 @@ export function Footer() {
             </nav>
           </div>
 
-          {/* Company & Support */}
+          {/* Company & Legals */}
+          <div>
+            <h4 className="font-black text-xs uppercase tracking-[0.2em] mb-6 text-background/40">Resources</h4>
+            <nav className="flex flex-col gap-4 text-sm font-bold">
+              <Link to="/probate-process" className="text-background/70 hover:text-primary transition-colors">Probate Process</Link>
+              <Link to="/executor-checklist" className="text-background/70 hover:text-primary transition-colors">Executor Checklist</Link>
+              <Link to="/small-estate-affidavit-guide" className="text-background/70 hover:text-primary transition-colors">Small Estate Guide</Link>
+              <Link to="/probate-texas" className="text-background/70 hover:text-primary transition-colors">Texas Probate</Link>
+              <Link to="/what-to-do-after-death" className="text-background/70 hover:text-primary transition-colors hover:text-red-400">What to do after death</Link>
+            </nav>
+          </div>
+
+          {/* Support */}
           <div>
             <h4 className="font-black text-xs uppercase tracking-[0.2em] mb-6 text-background/40">Support</h4>
             <nav className="flex flex-col gap-4 text-sm font-bold">

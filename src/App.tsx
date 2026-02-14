@@ -96,6 +96,13 @@ import { EstateAgentChatWrapper } from "@/components/EstateAgentChatWrapper";
 import { LegalDisclaimer } from "@/components/LegalDisclaimer";
 import ProbateGuide from "./pages/guides/ProbateGuide";
 
+// SEO Pillar Pages
+import ProbateProcess from "./pages/content/ProbateProcess";
+import ExecutorChecklist from "./pages/content/ExecutorChecklist";
+import SmallEstateAffidavitGuide from "./pages/content/SmallEstateAffidavitGuide";
+import ProbateTexas from "./pages/content/ProbateTexas";
+import WhatToDoAfterDeath from "./pages/content/WhatToDoAfterDeath";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -118,6 +125,13 @@ const App = () => (
                     <Route path="/checklist" element={<ChecklistLanding />} />
                     <Route path="/start" element={<DiscoveryQuiz />} />
                     <Route path="/guides/probate" element={<ProbateGuide />} />
+
+                    {/* SEO Pillar Pages */}
+                    <Route path="/probate-process" element={<ProbateProcess />} />
+                    <Route path="/executor-checklist" element={<ExecutorChecklist />} />
+                    <Route path="/small-estate-affidavit-guide" element={<SmallEstateAffidavitGuide />} />
+                    <Route path="/probate-texas" element={<ProbateTexas />} />
+                    <Route path="/what-to-do-after-death" element={<WhatToDoAfterDeath />} />
 
                     {/* Executor / User Routes */}
                     <Route
