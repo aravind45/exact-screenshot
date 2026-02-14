@@ -2,7 +2,6 @@ import { Router } from 'express';
 import { AdvisorService } from '../services/advisorService.js';
 import { StripeService } from '../services/stripeService.js';
 import { authenticate } from '../middleware/auth.js';
-import { requireAdvisor } from '../middleware/authorization.js';
 import { profileUpdateLimiter } from '../middleware/rateLimiter.js';
 import { logger } from '../lib/logger.js';
 const router = Router();
@@ -10,9 +9,13 @@ const router = Router();
  * GET /api/advisors/me
  * Get current user's advisor profile
  */
-router.get('/me', authenticate, requireAdvisor, async (req, res) => {
+router.get('/me', authenticate, async (req, res) => {
     try {
         const profile = await AdvisorService.getAdvisorProfile(req.user.id);
+        // Return null if no profile exists (don't error)
+        if (!profile) {
+            return res.json(null);
+        }
         res.json(profile);
     }
     catch (error) {
@@ -94,15 +97,27 @@ router.post('/stripe/connect/onboard', authenticate, async (req, res) => {
     try {
         const userId = req.user.id;
         const { returnUrl, refreshUrl } = req.body;
+        logger.info(`💳 Starting Stripe onboarding for user ${userId}`);
         // Get or create advisor profile
         let advisor = await AdvisorService.getAdvisorProfile(userId);
         if (!advisor) {
-            return res.status(404).json({ error: 'Advisor profile not found' });
+            logger.info(`✨ Creating initial advisor profile for user ${userId}`);
+            // Create a minimal advisor profile if it doesn't exist
+            advisor = await AdvisorService.updateAdvisorProfile(userId, {
+                bio: '',
+                expertise: [],
+                hourlyRate: 0,
+            });
         }
         // Create Connect account if doesn't exist
         if (!advisor.stripeAccountId) {
+            logger.info(`🏦 Creating Stripe Connect account for user ${userId}`);
             const account = await StripeService.createConnectAccount(userId);
+            // Re-fetch to get updated account ID
             advisor = await AdvisorService.getAdvisorProfile(userId);
+        }
+        if (!advisor?.stripeAccountId) {
+            throw new Error("Failed to secure a Stripe account ID for advisor");
         }
         // Create account link for onboarding
         const accountLink = await StripeService.createAccountLink(advisor.stripeAccountId, returnUrl || `${process.env.APP_URL}/advisor/dashboard`, refreshUrl || `${process.env.APP_URL}/advisor/onboarding`);
@@ -110,7 +125,7 @@ router.post('/stripe/connect/onboard', authenticate, async (req, res) => {
     }
     catch (error) {
         logger.error(`❌ Error starting Stripe onboarding: ${error.message}`);
-        res.status(500).json({ error: 'Failed to start Stripe onboarding' });
+        res.status(500).json({ error: error.message || 'Failed to start Stripe onboarding' });
     }
 });
 /**
@@ -123,14 +138,22 @@ router.get('/stripe/connect/status', authenticate, async (req, res) => {
         if (!advisor?.stripeAccountId) {
             return res.json({
                 connected: false,
-                detailsSubmitted: false,
+                stripeOnboardingComplete: false,
+                stripeDetailsSubmitted: false,
                 chargesEnabled: false,
-                payoutsEnabled: false
+                payoutsEnabled: false,
+                requirements: []
             });
         }
         const status = await StripeService.getAccountStatus(advisor.stripeAccountId);
         res.json({
             connected: true,
+            stripeOnboardingComplete: status.detailsSubmitted && status.chargesEnabled,
+            stripeDetailsSubmitted: status.detailsSubmitted,
+            chargesEnabled: status.chargesEnabled,
+            payoutsEnabled: status.payoutsEnabled,
+            verificationStatus: advisor.verificationStatus,
+            isVerified: advisor.isVerified,
             ...status
         });
     }

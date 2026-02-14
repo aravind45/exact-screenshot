@@ -59,6 +59,26 @@ const deadlineSchema = z.object({
     category: z.string().optional()
 });
 const router = Router();
+// List all estates for the current user
+router.get("/", async (req, res) => {
+    try {
+        const estates = await prisma.estate.findMany({
+            where: {
+                OR: [
+                    { userId: req.user.id },
+                    { grants: { some: { userId: req.user.id } } }
+                ]
+            },
+            include: { user: true },
+            orderBy: { createdAt: 'desc' }
+        });
+        res.json(estates);
+    }
+    catch (error) {
+        logger.error("Error fetching estates:", error.message);
+        res.status(500).json({ error: "Failed to fetch estates" });
+    }
+});
 router.get("/my", async (req, res) => {
     try {
         const estate = await prisma.estate.findFirst({

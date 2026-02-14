@@ -107,7 +107,7 @@ router.post('/stripe/connect/onboard', authenticate, async (req: any, res) => {
         logger.info(`💳 Starting Stripe onboarding for user ${userId}`);
 
         // Get or create advisor profile
-        let advisor = await AdvisorService.getAdvisorProfile(userId);
+        let advisor: any = await AdvisorService.getAdvisorProfile(userId);
 
         if (!advisor) {
             logger.info(`✨ Creating initial advisor profile for user ${userId}`);

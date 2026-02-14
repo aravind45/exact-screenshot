@@ -28,6 +28,7 @@ import helpRoutes from "./routes/helpRoutes.js";
 import billingRoutes from "./routes/billingRoutes.js";
 import marketingRoutes from "./routes/marketingRoutes.js";
 import advisorRoutes from "./routes/advisorRoutes.js";
+import bookingRoutes from "./routes/bookingRoutes.js";
 const isServerless = process.env.VERCEL === '1' || process.env.NETLIFY === 'true' || !!process.env.AWS_EXECUTION_ENV || !!process.env.FUNCTION_NAME;
 const app = express();
 const port = Number(process.env.PORT) || 3000;
@@ -63,6 +64,7 @@ app.use((req, res, next) => {
 const allowedOrigins = [
     process.env.APP_URL,
     'http://localhost:5173',
+    'http://localhost:8080',
     'http://localhost:3000',
     'https://www.expectedestate.com',
     'https://expected-estate.vercel.app'
@@ -140,6 +142,7 @@ app.use("/api/help", authenticate, helpRoutes);
 app.use("/api/billing", authenticate, billingRoutes);
 app.use("/api/marketing", marketingRoutes);
 app.use("/api/advisors", advisorRoutes);
+app.use("/api/bookings", authenticate, bookingRoutes);
 app.use("/api/webhooks", webhookRoutes); // Auth handled via Mailgun signatures
 // Profile (simple, keep here or move if grows)
 app.get("/api/auth/me", authenticate, (req, res) => {
