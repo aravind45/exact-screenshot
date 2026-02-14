@@ -102,7 +102,7 @@ export function Sidebar() {
                         { label: "Advisor Dashboard", icon: LayoutDashboard, path: "/advisor/dashboard" },
                         { label: "Payout Settings", icon: CreditCard, path: "/advisor/payouts" }
                     ]
-                    : [{ label: "Become an Advisor", icon: Zap, path: "/advisor/onboarding" }]
+                    : []
                 ),
             ]
         },
