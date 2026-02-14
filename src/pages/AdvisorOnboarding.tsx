@@ -28,7 +28,7 @@ import { cn } from "@/lib/utils";
 
 export default function AdvisorOnboarding() {
     const navigate = useNavigate();
-    const { user } = useAuth();
+    const { user, refreshUser } = useAuth();
     const queryClient = useQueryClient();
     const [stripeLoading, setStripeLoading] = useState(false);
 
@@ -65,7 +65,8 @@ export default function AdvisorOnboarding() {
     // Mutations
     const profileMutation = useMutation({
         mutationFn: (data: any) => api.advisors.updateProfile(data),
-        onSuccess: () => {
+        onSuccess: async () => {
+            await refreshUser();
             queryClient.invalidateQueries({ queryKey: ['advisor-profile'] });
             toast.success("Profile updated successfully!");
         },

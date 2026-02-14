@@ -26,7 +26,7 @@ export class AdvisorService {
             profileImage: data.profileImage,
         };
 
-        const profile = await prisma.advisorProfile.upsert({
+        const profile = await (prisma.advisorProfile as any).upsert({
             where: { userId },
             update: {
                 ...sanitizedData,
@@ -42,6 +42,12 @@ export class AdvisorService {
                 profileImage: data.profileImage,
                 verificationStatus: 'PENDING',
             }
+        });
+
+        // Ensure user role is updated to ADVISOR
+        await prisma.user.update({
+            where: { id: userId },
+            data: { role: 'ADVISOR' }
         });
 
         return profile;

@@ -102,8 +102,15 @@ export default function Dashboard() {
 
   // Automatically redirect to onboarding if estate profile is incomplete or track is unset
   useEffect(() => {
-    // Advisors and Admins should not be redirected to executor onboarding
-    if (user?.role === 'ADVISOR' || user?.role === 'ADMIN') return;
+    // Advisors and Admins should land on their own dashboards
+    if (user?.role === 'ADVISOR') {
+      navigate('/advisor/dashboard');
+      return;
+    }
+    if (user?.role === 'ADMIN') {
+      navigate('/admin');
+      return;
+    }
 
     if (estate && !isProfileComplete(estate)) {
       console.log("Estate profile incomplete, redirecting to onboarding...");
