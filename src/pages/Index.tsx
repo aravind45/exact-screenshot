@@ -4,7 +4,7 @@ import { HeroSection } from "@/components/landing/HeroSection";
 import { AboutSection } from "@/components/landing/AboutSection";
 import { ServicesSection } from "@/components/landing/ServicesSection";
 import { SEO } from "@/components/SEO";
-import { Check } from "lucide-react";
+import { Check, ArrowRight, CheckCircle2, Shield, Zap, Globe, Clock, ShieldCheck, HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -152,23 +152,27 @@ const Index = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {[
-                { title: "Probate Process", path: "/probate-process", desc: "Detailed timeline from filing to final distribution." },
-                { title: "Executor Checklist", path: "/executor-checklist", desc: "Critical steps for the first 48 hours and beyond." },
-                { title: "Small Estates", path: "/small-estate-affidavit-guide", desc: "How to bypass court for smaller estate values." },
-                { title: "Texas Probate", path: "/probate-texas", desc: "Lone Star specific independent administration rules." },
-                { title: "After Death", path: "/what-to-do-after-death", desc: "Immediate logistical and emotional support steps." }
-              ].map((item, i) => (
-                <Link
-                  key={i}
-                  to={item.path}
-                  className="group p-8 bg-white border border-slate-100 rounded-[2rem] hover:border-primary/30 hover:shadow-xl transition-all"
-                >
-                  <h3 className="text-xl font-bold mb-3 group-hover:text-primary transition-colors">{item.title}</h3>
-                  <p className="text-sm text-slate-500 font-medium mb-6 leading-relaxed">{item.desc}</p>
-                  <div className="text-xs font-black uppercase tracking-widest text-primary/40 group-hover:text-primary transition-colors">Read Guide →</div>
+                { title: "The Probate Process", path: "/probate-process", desc: "A 7-step guide to formal court proceedings." },
+                { title: "Executor Checklist", path: "/executor-checklist", desc: "The ultimate workflow for estate executors." },
+                { title: "Small Estate Affidavit", path: "/small-estate-affidavit", desc: "Skip probate for smaller estates." },
+                { title: "What to Do After Death", path: "/what-to-do-when-someone-dies", desc: "Immediate steps to take in the first 72 hours." },
+                { title: "Probate Costs", path: "/probate-cost", desc: "A breakdown of attorney and court fees." },
+                { title: "Died Without a Will", path: "/intestate-without-will", desc: "How intestacy laws divide assets." },
+                { title: "Transfer Car Title", path: "/transfer-car-title-after-death", desc: "How to handle vehicle title transfers." },
+                { title: "Life Insurance Claims", path: "/life-insurance-claim-process", desc: "Filing for non-probate benefits." },
+                { title: "State Guide: Texas", path: "/probate-texas", desc: "Local rules for the Lone Star State." },
+                { title: "State Guide: California", path: "/probate-california", desc: "Navigating CA statutory fees." },
+                { title: "State Guide: Florida", path: "/probate-florida", desc: "Homestead laws and summary admin." },
+                { title: "Settlement Workflow", path: "/estate-settlement-checklist", desc: "The complete master bridge checklist." }
+              ].map((resource, i) => (
+                <Link key={i} to={resource.path} className="p-6 rounded-3xl bg-secondary/30 border border-secondary/50 hover:border-primary/50 transition-all group">
+                  <h3 className="text-xl font-black mb-2 group-hover:text-primary transition-colors">{resource.title}</h3>
+                  <p className="text-slate-400 font-medium mb-4">{resource.desc}</p>
+                  <span className="text-primary font-black text-sm uppercase tracking-tighter flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                    Read Guide <ArrowRight className="w-4 h-4" />
+                  </span>
                 </Link>
-              ))}
-              <div className="p-8 bg-primary rounded-[2rem] text-white flex flex-col justify-center">
+              ))}  <div className="p-8 bg-primary rounded-[2rem] text-white flex flex-col justify-center">
                 <h3 className="text-xl font-bold mb-2 text-white">Need a human?</h3>
                 <p className="text-sm text-primary-foreground/90 mb-6 font-medium leading-relaxed">Consult with our verified estate advisors for 1-on-1 guidance.</p>
                 <Button className="w-full bg-white text-primary hover:bg-slate-100 font-black rounded-xl" onClick={() => navigate("/marketplace")}>Find an Advisor</Button>

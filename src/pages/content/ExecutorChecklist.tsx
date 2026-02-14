@@ -140,7 +140,7 @@ export default function ExecutorChecklist() {
                         <h4 className="font-bold mb-1">Probate Process Guide</h4>
                         <p className="text-xs text-slate-500">The full legal timeline from A to Z.</p>
                     </a>
-                    <a href="/what-to-do-after-death" className="p-4 rounded-xl border border-slate-200 hover:border-primary transition-all">
+                    <a href="/what-to-do-when-someone-dies" className="p-4 rounded-xl border border-slate-200 hover:border-primary transition-all">
                         <h4 className="font-bold mb-1">What to Do After Death</h4>
                         <p className="text-xs text-slate-500">Immediate emotional and logistical steps.</p>
                     </a>
@@ -148,7 +148,7 @@ export default function ExecutorChecklist() {
                         <h4 className="font-bold mb-1">Texas Probate Secrets</h4>
                         <p className="text-xs text-slate-500">Specific rules for Texas estate settlement.</p>
                     </a>
-                    <a href="/small-estate-affidavit-guide" className="p-4 rounded-xl border border-slate-200 hover:border-primary transition-all">
+                    <a href="/small-estate-affidavit" className="p-4 rounded-xl border border-slate-200 hover:border-primary transition-all">
                         <h4 className="font-bold mb-1">Small Estate Affidavit</h4>
                         <p className="text-xs text-slate-500">How to bypass court for smaller estates.</p>
                     </a>

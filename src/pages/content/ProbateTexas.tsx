@@ -127,7 +127,7 @@ export default function ProbateTexas() {
                     </div>
                     <div>
                         <strong>What is the "Small Estate" limit in Texas?</strong>
-                        <p>For a Small Estate Affidavit, the limit is $75,000 in assets, excluding the homestead and certain exempt property (like furniture and a vehicle). For more details, see our <a href="/small-estate-affidavit-guide">Small Estate Affidavit Guide</a>.</p>
+                        <p>For a Small Estate Affidavit, the limit is $75,000 in assets, excluding the homestead and certain exempt property (like furniture and a vehicle). For more details, see our <a href="/small-estate-affidavit">Small Estate Affidavit Guide</a>.</p>
                     </div>
                     <div>
                         <strong>Do I have to live in Texas to be an executor?</strong>

@@ -11,6 +11,7 @@ import { RoleRoute } from "@/components/RoleRoute";
 import { ProfileGuard } from "@/components/ProfileGuard";
 import { SubscriptionGuard } from "@/components/SubscriptionGuard";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import React, { Suspense, lazy } from "react";
 import { HelmetProvider } from "react-helmet-async";
 import AdvisorLayout from '@/components/AdvisorLayout';
 
@@ -97,11 +98,18 @@ import { LegalDisclaimer } from "@/components/LegalDisclaimer";
 import ProbateGuide from "./pages/guides/ProbateGuide";
 
 // SEO Pillar Pages
-import ProbateProcess from "./pages/content/ProbateProcess";
-import ExecutorChecklist from "./pages/content/ExecutorChecklist";
-import SmallEstateAffidavitGuide from "./pages/content/SmallEstateAffidavitGuide";
-import ProbateTexas from "./pages/content/ProbateTexas";
-import WhatToDoAfterDeath from "./pages/content/WhatToDoAfterDeath";
+const ProbateProcess = lazy(() => import("./pages/content/ProbateProcess"));
+const ExecutorChecklist = lazy(() => import("./pages/content/ExecutorChecklist"));
+const SmallEstateAffidavitPage = lazy(() => import("./pages/content/SmallEstateAffidavit"));
+const ProbateTexas = lazy(() => import("./pages/content/ProbateTexas"));
+const WhatToDoWhenSomeoneDies = lazy(() => import("./pages/content/WhatToDoWhenSomeoneDies"));
+const ProbateCalifornia = lazy(() => import("./pages/content/ProbateCalifornia"));
+const ProbateFlorida = lazy(() => import("./pages/content/ProbateFlorida"));
+const TransferCarTitle = lazy(() => import("./pages/content/TransferCarTitle"));
+const LifeInsuranceClaim = lazy(() => import("./pages/content/LifeInsuranceClaim"));
+const IntestateWithoutWill = lazy(() => import("./pages/content/IntestateWithoutWill"));
+const ProbateCost = lazy(() => import("./pages/content/ProbateCost"));
+const EstateSettlementChecklist = lazy(() => import("./pages/content/EstateSettlementChecklist"));
 
 const queryClient = new QueryClient();
 
@@ -129,9 +137,16 @@ const App = () => (
                     {/* SEO Pillar Pages */}
                     <Route path="/probate-process" element={<ProbateProcess />} />
                     <Route path="/executor-checklist" element={<ExecutorChecklist />} />
-                    <Route path="/small-estate-affidavit-guide" element={<SmallEstateAffidavitGuide />} />
+                    <Route path="/small-estate-affidavit" element={<SmallEstateAffidavitPage />} />
                     <Route path="/probate-texas" element={<ProbateTexas />} />
-                    <Route path="/what-to-do-after-death" element={<WhatToDoAfterDeath />} />
+                    <Route path="/what-to-do-when-someone-dies" element={<WhatToDoWhenSomeoneDies />} />
+                    <Route path="/probate-california" element={<ProbateCalifornia />} />
+                    <Route path="/probate-florida" element={<ProbateFlorida />} />
+                    <Route path="/transfer-car-title-after-death" element={<TransferCarTitle />} />
+                    <Route path="/life-insurance-claim-process" element={<LifeInsuranceClaim />} />
+                    <Route path="/intestate-without-will" element={<IntestateWithoutWill />} />
+                    <Route path="/probate-cost" element={<ProbateCost />} />
+                    <Route path="/estate-settlement-checklist" element={<EstateSettlementChecklist />} />
 
                     {/* Executor / User Routes */}
                     <Route
