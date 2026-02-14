@@ -362,22 +362,29 @@ export class StripeService {
         const user = await prisma.user.findUnique({ where: { id: userId } });
         if (!user) throw new Error('User not found');
 
-        const account = await this.stripe.accounts.create({
-            type: 'express',
-            email: user.email,
-            capabilities: {
-                card_payments: { requested: true },
-                transfers: { requested: true },
-            },
-            metadata: { userId },
-        });
+        try {
+            const account = await this.stripe.accounts.create({
+                type: 'express',
+                email: user.email,
+                capabilities: {
+                    card_payments: { requested: true },
+                    transfers: { requested: true },
+                },
+                metadata: { userId },
+            });
 
-        await prisma.advisorProfile.update({
-            where: { userId },
-            data: { stripeAccountId: account.id },
-        });
+            await prisma.advisorProfile.update({
+                where: { userId },
+                data: { stripeAccountId: account.id },
+            });
 
-        return account;
+            return account;
+        } catch (error: any) {
+            if (error.message?.includes('permission') || error.type?.includes('StripePermissionError')) {
+                logger.error(`🚨 Stripe Permission Error: Your API key lacks the required permissions for Connect operations. Please ensure 'Accounts' and 'Connected accounts' write permissions are granted to your Restricted Key in the Stripe Dashboard.`);
+            }
+            throw error;
+        }
     }
 
     /**
