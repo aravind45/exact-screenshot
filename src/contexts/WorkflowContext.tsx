@@ -53,37 +53,40 @@ export function WorkflowProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const [currentPhase, setCurrentPhase] = useState<SettlementPhase>('immediate_actions');
 
+  // Only fetch executor-specific data for executors, not advisors
+  const isExecutor = user && user.role !== 'ADVISOR' && user.userType !== 'ADVISOR';
+
   const { data: estate } = useQuery({
     queryKey: ['estate'],
     queryFn: api.getMyEstate,
-    enabled: !!user
+    enabled: !!isExecutor
   });
 
   const { data: assetsData } = useQuery({
     queryKey: ['assets'],
     queryFn: api.getAssets,
-    enabled: !!user
+    enabled: !!isExecutor
   });
   const assets = Array.isArray(assetsData) ? assetsData : [];
 
   const { data: liabilitiesData } = useQuery({
     queryKey: ['liabilities'],
     queryFn: api.getLiabilities,
-    enabled: !!user
+    enabled: !!isExecutor
   });
   const liabilities = Array.isArray(liabilitiesData) ? liabilitiesData : [];
 
   const { data: documentsData } = useQuery({
     queryKey: ['estate', 'documents'],
     queryFn: api.getEstateDocuments,
-    enabled: !!user && !!estate
+    enabled: !!isExecutor && !!estate
   });
   const documents = Array.isArray(documentsData) ? documentsData : [];
 
   const { data: stateConfig } = useQuery({
     queryKey: ['liabilities', 'priority-options'],
     queryFn: api.getPriorityOptions,
-    enabled: !!user
+    enabled: !!isExecutor
   });
 
   // Calculate asset distribution by phase
