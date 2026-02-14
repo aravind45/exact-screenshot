@@ -14,6 +14,7 @@ model User {
   fullName                String?                   @map("full_name")
   passwordHash            String?                   @map("password_hash")
   role                    String?
+  userType                String                    @default("EXECUTOR") @map("user_type") // EXECUTOR or ADVISOR
   state                   String?
   personalEmail           String?                   @map("personal_email")
   resetPasswordToken      String?                   @map("reset_password_token")

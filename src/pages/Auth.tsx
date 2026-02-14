@@ -1,29 +1,43 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { api } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Landmark, ArrowRight, Loader2, ShieldCheck, Clock, FileCheck, ChevronLeft } from 'lucide-react';
+import { Landmark, ArrowRight, Loader2, ShieldCheck, Clock, FileCheck, ChevronLeft, Briefcase, User } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from '@/hooks/use-toast';
 import { z } from 'zod';
-import { useSearchParams } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useTracking } from '@/hooks/useTracking';
-import { useEffect } from 'react';
 
 // Validation schemas
 const emailSchema = z.string().trim().email('Please enter a valid email address');
 const passwordSchema = z.string().min(8, 'Password must be at least 8 characters');
 const nameSchema = z.string().trim().min(1, 'Name is required').max(100, 'Name is too long');
 
+type UserType = 'EXECUTOR' | 'ADVISOR';
+
 export default function Auth() {
   const [searchParams] = useSearchParams();
   const buyMode = searchParams.get('mode') === 'buy';
   const signupMode = searchParams.get('mode') === 'signup';
+  const initialRole = searchParams.get('role');
+
   const [authMode, setAuthMode] = useState<'login' | 'signup' | 'forgot-password'>(signupMode ? 'signup' : 'login');
+  const [userType, setUserType] = useState<UserType | null>(initialRole === 'ADVISOR' ? 'ADVISOR' : null);
+  const [step, setStep] = useState<'type-selection' | 'form'>('form');
+
+  // If signing up and no user type selected yet, show selection screen
+  useEffect(() => {
+    if (authMode === 'signup' && !userType && !initialRole) {
+      setStep('type-selection');
+    } else {
+      setStep('form');
+    }
+  }, [authMode, userType, initialRole]);
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
@@ -38,14 +52,13 @@ export default function Auth() {
   useEffect(() => {
     trackEvent('intake_started');
 
-    // Check for pre-filled data from discovery quiz
+    // Check for pre-filled data
     try {
       const saved = sessionStorage.getItem("discovery_data");
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed.deceasedName) {
-          // You might not want to pre-fill name if it was deceased name, 
-          // but we can at least log or handle it.
+        if (parsed.role === 'ADVISOR') {
+          setUserType('ADVISOR');
         }
       }
     } catch (e) {
@@ -114,44 +127,23 @@ export default function Auth() {
             navigate(redirect);
           } else {
             // Role-based redirection
-            let redirectPath = '/dashboard';
-            if (authedUser?.role === 'ADVISOR') {
-              redirectPath = '/advisor/dashboard';
+            if (authedUser?.role === 'ADVISOR' || authedUser?.userType === 'ADVISOR') {
+              navigate('/advisor/dashboard');
             } else if (authedUser?.role === 'ADMIN') {
-              redirectPath = '/admin';
+              navigate('/admin');
+            } else {
+              navigate(buyMode ? '/pricing?mode=buy' : '/dashboard');
             }
-
-            navigate(buyMode ? '/pricing?mode=buy' : redirectPath);
           }
         }
       } else if (authMode === 'signup') {
-        // Check for role intention
-        const searchParams = new URLSearchParams(window.location.search);
-        let role = searchParams.get('role');
+        // Use selected user type or default to EXECUTOR
+        const selectedType = userType || 'EXECUTOR';
 
-        if (!role) {
-          try {
-            const discoveryData = sessionStorage.getItem("discovery_data");
-            if (discoveryData) {
-              const parsed = JSON.parse(discoveryData);
-              if (parsed.role === 'ADVISOR') role = 'ADVISOR';
-            }
-          } catch (e) {
-            console.warn("Error parsing discovery data", e);
-          }
+        const { user: newUser, error } = await signUp(email, password, fullName, selectedType === 'ADVISOR' ? 'ADVISOR' : undefined, selectedType);
 
-          // Infer from redirect intent
-          if (!role) {
-            const redirectPath = sessionStorage.getItem("after_login_redirect");
-            if (redirectPath && (redirectPath.includes('/advisor/') || redirectPath.includes('role=ADVISOR'))) {
-              role = 'ADVISOR';
-            }
-          }
-        }
-
-        const { user: newUser, error } = await signUp(email, password, fullName, role?.toUpperCase());
         if (error) {
-          if (error.message.includes('User already registered')) {
+          if (error.message.includes('User already registered') || error.message.includes('Email already registered')) {
             toast({
               title: 'Account exists',
               description: 'This email is already registered. Please sign in instead.',
@@ -167,15 +159,16 @@ export default function Auth() {
         } else {
           toast({
             title: 'Account created!',
-            description: 'Welcome to ExpectedEstate. Let\'s get started.',
+            description: 'Welcome to ExpectedEstate.',
           });
-          const redirect = sessionStorage.getItem("after_login_redirect");
-          if (redirect) {
-            sessionStorage.removeItem("after_login_redirect");
-            navigate(redirect);
+
+          if (newUser?.userType === 'ADVISOR' || newUser?.role === 'ADVISOR') {
+            navigate('/advisor/onboarding');
           } else {
-            if (newUser?.role === 'ADVISOR') {
-              navigate('/advisor/dashboard');
+            const redirect = sessionStorage.getItem("after_login_redirect");
+            if (redirect) {
+              sessionStorage.removeItem("after_login_redirect");
+              navigate(redirect);
             } else {
               navigate(buyMode ? '/pricing?mode=buy' : '/onboarding');
             }
@@ -299,21 +292,26 @@ export default function Auth() {
 
               <AnimatePresence mode="wait">
                 <motion.div
-                  key={authMode}
+                  key={authMode + step}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.2 }}
                 >
                   <h1 className="text-4xl font-['Outfit'] font-black text-slate-900 mb-3 tracking-tight">
-                    {authMode === 'login' ? 'Welcome Back' : authMode === 'signup' ? 'Create Account' : 'Reset Password'}
+                    {step === 'type-selection' ? 'Choose Account Type' :
+                      authMode === 'login' ? 'Welcome Back' :
+                        authMode === 'signup' ? (userType === 'ADVISOR' ? 'Advisor Registration' : 'Executor Registration') :
+                          'Reset Password'}
                   </h1>
                   <p className="text-slate-500 font-medium">
-                    {authMode === 'login'
-                      ? 'Select your access method below to continue.'
-                      : authMode === 'signup'
-                        ? 'Join our platform for structured estate settlement.'
-                        : 'Enter your email to receive a secure reset link.'}
+                    {step === 'type-selection'
+                      ? 'Select how you will be using ExpectedEstate.'
+                      : authMode === 'login'
+                        ? 'Select your access method below to continue.'
+                        : authMode === 'signup'
+                          ? `Create your ${userType?.toLowerCase() || 'account'} profile to get started.`
+                          : 'Enter your email to receive a secure reset link.'}
                   </p>
                 </motion.div>
               </AnimatePresence>
@@ -325,122 +323,174 @@ export default function Auth() {
               transition={{ delay: 0.1 }}
               className="bg-white"
             >
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid gap-5">
-                  {authMode === 'signup' && (
+              {step === 'type-selection' ? (
+                <div className="space-y-4">
+                  <button
+                    onClick={() => { setUserType('EXECUTOR'); setStep('form'); }}
+                    className="w-full p-6 rounded-2xl border-2 border-slate-100 hover:border-primary hover:bg-primary/5 transition-all text-left group"
+                  >
+                    <div className="flex items-center gap-4 mb-2">
+                      <div className="p-3 rounded-xl bg-blue-100 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                        <User className="w-6 h-6" />
+                      </div>
+                      <h3 className="font-['Outfit'] font-bold text-lg text-slate-900">I am an Executor</h3>
+                    </div>
+                    <p className="text-slate-500 text-sm ml-[60px]">
+                      I need to settle an estate, manage assets, and distribute inheritance.
+                    </p>
+                  </button>
+
+                  <button
+                    onClick={() => { setUserType('ADVISOR'); setStep('form'); }}
+                    className="w-full p-6 rounded-2xl border-2 border-slate-100 hover:border-primary hover:bg-primary/5 transition-all text-left group"
+                  >
+                    <div className="flex items-center gap-4 mb-2">
+                      <div className="p-3 rounded-xl bg-purple-100 text-purple-600 group-hover:bg-purple-600 group-hover:text-white transition-colors">
+                        <Briefcase className="w-6 h-6" />
+                      </div>
+                      <h3 className="font-['Outfit'] font-bold text-lg text-slate-900">I am an Advisor</h3>
+                    </div>
+                    <p className="text-slate-500 text-sm ml-[60px]">
+                      I'm a professional offering services to estates (Attorney, CPA, Realtor).
+                    </p>
+                  </button>
+
+                  <div className="mt-6 text-center">
+                    <p className="text-sm font-medium text-slate-500">
+                      Already have an account?{' '}
+                      <button
+                        onClick={() => {
+                          setAuthMode('login');
+                          setStep('form');
+                        }}
+                        className="font-black text-primary hover:text-blue-700 transition-colors underline decoration-2 underline-offset-4 decoration-primary/20 hover:decoration-primary"
+                      >
+                        Sign in here
+                      </button>
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  <div className="grid gap-5">
+                    {authMode === 'signup' && (
+                      <div className="space-y-2">
+                        <Label htmlFor="fullName" className="text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Full Name</Label>
+                        <Input
+                          id="fullName"
+                          type="text"
+                          placeholder="John Doe"
+                          value={fullName}
+                          onChange={(e) => setFullName(e.target.value)}
+                          className={cn(
+                            "h-14 rounded-2xl border-slate-200 focus:ring-primary focus:border-primary px-6 transition-all",
+                            errors.name && "border-destructive focus:ring-destructive"
+                          )}
+                        />
+                        {errors.name && (
+                          <p className="text-xs font-bold text-destructive mt-1 ml-1 leading-none">{errors.name}</p>
+                        )}
+                      </div>
+                    )}
+
                     <div className="space-y-2">
-                      <Label htmlFor="fullName" className="text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Full Name</Label>
+                      <Label htmlFor="email" className="text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Email Address</Label>
                       <Input
-                        id="fullName"
-                        type="text"
-                        placeholder="John Doe"
-                        value={fullName}
-                        onChange={(e) => setFullName(e.target.value)}
+                        id="email"
+                        type="email"
+                        placeholder="you@example.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
                         className={cn(
                           "h-14 rounded-2xl border-slate-200 focus:ring-primary focus:border-primary px-6 transition-all",
-                          errors.name && "border-destructive focus:ring-destructive"
+                          errors.email && "border-destructive focus:ring-destructive"
                         )}
                       />
-                      {errors.name && (
-                        <p className="text-xs font-bold text-destructive mt-1 ml-1 leading-none">{errors.name}</p>
+                      {errors.email && (
+                        <p className="text-xs font-bold text-destructive mt-1 ml-1 leading-none">{errors.email}</p>
                       )}
                     </div>
-                  )}
 
-                  <div className="space-y-2">
-                    <Label htmlFor="email" className="text-xs font-black uppercase tracking-widest text-slate-500 ml-1">Email Address</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="you@example.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className={cn(
-                        "h-14 rounded-2xl border-slate-200 focus:ring-primary focus:border-primary px-6 transition-all",
-                        errors.email && "border-destructive focus:ring-destructive"
-                      )}
-                    />
-                    {errors.email && (
-                      <p className="text-xs font-bold text-destructive mt-1 ml-1 leading-none">{errors.email}</p>
+                    {authMode !== 'forgot-password' && (
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between ml-1">
+                          <Label htmlFor="password" className="text-xs font-black uppercase tracking-widest text-slate-500">Password</Label>
+                          {authMode === 'login' && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setAuthMode('forgot-password');
+                                setErrors({});
+                              }}
+                              className="text-[11px] font-black uppercase tracking-widest text-primary hover:text-blue-700 transition-colors"
+                            >
+                              Forgot?
+                            </button>
+                          )}
+                        </div>
+                        <Input
+                          id="password"
+                          type="password"
+                          placeholder="••••••••"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          className={cn(
+                            "h-14 rounded-2xl border-slate-200 focus:ring-primary focus:border-primary px-6 transition-all",
+                            errors.password && "border-destructive focus:ring-destructive"
+                          )}
+                        />
+                        {errors.password && (
+                          <p className="text-xs font-bold text-destructive mt-1 ml-1 leading-none">{errors.password}</p>
+                        )}
+                      </div>
                     )}
                   </div>
 
-                  {authMode !== 'forgot-password' && (
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between ml-1">
-                        <Label htmlFor="password" className="text-xs font-black uppercase tracking-widest text-slate-500">Password</Label>
-                        {authMode === 'login' && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setAuthMode('forgot-password');
-                              setErrors({});
-                            }}
-                            className="text-[11px] font-black uppercase tracking-widest text-primary hover:text-blue-700 transition-colors"
-                          >
-                            Forgot?
-                          </button>
-                        )}
-                      </div>
-                      <Input
-                        id="password"
-                        type="password"
-                        placeholder="••••••••"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        className={cn(
-                          "h-14 rounded-2xl border-slate-200 focus:ring-primary focus:border-primary px-6 transition-all",
-                          errors.password && "border-destructive focus:ring-destructive"
-                        )}
-                      />
-                      {errors.password && (
-                        <p className="text-xs font-bold text-destructive mt-1 ml-1 leading-none">{errors.password}</p>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                <Button
-                  type="submit"
-                  className="w-full h-14 rounded-[2rem] bg-primary hover:bg-primary/90 text-white font-black text-lg shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                  ) : (
-                    <>
-                      {authMode === 'login' ? 'Sign In to Estate' : authMode === 'signup' ? 'Create My Account' : 'Send Reset Link'}
-                      <ArrowRight className="w-5 h-5 ml-2" />
-                    </>
-                  )}
-                </Button>
-              </form>
-
-              <div className="mt-10 text-center">
-                <p className="text-sm font-medium text-slate-500">
-                  {authMode === 'login' ? "New to the platform?" : authMode === 'signup' ? 'Already using ExpectedEstate?' : 'Remember your password?'}
-                  {' '}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const params = new URLSearchParams(window.location.search);
-                      if (authMode === 'forgot-password') {
-                        setAuthMode('login');
-                      } else {
-                        setAuthMode(authMode === 'login' ? 'signup' : 'login');
-                      }
-                      navigate({
-                        pathname: '/auth',
-                        search: params.toString()
-                      }, { replace: true });
-                      setErrors({});
-                    }}
-                    className="font-black text-primary hover:text-blue-700 transition-colors underline decoration-2 underline-offset-4 decoration-primary/20 hover:decoration-primary"
+                  <Button
+                    type="submit"
+                    className="w-full h-14 rounded-[2rem] bg-primary hover:bg-primary/90 text-white font-black text-lg shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                    disabled={loading}
                   >
-                    {authMode === 'login' ? 'Register Now' : 'Sign in here'}
-                  </button>
-                </p>
-              </div>
+                    {loading ? (
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                    ) : (
+                      <>
+                        {authMode === 'login' ? 'Sign In' : authMode === 'signup' ? 'Create Account' : 'Send Reset Link'}
+                        <ArrowRight className="w-5 h-5 ml-2" />
+                      </>
+                    )}
+                  </Button>
+
+                  <div className="mt-10 text-center">
+                    <p className="text-sm font-medium text-slate-500">
+                      {authMode === 'login' ? "New to the platform?" : authMode === 'signup' ? 'Already using ExpectedEstate?' : 'Remember your password?'}
+                      {' '}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (authMode === 'forgot-password') {
+                            setAuthMode('login');
+                            setStep('form');
+                          } else {
+                            if (authMode === 'login') {
+                              setAuthMode('signup');
+                              setStep('type-selection');
+                              setUserType(null);
+                            } else {
+                              setAuthMode('login');
+                              setStep('form');
+                            }
+                          }
+                          setErrors({});
+                        }}
+                        className="font-black text-primary hover:text-blue-700 transition-colors underline decoration-2 underline-offset-4 decoration-primary/20 hover:decoration-primary"
+                      >
+                        {authMode === 'login' ? 'Register Now' : 'Sign in here'}
+                      </button>
+                    </p>
+                  </div>
+                </form>
+              )}
             </motion.div>
 
             <div className="mt-12 pt-8 border-t border-slate-100">

@@ -11,40 +11,52 @@ import { RoleRoute } from "@/components/RoleRoute";
 import { ProfileGuard } from "@/components/ProfileGuard";
 import { SubscriptionGuard } from "@/components/SubscriptionGuard";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { HelmetProvider } from "react-helmet-async";
+import Layout from '@/components/Layout';
+import AdvisorLayout from '@/components/AdvisorLayout';
+import AdminLayout from '@/pages/admin/AdminLayout';
 
 // Pages
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import ResetPassword from "./pages/ResetPassword";
+import Pricing from "./pages/Pricing";
 import Dashboard from "./pages/Dashboard";
+import OnboardingWizard from "./pages/OnboardingWizard";
+
+// Assets & Documents
+import Assets from "./pages/Assets";
 import AssetDetail from "./pages/AssetDetail";
 import AddAsset from "./pages/AddAsset";
 import UploadDocument from "./pages/UploadDocument";
-import ProfileSettings from "./pages/ProfileSettings";
-import AdminDashboard from "./pages/AdminDashboard";
-import AdminInstitutions from "./pages/admin/AdminInstitutions";
 import Documents from "./pages/Documents";
-import NotFound from "./pages/NotFound";
-import PetitionWizard from "./pages/probate/PetitionWizard";
-import Inbox from "./pages/Inbox";
-import FollowUps from "./pages/FollowUps";
-import OnboardingWizard from "./pages/OnboardingWizard";
-import Assets from "./pages/Assets";
+
+// Estate Management
+// import EstateOverview from "./pages/EstateOverview";
 import SettlementRoadmap from "./pages/SettlementRoadmap";
 import SettlementRoadmapNew from "./pages/SettlementRoadmapNew";
+import SettlementTrail from "./pages/SettlementTrail";
+import Inbox from "./pages/Inbox";
+import FollowUps from "./pages/FollowUps";
+// import Communications from "./pages/Communications";
+// import Collaboration from "./pages/Collaboration";
+// import Heirs from "./pages/Heirs";
+import Forms from "./pages/Forms";
+import HelpCenter from "./pages/HelpCenter";
+// import Feed from "./pages/Feed";
+
+// Profile & Settings
+import ProfileSettings from "./pages/ProfileSettings";
 import Settings from "./pages/Settings";
+
+// Probate Toolset
+import PetitionWizard from "./pages/probate/PetitionWizard";
 import ProbatePetition from "./pages/ProbatePetition";
 import InventoryAppraisal from "./pages/probate/InventoryAppraisal";
 import Notices from "./pages/probate/Notices";
-import Discovery from "./pages/Discovery";
-import Liabilities from "./pages/Liabilities";
-import Accounting from "./pages/Accounting";
-import TaxManagement from "./pages/TaxManagement";
 import InventoryGenerator from "./pages/InventoryGenerator";
-import Distribution from "./pages/Distribution";
-import Receipts from "./pages/Receipts";
 import ClosingStatement from "./pages/ClosingStatement";
 import DistributionPetition from "./pages/DistributionPetition";
-import NonProbate from "./pages/NonProbate";
 import SpousalPropertyPetition from "./pages/SpousalPropertyPetition";
 import SuccessionPetition from "./pages/SuccessionPetition";
 import GuardianAdLitem from "./pages/GuardianAdLitem";
@@ -54,27 +66,37 @@ import ContestedProbate from "./pages/ContestedProbate";
 import AssetSaleAuthorization from "./pages/AssetSaleAuthorization";
 import FinalDistribution from "./pages/FinalDistribution";
 import SmallEstateAffidavit from "./pages/SmallEstateAffidavit";
-import HelpCenter from "./pages/HelpCenter";
-import SettlementTrail from "./pages/SettlementTrail";
 import Letters from "./pages/probate/Letters";
-import Forms from "./pages/Forms";
-import { HelmetProvider } from "react-helmet-async";
-import { EstateAgentChatWrapper } from "@/components/EstateAgentChatWrapper";
-import { LegalDisclaimer } from "@/components/LegalDisclaimer";
-import ProbateGuide from "./pages/guides/ProbateGuide";
-import ResetPassword from "./pages/ResetPassword";
-import Pricing from "./pages/Pricing";
+import Discovery from "./pages/Discovery";
+import Liabilities from "./pages/Liabilities";
+import Accounting from "./pages/Accounting";
+import TaxManagement from "./pages/TaxManagement";
+import Receipts from "./pages/Receipts";
+import Distribution from "./pages/Distribution";
+import NonProbate from "./pages/NonProbate";
+
+// Admin
+import AdminDashboard from "./pages/AdminDashboard";
+import AdminInstitutions from "./pages/admin/AdminInstitutions";
+
+// Advisor
+import AdvisorDashboard from "./pages/advisor/Dashboard";
+import AdvisorOnboarding from "./pages/advisor/Onboarding";
+import AdvisorBookings from "./pages/advisor/Bookings";
+import AdvisorMarketplace from "./pages/AdvisorMarketplace";
+import AdvisorPayouts from "./pages/AdvisorPayouts";
+import MyBookings from "./pages/MyBookings";
+
+// Others
+import NotFound from "./pages/NotFound";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import AcceptInvite from "./pages/AcceptInvite";
 import EstateAgents from "./pages/EstateAgents";
 import ChecklistLanding from "./pages/ChecklistLanding";
 import DiscoveryQuiz from "./components/landing/DiscoveryQuiz";
-import AdvisorMarketplace from "./pages/AdvisorMarketplace";
-import AdvisorOnboarding from "./pages/AdvisorOnboarding";
-import AdvisorDashboard from "./pages/AdvisorDashboard";
-import AdvisorPayouts from "./pages/AdvisorPayouts";
-import MyBookings from "./pages/MyBookings";
-
+import { EstateAgentChatWrapper } from "@/components/EstateAgentChatWrapper";
+import { LegalDisclaimer } from "@/components/LegalDisclaimer";
+import ProbateGuide from "./pages/guides/ProbateGuide";
 
 const queryClient = new QueryClient();
 
@@ -93,6 +115,13 @@ const App = () => (
                     <Route path="/" element={<Index />} />
                     <Route path="/auth" element={<Auth />} />
                     <Route path="/reset-password" element={<ResetPassword />} />
+                    <Route path="/pricing" element={<Pricing />} />
+                    <Route path="/invite/:token" element={<AcceptInvite />} />
+                    <Route path="/checklist" element={<ChecklistLanding />} />
+                    <Route path="/start" element={<DiscoveryQuiz />} />
+                    <Route path="/guides/probate" element={<ProbateGuide />} />
+
+                    {/* Executor / User Routes */}
                     <Route
                       path="/onboarding"
                       element={
@@ -101,84 +130,113 @@ const App = () => (
                         </RoleRoute>
                       }
                     />
-                    <Route
-                      path="/dashboard"
-                      element={
-                        <RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}>
-                          <ProfileGuard>
-                            <Dashboard />
-                          </ProfileGuard>
+
+                    <Route element={
+                      <RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}>
+                        <Layout />
+                      </RoleRoute>
+                    }>
+                      <Route path="/dashboard" element={<ProfileGuard><Dashboard /></ProfileGuard>} />
+                      <Route path="/assets" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><Assets /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
+                      <Route path="/asset/:id" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><AssetDetail /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
+                      <Route path="/add-asset" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><AddAsset /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
+                      <Route path="/upload" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><UploadDocument /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
+
+                      <Route path="/documents" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><Documents /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
+                      {/* <Route path="/estate" element={<ProtectedRoute><ProfileGuard><EstateOverview /></ProfileGuard></ProtectedRoute>} /> */}
+
+                      {/* Communications */}
+                      <Route path="/inbox" element={<ProtectedRoute><ProfileGuard><Inbox /></ProfileGuard></ProtectedRoute>} />
+                      {/* <Route path="/communications" element={<ProtectedRoute><ProfileGuard><Communications /></ProfileGuard></ProtectedRoute>} /> */}
+                      <Route path="/follow-ups" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><FollowUps /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
+
+                      {/* Roadmap & Trail */}
+                      <Route path="/roadmap" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><SettlementRoadmapNew /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
+                      <Route path="/roadmap-old" element={<ProtectedRoute><ProfileGuard><SettlementRoadmap /></ProfileGuard></ProtectedRoute>} />
+                      <Route path="/settlement-trail" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><SettlementTrail /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
+
+                      {/* Probate Tools */}
+                      <Route path="/forms" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><Forms /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
+                      <Route path="/probate/petition/wizard" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><PetitionWizard /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
+                      <Route path="/probate/petition" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><ProbatePetition /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
+                      <Route path="/probate/inventory" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><InventoryAppraisal /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
+                      <Route path="/probate/notices" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><Notices /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
+                      <Route path="/probate/inventory-generator" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><InventoryGenerator /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
+                      <Route path="/probate/closing-statement" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><ClosingStatement /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
+                      <Route path="/probate/distribution-petition" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><DistributionPetition /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
+                      <Route path="/probate/spousal-petition" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><SpousalPropertyPetition /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
+                      <Route path="/probate/succession-petition" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><SuccessionPetition /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
+                      <Route path="/probate/guardian-ad-litem" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><GuardianAdLitem /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
+                      <Route path="/probate/bond-waiver" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><BondWaiver /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
+                      <Route path="/probate/special-notice" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><SpecialNotice /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
+                      <Route path="/probate/contested-probate" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><ContestedProbate /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
+                      <Route path="/probate/asset-sale" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><AssetSaleAuthorization /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
+                      <Route path="/probate/final-distribution" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><FinalDistribution /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
+                      <Route path="/probate/small-estate" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><SmallEstateAffidavit /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
+                      <Route path="/probate/letters" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><Letters /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
+
+                      <Route path="/discovery" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><Discovery /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
+                      <Route path="/liabilities" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><Liabilities /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
+                      {/* <Route path="/heirs" element={<ProtectedRoute><ProfileGuard><Heirs /></ProfileGuard></ProtectedRoute>} /> */}
+                      {/* <Route path="/collaboration" element={<ProtectedRoute><ProfileGuard><Collaboration /></ProfileGuard></ProtectedRoute>} /> */}
+
+                      {/* Financials */}
+                      <Route path="/accounting" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><Accounting /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
+                      <Route path="/tax-management" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><TaxManagement /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
+                      <Route path="/receipts" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><Receipts /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
+                      <Route path="/distribution" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><Distribution /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
+                      <Route path="/non-probate" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><NonProbate /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
+
+                      {/* Settings & Help */}
+                      <Route path="/profile" element={<ProtectedRoute><ProfileGuard><ProfileSettings /></ProfileGuard></ProtectedRoute>} />
+                      <Route path="/settings" element={<ProtectedRoute><ProfileGuard><Settings /></ProfileGuard></ProtectedRoute>} />
+                      <Route path="/help" element={<ProtectedRoute><ProfileGuard><HelpCenter /></ProfileGuard></ProtectedRoute>} />
+                      {/* <Route path="/feed" element={<ProtectedRoute><ProfileGuard><Feed /></ProfileGuard></ProtectedRoute>} /> */}
+
+                      {/* Services */}
+                      <Route path="/estate-agent" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><EstateAgentChatWrapper /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
+                      <Route path="/estates/:estateId/agents" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><EstateAgents /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
+                      <Route path="/marketplace" element={<ProtectedRoute><AdvisorMarketplace /></ProtectedRoute>} />
+                      <Route path="/my-bookings" element={<ProtectedRoute><MyBookings /></ProtectedRoute>} />
+                      <Route path="/payment-success" element={<ProtectedRoute><ProfileGuard><PaymentSuccess /></ProfileGuard></ProtectedRoute>} />
+                    </Route>
+
+                    {/* Advisor Routes */}
+                    <Route path="/advisor/onboarding" element={
+                      <ProtectedRoute>
+                        <RoleRoute allowedRoles={['ADVISOR', 'ADMIN']}>
+                          <AdvisorOnboarding />
                         </RoleRoute>
-                      }
-                    />
-                    <Route path="/asset/:id" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><AssetDetail /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
-                    <Route path="/add-asset" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><AddAsset /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
-                    <Route path="/upload" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><UploadDocument /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
-                    <Route path="/probate" element={<Navigate to="/roadmap" replace />} />
-                    <Route path="/assets" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><Assets /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
-                    <Route path="/probate/petition/wizard" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><PetitionWizard /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
-                    <Route path="/settlement-trail" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><SettlementTrail /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
-                    <Route path="/follow-ups" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><FollowUps /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
-                    <Route path="/roadmap" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><SettlementRoadmapNew /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
-                    <Route path="/roadmap-old" element={<ProtectedRoute><ProfileGuard><SettlementRoadmap /></ProfileGuard></ProtectedRoute>} />
-                    <Route path="/forms" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><Forms /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
-                    <Route path="/documents" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><Documents /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
-                    <Route path="/profile" element={<ProtectedRoute><ProfileGuard><ProfileSettings /></ProfileGuard></ProtectedRoute>} />
-                    <Route path="/admin" element={<ProtectedRoute><ProfileGuard><AdminDashboard /></ProfileGuard></ProtectedRoute>} />
-                    <Route path="/admin/institutions" element={<ProtectedRoute><ProfileGuard><AdminInstitutions /></ProfileGuard></ProtectedRoute>} />
-                    <Route path="/probate/petition" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><ProbatePetition /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
-                    <Route path="/probate/liabilities" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><Liabilities /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
-                    <Route path="/probate/inventory" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><InventoryAppraisal /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
-                    <Route path="/probate/notices" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><Notices /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
-                    <Route path="/probate/inventory-generator" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><InventoryGenerator /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
-                    <Route path="/probate/closing-statement" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><ClosingStatement /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
-                    <Route path="/probate/distribution-petition" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><DistributionPetition /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
-                    <Route path="/probate/spousal-petition" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><SpousalPropertyPetition /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
-                    <Route path="/probate/succession-petition" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><SuccessionPetition /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
-                    <Route path="/probate/guardian-ad-litem" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><GuardianAdLitem /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
-                    <Route path="/probate/bond-waiver" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><BondWaiver /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
-                    <Route path="/probate/special-notice" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><SpecialNotice /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
-                    <Route path="/probate/contested-probate" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><ContestedProbate /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
-                    <Route path="/probate/asset-sale" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><AssetSaleAuthorization /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
-                    <Route path="/probate/final-distribution" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><FinalDistribution /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
-                    <Route path="/probate/small-estate" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><SmallEstateAffidavit /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
-                    <Route path="/probate/letters" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><Letters /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
-                    <Route path="/discovery" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><Discovery /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
-                    <Route path="/distribution" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><Distribution /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
-                    <Route path="/settings" element={<ProtectedRoute><ProfileGuard><Settings /></ProfileGuard></ProtectedRoute>} />
-                    <Route path="/pricing" element={<ProtectedRoute><ProfileGuard><Pricing /></ProfileGuard></ProtectedRoute>} />
-                    <Route path="/payment-success" element={<ProtectedRoute><ProfileGuard><PaymentSuccess /></ProfileGuard></ProtectedRoute>} />
-                    <Route path="/accounting" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><Accounting /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
-                    <Route path="/tax-management" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><TaxManagement /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
-                    <Route path="/receipts" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><Receipts /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
-                    <Route path="/liabilities" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><Liabilities /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
-                    <Route path="/non-probate" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><NonProbate /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
-                    <Route path="/help" element={<ProtectedRoute><ProfileGuard><HelpCenter /></ProfileGuard></ProtectedRoute>} />
-                    <Route path="/estate-agent" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><EstateAgentChatWrapper /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
-                    <Route path="/guides/probate" element={<ProbateGuide />} />
-                    <Route path="/invite/:token" element={<AcceptInvite />} />
-                    <Route path="/estates/:estateId/agents" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><EstateAgents /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
-                    <Route path="/checklist" element={<ChecklistLanding />} />
-                    <Route path="/start" element={<DiscoveryQuiz />} />
-                    <Route path="/marketplace" element={<ProtectedRoute><AdvisorMarketplace /></ProtectedRoute>} />
-                    <Route path="/advisor/onboarding" element={<ProtectedRoute><AdvisorOnboarding /></ProtectedRoute>} />
-                    <Route
-                      path="/advisor/dashboard"
-                      element={
-                        <RoleRoute allowedRoles={['ADVISOR']}>
-                          <AdvisorDashboard />
+                      </ProtectedRoute>
+                    } />
+
+                    <Route path="/advisor" element={
+                      <ProtectedRoute>
+                        <RoleRoute allowedRoles={['ADVISOR', 'ADMIN']}>
+                          <AdvisorLayout />
                         </RoleRoute>
-                      }
-                    />
-                    <Route
-                      path="/advisor/payouts"
-                      element={
-                        <RoleRoute allowedRoles={['ADVISOR']}>
-                          <AdvisorPayouts />
+                      </ProtectedRoute>
+                    }>
+                      <Route path="dashboard" element={<AdvisorDashboard />} />
+                      <Route path="profile" element={<div className="p-8">Profile Settings (Coming Soon)</div>} />
+                      <Route path="bookings" element={<AdvisorBookings />} />
+                      <Route path="earnings" element={<Navigate to="/advisor/payouts" replace />} />
+                      <Route path="settings" element={<div className="p-8">Account Settings (Coming Soon)</div>} />
+                      <Route path="payouts" element={<AdvisorPayouts />} />
+                    </Route>
+
+                    {/* Admin Routes */}
+                    <Route path="/admin" element={
+                      <ProtectedRoute>
+                        <RoleRoute allowedRoles={['ADMIN']}>
+                          <AdminLayout />
                         </RoleRoute>
-                      }
-                    />
-                    <Route path="/my-bookings" element={<ProtectedRoute><MyBookings /></ProtectedRoute>} />
+                      </ProtectedRoute>
+                    }>
+                      <Route index element={<AdminDashboard />} />
+                      <Route path="institutions" element={<AdminInstitutions />} />
+                    </Route>
+
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                   <LegalDisclaimer />
