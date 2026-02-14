@@ -27,6 +27,7 @@ export const SEO: React.FC<SEOProps> = ({
     const siteName = "ExpectedEstate";
     const fullTitle = title ? `${title} | ${siteName}` : siteName;
     const defaultDescription = "Simplify estate settlement with clarity and peace of mind. ExpectedEstate helps executors navigate probate, track assets, and manage paperwork.";
+    const defaultOgImage = "/modern_roadmap_banner.png";
 
     // Default Structured Data for SoftwareApplication
     const defaultStructuredData = {
@@ -57,14 +58,14 @@ export const SEO: React.FC<SEOProps> = ({
             <meta property="og:type" content={ogType} />
             <meta property="og:title" content={ogTitle || fullTitle} />
             <meta property="og:description" content={ogDescription || description || defaultDescription} />
-            {ogImage && <meta property="og:image" content={ogImage} />}
+            <meta property="og:image" content={ogImage || defaultOgImage} />
             <meta property="og:site_name" content={siteName} />
 
             {/* Twitter */}
             <meta name="twitter:card" content="summary_large_image" />
             <meta name="twitter:title" content={ogTitle || fullTitle} />
             <meta name="twitter:description" content={ogDescription || description || defaultDescription} />
-            {ogImage && <meta name="twitter:image" content={ogImage} />}
+            <meta name="twitter:image" content={ogImage || defaultOgImage} />
             <meta name="twitter:site" content={twitterHandle} />
 
             {/* JSON-LD Structured Data */}
