@@ -121,4 +121,57 @@ The ExpectedEstate Team
     }
 });
 
+/**
+ * Handles general contact form submissions.
+ */
+router.post("/contact", async (req, res) => {
+    const { name, email, message, source } = req.body;
+
+    if (!email || !message) {
+        return res.status(400).json({ error: "Email and message are required" });
+    }
+
+    try {
+        // 1. Log the contact event
+        await prisma.marketingEvent.create({
+            data: {
+                event: "contact_form_submitted",
+                email,
+                source: source || "website_contact",
+                metadata: { name, message }
+            }
+        });
+
+        // 2. Send email to support
+        const apiKey = process.env.MAILGUN_API_KEY;
+        const domain = process.env.MAILGUN_DOMAIN || "expectedestate.com";
+        const supportEmail = "expected.estate@gmail.com"; // Forwarding destination
+
+        if (apiKey) {
+            const encodedKey = Buffer.from(`api:${apiKey}`).toString("base64");
+            const formData = new URLSearchParams();
+            formData.append("from", `Contact Form <noreply@${domain}>`);
+            formData.append("to", supportEmail);
+            formData.append("reply-to", email); // Allow direct reply
+            formData.append("subject", `New Contact: ${name || email}`);
+            formData.append("text", `Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`);
+
+            const baseUrl = process.env.MAILGUN_BASE_URL || "https://api.mailgun.net";
+            await fetch(`${baseUrl}/v3/${domain}/messages`, {
+                method: "POST",
+                headers: { "Authorization": `Basic ${encodedKey}` },
+                body: formData
+            });
+            logger.info(`[Marketing] Contact email forwarded for ${email}`);
+        } else {
+            logger.info(`📧 [SIMULATED] CONTACT FORM from ${email}: ${message}`);
+        }
+
+        res.json({ success: true, message: "Message sent" });
+    } catch (error: any) {
+        logger.error("Contact Form Error:", error.message);
+        res.status(500).json({ error: "Failed to send message" });
+    }
+});
+
 export default router;

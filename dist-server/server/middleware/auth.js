@@ -23,7 +23,8 @@ export const authenticate = async (req, res, next) => {
         }
     }
     catch (err) {
-        logger.error("❌ [AUTH] Blacklist check error:", err.message);
+        const message = err instanceof Error ? err.message : "Unknown error";
+        logger.error("❌ [AUTH] Blacklist check error:", message);
         return res.status(500).json({ error: "Authentication service error" });
     }
     // Verify token
@@ -38,7 +39,8 @@ export const authenticate = async (req, res, next) => {
         next();
     }
     catch (err) {
-        logger.error("❌ [AUTH] Middleware error:", err.message);
+        const message = err instanceof Error ? err.message : "Unknown error";
+        logger.error("❌ [AUTH] Middleware error:", message);
         return res.status(500).json({ error: "Authentication service error" });
     }
 };

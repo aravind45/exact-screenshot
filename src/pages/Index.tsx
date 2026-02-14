@@ -16,6 +16,7 @@ import { StickyCTA } from "@/components/landing/StickyCTA";
 import { LeadMagnetSection } from "@/components/landing/LeadMagnetSection";
 import { TestimonialsSection } from "@/components/landing/TestimonialsSection";
 import { TrustBar } from "@/components/landing/TrustBar";
+import { ContactForm } from "@/components/landing/ContactForm";
 import { Mail } from "lucide-react";
 
 const Index = () => {
@@ -220,18 +221,8 @@ const Index = () => {
                   <span className="ml-3">→</span>
                 </Button>
 
-                <div className="pt-8 border-t border-border/50 w-full max-w-sm">
-                  <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest mb-4">Or Reach Out Directly</p>
-                  <a
-                    href="mailto:expected.estate@gmail.com"
-                    className="group flex items-center justify-center gap-3 p-4 bg-white rounded-2xl border border-border/50 hover:border-primary/30 transition-all hover:shadow-lg"
-                  >
-                    <div className="p-2 bg-primary/10 text-primary rounded-lg group-hover:bg-primary group-hover:text-white transition-colors">
-                      <Mail className="w-5 h-5" />
-                    </div>
-                    <span className="text-lg font-black text-foreground tracking-tight">expected.estate@gmail.com</span>
-                  </a>
-                  <p className="text-[10px] text-muted-foreground font-bold mt-4 uppercase tracking-[0.1em]">Typically responds in &lt; 24 hours</p>
+                <div className="pt-16 border-t border-border/50 w-full max-w-2xl">
+                  <ContactForm />
                 </div>
               </div>
             </div>

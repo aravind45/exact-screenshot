@@ -52,23 +52,29 @@ router.post("/checklist", async (req, res) => {
         // but let's try to find if there's a better way or simulate a nicely formatted email.
         const appUrl = (await EmailService.getAppUrl()).replace(/\/$/, "");
         const intakeUrl = `${appUrl}/auth`;
-        const subject = "Your Executor 7-Day Checklist";
+        const subject = "Your First 30 Days Action Plan";
         const body = `
-Hi there!
+Hi there,
 
-Thank you for requesting our Executor 7-Day Checklist. Starting the probate process can be overwhelming, but we're here to help you navigate it step-by-step.
+Thank you for requesting the **First 30 Days Action Plan**. We know this is a difficult time, and our goal is to make the next few weeks as simple as possible for you.
 
-You can start your estate intake and get organized today by clicking here:
-${intakeUrl}
+We have attached the PDF guide to this email (simulated).
 
-What's in the 7-Day Checklist?
-1. Immediate Actions (Days 1-2): Secure property, notify immediate family.
-2. Documentation (Days 3-4): Gather death certificates and the Will.
-3. Legal Intake (Days 5-7): Determine if probate is required and start your petition.
+**Want to make this easier?**
+You don't have to track this on paper. ExpectedEstate creates a personalized digital roadmap for your specific situation.
 
-If you have any questions, feel free to reply to this email.
+[Start Your Free Estate Roadmap](${intakeUrl})
 
-Best,
+---
+
+**Your Immediate Top 3 Priorities:**
+1.  **Secure the Home & Assets:** Ensure property is locked and pets are cared for.
+2.  **Locate the Will:** Check safe deposit boxes, home safes, or attorney files.
+3.  **Order Death Certificates:** You will likely need 5-10 certified copies.
+
+If you ever feel overwhelmed, you can reply to this email or chat with an expert advisor on our platform.
+
+With sympathy,
 The ExpectedEstate Team
         `.trim();
         // Note: EmailService.sendEmail requires an estateId and assetId which we don't have for leads.
@@ -101,6 +107,54 @@ The ExpectedEstate Team
     catch (error) {
         logger.error("Marketing Checklist Submission Error:", error.message);
         res.status(500).json({ error: "Failed to process checklist submission" });
+    }
+});
+/**
+ * Handles general contact form submissions.
+ */
+router.post("/contact", async (req, res) => {
+    const { name, email, message, source } = req.body;
+    if (!email || !message) {
+        return res.status(400).json({ error: "Email and message are required" });
+    }
+    try {
+        // 1. Log the contact event
+        await prisma.marketingEvent.create({
+            data: {
+                event: "contact_form_submitted",
+                email,
+                source: source || "website_contact",
+                metadata: { name, message }
+            }
+        });
+        // 2. Send email to support
+        const apiKey = process.env.MAILGUN_API_KEY;
+        const domain = process.env.MAILGUN_DOMAIN || "expectedestate.com";
+        const supportEmail = "expected.estate@gmail.com"; // Forwarding destination
+        if (apiKey) {
+            const encodedKey = Buffer.from(`api:${apiKey}`).toString("base64");
+            const formData = new URLSearchParams();
+            formData.append("from", `Contact Form <noreply@${domain}>`);
+            formData.append("to", supportEmail);
+            formData.append("reply-to", email); // Allow direct reply
+            formData.append("subject", `New Contact: ${name || email}`);
+            formData.append("text", `Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`);
+            const baseUrl = process.env.MAILGUN_BASE_URL || "https://api.mailgun.net";
+            await fetch(`${baseUrl}/v3/${domain}/messages`, {
+                method: "POST",
+                headers: { "Authorization": `Basic ${encodedKey}` },
+                body: formData
+            });
+            logger.info(`[Marketing] Contact email forwarded for ${email}`);
+        }
+        else {
+            logger.info(`📧 [SIMULATED] CONTACT FORM from ${email}: ${message}`);
+        }
+        res.json({ success: true, message: "Message sent" });
+    }
+    catch (error) {
+        logger.error("Contact Form Error:", error.message);
+        res.status(500).json({ error: "Failed to send message" });
     }
 });
 export default router;

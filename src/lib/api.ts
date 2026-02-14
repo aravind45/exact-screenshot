@@ -1427,13 +1427,33 @@ export const api = {
         }
     },
     marketing: {
-        submitChecklist: async (data: { email: string, source?: string, utmSource?: string }) => {
+        submitChecklist: async (data: any) => {
             const response = await fetch(`${API_URL}/marketing/checklist`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(data),
+                body: JSON.stringify(data)
             });
             return parseResponse(response);
+        },
+        submitContact: async (data: { name: string, email: string, message: string, source?: string }) => {
+            const response = await fetch(`${API_URL}/marketing/contact`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data)
+            });
+            return parseResponse(response);
+        },
+        trackEvent: async (data: any) => {
+            // silent fail for tracking
+            try {
+                await fetch(`${API_URL}/marketing/event`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(data)
+                });
+            } catch (e) {
+                console.warn("Tracking failed", e);
+            }
         }
     },
     advisors: {
@@ -1569,5 +1589,5 @@ export const api = {
             });
             return parseResponse(response);
         }
-    }
+    },
 };
