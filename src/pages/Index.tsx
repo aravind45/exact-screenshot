@@ -142,7 +142,7 @@ const Index = () => {
         </section>
 
         {/* SEO / Educational Resources Section */}
-        <section className="py-24 bg-slate-50 border-y border-slate-100">
+        <section id="knowledge-base" className="py-24 bg-slate-50 border-y border-slate-100 scroll-mt-20">
           <div className="section-container">
             <div className="flex flex-col md:flex-row items-end justify-between gap-8 mb-16">
               <div className="max-w-2xl">

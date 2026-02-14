@@ -35,9 +35,9 @@ export function Header() {
             <a href="/#pricing" className="text-sm font-semibold text-foreground/70 hover:text-primary transition-colors">
               Pricing
             </a>
-            <Link to="/probate-process" className="text-sm font-semibold text-foreground/70 hover:text-primary transition-colors">
+            <a href="/#knowledge-base" className="text-sm font-semibold text-foreground/70 hover:text-primary transition-colors">
               Knowledge Base
-            </Link>
+            </a>
             <a href="/#about" className="text-sm font-semibold text-foreground/70 hover:text-primary transition-colors">
               About Us
             </a>
