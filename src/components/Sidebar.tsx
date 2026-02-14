@@ -39,7 +39,7 @@ type NavItem = {
 export function Sidebar() {
     const navigate = useNavigate();
     const location = useLocation();
-    const { signOut, user } = useAuth();
+    const { user, isAdmin, signOut } = useAuth();
     const [supportOpen, setSupportOpen] = useState(false);
     const [supportTab, setSupportTab] = useState<"feedback" | "contact">("feedback");
 
@@ -125,7 +125,7 @@ export function Sidebar() {
             title: "System",
             items: [
                 { label: "Profile", icon: User, path: "/profile" },
-                ...(user?.email?.toLowerCase() === 'aravind45@gmail.com' || user?.role === 'ADMIN' ? [{ label: "Admin Console", icon: ShieldCheck, path: "/admin" }] : []),
+                ...(isAdmin ? [{ label: "Admin Console", icon: ShieldCheck, path: "/admin" }] : []),
                 { label: "Billing & Plans", icon: Zap, path: "/pricing" },
             ]
         }

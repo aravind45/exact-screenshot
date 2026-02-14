@@ -14,7 +14,7 @@ interface RoleRouteProps {
  * If the user's role is not in the allowedRoles list, they are redirected to fallbackPath.
  */
 export function RoleRoute({ children, allowedRoles, fallbackPath = '/dashboard' }: RoleRouteProps) {
-    const { user, loading } = useAuth();
+    const { user, loading, isAdmin, isAdvisor, isAttorney, isExecutor, isHeir } = useAuth();
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -24,30 +24,33 @@ export function RoleRoute({ children, allowedRoles, fallbackPath = '/dashboard' 
                 sessionStorage.setItem("after_login_redirect", window.location.pathname + window.location.search);
                 navigate('/auth');
             } else {
-                const userEmail = user.email?.toLowerCase();
-                const isAdminEmail = userEmail === 'aravind45@gmail.com';
-                const hasRequiredRole = allowedRoles.includes(user.role || '') || (allowedRoles.includes('ADMIN') && isAdminEmail);
+                // Check permissions based on allowedRoles
+                let hasAccess = false;
 
-                if (!hasRequiredRole) {
-                    // Logged in but wrong role - determine appropriate fallback based on user type
-                    console.warn(`[RoleRoute] Access denied for role: ${user.role}. Allowed: ${allowedRoles.join(', ')}. Redirecting to appropriate dashboard.`);
+                if (allowedRoles.includes('ADMIN') && isAdmin) hasAccess = true;
+                if (allowedRoles.includes('ADVISOR') && isAdvisor) hasAccess = true;
+                if (allowedRoles.includes('ATTORNEY') && isAttorney) hasAccess = true;
+                if (allowedRoles.includes('EXECUTOR') && isExecutor) hasAccess = true;
+                if (allowedRoles.includes('HEIR') && isHeir) hasAccess = true;
+                if (allowedRoles.includes('USER') && user) hasAccess = true; // Any logged in user
 
-                    // Determine appropriate fallback based on user type
-                    let redirectPath = fallbackPath;
+                if (!hasAccess) {
+                    // Logged in but wrong role - determine appropriate fallback
+                    console.warn(`[RoleRoute] Access denied for user: ${user.email}. Role: ${user.role}. Allowed: ${allowedRoles.join(', ')}`);
 
-                    if (user.role === 'ADVISOR' || user.userType === 'ADVISOR') {
+                    let redirectPath = fallbackPath || '/dashboard';
+
+                    if (isAdvisor && !isAdmin) {
                         redirectPath = '/advisor/dashboard';
-                    } else if (user.role === 'ADMIN' || isAdminEmail) {
+                    } else if (isAdmin) {
                         redirectPath = '/admin';
-                    } else {
-                        redirectPath = fallbackPath || '/dashboard';
                     }
 
                     navigate(redirectPath, { replace: true });
                 }
             }
         }
-    }, [user, loading, navigate, allowedRoles, fallbackPath]);
+    }, [user, loading, navigate, allowedRoles, fallbackPath, isAdmin, isAdvisor, isAttorney, isExecutor, isHeir]);
 
     if (loading) {
         return (

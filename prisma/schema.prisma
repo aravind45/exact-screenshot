@@ -13,8 +13,8 @@ model User {
   email                   String                    @unique
   fullName                String?                   @map("full_name")
   passwordHash            String?                   @map("password_hash")
-  role                    String?
-  userType                String                    @default("EXECUTOR") @map("user_type") // EXECUTOR or ADVISOR
+  role                    UserRole                  @default(EXECUTOR)
+  userType                String                    @default("EXECUTOR") @map("user_type") // Legacy: to be deprecated
   state                   String?
   personalEmail           String?                   @map("personal_email")
   resetPasswordToken      String?                   @map("reset_password_token")
@@ -722,4 +722,12 @@ model TokenBlacklist {
   @@index([token])
   @@index([expiresAt])
   @@map("token_blacklist")
+}
+
+enum UserRole {
+  ADMIN
+  ADVISOR
+  ATTORNEY
+  EXECUTOR
+  HEIR
 }

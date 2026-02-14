@@ -53,7 +53,7 @@ const templateMetadataSchema = z.object({
 
 // Admin Middleware check
 const isAdmin = (req: any, res: Response, next: any) => {
-    if (!req.user || !AUTHORIZED_ADMINS.includes(req.user.email?.toLowerCase())) {
+    if (!req.user || !RoleUtils.isAdmin(req.user)) {
         return res.status(403).json({ error: "Admin access restricted to authorized personnel" });
     }
     next();

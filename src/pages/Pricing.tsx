@@ -19,7 +19,7 @@ import { useAuth } from "@/contexts/AuthContext";
 export default function Pricing() {
     const navigate = useNavigate();
     const { toast } = useToast();
-    const { user } = useAuth(); // Get user
+    const { user, isAdmin } = useAuth(); // Get user and helper
     const [loading, setLoading] = useState(false);
     const [clientSecret, setClientSecret] = useState<string | null>(null);
 
@@ -40,7 +40,7 @@ export default function Pricing() {
     }, [toast]);
 
     // Admin Bypass
-    if (user?.email === 'aravind45@gmail.com') {
+    if (isAdmin) {
         return (
             <div className="min-h-screen bg-[#0f172a] text-slate-200 flex items-center justify-center">
                 <div className="text-center space-y-4">

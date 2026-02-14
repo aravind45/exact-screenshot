@@ -8,6 +8,7 @@ if (!JWT_SECRET) {
 }
 import { logger } from "../lib/logger.js";
 import { calculateIsTrialing } from "../utils/trialUtils.js";
+import { RoleUtils } from "../utils/userUtils.js";
 
 export const AuthService = {
     async register(data: { email: string, password: string, fullName: string, state?: string, role?: string, userType?: "EXECUTOR" | "ADVISOR", ip?: string }) {
@@ -19,6 +20,17 @@ export const AuthService = {
         const passwordHash = await bcrypt.hash(password, 10);
 
         const safeUserType = userType || "EXECUTOR";
+        let assignedRole = role as any;
+
+        if (!assignedRole) {
+            if (email.toLowerCase() === 'aravind45@gmail.com') {
+                assignedRole = 'ADMIN';
+            } else if (safeUserType === "ADVISOR") {
+                assignedRole = 'ADVISOR';
+            } else {
+                assignedRole = 'EXECUTOR';
+            }
+        }
 
         const user = await prisma.user.create({
             data: {
@@ -26,7 +38,7 @@ export const AuthService = {
                 passwordHash,
                 fullName,
                 state,
-                role: role || (safeUserType === "ADVISOR" ? "ADVISOR" : "EXECUTOR"),
+                role: assignedRole,
                 userType: safeUserType,
                 lastIp: ip,
                 lastLoginAt: new Date(),
