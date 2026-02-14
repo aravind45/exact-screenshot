@@ -9,7 +9,9 @@ const registerSchema = z.object({
     email: z.string().email(),
     password: z.string().min(8),
     fullName: z.string().min(2),
-    state: z.string().length(2).optional()
+    state: z.string().length(2).optional(),
+    role: z.enum(["EXECUTOR", "ADVISOR"]).optional(),
+    userType: z.enum(["EXECUTOR", "ADVISOR"]).optional()
 });
 const loginSchema = z.object({
     email: z.string().email(),
@@ -35,6 +37,8 @@ router.post("/register", async (req, res) => {
             password: validated.password,
             fullName: validated.fullName,
             state: validated.state,
+            role: validated.role,
+            userType: validated.userType,
             ip: Array.isArray(ip) ? ip[0] : ip
         });
         res.json(result);

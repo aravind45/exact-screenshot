@@ -123,24 +123,92 @@ Currently, advisor registration routes users to executor pages (estate creation,
 ### 5. Earnings & Payouts
 
 **5.1** As an advisor, I want to see my total earnings, paid earnings, and pending earnings, so I understand my financial status.
+- Summary cards at top: Total Earnings (all time), Paid Out (received), Pending (in escrow), Available (ready for payout)
+- Each card shows amount in large text with icon
+- Trend indicators: "↑ $X from last month" or "↓ $X from last month"
+- Last payout date displayed: "Last payout: Feb 1, 2026 - $450.00"
 
 **5.2** As an advisor, I want to see a detailed earnings breakdown by booking, so I can track individual session payments.
+- Table with columns: Date, Client, Estate, Booking Amount, Platform Fee (20%), Net Earnings, Status, Payout Date
+- Each row shows calculation: Booking Amount - Platform Fee = Net Earnings
+- Example: $100.00 - $20.00 = $80.00
+- Status badges: "Escrowed" (yellow), "Paid" (green), "Pending Completion" (blue)
 
 **5.3** As an advisor, I want to see platform fees (20%) clearly displayed, so I understand the fee structure.
+- Platform fee percentage shown in summary: "Platform Fee: 20%"
+- Total platform fees paid displayed: "Total Fees Paid: $X"
+- Fee breakdown in each booking row
+- Tooltip explaining fee structure: "20% platform fee covers payment processing, insurance, and platform maintenance"
 
 **5.4** As an advisor, I want to see escrow release dates for pending earnings, so I know when funds will be available.
+- Pending earnings show countdown: "Available in 5 days" or "Available on Feb 20, 2026"
+- Escrow period: 7 days after booking completion
+- Grouped by payout date: "Releasing Feb 20: $240.00 (3 bookings)"
+- Calendar view option showing all upcoming releases
 
 **5.5** As an advisor, I want to see payout status for each booking (escrowed, paid), so I can track payment processing.
+- Status flow: Pending Completion → Escrowed (7 days) → Paid
+- Visual timeline for each booking showing current stage
+- Payout method displayed: "Stripe Connect - Bank ****1234"
+- Failed payouts highlighted with retry option
+
+**5.6** As an advisor, I want to see earnings analytics, so I can understand my business trends.
+- Monthly earnings chart (bar chart) showing last 12 months
+- Bookings per month chart showing volume trends
+- Average booking value displayed
+- Busiest days/times analysis: "Most bookings on Tuesdays at 2pm"
+
+**5.7** As an advisor, I want to download earnings statements, so I can file taxes.
+- "Download Statement" button for each month
+- Statement includes: all bookings, gross earnings, platform fees, net earnings, payout dates
+- Annual summary available: "Download 2026 Tax Summary"
+- PDF format with professional formatting
+
+**5.8** As an advisor, I want to see projected earnings, so I can forecast income.
+- Confirmed upcoming bookings show projected earnings
+- Calculation: (Confirmed bookings × hourly rate) - 20% platform fee
+- Display: "Projected earnings (next 30 days): $X"
 
 ### 6. Profile Management
 
 **6.1** As an advisor, I want to edit my professional profile (bio, expertise, hourly rate), so I can keep my information current.
+- Edit form with fields: bio (textarea, 500 char max), expertise (multi-select tags), hourly rate (number input with $ prefix)
+- Bio shows character count: "450/500 characters"
+- Expertise options: Estate Planning, Probate Law, Tax Planning, Financial Planning, Real Estate, Business Succession, Elder Law, Trust Administration
+- Hourly rate validation: minimum $50, maximum $500
+- Save button with loading state and success message
 
 **6.2** As an advisor, I want to update my profile photo, so clients can see a professional image.
+- Current photo displayed with "Change Photo" button
+- Upload accepts: JPG, PNG (max 5MB)
+- Image preview before saving
+- Automatic cropping to square aspect ratio
+- Default avatar if no photo uploaded
 
 **6.3** As an advisor, I want to update my license information if needed, so my credentials stay current.
+- License number field (text input)
+- License state dropdown (all US states)
+- License expiration date (date picker)
+- Upload new license document (PDF, JPG, PNG - max 10MB)
+- Current document shown with download link
+- Warning if license expires within 30 days
 
 **6.4** As an advisor, I want to see my marketplace visibility status, so I know if clients can find me.
+- Visibility toggle: "Visible in Marketplace" (on/off)
+- Status indicator: "Active" (green) or "Hidden" (gray)
+- Requirements checklist: verified, bio complete, hourly rate set, photo uploaded
+- If requirements not met, toggle disabled with explanation
+
+**6.5** As an advisor, I want to see my profile as clients see it, so I can ensure it looks professional.
+- "Preview Profile" button opens modal showing public profile view
+- Preview includes: photo, name, bio, expertise tags, hourly rate, verification badge, reviews/ratings
+- "Edit" button in preview to quickly make changes
+
+**6.6** As an advisor, I want to manage my availability settings, so clients know when I'm accepting bookings.
+- Availability status: "Accepting Bookings" or "Not Accepting Bookings"
+- Vacation mode: set date range when unavailable
+- Automatic response message for booking requests during vacation
+- Booking buffer: minimum hours notice required (default 24 hours)
 
 ### 7. Navigation & Layout
 

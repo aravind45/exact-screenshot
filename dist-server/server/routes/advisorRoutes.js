@@ -175,23 +175,8 @@ router.get('/dashboard/stats', authenticate, async (req, res) => {
         if (!advisor) {
             return res.status(404).json({ error: 'Advisor profile not found' });
         }
-        // Get booking statistics
-        const bookings = await prisma.booking.findMany({
-            where: { advisorId: advisor.id }
-        });
-        const totalBookings = bookings.length;
-        const pendingBookings = bookings.filter(b => b.status === 'PENDING').length;
-        const confirmedBookings = bookings.filter(b => b.status === 'CONFIRMED').length;
-        const completedBookings = bookings.filter(b => b.status === 'COMPLETED').length;
-        // Calculate earnings
-        const totalEarnings = bookings
-            .filter(b => b.status === 'COMPLETED' || b.status === 'CONFIRMED')
-            .reduce((sum, b) => sum + Number(b.advisorPayout), 0);
-        const paidEarnings = bookings
-            .filter(b => b.payoutStatus === 'PAID')
-            .reduce((sum, b) => sum + Number(b.advisorPayout), 0);
-        const pendingEarnings = totalEarnings - paidEarnings;
-        // Get upcoming sessions
+        const metrics = await AdvisorService.getDashboardMetrics(advisor.id);
+        // Get upcoming sessions separately as it's not part of metrics
         const upcomingSessions = await prisma.booking.findMany({
             where: {
                 advisorId: advisor.id,
@@ -204,13 +189,13 @@ router.get('/dashboard/stats', authenticate, async (req, res) => {
         });
         res.json({
             stats: {
-                totalBookings,
-                pendingBookings,
-                confirmedBookings,
-                completedBookings,
-                totalEarnings,
-                paidEarnings,
-                pendingEarnings
+                totalBookings: metrics.totalBookings,
+                pendingBookings: metrics.pendingBookings,
+                confirmedBookings: 0, // Service doesn't return this yet, keeping generic for now
+                completedBookings: 0, // Service doesn't return this yet
+                totalEarnings: metrics.totalEarnings,
+                paidEarnings: 0, // Service doesn't return this yet
+                pendingEarnings: metrics.pendingEarnings
             },
             upcomingSessions
         });
@@ -218,6 +203,27 @@ router.get('/dashboard/stats', authenticate, async (req, res) => {
     catch (error) {
         logger.error(`❌ Error fetching dashboard stats: ${error.message}`);
         res.status(500).json({ error: 'Failed to fetch dashboard statistics' });
+    }
+});
+/**
+ * GET /api/advisors/bookings
+ * Get all bookings for advisor
+ */
+router.get('/bookings', authenticate, async (req, res) => {
+    try {
+        const { prisma } = await import('../db.js');
+        const advisor = await prisma.advisorProfile.findUnique({
+            where: { userId: req.user.id }
+        });
+        if (!advisor) {
+            return res.status(404).json({ error: 'Advisor profile not found' });
+        }
+        const bookings = await AdvisorService.getBookings(advisor.id);
+        res.json(bookings);
+    }
+    catch (error) {
+        logger.error(`❌ Error fetching bookings: ${error.message}`);
+        res.status(500).json({ error: 'Failed to fetch bookings' });
     }
 });
 /**

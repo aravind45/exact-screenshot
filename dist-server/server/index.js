@@ -65,6 +65,7 @@ const allowedOrigins = [
     process.env.APP_URL,
     'http://localhost:5173',
     'http://localhost:8080',
+    'http://localhost:8081',
     'http://localhost:3000',
     'https://www.expectedestate.com',
     'https://expected-estate.vercel.app'
@@ -93,10 +94,10 @@ const limiter = rateLimit({
     skip: (req) => req.path === '/api/health' || req.path === '/api/ping'
 });
 app.use("/api/", limiter);
-app.use(express.json({ limit: '1mb' })); // Request size limit
+app.use(express.json({ limit: '50mb' })); // Increased limit for base64 uploads
 app.use(express.raw({
     type: ['application/pdf', 'image/jpeg', 'image/png'],
-    limit: '10mb'
+    limit: '50mb'
 }));
 // Logger (Sanitized)
 app.use((req, res, next) => {

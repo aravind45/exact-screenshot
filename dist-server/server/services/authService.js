@@ -10,35 +10,39 @@ import { logger } from "../lib/logger.js";
 import { calculateIsTrialing } from "../utils/trialUtils.js";
 export const AuthService = {
     async register(data) {
-        const { email, password, fullName, state, ip } = data;
+        const { email, password, fullName, state, role, userType, ip } = data;
         const existingUser = await prisma.user.findUnique({ where: { email } });
         if (existingUser)
             throw new Error("Email already registered");
         const passwordHash = await bcrypt.hash(password, 10);
+        const safeUserType = userType || "EXECUTOR";
         const user = await prisma.user.create({
             data: {
                 email,
                 passwordHash,
                 fullName,
                 state,
-                role: 'EXECUTOR',
+                role: role || (safeUserType === "ADVISOR" ? "ADVISOR" : "EXECUTOR"),
+                userType: safeUserType,
                 lastIp: ip,
                 lastLoginAt: new Date(),
                 trialStartedAt: new Date()
             }
         });
-        // Create an initial estate for the user
-        await prisma.estate.create({
-            data: {
-                userId: user.id,
-                name: `${fullName || 'My'}'s Estate`,
-                deceasedFirstName: "TBD",
-                deceasedLastName: "TBD",
-                deceasedDateOfDeath: new Date(),
-                deceasedState: state || "CA",
-                probateStatus: "NOT_STARTED"
-            }
-        });
+        // Create an initial estate for the user ONLY if they are an executor
+        if (safeUserType === "EXECUTOR") {
+            await prisma.estate.create({
+                data: {
+                    userId: user.id,
+                    name: `${fullName || 'My'}'s Estate`,
+                    deceasedFirstName: "TBD",
+                    deceasedLastName: "TBD",
+                    deceasedDateOfDeath: new Date(),
+                    deceasedState: state || "CA",
+                    probateStatus: "NOT_STARTED"
+                }
+            });
+        }
         const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: "30d" });
         const isTrialing = calculateIsTrialing(user.trialStartedAt);
         return { user: { ...user, isTrialing }, token };

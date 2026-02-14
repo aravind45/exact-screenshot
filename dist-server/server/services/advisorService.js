@@ -32,6 +32,11 @@ export class AdvisorService {
                 verificationStatus: 'PENDING',
             }
         });
+        // Ensure user role is updated to ADVISOR
+        await prisma.user.update({
+            where: { id: userId },
+            data: { role: 'ADVISOR' }
+        });
         return profile;
     }
     /**
@@ -92,6 +97,54 @@ export class AdvisorService {
                 }
             },
             orderBy: { createdAt: 'desc' }
+        });
+    }
+    /**
+     * Get dashboard metrics for an advisor
+     */
+    static async getDashboardMetrics(advisorId) {
+        const bookings = await prisma.booking.findMany({
+            where: { advisorId }
+        });
+        const totalBookings = bookings.length;
+        const pendingBookings = bookings.filter(b => b.status === 'PENDING').length;
+        // Calculate earnings (using Number to avoid Decimal types for now simplistically, 
+        // real app should use Decimal handling)
+        const totalEarnings = bookings
+            .filter(b => b.status === 'COMPLETED')
+            .reduce((sum, b) => sum + Number(b.advisorPayout), 0);
+        const pendingEarnings = bookings
+            .filter(b => b.status === 'CONFIRMED' || (b.status === 'COMPLETED' && b.payoutStatus !== 'PAID'))
+            .reduce((sum, b) => sum + Number(b.advisorPayout), 0);
+        return {
+            totalBookings,
+            pendingBookings,
+            totalEarnings,
+            pendingEarnings
+        };
+    }
+    /**
+     * Get bookings for an advisor
+     */
+    static async getBookings(advisorId) {
+        return await prisma.booking.findMany({
+            where: { advisorId },
+            include: {
+                user: {
+                    select: {
+                        fullName: true,
+                        email: true
+                    }
+                },
+                estate: {
+                    select: {
+                        name: true
+                    }
+                }
+            },
+            orderBy: {
+                createdAt: 'desc'
+            }
         });
     }
 }

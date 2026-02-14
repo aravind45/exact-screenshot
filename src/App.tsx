@@ -12,9 +12,7 @@ import { ProfileGuard } from "@/components/ProfileGuard";
 import { SubscriptionGuard } from "@/components/SubscriptionGuard";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { HelmetProvider } from "react-helmet-async";
-import Layout from '@/components/Layout';
 import AdvisorLayout from '@/components/AdvisorLayout';
-import AdminLayout from '@/pages/admin/AdminLayout';
 
 // Pages
 import Index from "./pages/Index";
@@ -131,77 +129,72 @@ const App = () => (
                       }
                     />
 
-                    <Route element={
-                      <RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}>
-                        <Layout />
-                      </RoleRoute>
-                    }>
-                      <Route path="/dashboard" element={<ProfileGuard><Dashboard /></ProfileGuard>} />
-                      <Route path="/assets" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><Assets /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
-                      <Route path="/asset/:id" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><AssetDetail /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
-                      <Route path="/add-asset" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><AddAsset /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
-                      <Route path="/upload" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><UploadDocument /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
+                    {/* All protected routes rendered flatly as pages manage their own layouts */}
+                    <Route path="/dashboard" element={<RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><ProfileGuard><Dashboard /></ProfileGuard></RoleRoute>} />
+                    <Route path="/assets" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><ProfileGuard><SubscriptionGuard><Assets /></SubscriptionGuard></ProfileGuard></RoleRoute></ProtectedRoute>} />
+                    <Route path="/asset/:id" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><ProfileGuard><SubscriptionGuard><AssetDetail /></SubscriptionGuard></ProfileGuard></RoleRoute></ProtectedRoute>} />
+                    <Route path="/add-asset" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><ProfileGuard><SubscriptionGuard><AddAsset /></SubscriptionGuard></ProfileGuard></RoleRoute></ProtectedRoute>} />
+                    <Route path="/upload" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><ProfileGuard><SubscriptionGuard><UploadDocument /></SubscriptionGuard></ProfileGuard></RoleRoute></ProtectedRoute>} />
 
-                      <Route path="/documents" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><Documents /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
-                      {/* <Route path="/estate" element={<ProtectedRoute><ProfileGuard><EstateOverview /></ProfileGuard></ProtectedRoute>} /> */}
+                    <Route path="/documents" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><ProfileGuard><SubscriptionGuard><Documents /></SubscriptionGuard></ProfileGuard></RoleRoute></ProtectedRoute>} />
+                    {/* <Route path="/estate" element={<ProtectedRoute><ProfileGuard><EstateOverview /></ProfileGuard></ProtectedRoute>} /> */}
 
-                      {/* Communications */}
-                      <Route path="/inbox" element={<ProtectedRoute><ProfileGuard><Inbox /></ProfileGuard></ProtectedRoute>} />
-                      {/* <Route path="/communications" element={<ProtectedRoute><ProfileGuard><Communications /></ProfileGuard></ProtectedRoute>} /> */}
-                      <Route path="/follow-ups" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><FollowUps /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
+                    {/* Communications */}
+                    <Route path="/inbox" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><ProfileGuard><Inbox /></ProfileGuard></RoleRoute></ProtectedRoute>} />
+                    {/* <Route path="/communications" element={<ProtectedRoute><ProfileGuard><Communications /></ProfileGuard></ProtectedRoute>} /> */}
+                    <Route path="/follow-ups" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><ProfileGuard><SubscriptionGuard><FollowUps /></SubscriptionGuard></ProfileGuard></RoleRoute></ProtectedRoute>} />
 
-                      {/* Roadmap & Trail */}
-                      <Route path="/roadmap" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><SettlementRoadmapNew /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
-                      <Route path="/roadmap-old" element={<ProtectedRoute><ProfileGuard><SettlementRoadmap /></ProfileGuard></ProtectedRoute>} />
-                      <Route path="/settlement-trail" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><SettlementTrail /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
+                    {/* Roadmap & Trail */}
+                    <Route path="/roadmap" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><ProfileGuard><SubscriptionGuard><SettlementRoadmapNew /></SubscriptionGuard></ProfileGuard></RoleRoute></ProtectedRoute>} />
+                    <Route path="/roadmap-old" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><ProfileGuard><SettlementRoadmap /></ProfileGuard></RoleRoute></ProtectedRoute>} />
+                    <Route path="/settlement-trail" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><ProfileGuard><SubscriptionGuard><SettlementTrail /></SubscriptionGuard></ProfileGuard></RoleRoute></ProtectedRoute>} />
 
-                      {/* Probate Tools */}
-                      <Route path="/forms" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><Forms /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
-                      <Route path="/probate/petition/wizard" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><PetitionWizard /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
-                      <Route path="/probate/petition" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><ProbatePetition /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
-                      <Route path="/probate/inventory" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><InventoryAppraisal /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
-                      <Route path="/probate/notices" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><Notices /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
-                      <Route path="/probate/inventory-generator" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><InventoryGenerator /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
-                      <Route path="/probate/closing-statement" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><ClosingStatement /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
-                      <Route path="/probate/distribution-petition" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><DistributionPetition /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
-                      <Route path="/probate/spousal-petition" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><SpousalPropertyPetition /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
-                      <Route path="/probate/succession-petition" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><SuccessionPetition /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
-                      <Route path="/probate/guardian-ad-litem" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><GuardianAdLitem /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
-                      <Route path="/probate/bond-waiver" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><BondWaiver /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
-                      <Route path="/probate/special-notice" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><SpecialNotice /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
-                      <Route path="/probate/contested-probate" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><ContestedProbate /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
-                      <Route path="/probate/asset-sale" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><AssetSaleAuthorization /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
-                      <Route path="/probate/final-distribution" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><FinalDistribution /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
-                      <Route path="/probate/small-estate" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><SmallEstateAffidavit /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
-                      <Route path="/probate/letters" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><Letters /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
+                    {/* Probate Tools */}
+                    <Route path="/forms" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><ProfileGuard><SubscriptionGuard><Forms /></SubscriptionGuard></ProfileGuard></RoleRoute></ProtectedRoute>} />
+                    <Route path="/probate/petition/wizard" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><ProfileGuard><SubscriptionGuard><PetitionWizard /></SubscriptionGuard></ProfileGuard></RoleRoute></ProtectedRoute>} />
+                    <Route path="/probate/petition" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><ProfileGuard><SubscriptionGuard><ProbatePetition /></SubscriptionGuard></ProfileGuard></RoleRoute></ProtectedRoute>} />
+                    <Route path="/probate/inventory" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><ProfileGuard><SubscriptionGuard><InventoryAppraisal /></SubscriptionGuard></ProfileGuard></RoleRoute></ProtectedRoute>} />
+                    <Route path="/probate/notices" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><ProfileGuard><SubscriptionGuard><Notices /></SubscriptionGuard></ProfileGuard></RoleRoute></ProtectedRoute>} />
+                    <Route path="/probate/inventory-generator" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><ProfileGuard><SubscriptionGuard><InventoryGenerator /></SubscriptionGuard></ProfileGuard></RoleRoute></ProtectedRoute>} />
+                    <Route path="/probate/closing-statement" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><ProfileGuard><SubscriptionGuard><ClosingStatement /></SubscriptionGuard></ProfileGuard></RoleRoute></ProtectedRoute>} />
+                    <Route path="/probate/distribution-petition" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><ProfileGuard><SubscriptionGuard><DistributionPetition /></SubscriptionGuard></ProfileGuard></RoleRoute></ProtectedRoute>} />
+                    <Route path="/probate/spousal-petition" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><ProfileGuard><SubscriptionGuard><SpousalPropertyPetition /></SubscriptionGuard></ProfileGuard></RoleRoute></ProtectedRoute>} />
+                    <Route path="/probate/succession-petition" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><ProfileGuard><SubscriptionGuard><SuccessionPetition /></SubscriptionGuard></ProfileGuard></RoleRoute></ProtectedRoute>} />
+                    <Route path="/probate/guardian-ad-litem" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><ProfileGuard><SubscriptionGuard><GuardianAdLitem /></SubscriptionGuard></ProfileGuard></RoleRoute></ProtectedRoute>} />
+                    <Route path="/probate/bond-waiver" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><ProfileGuard><SubscriptionGuard><BondWaiver /></SubscriptionGuard></ProfileGuard></RoleRoute></ProtectedRoute>} />
+                    <Route path="/probate/special-notice" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><ProfileGuard><SubscriptionGuard><SpecialNotice /></SubscriptionGuard></ProfileGuard></RoleRoute></ProtectedRoute>} />
+                    <Route path="/probate/contested-probate" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><ProfileGuard><SubscriptionGuard><ContestedProbate /></SubscriptionGuard></ProfileGuard></RoleRoute></ProtectedRoute>} />
+                    <Route path="/probate/asset-sale" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><ProfileGuard><SubscriptionGuard><AssetSaleAuthorization /></SubscriptionGuard></ProfileGuard></RoleRoute></ProtectedRoute>} />
+                    <Route path="/probate/final-distribution" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><ProfileGuard><SubscriptionGuard><FinalDistribution /></SubscriptionGuard></ProfileGuard></RoleRoute></ProtectedRoute>} />
+                    <Route path="/probate/small-estate" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><ProfileGuard><SubscriptionGuard><SmallEstateAffidavit /></SubscriptionGuard></ProfileGuard></RoleRoute></ProtectedRoute>} />
+                    <Route path="/probate/letters" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><ProfileGuard><SubscriptionGuard><Letters /></SubscriptionGuard></ProfileGuard></RoleRoute></ProtectedRoute>} />
 
-                      <Route path="/discovery" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><Discovery /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
-                      <Route path="/liabilities" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><Liabilities /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
-                      {/* <Route path="/heirs" element={<ProtectedRoute><ProfileGuard><Heirs /></ProfileGuard></ProtectedRoute>} /> */}
-                      {/* <Route path="/collaboration" element={<ProtectedRoute><ProfileGuard><Collaboration /></ProfileGuard></ProtectedRoute>} /> */}
+                    <Route path="/discovery" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><ProfileGuard><SubscriptionGuard><Discovery /></SubscriptionGuard></ProfileGuard></RoleRoute></ProtectedRoute>} />
+                    <Route path="/liabilities" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><ProfileGuard><SubscriptionGuard><Liabilities /></SubscriptionGuard></ProfileGuard></RoleRoute></ProtectedRoute>} />
+                    {/* <Route path="/heirs" element={<ProtectedRoute><ProfileGuard><Heirs /></ProfileGuard></ProtectedRoute>} /> */}
+                    {/* <Route path="/collaboration" element={<ProtectedRoute><ProfileGuard><Collaboration /></ProfileGuard></ProtectedRoute>} /> */}
 
-                      {/* Financials */}
-                      <Route path="/accounting" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><Accounting /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
-                      <Route path="/tax-management" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><TaxManagement /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
-                      <Route path="/receipts" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><Receipts /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
-                      <Route path="/distribution" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><Distribution /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
-                      <Route path="/non-probate" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><NonProbate /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
+                    {/* Financials */}
+                    <Route path="/accounting" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><ProfileGuard><SubscriptionGuard><Accounting /></SubscriptionGuard></ProfileGuard></RoleRoute></ProtectedRoute>} />
+                    <Route path="/tax-management" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><ProfileGuard><SubscriptionGuard><TaxManagement /></SubscriptionGuard></ProfileGuard></RoleRoute></ProtectedRoute>} />
+                    <Route path="/receipts" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><ProfileGuard><SubscriptionGuard><Receipts /></SubscriptionGuard></ProfileGuard></RoleRoute></ProtectedRoute>} />
+                    <Route path="/distribution" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><ProfileGuard><SubscriptionGuard><Distribution /></SubscriptionGuard></ProfileGuard></RoleRoute></ProtectedRoute>} />
+                    <Route path="/non-probate" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><ProfileGuard><SubscriptionGuard><NonProbate /></SubscriptionGuard></ProfileGuard></RoleRoute></ProtectedRoute>} />
 
-                      {/* Settings & Help */}
-                      <Route path="/profile" element={<ProtectedRoute><ProfileGuard><ProfileSettings /></ProfileGuard></ProtectedRoute>} />
-                      <Route path="/settings" element={<ProtectedRoute><ProfileGuard><Settings /></ProfileGuard></ProtectedRoute>} />
-                      <Route path="/help" element={<ProtectedRoute><ProfileGuard><HelpCenter /></ProfileGuard></ProtectedRoute>} />
-                      {/* <Route path="/feed" element={<ProtectedRoute><ProfileGuard><Feed /></ProfileGuard></ProtectedRoute>} /> */}
+                    {/* Settings & Help */}
+                    <Route path="/profile" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><ProfileGuard><ProfileSettings /></ProfileGuard></RoleRoute></ProtectedRoute>} />
+                    <Route path="/settings" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><ProfileGuard><Settings /></ProfileGuard></RoleRoute></ProtectedRoute>} />
+                    <Route path="/help" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><ProfileGuard><HelpCenter /></ProfileGuard></RoleRoute></ProtectedRoute>} />
+                    {/* <Route path="/feed" element={<ProtectedRoute><ProfileGuard><Feed /></ProfileGuard></ProtectedRoute>} /> */}
 
-                      {/* Services */}
-                      <Route path="/estate-agent" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><EstateAgentChatWrapper /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
-                      <Route path="/estates/:estateId/agents" element={<ProtectedRoute><ProfileGuard><SubscriptionGuard><EstateAgents /></SubscriptionGuard></ProfileGuard></ProtectedRoute>} />
-                      <Route path="/marketplace" element={<ProtectedRoute><AdvisorMarketplace /></ProtectedRoute>} />
-                      <Route path="/my-bookings" element={<ProtectedRoute><MyBookings /></ProtectedRoute>} />
-                      <Route path="/payment-success" element={<ProtectedRoute><ProfileGuard><PaymentSuccess /></ProfileGuard></ProtectedRoute>} />
-                    </Route>
+                    {/* Services */}
+                    <Route path="/estate-agent" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><ProfileGuard><SubscriptionGuard><EstateAgentChatWrapper /></SubscriptionGuard></ProfileGuard></RoleRoute></ProtectedRoute>} />
+                    <Route path="/estates/:estateId/agents" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><ProfileGuard><SubscriptionGuard><EstateAgents /></SubscriptionGuard></ProfileGuard></RoleRoute></ProtectedRoute>} />
+                    <Route path="/marketplace" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><AdvisorMarketplace /></RoleRoute></ProtectedRoute>} />
+                    <Route path="/my-bookings" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><MyBookings /></RoleRoute></ProtectedRoute>} />
+                    <Route path="/payment-success" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><ProfileGuard><PaymentSuccess /></ProfileGuard></RoleRoute></ProtectedRoute>} />
 
-                    {/* Advisor Routes */}
+                    {/* Advisor Routes - Valid Layout Used Here */}
                     <Route path="/advisor/onboarding" element={
                       <ProtectedRoute>
                         <RoleRoute allowedRoles={['ADVISOR', 'ADMIN']}>
@@ -225,17 +218,9 @@ const App = () => (
                       <Route path="payouts" element={<AdvisorPayouts />} />
                     </Route>
 
-                    {/* Admin Routes */}
-                    <Route path="/admin" element={
-                      <ProtectedRoute>
-                        <RoleRoute allowedRoles={['ADMIN']}>
-                          <AdminLayout />
-                        </RoleRoute>
-                      </ProtectedRoute>
-                    }>
-                      <Route index element={<AdminDashboard />} />
-                      <Route path="institutions" element={<AdminInstitutions />} />
-                    </Route>
+                    {/* Admin Routes - Flattened as AdminLayout is missing */}
+                    <Route path="/admin" element={<ProtectedRoute><RoleRoute allowedRoles={['ADMIN']}><AdminDashboard /></RoleRoute></ProtectedRoute>} />
+                    <Route path="/admin/institutions" element={<ProtectedRoute><RoleRoute allowedRoles={['ADMIN']}><AdminInstitutions /></RoleRoute></ProtectedRoute>} />
 
                     <Route path="*" element={<NotFound />} />
                   </Routes>
