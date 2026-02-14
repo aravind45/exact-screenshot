@@ -104,10 +104,10 @@ const limiter = rateLimit({
 
 app.use("/api/", limiter);
 
-app.use(express.json({ limit: '1mb' })); // Request size limit
+app.use(express.json({ limit: '50mb' })); // Increased limit for base64 uploads
 app.use(express.raw({
     type: ['application/pdf', 'image/jpeg', 'image/png'],
-    limit: '10mb'
+    limit: '50mb'
 }));
 
 // Logger (Sanitized)
