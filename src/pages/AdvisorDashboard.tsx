@@ -21,8 +21,24 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { api } from '@/lib/api';
 import { toast } from 'sonner';
 
+import { useNavigate } from 'react-router-dom';
+import {
+    Alert,
+    AlertTitle,
+    AlertDescription
+} from "@/components/ui/alert";
+import {
+    ArrowRight
+} from "lucide-react";
+
 export default function AdvisorDashboard() {
+    const navigate = useNavigate();
     const queryClient = useQueryClient();
+
+    const { data: stripeStatus, isLoading: stripeLoading } = useQuery({
+        queryKey: ['stripe-status'],
+        queryFn: () => api.advisors.getStripeStatus()
+    });
 
     const { data: stats, isLoading: statsLoading } = useQuery({
         queryKey: ['advisor-dashboard-stats'],
@@ -104,6 +120,30 @@ export default function AdvisorDashboard() {
                         Manage your bookings and track your earnings.
                     </p>
                 </div>
+
+                {/* Stripe Payouts Reminder */}
+                {!stripeLoading && !stripeStatus?.stripeOnboardingComplete && (
+                    <Alert className="bg-indigo-50 border-indigo-100 text-indigo-900 rounded-3xl p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl shadow-indigo-50 border-2 border-dashed">
+                        <div className="flex items-center gap-6">
+                            <div className="w-16 h-16 rounded-2xl bg-indigo-600 text-white flex items-center justify-center flex-shrink-0 shadow-lg shadow-indigo-200">
+                                <CreditCard className="w-8 h-8" />
+                            </div>
+                            <div className="space-y-1">
+                                <AlertTitle className="text-2xl font-black tracking-tight">Setup Payouts</AlertTitle>
+                                <AlertDescription className="text-indigo-600 font-medium">
+                                    You need to connect your bank account to receive payments from clients.
+                                </AlertDescription>
+                            </div>
+                        </div>
+                        <Button
+                            onClick={() => navigate('/advisor/payouts')}
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white font-black h-14 px-8 rounded-2xl shadow-lg shadow-indigo-100 whitespace-nowrap"
+                        >
+                            Link Bank Account
+                            <ArrowRight className="w-4 h-4 ml-2" />
+                        </Button>
+                    </Alert>
+                )}
 
                 {/* Stats Overview */}
                 <div className="grid md:grid-cols-4 gap-6">

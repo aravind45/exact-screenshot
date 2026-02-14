@@ -19,6 +19,8 @@ import {
     HelpCircle,
     ScrollText,
     MessageSquare,
+    CreditCard,
+    ExternalLink,
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -96,7 +98,10 @@ export function Sidebar() {
                 { label: "Marketplace", icon: Search, path: "/marketplace" },
                 { label: "My Consultations", icon: MessageSquare, path: "/my-bookings" },
                 ...(user?.role === 'ADVISOR'
-                    ? [{ label: "Advisor Dashboard", icon: LayoutDashboard, path: "/advisor/dashboard" }]
+                    ? [
+                        { label: "Advisor Dashboard", icon: LayoutDashboard, path: "/advisor/dashboard" },
+                        { label: "Payout Settings", icon: CreditCard, path: "/advisor/payouts" }
+                    ]
                     : [{ label: "Become an Advisor", icon: Zap, path: "/advisor/onboarding" }]
                 ),
             ]

@@ -273,9 +273,9 @@ export default function AdvisorOnboarding() {
                                             onChange={(e) => setFormData({ ...formData, licenseNumber: e.target.value })}
                                         />
                                         <div className="flex items-center gap-3">
-                                            <Button 
-                                                type="button" 
-                                                variant="outline" 
+                                            <Button
+                                                type="button"
+                                                variant="outline"
                                                 className="bg-white whitespace-nowrap flex-1"
                                                 onClick={() => document.getElementById('license-upload')?.click()}
                                             >
@@ -311,129 +311,24 @@ export default function AdvisorOnboarding() {
                         </CardContent>
                     </Card>
 
-                    {/* Step 2: Stripe Connect */}
-                    <Card className={cn(
-                        "relative transition-all duration-300",
-                        isStripeComplete ? "border-emerald-200 bg-emerald-50/10" : "border-slate-200",
-                        !profile?.bio && "opacity-60 grayscale pointer-events-none"
-                    )}>
-                        <CardHeader>
-                            <div className="flex justify-between items-start">
-                                <div className="space-y-1">
-                                    <div className="flex items-center gap-3">
-                                        <div className={cn(
-                                            "w-10 h-10 rounded-xl flex items-center justify-center font-bold text-lg",
-                                            isStripeComplete ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-400"
-                                        )}>
-                                            2
-                                        </div>
-                                        <CardTitle className="text-xl">Payout Account Setup</CardTitle>
-                                    </div>
-                                    <CardDescription className="pl-13">
-                                        {!profile?.bio 
-                                            ? "Complete your profile first, then link your bank account."
-                                            : "Securely link your bank account to receive payments via Stripe."
-                                        }
-                                    </CardDescription>
-                                </div>
-                                {isStripeComplete && <CheckCircle2 className="w-6 h-6 text-emerald-500" />}
+                    {/* Final Completion Action */}
+                    {isVerified && (
+                        <div className="mt-12 p-8 bg-emerald-50 rounded-3xl border border-emerald-100 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl shadow-emerald-50">
+                            <div className="space-y-1">
+                                <h3 className="text-2xl font-black text-emerald-900">Registration Complete!</h3>
+                                <p className="text-emerald-700">You are now a verified ExpectedEstate Advisor. Ready to accept clients?</p>
                             </div>
-                        </CardHeader>
-                        <CardFooter className="bg-slate-50/50 border-t border-slate-100 py-6">
-                            {isStripeComplete ? (
-                                <p className="text-sm text-emerald-700 font-medium flex items-center gap-2">
-                                    <CheckCircle2 className="w-4 h-4" />
-                                    Your payout account is verified and ready.
-                                </p>
-                            ) : (
-                                <div className="w-full space-y-4">
-                                    <div className="bg-white p-4 rounded-xl border border-slate-100 flex items-start gap-3">
-                                        <ShieldCheck className="w-5 h-5 text-indigo-600 flex-shrink-0 mt-0.5" />
-                                        <div className="text-xs text-slate-500 leading-relaxed">
-                                            We use <a href="https://stripe.com/connect" target="_blank" className="underline font-bold">Stripe Connect</a> for all financial operations. Your data is encrypted and ExpectedEstate never stores your bank details.
-                                        </div>
-                                    </div>
-                                    <Button
-                                        onClick={handleStartStripe}
-                                        className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black h-12 rounded-xl group shadow-lg shadow-indigo-100"
-                                        disabled={stripeLoading || !profile?.bio}
-                                    >
-                                        {stripeLoading ? (
-                                            <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                                        ) : (
-                                            <CreditCard className="w-4 h-4 mr-2" />
-                                        )}
-                                        {isStripeDetailsSubmitted ? "Resume / Check Status" : "Connect with Stripe"}
-                                        <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                                    </Button>
-                                </div>
-                            )}
-                        </CardFooter>
-                    </Card>
-                </div>
-
-                <div className="space-y-6">
-                    <Card className="bg-indigo-900 text-white border-none overflow-hidden relative shadow-2xl shadow-indigo-100">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16" />
-                        <CardHeader>
-                            <CardTitle className="text-lg">Why Onboard?</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4 text-sm relative z-10">
-                            <div className="flex gap-3">
-                                <ShieldCheck className="w-5 h-5 text-indigo-300" />
-                                <p className="text-indigo-100 group-hover:text-white transition-colors">Verified Badge boosts booking conversions by 45%.</p>
-                            </div>
-                            <div className="flex gap-3">
-                                <Banknote className="w-5 h-5 text-indigo-300" />
-                                <p className="text-indigo-100">Automated payouts directly to your bank.</p>
-                            </div>
-                            <div className="flex gap-3">
-                                <Clock className="w-5 h-5 text-indigo-300" />
-                                <p className="text-indigo-100">Escrow protection for every single session.</p>
-                            </div>
-                            <Button variant="outline" className="w-full bg-white/10 border-white/20 hover:bg-white/20 text-white mt-4 font-bold border-none" asChild>
-                                <a href="https://stripe.com/connect" target="_blank">About Stripe <ExternalLink className="w-3 h-3 ml-2" /></a>
+                            <Button
+                                onClick={() => navigate('/advisor/dashboard')}
+                                className="bg-emerald-600 hover:bg-emerald-700 text-white font-black px-10 h-14 rounded-2xl shadow-lg shadow-emerald-200 transition-all active:scale-[0.98]"
+                            >
+                                Go to Dashboard
+                                <ArrowRight className="w-5 h-5 ml-2" />
                             </Button>
-                        </CardContent>
-                    </Card>
-
-                    <Card className="border-slate-200 shadow-none bg-slate-50/50">
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-xs font-black text-slate-400 uppercase tracking-widest">Platform Fees</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="flex justify-between items-end border-b border-slate-200 pb-2">
-                                <span className="text-sm text-slate-600">You Keep</span>
-                                <span className="text-2xl font-black text-indigo-600">80%</span>
-                            </div>
-                            <div className="flex justify-between items-end">
-                                <span className="text-sm text-slate-600">Platform Fee</span>
-                                <span className="text-lg font-bold text-slate-400">20%</span>
-                            </div>
-                            <p className="text-[10px] text-slate-400 leading-relaxed italic">
-                                Fee includes Stripe processing, marketplace insurance, marketing, and 24/7 dispute support.
-                            </p>
-                        </CardContent>
-                    </Card>
+                        </div>
+                    )}
                 </div>
             </div>
-
-            {/* Final Completion Action */}
-            {isStripeComplete && isVerified && (
-                <div className="mt-12 p-8 bg-emerald-50 rounded-3xl border border-emerald-100 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl shadow-emerald-50">
-                    <div className="space-y-1">
-                        <h3 className="text-2xl font-black text-emerald-900">Registration Complete!</h3>
-                        <p className="text-emerald-700">You are now a verified ExpectedEstate Advisor. Ready to accept clients?</p>
-                    </div>
-                    <Button
-                        onClick={() => navigate('/advisor/dashboard')}
-                        className="bg-emerald-600 hover:bg-emerald-700 text-white font-black px-10 h-14 rounded-2xl shadow-lg shadow-emerald-200 transition-all active:scale-[0.98]"
-                    >
-                        Go to Dashboard
-                        <ArrowRight className="w-5 h-5 ml-2" />
-                    </Button>
-                </div>
-            )}
         </div>
     );
 }

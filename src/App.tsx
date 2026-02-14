@@ -71,6 +71,7 @@ import DiscoveryQuiz from "./components/landing/DiscoveryQuiz";
 import AdvisorMarketplace from "./pages/AdvisorMarketplace";
 import AdvisorOnboarding from "./pages/AdvisorOnboarding";
 import AdvisorDashboard from "./pages/AdvisorDashboard";
+import AdvisorPayouts from "./pages/AdvisorPayouts";
 import MyBookings from "./pages/MyBookings";
 
 
@@ -152,6 +153,7 @@ const App = () => (
                     <Route path="/marketplace" element={<ProtectedRoute><ProfileGuard><AdvisorMarketplace /></ProfileGuard></ProtectedRoute>} />
                     <Route path="/advisor/onboarding" element={<ProtectedRoute><ProfileGuard><AdvisorOnboarding /></ProfileGuard></ProtectedRoute>} />
                     <Route path="/advisor/dashboard" element={<ProtectedRoute><ProfileGuard><AdvisorDashboard /></ProfileGuard></ProtectedRoute>} />
+                    <Route path="/advisor/payouts" element={<ProtectedRoute><ProfileGuard><AdvisorPayouts /></ProfileGuard></ProtectedRoute>} />
                     <Route path="/my-bookings" element={<ProtectedRoute><ProfileGuard><MyBookings /></ProfileGuard></ProtectedRoute>} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
