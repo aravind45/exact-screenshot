@@ -11,6 +11,8 @@ import {
   calculateAuthorityRecommendation,
   getMasterMode,
   getInstitutionAuthorityRequirement,
+  getStateRule,
+  UPC_STATES,
   STATE_THRESHOLDS,
   type AuthorityType,
   type MasterMode,
@@ -401,6 +403,133 @@ describe('Edge Cases', () => {
 
     expect(result.isEligibleForSmallEstate).toBe(false);
     expect(result.type).toBe('FORMAL_PROBATE');
+  });
+});
+
+
+describe('Phase 1: 10-State Deep Coverage Matrix', () => {
+  /**
+   * Phase 1: Deep coverage for 10 pilot states.
+   * Phase 2: Expansion from 10 states -> all 50 states + DC once pilot is stable.
+   */
+  const PILOT_STATES = ['CA', 'FL', 'TX', 'NY', 'CO', 'IL', 'PA', 'AZ', 'GA', 'WA'];
+
+  PILOT_STATES.forEach(state => {
+    describe(`Routing Logic for ${state}`, () => {
+      const rule = getStateRule(state);
+      const threshold = rule.threshold;
+
+      it(`Should handle threshold boundaries for ${state}`, () => {
+        // Below threshold - FL/NY special procedures apply strictly BELOW threshold
+        const below = calculateAuthorityRecommendation(
+          [{ value: threshold - 100, ownershipType: 'INDIVIDUAL', assetType: 'CHECKING' }],
+          state,
+          { hasWill: true }
+        );
+
+        if (state === 'FL') {
+          expect(below.procedureType).toBe('SUMMARY_ADMINISTRATION');
+        } else if (state === 'NY') {
+          expect(below.procedureType).toBe('VOLUNTARY_ADMINISTRATION');
+        } else {
+          expect(below.type).toBe('SMALL_ESTATE');
+        }
+
+        // At threshold - Should be standard SMALL_ESTATE (Affidavit)
+        const at = calculateAuthorityRecommendation(
+          [{ value: threshold, ownershipType: 'INDIVIDUAL', assetType: 'CHECKING' }],
+          state,
+          { hasWill: true }
+        );
+        expect(at.type).toBe('SMALL_ESTATE');
+
+        // Above threshold
+        const above = calculateAuthorityRecommendation(
+          [{ value: threshold + 100, ownershipType: 'INDIVIDUAL', assetType: 'CHECKING' }],
+          state,
+          { hasWill: true }
+        );
+
+        if (state === 'TX') {
+          expect(above.type).toBe('MUNIMENT_OF_TITLE');
+        } else if (UPC_STATES.includes(state)) {
+          expect(above.type).toBe('INFORMAL_PROBATE');
+        } else {
+          expect(above.type).toBe('FORMAL_PROBATE');
+        }
+      });
+
+      it(`Should handle intestate above-threshold for ${state}`, () => {
+        const result = calculateAuthorityRecommendation(
+          [{ value: threshold + 1000, ownershipType: 'INDIVIDUAL', assetType: 'CHECKING' }],
+          state,
+          { hasWill: false }
+        );
+        expect(result.type).toBe('INTESTATE');
+        expect(result.masterMode).toBe('COURT_SUPERVISED');
+      });
+
+      describe(`${state} Override Precedence`, () => {
+        it('Should prioritize isOutOfState => ANCILLARY_PROBATE', () => {
+          const result = calculateAuthorityRecommendation(
+            [{ value: threshold + 1000, ownershipType: 'INDIVIDUAL', assetType: 'CHECKING' }],
+            state,
+            { hasWill: true, isOutOfState: true }
+          );
+          expect(result.type).toBe('ANCILLARY_PROBATE');
+        });
+
+        it('Should prioritize isSpouse => SPOUSAL_PETITION', () => {
+          const result = calculateAuthorityRecommendation(
+            [{ value: threshold + 1000, ownershipType: 'INDIVIDUAL', assetType: 'CHECKING' }],
+            state,
+            { hasWill: true, isSpouse: true }
+          );
+          expect(result.type).toBe('SPOUSAL_PETITION');
+        });
+
+        it('Should handle hasContest correctly', () => {
+          const result = calculateAuthorityRecommendation(
+            [{ value: threshold + 1000, ownershipType: 'INDIVIDUAL', assetType: 'CHECKING' }],
+            state,
+            { hasWill: true, hasContest: true }
+          );
+
+          if (state === 'TX') {
+            // TX behavior currently remains muniment per engine logic
+            // TODO: Verify if contested wills should still route to Muniment in TX
+            expect(result.type).toBe('MUNIMENT_OF_TITLE');
+          } else {
+            expect(result.type).toBe('FORMAL_PROBATE');
+          }
+        });
+      });
+
+      it(`Should handle non-probate and discovery tracks for ${state}`, () => {
+        // Trust-only
+        const trust = calculateAuthorityRecommendation(
+          [{ value: 500000, ownershipType: 'TRUST', assetType: 'REAL_ESTATE', inTrust: true }],
+          state,
+          { isTrustRevocable: true }
+        );
+        expect(trust.type).toBe('TRUST_ADMIN_REVOCABLE');
+        expect(trust.procedureType).toBe('TRUST_ADMINISTRATION');
+
+        // TOD deed
+        const tod = calculateAuthorityRecommendation(
+          [{ value: 500000, ownershipType: 'INDIVIDUAL', assetType: 'REAL_ESTATE', todDeedRecorded: true }],
+          state,
+          { hasTODDeed: true }
+        );
+        expect(tod.type).toBe('TOD_DEED');
+        expect(tod.procedureType).toBe('DIRECT_TRANSFER');
+
+        // Empty assets
+        const empty = calculateAuthorityRecommendation([], state);
+        expect(empty.type).toBe('DISCOVERY');
+        expect(empty.procedureType).toBe('DISCOVERY');
+      });
+    });
   });
 });
 
