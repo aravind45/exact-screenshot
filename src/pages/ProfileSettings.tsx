@@ -19,13 +19,7 @@ import { motion } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Sidebar } from "@/components/Sidebar";
 
-const US_STATES = [
-    "Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware", "Florida", "Georgia",
-    "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland",
-    "Massachusetts", "Michigan", "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire", "New Jersey",
-    "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", "South Carolina",
-    "South Dakota", "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming"
-];
+import { US_STATES } from "@/lib/states";
 
 export default function ProfileSettings() {
     const navigate = useNavigate();
@@ -216,8 +210,8 @@ export default function ProfileSettings() {
                                                         </SelectTrigger>
                                                         <SelectContent>
                                                             {US_STATES.map((state) => (
-                                                                <SelectItem key={state} value={state}>
-                                                                    {state}
+                                                                <SelectItem key={state.abbr} value={state.name}>
+                                                                    {state.name}
                                                                 </SelectItem>
                                                             ))}
                                                         </SelectContent>

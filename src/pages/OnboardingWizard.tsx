@@ -33,6 +33,7 @@ import { calculateAuthorityRecommendation } from "@/lib/authorityEngine";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { IntestacyDistributionPreview } from "@/components/IntestacyDistributionPreview";
 import { useTracking } from "@/hooks/useTracking";
+import { US_STATES } from "@/lib/states";
 
 const STEPS = [
     { id: "welcome", title: "Welcome" },
@@ -406,11 +407,11 @@ export default function OnboardingWizard() {
                                                             <SelectValue placeholder="Select" />
                                                         </SelectTrigger>
                                                         <SelectContent>
-                                                            <SelectItem value="CA">California</SelectItem>
-                                                            <SelectItem value="NY">New York</SelectItem>
-                                                            <SelectItem value="TX">Texas</SelectItem>
-                                                            <SelectItem value="FL">Florida</SelectItem>
-                                                            <SelectItem value="WA">Washington</SelectItem>
+                                                            {US_STATES.map((state) => (
+                                                                <SelectItem key={state.abbr} value={state.abbr}>
+                                                                    {state.name}
+                                                                </SelectItem>
+                                                            ))}
                                                         </SelectContent>
                                                     </Select>
                                                 </div>

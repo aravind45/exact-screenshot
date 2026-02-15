@@ -1107,15 +1107,14 @@ export const api = {
         return parseResponse(response);
     },
 
-    generateForm: async (formId: string, isPreview: boolean = true, filename: string = "generated-form.pdf") => {
+    generateForm: async (formId: string, isPreview: boolean = true): Promise<Blob> => {
         const response = await fetch(`${API_URL}/forms/generate`, {
             method: "POST",
             headers: getHeaders(),
             body: JSON.stringify({ formId, isPreview }),
         });
         if (!response.ok) throw new Error("Failed to generate form");
-        const blob = await response.blob();
-        downloadBlob(blob, filename);
+        return await response.blob();
     },
 
     getFormTemplates: async () => {
@@ -1125,13 +1124,12 @@ export const api = {
         return parseResponse(response);
     },
 
-    getTemplateFile: async (name: string, filename?: string) => {
+    getTemplateFile: async (name: string): Promise<Blob> => {
         const response = await fetch(`${API_URL}/forms/templates/${name}/download`, {
             headers: getHeaders(),
         });
         if (!response.ok) throw new Error("Failed to download template");
-        const blob = await response.blob();
-        downloadBlob(blob, filename || `${name}.pdf`);
+        return await response.blob();
     },
 
     inviteCollaborator: async (data: { estateId: string, email: string, role: string }) => {

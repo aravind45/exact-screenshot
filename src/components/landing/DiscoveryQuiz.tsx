@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { calculateAuthorityRecommendation } from "@/lib/authorityEngine";
+import { US_STATES } from "@/lib/states";
 
 const STEPS = [
     { id: "intro", title: "Let's Start" },
@@ -156,13 +157,11 @@ export default function DiscoveryQuiz() {
                                                     <SelectValue placeholder="Select a State" />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    <SelectItem value="CA">California</SelectItem>
-                                                    <SelectItem value="NY">New York</SelectItem>
-                                                    <SelectItem value="TX">Texas</SelectItem>
-                                                    <SelectItem value="FL">Florida</SelectItem>
-                                                    <SelectItem value="WA">Washington</SelectItem>
-                                                    <SelectItem value="IL">Illinois</SelectItem>
-                                                    <SelectItem value="GA">Georgia</SelectItem>
+                                                    {US_STATES.map((state) => (
+                                                        <SelectItem key={state.abbr} value={state.abbr}>
+                                                            {state.name}
+                                                        </SelectItem>
+                                                    ))}
                                                 </SelectContent>
                                             </Select>
                                             <p className="text-[10px] text-slate-400 text-center uppercase tracking-tighter">Choose the state where the deceased lived permanently.</p>
