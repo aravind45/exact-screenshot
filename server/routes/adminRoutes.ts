@@ -88,13 +88,39 @@ router.get("/stats", isAdmin, async (req: any, res: Response) => {
 
 router.get("/users", isAdmin, async (req: any, res: Response) => {
     try {
-        const users = await prisma.user.findMany({
-            include: {
-                _count: { select: { estates: true, communications: true } },
-                estates: { select: { id: true, name: true } }
-            }
+        const page = parseInt(req.query.page as string) || 1;
+        const limit = parseInt(req.query.limit as string) || 50;
+        const search = (req.query.search as string) || "";
+        const skip = (page - 1) * limit;
+
+        const where: any = search ? {
+            OR: [
+                { fullName: { contains: search, mode: 'insensitive' } },
+                { email: { contains: search, mode: 'insensitive' } }
+            ]
+        } : {};
+
+        const [users, total] = await Promise.all([
+            prisma.user.findMany({
+                where,
+                include: {
+                    _count: { select: { estates: true, communications: true } },
+                    estates: { select: { id: true, name: true } }
+                },
+                orderBy: { createdAt: 'desc' },
+                skip,
+                take: limit
+            }),
+            prisma.user.count({ where })
+        ]);
+
+        res.json({
+            data: users,
+            total,
+            page,
+            limit,
+            totalPages: Math.ceil(total / limit)
         });
-        res.json(users);
     } catch (error: any) {
         logger.error("Failed to fetch admin users:", error.message);
         res.status(500).json({ error: "Failed to fetch users" });

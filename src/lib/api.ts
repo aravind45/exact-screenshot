@@ -360,8 +360,13 @@ export const api = {
             const response = await fetch(`${API_URL}/admin/stats`, { headers: getHeaders() });
             return parseResponse(response);
         },
-        getUsers: async () => {
-            const response = await fetch(`${API_URL}/admin/users`, { headers: getHeaders() });
+        getUsers: async (params?: { page?: number, limit?: number, search?: string }) => {
+            const query = new URLSearchParams();
+            if (params?.page) query.append("page", params.page.toString());
+            if (params?.limit) query.append("limit", params.limit.toString());
+            if (params?.search) query.append("search", params.search);
+            const queryString = query.toString() ? `?${query.toString()}` : "";
+            const response = await fetch(`${API_URL}/admin/users${queryString}`, { headers: getHeaders() });
             return parseResponse(response);
         },
         getInstitutions: async () => {
@@ -631,8 +636,13 @@ export const api = {
         return parseResponse(response);
     },
 
-    getAdminUsers: async () => {
-        const response = await fetch(`${API_URL}/admin/users`, {
+    getAdminUsers: async (params?: { page?: number, limit?: number, search?: string }) => {
+        const query = new URLSearchParams();
+        if (params?.page) query.append("page", params.page.toString());
+        if (params?.limit) query.append("limit", params.limit.toString());
+        if (params?.search) query.append("search", params.search);
+        const queryString = query.toString() ? `?${query.toString()}` : "";
+        const response = await fetch(`${API_URL}/admin/users${queryString}`, {
             headers: getHeaders(),
         });
         return parseResponse(response);

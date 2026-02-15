@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
@@ -24,7 +24,9 @@ import {
     RefreshCcw,
     BookOpen,
     Trash2,
-    TrendingUp
+    TrendingUp,
+    ChevronLeft,
+    ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -79,10 +81,26 @@ export default function AdminDashboard() {
         queryFn: () => api.admin.getStats(),
     });
 
-    const { data: users, isLoading: usersLoading } = useQuery({
-        queryKey: ["admin", "users"],
-        queryFn: () => api.admin.getUsers(),
+    const [page, setPage] = useState(1);
+    const [pageSize] = useState(25);
+    const [debouncedSearch, setDebouncedSearch] = useState(searchTerm);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearch(searchTerm);
+            setPage(1);
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [searchTerm]);
+
+    const { data: userData, isLoading: usersLoading } = useQuery({
+        queryKey: ["admin", "users", page, debouncedSearch],
+        queryFn: () => api.admin.getUsers({ page, limit: pageSize, search: debouncedSearch }),
     });
+
+    const users = userData?.data;
+    const totalUsers = userData?.total;
+    const totalPages = userData?.totalPages;
 
     const resetMutation = useMutation({
         mutationFn: (estateId: string) => api.admin.resetEstate(estateId),
@@ -133,10 +151,8 @@ export default function AdminDashboard() {
         queryFn: () => api.admin.getInstitutions(),
     });
 
-    const filteredUsers = users?.filter((u: any) =>
-        u.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        u.email.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    // Server-side filtering now handled by useQuery
+    const filteredUsers = users;
 
     return (
         <div className="flex min-h-screen bg-[#F8FAFC]">
@@ -250,13 +266,27 @@ export default function AdminDashboard() {
                                                 <th className="px-6 py-4">Location</th>
                                                 <th className="px-6 py-4">Subscription</th>
                                                 <th className="px-6 py-4">Estates</th>
+                                                <th className="px-6 py-4">Registered</th>
                                                 <th className="px-6 py-4">Logs</th>
                                                 <th className="px-6 py-4">Status</th>
                                                 <th className="px-6 py-4 text-right">Actions</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-border/50">
-                                            {filteredUsers?.map((user: any) => (
+                                            {usersLoading ? (
+                                                <tr>
+                                                    <td colSpan={8} className="px-6 py-20 text-center text-muted-foreground">
+                                                        <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" />
+                                                        Loading users...
+                                                    </td>
+                                                </tr>
+                                            ) : filteredUsers?.length === 0 ? (
+                                                <tr>
+                                                    <td colSpan={8} className="px-6 py-20 text-center text-muted-foreground font-medium">
+                                                        No users found matching your search.
+                                                    </td>
+                                                </tr>
+                                            ) : filteredUsers?.map((user: any) => (
                                                 <tr key={user.id} className="hover:bg-muted/30 transition-colors">
                                                     <td className="px-6 py-4">
                                                         <div className="flex flex-col">
@@ -280,6 +310,9 @@ export default function AdminDashboard() {
                                                     </td>
                                                     <td className="px-6 py-4 font-medium">
                                                         {user._count.estates}
+                                                    </td>
+                                                    <td className="px-6 py-4 text-xs text-muted-foreground whitespace-nowrap">
+                                                        {new Date(user.createdAt).toLocaleDateString()}
                                                     </td>
                                                     <td className="px-6 py-4 text-xs text-muted-foreground">
                                                         {user._count.communications}
@@ -334,6 +367,38 @@ export default function AdminDashboard() {
                                             ))}
                                         </tbody>
                                     </table>
+                                </div>
+
+                                {/* Pagination Controls */}
+                                <div className="p-4 border-t border-border/50 flex items-center justify-between bg-muted/20">
+                                    <p className="text-xs text-muted-foreground">
+                                        Showing {users?.length > 0 ? (page - 1) * pageSize + 1 : 0} to {Math.min(page * pageSize, totalUsers || 0)} of {totalUsers || 0} users
+                                    </p>
+                                    <div className="flex items-center gap-2">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => setPage(p => Math.max(1, p - 1))}
+                                            disabled={page === 1}
+                                            className="h-8 text-xs"
+                                        >
+                                            <ChevronLeft className="w-3.5 h-3.5 mr-1" /> Previous
+                                        </Button>
+                                        <div className="flex items-center gap-1">
+                                            <span className="text-xs font-medium px-2 text-muted-foreground">
+                                                Page <span className="text-foreground">{page}</span> of {totalPages || 1}
+                                            </span>
+                                        </div>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => setPage(p => Math.min(totalPages || 1, p + 1))}
+                                            disabled={page >= (totalPages || 1)}
+                                            className="h-8 text-xs"
+                                        >
+                                            Next <ChevronRight className="w-3.5 h-3.5 ml-1" />
+                                        </Button>
+                                    </div>
                                 </div>
                             </div>
                         </TabsContent>
