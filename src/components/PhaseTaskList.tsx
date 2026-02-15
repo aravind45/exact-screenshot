@@ -4,8 +4,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { SETTLEMENT_PHASE_TASKS, type PhaseTask } from "@/config/settlementPhases";
-import type { SettlementPhase } from "@/components/SettlementPhaseChevron";
+import { SETTLEMENT_PHASE_TASKS, type PhaseTask, type SettlementPhase } from "@/config/settlementPhases";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
@@ -269,7 +268,7 @@ export function PhaseTaskList({
                             variant="ghost"
                             size="sm"
                             className="h-7 w-7 p-0 text-slate-400 hover:text-indigo-600"
-                            onClick={() => window.open(api.getEstateDocumentDownloadUrl(doc.documentType), "_blank")}
+                            onClick={() => api.viewEstateDocument(doc.documentType)}
                           >
                             <Download className="w-3.5 h-3.5" />
                           </Button>
@@ -580,7 +579,7 @@ function TaskItem({ task, isCompleted, onToggle, getAlertIcon, getAlertColor, do
                                   variant="outline"
                                   size="sm"
                                   className="h-8 px-3 text-[10px] font-bold bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-indigo-600"
-                                  onClick={() => window.open(api.getEstateDocumentDownloadUrl(uploadedDoc.documentType), "_blank")}
+                                  onClick={() => api.viewEstateDocument(uploadedDoc.documentType)}
                                 >
                                   <Download className="w-3.5 h-3.5 mr-2" />
                                   Download

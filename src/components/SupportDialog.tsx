@@ -38,7 +38,7 @@ export function SupportDialog({ open, onOpenChange, defaultTab = "feedback" }: S
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "Authorization": `Bearer ${localStorage.getItem("auth_token")}`
+                    "Authorization": `Bearer ${api.getToken()}`
                 },
                 body: JSON.stringify(data)
             }).then(res => res.json()),
@@ -58,7 +58,7 @@ export function SupportDialog({ open, onOpenChange, defaultTab = "feedback" }: S
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "Authorization": `Bearer ${localStorage.getItem("auth_token")}`
+                    "Authorization": `Bearer ${api.getToken()}`
                 },
                 body: JSON.stringify(data)
             }).then(res => res.json()),

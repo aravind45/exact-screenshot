@@ -492,7 +492,7 @@ export function CollapsiblePhaseChevron({ onTaskToggle }: CollapsiblePhaseChevro
                                           className="h-7 w-7 p-0 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50"
                                           onClick={(e) => {
                                             e.stopPropagation();
-                                            window.open(api.getEstateDocumentDownloadUrl(uploaded.documentType), "_blank");
+                                            api.viewEstateDocument(uploaded.documentType);
                                           }}
                                         >
                                           <Eye className="w-3.5 h-3.5" />
@@ -564,7 +564,7 @@ export function CollapsiblePhaseChevron({ onTaskToggle }: CollapsiblePhaseChevro
                                           className="h-5 w-5 p-0 text-slate-400 hover:text-indigo-600"
                                           onClick={(e) => {
                                             e.stopPropagation();
-                                            window.open(api.getEstateDocumentDownloadUrl(uploaded.documentType), "_blank");
+                                            api.viewEstateDocument(uploaded.documentType);
                                           }}
                                         >
                                           <Eye className="w-3 h-3" />
@@ -629,7 +629,7 @@ export function CollapsiblePhaseChevron({ onTaskToggle }: CollapsiblePhaseChevro
                                     variant="ghost"
                                     size="sm"
                                     className="h-7 w-7 p-0 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50"
-                                    onClick={() => window.open(api.getEstateDocumentDownloadUrl(doc.documentType), "_blank")}
+                                    onClick={() => api.viewEstateDocument(doc.documentType)}
                                   >
                                     <Eye className="w-3.5 h-3.5" />
                                   </Button>

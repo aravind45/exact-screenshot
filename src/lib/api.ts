@@ -245,6 +245,11 @@ const downloadBlob = (blob: Blob, filename: string) => {
     window.URL.revokeObjectURL(url);
 };
 
+const openBlobInNewTab = (blob: Blob) => {
+    const url = window.URL.createObjectURL(blob);
+    window.open(url, '_blank');
+};
+
 const parseResponse = async (response: Response) => {
     const text = await response.text();
     let data;
@@ -269,6 +274,7 @@ const parseResponse = async (response: Response) => {
 };
 
 export const api = {
+    getToken,
     /**
      * Auth Methods
      */
@@ -480,6 +486,24 @@ export const api = {
             headers: getHeaders(),
         });
         return parseResponse(response);
+    },
+
+    async downloadEstateDocument(formCode: string, filename: string = "document.pdf") {
+        const response = await fetch(`${API_URL}/estates/my/documents/${formCode}/download`, {
+            headers: getHeaders(),
+        });
+        if (!response.ok) throw new Error("Failed to download document");
+        const blob = await response.blob();
+        downloadBlob(blob, filename);
+    },
+
+    async viewEstateDocument(formCode: string) {
+        const response = await fetch(`${API_URL}/estates/my/documents/${formCode}/download`, {
+            headers: getHeaders(),
+        });
+        if (!response.ok) throw new Error("Failed to view document");
+        const blob = await response.blob();
+        openBlobInNewTab(blob);
     },
 
     // Liabilities
@@ -913,14 +937,7 @@ export const api = {
         return parseResponse(response);
     },
 
-    async downloadEstateDocument(formCode: string, filename: string) {
-        const response = await fetch(`${API_URL}/estates/my/documents/${formCode}/download`, {
-            headers: getHeaders(),
-        });
-        if (!response.ok) throw new Error("Failed to download document");
-        const blob = await response.blob();
-        downloadBlob(blob, filename);
-    },
+    // Removed duplicate downloadEstateDocument
 
     /**
      * Deadline Methods

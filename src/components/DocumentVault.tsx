@@ -403,7 +403,7 @@ export function DocumentVault() {
                                             variant="outline"
                                             size="sm"
                                             className="w-full h-8 text-[10px] font-bold bg-white border-slate-200 text-slate-600 hover:text-indigo-600"
-                                            onClick={() => window.open(api.getEstateDocumentDownloadUrl(foundation.type), "_blank")}
+                                            onClick={() => api.viewEstateDocument(foundation.type)}
                                         >
                                             <Download className="w-3.5 h-3.5 mr-2" />
                                             View Document
@@ -563,7 +563,7 @@ export function DocumentVault() {
                                                 <Button
                                                     variant="outline"
                                                     size="sm"
-                                                    onClick={() => window.open(api.getEstateDocumentDownloadUrl(doc.documentType), "_blank")}
+                                                    onClick={() => api.viewEstateDocument(doc.documentType)}
                                                 >
                                                     <Download className="w-4 h-4 mr-2" />
                                                     Download
