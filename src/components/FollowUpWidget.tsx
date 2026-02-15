@@ -20,29 +20,7 @@ interface FollowUpWidgetProps {
 }
 
 export function FollowUpWidget({ followUps, onFollowUpClick, className }: FollowUpWidgetProps) {
-  if (followUps.length === 0) {
-    return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className={cn(
-          'card-elevated p-4 bg-green-50/50 border-green-100',
-          className
-        )}
-      >
-        <div className="flex items-center gap-2 text-green-600">
-          <div className="p-1.5 bg-green-100 rounded-lg">
-            <Clock className="w-4 h-4" />
-          </div>
-          <div>
-            <h3 className="font-semibold">All caught up!</h3>
-            <p className="text-sm text-slate-500">No pending follow-ups right now</p>
-          </div>
-        </div>
-      </motion.div>
-    );
-  }
+  if (followUps.length === 0) return null;
 
   return (
     <motion.div

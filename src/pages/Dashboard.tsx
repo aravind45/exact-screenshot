@@ -544,7 +544,7 @@ export default function Dashboard() {
                         onFollowUpClick={handleAssetClick}
                       />
 
-                      {realFollowUps.length === 0 && (
+                      {realFollowUps.length === 0 && (taxonomyStats.blocked || 0) === 0 && (
                         <div className="p-8 text-center border-2 border-dashed border-emerald-100 bg-emerald-50/30 rounded-2xl">
                           <CheckCircle2 className="w-8 h-8 text-emerald-500 mx-auto mb-2" />
                           <p className="text-sm font-bold text-emerald-700">All caught up!</p>
