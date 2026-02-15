@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
+import { ShieldCheck } from "lucide-react";
 
 export function HeroSection() {
   return (
@@ -52,18 +53,23 @@ export function HeroSection() {
             transition={{ duration: 0.6, delay: 0.4 }}
             className="flex flex-col sm:flex-row justify-center gap-6 items-center"
           >
-            <Link to="/start">
-              <Button size="lg" className="h-20 px-14 text-xl font-bold rounded-full bg-primary hover:bg-primary/90 shadow-[0_25px_60px_rgba(37,99,235,0.35)] transition-all hover:scale-105 active:scale-95 group">
-                Get My Free Roadmap
-                <span className="ml-3 group-hover:translate-x-2 transition-transform">→</span>
-              </Button>
-            </Link>
+            <div className="flex flex-col gap-4">
+              <Link to="/start">
+                <Button size="lg" className="h-20 px-14 text-xl font-bold rounded-full bg-primary hover:bg-primary/90 shadow-[0_25px_60px_rgba(37,99,235,0.35)] transition-all hover:scale-105 active:scale-95 group">
+                  Get My Free Roadmap
+                  <span className="ml-3 group-hover:translate-x-2 transition-transform">→</span>
+                </Button>
+              </Link>
+              <p className="text-xs font-bold text-primary flex items-center justify-center gap-1.5 bg-primary/5 py-2 px-4 rounded-full">
+                <ShieldCheck className="w-3.5 h-3.5" /> 100% Money-Back Promise
+              </p>
+            </div>
             <div className="flex flex-col items-center sm:items-start gap-1">
               <a href="#services" className="text-lg font-bold text-muted-foreground hover:text-primary transition-colors">
                 How it works
               </a>
               <p className="text-[10px] text-muted-foreground/60 font-black uppercase tracking-widest flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-success" /> Trusted by Executors
+                <span className="w-1.5 h-1.5 rounded-full bg-success" /> Joined by 1,200+ families
               </p>
             </div>
           </motion.div>

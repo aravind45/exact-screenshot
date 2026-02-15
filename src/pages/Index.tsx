@@ -199,8 +199,10 @@ const Index = () => {
                 viewport={{ once: true }}
                 className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-black uppercase tracking-[0.2em] mb-8"
               >
-                <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                Contact Support
+                <div className="flex flex-col items-center gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                  <span>Joined by 1,200+ families this year</span>
+                </div>
               </motion.div>
               <motion.h2
                 initial={{ opacity: 0, y: 20 }}
@@ -220,6 +222,9 @@ const Index = () => {
                   Get My Executor Roadmap
                   <span className="ml-3">→</span>
                 </Button>
+                <p className="text-sm font-bold text-primary flex items-center gap-2 bg-primary/5 py-2.5 px-6 rounded-full border border-primary/10">
+                  <ShieldCheck className="w-4 h-4" /> 100% Satisfaction Money-Back Promise
+                </p>
 
                 <div className="pt-16 border-t border-border/50 w-full max-w-2xl">
                   <ContactForm />

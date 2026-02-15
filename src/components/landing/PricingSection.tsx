@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Check, Gem } from "lucide-react";
+import { Check, Gem, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -65,10 +65,13 @@ export function PricingSection() {
                         transition={{ delay: 0.3 }}
                     >
                         <Card className="relative overflow-hidden border-2 border-primary/20 shadow-2xl rounded-[3rem] bg-white">
-                            <div className="absolute top-0 right-0 p-8">
+                            <div className="absolute top-0 right-0 p-8 flex flex-col items-end gap-3 font-bold">
                                 <Badge className="bg-primary text-primary-foreground font-bold px-4 py-1 rounded-full uppercase tracking-wider">
                                     Most Popular
                                 </Badge>
+                                <div className="flex items-center gap-1.5 text-[10px] text-primary bg-primary/5 py-1.5 px-3 rounded-full border border-primary/10">
+                                    <ShieldCheck className="w-3.5 h-3.5" /> 100% Money-Back Promise
+                                </div>
                             </div>
 
                             <div className="grid md:grid-cols-5 gap-0">
@@ -83,7 +86,8 @@ export function PricingSection() {
                                         <span className="text-muted-foreground font-bold">{plan.period}</span>
                                     </div>
                                     <p className="text-muted-foreground font-medium mb-8">
-                                        {plan.highlight}
+                                        All inclusive, no hidden costs. <br />
+                                        <span className="text-primary font-bold">100% Satisfaction Guaranteed.</span>
                                     </p>
                                     <Button
                                         size="lg"
