@@ -31,8 +31,8 @@ export function Footer() {
           <div>
             <h4 className="font-black text-xs uppercase tracking-[0.2em] mb-6 text-background/40">Product</h4>
             <nav className="flex flex-col gap-4 text-sm font-bold">
-              <Link to="/#services" className="text-background/70 hover:text-primary transition-colors">Services</Link>
-              <Link to="/#pricing" className="text-background/70 hover:text-primary transition-colors">Pricing</Link>
+              <a href="/#services" className="text-background/70 hover:text-primary transition-colors">Services</a>
+              <a href="/#pricing" className="text-background/70 hover:text-primary transition-colors">Pricing</a>
               <Link to="/auth?mode=signup" className="text-background/70 hover:text-primary transition-colors font-black">Get Started</Link>
             </nav>
           </div>
@@ -54,12 +54,12 @@ export function Footer() {
           <div>
             <h4 className="font-black text-xs uppercase tracking-[0.2em] mb-6 text-background/40">Resources</h4>
             <nav className="flex flex-col gap-4 text-sm font-bold">
-              <Link to="/probate-process" className="text-slate-400 hover:text-white transition-colors">Probate Hub</Link>
-              <Link to="/executor-checklist" className="text-slate-400 hover:text-white transition-colors">Executor Checklist</Link>
-              <Link to="/probate-texas" className="text-slate-400 hover:text-white transition-colors">Texas Probate</Link>
-              <Link to="/probate-california" className="text-slate-400 hover:text-white transition-colors">California Probate</Link>
-              <Link to="/probate-florida" className="text-slate-400 hover:text-white transition-colors">Florida Probate</Link>
-              <Link to="/small-estate-affidavit" className="text-slate-400 hover:text-white transition-colors">Small Estate Guide</Link>
+              <Link to="/probate-process" className="text-background/70 hover:text-primary transition-colors">Probate Hub</Link>
+              <Link to="/executor-checklist" className="text-background/70 hover:text-primary transition-colors">Executor Checklist</Link>
+              <Link to="/probate-texas" className="text-background/70 hover:text-primary transition-colors">Texas Probate</Link>
+              <Link to="/probate-california" className="text-background/70 hover:text-primary transition-colors">California Probate</Link>
+              <Link to="/probate-florida" className="text-background/70 hover:text-primary transition-colors">Florida Probate</Link>
+              <Link to="/small-estate-affidavit" className="text-background/70 hover:text-primary transition-colors">Small Estate Guide</Link>
             </nav>
           </div>
 
@@ -82,8 +82,8 @@ export function Footer() {
             © 2026 ExpectedEstate. All rights reserved.
           </p>
           <div className="flex items-center gap-6 text-xs font-bold text-background/40">
-            <Link to="#" className="hover:text-background transition-colors">Privacy Policy</Link>
-            <Link to="#" className="hover:text-background transition-colors">Terms of Service</Link>
+            <Link to="/privacy" className="hover:text-background transition-colors">Privacy Policy</Link>
+            <Link to="/terms" className="hover:text-background transition-colors">Terms of Service</Link>
           </div>
         </div>
 

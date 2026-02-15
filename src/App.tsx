@@ -91,6 +91,10 @@ const ChecklistLanding = lazy(() => import("./pages/ChecklistLanding"));
 const DiscoveryQuiz = lazy(() => import("./components/landing/DiscoveryQuiz"));
 const ProbateGuide = lazy(() => import("./pages/guides/ProbateGuide"));
 
+// Legal Pages
+const TermsOfService = lazy(() => import("./pages/legal/TermsOfService"));
+const PrivacyPolicy = lazy(() => import("./pages/legal/PrivacyPolicy"));
+
 // SEO Pillar Pages
 const ProbateProcess = lazy(() => import("./pages/content/ProbateProcess"));
 const ExecutorChecklist = lazy(() => import("./pages/content/ExecutorChecklist"));
@@ -151,6 +155,10 @@ const App = () => (
                       <Route path="/intestate-without-will" element={<IntestateWithoutWill />} />
                       <Route path="/probate-cost" element={<ProbateCost />} />
                       <Route path="/estate-settlement-checklist" element={<EstateSettlementChecklist />} />
+
+                      {/* Legal Pages */}
+                      <Route path="/terms" element={<TermsOfService />} />
+                      <Route path="/privacy" element={<PrivacyPolicy />} />
 
                       {/* Executor / User Routes */}
                       <Route
