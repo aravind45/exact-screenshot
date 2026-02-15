@@ -1,0 +1,402 @@
+
+> vite_react_shadcn_ts@0.0.0 test
+> vitest run src/tests/api/authority-engine.test.ts
+
+
+[1m[46m RUN [49m[22m [36mv3.2.4 [39m[90mC:/Users/aravi/Documents/AI_LLM/projects/exact-screenshot[39m
+
+ [31mΓ¥»[39m src/tests/api/authority-engine.test.ts [2m([22m[2m346 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[32m 26[2mms[22m[39m
+   [32mΓ£ô[39m Authority Engine - Path Detection[2m > [22mPTH-01: Full Probate (Will)[2m > [22mShould recommend FORMAL_PROBATE for large estate with will[32m 1[2mms[22m[39m
+   [32mΓ£ô[39m Authority Engine - Path Detection[2m > [22mPTH-02: Intestate Probate (No Will)[2m > [22mShould recommend INTESTATE for large estate without will[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Authority Engine - Path Detection[2m > [22mPTH-03: Summary Administration[2m > [22mShould recommend SUMMARY_ADMINISTRATION for FL small estate[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Authority Engine - Path Detection[2m > [22mPTH-04: Ancillary Probate[2m > [22mShould recommend ANCILLARY_PROBATE for out-of-state property[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Authority Engine - Path Detection[2m > [22mPTH-07: Trust Administration (Revocable)[2m > [22mShould recommend TRUST_ADMIN_REVOCABLE for trust-only assets[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Authority Engine - Path Detection[2m > [22mPTH-08: Irrevocable Trust[2m > [22mShould recommend TRUST_ADMIN_IRREVOCABLE for irrevocable trust[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Authority Engine - Path Detection[2m > [22mPTH-09: Pour-Over Hybrid[2m > [22mShould recommend POUR_OVER_WILL for mixed trust and probate assets[32m 1[2mms[22m[39m
+   [32mΓ£ô[39m Authority Engine - Path Detection[2m > [22mPTH-13: Small Estate Affidavit[2m > [22mShould recommend SMALL_ESTATE for CA estate under $208,850[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Authority Engine - Path Detection[2m > [22mPTH-14: Joint Tenancy Transfer[2m > [22mShould recommend JOINT_TRANSFER for joint ownership[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Authority Engine - Path Detection[2m > [22mPTH-15: POD/TOD Transfer[2m > [22mShould recommend BENEFICIARY_DESIGNATED for beneficiary accounts[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Authority Engine - Path Detection[2m > [22mPTH-16: Beneficiary Designated[2m > [22mShould recommend BENEFICIARY_DESIGNATED for life insurance and retirement[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Authority Engine - Path Detection[2m > [22mPTH-24: Spousal Property Petition[2m > [22mShould recommend SPOUSAL_PETITION for spouse with individual assets[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Authority Engine - Path Detection[2m > [22mPTH-24: Spousal Property Petition[2m > [22mShould prioritize SPOUSAL_PETITION over FORMAL_PROBATE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Master Mode Classification[2m > [22mShould classify FORMAL_PROBATE as COURT_SUPERVISED[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Master Mode Classification[2m > [22mShould classify INTESTATE as COURT_SUPERVISED[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Master Mode Classification[2m > [22mShould classify TRUST_ADMIN_REVOCABLE as FIDUCIARY_ADMINISTERED[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Master Mode Classification[2m > [22mShould classify SMALL_ESTATE as TRANSFER_ONLY[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Master Mode Classification[2m > [22mShould classify POD_TOD_TRANSFER as TRANSFER_ONLY[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Master Mode Classification[2m > [22mShould classify TOD_DEED as TRANSFER_ONLY[32m 0[2mms[22m[39m
+[31m   [31m├ù[31m State Thresholds[2m > [22mShould have correct CA threshold ($184,500)[39m[32m 3[2mms[22m[39m
+[31m     ΓåÆ expected 208850 to be 184500 // Object.is equality[39m
+   [32mΓ£ô[39m State Thresholds[2m > [22mShould have correct FL threshold ($75,000)[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m State Thresholds[2m > [22mShould have correct TX threshold ($75,000)[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m State Thresholds[2m > [22mShould have correct NY threshold ($50,000)[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Institution Authority Requirements[2m > [22mShould require LETTERS_REQUIRED for real estate[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Institution Authority Requirements[2m > [22mShould allow BENEFICIARY_ONLY for beneficiary accounts[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Institution Authority Requirements[2m > [22mShould prefer LETTERS_PREFERRED for large bank accounts[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Institution Authority Requirements[2m > [22mShould accept AFFIDAVIT_ACCEPTED for small bank accounts[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Institution Authority Requirements[2m > [22mShould require LETTERS_REQUIRED for brokerage accounts[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Institution Authority Requirements[2m > [22mShould require LETTERS_REQUIRED for retirement accounts with estate as beneficiary[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Institution Authority Requirements[2m > [22mShould allow BENEFICIARY_ONLY for retirement accounts with named beneficiary[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Modifiers Detection[2m > [22mShould detect INSOLVENT modifier[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Modifiers Detection[2m > [22mShould detect MINOR_HEIRS modifier[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Modifiers Detection[2m > [22mShould detect BUSINESS_ESTATE modifier[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Modifiers Detection[2m > [22mShould detect CONTESTED modifier[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Edge Cases[2m > [22mShould handle empty asset array[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Edge Cases[2m > [22mShould handle missing state (default to $50k threshold)[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Edge Cases[2m > [22mShould handle assets at exact threshold[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Edge Cases[2m > [22mShould handle assets just over threshold (CA)[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for AL[2m > [22mShould handle threshold boundaries for AL[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for AL[2m > [22mShould handle intestate above-threshold for AL[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for AL[2m > [22mAL Override Precedence[2m > [22mShould prioritize isOutOfState => ANCILLARY_PROBATE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for AL[2m > [22mAL Override Precedence[2m > [22mShould prioritize isSpouse => SPOUSAL_PETITION[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for AL[2m > [22mAL Override Precedence[2m > [22mShould handle hasContest correctly[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for AL[2m > [22mShould handle non-probate and discovery tracks for AL[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for AK[2m > [22mShould handle threshold boundaries for AK[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for AK[2m > [22mShould handle intestate above-threshold for AK[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for AK[2m > [22mAK Override Precedence[2m > [22mShould prioritize isOutOfState => ANCILLARY_PROBATE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for AK[2m > [22mAK Override Precedence[2m > [22mShould prioritize isSpouse => SPOUSAL_PETITION[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for AK[2m > [22mAK Override Precedence[2m > [22mShould handle hasContest correctly[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for AK[2m > [22mShould handle non-probate and discovery tracks for AK[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for AZ[2m > [22mShould handle threshold boundaries for AZ[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for AZ[2m > [22mShould handle intestate above-threshold for AZ[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for AZ[2m > [22mAZ Override Precedence[2m > [22mShould prioritize isOutOfState => ANCILLARY_PROBATE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for AZ[2m > [22mAZ Override Precedence[2m > [22mShould prioritize isSpouse => SPOUSAL_PETITION[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for AZ[2m > [22mAZ Override Precedence[2m > [22mShould handle hasContest correctly[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for AZ[2m > [22mShould handle non-probate and discovery tracks for AZ[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for AR[2m > [22mShould handle threshold boundaries for AR[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for AR[2m > [22mShould handle intestate above-threshold for AR[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for AR[2m > [22mAR Override Precedence[2m > [22mShould prioritize isOutOfState => ANCILLARY_PROBATE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for AR[2m > [22mAR Override Precedence[2m > [22mShould prioritize isSpouse => SPOUSAL_PETITION[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for AR[2m > [22mAR Override Precedence[2m > [22mShould handle hasContest correctly[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for AR[2m > [22mShould handle non-probate and discovery tracks for AR[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for CA[2m > [22mShould handle threshold boundaries for CA[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for CA[2m > [22mShould handle intestate above-threshold for CA[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for CA[2m > [22mCA Override Precedence[2m > [22mShould prioritize isOutOfState => ANCILLARY_PROBATE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for CA[2m > [22mCA Override Precedence[2m > [22mShould prioritize isSpouse => SPOUSAL_PETITION[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for CA[2m > [22mCA Override Precedence[2m > [22mShould handle hasContest correctly[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for CA[2m > [22mShould handle non-probate and discovery tracks for CA[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for CO[2m > [22mShould handle threshold boundaries for CO[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for CO[2m > [22mShould handle intestate above-threshold for CO[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for CO[2m > [22mCO Override Precedence[2m > [22mShould prioritize isOutOfState => ANCILLARY_PROBATE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for CO[2m > [22mCO Override Precedence[2m > [22mShould prioritize isSpouse => SPOUSAL_PETITION[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for CO[2m > [22mCO Override Precedence[2m > [22mShould handle hasContest correctly[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for CO[2m > [22mShould handle non-probate and discovery tracks for CO[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for CT[2m > [22mShould handle threshold boundaries for CT[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for CT[2m > [22mShould handle intestate above-threshold for CT[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for CT[2m > [22mCT Override Precedence[2m > [22mShould prioritize isOutOfState => ANCILLARY_PROBATE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for CT[2m > [22mCT Override Precedence[2m > [22mShould prioritize isSpouse => SPOUSAL_PETITION[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for CT[2m > [22mCT Override Precedence[2m > [22mShould handle hasContest correctly[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for CT[2m > [22mShould handle non-probate and discovery tracks for CT[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for DE[2m > [22mShould handle threshold boundaries for DE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for DE[2m > [22mShould handle intestate above-threshold for DE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for DE[2m > [22mDE Override Precedence[2m > [22mShould prioritize isOutOfState => ANCILLARY_PROBATE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for DE[2m > [22mDE Override Precedence[2m > [22mShould prioritize isSpouse => SPOUSAL_PETITION[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for DE[2m > [22mDE Override Precedence[2m > [22mShould handle hasContest correctly[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for DE[2m > [22mShould handle non-probate and discovery tracks for DE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for DC[2m > [22mShould handle threshold boundaries for DC[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for DC[2m > [22mShould handle intestate above-threshold for DC[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for DC[2m > [22mDC Override Precedence[2m > [22mShould prioritize isOutOfState => ANCILLARY_PROBATE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for DC[2m > [22mDC Override Precedence[2m > [22mShould prioritize isSpouse => SPOUSAL_PETITION[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for DC[2m > [22mDC Override Precedence[2m > [22mShould handle hasContest correctly[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for DC[2m > [22mShould handle non-probate and discovery tracks for DC[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for FL[2m > [22mShould handle threshold boundaries for FL[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for FL[2m > [22mShould handle intestate above-threshold for FL[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for FL[2m > [22mFL Override Precedence[2m > [22mShould prioritize isOutOfState => ANCILLARY_PROBATE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for FL[2m > [22mFL Override Precedence[2m > [22mShould prioritize isSpouse => SPOUSAL_PETITION[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for FL[2m > [22mFL Override Precedence[2m > [22mShould handle hasContest correctly[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for FL[2m > [22mShould handle non-probate and discovery tracks for FL[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for GA[2m > [22mShould handle threshold boundaries for GA[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for GA[2m > [22mShould handle intestate above-threshold for GA[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for GA[2m > [22mGA Override Precedence[2m > [22mShould prioritize isOutOfState => ANCILLARY_PROBATE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for GA[2m > [22mGA Override Precedence[2m > [22mShould prioritize isSpouse => SPOUSAL_PETITION[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for GA[2m > [22mGA Override Precedence[2m > [22mShould handle hasContest correctly[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for GA[2m > [22mShould handle non-probate and discovery tracks for GA[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for HI[2m > [22mShould handle threshold boundaries for HI[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for HI[2m > [22mShould handle intestate above-threshold for HI[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for HI[2m > [22mHI Override Precedence[2m > [22mShould prioritize isOutOfState => ANCILLARY_PROBATE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for HI[2m > [22mHI Override Precedence[2m > [22mShould prioritize isSpouse => SPOUSAL_PETITION[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for HI[2m > [22mHI Override Precedence[2m > [22mShould handle hasContest correctly[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for HI[2m > [22mShould handle non-probate and discovery tracks for HI[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for ID[2m > [22mShould handle threshold boundaries for ID[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for ID[2m > [22mShould handle intestate above-threshold for ID[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for ID[2m > [22mID Override Precedence[2m > [22mShould prioritize isOutOfState => ANCILLARY_PROBATE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for ID[2m > [22mID Override Precedence[2m > [22mShould prioritize isSpouse => SPOUSAL_PETITION[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for ID[2m > [22mID Override Precedence[2m > [22mShould handle hasContest correctly[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for ID[2m > [22mShould handle non-probate and discovery tracks for ID[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for IL[2m > [22mShould handle threshold boundaries for IL[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for IL[2m > [22mShould handle intestate above-threshold for IL[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for IL[2m > [22mIL Override Precedence[2m > [22mShould prioritize isOutOfState => ANCILLARY_PROBATE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for IL[2m > [22mIL Override Precedence[2m > [22mShould prioritize isSpouse => SPOUSAL_PETITION[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for IL[2m > [22mIL Override Precedence[2m > [22mShould handle hasContest correctly[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for IL[2m > [22mShould handle non-probate and discovery tracks for IL[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for IN[2m > [22mShould handle threshold boundaries for IN[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for IN[2m > [22mShould handle intestate above-threshold for IN[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for IN[2m > [22mIN Override Precedence[2m > [22mShould prioritize isOutOfState => ANCILLARY_PROBATE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for IN[2m > [22mIN Override Precedence[2m > [22mShould prioritize isSpouse => SPOUSAL_PETITION[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for IN[2m > [22mIN Override Precedence[2m > [22mShould handle hasContest correctly[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for IN[2m > [22mShould handle non-probate and discovery tracks for IN[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for IA[2m > [22mShould handle threshold boundaries for IA[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for IA[2m > [22mShould handle intestate above-threshold for IA[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for IA[2m > [22mIA Override Precedence[2m > [22mShould prioritize isOutOfState => ANCILLARY_PROBATE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for IA[2m > [22mIA Override Precedence[2m > [22mShould prioritize isSpouse => SPOUSAL_PETITION[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for IA[2m > [22mIA Override Precedence[2m > [22mShould handle hasContest correctly[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for IA[2m > [22mShould handle non-probate and discovery tracks for IA[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for KS[2m > [22mShould handle threshold boundaries for KS[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for KS[2m > [22mShould handle intestate above-threshold for KS[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for KS[2m > [22mKS Override Precedence[2m > [22mShould prioritize isOutOfState => ANCILLARY_PROBATE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for KS[2m > [22mKS Override Precedence[2m > [22mShould prioritize isSpouse => SPOUSAL_PETITION[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for KS[2m > [22mKS Override Precedence[2m > [22mShould handle hasContest correctly[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for KS[2m > [22mShould handle non-probate and discovery tracks for KS[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for KY[2m > [22mShould handle threshold boundaries for KY[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for KY[2m > [22mShould handle intestate above-threshold for KY[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for KY[2m > [22mKY Override Precedence[2m > [22mShould prioritize isOutOfState => ANCILLARY_PROBATE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for KY[2m > [22mKY Override Precedence[2m > [22mShould prioritize isSpouse => SPOUSAL_PETITION[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for KY[2m > [22mKY Override Precedence[2m > [22mShould handle hasContest correctly[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for KY[2m > [22mShould handle non-probate and discovery tracks for KY[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for LA[2m > [22mShould handle threshold boundaries for LA[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for LA[2m > [22mShould handle intestate above-threshold for LA[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for LA[2m > [22mLA Override Precedence[2m > [22mShould prioritize isOutOfState => ANCILLARY_PROBATE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for LA[2m > [22mLA Override Precedence[2m > [22mShould prioritize isSpouse => SPOUSAL_PETITION[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for LA[2m > [22mLA Override Precedence[2m > [22mShould handle hasContest correctly[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for LA[2m > [22mShould handle non-probate and discovery tracks for LA[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for ME[2m > [22mShould handle threshold boundaries for ME[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for ME[2m > [22mShould handle intestate above-threshold for ME[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for ME[2m > [22mME Override Precedence[2m > [22mShould prioritize isOutOfState => ANCILLARY_PROBATE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for ME[2m > [22mME Override Precedence[2m > [22mShould prioritize isSpouse => SPOUSAL_PETITION[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for ME[2m > [22mME Override Precedence[2m > [22mShould handle hasContest correctly[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for ME[2m > [22mShould handle non-probate and discovery tracks for ME[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for MD[2m > [22mShould handle threshold boundaries for MD[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for MD[2m > [22mShould handle intestate above-threshold for MD[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for MD[2m > [22mMD Override Precedence[2m > [22mShould prioritize isOutOfState => ANCILLARY_PROBATE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for MD[2m > [22mMD Override Precedence[2m > [22mShould prioritize isSpouse => SPOUSAL_PETITION[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for MD[2m > [22mMD Override Precedence[2m > [22mShould handle hasContest correctly[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for MD[2m > [22mShould handle non-probate and discovery tracks for MD[32m 0[2mms[22m[39m
+[31m   [31m├ù[31m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for MA[2m > [22mShould handle threshold boundaries for MA[39m[32m 1[2mms[22m[39m
+[31m     ΓåÆ expected 'INFORMAL_PROBATE' to be 'FORMAL_PROBATE' // Object.is equality[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for MA[2m > [22mShould handle intestate above-threshold for MA[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for MA[2m > [22mMA Override Precedence[2m > [22mShould prioritize isOutOfState => ANCILLARY_PROBATE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for MA[2m > [22mMA Override Precedence[2m > [22mShould prioritize isSpouse => SPOUSAL_PETITION[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for MA[2m > [22mMA Override Precedence[2m > [22mShould handle hasContest correctly[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for MA[2m > [22mShould handle non-probate and discovery tracks for MA[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for MI[2m > [22mShould handle threshold boundaries for MI[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for MI[2m > [22mShould handle intestate above-threshold for MI[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for MI[2m > [22mMI Override Precedence[2m > [22mShould prioritize isOutOfState => ANCILLARY_PROBATE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for MI[2m > [22mMI Override Precedence[2m > [22mShould prioritize isSpouse => SPOUSAL_PETITION[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for MI[2m > [22mMI Override Precedence[2m > [22mShould handle hasContest correctly[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for MI[2m > [22mShould handle non-probate and discovery tracks for MI[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for MN[2m > [22mShould handle threshold boundaries for MN[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for MN[2m > [22mShould handle intestate above-threshold for MN[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for MN[2m > [22mMN Override Precedence[2m > [22mShould prioritize isOutOfState => ANCILLARY_PROBATE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for MN[2m > [22mMN Override Precedence[2m > [22mShould prioritize isSpouse => SPOUSAL_PETITION[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for MN[2m > [22mMN Override Precedence[2m > [22mShould handle hasContest correctly[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for MN[2m > [22mShould handle non-probate and discovery tracks for MN[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for MS[2m > [22mShould handle threshold boundaries for MS[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for MS[2m > [22mShould handle intestate above-threshold for MS[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for MS[2m > [22mMS Override Precedence[2m > [22mShould prioritize isOutOfState => ANCILLARY_PROBATE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for MS[2m > [22mMS Override Precedence[2m > [22mShould prioritize isSpouse => SPOUSAL_PETITION[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for MS[2m > [22mMS Override Precedence[2m > [22mShould handle hasContest correctly[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for MS[2m > [22mShould handle non-probate and discovery tracks for MS[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for MO[2m > [22mShould handle threshold boundaries for MO[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for MO[2m > [22mShould handle intestate above-threshold for MO[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for MO[2m > [22mMO Override Precedence[2m > [22mShould prioritize isOutOfState => ANCILLARY_PROBATE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for MO[2m > [22mMO Override Precedence[2m > [22mShould prioritize isSpouse => SPOUSAL_PETITION[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for MO[2m > [22mMO Override Precedence[2m > [22mShould handle hasContest correctly[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for MO[2m > [22mShould handle non-probate and discovery tracks for MO[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for MT[2m > [22mShould handle threshold boundaries for MT[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for MT[2m > [22mShould handle intestate above-threshold for MT[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for MT[2m > [22mMT Override Precedence[2m > [22mShould prioritize isOutOfState => ANCILLARY_PROBATE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for MT[2m > [22mMT Override Precedence[2m > [22mShould prioritize isSpouse => SPOUSAL_PETITION[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for MT[2m > [22mMT Override Precedence[2m > [22mShould handle hasContest correctly[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for MT[2m > [22mShould handle non-probate and discovery tracks for MT[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for NE[2m > [22mShould handle threshold boundaries for NE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for NE[2m > [22mShould handle intestate above-threshold for NE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for NE[2m > [22mNE Override Precedence[2m > [22mShould prioritize isOutOfState => ANCILLARY_PROBATE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for NE[2m > [22mNE Override Precedence[2m > [22mShould prioritize isSpouse => SPOUSAL_PETITION[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for NE[2m > [22mNE Override Precedence[2m > [22mShould handle hasContest correctly[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for NE[2m > [22mShould handle non-probate and discovery tracks for NE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for NV[2m > [22mShould handle threshold boundaries for NV[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for NV[2m > [22mShould handle intestate above-threshold for NV[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for NV[2m > [22mNV Override Precedence[2m > [22mShould prioritize isOutOfState => ANCILLARY_PROBATE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for NV[2m > [22mNV Override Precedence[2m > [22mShould prioritize isSpouse => SPOUSAL_PETITION[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for NV[2m > [22mNV Override Precedence[2m > [22mShould handle hasContest correctly[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for NV[2m > [22mShould handle non-probate and discovery tracks for NV[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for NH[2m > [22mShould handle threshold boundaries for NH[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for NH[2m > [22mShould handle intestate above-threshold for NH[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for NH[2m > [22mNH Override Precedence[2m > [22mShould prioritize isOutOfState => ANCILLARY_PROBATE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for NH[2m > [22mNH Override Precedence[2m > [22mShould prioritize isSpouse => SPOUSAL_PETITION[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for NH[2m > [22mNH Override Precedence[2m > [22mShould handle hasContest correctly[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for NH[2m > [22mShould handle non-probate and discovery tracks for NH[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for NJ[2m > [22mShould handle threshold boundaries for NJ[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for NJ[2m > [22mShould handle intestate above-threshold for NJ[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for NJ[2m > [22mNJ Override Precedence[2m > [22mShould prioritize isOutOfState => ANCILLARY_PROBATE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for NJ[2m > [22mNJ Override Precedence[2m > [22mShould prioritize isSpouse => SPOUSAL_PETITION[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for NJ[2m > [22mNJ Override Precedence[2m > [22mShould handle hasContest correctly[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for NJ[2m > [22mShould handle non-probate and discovery tracks for NJ[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for NM[2m > [22mShould handle threshold boundaries for NM[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for NM[2m > [22mShould handle intestate above-threshold for NM[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for NM[2m > [22mNM Override Precedence[2m > [22mShould prioritize isOutOfState => ANCILLARY_PROBATE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for NM[2m > [22mNM Override Precedence[2m > [22mShould prioritize isSpouse => SPOUSAL_PETITION[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for NM[2m > [22mNM Override Precedence[2m > [22mShould handle hasContest correctly[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for NM[2m > [22mShould handle non-probate and discovery tracks for NM[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for NY[2m > [22mShould handle threshold boundaries for NY[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for NY[2m > [22mShould handle intestate above-threshold for NY[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for NY[2m > [22mNY Override Precedence[2m > [22mShould prioritize isOutOfState => ANCILLARY_PROBATE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for NY[2m > [22mNY Override Precedence[2m > [22mShould prioritize isSpouse => SPOUSAL_PETITION[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for NY[2m > [22mNY Override Precedence[2m > [22mShould handle hasContest correctly[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for NY[2m > [22mShould handle non-probate and discovery tracks for NY[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for NC[2m > [22mShould handle threshold boundaries for NC[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for NC[2m > [22mShould handle intestate above-threshold for NC[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for NC[2m > [22mNC Override Precedence[2m > [22mShould prioritize isOutOfState => ANCILLARY_PROBATE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for NC[2m > [22mNC Override Precedence[2m > [22mShould prioritize isSpouse => SPOUSAL_PETITION[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for NC[2m > [22mNC Override Precedence[2m > [22mShould handle hasContest correctly[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for NC[2m > [22mShould handle non-probate and discovery tracks for NC[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for ND[2m > [22mShould handle threshold boundaries for ND[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for ND[2m > [22mShould handle intestate above-threshold for ND[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for ND[2m > [22mND Override Precedence[2m > [22mShould prioritize isOutOfState => ANCILLARY_PROBATE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for ND[2m > [22mND Override Precedence[2m > [22mShould prioritize isSpouse => SPOUSAL_PETITION[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for ND[2m > [22mND Override Precedence[2m > [22mShould handle hasContest correctly[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for ND[2m > [22mShould handle non-probate and discovery tracks for ND[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for OH[2m > [22mShould handle threshold boundaries for OH[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for OH[2m > [22mShould handle intestate above-threshold for OH[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for OH[2m > [22mOH Override Precedence[2m > [22mShould prioritize isOutOfState => ANCILLARY_PROBATE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for OH[2m > [22mOH Override Precedence[2m > [22mShould prioritize isSpouse => SPOUSAL_PETITION[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for OH[2m > [22mOH Override Precedence[2m > [22mShould handle hasContest correctly[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for OH[2m > [22mShould handle non-probate and discovery tracks for OH[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for OK[2m > [22mShould handle threshold boundaries for OK[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for OK[2m > [22mShould handle intestate above-threshold for OK[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for OK[2m > [22mOK Override Precedence[2m > [22mShould prioritize isOutOfState => ANCILLARY_PROBATE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for OK[2m > [22mOK Override Precedence[2m > [22mShould prioritize isSpouse => SPOUSAL_PETITION[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for OK[2m > [22mOK Override Precedence[2m > [22mShould handle hasContest correctly[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for OK[2m > [22mShould handle non-probate and discovery tracks for OK[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for OR[2m > [22mShould handle threshold boundaries for OR[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for OR[2m > [22mShould handle intestate above-threshold for OR[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for OR[2m > [22mOR Override Precedence[2m > [22mShould prioritize isOutOfState => ANCILLARY_PROBATE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for OR[2m > [22mOR Override Precedence[2m > [22mShould prioritize isSpouse => SPOUSAL_PETITION[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for OR[2m > [22mOR Override Precedence[2m > [22mShould handle hasContest correctly[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for OR[2m > [22mShould handle non-probate and discovery tracks for OR[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for PA[2m > [22mShould handle threshold boundaries for PA[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for PA[2m > [22mShould handle intestate above-threshold for PA[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for PA[2m > [22mPA Override Precedence[2m > [22mShould prioritize isOutOfState => ANCILLARY_PROBATE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for PA[2m > [22mPA Override Precedence[2m > [22mShould prioritize isSpouse => SPOUSAL_PETITION[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for PA[2m > [22mPA Override Precedence[2m > [22mShould handle hasContest correctly[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for PA[2m > [22mShould handle non-probate and discovery tracks for PA[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for RI[2m > [22mShould handle threshold boundaries for RI[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for RI[2m > [22mShould handle intestate above-threshold for RI[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for RI[2m > [22mRI Override Precedence[2m > [22mShould prioritize isOutOfState => ANCILLARY_PROBATE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for RI[2m > [22mRI Override Precedence[2m > [22mShould prioritize isSpouse => SPOUSAL_PETITION[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for RI[2m > [22mRI Override Precedence[2m > [22mShould handle hasContest correctly[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for RI[2m > [22mShould handle non-probate and discovery tracks for RI[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for SC[2m > [22mShould handle threshold boundaries for SC[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for SC[2m > [22mShould handle intestate above-threshold for SC[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for SC[2m > [22mSC Override Precedence[2m > [22mShould prioritize isOutOfState => ANCILLARY_PROBATE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for SC[2m > [22mSC Override Precedence[2m > [22mShould prioritize isSpouse => SPOUSAL_PETITION[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for SC[2m > [22mSC Override Precedence[2m > [22mShould handle hasContest correctly[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for SC[2m > [22mShould handle non-probate and discovery tracks for SC[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for SD[2m > [22mShould handle threshold boundaries for SD[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for SD[2m > [22mShould handle intestate above-threshold for SD[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for SD[2m > [22mSD Override Precedence[2m > [22mShould prioritize isOutOfState => ANCILLARY_PROBATE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for SD[2m > [22mSD Override Precedence[2m > [22mShould prioritize isSpouse => SPOUSAL_PETITION[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for SD[2m > [22mSD Override Precedence[2m > [22mShould handle hasContest correctly[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for SD[2m > [22mShould handle non-probate and discovery tracks for SD[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for TN[2m > [22mShould handle threshold boundaries for TN[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for TN[2m > [22mShould handle intestate above-threshold for TN[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for TN[2m > [22mTN Override Precedence[2m > [22mShould prioritize isOutOfState => ANCILLARY_PROBATE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for TN[2m > [22mTN Override Precedence[2m > [22mShould prioritize isSpouse => SPOUSAL_PETITION[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for TN[2m > [22mTN Override Precedence[2m > [22mShould handle hasContest correctly[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for TN[2m > [22mShould handle non-probate and discovery tracks for TN[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for TX[2m > [22mShould handle threshold boundaries for TX[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for TX[2m > [22mShould handle intestate above-threshold for TX[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for TX[2m > [22mTX Override Precedence[2m > [22mShould prioritize isOutOfState => ANCILLARY_PROBATE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for TX[2m > [22mTX Override Precedence[2m > [22mShould prioritize isSpouse => SPOUSAL_PETITION[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for TX[2m > [22mTX Override Precedence[2m > [22mShould handle hasContest correctly[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for TX[2m > [22mShould handle non-probate and discovery tracks for TX[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for UT[2m > [22mShould handle threshold boundaries for UT[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for UT[2m > [22mShould handle intestate above-threshold for UT[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for UT[2m > [22mUT Override Precedence[2m > [22mShould prioritize isOutOfState => ANCILLARY_PROBATE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for UT[2m > [22mUT Override Precedence[2m > [22mShould prioritize isSpouse => SPOUSAL_PETITION[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for UT[2m > [22mUT Override Precedence[2m > [22mShould handle hasContest correctly[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for UT[2m > [22mShould handle non-probate and discovery tracks for UT[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for VT[2m > [22mShould handle threshold boundaries for VT[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for VT[2m > [22mShould handle intestate above-threshold for VT[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for VT[2m > [22mVT Override Precedence[2m > [22mShould prioritize isOutOfState => ANCILLARY_PROBATE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for VT[2m > [22mVT Override Precedence[2m > [22mShould prioritize isSpouse => SPOUSAL_PETITION[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for VT[2m > [22mVT Override Precedence[2m > [22mShould handle hasContest correctly[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for VT[2m > [22mShould handle non-probate and discovery tracks for VT[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for VA[2m > [22mShould handle threshold boundaries for VA[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for VA[2m > [22mShould handle intestate above-threshold for VA[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for VA[2m > [22mVA Override Precedence[2m > [22mShould prioritize isOutOfState => ANCILLARY_PROBATE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for VA[2m > [22mVA Override Precedence[2m > [22mShould prioritize isSpouse => SPOUSAL_PETITION[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for VA[2m > [22mVA Override Precedence[2m > [22mShould handle hasContest correctly[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for VA[2m > [22mShould handle non-probate and discovery tracks for VA[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for WA[2m > [22mShould handle threshold boundaries for WA[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for WA[2m > [22mShould handle intestate above-threshold for WA[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for WA[2m > [22mWA Override Precedence[2m > [22mShould prioritize isOutOfState => ANCILLARY_PROBATE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for WA[2m > [22mWA Override Precedence[2m > [22mShould prioritize isSpouse => SPOUSAL_PETITION[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for WA[2m > [22mWA Override Precedence[2m > [22mShould handle hasContest correctly[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for WA[2m > [22mShould handle non-probate and discovery tracks for WA[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for WV[2m > [22mShould handle threshold boundaries for WV[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for WV[2m > [22mShould handle intestate above-threshold for WV[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for WV[2m > [22mWV Override Precedence[2m > [22mShould prioritize isOutOfState => ANCILLARY_PROBATE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for WV[2m > [22mWV Override Precedence[2m > [22mShould prioritize isSpouse => SPOUSAL_PETITION[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for WV[2m > [22mWV Override Precedence[2m > [22mShould handle hasContest correctly[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for WV[2m > [22mShould handle non-probate and discovery tracks for WV[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for WI[2m > [22mShould handle threshold boundaries for WI[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for WI[2m > [22mShould handle intestate above-threshold for WI[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for WI[2m > [22mWI Override Precedence[2m > [22mShould prioritize isOutOfState => ANCILLARY_PROBATE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for WI[2m > [22mWI Override Precedence[2m > [22mShould prioritize isSpouse => SPOUSAL_PETITION[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for WI[2m > [22mWI Override Precedence[2m > [22mShould handle hasContest correctly[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for WI[2m > [22mShould handle non-probate and discovery tracks for WI[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for WY[2m > [22mShould handle threshold boundaries for WY[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for WY[2m > [22mShould handle intestate above-threshold for WY[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for WY[2m > [22mWY Override Precedence[2m > [22mShould prioritize isOutOfState => ANCILLARY_PROBATE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for WY[2m > [22mWY Override Precedence[2m > [22mShould prioritize isSpouse => SPOUSAL_PETITION[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for WY[2m > [22mWY Override Precedence[2m > [22mShould handle hasContest correctly[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Phase 2: 50-State Comprehensive Matrix[2m > [22mRouting Logic for WY[2m > [22mShould handle non-probate and discovery tracks for WY[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Multi-Track Detection[2m > [22mShould detect PROBATE, TRUST, and TOD_DEED tracks simultaneously[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Multi-Track Detection[2m > [22mShould include AFFIDAVIT when probate assets are below threshold[32m 0[2mms[22m[39m
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 2 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  src/tests/api/authority-engine.test.ts > State Thresholds > Should have correct CA threshold ($184,500)
+AssertionError: expected 208850 to be 184500 // Object.is equality
+
+- Expected
++ Received
+
+- 184500
++ 208850
+
+ Γ¥» src/tests/api/authority-engine.test.ts:260:36
+    258| describe('State Thresholds', () => {
+    259|   it('Should have correct CA threshold ($184,500)', () => {
+    260|     expect(STATE_THRESHOLDS['CA']).toBe(184500);
+       |                                    ^
+    261|   });
+    262| 
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/2]ΓÄ»
+
+ FAIL  src/tests/api/authority-engine.test.ts > Phase 2: 50-State Comprehensive Matrix > Routing Logic for MA > Should handle threshold boundaries for MA
+AssertionError: expected 'INFORMAL_PROBATE' to be 'FORMAL_PROBATE' // Object.is equality
+
+Expected: "FORMAL_PROBATE"
+Received: "INFORMAL_PROBATE"
+
+ Γ¥» src/tests/api/authority-engine.test.ts:463:30
+    461|           expect(above.type).toBe('INFORMAL_PROBATE');
+    462|         } else {
+    463|           expect(above.type).toBe('FORMAL_PROBATE');
+       |                              ^
+    464|         }
+    465|       });
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[2/2]ΓÄ»
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m344 passed[39m[22m[90m (346)[39m
+[2m   Start at [22m 10:22:33
+[2m   Duration [22m 1.37s[2m (transform 63ms, setup 267ms, collect 117ms, tests 26ms, environment 577ms, prepare 119ms)[22m
+
+[1m[7m[35m HTML [39m[27m[22m [35mReport is generated[39m
+[2m       You can run [22m[1mnpx vite preview --outDir test-results[22m[2m to see the test results.[22m

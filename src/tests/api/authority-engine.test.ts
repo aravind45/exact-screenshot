@@ -138,9 +138,9 @@ describe('Authority Engine - Path Detection', () => {
   });
 
   describe('PTH-13: Small Estate Affidavit', () => {
-    it('Should recommend SMALL_ESTATE for CA estate under $184,500', () => {
+    it('Should recommend SMALL_ESTATE for CA estate under $208,850', () => {
       const assets = [
-        { value: 80000, ownershipType: 'INDIVIDUAL', assetType: 'CHECKING', category: 'financial' },
+        { value: 150000, ownershipType: 'INDIVIDUAL', assetType: 'CHECKING', category: 'financial' },
         { value: 40000, ownershipType: 'INDIVIDUAL', assetType: 'BROKERAGE', category: 'financial' },
       ];
 
@@ -149,8 +149,8 @@ describe('Authority Engine - Path Detection', () => {
       expect(result.type).toBe('SMALL_ESTATE');
       expect(result.masterMode).toBe('TRANSFER_ONLY');
       expect(result.isEligibleForSmallEstate).toBe(true);
-      expect(result.probateTotal).toBe(120000);
-      expect(result.threshold).toBe(184500);
+      expect(result.probateTotal).toBe(190000);
+      expect(result.threshold).toBe(208850);
     });
   });
 
@@ -256,8 +256,8 @@ describe('Master Mode Classification', () => {
 });
 
 describe('State Thresholds', () => {
-  it('Should have correct CA threshold ($184,500)', () => {
-    expect(STATE_THRESHOLDS['CA']).toBe(184500);
+  it('Should have correct CA threshold ($208,850)', () => {
+    expect(STATE_THRESHOLDS['CA']).toBe(208850);
   });
 
   it('Should have correct FL threshold ($75,000)', () => {
@@ -394,9 +394,9 @@ describe('Edge Cases', () => {
     expect(result.type).toBe('SMALL_ESTATE');
   });
 
-  it('Should handle assets just over threshold', () => {
+  it('Should handle assets just over threshold (CA)', () => {
     const assets = [
-      { value: 184501, ownershipType: 'INDIVIDUAL', assetType: 'CHECKING', category: 'financial' },
+      { value: 208851, ownershipType: 'INDIVIDUAL', assetType: 'CHECKING', category: 'financial' },
     ];
 
     const result = calculateAuthorityRecommendation(assets, 'CA', { hasWill: true });
@@ -407,14 +407,19 @@ describe('Edge Cases', () => {
 });
 
 
-describe('Phase 1: 10-State Deep Coverage Matrix', () => {
+describe('Phase 2: 50-State Comprehensive Matrix', () => {
   /**
-   * Phase 1: Deep coverage for 10 pilot states.
-   * Phase 2: Expansion from 10 states -> all 50 states + DC once pilot is stable.
+   * Phase 2: Comprehensive coverage for all 50 states + DC.
    */
-  const PILOT_STATES = ['CA', 'FL', 'TX', 'NY', 'CO', 'IL', 'PA', 'AZ', 'GA', 'WA'];
+  const ALL_STATES = [
+    'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'DC', 'FL',
+    'GA', 'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME',
+    'MD', 'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH',
+    'NJ', 'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI',
+    'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'
+  ];
 
-  PILOT_STATES.forEach(state => {
+  ALL_STATES.forEach(state => {
     describe(`Routing Logic for ${state}`, () => {
       const rule = getStateRule(state);
       const threshold = rule.threshold;

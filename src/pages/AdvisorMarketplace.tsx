@@ -176,18 +176,20 @@ export default function AdvisorMarketplace() {
                         user={user}
                     />
 
-                    <div className="mt-20 p-8 bg-indigo-50/50 rounded-2xl border border-indigo-100 flex flex-col md:flex-row items-center justify-between gap-6">
-                        <div className="space-y-1">
-                            <h3 className="text-xl font-bold text-indigo-900 flex items-center gap-2">
-                                Are you an Estate Professional?
-                                <Badge className="bg-indigo-100 text-indigo-700 border-none">We're hiring</Badge>
-                            </h3>
-                            <p className="text-indigo-700/80">Join our marketplace to help families navigate their settlement journey and earn competitive rates.</p>
+                    {!user && (
+                        <div className="mt-20 p-8 bg-indigo-50/50 rounded-2xl border border-indigo-100 flex flex-col md:flex-row items-center justify-between gap-6">
+                            <div className="space-y-1">
+                                <h3 className="text-xl font-bold text-indigo-900 flex items-center gap-2">
+                                    Are you an Estate Professional?
+                                    <Badge className="bg-indigo-100 text-indigo-700 border-none">We're hiring</Badge>
+                                </h3>
+                                <p className="text-indigo-700/80">Join our marketplace to help families navigate their settlement journey and earn competitive rates.</p>
+                            </div>
+                            <Button asChild className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-8 h-12 rounded-xl shadow-lg shadow-indigo-100 transition-all active:scale-[0.98]">
+                                <a href="/advisor/onboarding">Join as an Advisor</a>
+                            </Button>
                         </div>
-                        <Button asChild className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-8 h-12 rounded-xl shadow-lg shadow-indigo-100 transition-all active:scale-[0.98]">
-                            <a href="/advisor/onboarding">Join as an Advisor</a>
-                        </Button>
-                    </div>
+                    )}
                 </main>
             </div>
         </div>
