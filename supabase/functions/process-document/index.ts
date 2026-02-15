@@ -7,8 +7,10 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 
 console.log("Functions: process-document initialized")
 
+const allowedOrigin = Deno.env.get('APP_ORIGIN') || '*'
+
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': allowedOrigin,
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 

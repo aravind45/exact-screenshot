@@ -49,8 +49,12 @@ export default function ProbatePetition() {
     const progress = Math.max(0, 100 - (missingFields.length * 25));
     const isReady = missingFields.length === 0;
 
-    const handleDownloadDraft = () => {
-        window.open(`${import.meta.env.VITE_API_URL || "/api"}/estates/my/petition/pdf?token=${localStorage.getItem("auth_token")}`, '_blank');
+    const handleDownloadDraft = async () => {
+        try {
+            await api.getPetitionPdf("probate-petition-draft.pdf");
+        } catch (err: any) {
+            toast.error("Download failed: " + err.message);
+        }
     };
 
     const [previewOpen, setPreviewOpen] = React.useState(false);
@@ -89,8 +93,12 @@ export default function ProbatePetition() {
         }
     };
 
-    const handleViewStored = () => {
-        window.open(api.getEstateDocumentDownloadUrl("DE-111"), '_blank');
+    const handleViewStored = async () => {
+        try {
+            await api.downloadEstateDocument("DE-111", "filed-petition.pdf");
+        } catch (err: any) {
+            toast.error("Download failed: " + err.message);
+        }
     };
 
     return (

@@ -224,12 +224,25 @@ export interface RoadmapResponse {
 
 const API_URL = import.meta.env.VITE_API_URL || "/api";
 
+const getToken = () => localStorage.getItem("auth_token");
+
 const getHeaders = () => {
-    const token = localStorage.getItem("auth_token");
+    const token = getToken();
     return {
         "Content-Type": "application/json",
         ...(token ? { "Authorization": `Bearer ${token}` } : {}),
     };
+};
+
+const downloadBlob = (blob: Blob, filename: string) => {
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    link.parentNode?.removeChild(link);
+    window.URL.revokeObjectURL(url);
 };
 
 const parseResponse = async (response: Response) => {
@@ -461,25 +474,35 @@ export const api = {
         return parseResponse(response);
     },
 
+    deleteAsset: async (id: string) => {
+        const response = await fetch(`${API_URL}/assets/${id}`, {
+            method: "DELETE",
+            headers: getHeaders(),
+        });
+        return parseResponse(response);
+    },
+
     // Liabilities
-    generateLetter: async (id: string, overrides?: any) => {
+    async generateLetter(id: string, overrides?: any, filename: string = "settlement-letter.pdf") {
         const response = await fetch(`${API_URL}/assets/${id}/generate-letter`, {
             method: "POST",
             headers: getHeaders(),
             body: overrides ? JSON.stringify(overrides) : undefined
         });
         if (!response.ok) throw new Error("Failed to generate letter");
-        return await response.blob();
+        const blob = await response.blob();
+        downloadBlob(blob, filename);
     },
 
-    batchGenerateLetters: async (assetIds: string[]) => {
+    async batchGenerateLetters(assetIds: string[], filename: string = "batch-letters.pdf") {
         const response = await fetch(`${API_URL}/assets/batch-generate-letters`, {
             method: "POST",
             headers: getHeaders(),
             body: JSON.stringify({ assetIds })
         });
         if (!response.ok) throw new Error("Failed to generate batch letters");
-        return await response.blob();
+        const blob = await response.blob();
+        downloadBlob(blob, filename);
     },
 
 
@@ -650,12 +673,13 @@ export const api = {
         return parseResponse(response);
     },
 
-    getPetitionPdf: async () => {
+    async getPetitionPdf(filename: string = "probate-petition.pdf") {
         const response = await fetch(`${API_URL}/estates/my/petition/pdf`, {
             headers: getHeaders(),
         });
         if (!response.ok) throw new Error("Failed to generate PDF");
-        return await response.blob();
+        const blob = await response.blob();
+        downloadBlob(blob, filename);
     },
 
     createHeir: async (data: any) => {
@@ -716,10 +740,11 @@ export const api = {
         if (saveToVault) url.searchParams.append("saveToVault", "true");
         if (documentType) url.searchParams.append("documentType", documentType);
 
+        const token = getToken();
         const response = await fetch(url.toString(), {
             method: "POST",
             headers: {
-                ...(localStorage.getItem("auth_token") ? { "Authorization": `Bearer ${localStorage.getItem("auth_token")}` } : {}),
+                ...(token ? { "Authorization": `Bearer ${token}` } : {}),
             },
             body: formData,
         });
@@ -779,7 +804,7 @@ export const api = {
         const formData = new FormData();
         formData.append("file", file);
 
-        const token = localStorage.getItem("auth_token");
+        const token = getToken();
         const response = await fetch(`${API_URL}/communications/${communicationId}/attachments`, {
             method: "POST",
             headers: {
@@ -888,8 +913,13 @@ export const api = {
         return parseResponse(response);
     },
 
-    getEstateDocumentDownloadUrl: (formCode: string) => {
-        return `${API_URL}/estates/my/documents/${formCode}/download?token=${localStorage.getItem("auth_token")}`;
+    async downloadEstateDocument(formCode: string, filename: string) {
+        const response = await fetch(`${API_URL}/estates/my/documents/${formCode}/download`, {
+            headers: getHeaders(),
+        });
+        if (!response.ok) throw new Error("Failed to download document");
+        const blob = await response.blob();
+        downloadBlob(blob, filename);
     },
 
     /**
@@ -982,7 +1012,7 @@ export const api = {
     analyzeDiscoveryDocument: async (file: File, estateId: string): Promise<any> => {
         const formData = new FormData();
         formData.append("file", file);
-        const token = localStorage.getItem("auth_token");
+        const token = getToken();
         const response = await fetch(`${API_URL}/discovery/analyze?estateId=${estateId}`, {
             method: "POST",
             headers: {
@@ -993,12 +1023,13 @@ export const api = {
         return parseResponse(response);
     },
 
-    downloadDossier: async () => {
+    downloadDossier: async (filename: string = "estate-dossier.pdf") => {
         const response = await fetch(`${API_URL}/estates/my/dossier/download`, {
             headers: getHeaders(),
         });
         if (!response.ok) throw new Error("Failed to generate dossier");
-        return await response.blob();
+        const blob = await response.blob();
+        downloadBlob(blob, filename);
     },
 
 
@@ -1026,12 +1057,13 @@ export const api = {
         return parseResponse(response);
     },
 
-    async downloadActivityLog(): Promise<Blob> {
-        const response = await fetch(`${API_URL}/estates/my/activities/download?token=${localStorage.getItem("auth_token")}`, {
+    async downloadActivityLog(): Promise<void> {
+        const response = await fetch(`${API_URL}/estates/my/activities/download`, {
             headers: getHeaders(),
         });
         if (!response.ok) throw new Error("Failed to download activity log");
-        return await response.blob();
+        const blob = await response.blob();
+        downloadBlob(blob, "activity-log.csv");
     },
 
     updateRoadmap: async (data: { completedTaskIds: string[], completedPhases: string[], taskId?: string, action?: 'COMPLETED' | 'UNCOMPLETED' | 'PHASE_COMPLETED', phase?: string, taskTitle?: string, phaseName?: string }) => {
@@ -1048,14 +1080,15 @@ export const api = {
         return parseResponse(response);
     },
 
-    generateForm: async (formId: string, isPreview: boolean = true) => {
+    generateForm: async (formId: string, isPreview: boolean = true, filename: string = "generated-form.pdf") => {
         const response = await fetch(`${API_URL}/forms/generate`, {
             method: "POST",
             headers: getHeaders(),
             body: JSON.stringify({ formId, isPreview }),
         });
         if (!response.ok) throw new Error("Failed to generate form");
-        return await response.blob();
+        const blob = await response.blob();
+        downloadBlob(blob, filename);
     },
 
     getFormTemplates: async () => {
@@ -1065,12 +1098,13 @@ export const api = {
         return parseResponse(response);
     },
 
-    getTemplateFile: async (name: string) => {
+    getTemplateFile: async (name: string, filename?: string) => {
         const response = await fetch(`${API_URL}/forms/templates/${name}/download`, {
             headers: getHeaders(),
         });
         if (!response.ok) throw new Error("Failed to download template");
-        return await response.blob();
+        const blob = await response.blob();
+        downloadBlob(blob, filename || `${name}.pdf`);
     },
 
     inviteCollaborator: async (data: { estateId: string, email: string, role: string }) => {

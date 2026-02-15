@@ -424,12 +424,8 @@ export default function AssetDetail() {
   const handleGenerateLetter = async (overrides?: any) => {
     setIsGeneratingLetter(true);
     try {
-      const blob = await api.generateLetter(id!, overrides);
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `Settlement_Notice_${overrides?.institution || uiAsset.institution}.pdf`;
-      a.click();
+      const filename = `Settlement_Notice_${overrides?.institution || uiAsset.institution}.pdf`;
+      await api.generateLetter(id!, overrides, filename);
       toast({ title: "Letter Generated", description: "Your settlement notice is ready to send." });
       setShowLetterPreview(false);
     } catch (e: any) {
@@ -968,11 +964,14 @@ export default function AssetDetail() {
                                 <p className="text-[10px] text-violet-600 font-medium">{doc.documentType} • Court Certified Document</p>
                               </div>
                             </div>
-                            <a href={api.getEstateDocumentDownloadUrl(doc.documentType)} target="_blank" rel="noreferrer">
-                              <Button variant="ghost" size="sm" className="hover:bg-violet-100 text-violet-600">
-                                <Download className="w-4 h-4" />
-                              </Button>
-                            </a>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="hover:bg-violet-100 text-violet-600"
+                              onClick={() => api.downloadEstateDocument(doc.documentType, `${doc.name}.pdf`)}
+                            >
+                              <Download className="w-4 h-4" />
+                            </Button>
                           </div>
                         ))}
 

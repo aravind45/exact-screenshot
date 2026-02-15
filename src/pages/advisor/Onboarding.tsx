@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Briefcase, DollarSign, Upload, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { api } from '@/lib/api';
 
 export default function AdvisorOnboarding() {
     const { user } = useAuth();
@@ -44,20 +45,11 @@ export default function AdvisorOnboarding() {
     const handleSubmit = async () => {
         setLoading(true);
         try {
-            // Post to advisor profile endpoint
-            const response = await fetch(`${import.meta.env.VITE_API_URL || '/api'}/advisors/profile`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-                },
-                body: JSON.stringify({
-                    ...formData,
-                    hourlyRate: Number(formData.hourlyRate)
-                })
+            // Post to advisor profile via api service
+            await api.advisors.updateProfile({
+                ...formData,
+                hourlyRate: Number(formData.hourlyRate)
             });
-
-            if (!response.ok) throw new Error('Failed to save profile');
 
             toast({
                 title: "Profile Created",
@@ -65,10 +57,10 @@ export default function AdvisorOnboarding() {
             });
 
             navigate('/advisor/dashboard');
-        } catch (error) {
+        } catch (error: any) {
             toast({
                 title: "Error",
-                description: "Something went wrong. Please try again.",
+                description: error.message || "Something went wrong. Please try again.",
                 variant: "destructive"
             });
         } finally {

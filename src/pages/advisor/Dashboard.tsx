@@ -15,15 +15,9 @@ export default function AdvisorDashboard() {
     useEffect(() => {
         const fetchDashboard = async () => {
             try {
-                // Use the dedicated advisor/dashboard/stats endpoint
-                const response = await fetch(`${import.meta.env.VITE_API_URL || '/api'}/advisors/dashboard/stats`, {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-                    }
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
+                // Use the dedicated advisor/dashboard/stats via api service
+                const data = await api.advisors.getDashboardStats();
+                if (data) {
                     setStats(data.stats);
                     setUpcomingSessions(data.upcomingSessions || []);
                 }
