@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   CommandDialog,
@@ -18,6 +18,7 @@ import {
   Clock,
 } from 'lucide-react';
 import { useNavigation } from '@/contexts/NavigationContext';
+import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import type { RecentItem, SearchResult  } from '@/types/navigation';
 
 /** Simple fuzzy match: checks if all query chars appear in order in the target */
@@ -99,21 +100,28 @@ export function QuickActionsMenu() {
     [],
   );
 
-  // Global Cmd/Ctrl + K keyboard shortcut
-  useEffect(() => {
-    function handleKeyDown(e: KeyboardEvent) {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault();
-        if (isQuickActionsOpen) {
-          closeQuickActions();
-        } else {
-          openQuickActions();
-        }
-      }
-    }
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isQuickActionsOpen, closeQuickActions, openQuickActions]);
+  // Global Cmd/Ctrl + K keyboard shortcut via shared hook
+  useKeyboardShortcuts(
+    useMemo(
+      () => [
+        {
+          id: 'quick-actions',
+          description: 'Open Quick Actions',
+          key: 'k',
+          metaKey: true,
+          ignoreInInput: false, // Should work even when focused in an input
+          handler: () => {
+            if (isQuickActionsOpen) {
+              closeQuickActions();
+            } else {
+              openQuickActions();
+            }
+          },
+        },
+      ],
+      [isQuickActionsOpen, closeQuickActions, openQuickActions],
+    ),
+  );
 
   const handleSelect = useCallback(
     (url: string) => {

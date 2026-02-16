@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, memo } from 'react';
 import {
   X,
   Settings,
@@ -89,7 +89,7 @@ const defaultFooterItems: NavigationItem[] = [
   { id: 'sign-out', label: 'Sign Out', icon: LogOut, path: '/sign-out' },
 ];
 
-export function HamburgerMenu({
+export const HamburgerMenu = memo(function HamburgerMenu({
   isOpen,
   onClose,
   groups = defaultPhaseGroups,
@@ -361,6 +361,6 @@ export function HamburgerMenu({
       )}
     </AnimatePresence>
   );
-}
+});
 
 export { defaultPhaseGroups, defaultQuickActions, defaultFooterItems };

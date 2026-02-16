@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, memo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { ChevronRight, Home, MoreHorizontal } from 'lucide-react';
 import {
@@ -215,7 +215,7 @@ function CollapsedIndicator({ items }: { items: BreadcrumbItem[] }) {
   );
 }
 
-export function Breadcrumbs({
+export const Breadcrumbs = memo(function Breadcrumbs({
   items: propItems,
   separator,
   maxItems = 4,
@@ -262,4 +262,4 @@ export function Breadcrumbs({
       </ol>
     </nav>
   );
-}
+});

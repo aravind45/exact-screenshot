@@ -21,6 +21,21 @@ export class ErrorBoundary extends Component<Props, State> {
 
     public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
         console.error("Uncaught error:", error, errorInfo);
+
+        // Handle chunk loading errors (usually due to deployments replacing old chunks)
+        const isDynamicImportError =
+            error.message?.includes("Failed to fetch dynamically imported module") ||
+            error.message?.includes("Importing a module script failed") ||
+            error.message?.includes("error loading dynamically imported module");
+
+        if (isDynamicImportError) {
+            const hasReloaded = sessionStorage.getItem("dynamic_import_reload_attempted");
+            if (!hasReloaded) {
+                console.warn("Dynamic import error detected. Reloading page to fetch latest build...");
+                sessionStorage.setItem("dynamic_import_reload_attempted", "true");
+                window.location.reload();
+            }
+        }
     }
 
     public render() {

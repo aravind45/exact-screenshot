@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Home, BarChart3, Plus, ClipboardList, User } from 'lucide-react';
 import { motion } from 'framer-motion';
 import type { BottomNavBarProps, BottomNavItem } from '@/types/navigation';
@@ -10,7 +11,7 @@ const defaultItems: BottomNavItem[] = [
   { id: 'more', label: 'More', icon: User, path: '/more' },
 ];
 
-export function BottomNavBar({
+export const BottomNavBar = memo(function BottomNavBar({
   items = defaultItems,
   activeItem,
   onItemClick,
@@ -92,7 +93,7 @@ export function BottomNavBar({
       </ul>
     </nav>
   );
-}
+});
 
 export { defaultItems };
 export type { BottomNavItem };

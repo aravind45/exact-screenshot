@@ -78,11 +78,11 @@ function NotificationItem({
 
   return (
     <motion.div
-      layout
       initial={{ opacity: 0, y: -4 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -4 }}
       transition={{ duration: 0.15 }}
+      style={{ willChange: 'transform, opacity' }}
       className={`group flex items-start gap-3 px-3 py-2.5 cursor-pointer rounded-md transition-colors hover:bg-slate-50 ${
         !notification.read ? 'bg-blue-50/50' : ''
       }`}
