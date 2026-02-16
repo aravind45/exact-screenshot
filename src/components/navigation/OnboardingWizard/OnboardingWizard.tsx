@@ -211,7 +211,7 @@ export function OnboardingWizard({
           <button
             data-testid="wizard-close-button"
             onClick={() => setShowSkipConfirm(true)}
-            className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+            className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 active:bg-slate-200 transition-all duration-150 ease-out"
             aria-label="Close wizard"
             style={{ minWidth: 44, minHeight: 44 }}
           >
@@ -233,7 +233,7 @@ export function OnboardingWizard({
               initial="enter"
               animate="center"
               exit="exit"
-              transition={{ duration: 0.25, ease: 'easeInOut' }}
+              transition={{ duration: 0.2, ease: 'easeInOut' }}
               className="px-6 py-6"
             >
               {currentStep === 1 && (
@@ -287,6 +287,9 @@ export function OnboardingWizard({
         <div
           data-testid="wizard-skip-confirm"
           className="fixed inset-0 z-[60] flex items-center justify-center"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Skip setup wizard confirmation"
         >
           <div
             className="absolute inset-0 bg-black/30"
@@ -305,14 +308,14 @@ export function OnboardingWizard({
               <button
                 data-testid="wizard-skip-cancel"
                 onClick={() => setShowSkipConfirm(false)}
-                className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors"
+                className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 rounded-lg hover:bg-slate-200 active:bg-slate-300 transition-all duration-150 ease-out"
               >
                 Continue wizard
               </button>
               <button
                 data-testid="wizard-skip-confirm-button"
                 onClick={handleSkip}
-                className="px-4 py-2 text-sm font-medium text-white bg-slate-600 rounded-lg hover:bg-slate-700 transition-colors"
+                className="px-4 py-2 text-sm font-medium text-white bg-slate-600 rounded-lg hover:bg-slate-700 active:bg-slate-800 transition-all duration-150 ease-out"
               >
                 Skip for now
               </button>

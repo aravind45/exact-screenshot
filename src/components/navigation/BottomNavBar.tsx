@@ -2,6 +2,7 @@ import { memo } from 'react';
 import { Home, BarChart3, Plus, ClipboardList, User } from 'lucide-react';
 import { motion } from 'framer-motion';
 import type { BottomNavBarProps, BottomNavItem } from '@/types/navigation';
+import { HOVER_TRANSITION, TAP_SCALE, TOUCH_ACTIVE } from './animationConstants';
 
 const defaultItems: BottomNavItem[] = [
   { id: 'home', label: 'Home', icon: Home, path: '/dashboard' },
@@ -26,7 +27,7 @@ export const BottomNavBar = memo(function BottomNavBar({
       <ul
         role="list"
         className="flex items-center justify-around h-full px-1"
-        style={{ margin: 0, padding: '0 4px' }}
+        style={{ margin: 0, padding: '0 4px', touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
       >
         {items.map((item) => {
           const isActive = activeItem === item.id;
@@ -39,17 +40,19 @@ export const BottomNavBar = memo(function BottomNavBar({
               className="flex-1"
               style={{ width: '20%', maxWidth: '20%' }}
             >
-              <button
+              <motion.button
                 onClick={() => onItemClick(item.id)}
                 aria-label={item.label}
                 aria-current={isActive ? 'page' : undefined}
                 data-testid={`bottom-nav-item-${item.id}`}
+                whileTap={TOUCH_ACTIVE}
+                transition={HOVER_TRANSITION}
                 className={`
                   relative flex flex-col items-center justify-center w-full
                   transition-colors duration-150 ease-out
                   focus-visible:outline-2 focus-visible:outline-blue-500 focus-visible:outline-offset-2
                   rounded-md
-                  ${isActive ? 'text-blue-500' : 'text-slate-500 hover:text-slate-700'}
+                  ${isActive ? 'text-blue-500' : 'text-slate-500 hover:text-slate-700 active:bg-slate-100'}
                 `}
                 style={{
                   minWidth: '44px',
@@ -86,7 +89,7 @@ export const BottomNavBar = memo(function BottomNavBar({
                     transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                   />
                 )}
-              </button>
+              </motion.button>
             </li>
           );
         })}

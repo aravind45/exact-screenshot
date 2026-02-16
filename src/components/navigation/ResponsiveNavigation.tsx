@@ -126,7 +126,7 @@ export const ResponsiveNavigation = memo(function ResponsiveNavigation({
           <button
             data-testid="tablet-sidebar-toggle"
             onClick={handleTabletSidebarToggle}
-            className="fixed top-3 left-3 z-50 flex items-center justify-center w-10 h-10 rounded-md bg-white border border-slate-200 shadow-sm hover:bg-slate-50 transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-blue-500 focus-visible:outline-offset-2"
+            className="fixed top-3 left-3 z-50 flex items-center justify-center w-10 h-10 rounded-md bg-white border border-slate-200 shadow-sm hover:bg-slate-50 active:bg-slate-100 transition-all duration-150 ease-out focus-visible:outline-2 focus-visible:outline-blue-500 focus-visible:outline-offset-2"
             aria-label={isTabletSidebarOpen ? 'Close sidebar' : 'Open sidebar'}
             aria-expanded={isTabletSidebarOpen}
           >

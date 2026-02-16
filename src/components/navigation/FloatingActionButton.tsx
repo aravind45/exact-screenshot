@@ -2,6 +2,7 @@ import { memo } from 'react';
 import { Plus, FileText, MessageSquare, Upload } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { FloatingActionButtonProps, QuickAction } from '@/types/navigation';
+import { FAB_TRANSITION, TAP_SCALE, TOUCH_ACTIVE, HOVER_TRANSITION } from './animationConstants';
 
 const defaultActions: QuickAction[] = [
   {
@@ -25,8 +26,8 @@ const defaultActions: QuickAction[] = [
 ];
 
 const animationConfig = {
-  duration: 0.3,
-  ease: [0.4, 0, 0.2, 1] as const,
+  duration: FAB_TRANSITION.duration,
+  ease: FAB_TRANSITION.ease,
 };
 
 export const FloatingActionButton = memo(function FloatingActionButton({
@@ -62,6 +63,7 @@ export const FloatingActionButton = memo(function FloatingActionButton({
           {isExpanded && (
             <motion.ul
               role="list"
+              aria-label="Quick actions"
               className="flex flex-col items-center gap-3 mb-3 pointer-events-auto"
               data-testid="fab-menu"
               initial={{ opacity: 0, y: 20 }}
@@ -86,8 +88,8 @@ export const FloatingActionButton = memo(function FloatingActionButton({
                   >
                     <button
                       onClick={() => onActionClick(action)}
-                      className="flex items-center gap-3 px-4 bg-white rounded-full shadow-lg hover:bg-slate-50 transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-blue-500 focus-visible:outline-offset-2"
-                      style={{ height: '48px' }}
+                      className="flex items-center gap-3 px-4 bg-white rounded-full shadow-lg hover:bg-slate-50 hover:shadow-xl active:bg-slate-100 transition-all duration-150 ease-out focus-visible:outline-2 focus-visible:outline-blue-500 focus-visible:outline-offset-2"
+                      style={{ height: '48px', touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
                       data-testid={`fab-action-${action.id}`}
                       aria-label={action.label}
                     >
@@ -106,7 +108,8 @@ export const FloatingActionButton = memo(function FloatingActionButton({
         {/* FAB button */}
         <motion.button
           onClick={onToggle}
-          className="pointer-events-auto flex items-center justify-center rounded-full bg-blue-500 text-white hover:bg-blue-600 transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-blue-500 focus-visible:outline-offset-2"
+          whileTap={TAP_SCALE}
+          className="pointer-events-auto flex items-center justify-center rounded-full bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-700 transition-all duration-150 ease-out focus-visible:outline-2 focus-visible:outline-blue-500 focus-visible:outline-offset-2"
           style={{
             width: '56px',
             height: '56px',

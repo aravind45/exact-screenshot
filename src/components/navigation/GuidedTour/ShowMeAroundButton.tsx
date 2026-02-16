@@ -56,7 +56,7 @@ export function ShowMeAroundButton({
         <button
           data-testid="show-me-around-button"
           onClick={handleClick}
-          className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-slate-600 bg-slate-100 rounded-lg hover:bg-slate-200 hover:text-slate-800 transition-colors"
+          className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-slate-600 bg-slate-100 rounded-lg hover:bg-slate-200 hover:text-slate-800 active:bg-slate-300 transition-all duration-150 ease-out"
           aria-label="Show me around"
           aria-haspopup={!tourId ? 'true' : undefined}
           aria-expanded={!tourId ? menuOpen : undefined}
@@ -79,7 +79,7 @@ export function ShowMeAroundButton({
                   key={tour.id}
                   data-testid={`tour-menu-item-${tour.id}`}
                   onClick={() => startTour(tour)}
-                  className="w-full text-left px-4 py-2.5 hover:bg-slate-50 transition-colors"
+                  className="w-full text-left px-4 py-2.5 hover:bg-slate-50 active:bg-slate-100 transition-all duration-150 ease-out"
                   role="menuitem"
                 >
                   <div className="flex items-center justify-between">

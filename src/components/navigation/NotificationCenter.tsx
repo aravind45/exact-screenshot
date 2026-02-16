@@ -82,8 +82,9 @@ function NotificationItem({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -4 }}
       transition={{ duration: 0.15 }}
+      whileTap={{ scale: 0.98 }}
       style={{ willChange: 'transform, opacity' }}
-      className={`group flex items-start gap-3 px-3 py-2.5 cursor-pointer rounded-md transition-colors hover:bg-slate-50 ${
+      className={`group flex items-start gap-3 px-3 py-2.5 cursor-pointer rounded-md transition-all duration-150 ease-out hover:bg-slate-50 active:bg-slate-100 ${
         !notification.read ? 'bg-blue-50/50' : ''
       }`}
       data-testid={`notification-${notification.id}`}
@@ -123,7 +124,7 @@ function NotificationItem({
 
       {/* Mark read/unread button */}
       <button
-        className="mt-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-slate-200"
+        className="mt-1 shrink-0 opacity-0 group-hover:opacity-100 transition-all duration-150 ease-out p-1 rounded hover:bg-slate-200 active:bg-slate-300"
         onClick={(e) => {
           e.stopPropagation();
           onToggleRead(notification.id);
@@ -156,11 +157,13 @@ function NotificationGroup({
 }) {
   const config = TYPE_CONFIG[type];
 
+  const groupLabelId = `notification-group-label-${type}`;
+
   return (
-    <div data-testid={`notification-group-${type}`}>
+    <div data-testid={`notification-group-${type}`} role="group" aria-labelledby={groupLabelId}>
       <div className="flex items-center gap-2 px-3 py-2">
         <span className={`inline-block h-2 w-2 rounded-full ${config.dotClass}`} aria-hidden="true" />
-        <h3 className={`text-xs font-bold uppercase tracking-wider ${config.headerClass}`}>
+        <h3 id={groupLabelId} className={`text-xs font-bold uppercase tracking-wider ${config.headerClass}`}>
           {label}
         </h3>
         <span className="text-xs text-slate-400">({notifications.length})</span>
@@ -222,7 +225,7 @@ export function NotificationCenter() {
     >
       <PopoverTrigger asChild>
         <button
-          className="relative p-2 rounded-md hover:bg-slate-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+          className="relative p-2 rounded-md hover:bg-slate-100 active:bg-slate-200 transition-all duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
           aria-label={`Notifications${unreadCount > 0 ? `, ${unreadCount} unread` : ''}`}
           aria-haspopup="true"
           aria-expanded={isNotificationCenterOpen}
@@ -256,7 +259,7 @@ export function NotificationCenter() {
           <h2 className="text-sm font-semibold text-slate-900">Notifications</h2>
           {unreadCount > 0 && (
             <button
-              className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 transition-colors"
+              className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 active:text-blue-900 transition-all duration-150 ease-out"
               onClick={markAllNotificationsRead}
               data-testid="mark-all-read"
             >

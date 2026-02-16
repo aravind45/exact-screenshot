@@ -25,7 +25,7 @@ export function WelcomeStep({ onNext, onSkip }: WizardStepProps) {
         <button
           data-testid="wizard-welcome-start"
           onClick={onNext}
-          className="w-full flex items-center justify-center gap-2 px-6 py-3 text-sm font-medium text-white bg-blue-500 rounded-lg hover:bg-blue-600 transition-colors"
+          className="w-full flex items-center justify-center gap-2 px-6 py-3 text-sm font-medium text-white bg-blue-500 rounded-lg hover:bg-blue-600 active:bg-blue-700 transition-all duration-150 ease-out"
         >
           Get started
           <ArrowRight className="w-4 h-4" aria-hidden="true" />
@@ -33,7 +33,7 @@ export function WelcomeStep({ onNext, onSkip }: WizardStepProps) {
         <button
           data-testid="wizard-welcome-skip"
           onClick={onSkip}
-          className="text-sm text-slate-400 hover:text-slate-600 transition-colors"
+          className="text-sm text-slate-400 hover:text-slate-600 transition-all duration-150 ease-out"
         >
           Skip wizard (not recommended)
         </button>

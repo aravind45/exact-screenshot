@@ -59,13 +59,21 @@ export function SmartEmailDraft({ open, onOpenChange, asset, estate, onLogSent }
     };
 
     useEffect(() => {
-        if (open && templates[selectedTemplate as keyof typeof templates]) {
+        if (open) {
             const template = templates[selectedTemplate as keyof typeof templates];
-            setEditedSubject(template.subject);
-            setEditedBody(template.body);
+            if (template) {
+                setEditedSubject(template.subject);
+                setEditedBody(template.body);
+            }
+        }
+    }, [open, selectedTemplate]);
+
+    // Only set the initial recipient email once when the dialog opens for a new asset
+    useEffect(() => {
+        if (open) {
             setEditedTo(asset?.institutionEmail || "");
         }
-    }, [open, selectedTemplate, asset, estate]);
+    }, [open, asset?.id]);
 
     const currentTemplate = templates[selectedTemplate as keyof typeof templates];
 

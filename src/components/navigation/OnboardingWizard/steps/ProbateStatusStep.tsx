@@ -34,7 +34,7 @@ export function ProbateStatusStep({
                 key={value}
                 data-testid={`wizard-probate-${value}`}
                 onClick={() => onUpdate({ probateRequired: value })}
-                className={`w-full flex items-center gap-3 px-4 py-3 text-sm text-left border rounded-lg transition-colors ${
+                className={`w-full flex items-center gap-3 px-4 py-3 text-sm text-left border rounded-lg transition-all duration-150 ease-out ${
                   data.probateRequired === value
                     ? 'border-blue-500 bg-blue-50 text-blue-700'
                     : 'border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50'
@@ -56,7 +56,7 @@ export function ProbateStatusStep({
               <button
                 data-testid="wizard-probate-type-full"
                 onClick={() => onUpdate({ probateType: 'full' })}
-                className={`w-full text-left px-4 py-3 text-sm border rounded-lg transition-colors ${
+                className={`w-full text-left px-4 py-3 text-sm border rounded-lg transition-all duration-150 ease-out ${
                   data.probateType === 'full'
                     ? 'border-blue-500 bg-blue-50 text-blue-700'
                     : 'border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50'
@@ -70,7 +70,7 @@ export function ProbateStatusStep({
               <button
                 data-testid="wizard-probate-type-small"
                 onClick={() => onUpdate({ probateType: 'small-estate' })}
-                className={`w-full text-left px-4 py-3 text-sm border rounded-lg transition-colors ${
+                className={`w-full text-left px-4 py-3 text-sm border rounded-lg transition-all duration-150 ease-out ${
                   data.probateType === 'small-estate'
                     ? 'border-blue-500 bg-blue-50 text-blue-700'
                     : 'border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50'
@@ -103,7 +103,7 @@ export function ProbateStatusStep({
         <button
           data-testid="wizard-probate-back"
           onClick={onBack}
-          className="flex items-center gap-1 px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-800 transition-colors"
+          className="flex items-center gap-1 px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-800 transition-all duration-150 ease-out"
         >
           <ArrowLeft className="w-4 h-4" aria-hidden="true" />
           Back
@@ -111,7 +111,7 @@ export function ProbateStatusStep({
         <button
           data-testid="wizard-probate-next"
           onClick={onNext}
-          className="flex items-center gap-2 px-6 py-2 text-sm font-medium text-white bg-blue-500 rounded-lg hover:bg-blue-600 transition-colors"
+          className="flex items-center gap-2 px-6 py-2 text-sm font-medium text-white bg-blue-500 rounded-lg hover:bg-blue-600 active:bg-blue-700 transition-all duration-150 ease-out"
         >
           Continue
           <ArrowRight className="w-4 h-4" aria-hidden="true" />

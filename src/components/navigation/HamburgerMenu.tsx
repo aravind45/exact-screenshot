@@ -27,12 +27,13 @@ import type {
   HamburgerMenuGroup,
   NavigationItem,
 } from '@/types/navigation';
+import { FAB_TRANSITION } from './animationConstants';
 
 const SWIPE_CLOSE_THRESHOLD = 80;
 
 const animationConfig = {
-  duration: 0.3,
-  ease: [0.4, 0, 0.2, 1] as const,
+  duration: FAB_TRANSITION.duration,
+  ease: FAB_TRANSITION.ease,
 };
 
 const defaultPhaseGroups: HamburgerMenuGroup[] = [
@@ -220,7 +221,7 @@ export const HamburgerMenu = memo(function HamburgerMenu({
               <button
                 ref={firstFocusableRef}
                 onClick={onClose}
-                className="flex items-center justify-center rounded-md text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-blue-500 focus-visible:outline-offset-2"
+                className="flex items-center justify-center rounded-md text-slate-500 hover:text-slate-700 hover:bg-slate-100 active:bg-slate-200 transition-all duration-150 ease-out focus-visible:outline-2 focus-visible:outline-blue-500 focus-visible:outline-offset-2"
                 style={{ minWidth: '44px', minHeight: '44px' }}
                 data-testid="hamburger-menu-close"
                 aria-label="Close menu"
@@ -250,11 +251,11 @@ export const HamburgerMenu = memo(function HamburgerMenu({
                               onClick={() => handleItemClick(item)}
                               className={`
                                 flex items-center gap-3 w-full px-4 text-left
-                                text-sm font-medium transition-colors duration-150
+                                text-sm font-medium transition-all duration-150 ease-out
                                 focus-visible:outline-2 focus-visible:outline-blue-500 focus-visible:outline-offset-[-2px]
                                 ${item.isActive
                                   ? 'text-blue-500 bg-blue-50 border-l-4 border-blue-500'
-                                  : 'text-slate-700 hover:bg-slate-100 border-l-4 border-transparent'
+                                  : 'text-slate-700 hover:bg-slate-100 active:bg-slate-200 border-l-4 border-transparent'
                                 }
                               `}
                               style={{ minHeight: '44px' }}
@@ -305,7 +306,7 @@ export const HamburgerMenu = memo(function HamburgerMenu({
                       <li key={item.id} role="listitem">
                         <button
                           onClick={() => handleItemClick(item)}
-                          className="flex items-center gap-3 w-full px-4 text-left text-sm font-medium text-slate-700 hover:bg-slate-100 transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-blue-500 focus-visible:outline-offset-[-2px]"
+                          className="flex items-center gap-3 w-full px-4 text-left text-sm font-medium text-slate-700 hover:bg-slate-100 active:bg-slate-200 transition-all duration-150 ease-out focus-visible:outline-2 focus-visible:outline-blue-500 focus-visible:outline-offset-[-2px]"
                           style={{ minHeight: '44px' }}
                           data-testid={`hamburger-item-${item.id}`}
                         >
@@ -338,11 +339,11 @@ export const HamburgerMenu = memo(function HamburgerMenu({
                         onClick={() => handleItemClick(item)}
                         className={`
                           flex items-center gap-3 w-full px-4 text-left text-sm font-medium
-                          transition-colors duration-150
+                          transition-all duration-150 ease-out
                           focus-visible:outline-2 focus-visible:outline-blue-500 focus-visible:outline-offset-[-2px]
                           ${item.id === 'sign-out'
-                            ? 'text-red-600 hover:bg-red-50'
-                            : 'text-slate-700 hover:bg-slate-100'
+                            ? 'text-red-600 hover:bg-red-50 active:bg-red-100'
+                            : 'text-slate-700 hover:bg-slate-100 active:bg-slate-200'
                           }
                         `}
                         style={{ minHeight: '44px' }}

@@ -70,14 +70,14 @@ export function DashboardTourStep({ onNext, onBack }: WizardStepProps) {
         <button
           data-testid="wizard-tour-back"
           onClick={onBack}
-          className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-800 transition-colors"
+          className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-800 transition-all duration-150 ease-out"
         >
           Back
         </button>
         <button
           data-testid="wizard-tour-complete"
           onClick={onNext}
-          className="flex items-center gap-2 px-6 py-2 text-sm font-medium text-white bg-green-500 rounded-lg hover:bg-green-600 transition-colors"
+          className="flex items-center gap-2 px-6 py-2 text-sm font-medium text-white bg-green-500 rounded-lg hover:bg-green-600 active:bg-green-700 transition-all duration-150 ease-out"
         >
           <PartyPopper className="w-4 h-4" aria-hidden="true" />
           Complete setup

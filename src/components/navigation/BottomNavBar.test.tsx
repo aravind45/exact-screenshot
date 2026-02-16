@@ -8,6 +8,7 @@ import { Home, BarChart3, Plus, ClipboardList, User } from 'lucide-react';
 vi.mock('framer-motion', () => ({
   motion: {
     span: ({ children, layoutId, ...props }: any) => <span {...props}>{children}</span>,
+    button: ({ children, whileTap, whileHover, ...props }: any) => <button {...props}>{children}</button>,
   },
   AnimatePresence: ({ children }: any) => children,
 }));

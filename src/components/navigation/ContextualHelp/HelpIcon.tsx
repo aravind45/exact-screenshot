@@ -27,7 +27,7 @@ export function HelpIcon({
       data-testid={`help-icon-${contextId}`}
       aria-label={`Help for ${contextId.replace(/-/g, ' ')}`}
       onClick={() => onClick?.(contextId)}
-      className={`inline-flex items-center justify-center rounded-full text-slate-400 hover:text-blue-500 hover:bg-blue-50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 ${buttonSizeClasses[size]} ${className}`}
+      className={`inline-flex items-center justify-center rounded-full text-slate-400 hover:text-blue-500 hover:bg-blue-50 active:bg-blue-100 transition-all duration-150 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 ${buttonSizeClasses[size]} ${className}`}
     >
       <HelpCircle className={sizeClasses[size]} aria-hidden="true" />
     </button>

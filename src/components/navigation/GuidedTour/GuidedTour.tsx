@@ -184,6 +184,7 @@ export function GuidedTour({ tour, onComplete, onSkip }: GuidedTourProps) {
         style={{ ...tooltipStyle, zIndex: 101 }}
         role="alertdialog"
         aria-label={step.title}
+        aria-describedby="guided-tour-step-desc"
         tabIndex={-1}
       >
         {/* Header */}
@@ -197,7 +198,7 @@ export function GuidedTour({ tour, onComplete, onSkip }: GuidedTourProps) {
           <button
             data-testid="guided-tour-skip"
             onClick={onSkip}
-            className="p-1 -mr-1 -mt-1 rounded text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+            className="p-1 -mr-1 -mt-1 rounded text-slate-400 hover:text-slate-600 hover:bg-slate-100 active:bg-slate-200 transition-all duration-150 ease-out"
             aria-label="Skip tour"
             style={{ minWidth: 32, minHeight: 32 }}
           >
@@ -207,6 +208,7 @@ export function GuidedTour({ tour, onComplete, onSkip }: GuidedTourProps) {
 
         {/* Description */}
         <p
+          id="guided-tour-step-desc"
           data-testid="guided-tour-step-description"
           className="text-sm text-slate-600 leading-relaxed mb-4"
         >
@@ -227,7 +229,7 @@ export function GuidedTour({ tour, onComplete, onSkip }: GuidedTourProps) {
               <button
                 data-testid="guided-tour-back"
                 onClick={() => setStepIndex((i) => i - 1)}
-                className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-slate-600 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors"
+                className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-slate-600 bg-slate-100 rounded-lg hover:bg-slate-200 active:bg-slate-300 transition-all duration-150 ease-out"
                 aria-label="Previous step"
               >
                 <ChevronLeft className="w-4 h-4" aria-hidden="true" />
@@ -243,7 +245,7 @@ export function GuidedTour({ tour, onComplete, onSkip }: GuidedTourProps) {
                   setStepIndex((i) => i + 1);
                 }
               }}
-              className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-white bg-blue-500 rounded-lg hover:bg-blue-600 transition-colors"
+              className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-white bg-blue-500 rounded-lg hover:bg-blue-600 active:bg-blue-700 transition-all duration-150 ease-out"
               aria-label={isLast ? 'Finish tour' : 'Next step'}
             >
               {isLast ? 'Finish' : 'Next'}

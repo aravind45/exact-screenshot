@@ -162,7 +162,7 @@ function BreadcrumbSegment({
         ) : (
           <Link
             to={item.path}
-            className="max-w-[200px] truncate text-slate-500 hover:text-slate-700 transition-colors"
+            className="max-w-[200px] truncate text-slate-500 hover:text-slate-700 transition-all duration-150 ease-out"
             data-testid="breadcrumb-truncated"
           >
             {content}
@@ -184,7 +184,7 @@ function BreadcrumbSegment({
   ) : (
     <Link
       to={item.path}
-      className="flex items-center gap-1.5 text-slate-500 hover:text-slate-700 transition-colors"
+      className="flex items-center gap-1.5 text-slate-500 hover:text-slate-700 transition-all duration-150 ease-out"
     >
       {Icon && <Icon className="h-3.5 w-3.5 shrink-0" />}
       <span>{displayLabel}</span>
@@ -201,7 +201,7 @@ function CollapsedIndicator({ items }: { items: BreadcrumbItem[] }) {
     <Tooltip>
       <TooltipTrigger asChild>
         <button
-          className="flex items-center justify-center h-6 w-6 rounded hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
+          className="flex items-center justify-center h-6 w-6 rounded hover:bg-slate-100 active:bg-slate-200 text-slate-400 hover:text-slate-600 transition-all duration-150 ease-out"
           aria-label={`${items.length} collapsed items: ${tooltipContent}`}
           data-testid="breadcrumb-collapsed"
         >
@@ -240,7 +240,7 @@ export const Breadcrumbs = memo(function Breadcrumbs({
 
   return (
     <nav aria-label="Breadcrumb" data-testid="breadcrumbs">
-      <ol className="flex items-center flex-wrap text-sm">
+      <ol role="list" className="flex items-center flex-wrap text-sm">
         {visible.map((item, index) => {
           const isLast = index === visible.length - 1;
           // Insert collapsed indicator after the first item

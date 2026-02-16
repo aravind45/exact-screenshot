@@ -454,10 +454,10 @@ export default function AssetDetail() {
     category: normalize(asset.category) as AssetCategory,
     status: normalize(asset.status) as AssetStatus,
     priority: normalize(asset.priority) as Priority,
-    accountNumber: asset.accountNumber || 'N/A',
-    institutionPhone: asset.institutionPhone || 'N/A',
-    institutionEmail: asset.institutionEmail || 'N/A',
-    institutionFax: asset.institutionFax || 'N/A',
+    accountNumber: asset.accountNumber || '',
+    institutionPhone: asset.institutionPhone || '',
+    institutionEmail: asset.institutionEmail || '',
+    institutionFax: asset.institutionFax || '',
     daysSinceContact: 0,
     communications: asset.communications || []
   };
@@ -1162,19 +1162,15 @@ export default function AssetDetail() {
           onOpenChange={setShowDraftModal}
           asset={uiAsset}
           estate={estate}
-          onLogSent={(subject, content) => {
+          onLogSent={(subject, notes) => {
             createCommMutation.mutate({
-              method: "email",
+              contactChannel: "email",
               direction: "outbound",
               subject,
-              notes: content,
+              notes,
               type: "initial_contact",
               occurredAt: new Date().toISOString().slice(0, 16),
               statusChange: "notified",
-              metadata: {
-                isFormalNotice: true,
-                complianceCategory: "FIDUCIARY_NOTIFICATION"
-              }
             } as any);
           }}
         />
