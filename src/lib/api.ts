@@ -411,8 +411,12 @@ export const api = {
             });
             return parseResponse(response);
         },
-        getMarketingEvents: async () => {
-            const response = await fetch(`${API_URL}/admin/marketing/events`, { headers: getHeaders() });
+        getMarketingEvents: async (params?: { page?: number, limit?: number }) => {
+            const query = new URLSearchParams();
+            if (params?.page) query.append("page", params.page.toString());
+            if (params?.limit) query.append("limit", params.limit.toString());
+            const queryString = query.toString() ? `?${query.toString()}` : "";
+            const response = await fetch(`${API_URL}/admin/marketing/events${queryString}`, { headers: getHeaders() });
             return parseResponse(response);
         }
     },

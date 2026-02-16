@@ -6,6 +6,13 @@ export type NotificationType = 'urgent' | 'follow-up' | 'update';
 
 export type BadgeType = 'urgent' | 'attention' | 'info';
 
+export interface NavigationTooltipContent {
+  title: string;
+  description: string;
+  example?: string;
+  icon?: React.ComponentType<{ className?: string }>;
+}
+
 export interface NavigationItem {
   id: string;
   label: string;
@@ -14,6 +21,7 @@ export interface NavigationItem {
   badge?: number;
   badgeType?: BadgeType;
   tooltip?: string;
+  tooltipContent?: NavigationTooltipContent;
   isActive?: boolean;
 }
 
@@ -80,4 +88,57 @@ export interface PersistedNavigationState {
   collapsedSidebar: boolean;
   recentItems: RecentItem[];
   dismissedNotifications: string[];
+}
+
+export interface SearchResult {
+  id: string;
+  type: 'asset' | 'communication' | 'document' | 'page';
+  title: string;
+  subtitle?: string;
+  icon: React.ComponentType<{ className?: string }>;
+  url: string;
+}
+
+export interface QuickAction {
+  id: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  action: () => void;
+  shortcut?: string;
+}
+
+export interface BottomNavItem {
+  id: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  path: string;
+  badge?: number;
+}
+
+export interface BottomNavBarProps {
+  items: BottomNavItem[];
+  activeItem: string;
+  onItemClick: (id: string) => void;
+}
+
+export interface FloatingActionButtonProps {
+  isExpanded: boolean;
+  onToggle: () => void;
+  actions: QuickAction[];
+  onActionClick: (action: QuickAction) => void;
+}
+
+export interface HamburgerMenuGroup {
+  id: string;
+  title: string;
+  items: NavigationItem[];
+}
+
+export interface HamburgerMenuProps {
+  isOpen: boolean;
+  onClose: () => void;
+  groups: HamburgerMenuGroup[];
+  quickActions: NavigationItem[];
+  footerItems: NavigationItem[];
+  onItemClick: (item: NavigationItem) => void;
 }

@@ -558,11 +558,26 @@ router.put("/estates/:id/reset", isAdmin, async (req: any, res: Response) => {
 // Marketing & Leads Management
 router.get("/marketing/events", isAdmin, async (req: any, res: Response) => {
     try {
-        const events = await prisma.marketingEvent.findMany({
-            orderBy: { createdAt: 'desc' },
-            take: 500 // Limit to recent 500 events
+        const page = parseInt(req.query.page as string) || 1;
+        const limit = parseInt(req.query.limit as string) || 25;
+        const skip = (page - 1) * limit;
+
+        const [events, total] = await Promise.all([
+            prisma.marketingEvent.findMany({
+                orderBy: { createdAt: 'desc' },
+                skip,
+                take: limit
+            }),
+            prisma.marketingEvent.count()
+        ]);
+
+        res.json({
+            data: events,
+            total,
+            page,
+            limit,
+            totalPages: Math.ceil(total / limit)
         });
-        res.json(events);
     } catch (error: any) {
         logger.error("Failed to fetch marketing events:", error.message);
         res.status(500).json({ error: "Failed to fetch marketing events" });

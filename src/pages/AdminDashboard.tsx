@@ -1060,13 +1060,19 @@ function CommunicationsManager() {
 }
 
 function MarketingManager() {
-    const { data: events, isLoading } = useQuery({
-        queryKey: ["admin", "marketing", "events"],
-        queryFn: () => api.admin.getMarketingEvents()
+    const [page, setPage] = useState(1);
+    const [pageSize] = useState(25);
+
+    const { data: eventsData, isLoading } = useQuery({
+        queryKey: ["admin", "marketing", "events", page],
+        queryFn: () => api.admin.getMarketingEvents({ page, limit: pageSize })
     });
 
     if (isLoading) return <div className="p-8 text-center text-muted-foreground">Loading marketing events...</div>;
 
+    const events = eventsData?.data || [];
+    const totalEvents = eventsData?.total || 0;
+    const totalPages = eventsData?.totalPages || 1;
     const leads = events?.filter((e: any) => e.email) || [];
 
     return (
@@ -1103,7 +1109,7 @@ function MarketingManager() {
                 <Card className="card-elevated border-none">
                     <CardHeader>
                         <CardTitle>Campaign Performance</CardTitle>
-                        <CardDescription>Top sources for marketing events.</CardDescription>
+                        <CardDescription>Top sources for marketing events (current page).</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-2">
@@ -1172,6 +1178,38 @@ function MarketingManager() {
                             ))}
                         </tbody>
                     </table>
+                </div>
+
+                {/* Pagination Controls */}
+                <div className="p-4 border-t border-border/50 flex items-center justify-between bg-muted/20">
+                    <p className="text-xs text-muted-foreground">
+                        Showing {events?.length > 0 ? (page - 1) * pageSize + 1 : 0} to {Math.min(page * pageSize, totalEvents || 0)} of {totalEvents || 0} events
+                    </p>
+                    <div className="flex items-center gap-2">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setPage(p => Math.max(1, p - 1))}
+                            disabled={page === 1}
+                            className="h-8 text-xs"
+                        >
+                            <ChevronLeft className="w-3.5 h-3.5 mr-1" /> Previous
+                        </Button>
+                        <div className="flex items-center gap-1">
+                            <span className="text-xs font-medium px-2 text-muted-foreground">
+                                Page <span className="text-foreground">{page}</span> of {totalPages || 1}
+                            </span>
+                        </div>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setPage(p => Math.min(totalPages || 1, p + 1))}
+                            disabled={page >= (totalPages || 1)}
+                            className="h-8 text-xs"
+                        >
+                            Next <ChevronRight className="w-3.5 h-3.5 ml-1" />
+                        </Button>
+                    </div>
                 </div>
             </Card>
         </div>
