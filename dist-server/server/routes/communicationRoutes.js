@@ -9,13 +9,14 @@ import { logger } from "../lib/logger.js";
 const communicationSchema = z.object({
     assetId: z.string(),
     type: z.string(),
-    direction: z.enum(["INBOUND", "OUTBOUND"]),
-    content: z.string().min(1),
+    direction: z.enum(["INBOUND", "OUTBOUND", "inbound", "outbound"]),
+    notes: z.string().min(1),
     subject: z.string().optional(),
     sender: z.string().optional(),
     recipient: z.string().optional(),
-    channel: z.enum(["EMAIL", "FAX", "MAIL", "PHONE", "PORTAL", "OTHER"]),
+    contactChannel: z.enum(["EMAIL", "FAX", "MAIL", "PHONE", "PORTAL", "OTHER", "email", "fax", "mail", "phone", "portal", "other"]),
     status: z.string().optional(),
+    statusChange: z.string().optional(),
     followUpDueAt: z.string().optional().nullable(),
     attachments: z.array(z.string()).optional()
 });
@@ -76,6 +77,8 @@ router.post("/", async (req, res) => {
             return res.status(403).json({ error: "Asset not found or access denied" });
         const communication = await CommunicationService.create(req.user.id, {
             ...validated,
+            direction: validated.direction.toUpperCase(),
+            contactChannel: validated.contactChannel.toUpperCase(),
             estateId: asset.estateId
         });
         res.status(201).json(communication);

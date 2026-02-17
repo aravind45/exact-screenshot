@@ -11,9 +11,13 @@ export class OrchestratorService {
         const executionId = `exec_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
         logger.info(`🎯 Orchestrator [${executionId}]: Starting multi-agent flow for question`);
         try {
-            // STEP 1: Retrieval Agent - Find relevant legal knowledge
-            logger.info(`🎯 Orchestrator [${executionId}]: Step 1 - Retrieval Agent`);
-            const retrieval = await RAGService.retrieveLegalChunks(question, 5);
+            // STEP 0: Query Expansion - Agentic optimization
+            logger.info(`🎯 Orchestrator [${executionId}]: Step 0 - Query Expansion`);
+            const optimizedQuery = await RAGService.expandQuery(question);
+            logger.info(`🔍 Orchestrator: Optimized "${question}" -> "${optimizedQuery}"`);
+            // STEP 1: Retrieval Agent - Hybrid Search
+            logger.info(`🎯 Orchestrator [${executionId}]: Step 1 - Retrieval Agent (Hybrid)`);
+            const retrieval = await RAGService.retrieveLegalChunks(optimizedQuery, 5);
             if (retrieval.chunks.length === 0) {
                 logger.warn(`🎯 Orchestrator [${executionId}]: No evidence found, returning fallback`);
                 return this.buildResponse({

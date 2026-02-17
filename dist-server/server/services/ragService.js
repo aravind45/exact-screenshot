@@ -9,79 +9,146 @@ const embeddings = process.env.OPENAI_API_KEY ? new OpenAIEmbeddings({
 }) : null;
 export class RAGService {
     /**
+     * Query Expansion Agent: Optimize query for hybrid search
+     */
+    static async expandQuery(question) {
+        const prompt = `
+            You are an expert legal researcher. 
+            Your goal is to optimize a user's question into a search query that works well for BOTH keyword (BM25) and semantic (Vector) search.
+            
+            USER QUESTION: "${question}"
+            
+            INSTRUCTIONS:
+            1. Keep the core intent.
+            2. specific legal terms (e.g., "small estate affidavit", "probate", "executor").
+            3. relevant California codes if applicable (e.g., "DE-111", "13100").
+            4. Remove conversational filler.
+            
+            Output ONLY the optimized query string. No quotes, no explanations.
+        `;
+        try {
+            const refined = await ai.generateText(prompt, "fast"); // Fast model is sufficient
+            return refined.trim();
+        }
+        catch (error) {
+            logger.warn("Query Expansion failed, using original:", error);
+            return question;
+        }
+    }
+    /**
      * Retrieval Agent: Perform semantic search and return structured evidence
      */
-    static async retrieveLegalChunks(query, limit = 5) {
+    /**
+     * Hybrid Retrieval: Combine Lexical (BM25) and Dense (Vector) search using RRF
+     */
+    static async retrieveHybrid(query, limit = 10, filters) {
         if (!embeddings) {
             logger.error("RAG Error: OPENAI_API_KEY is missing. Semantic search disabled.");
-            return {
-                chunks: [],
-                evidence: [],
-                metadata: {
-                    query,
-                    timestamp: new Date(),
-                    error: "OPENAI_API_KEY missing"
-                }
-            };
+            return { chunks: [], evidence: [], metadata: { error: "OPENAI_API_KEY missing" } };
         }
         try {
+            const start = Date.now();
+            // 1. Generate Query Vector
             const queryVector = await embeddings.embedQuery(query);
             const vectorSql = `[${queryVector.join(',')}]`;
-            // Perform vector similarity search
-            // CRITICAL: Removed hard threshold - let downstream agents decide relevance
-            const results = await prisma.$queryRawUnsafe(`
-                SELECT 
-                    id,
-                    content, 
-                    source, 
-                    metadata,
-                    1 - (embedding <=> $1::vector) as similarity
-                FROM knowledge_chunks
-                ORDER BY similarity DESC
-                LIMIT $2
-            `, vectorSql, limit);
-            const rows = results;
-            // Structure evidence for downstream agents
-            const evidence = rows.map((r, i) => ({
+            // 2. Parallel Search Execution
+            const [lexicalResults, denseResults] = await Promise.all([
+                // Lexical Search (BM25 via tsvector)
+                prisma.$queryRawUnsafe(`
+                    SELECT 
+                        c.id,
+                        c.text as content,
+                        d."sourceUri" as source,
+                        d.title,
+                        ts_rank_cd(c.tsv, q) as score
+                    FROM "rag_chunks" c,
+                         websearch_to_tsquery('english', $1) q
+                    JOIN "rag_documents" d ON d.id = c.document_id
+                    WHERE c.tsv @@ q
+                    ORDER BY score DESC
+                    LIMIT $2
+                `, query, limit),
+                // Dense Search (Vector Similarity)
+                prisma.$queryRawUnsafe(`
+                    SELECT 
+                        c.id,
+                        c.text as content,
+                        d."sourceUri" as source,
+                        d.title,
+                        1 - (ce.embedding <=> $1::vector) as score
+                    FROM "rag_chunk_embeddings" ce
+                    JOIN "rag_chunks" c ON c.id = ce.chunk_id
+                    JOIN "rag_documents" d ON d.id = c.document_id
+                    WHERE ce.vector_type = 'content'
+                    ORDER BY score DESC
+                    LIMIT $2
+                `, vectorSql, limit)
+            ]);
+            const lexicalRows = lexicalResults;
+            const denseRows = denseResults;
+            // 3. Reciprocal Rank Fusion (RRF)
+            const fusedIds = this.rrfFuse(lexicalRows.map(r => r.id), denseRows.map(r => r.id), 60 // k constant
+            );
+            // 4. Hydrate Results (Map back to content)
+            const allRowsMap = new Map([...lexicalRows, ...denseRows].map(r => [r.id, r]));
+            const fusedResults = fusedIds
+                .slice(0, limit)
+                .map(id => allRowsMap.get(id))
+                .filter(r => r !== undefined);
+            logger.info(`🔍 Hybrid Retrieval: Lexical=${lexicalRows.length}, Dense=${denseRows.length} -> Fused=${fusedResults.length}`);
+            // 5. Structure for Agents
+            const evidence = fusedResults.map((r, i) => ({
                 evidence_id: `e${i + 1}`,
                 chunk_id: r.id,
-                source: r.source,
+                source: r.source || r.title,
                 snippet: r.content.slice(0, 220),
                 full_content: r.content,
-                score: r.similarity,
-                metadata: r.metadata
+                score: r.score, // Note: RRF score isn't preserved here, maybe use rank
+                metadata: { title: r.title, method: "hybrid_rrf" }
             }));
-            logger.info(`🔍 Retrieval Agent: Found ${rows.length} chunks. Top score: ${rows[0]?.similarity?.toFixed(4) || 0}`);
             return {
-                chunks: rows,
+                chunks: fusedResults,
                 evidence,
                 metadata: {
                     query,
                     timestamp: new Date(),
-                    retrieval_count: rows.length,
-                    top_score: rows[0]?.similarity || 0
+                    retrieval_count: fusedResults.length,
+                    lexical_count: lexicalRows.length,
+                    dense_count: denseRows.length,
+                    execution_time_ms: Date.now() - start
                 }
             };
         }
         catch (error) {
-            logger.error("Retrieval Agent Error:", error);
-            return {
-                chunks: [],
-                evidence: [],
-                metadata: {
-                    query,
-                    timestamp: new Date(),
-                    error: String(error)
-                }
-            };
+            logger.error("Hybrid Retrieval Error:", error);
+            return { chunks: [], evidence: [], metadata: { error: String(error) } };
         }
     }
     /**
-     * Legacy method - kept for backward compatibility
-     * @deprecated Use retrieveLegalChunks instead
+     * Reciprocal Rank Fusion helper
      */
+    static rrfFuse(lexIds, vecIds, k = 60) {
+        const scores = new Map();
+        const addScores = (ids) => {
+            ids.forEach((id, rank) => {
+                const existing = scores.get(id) || 0;
+                scores.set(id, existing + (1 / (k + rank + 1)));
+            });
+        };
+        addScores(lexIds);
+        addScores(vecIds);
+        return [...scores.entries()]
+            .sort((a, b) => b[1] - a[1]) // Descending
+            .map(([id]) => id);
+    }
+    /**
+     * Legacy Adapter
+     */
+    static async retrieveLegalChunks(query, limit = 5) {
+        return this.retrieveHybrid(query, limit);
+    }
     static async searchKnowledge(query, limit = 5) {
-        const result = await this.retrieveLegalChunks(query, limit);
+        const result = await this.retrieveHybrid(query, limit);
         return result.chunks;
     }
     /**

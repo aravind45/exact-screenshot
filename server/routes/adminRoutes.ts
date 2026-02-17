@@ -40,7 +40,10 @@ const refundSchema = z.object({
 
 const ingestSchema = z.object({
     text: z.string().min(1),
-    source: z.string().min(1)
+    source: z.string().min(1),
+    title: z.string().optional(),
+    docType: z.string().optional(),
+    jurisdiction: z.string().optional()
 });
 
 const templateMetadataSchema = z.object({
@@ -471,12 +474,12 @@ router.get("/knowledge/stats", isAdmin, async (req, res) => {
     }
 });
 
-router.get("/knowledge/chunks", isAdmin, async (req, res) => {
+router.get("/knowledge/documents", isAdmin, async (req, res) => {
     try {
         const limit = parseInt(req.query.limit as string) || 100;
         const offset = parseInt(req.query.offset as string) || 0;
-        const chunks = await KnowledgeService.listChunks(limit, offset);
-        res.json(chunks);
+        const docs = await KnowledgeService.listDocuments(limit, offset);
+        res.json(docs);
     } catch (error: any) {
         res.status(500).json({ error: error.message });
     }
@@ -485,9 +488,14 @@ router.get("/knowledge/chunks", isAdmin, async (req, res) => {
 router.post("/knowledge/ingest", isAdmin, async (req, res) => {
     try {
         const validated = ingestSchema.parse(req.body);
-        const { text, source } = validated;
+        const { text, source, title, docType, jurisdiction } = validated;
 
-        const result = await KnowledgeService.ingestText(text, source);
+        const result = await KnowledgeService.ingestText(text, {
+            sourceUri: source,
+            title: title || source, // Fallback to source if title missing
+            docType: (docType as any) || 'OTHER',
+            jurisdiction: jurisdiction
+        });
         res.json(result);
     } catch (error: any) {
         if (error instanceof z.ZodError) return res.status(400).json({ error: "Invalid ingestion request", details: error.errors });
@@ -496,9 +504,9 @@ router.post("/knowledge/ingest", isAdmin, async (req, res) => {
     }
 });
 
-router.delete("/knowledge/chunks/:id", isAdmin, async (req, res) => {
+router.delete("/knowledge/documents/:id", isAdmin, async (req, res) => {
     try {
-        await KnowledgeService.deleteChunk(req.params.id);
+        await KnowledgeService.deleteDocument(req.params.id);
         res.json({ success: true });
     } catch (error: any) {
         res.status(500).json({ error: error.message });

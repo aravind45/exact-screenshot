@@ -33,7 +33,10 @@ const refundSchema = z.object({
 });
 const ingestSchema = z.object({
     text: z.string().min(1),
-    source: z.string().min(1)
+    source: z.string().min(1),
+    title: z.string().optional(),
+    docType: z.string().optional(),
+    jurisdiction: z.string().optional()
 });
 const templateMetadataSchema = z.object({
     name: z.string().min(1),
@@ -77,13 +80,36 @@ router.get("/stats", isAdmin, async (req, res) => {
 });
 router.get("/users", isAdmin, async (req, res) => {
     try {
-        const users = await prisma.user.findMany({
-            include: {
-                _count: { select: { estates: true, communications: true } },
-                estates: { select: { id: true, name: true } }
-            }
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 50;
+        const search = req.query.search || "";
+        const skip = (page - 1) * limit;
+        const where = search ? {
+            OR: [
+                { fullName: { contains: search, mode: 'insensitive' } },
+                { email: { contains: search, mode: 'insensitive' } }
+            ]
+        } : {};
+        const [users, total] = await Promise.all([
+            prisma.user.findMany({
+                where,
+                include: {
+                    _count: { select: { estates: true, communications: true } },
+                    estates: { select: { id: true, name: true } }
+                },
+                orderBy: { createdAt: 'desc' },
+                skip,
+                take: limit
+            }),
+            prisma.user.count({ where })
+        ]);
+        res.json({
+            data: users,
+            total,
+            page,
+            limit,
+            totalPages: Math.ceil(total / limit)
         });
-        res.json(users);
     }
     catch (error) {
         logger.error("Failed to fetch admin users:", error.message);
@@ -426,12 +452,12 @@ router.get("/knowledge/stats", isAdmin, async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
-router.get("/knowledge/chunks", isAdmin, async (req, res) => {
+router.get("/knowledge/documents", isAdmin, async (req, res) => {
     try {
         const limit = parseInt(req.query.limit) || 100;
         const offset = parseInt(req.query.offset) || 0;
-        const chunks = await KnowledgeService.listChunks(limit, offset);
-        res.json(chunks);
+        const docs = await KnowledgeService.listDocuments(limit, offset);
+        res.json(docs);
     }
     catch (error) {
         res.status(500).json({ error: error.message });
@@ -440,8 +466,13 @@ router.get("/knowledge/chunks", isAdmin, async (req, res) => {
 router.post("/knowledge/ingest", isAdmin, async (req, res) => {
     try {
         const validated = ingestSchema.parse(req.body);
-        const { text, source } = validated;
-        const result = await KnowledgeService.ingestText(text, source);
+        const { text, source, title, docType, jurisdiction } = validated;
+        const result = await KnowledgeService.ingestText(text, {
+            sourceUri: source,
+            title: title || source, // Fallback to source if title missing
+            docType: docType || 'OTHER',
+            jurisdiction: jurisdiction
+        });
         res.json(result);
     }
     catch (error) {
@@ -451,9 +482,9 @@ router.post("/knowledge/ingest", isAdmin, async (req, res) => {
         res.status(500).json({ error: "Failed to ingest text" });
     }
 });
-router.delete("/knowledge/chunks/:id", isAdmin, async (req, res) => {
+router.delete("/knowledge/documents/:id", isAdmin, async (req, res) => {
     try {
-        await KnowledgeService.deleteChunk(req.params.id);
+        await KnowledgeService.deleteDocument(req.params.id);
         res.json({ success: true });
     }
     catch (error) {
@@ -509,11 +540,24 @@ router.put("/estates/:id/reset", isAdmin, async (req, res) => {
 // Marketing & Leads Management
 router.get("/marketing/events", isAdmin, async (req, res) => {
     try {
-        const events = await prisma.marketingEvent.findMany({
-            orderBy: { createdAt: 'desc' },
-            take: 500 // Limit to recent 500 events
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 25;
+        const skip = (page - 1) * limit;
+        const [events, total] = await Promise.all([
+            prisma.marketingEvent.findMany({
+                orderBy: { createdAt: 'desc' },
+                skip,
+                take: limit
+            }),
+            prisma.marketingEvent.count()
+        ]);
+        res.json({
+            data: events,
+            total,
+            page,
+            limit,
+            totalPages: Math.ceil(total / limit)
         });
-        res.json(events);
     }
     catch (error) {
         logger.error("Failed to fetch marketing events:", error.message);
