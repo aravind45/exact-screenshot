@@ -11,90 +11,167 @@ const embeddings = process.env.OPENAI_API_KEY ? new OpenAIEmbeddings({
 
 export class RAGService {
     /**
-     * Retrieval Agent: Perform semantic search and return structured evidence
+     * Query Expansion Agent: Optimize query for hybrid search
      */
-    static async retrieveLegalChunks(query: string, limit = 5) {
-        if (!embeddings) {
-            logger.error("RAG Error: OPENAI_API_KEY is missing. Semantic search disabled.");
-            return { 
-                chunks: [], 
-                evidence: [], 
-                metadata: { 
-                    query, 
-                    timestamp: new Date(),
-                    error: "OPENAI_API_KEY missing"
-                } 
-            };
-        }
+    static async expandQuery(question: string) {
+        const prompt = `
+            You are an expert legal researcher. 
+            Your goal is to optimize a user's question into a search query that works well for BOTH keyword (BM25) and semantic (Vector) search.
+            
+            USER QUESTION: "${question}"
+            
+            INSTRUCTIONS:
+            1. Keep the core intent.
+            2. specific legal terms (e.g., "small estate affidavit", "probate", "executor").
+            3. relevant California codes if applicable (e.g., "DE-111", "13100").
+            4. Remove conversational filler.
+            
+            Output ONLY the optimized query string. No quotes, no explanations.
+        `;
+
         try {
-            const queryVector = await embeddings.embedQuery(query);
-            const vectorSql = `[${queryVector.join(',')}]`;
-
-            // Perform vector similarity search
-            // CRITICAL: Removed hard threshold - let downstream agents decide relevance
-            const results = await prisma.$queryRawUnsafe(`
-                SELECT 
-                    id,
-                    content, 
-                    source, 
-                    metadata,
-                    1 - (embedding <=> $1::vector) as similarity
-                FROM knowledge_chunks
-                ORDER BY similarity DESC
-                LIMIT $2
-            `, vectorSql, limit);
-
-            const rows = results as {
-                id: string;
-                content: string;
-                source: string;
-                metadata: any;
-                similarity: number;
-            }[];
-
-            // Structure evidence for downstream agents
-            const evidence = rows.map((r, i) => ({
-                evidence_id: `e${i + 1}`,
-                chunk_id: r.id,
-                source: r.source,
-                snippet: r.content.slice(0, 220),
-                full_content: r.content,
-                score: r.similarity,
-                metadata: r.metadata
-            }));
-
-            logger.info(`🔍 Retrieval Agent: Found ${rows.length} chunks. Top score: ${rows[0]?.similarity?.toFixed(4) || 0}`);
-
-            return {
-                chunks: rows,
-                evidence,
-                metadata: {
-                    query,
-                    timestamp: new Date(),
-                    retrieval_count: rows.length,
-                    top_score: rows[0]?.similarity || 0
-                }
-            };
+            const refined = await ai.generateText(prompt, "fast"); // Fast model is sufficient
+            return refined.trim();
         } catch (error) {
-            logger.error("Retrieval Agent Error:", error);
-            return { 
-                chunks: [], 
-                evidence: [], 
-                metadata: { 
-                    query,
-                    timestamp: new Date(),
-                    error: String(error) 
-                } 
-            };
+            logger.warn("Query Expansion failed, using original:", error);
+            return question;
         }
     }
 
     /**
-     * Legacy method - kept for backward compatibility
-     * @deprecated Use retrieveLegalChunks instead
+     * Retrieval Agent: Perform semantic search and return structured evidence
      */
+    /**
+     * Hybrid Retrieval: Combine Lexical (BM25) and Dense (Vector) search using RRF
+     */
+    static async retrieveHybrid(query: string, limit = 10, filters?: any) {
+        if (!embeddings) {
+            logger.error("RAG Error: OPENAI_API_KEY is missing. Semantic search disabled.");
+            return { chunks: [], evidence: [], metadata: { error: "OPENAI_API_KEY missing" } };
+        }
+
+        try {
+            const start = Date.now();
+
+            // 1. Generate Query Vector
+            const queryVector = await embeddings.embedQuery(query);
+            const vectorSql = `[${queryVector.join(',')}]`;
+
+            // 2. Parallel Search Execution
+            const [lexicalResults, denseResults] = await Promise.all([
+                // Lexical Search (BM25 via tsvector)
+                prisma.$queryRawUnsafe(`
+                    SELECT 
+                        c.id,
+                        c.text as content,
+                        d."sourceUri" as source,
+                        d.title,
+                        ts_rank_cd(c.tsv, q) as score
+                    FROM "rag_chunks" c,
+                         websearch_to_tsquery('english', $1) q
+                    JOIN "rag_documents" d ON d.id = c.document_id
+                    WHERE c.tsv @@ q
+                    ORDER BY score DESC
+                    LIMIT $2
+                `, query, limit),
+
+                // Dense Search (Vector Similarity)
+                prisma.$queryRawUnsafe(`
+                    SELECT 
+                        c.id,
+                        c.text as content,
+                        d."sourceUri" as source,
+                        d.title,
+                        1 - (ce.embedding <=> $1::vector) as score
+                    FROM "rag_chunk_embeddings" ce
+                    JOIN "rag_chunks" c ON c.id = ce.chunk_id
+                    JOIN "rag_documents" d ON d.id = c.document_id
+                    WHERE ce.vector_type = 'content'
+                    ORDER BY score DESC
+                    LIMIT $2
+                `, vectorSql, limit)
+            ]);
+
+            const lexicalRows = lexicalResults as any[];
+            const denseRows = denseResults as any[];
+
+            // 3. Reciprocal Rank Fusion (RRF)
+            const fusedIds = this.rrfFuse(
+                lexicalRows.map(r => r.id),
+                denseRows.map(r => r.id),
+                60 // k constant
+            );
+
+            // 4. Hydrate Results (Map back to content)
+            const allRowsMap = new Map([...lexicalRows, ...denseRows].map(r => [r.id, r]));
+
+            const fusedResults = fusedIds
+                .slice(0, limit)
+                .map(id => allRowsMap.get(id))
+                .filter(r => r !== undefined);
+
+            logger.info(`🔍 Hybrid Retrieval: Lexical=${lexicalRows.length}, Dense=${denseRows.length} -> Fused=${fusedResults.length}`);
+
+            // 5. Structure for Agents
+            const evidence = fusedResults.map((r, i) => ({
+                evidence_id: `e${i + 1}`,
+                chunk_id: r.id,
+                source: r.source || r.title,
+                snippet: r.content.slice(0, 220),
+                full_content: r.content,
+                score: r.score, // Note: RRF score isn't preserved here, maybe use rank
+                metadata: { title: r.title, method: "hybrid_rrf" }
+            }));
+
+            return {
+                chunks: fusedResults,
+                evidence,
+                metadata: {
+                    query,
+                    timestamp: new Date(),
+                    retrieval_count: fusedResults.length,
+                    lexical_count: lexicalRows.length,
+                    dense_count: denseRows.length,
+                    execution_time_ms: Date.now() - start
+                }
+            };
+
+        } catch (error) {
+            logger.error("Hybrid Retrieval Error:", error);
+            return { chunks: [], evidence: [], metadata: { error: String(error) } };
+        }
+    }
+
+    /**
+     * Reciprocal Rank Fusion helper
+     */
+    private static rrfFuse(lexIds: string[], vecIds: string[], k = 60): string[] {
+        const scores = new Map<string, number>();
+
+        const addScores = (ids: string[]) => {
+            ids.forEach((id, rank) => {
+                const existing = scores.get(id) || 0;
+                scores.set(id, existing + (1 / (k + rank + 1)));
+            });
+        };
+
+        addScores(lexIds);
+        addScores(vecIds);
+
+        return [...scores.entries()]
+            .sort((a, b) => b[1] - a[1]) // Descending
+            .map(([id]) => id);
+    }
+
+    /**
+     * Legacy Adapter
+     */
+    static async retrieveLegalChunks(query: string, limit = 5) {
+        return this.retrieveHybrid(query, limit);
+    }
+
     static async searchKnowledge(query: string, limit = 5) {
-        const result = await this.retrieveLegalChunks(query, limit);
+        const result = await this.retrieveHybrid(query, limit);
         return result.chunks;
     }
 
@@ -106,7 +183,7 @@ export class RAGService {
             return {
                 draft: "I couldn't find specific information in our legal guides to answer that. For complex legal matters, I strongly recommend consulting with a qualified estate attorney.",
                 confidence: 0,
-                metadata: { 
+                metadata: {
                     evidence_used: 0,
                     timestamp: new Date()
                 }
@@ -222,16 +299,16 @@ Return the final answer with proper citations. Every claim must be grounded in e
      */
     static async validateAnswer(finalAnswer: string, evidence: any[], metadata: any) {
         const validationChecks = {
-            has_disclaimer: finalAnswer.toLowerCase().includes('educational') || 
-                           finalAnswer.toLowerCase().includes('guidance') ||
-                           finalAnswer.toLowerCase().includes('professional'),
+            has_disclaimer: finalAnswer.toLowerCase().includes('educational') ||
+                finalAnswer.toLowerCase().includes('guidance') ||
+                finalAnswer.toLowerCase().includes('professional'),
             has_citations: /\[e\d+\]/.test(finalAnswer),
             sufficient_evidence: evidence.length >= 2,
             grounding_score: metadata.grounding_score || 0,
             answer_length: finalAnswer.length
         };
 
-        const isValid = 
+        const isValid =
             validationChecks.has_disclaimer &&
             validationChecks.has_citations &&
             validationChecks.sufficient_evidence &&
@@ -337,7 +414,7 @@ Return the final answer with proper citations. Every claim must be grounded in e
 
         // Build context for LLM
         const estateContext = JSON.stringify(estateData, null, 2);
-        
+
         const prompt = `
 You are a Form-Filling Agent for California probate forms.
 
@@ -370,26 +447,26 @@ Return JSON in this exact format:
 
         try {
             const response = await ai.generateText(prompt, "heavy");
-            
+
             // Parse JSON response
             const jsonMatch = response.match(/\{[\s\S]*\}/);
             if (!jsonMatch) {
                 throw new Error("Failed to parse JSON from LLM response");
             }
-            
+
             const parsed = JSON.parse(jsonMatch[0]);
-            
+
             // Validate required fields
             const missingRequired = schema.required.filter(
                 (field: string) => !parsed.extracted_data[field] || parsed.extracted_data[field] === null
             );
-            
+
             const isComplete = missingRequired.length === 0;
-            
+
             logger.info(`📋 Form-Filling Agent: Extracted ${Object.keys(parsed.extracted_data).length} fields for ${formType}`);
             logger.info(`   Missing required: ${missingRequired.length}`);
             logger.info(`   Confidence: ${(parsed.confidence * 100).toFixed(1)}%`);
-            
+
             return {
                 success: isComplete,
                 form_type: formType,
@@ -403,7 +480,7 @@ Return JSON in this exact format:
                     optional_fields: schema.optional.length
                 }
             };
-            
+
         } catch (error) {
             logger.error("Form-Filling Agent Error:", error);
             return {
@@ -467,16 +544,16 @@ Return JSON in this format:
 
         try {
             const response = await ai.generateText(prompt, "heavy");
-            
+
             const jsonMatch = response.match(/\{[\s\S]*\}/);
             if (!jsonMatch) {
                 throw new Error("Failed to parse JSON from LLM response");
             }
-            
+
             const parsed = JSON.parse(jsonMatch[0]);
-            
+
             logger.info(`✅ Checklist Agent: Generated ${parsed.checklist.length} items`);
-            
+
             return {
                 checklist: parsed.checklist,
                 summary: parsed.summary,
@@ -486,7 +563,7 @@ Return JSON in this format:
                     estate_type: estateData.estateType
                 }
             };
-            
+
         } catch (error) {
             logger.error("Checklist Agent Error:", error);
             return {
@@ -504,7 +581,7 @@ Return JSON in this format:
     static async generateTimeline(estateData: any) {
         const dateOfDeath = new Date(estateData.deceasedDateOfDeath);
         const state = estateData.deceasedState;
-        
+
         const contextData = JSON.stringify({
             date_of_death: dateOfDeath.toISOString().split('T')[0],
             state: state,
@@ -555,17 +632,17 @@ Return JSON in this format:
 
         try {
             const response = await ai.generateText(prompt, "heavy");
-            
+
             const jsonMatch = response.match(/\{[\s\S]*\}/);
             if (!jsonMatch) {
                 throw new Error("Failed to parse JSON from LLM response");
             }
-            
+
             const parsed = JSON.parse(jsonMatch[0]);
-            
+
             logger.info(`📅 Timeline Agent: Generated ${parsed.timeline.length} milestones`);
             logger.info(`   Critical deadlines: ${parsed.critical_deadlines.length}`);
-            
+
             return {
                 timeline: parsed.timeline,
                 critical_deadlines: parsed.critical_deadlines,
@@ -576,7 +653,7 @@ Return JSON in this format:
                     milestone_count: parsed.timeline.length
                 }
             };
-            
+
         } catch (error) {
             logger.error("Timeline Agent Error:", error);
             return {

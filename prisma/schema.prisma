@@ -606,6 +606,84 @@ model KnowledgeChunk {
   createdAt DateTime               @default(now()) @map("created_at")
 
   @@map("knowledge_chunks")
+  @@ignore // Deprecated: Use Document/Chunk/ChunkEmbedding
+}
+
+enum DocType {
+  STATUTE
+  POLICY
+  PLAYBOOK
+  FAQ
+  FORM
+  BLOG
+  OTHER
+}
+
+model RagDocument {
+  id            String   @id @default(uuid())
+  sourceUri     String?
+  title         String
+  docType       DocType  @default(OTHER)
+  jurisdiction  String?
+  effectiveDate DateTime?
+  version       String?
+  ingestedAt    DateTime @default(now())
+  securityTags  String[] @default([])
+
+  chunks        RagChunk[]
+
+  @@index([jurisdiction])
+  @@index([docType])
+  @@index([effectiveDate])
+  @@map("rag_documents")
+}
+
+model RagChunk {
+  id            String   @id @default(uuid())
+  documentId    String   @map("document_id")
+  document      RagDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  parentId      String?  @map("parent_id")
+  parent        RagChunk?   @relation("ChunkParent", fields: [parentId], references: [id])
+  children      RagChunk[]  @relation("ChunkParent")
+
+  headingPath   String?  @map("heading_path")
+  sectionId     String?  @map("section_id")
+  pageStart     Int?     @map("page_start")
+  pageEnd       Int?     @map("page_end")
+
+  text          String
+  tokenCount    Int?     @map("token_count")
+  contentHash   String   @map("content_hash")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  // tsvector column "tsv" will be added via raw SQL migration
+  
+  embeddings    RagChunkEmbedding[]
+
+  @@index([documentId])
+  @@index([parentId])
+  @@index([sectionId])
+  @@unique([documentId, contentHash])
+  @@map("rag_chunks")
+}
+
+model RagChunkEmbedding {
+  id          String   @id @default(uuid())
+  chunkId     String   @map("chunk_id")
+  chunk       RagChunk    @relation(fields: [chunkId], references: [id], onDelete: Cascade)
+
+  vectorType  String   @default("content") @map("vector_type")
+  modelId     String   @map("model_id")
+
+  embedding   Unsupported("vector")
+
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([chunkId])
+  @@index([vectorType, modelId])
+  @@map("rag_chunk_embeddings")
 }
 
 model AgentExecution {

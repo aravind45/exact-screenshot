@@ -1,7 +1,9 @@
 import { prisma } from "../db.js";
 import { OpenAIEmbeddings } from "@langchain/openai";
+import { SimpleRecursiveSplitter } from "../lib/textSplitter.js";
 import crypto from 'crypto';
 import { logger } from "../lib/logger.js";
+import { DocType } from "@prisma/client";
 
 const embeddings = process.env.OPENAI_API_KEY ? new OpenAIEmbeddings({
     apiKey: process.env.OPENAI_API_KEY,
@@ -10,76 +12,132 @@ const embeddings = process.env.OPENAI_API_KEY ? new OpenAIEmbeddings({
 
 export class KnowledgeService {
     /**
-     * List all knowledge chunks with metadata
+     * List all documents
      */
-    static async listChunks(limit = 100, offset = 0) {
-        return prisma.knowledgeChunk.findMany({
+    static async listDocuments(limit = 100, offset = 0) {
+        return prisma.ragDocument.findMany({
             take: limit,
             skip: offset,
-            orderBy: { createdAt: 'desc' }
+            orderBy: { ingestedAt: 'desc' },
+            include: {
+                _count: {
+                    select: { chunks: true }
+                }
+            }
         });
     }
 
     /**
-     * Delete a specific chunk
+     * Delete a document and all its chunks/embeddings
      */
-    static async deleteChunk(id: string) {
-        return prisma.knowledgeChunk.delete({
+    static async deleteDocument(id: string) {
+        return prisma.ragDocument.delete({
             where: { id }
         });
     }
 
     /**
-     * Ingest raw text into chunks and embeddings
+     * Ingest raw text into RagDocument -> RagChunk -> RagChunkEmbedding
      */
-    static async ingestText(text: string, source: string) {
+    static async ingestText(text: string, metadata: {
+        sourceUri?: string,
+        title: string,
+        docType?: DocType,
+        jurisdiction?: string
+    }) {
         if (!embeddings) {
-            throw new Error("OPENAI_API_KEY is missing. RAG functionality requires an OpenAI API key for embeddings.");
+            throw new Error("OPENAI_API_KEY is missing. RAG requires OpenAI embedding model.");
         }
 
-        const CHUNK_SIZE = 1500;
-        const CHUNK_OVERLAP = 200;
+        const runId = crypto.randomUUID();
+        logger.info(`🧩 Ingestion [${runId}]: Starting for ${metadata.title}`);
 
-        const chunks: string[] = [];
-        for (let i = 0; i < text.length; i += CHUNK_SIZE - CHUNK_OVERLAP) {
-            chunks.push(text.slice(i, i + CHUNK_SIZE));
-        }
+        try {
+            // 1. Create Document Record
+            const doc = await prisma.ragDocument.create({
+                data: {
+                    title: metadata.title,
+                    sourceUri: metadata.sourceUri,
+                    docType: metadata.docType || 'OTHER',
+                    jurisdiction: metadata.jurisdiction,
+                    version: 'v1',
+                    ingestedAt: new Date()
+                }
+            });
 
-        logger.info(`🧩 Admin Ingestion: Processing ${chunks.length} chunks for ${source}`);
+            // 2. Split Text
+            const splitter = new SimpleRecursiveSplitter({
+                chunkSize: 1000,
+                chunkOverlap: 200,
+                separators: ["\n\n", "\n", ".", "!", "?", ",", " ", ""]
+            });
 
-        let successCount = 0;
-        for (const chunkText of chunks) {
-            try {
-                const vector = await embeddings.embedQuery(chunkText);
+            const splitDocs = await splitter.createDocuments([text]);
+
+            logger.info(`🧩 Ingestion [${runId}]: Created ${splitDocs.length} chunks`);
+
+            let successCount = 0;
+
+            // 3. Process Chunks (Embed and Save)
+            // We use standard chunks for now. 
+            // TODO: Implement advanced hierarchical parent/child splitting if needed for complex docs.
+
+            for (const splitDoc of splitDocs) {
+                const chunkContent = splitDoc.pageContent;
+                const contentHash = crypto.createHash('sha256').update(chunkContent).digest('hex');
+                const tokenCount = Math.ceil(chunkContent.length / 4); // Approx
+
+                // Embed
+                const vector = await embeddings.embedQuery(chunkContent);
                 const vectorSql = `[${vector.join(',')}]`;
 
-                await prisma.$executeRawUnsafe(`
-                    INSERT INTO "knowledge_chunks" (id, content, source, embedding, created_at)
-                    VALUES ($1, $2, $3, $4::vector, NOW())
-                `, crypto.randomUUID(), chunkText, source, vectorSql);
-                successCount++;
-            } catch (err: any) {
-                logger.error(`❌ Ingestion error for ${source}:`, err.message);
-            }
-        }
+                // Transaction for Chunk + Embedding + TSVector (via trigger)
+                // Note: TSVector is populated via DB Trigger, so we just insert the text.
+                await prisma.$transaction(async (tx) => {
+                    const chunk = await tx.ragChunk.create({
+                        data: {
+                            documentId: doc.id,
+                            text: chunkContent,
+                            tokenCount: tokenCount,
+                            contentHash: contentHash,
+                            // metadata from splitter can be mapped to sectionId/page headers if we parse distinct structural elements
+                            pageStart: splitDoc.metadata.loc?.lines?.from,
+                            pageEnd: splitDoc.metadata.loc?.lines?.to
+                        }
+                    });
 
-        return { totalChunks: chunks.length, successfullyIngested: successCount };
+                    // Insert Embedding via ExecuteRaw to handle vector type
+                    await tx.$executeRawUnsafe(`
+                        INSERT INTO "rag_chunk_embeddings" (id, "chunk_id", "vector_type", "model_id", embedding, "created_at")
+                        VALUES ($1, $2, 'content', 'text-embedding-3-small', $3::vector, NOW())
+                    `, crypto.randomUUID(), chunk.id, vectorSql);
+                });
+
+                successCount++;
+            }
+
+            logger.info(`✅ Ingestion [${runId}]: Successfully ingested ${successCount} chunks`);
+            return { documentId: doc.id, chunks: successCount };
+
+        } catch (error) {
+            logger.error(`❌ Ingestion [${runId}] Failed:`, error);
+            throw error;
+        }
     }
 
     /**
-     * Get knowledge base stats
+     * Search usage simplified for stats
      */
     static async getStats() {
-        const totalChunks = await prisma.knowledgeChunk.count();
-        const sources = await prisma.knowledgeChunk.groupBy({
-            by: ['source'],
-            _count: true
-        });
+        const totalDocs = await prisma.ragDocument.count();
+        const totalChunks = await prisma.ragChunk.count();
 
         return {
+            totalDocs,
             totalChunks,
-            sourceCount: sources.length,
-            sources: sources.map(s => ({ name: s.source, count: s._count }))
+            documents: await prisma.ragDocument.findMany({
+                select: { title: true, docType: true, _count: { select: { chunks: true } } }
+            })
         };
     }
 }

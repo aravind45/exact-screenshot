@@ -14,10 +14,15 @@ export class OrchestratorService {
         logger.info(`🎯 Orchestrator [${executionId}]: Starting multi-agent flow for question`);
 
         try {
-            // STEP 1: Retrieval Agent - Find relevant legal knowledge
-            logger.info(`🎯 Orchestrator [${executionId}]: Step 1 - Retrieval Agent`);
-            const retrieval = await RAGService.retrieveLegalChunks(question, 5);
-            
+            // STEP 0: Query Expansion - Agentic optimization
+            logger.info(`🎯 Orchestrator [${executionId}]: Step 0 - Query Expansion`);
+            const optimizedQuery = await RAGService.expandQuery(question);
+            logger.info(`🔍 Orchestrator: Optimized "${question}" -> "${optimizedQuery}"`);
+
+            // STEP 1: Retrieval Agent - Hybrid Search
+            logger.info(`🎯 Orchestrator [${executionId}]: Step 1 - Retrieval Agent (Hybrid)`);
+            const retrieval = await RAGService.retrieveLegalChunks(optimizedQuery, 5);
+
             if (retrieval.chunks.length === 0) {
                 logger.warn(`🎯 Orchestrator [${executionId}]: No evidence found, returning fallback`);
                 return this.buildResponse({
@@ -78,7 +83,7 @@ export class OrchestratorService {
 
         } catch (error) {
             logger.error(`❌ Orchestrator [${executionId}]: Error`, error);
-            
+
             // Return graceful error response
             return this.buildResponse({
                 answer: "I encountered an error while processing your question. Please try again or contact support if the issue persists.",
@@ -180,7 +185,7 @@ export class OrchestratorService {
 
         try {
             const result = await RAGService.extractFormData(estateData, formType);
-            
+
             return {
                 ...result,
                 execution_id: executionId,
@@ -208,7 +213,7 @@ export class OrchestratorService {
 
         try {
             const result = await RAGService.generateChecklist(estateData, userContext);
-            
+
             return {
                 ...result,
                 execution_id: executionId,
@@ -236,7 +241,7 @@ export class OrchestratorService {
 
         try {
             const result = await RAGService.generateTimeline(estateData);
-            
+
             return {
                 ...result,
                 execution_id: executionId,
