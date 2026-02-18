@@ -997,6 +997,14 @@ export const api = {
         return parseResponse(response);
     },
 
+    recomputeDeadlines: async (estateId: string) => {
+        const response = await fetch(`${API_URL}/estates/${estateId}/deadlines/recompute`, {
+            method: "POST",
+            headers: getHeaders(),
+        });
+        return parseResponse(response);
+    },
+
     /**
      * Discovery Methods
      */
