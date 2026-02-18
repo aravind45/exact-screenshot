@@ -151,8 +151,8 @@ export default function FollowUps() {
     return (
         <div className="flex min-h-screen bg-[#F8FAFC]">
             <Sidebar />
-            <div className="flex-1 ml-64 flex flex-col">
-                <header className="h-24 border-b border-slate-200 bg-white px-8 flex items-center justify-between sticky top-0 z-50">
+            <div className="flex-1 ml-[220px] flex flex-col">
+                <header className="h-16 border-b border-slate-200 bg-white px-6 flex items-center justify-between sticky top-0 z-50">
                     <div>
                         <div className="flex items-center gap-2 text-primary font-bold text-[10px] uppercase tracking-[0.2em] mb-1">
                             <Clock className="w-3.5 h-3.5" />
@@ -179,7 +179,7 @@ export default function FollowUps() {
                     </div>
                 </header>
 
-                <main className="p-8 max-w-4xl mx-auto w-full space-y-12 pb-32">
+                <main className="p-5 max-w-4xl mx-auto w-full space-y-7 pb-24">
 
                     {/* Recommended Focus Banner */}
                     <motion.div
@@ -187,20 +187,20 @@ export default function FollowUps() {
                         animate={{ opacity: 1, scale: 1 }}
                     >
                         <Card className={cn(
-                            "rounded-3xl border-none shadow-sm overflow-hidden",
+                            "rounded-2xl border-none shadow-sm overflow-hidden",
                             recommendedFocus.variant === 'overdue' ? "bg-rose-50 border border-rose-100" :
                                 recommendedFocus.variant === 'waiting' ? "bg-indigo-50 border border-indigo-100" :
                                     "bg-emerald-50 border border-emerald-100"
                         )}>
-                            <CardContent className="p-6">
-                                <div className="flex items-center gap-4">
+                            <CardContent className="p-4">
+                                <div className="flex items-center gap-3">
                                     <div className={cn(
-                                        "p-3 rounded-2xl",
+                                        "p-2 rounded-xl",
                                         recommendedFocus.variant === 'overdue' ? "bg-rose-100 text-rose-600" :
                                             recommendedFocus.variant === 'waiting' ? "bg-indigo-100 text-indigo-600" :
                                                 "bg-emerald-100 text-emerald-600"
                                     )}>
-                                        <Zap className="w-6 h-6" />
+                                        <Zap className="w-4 h-4" />
                                     </div>
                                     <div className="flex-1">
                                         <p className="text-[10px] font-black uppercase tracking-widest opacity-60">Recommended Focus</p>
@@ -216,15 +216,15 @@ export default function FollowUps() {
                     </motion.div>
 
                     {/* OVERDUE */}
-                    <section className="space-y-6">
+                    <section className="space-y-3">
                         <div className="flex items-center gap-2 text-rose-600">
                             <AlertCircle className="w-5 h-5" />
                             <h2 className="text-xl font-black uppercase tracking-tight">Overdue ({overdue.length})</h2>
                         </div>
                         <div className="space-y-4">
                             {overdue.length === 0 && (
-                                <div className="p-12 bg-white border border-slate-200 border-dashed rounded-[2rem] text-center space-y-2">
-                                    <CheckCircle2 className="w-8 h-8 text-emerald-200 mx-auto" />
+                                <div className="p-6 bg-white border border-slate-200 border-dashed rounded-2xl text-center space-y-2">
+                                    <CheckCircle2 className="w-6 h-6 text-emerald-200 mx-auto" />
                                     <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">No overdue items. Great job!</p>
                                 </div>
                             )}
@@ -244,7 +244,7 @@ export default function FollowUps() {
                     </section>
 
                     {/* THIS WEEK */}
-                    <section className="space-y-6">
+                    <section className="space-y-3">
                         <div className="flex items-center gap-2 text-amber-600">
                             <Calendar className="w-5 h-5" />
                             <h2 className="text-xl font-black uppercase tracking-tight">Scheduled Follow-Ups ({thisWeek.length})</h2>
@@ -271,7 +271,7 @@ export default function FollowUps() {
                     </section>
 
                     {/* WAITING ON THEM */}
-                    <section className="space-y-6">
+                    <section className="space-y-3">
                         <div className="flex items-center gap-2 text-indigo-600">
                             <Clock className="w-5 h-5" />
                             <h2 className="text-xl font-black uppercase tracking-tight">Waiting on Them ({waitingOnThem.length})</h2>
@@ -350,7 +350,7 @@ function FollowUpCard({ item, variant, onComplete, onViewAsset, onUpdate }: any)
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95 }}
             className={cn(
-                "group relative bg-white border border-slate-200 rounded-[2rem] p-6 hover:shadow-xl hover:border-slate-300 transition-all",
+                "group relative bg-white border border-slate-200 rounded-2xl p-4 hover:shadow-md hover:border-slate-300 transition-all",
                 isOverdue && "border-l-4 border-l-rose-500",
                 isUpcoming && "border-l-4 border-l-amber-500",
                 isWaiting && "border-l-4 border-l-indigo-500"
@@ -364,11 +364,11 @@ function FollowUpCard({ item, variant, onComplete, onViewAsset, onUpdate }: any)
                 </div>
             )}
 
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
-                <div className="flex-1 space-y-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-5">
+                <div className="flex-1 space-y-3">
                     <div className="flex items-center gap-3">
                         <div className={cn(
-                            "w-10 h-10 rounded-2xl flex items-center justify-center border transition-colors",
+                            "w-8 h-8 rounded-xl flex items-center justify-center border transition-colors flex-shrink-0",
                             isOverdue ? "bg-rose-50 border-rose-100 text-rose-600" :
                                 isWaiting ? "bg-indigo-50 border-indigo-100 text-indigo-600" :
                                     "bg-amber-50 border-amber-100 text-amber-600"
@@ -431,14 +431,14 @@ function FollowUpCard({ item, variant, onComplete, onViewAsset, onUpdate }: any)
                     </div>
                 </div>
 
-                <div className="flex items-center gap-2 border-t md:border-t-0 pt-6 md:pt-0">
+                <div className="flex items-center gap-2 border-t md:border-t-0 pt-3 md:pt-0">
                     {!isWaiting && (
                         <Button
                             onClick={onComplete}
-                            size="lg"
-                            className="rounded-2xl h-12 px-6 font-black text-[11px] uppercase tracking-widest bg-emerald-600 hover:bg-emerald-700 shadow-lg shadow-emerald-100 flex-1 md:flex-none"
+                            size="sm"
+                            className="rounded-xl h-9 px-4 font-black text-[10px] uppercase tracking-widest bg-emerald-600 hover:bg-emerald-700 shadow-sm flex-1 md:flex-none"
                         >
-                            <CheckCircle2 className="w-4 h-4 mr-2" />
+                            <CheckCircle2 className="w-3.5 h-3.5 mr-1.5" />
                             Resolve
                         </Button>
                     )}
@@ -446,26 +446,26 @@ function FollowUpCard({ item, variant, onComplete, onViewAsset, onUpdate }: any)
                         <Button
                             onClick={onUpdate}
                             variant="outline"
-                            size="lg"
-                            className="rounded-2xl h-12 px-6 font-black text-[11px] uppercase tracking-widest bg-white border-slate-200 text-slate-600 hover:bg-slate-50 flex-1 md:flex-none"
+                            size="sm"
+                            className="rounded-xl h-9 px-4 font-black text-[10px] uppercase tracking-widest bg-white border-slate-200 text-slate-600 hover:bg-slate-50 flex-1 md:flex-none"
                         >
-                            <MessageSquare className="w-4 h-4 mr-2" />
+                            <MessageSquare className="w-3.5 h-3.5 mr-1.5" />
                             Log Update
                         </Button>
                     )}
                     <Button
                         onClick={onViewAsset}
                         variant="ghost"
-                        size="lg"
-                        className="rounded-2xl h-12 px-4 font-black text-[11px] uppercase tracking-widest text-slate-400 hover:text-slate-900 transition-colors"
+                        size="sm"
+                        className="rounded-xl h-9 px-3 font-black text-[10px] uppercase tracking-widest text-slate-400 hover:text-slate-900 transition-colors"
                     >
-                        View Context
-                        <ArrowRight className="w-4 h-4 ml-2" />
+                        View
+                        <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
                     </Button>
                 </div>
             </div>
             {hasDuplicates && (
-                <div className="mt-6 p-4 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
+                <div className="mt-3 p-3 bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
                         <Info className="w-3 h-3" />
                         Audit Compression Active

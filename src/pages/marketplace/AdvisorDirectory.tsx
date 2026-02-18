@@ -195,11 +195,13 @@ export default function AdvisorDirectory() {
       Object.entries(queryParams).forEach(([k, v]) => url.searchParams.set(k, v));
       const res = await fetch(url.toString(), { headers: { 'Content-Type': 'application/json', ...(api.getToken() ? { Authorization: `Bearer ${api.getToken()}` } : {}) } });
       if (!res.ok) throw new Error('Failed to load advisors');
-      return res.json();
+      const json = await res.json();
+      // API returns { advisors: [...], total, page, totalPages } — extract the array
+      return Array.isArray(json) ? json : (json.advisors ?? []);
     },
     placeholderData: [],
   });
-  const advisors = data ?? [];
+  const advisors = Array.isArray(data) ? data : [];
   const filtered = useMemo(() => advisors.filter(a => {
     if (!filters.search) return true;
     const q = filters.search.toLowerCase();

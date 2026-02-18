@@ -196,7 +196,7 @@ export function AttorneyReviewWidget({ estate, assets = [] }: AttorneyReviewWidg
           size="sm"
           variant="outline"
           className="h-8 border-amber-300 text-amber-700 hover:bg-amber-100 text-[10px] font-black uppercase tracking-widest rounded-xl px-3"
-          onClick={() => navigate("/advisor/marketplace")}
+          onClick={() => navigate("/marketplace")}
         >
           Find Attorney
           <ExternalLink className="w-3 h-3 ml-1" />

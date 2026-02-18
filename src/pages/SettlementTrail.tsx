@@ -178,11 +178,11 @@ export default function SettlementTrail() {
     return (
         <div className="flex min-h-screen bg-slate-50/50 selection:bg-indigo-100 selection:text-indigo-900">
             <Sidebar />
-            <main className="flex-1 pl-64 relative">
+            <main className="flex-1 pl-[220px] relative">
 
                 {/* Sleek Glassmorphic Header */}
                 <div className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-slate-200/60 shadow-sm transition-all duration-200">
-                    <div className="max-w-5xl mx-auto px-8 py-5">
+                    <div className="max-w-5xl mx-auto px-6 py-3">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-4">
                                 <div className="p-2.5 bg-gradient-to-br from-indigo-50 to-slate-50 rounded-xl border border-indigo-100 shadow-inner">
@@ -239,9 +239,9 @@ export default function SettlementTrail() {
                     </div>
                 </div>
 
-                <div className="p-8 max-w-5xl mx-auto space-y-10 pb-32">
+                <div className="p-5 max-w-5xl mx-auto space-y-5 pb-24">
                     {/* Cockpit - Orientation Tools (Refined) */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <Card className="md:col-span-2 border-indigo-100 bg-gradient-to-br from-indigo-50/50 via-white to-white rounded-2xl shadow-sm hover:shadow-md transition-shadow">
                             <CardContent className="p-5">
                                 <div className="flex items-start gap-4">
@@ -283,7 +283,7 @@ export default function SettlementTrail() {
                         {/* Continuous Vertical Line */}
                         <div className="absolute left-[39px] top-6 bottom-0 w-px bg-slate-200" />
 
-                        <div className="space-y-10">
+                        <div className="space-y-6">
                             {isLoading ? (
                                 <div className="h-40 flex items-center justify-center text-slate-400 font-medium text-sm">
                                     Reading ledger...

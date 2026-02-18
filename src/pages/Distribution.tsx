@@ -80,11 +80,11 @@ export default function Distribution() {
     return (
         <div className="flex bg-slate-50 min-h-screen">
             <Sidebar />
-            <main className="flex-1 ml-64 p-8">
-                <div className="max-w-5xl mx-auto space-y-6">
+            <main className="flex-1 ml-[220px] p-5">
+                <div className="max-w-5xl mx-auto space-y-4">
                     <header className="flex justify-between items-end">
                         <div className="space-y-1">
-                            <h1 className="text-3xl font-bold tracking-tight text-slate-900">Final Distribution</h1>
+                            <h1 className="text-2xl font-bold tracking-tight text-slate-900">Final Distribution</h1>
                             <p className="text-slate-500 font-medium">Prepare the estate for closing and fiduciary discharge.</p>
                         </div>
                         {readiness && (
@@ -104,35 +104,35 @@ export default function Distribution() {
                             <motion.div
                                 initial={{ opacity: 0, y: -20 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                className={`p-6 rounded-[2.5rem] border shadow-2xl shadow-slate-200/50 flex flex-col md:flex-row gap-6 ${isSafe ? 'bg-emerald-50 border-emerald-100' :
+                                className={`p-4 rounded-2xl border shadow-sm flex flex-col md:flex-row gap-4 ${isSafe ? 'bg-emerald-50 border-emerald-100' :
                                     isRestricted ? 'bg-amber-50 border-amber-100' :
                                         'bg-rose-50 border-rose-100'
                                     }`}
                             >
                                 {/* Fiduciary Risk Meter (Gauge Visual) */}
-                                <div className="flex flex-col items-center gap-2 px-4 border-r border-slate-200/50">
-                                    <div className="relative w-24 h-24 flex items-center justify-center">
+                                <div className="flex flex-col items-center gap-2 px-3 border-r border-slate-200/50">
+                                    <div className="relative w-16 h-16 flex items-center justify-center">
                                         <svg className="w-full h-full -rotate-90">
                                             <circle
-                                                cx="48" cy="48" r="40"
+                                                cx="32" cy="32" r="26"
                                                 fill="transparent"
                                                 stroke="currentColor"
                                                 strokeWidth="8"
                                                 className="text-slate-200"
                                             />
                                             <circle
-                                                cx="48" cy="48" r="40"
+                                                cx="32" cy="32" r="26"
                                                 fill="transparent"
                                                 stroke="currentColor"
-                                                strokeWidth="8"
-                                                strokeDasharray={251.2}
-                                                strokeDashoffset={251.2 - (251.2 * (isSafe ? 100 : isRestricted ? 60 : 20)) / 100}
+                                                strokeWidth="6"
+                                                strokeDasharray={163.4}
+                                                strokeDashoffset={163.4 - (163.4 * (isSafe ? 100 : isRestricted ? 60 : 20)) / 100}
                                                 strokeLinecap="round"
                                                 className={isSafe ? 'text-emerald-500' : isRestricted ? 'text-amber-500' : 'text-rose-500'}
                                             />
                                         </svg>
                                         <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                                            <span className={`text-xl font-black ${isSafe ? 'text-emerald-700' : isRestricted ? 'text-amber-700' : 'text-rose-700'}`}>
+                                            <span className={`text-sm font-black ${isSafe ? 'text-emerald-700' : isRestricted ? 'text-amber-700' : 'text-rose-700'}`}>
                                                 {isSafe ? '100%' : isRestricted ? '60%' : '20%'}
                                             </span>
                                             <span className="text-[8px] font-bold uppercase tracking-tighter opacity-70">Security</span>
@@ -182,7 +182,7 @@ export default function Distribution() {
                         )}
                     </AnimatePresence>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <SummaryCard
                             title="Total Estate Value"
                             value={inventoryValue > 0 ? `$${inventoryValue.toLocaleString()}` : "Pending"}
@@ -205,8 +205,8 @@ export default function Distribution() {
                         />
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                        <div className="space-y-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                        <div className="space-y-4">
                             <Card className="border-none shadow-sm overflow-hidden">
                                 <CardHeader className="bg-slate-50/50 pb-4">
                                     <CardTitle className="text-sm font-black uppercase tracking-widest text-slate-400">Proposed Plan of Distribution</CardTitle>
@@ -275,17 +275,16 @@ export default function Distribution() {
 
                             <div className="space-y-3">
                                 <Button
-                                    size="lg"
-                                    className={`w-full py-8 text-lg font-bold rounded-2xl transition-all ${isSafe ? 'bg-indigo-600 hover:bg-indigo-700 shadow-xl shadow-indigo-200' : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                                    className={`w-full h-11 text-sm font-bold rounded-xl transition-all ${isSafe ? 'bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-200' : 'bg-slate-200 text-slate-400 cursor-not-allowed'
                                         }`}
                                     onClick={() => isSafe && generatePdfMutation.mutate()}
                                     disabled={!isSafe}
                                 >
                                     {generatePdfMutation.isPending ? (
-                                        <div className="animate-spin w-6 h-6 border-4 border-white border-t-transparent rounded-full" />
+                                        <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
                                     ) : (
                                         <>
-                                            {isSafe ? <FileText className="w-6 h-6 mr-3" /> : <Lock className="w-6 h-6 mr-3" />}
+                                            {isSafe ? <FileText className="w-4 h-4 mr-2" /> : <Lock className="w-4 h-4 mr-2" />}
                                             Prepare Distribution for Review
                                         </>
                                     )}
@@ -295,7 +294,7 @@ export default function Distribution() {
                                 </p>
                             </div>
 
-                            <div className="pt-6 border-t border-slate-100 space-y-4">
+                            <div className="pt-4 border-t border-slate-100 space-y-3">
                                 <div>
                                     <h3 className="text-sm font-black text-slate-900 mb-1 flex items-center gap-2">
                                         <FileSearch className="w-4 h-4 text-indigo-400" />
@@ -333,13 +332,13 @@ export default function Distribution() {
                         </div>
 
                         {/* Right: PDF Preview or Onboarding */}
-                        <div className="h-[750px] bg-slate-200 rounded-3xl border-2 border-slate-300 border-dashed flex items-center justify-center overflow-hidden relative shadow-inner">
+                        <div className="h-[480px] bg-slate-200 rounded-2xl border-2 border-slate-300 border-dashed flex items-center justify-center overflow-hidden relative shadow-inner">
                             {previewUrl ? (
                                 <iframe src={previewUrl} className="w-full h-full" title="PDF Preview" />
                             ) : (
-                                <div className="text-center space-y-4 max-w-xs px-8">
-                                    <div className="w-20 h-20 bg-slate-100 rounded-3xl mx-auto flex items-center justify-center">
-                                        <Scale className="w-10 h-10 text-slate-300" />
+                                <div className="text-center space-y-3 max-w-xs px-8">
+                                    <div className="w-14 h-14 bg-slate-100 rounded-2xl mx-auto flex items-center justify-center">
+                                        <Scale className="w-7 h-7 text-slate-300" />
                                     </div>
                                     <h4 className="text-slate-900 font-bold">Draft Petition Pending</h4>
                                     <p className="text-slate-400 text-xs leading-relaxed font-medium text-center">

@@ -290,8 +290,8 @@ export default function Discovery() {
                 description="Systematically identify and document estate assets. Build a defensible record of reasonable diligence for probate and fiduciary compliance."
             />
             <Sidebar />
-            <main className="flex-1 ml-64 p-8">
-                <div className="max-w-4xl mx-auto space-y-8 pb-32">
+            <main className="flex-1 ml-[220px] p-5">
+                <div className="max-w-4xl mx-auto space-y-5 pb-24">
                     <header className="flex justify-between items-start gap-8">
                         <div className="flex-1 space-y-2">
                             <div className="flex items-center gap-2 text-indigo-600 font-bold text-[10px] uppercase tracking-[0.2em]">
@@ -531,16 +531,16 @@ export default function Discovery() {
 
                     {/* Systematic Review Progress (Horizontal) */}
                     {discoveryStatus && (
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             {/* Score Card */}
-                            <Card className="md:col-span-1 rounded-[2rem] border-none shadow-sm bg-white p-6 flex flex-col justify-center items-center text-center">
+                            <Card className="md:col-span-1 rounded-2xl border-none shadow-sm bg-white p-4 flex flex-col justify-center items-center text-center">
                                 <div className="relative">
-                                    <svg className="w-32 h-32 transform -rotate-90">
-                                        <circle cx="64" cy="64" r="56" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-slate-50" />
-                                        <circle cx="64" cy="64" r="56" stroke="currentColor" strokeWidth="8" fill="transparent" strokeDasharray={351} strokeDashoffset={351 - (351 * discoveryStatus.progress.percentage) / 100} className="text-indigo-600 transition-all duration-1000 ease-out" />
+                                    <svg className="w-24 h-24 transform -rotate-90">
+                                        <circle cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="7" fill="transparent" className="text-slate-50" />
+                                        <circle cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="7" fill="transparent" strokeDasharray={251.2} strokeDashoffset={251.2 - (251.2 * discoveryStatus.progress.percentage) / 100} className="text-indigo-600 transition-all duration-1000 ease-out" />
                                     </svg>
                                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                                        <span className="text-3xl font-black text-slate-900">{discoveryStatus.progress.percentage}%</span>
+                                        <span className="text-2xl font-black text-slate-900">{discoveryStatus.progress.percentage}%</span>
                                     </div>
                                 </div>
                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-4">Diligence Score</p>
@@ -548,9 +548,9 @@ export default function Discovery() {
                             </Card>
 
                             {/* Asset Coverage Matrix (Simplified list) */}
-                            <Card className="md:col-span-2 rounded-[2rem] border-none shadow-sm bg-white overflow-hidden flex flex-col">
-                                <CardHeader className="p-6 border-b border-slate-50">
-                                    <CardTitle className="text-lg font-black text-slate-900">Coverage Matrix</CardTitle>
+                            <Card className="md:col-span-2 rounded-2xl border-none shadow-sm bg-white overflow-hidden flex flex-col">
+                                <CardHeader className="p-4 border-b border-slate-50">
+                                    <CardTitle className="text-base font-black text-slate-900">Coverage Matrix</CardTitle>
                                 </CardHeader>
                                 <div className="flex-1 overflow-y-auto max-h-[300px]">
                                     <Table>
