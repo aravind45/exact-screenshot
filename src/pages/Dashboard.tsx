@@ -344,18 +344,18 @@ export default function Dashboard() {
       >
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-50 text-indigo-600 text-[10px] font-black uppercase tracking-[0.2em] border border-indigo-100/50">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-50 text-indigo-600 text-[11px] font-bold uppercase tracking-wide border border-indigo-100/50">
               <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse outline outline-4 outline-indigo-500/20" />
               Estate Active
             </div>
             {estate?.probateStatus && estate.probateStatus !== "NOT_STARTED" && (
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-black uppercase tracking-[0.2em] border border-slate-200/50">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 text-slate-600 text-[11px] font-bold uppercase tracking-wide border border-slate-200/50">
                 {getStatusLabel(estate.probateStatus)}
               </div>
             )}
           </div>
           <div className="h-4 w-px bg-slate-200 hidden md:block" />
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-50 text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] border border-slate-200/50">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-50 text-slate-500 text-[11px] font-bold uppercase tracking-wide border border-slate-200/50">
             {authorityType.replace(/_/g, " ")} TRACK
           </div>
           <ProbateStatusUpdater
@@ -366,10 +366,10 @@ export default function Dashboard() {
 
         <div className="flex items-center gap-4">
           <div className="flex flex-col items-end">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">
+            <p className="text-xs font-semibold text-slate-500 leading-none mb-1">
               Managing
             </p>
-            <p className="text-sm font-black text-slate-900 tracking-tight">
+            <p className="text-base font-black text-slate-900 tracking-tight">
               {estate?.deceasedFirstName} {estate?.deceasedLastName}
             </p>
           </div>
@@ -377,7 +377,7 @@ export default function Dashboard() {
             <>
               <div className="h-8 w-px bg-slate-200" />
               <div className="flex flex-col items-end">
-                <p className="text-[10px] font-black text-indigo-600 uppercase tracking-widest leading-none mb-1">
+                <p className="text-xs font-semibold text-indigo-600 leading-none mb-1">
                   Case Number
                 </p>
                 <p className="text-sm font-black text-slate-900 tracking-tight uppercase">
@@ -407,39 +407,39 @@ export default function Dashboard() {
       )}
 
       {/* Stat Cards - Full Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between hover:shadow-md transition-all group">
-          <div className="flex justify-between items-start mb-8">
-            <div className="p-3 bg-indigo-50 rounded-2xl group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300">
-              <DollarSign className="w-5 h-5 text-indigo-600 group-hover:text-white transition-colors" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-between hover:shadow-md transition-all group">
+          <div className="flex justify-between items-start mb-4">
+            <div className="p-2.5 bg-indigo-50 rounded-xl group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300">
+              <DollarSign className="w-4 h-4 text-indigo-600 group-hover:text-white transition-colors" />
             </div>
-            <div className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Global Assets</div>
+            <div className="text-[11px] font-semibold text-slate-400">Global Assets</div>
           </div>
           <div>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 leading-none">Gross Estate Value</p>
+            <p className="text-[11px] font-bold text-slate-500 mb-1.5 leading-none">Gross Estate Value</p>
             {isAssetsLocked ? (
               <div className="flex items-baseline gap-2">
-                <p className="text-3xl font-black text-slate-200 tracking-tighter leading-none">$---</p>
+                <p className="text-2xl font-black text-slate-200 tracking-tighter leading-none">$---</p>
                 <Badge className="bg-indigo-600 text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-md border-none">Premium</Badge>
               </div>
             ) : (
-              <p className="text-4xl font-black text-slate-900 tracking-tighter leading-none">${(totalValue / 1000).toFixed(0)}K</p>
+              <p className="text-3xl font-black text-slate-900 tracking-tighter leading-none">${(totalValue / 1000).toFixed(0)}K</p>
             )}
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between hover:shadow-md transition-all group">
-          <div className="flex justify-between items-start mb-8">
-            <div className="p-3 bg-indigo-50 rounded-2xl group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300">
-              <CheckCircle2 className="w-5 h-5 text-indigo-600 group-hover:text-white transition-colors" />
+        <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-between hover:shadow-md transition-all group">
+          <div className="flex justify-between items-start mb-4">
+            <div className="p-2.5 bg-indigo-50 rounded-xl group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300">
+              <CheckCircle2 className="w-4 h-4 text-indigo-600 group-hover:text-white transition-colors" />
             </div>
-            <div className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">{completed}/{assets.length} Resolved</div>
+            <div className="text-[11px] font-semibold text-slate-400">{completed}/{assets.length} Resolved</div>
           </div>
           <div>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 leading-none">Overall Progress</p>
-            <div className="space-y-2">
+            <p className="text-[11px] font-bold text-slate-500 mb-2 leading-none">Overall Progress</p>
+            <div className="space-y-1.5">
               <div className="flex items-baseline gap-2">
-                <p className="text-4xl font-black text-slate-900 tracking-tighter leading-none">{progressPercent}%</p>
+                <p className="text-3xl font-black text-slate-900 tracking-tighter leading-none">{progressPercent}%</p>
               </div>
               <div className="h-1.5 bg-slate-50 rounded-full overflow-hidden">
                 <div
@@ -453,46 +453,46 @@ export default function Dashboard() {
 
         <div
           className={cn(
-            "p-6 rounded-3xl border transition-all cursor-pointer group shadow-sm hover:shadow-md flex flex-col justify-between",
+            "p-4 rounded-2xl border transition-all cursor-pointer group shadow-sm hover:shadow-md flex flex-col justify-between",
             attentionNeededCount > 0
               ? "bg-white border-indigo-100 ring-1 ring-indigo-50"
               : "bg-white border-slate-100"
           )}
           onClick={() => navigate('/assets')}
         >
-          <div className="flex justify-between items-start mb-8">
+          <div className="flex justify-between items-start mb-4">
             <div className={cn(
-              "p-3 rounded-2xl transition-all duration-300",
+              "p-2.5 rounded-xl transition-all duration-300",
               attentionNeededCount > 0 ? "bg-indigo-600 text-white shadow-lg shadow-indigo-200" : "bg-indigo-50 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white"
             )}>
-              <Bell className="w-5 h-5 transition-colors" />
+              <Bell className="w-4 h-4 transition-colors" />
             </div>
             {taxonomyStats.action_required > 0 && (
-              <Badge variant="destructive" className="animate-pulse bg-red-500 text-[8px] font-black px-2 py-1 rounded-md tracking-widest uppercase border-none">
+              <Badge variant="destructive" className="animate-pulse bg-red-500 text-[8px] font-black px-2 py-0.5 rounded-md tracking-widest uppercase border-none">
                 Urgent
               </Badge>
             )}
           </div>
           <div>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 leading-none">
+            <p className="text-[11px] font-bold text-slate-500 mb-1.5 leading-none">
               Guidance Required
             </p>
-            <div className="flex items-baseline gap-2">
-              <p className="text-4xl font-black text-slate-900 tracking-tighter leading-none">{attentionNeededCount}</p>
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tasks</span>
+            <div className="flex items-baseline gap-1.5">
+              <p className="text-3xl font-black text-slate-900 tracking-tighter leading-none">{attentionNeededCount}</p>
+              <span className="text-sm font-bold text-slate-400">Tasks</span>
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between hover:shadow-md transition-all group">
-          <div className="flex justify-between items-start mb-8">
-            <div className="p-3 bg-indigo-50 rounded-2xl group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300">
-              <Landmark className="w-5 h-5 text-indigo-600 group-hover:text-white transition-colors" />
+        <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-between hover:shadow-md transition-all group">
+          <div className="flex justify-between items-start mb-4">
+            <div className="p-2.5 bg-indigo-50 rounded-xl group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300">
+              <Landmark className="w-4 h-4 text-indigo-600 group-hover:text-white transition-colors" />
             </div>
             <Button
               variant="ghost"
               size="sm"
-              className="h-7 text-[8px] uppercase font-black tracking-widest text-indigo-600 hover:bg-indigo-50 px-2 py-0 border border-indigo-100"
+              className="h-6 text-[8px] uppercase font-black tracking-widest text-indigo-600 hover:bg-indigo-50 px-2 py-0 border border-indigo-100"
               disabled={isAssetsLocked}
               onClick={() => generateCPAExport(assets, liabilities)}
             >
@@ -500,10 +500,10 @@ export default function Dashboard() {
             </Button>
           </div>
           <div>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 leading-none">Settlement Track</p>
-            <p className="text-4xl font-black text-slate-900 tracking-tighter leading-none truncate antialiased">
+            <p className="text-[11px] font-bold text-slate-500 mb-1.5 leading-none">Settlement Track</p>
+            <p className="text-3xl font-black text-slate-900 tracking-tighter leading-none truncate antialiased">
               {authorityType.split('_')[0]}
-              <span className="text-indigo-600 text-2xl">.</span>
+              <span className="text-indigo-600 text-xl">.</span>
             </p>
           </div>
         </div>
@@ -515,7 +515,7 @@ export default function Dashboard() {
           NEXT ACTION + CRITICAL DATES — Two-column hero strip
           Left: single "What To Do Today" card  |  Right: deadline strip
       ────────────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
         {/* Left: What To Do Today (5/12) */}
         <div className="lg:col-span-5">
           <NextActionWidget estate={estate} assets={assets} />
@@ -529,7 +529,7 @@ export default function Dashboard() {
             </div>
             <div>
               <h2 className="text-base font-black text-slate-900 tracking-tight">Critical Dates</h2>
-              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
+              <p className="text-xs font-medium text-amber-700 mt-0.5">
                 Statutory Deadlines — Miss one and face personal liability
               </p>
             </div>
@@ -538,19 +538,19 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
         {/* Main Content (Left Column - 8/12 = 66%) */}
-        <div className="lg:col-span-8 space-y-8">
+        <div className="lg:col-span-8 space-y-5">
           <TaxAlerts estate={estate} totalValue={totalValue} />
 
-          <section className="space-y-6">
-            <div className="flex items-center gap-3 px-1">
-              <div className="w-10 h-10 rounded-2xl bg-indigo-50 flex items-center justify-center">
-                <Lightbulb className="w-5 h-5 text-indigo-600" />
+          <section className="space-y-4">
+            <div className="flex items-center gap-2.5 px-1">
+              <div className="w-8 h-8 rounded-xl bg-indigo-50 flex items-center justify-center">
+                <Lightbulb className="w-4 h-4 text-indigo-600" />
               </div>
               <div>
-                <h2 className="text-xl font-black text-slate-900 tracking-tight">Support Requested</h2>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Fiduciary Guidance Queue</p>
+                <h2 className="text-base font-black text-slate-900 tracking-tight">Support Requested</h2>
+                <p className="text-xs font-medium text-slate-500 mt-0.5">Fiduciary Guidance Queue</p>
               </div>
               {(realFollowUps.length > 0 || taxonomyStats.blocked > 0) && (
                 <Badge variant="secondary" className="bg-indigo-100 text-indigo-700 text-[10px] font-black border-none rounded-lg px-2">
@@ -614,15 +614,15 @@ export default function Dashboard() {
           </section>
 
           {/* Recent Proof of Work */}
-          <section className="space-y-6">
+          <section className="space-y-3">
             <div className="flex items-center justify-between px-1">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-indigo-50 flex items-center justify-center">
-                  <HistoryIcon className="w-5 h-5 text-indigo-600" />
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-indigo-50 flex items-center justify-center">
+                  <HistoryIcon className="w-4 h-4 text-indigo-600" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-black text-slate-900 tracking-tight">Recent Proof of Work</h2>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Immutable Activity Log</p>
+                  <h2 className="text-base font-black text-slate-900 tracking-tight">Recent Proof of Work</h2>
+                  <p className="text-xs font-medium text-slate-500 mt-0.5">Immutable Activity Log</p>
                 </div>
               </div>
               <Button
@@ -676,10 +676,10 @@ export default function Dashboard() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex justify-between items-start mb-0.5">
-                            <span className="text-[10px] font-black uppercase text-slate-400">
+                            <span className="text-xs font-semibold text-slate-400">
                               {act.uiType === 'activity' ? 'Roadmap' : (act.institutionName || 'Message')}
                             </span>
-                            <span className="text-[9px] font-bold text-slate-400">{new Date(act.occurredAt).toLocaleDateString()}</span>
+                            <span className="text-[10px] font-medium text-slate-400">{new Date(act.occurredAt).toLocaleDateString()}</span>
                           </div>
                           <p className="text-xs font-bold text-slate-800 line-clamp-1">
                             {act.subject || act.notes} {act.count > 1 && <span className="text-[10px] text-indigo-500 ml-1">({act.count}×)</span>}
@@ -701,7 +701,7 @@ export default function Dashboard() {
         </div>
 
         {/* Sidebar (Right Column - 4/12 = 33%) */}
-        <div className="lg:col-span-4 space-y-6">
+        <div className="lg:col-span-4 space-y-4">
 
           {/* ⚠️ Attorney Review Nodes — GAP-09 */}
           <AttorneyReviewWidget estate={estate} assets={assets} />

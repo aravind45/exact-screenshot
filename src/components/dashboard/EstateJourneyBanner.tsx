@@ -143,18 +143,18 @@ export function EstateJourneyBanner({ estate, assets = [] }: EstateJourneyBanner
     const activePhaseIndex = PHASE_ORDER.indexOf(activePhaseKey as any);
 
     return (
-        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
             {/* Header */}
-            <div className="px-5 pt-4 pb-3 flex items-center justify-between border-b border-slate-50">
-                <div className="flex items-center gap-2.5">
-                    <div className="w-7 h-7 rounded-xl bg-indigo-600 flex items-center justify-center flex-shrink-0">
-                        <MapPin className="w-3.5 h-3.5 text-white" />
+            <div className="px-4 pt-3 pb-2.5 flex items-center justify-between border-b border-slate-50">
+                <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-indigo-600 flex items-center justify-center flex-shrink-0">
+                        <MapPin className="w-4 h-4 text-white" />
                     </div>
                     <div>
-                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 leading-none mb-0.5">
+                        <p className="text-[11px] font-bold uppercase tracking-wide text-slate-400 leading-none mb-1">
                             Your Settlement Journey
                         </p>
-                        <p className="text-sm font-black text-slate-900 leading-tight">
+                        <p className="text-lg font-black text-slate-900 leading-tight">
                             {activePhaseIndex === PHASE_ORDER.length - 1 && phaseProgress[activePhaseIndex]?.pct === 100
                                 ? "Estate Fully Settled 🎉"
                                 : `Phase ${activePhaseIndex + 1} of ${PHASE_ORDER.length} · ${PHASE_META[activePhaseKey]?.heading}`}
@@ -162,15 +162,15 @@ export function EstateJourneyBanner({ estate, assets = [] }: EstateJourneyBanner
                     </div>
                 </div>
                 <button
-                    className="text-[10px] font-black uppercase tracking-widest text-indigo-600 hover:text-indigo-700 flex items-center gap-1"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-xs font-bold text-indigo-600 hover:text-indigo-700 transition-colors"
                     onClick={() => navigate("/roadmap")}
                 >
-                    Full Action Plan <ChevronRight className="w-3 h-3" />
+                    Full Action Plan <ChevronRight className="w-3.5 h-3.5" />
                 </button>
             </div>
 
             {/* Phase Stepper */}
-            <div className="px-4 py-4 overflow-x-auto">
+            <div className="px-4 py-3 overflow-x-auto">
                 <div className="flex items-start gap-0 min-w-max">
                     {PHASE_ORDER.map((phaseKey, idx) => {
                         const meta = PHASE_META[phaseKey];
@@ -214,7 +214,7 @@ export function EstateJourneyBanner({ estate, assets = [] }: EstateJourneyBanner
 
                                     {/* Label */}
                                     <span className={cn(
-                                        "text-[10px] font-black uppercase tracking-wide leading-none text-center whitespace-nowrap",
+                                        "text-[11px] font-bold uppercase tracking-wide leading-none text-center whitespace-nowrap",
                                         isActive ? "text-indigo-700" : isCompleted ? "text-emerald-700" : "text-slate-400"
                                     )}>
                                         {meta.label}
@@ -234,9 +234,9 @@ export function EstateJourneyBanner({ estate, assets = [] }: EstateJourneyBanner
 
                                     {/* Duration chip — only on active */}
                                     {isActive && (
-                                        <div className="flex items-center gap-1 px-1.5 py-0.5 bg-indigo-100 rounded-md">
+                                        <div className="flex items-center gap-1 px-2 py-1 bg-indigo-100 rounded-md">
                                             <Clock className="w-2.5 h-2.5 text-indigo-600" />
-                                            <span className="text-[8px] font-black text-indigo-700 whitespace-nowrap">{meta.duration}</span>
+                                            <span className="text-[10px] font-bold text-indigo-700 whitespace-nowrap">{meta.duration}</span>
                                         </div>
                                     )}
                                 </button>
@@ -267,25 +267,25 @@ export function EstateJourneyBanner({ estate, assets = [] }: EstateJourneyBanner
                     <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
                             <p className="text-xs font-black text-slate-900">{PHASE_META[expandedPhase].heading}</p>
-                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider px-1.5 py-0.5 bg-slate-100 rounded-md">
-                                {PHASE_META[expandedPhase].duration}
-                            </span>
-                            {phaseProgress[PHASE_ORDER.indexOf(expandedPhase as any)]?.total > 0 && (
-                                <span className="text-[9px] font-black text-slate-500">
-                                    {phaseProgress[PHASE_ORDER.indexOf(expandedPhase as any)].completed}/
-                                    {phaseProgress[PHASE_ORDER.indexOf(expandedPhase as any)].total} tasks
+                            <span className="text-[11px] font-semibold text-slate-500 px-2 py-0.5 bg-slate-100 rounded-md">
+                                    {PHASE_META[expandedPhase].duration}
                                 </span>
-                            )}
+                                {phaseProgress[PHASE_ORDER.indexOf(expandedPhase as any)]?.total > 0 && (
+                                    <span className="text-[11px] font-medium text-slate-500">
+                                        {phaseProgress[PHASE_ORDER.indexOf(expandedPhase as any)].completed}/
+                                        {phaseProgress[PHASE_ORDER.indexOf(expandedPhase as any)].total} tasks
+                                    </span>
+                                )}
                         </div>
-                        <p className="text-[11px] text-slate-600 leading-relaxed font-medium">
+                        <p className="text-xs text-slate-600 leading-relaxed">
                             {PHASE_META[expandedPhase].summary}
                         </p>
                     </div>
                     <button
-                        className="text-[9px] font-black uppercase tracking-widest text-indigo-600 hover:text-indigo-700 flex items-center gap-0.5 flex-shrink-0 mt-0.5"
+                        className="text-xs font-bold text-indigo-600 hover:text-indigo-700 flex items-center gap-0.5 flex-shrink-0 mt-0.5"
                         onClick={() => navigate("/roadmap")}
                     >
-                        Go <ChevronRight className="w-3 h-3" />
+                        View <ChevronRight className="w-3.5 h-3.5" />
                     </button>
                 </div>
             )}

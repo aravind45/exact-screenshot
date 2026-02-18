@@ -668,11 +668,24 @@ router.delete("/:estateId/deadlines/:id", requireEstateAccess, async (req, res) 
 router.post("/:estateId/deadlines/generate", requireEstateAccess, async (req, res) => {
     try {
         const { DeadlineService } = await import("../services/deadlineService.js");
-        const deadlines = await DeadlineService.generateStatutoryDeadlines(req.params.estateId);
-        res.json(deadlines);
+        const result = await DeadlineService.generateStatutoryDeadlines(req.params.estateId);
+        res.json(result);
     }
     catch (error) {
+        logger.error("Deadline Generate Error:", error.message);
         res.status(500).json({ error: "Failed to generate deadlines" });
+    }
+});
+// Recompute pending (missing-anchor) deadlines after executor provides anchor dates
+router.post("/:estateId/deadlines/recompute", requireEstateAccess, async (req, res) => {
+    try {
+        const { DeadlineService } = await import("../services/deadlineService.js");
+        const result = await DeadlineService.recomputeDeadlines(req.params.estateId);
+        res.json(result);
+    }
+    catch (error) {
+        logger.error("Deadline Recompute Error:", error.message);
+        res.status(500).json({ error: "Failed to recompute deadlines" });
     }
 });
 import { DossierService } from "../services/dossierService.js";

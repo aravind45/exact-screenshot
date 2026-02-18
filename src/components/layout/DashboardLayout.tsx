@@ -19,12 +19,12 @@ export function DashboardLayout({
             <Sidebar />
             {/* 
          Margin-left matches the sidebar width defined in CSS variable or fixed width.
-         Using standard w-[240px] for sidebar, so ml-[240px] here.
+         Sidebar is w-[220px], so ml-[220px] here.
       */}
-            <div className="flex-1 ml-[240px] flex flex-col transition-all duration-300">
+            <div className="flex-1 ml-[220px] flex flex-col transition-all duration-300">
                 <main
                     className={cn(
-                        "w-full mx-auto px-6 py-6 sm:px-8 sm:py-8 space-y-8",
+                        "w-full px-5 py-5 sm:px-7 sm:py-6 space-y-5",
                         maxWidth,
                         className
                     )}

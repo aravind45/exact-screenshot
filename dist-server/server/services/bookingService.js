@@ -28,14 +28,17 @@ export class BookingService {
                 userId: data.userId,
                 advisorId: data.advisorId,
                 estateId: data.estateId,
-                sessionDuration: data.sessionDuration,
-                sessionDate: data.sessionDate,
+                startTime: data.sessionDate,
+                endTime: new Date(data.sessionDate.getTime() + data.sessionDuration * 3600 * 1000),
+                durationMinutes: data.sessionDuration * 60,
+                timezone: 'America/New_York',
                 totalAmount,
                 platformFee,
                 advisorPayout,
+                currency: 'USD',
                 escrowReleaseDate,
-                status: 'PENDING',
-                payoutStatus: 'UNPAID'
+                status: 'REQUESTED',
+                payoutStatus: 'UNPAID',
             },
             include: {
                 user: true,
@@ -76,7 +79,7 @@ export class BookingService {
         if (booking.advisorId !== advisorId) {
             throw new Error('Unauthorized');
         }
-        if (booking.status !== 'PENDING' && booking.status !== 'CONFIRMED') {
+        if (booking.status !== 'REQUESTED' && booking.status !== 'CONFIRMED') {
             throw new Error('Booking cannot be confirmed');
         }
         const updated = await prisma.booking.update({

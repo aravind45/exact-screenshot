@@ -117,7 +117,7 @@ export function AttorneyReviewWidget({ estate, assets = [] }: AttorneyReviewWidg
     <motion.div
       initial={{ opacity: 0, y: 4 }}
       animate={{ opacity: 1, y: 0 }}
-      className="rounded-3xl border border-amber-200 bg-amber-50/60 overflow-hidden shadow-sm"
+      className="rounded-2xl border border-amber-200 bg-amber-50/60 overflow-hidden shadow-sm"
     >
       {/* Header */}
       <div className="p-4 border-b border-amber-200/60 flex items-center justify-between">

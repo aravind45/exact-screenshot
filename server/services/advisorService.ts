@@ -126,7 +126,7 @@ export class AdvisorService {
         });
 
         const totalBookings = bookings.length;
-        const pendingBookings = bookings.filter(b => b.status === 'PENDING').length;
+        const pendingBookings = bookings.filter(b => b.status === 'REQUESTED').length;
 
         // Calculate earnings (using Number to avoid Decimal types for now simplistically, 
         // real app should use Decimal handling)

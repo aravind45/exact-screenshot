@@ -136,10 +136,10 @@ export function Sidebar() {
     ];
 
     return (
-        <div className="w-[240px] h-screen bg-white text-slate-600 flex flex-col fixed left-0 top-0 z-50 border-r border-slate-200 shadow-sm">
+        <div className="w-[220px] h-screen bg-white text-slate-600 flex flex-col fixed left-0 top-0 z-50 border-r border-slate-200 shadow-sm">
             {/* Brand */}
-            <div className="p-6 pb-4">
-                <div className="flex items-center gap-3 mb-6">
+            <div className="p-4 pb-3">
+                <div className="flex items-center gap-2.5 mb-4">
                     <div className="p-2 rounded-xl bg-indigo-600 shadow-sm">
                         <Home className="w-5 h-5 text-white" />
                     </div>
@@ -159,9 +159,9 @@ export function Sidebar() {
 
 
             {/* Navigation Categories */}
-            <nav className="flex-1 px-3 space-y-6 overflow-y-auto pt-4 pb-6 custom-scrollbar scroll-smooth">
+            <nav className="flex-1 px-2.5 space-y-4 overflow-y-auto pt-2 pb-4 custom-scrollbar scroll-smooth">
                 {NAV_CATEGORIES.map((category) => (
-                    <div key={category.title} className="space-y-1">
+                    <div key={category.title} className="space-y-0.5">
                         <p className="px-3 text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2 antialiased">
                             {category.title}
                         </p>
@@ -204,8 +204,8 @@ export function Sidebar() {
             </nav>
 
             {/* User Footer */}
-            <div className="p-4 bg-white border-t border-slate-100">
-                <div className="flex items-center gap-3 mb-4 px-2">
+            <div className="p-3 bg-white border-t border-slate-100">
+                <div className="flex items-center gap-2.5 mb-2.5 px-1.5">
                     <div className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center border border-slate-200">
                         <User className="w-4.5 h-4.5 text-slate-500" />
                     </div>

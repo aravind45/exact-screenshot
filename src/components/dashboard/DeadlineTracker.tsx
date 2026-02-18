@@ -143,15 +143,15 @@ function DeadlineRow({
                             {d.title}
                         </p>
                         {d.meta.priority && (
-                            <span className={cn(
-                                "text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-full border",
+                    <span className={cn(
+                                "text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded-full border",
                                 priorityBadge(d.meta.priority)
                             )}>
                                 {d.meta.priority}
                             </span>
                         )}
                         {d.isStatutory && (
-                            <span className="text-[9px] font-bold uppercase tracking-widest text-violet-600 bg-violet-50 px-1.5 py-0.5 rounded-full border border-violet-200">
+                        <span className="text-[10px] font-medium uppercase tracking-wide text-violet-600 bg-violet-50 px-1.5 py-0.5 rounded-full border border-violet-200">
                                 Statutory
                             </span>
                         )}
@@ -321,12 +321,12 @@ export function DeadlineTracker({ estateId }: { estateId: string }) {
                         Critical Dates
                     </CardTitle>
                     {overdue.length > 0 && (
-                        <span className="text-[10px] font-black bg-rose-500 text-white rounded-full px-1.5 py-0.5 animate-pulse">
+                    <span className="text-xs font-bold bg-rose-500 text-white rounded-full px-1.5 py-0.5 animate-pulse">
                             {overdue.length} Overdue
                         </span>
                     )}
                     {overdue.length === 0 && urgent.length > 0 && (
-                        <span className="text-[10px] font-black bg-amber-500 text-white rounded-full px-1.5 py-0.5">
+                        <span className="text-xs font-bold bg-amber-500 text-white rounded-full px-1.5 py-0.5">
                             {urgent.length} Urgent
                         </span>
                     )}
@@ -437,7 +437,7 @@ export function DeadlineTracker({ estateId }: { estateId: string }) {
                 {/* Overdue section */}
                 {overdue.length > 0 && (
                     <div className="space-y-1">
-                        <p className="text-[10px] font-black text-rose-600 uppercase tracking-widest px-0.5">Overdue</p>
+                        <p className="text-xs font-bold text-rose-600 uppercase tracking-wide px-0.5">Overdue</p>
                         {overdue.map(d => (
                             <div key={d.id} className="group">
                                 <DeadlineRow
@@ -453,7 +453,7 @@ export function DeadlineTracker({ estateId }: { estateId: string }) {
                 {/* Urgent section */}
                 {urgent.length > 0 && (
                     <div className="space-y-1">
-                        <p className="text-[10px] font-black text-amber-600 uppercase tracking-widest px-0.5">Due Soon</p>
+                        <p className="text-xs font-bold text-amber-600 uppercase tracking-wide px-0.5">Due Soon</p>
                         {urgent.map(d => (
                             <div key={d.id} className="group">
                                 <DeadlineRow
@@ -470,7 +470,7 @@ export function DeadlineTracker({ estateId }: { estateId: string }) {
                 {computed.filter(d => !d.isOverdue && !d.isUrgent).length > 0 && (
                     <div className="space-y-1">
                         {(overdue.length > 0 || urgent.length > 0) && (
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-0.5">Upcoming</p>
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wide px-0.5">Upcoming</p>
                         )}
                         {computed
                             .filter(d => !d.isOverdue && !d.isUrgent)
@@ -491,7 +491,7 @@ export function DeadlineTracker({ estateId }: { estateId: string }) {
                     <div className="space-y-1">
                         <button
                             onClick={() => setShowPending(!showPending)}
-                            className="flex items-center gap-1 text-[10px] font-black text-slate-400 uppercase tracking-widest px-0.5 hover:text-slate-600 transition-colors"
+                            className="flex items-center gap-1 text-xs font-bold text-slate-400 uppercase tracking-wide px-0.5 hover:text-slate-600 transition-colors"
                         >
                             <AlertTriangle className="w-3 h-3 text-amber-400" />
                             {pending.length} Pending Anchor Date{pending.length > 1 ? "s" : ""}

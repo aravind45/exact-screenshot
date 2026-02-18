@@ -252,7 +252,7 @@ export function NextActionWidget({ estate, assets = [] }: NextActionWidgetProps)
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
       className={cn(
-        "rounded-3xl border p-5 space-y-4 shadow-sm",
+        "rounded-2xl border p-4 space-y-3 shadow-sm",
         cardBg,
         cardBorder
       )}
@@ -264,10 +264,10 @@ export function NextActionWidget({ estate, assets = [] }: NextActionWidgetProps)
             <Target className="w-4 h-4" />
           </div>
           <div>
-            <p className="text-[9px] font-black uppercase tracking-[0.25em] text-slate-400 leading-none mb-0.5">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 leading-none mb-0.5">
               What To Do Today
             </p>
-            <p className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-700 leading-none">
+            <p className="text-xs font-black uppercase tracking-wider text-slate-700 leading-none">
               Your Next Action
             </p>
           </div>
@@ -277,7 +277,7 @@ export function NextActionWidget({ estate, assets = [] }: NextActionWidgetProps)
           {urgency && (
             <div
               className={cn(
-                "flex items-center gap-1 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest",
+                "flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide",
                 urgency.colorBg,
                 urgency.colorText
               )}
@@ -294,7 +294,7 @@ export function NextActionWidget({ estate, assets = [] }: NextActionWidgetProps)
           )}
           <Badge
             variant="outline"
-            className="text-[9px] font-black uppercase tracking-wider border-slate-200 text-slate-400 rounded-lg px-2"
+            className="text-[10px] font-semibold uppercase tracking-wide border-slate-200 text-slate-400 rounded-lg px-2"
           >
             {nextAction.phaseLabel}
           </Badge>
@@ -337,7 +337,7 @@ export function NextActionWidget({ estate, assets = [] }: NextActionWidgetProps)
       {/* ── Why this matters (plain English for new users) ── */}
       {PHASE_CONTEXT[nextAction.phase] && (
         <div className="p-3 bg-slate-50 border border-slate-100 rounded-2xl space-y-1.5">
-          <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
             Why This Matters
           </p>
           <p className="text-[11px] text-slate-600 leading-relaxed font-medium">
@@ -376,7 +376,7 @@ export function NextActionWidget({ estate, assets = [] }: NextActionWidgetProps)
               )}
             />
           ))}
-          <span className="text-[9px] font-black text-slate-400 ml-1 whitespace-nowrap">
+          <span className="text-[10px] font-semibold text-slate-400 ml-1 whitespace-nowrap">
             Phase {PHASE_CONTEXT[nextAction.phase].phaseNum}/{PHASE_ORDER.length}
           </span>
         </div>
@@ -384,12 +384,12 @@ export function NextActionWidget({ estate, assets = [] }: NextActionWidgetProps)
 
       {/* ── Link to full plan + CTA ── */}
       <div className="flex items-center justify-between px-0.5">
-        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
           From your 6-phase Action Plan
         </p>
         <button
           onClick={() => navigate("/roadmap")}
-          className="text-[9px] font-black uppercase tracking-[0.2em] text-indigo-500 hover:text-indigo-700 transition-colors"
+          className="text-[10px] font-bold uppercase tracking-wider text-indigo-500 hover:text-indigo-700 transition-colors"
         >
           See all tasks →
         </button>

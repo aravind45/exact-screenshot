@@ -1624,6 +1624,342 @@ export const api = {
             return parseResponse(response);
         }
     },
+    /**
+     * Marketplace API — two-sided advisor scheduling marketplace
+     */
+    marketplace: {
+        // ── Public / Executor-facing ──────────────────────────────────────────
+        /** Search approved advisors with optional filters */
+        search: async (filters?: {
+            q?: string;
+            advisorType?: string;
+            specialty?: string;
+            state?: string;
+            maxRate?: number;
+            minRating?: number;
+            page?: number;
+            limit?: number;
+        }) => {
+            const q = new URLSearchParams();
+            if (filters?.q) q.set("q", filters.q);
+            if (filters?.advisorType) q.set("advisorType", filters.advisorType);
+            if (filters?.specialty) q.set("specialty", filters.specialty);
+            if (filters?.state) q.set("state", filters.state);
+            if (filters?.maxRate !== undefined) q.set("maxRate", filters.maxRate.toString());
+            if (filters?.minRating !== undefined) q.set("minRating", filters.minRating.toString());
+            if (filters?.page) q.set("page", filters.page.toString());
+            if (filters?.limit) q.set("limit", filters.limit.toString());
+            const qs = q.toString() ? `?${q.toString()}` : "";
+            const response = await fetch(`${API_URL}/marketplace${qs}`, { headers: getHeaders() });
+            return parseResponse(response);
+        },
+        /** Get a single advisor's public profile */
+        getAdvisorProfile: async (advisorId: string) => {
+            const response = await fetch(`${API_URL}/marketplace/${advisorId}`, { headers: getHeaders() });
+            return parseResponse(response);
+        },
+        /** Get available slots for a specific date */
+        getSlots: async (advisorId: string, date: string, durationMinutes: number = 60) => {
+            const response = await fetch(
+                `${API_URL}/marketplace/${advisorId}/slots?date=${encodeURIComponent(date)}&durationMinutes=${durationMinutes}`,
+                { headers: getHeaders() }
+            );
+            return parseResponse(response);
+        },
+        /** Get available slots across a date range (up to 60 days) */
+        getAvailabilityRange: async (advisorId: string, from: string, to: string, durationMinutes: number = 60) => {
+            const response = await fetch(
+                `${API_URL}/marketplace/${advisorId}/availability?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&durationMinutes=${durationMinutes}`,
+                { headers: getHeaders() }
+            );
+            return parseResponse(response);
+        },
+
+        // ── Advisor self-service profile ───────────────────────────────────────
+        /** Get or upsert the current advisor's marketplace profile */
+        getMyProfile: async () => {
+            const response = await fetch(`${API_URL}/advisor/profile`, { headers: getHeaders() });
+            return parseResponse(response);
+        },
+        upsertMyProfile: async (data: {
+            displayName?: string;
+            bio?: string;
+            advisorType?: string;
+            specialties?: string[];
+            statesServed?: string[];
+            languages?: string[];
+            timezone?: string;
+            cancellationHours?: number;
+            maxSessionsPerDay?: number;
+            bufferMinutes?: number;
+            meetingLink?: string;
+            publicNotes?: string;
+        }) => {
+            const response = await fetch(`${API_URL}/advisor/profile`, {
+                method: "PUT",
+                headers: getHeaders(),
+                body: JSON.stringify(data),
+            });
+            return parseResponse(response);
+        },
+        submitForReview: async () => {
+            const response = await fetch(`${API_URL}/advisor/profile/submit`, {
+                method: "POST",
+                headers: getHeaders(),
+            });
+            return parseResponse(response);
+        },
+
+        // ── Rate Plans ─────────────────────────────────────────────────────────
+        getRatePlans: async () => {
+            const response = await fetch(`${API_URL}/advisor/rate-plans`, { headers: getHeaders() });
+            return parseResponse(response);
+        },
+        createRatePlan: async (data: { label: string; durationMinutes: number; amountCents: number; currency?: string; description?: string }) => {
+            const response = await fetch(`${API_URL}/advisor/rate-plans`, {
+                method: "POST",
+                headers: getHeaders(),
+                body: JSON.stringify(data),
+            });
+            return parseResponse(response);
+        },
+        updateRatePlan: async (id: string, data: Partial<{ label: string; durationMinutes: number; amountCents: number; isActive: boolean; description: string }>) => {
+            const response = await fetch(`${API_URL}/advisor/rate-plans/${id}`, {
+                method: "PATCH",
+                headers: getHeaders(),
+                body: JSON.stringify(data),
+            });
+            return parseResponse(response);
+        },
+        deleteRatePlan: async (id: string) => {
+            const response = await fetch(`${API_URL}/advisor/rate-plans/${id}`, {
+                method: "DELETE",
+                headers: getHeaders(),
+            });
+            return parseResponse(response);
+        },
+
+        // ── Availability ───────────────────────────────────────────────────────
+        getAvailabilityRules: async () => {
+            const response = await fetch(`${API_URL}/advisor/availability/rules`, { headers: getHeaders() });
+            return parseResponse(response);
+        },
+        setAvailabilityRules: async (rules: Array<{ dayOfWeek: number; startTime: string; endTime: string }>) => {
+            const response = await fetch(`${API_URL}/advisor/availability/rules`, {
+                method: "PUT",
+                headers: getHeaders(),
+                body: JSON.stringify({ rules }),
+            });
+            return parseResponse(response);
+        },
+        createException: async (data: { date: string; isBlocked?: boolean; startTime?: string; endTime?: string; reason?: string }) => {
+            const response = await fetch(`${API_URL}/advisor/availability/exceptions`, {
+                method: "POST",
+                headers: getHeaders(),
+                body: JSON.stringify(data),
+            });
+            return parseResponse(response);
+        },
+        deleteException: async (id: string) => {
+            const response = await fetch(`${API_URL}/advisor/availability/exceptions/${id}`, {
+                method: "DELETE",
+                headers: getHeaders(),
+            });
+            return parseResponse(response);
+        },
+
+        // ── License Documents ──────────────────────────────────────────────────
+        getLicenseDocs: async () => {
+            const response = await fetch(`${API_URL}/advisor/license-documents`, { headers: getHeaders() });
+            return parseResponse(response);
+        },
+        recordLicenseDoc: async (data: { documentType: string; storageKey: string; expiresAt?: string }) => {
+            const response = await fetch(`${API_URL}/advisor/license-documents`, {
+                method: "POST",
+                headers: getHeaders(),
+                body: JSON.stringify(data),
+            });
+            return parseResponse(response);
+        },
+        deleteLicenseDoc: async (id: string) => {
+            const response = await fetch(`${API_URL}/advisor/license-documents/${id}`, {
+                method: "DELETE",
+                headers: getHeaders(),
+            });
+            return parseResponse(response);
+        },
+
+        // ── Advisor Earnings & Bookings ─────────────────────────────────────────
+        getEarnings: async (params?: { from?: string; to?: string }) => {
+            const q = new URLSearchParams();
+            if (params?.from) q.set("from", params.from);
+            if (params?.to) q.set("to", params.to);
+            const qs = q.toString() ? `?${q.toString()}` : "";
+            const response = await fetch(`${API_URL}/advisor/earnings${qs}`, { headers: getHeaders() });
+            return parseResponse(response);
+        },
+        getAdvisorBookings: async (params?: { status?: string; page?: number }) => {
+            const q = new URLSearchParams();
+            if (params?.status) q.set("status", params.status);
+            if (params?.page) q.set("page", params.page.toString());
+            const qs = q.toString() ? `?${q.toString()}` : "";
+            const response = await fetch(`${API_URL}/advisor/bookings${qs}`, { headers: getHeaders() });
+            return parseResponse(response);
+        },
+
+        // ── Marketplace Bookings (Executor) ─────────────────────────────────────
+        createBooking: async (data: {
+            advisorId: string;
+            ratePlanId: string;
+            startTime: string;
+            timezone: string;
+            intakeAnswers?: Record<string, string>;
+            idempotencyKey: string;
+        }) => {
+            const response = await fetch(`${API_URL}/bookings/marketplace`, {
+                method: "POST",
+                headers: { ...getHeaders(), "Idempotency-Key": data.idempotencyKey },
+                body: JSON.stringify(data),
+            });
+            return parseResponse(response);
+        },
+        confirmBooking: async (bookingId: string) => {
+            const response = await fetch(`${API_URL}/bookings/marketplace/${bookingId}/confirm`, {
+                method: "POST",
+                headers: getHeaders(),
+            });
+            return parseResponse(response);
+        },
+        cancelBooking: async (bookingId: string, reason?: string) => {
+            const response = await fetch(`${API_URL}/bookings/marketplace/${bookingId}/cancel`, {
+                method: "POST",
+                headers: getHeaders(),
+                body: JSON.stringify({ reason }),
+            });
+            return parseResponse(response);
+        },
+        completeBooking: async (bookingId: string, advisorNotes?: string) => {
+            const response = await fetch(`${API_URL}/bookings/marketplace/${bookingId}/complete`, {
+                method: "POST",
+                headers: getHeaders(),
+                body: JSON.stringify({ advisorNotes }),
+            });
+            return parseResponse(response);
+        },
+        rescheduleBooking: async (bookingId: string, newStartTime: string) => {
+            const response = await fetch(`${API_URL}/bookings/marketplace/${bookingId}/reschedule`, {
+                method: "POST",
+                headers: getHeaders(),
+                body: JSON.stringify({ newStartTime }),
+            });
+            return parseResponse(response);
+        },
+        reviewBooking: async (bookingId: string, data: { rating: number; comment?: string }) => {
+            const response = await fetch(`${API_URL}/bookings/marketplace/${bookingId}/review`, {
+                method: "POST",
+                headers: getHeaders(),
+                body: JSON.stringify(data),
+            });
+            return parseResponse(response);
+        },
+        openDispute: async (bookingId: string, reason: string) => {
+            const response = await fetch(`${API_URL}/bookings/marketplace/${bookingId}/dispute`, {
+                method: "POST",
+                headers: getHeaders(),
+                body: JSON.stringify({ reason }),
+            });
+            return parseResponse(response);
+        },
+        getMyMarketplaceBookings: async (params?: { status?: string; page?: number }) => {
+            const q = new URLSearchParams();
+            if (params?.status) q.set("status", params.status);
+            if (params?.page) q.set("page", params.page.toString());
+            const qs = q.toString() ? `?${q.toString()}` : "";
+            const response = await fetch(`${API_URL}/bookings/marketplace${qs}`, { headers: getHeaders() });
+            return parseResponse(response);
+        },
+        getBookingById: async (bookingId: string) => {
+            const response = await fetch(`${API_URL}/bookings/marketplace/${bookingId}`, { headers: getHeaders() });
+            return parseResponse(response);
+        },
+
+        // ── Admin marketplace management ─────────────────────────────────────────
+        admin: {
+            getQueue: async (params?: { status?: string; page?: number; limit?: number }) => {
+                const q = new URLSearchParams();
+                if (params?.status) q.set("status", params.status);
+                if (params?.page) q.set("page", params.page.toString());
+                if (params?.limit) q.set("limit", params.limit.toString());
+                const qs = q.toString() ? `?${q.toString()}` : "";
+                const response = await fetch(`${API_URL}/admin/marketplace/queue${qs}`, { headers: getHeaders() });
+                return parseResponse(response);
+            },
+            getAdvisorDetail: async (advisorId: string) => {
+                const response = await fetch(`${API_URL}/admin/marketplace/advisors/${advisorId}`, { headers: getHeaders() });
+                return parseResponse(response);
+            },
+            approve: async (advisorId: string, notes?: string) => {
+                const response = await fetch(`${API_URL}/admin/marketplace/advisors/${advisorId}/approve`, {
+                    method: "POST",
+                    headers: getHeaders(),
+                    body: JSON.stringify({ notes }),
+                });
+                return parseResponse(response);
+            },
+            reject: async (advisorId: string, reason: string) => {
+                const response = await fetch(`${API_URL}/admin/marketplace/advisors/${advisorId}/reject`, {
+                    method: "POST",
+                    headers: getHeaders(),
+                    body: JSON.stringify({ reason }),
+                });
+                return parseResponse(response);
+            },
+            pause: async (advisorId: string, reason: string) => {
+                const response = await fetch(`${API_URL}/admin/marketplace/advisors/${advisorId}/pause`, {
+                    method: "POST",
+                    headers: getHeaders(),
+                    body: JSON.stringify({ reason }),
+                });
+                return parseResponse(response);
+            },
+            unpause: async (advisorId: string) => {
+                const response = await fetch(`${API_URL}/admin/marketplace/advisors/${advisorId}/unpause`, {
+                    method: "POST",
+                    headers: getHeaders(),
+                });
+                return parseResponse(response);
+            },
+            verifyDocument: async (docId: string, status: "VERIFIED" | "REJECTED", notes?: string) => {
+                const response = await fetch(`${API_URL}/admin/marketplace/documents/${docId}/verify`, {
+                    method: "POST",
+                    headers: getHeaders(),
+                    body: JSON.stringify({ status, notes }),
+                });
+                return parseResponse(response);
+            },
+            getDisputes: async (params?: { status?: string; page?: number }) => {
+                const q = new URLSearchParams();
+                if (params?.status) q.set("status", params.status);
+                if (params?.page) q.set("page", params.page.toString());
+                const qs = q.toString() ? `?${q.toString()}` : "";
+                const response = await fetch(`${API_URL}/admin/marketplace/disputes${qs}`, { headers: getHeaders() });
+                return parseResponse(response);
+            },
+            resolveDispute: async (disputeId: string, resolution: string, refundExecutor: boolean) => {
+                const response = await fetch(`${API_URL}/admin/marketplace/disputes/${disputeId}/resolve`, {
+                    method: "POST",
+                    headers: getHeaders(),
+                    body: JSON.stringify({ resolution, refundExecutor }),
+                });
+                return parseResponse(response);
+            },
+            getAuditLog: async (advisorId: string) => {
+                const response = await fetch(`${API_URL}/admin/marketplace/advisors/${advisorId}/audit-log`, { headers: getHeaders() });
+                return parseResponse(response);
+            },
+        },
+    },
+
     reviews: {
         create: async (data: { bookingId: string, rating: number, comment?: string }) => {
             const response = await fetch(`${API_URL}/reviews`, {

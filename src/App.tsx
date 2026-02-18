@@ -73,14 +73,21 @@ const NonProbate = lazy(() => import("./pages/NonProbate"));
 // Admin
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const AdminInstitutions = lazy(() => import("./pages/admin/AdminInstitutions"));
+const AdminAdvisorQueue = lazy(() => import("./pages/admin/AdminAdvisorQueue"));
 
 // Advisor
 const AdvisorDashboard = lazy(() => import("./pages/advisor/Dashboard"));
 const AdvisorOnboarding = lazy(() => import("./pages/advisor/Onboarding"));
+const AdvisorDashboardNew = lazy(() => import("./pages/advisor/AdvisorDashboardNew"));
 const AdvisorBookings = lazy(() => import("./pages/advisor/Bookings"));
 const AdvisorMarketplace = lazy(() => import("./pages/AdvisorMarketplace"));
 const AdvisorPayouts = lazy(() => import("./pages/AdvisorPayouts"));
 const MyBookings = lazy(() => import("./pages/MyBookings"));
+
+// Marketplace (new two-sided marketplace)
+const AdvisorDirectory = lazy(() => import("./pages/marketplace/AdvisorDirectory"));
+const AdvisorProfilePage = lazy(() => import("./pages/marketplace/AdvisorProfile"));
+const BookingCheckout = lazy(() => import("./pages/marketplace/BookingCheckout"));
 
 // Others
 const NotFound = lazy(() => import("./pages/NotFound"));
@@ -231,7 +238,14 @@ const App = () => (
                       {/* Services */}
                       <Route path="/estate-agent" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><ProfileGuard><SubscriptionGuard><EstateAgentChatWrapper /></SubscriptionGuard></ProfileGuard></RoleRoute></ProtectedRoute>} />
                       <Route path="/estates/:estateId/agents" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><ProfileGuard><SubscriptionGuard><EstateAgents /></SubscriptionGuard></ProfileGuard></RoleRoute></ProtectedRoute>} />
-                      <Route path="/marketplace" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><AdvisorMarketplace /></RoleRoute></ProtectedRoute>} />
+                      {/* Legacy marketplace (simple) */}
+                      <Route path="/marketplace-legacy" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><AdvisorMarketplace /></RoleRoute></ProtectedRoute>} />
+
+                      {/* New two-sided advisor marketplace */}
+                      <Route path="/marketplace" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><AdvisorDirectory /></RoleRoute></ProtectedRoute>} />
+                      <Route path="/marketplace/:advisorId" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><AdvisorProfilePage /></RoleRoute></ProtectedRoute>} />
+                      <Route path="/marketplace/:advisorId/book" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><BookingCheckout /></RoleRoute></ProtectedRoute>} />
+
                       <Route path="/my-bookings" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><MyBookings /></RoleRoute></ProtectedRoute>} />
                       <Route path="/payment-success" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><ProfileGuard><PaymentSuccess /></ProfileGuard></RoleRoute></ProtectedRoute>} />
 
@@ -262,6 +276,7 @@ const App = () => (
                       {/* Admin Routes - Flattened as AdminLayout is missing */}
                       <Route path="/admin" element={<ProtectedRoute><RoleRoute allowedRoles={['ADMIN']}><AdminDashboard /></RoleRoute></ProtectedRoute>} />
                       <Route path="/admin/institutions" element={<ProtectedRoute><RoleRoute allowedRoles={['ADMIN']}><AdminInstitutions /></RoleRoute></ProtectedRoute>} />
+                      <Route path="/admin/advisors" element={<ProtectedRoute><RoleRoute allowedRoles={['ADMIN']}><AdminAdvisorQueue /></RoleRoute></ProtectedRoute>} />
 
                       <Route path="*" element={<NotFound />} />
                     </Routes>
