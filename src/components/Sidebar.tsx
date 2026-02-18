@@ -136,7 +136,7 @@ export function Sidebar() {
     ];
 
     return (
-        <div className="w-64 h-screen bg-[#0B0F1A] text-slate-400 flex flex-col fixed left-0 top-0 z-50 border-r border-white/5 shadow-2xl">
+        <div className="w-[240px] h-screen bg-[#0B0F1A] text-slate-400 flex flex-col fixed left-0 top-0 z-50 border-r border-white/5 shadow-2xl">
             {/* Brand */}
             <div className="p-8 pb-4">
                 <div className="flex items-center gap-3 mb-6">

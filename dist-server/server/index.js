@@ -32,6 +32,9 @@ import bookingRoutes from "./routes/bookingRoutes.js";
 const isServerless = process.env.VERCEL === '1' || process.env.NETLIFY === 'true' || !!process.env.AWS_EXECUTION_ENV || !!process.env.FUNCTION_NAME;
 const app = express();
 const port = Number(process.env.PORT) || 3000;
+// Enable if you're behind a reverse proxy (Heroku, Bluemix, AWS ELB, Nginx, etc)
+// see https://expressjs.com/en/guide/behind-proxies.html
+app.set('trust proxy', 1);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // Both in dev (server/index.ts) and prod (dist-server/index.js), 
 // the static 'dist' folder is at ../dist relative to the file.

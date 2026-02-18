@@ -75,9 +75,9 @@ export function AssetCard({ asset, onClick, onSelect, selected, selectable, clas
       <button
         onClick={onClick}
         className={cn(
-          'flex-1 text-left bg-white rounded-3xl border border-slate-100 p-5 shadow-premium hover:border-primary/20 hover:scale-[1.01] transition-all group cursor-pointer',
+          'flex-1 text-left bg-white rounded-2xl border border-slate-200 p-5 shadow-sm hover:shadow-md hover:border-indigo-100 transition-all group cursor-pointer',
           'focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
-          selected ? 'border-primary bg-primary/[0.02]' : '',
+          selected ? 'border-indigo-500 ring-1 ring-indigo-500 bg-indigo-50/10' : '',
           className
         )}
       >
@@ -170,7 +170,7 @@ export function AssetCard({ asset, onClick, onSelect, selected, selectable, clas
           <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0 mt-1 group-hover:text-foreground transition-colors" />
         </div>
       </button>
-    </motion.div>
+    </motion.div >
   );
 }
 

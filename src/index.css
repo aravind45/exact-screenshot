@@ -12,6 +12,9 @@
 
 @layer base {
   :root {
+    /* Layout Constants */
+    --sidebar-width: 240px;
+
     /* Core Brand - Calming blue palette for trust & stability */
     --background: 209 40% 96%;
     --foreground: 222 47% 11%;
@@ -200,6 +203,7 @@
   h5,
   h6 {
     @apply font-semibold tracking-tight;
+    font-family: 'Outfit', sans-serif;
   }
 
   h1 {

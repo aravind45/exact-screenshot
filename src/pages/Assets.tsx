@@ -2,7 +2,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import { Sidebar } from "@/components/Sidebar";
+import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { AssetCard } from "@/components/AssetCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -329,27 +329,25 @@ export default function Assets() {
 
     if (error) {
         return (
-            <div className="flex min-h-screen bg-[#F8FAFC]">
-                <Sidebar />
-                <div className="flex-1 ml-64 p-8 text-rose-500 font-bold">
+            <DashboardLayout>
+                <div className="p-8 text-rose-500 font-bold">
                     Error loading assets: {(error as Error).message}
                 </div>
-            </div>
+            </DashboardLayout>
         );
     }
 
     return (
-        <div className="flex min-h-screen bg-[#F8FAFC]">
-            <SEO
-                title="Asset Ledger"
-                description="Consolidate and track all estate assets, including bank accounts, real estate, and investments, in a secure and auditable ledger."
-            />
-            <Sidebar />
+        <>
+            <DashboardLayout maxWidth="max-w-[1200px]">
+                <SEO
+                    title="Asset Ledger"
+                    description="Consolidate and track all estate assets, including bank accounts, real estate, and investments, in a secure and auditable ledger."
+                />
 
-            <div className="flex-1 ml-64 flex flex-col">
-                <header className="h-24 border-b border-slate-100 bg-white/80 backdrop-blur-xl px-12 flex items-center justify-between sticky top-0 z-10">
+                <header className="h-24 border-b border-slate-100 bg-white/80 backdrop-blur-xl px-4 sm:px-12 flex items-center justify-between sticky top-0 z-10 -mx-6 -mt-6 mb-8 pt-6">
                     <div>
-                        <h1 className="text-3xl font-['Outfit'] font-black text-slate-900 tracking-tight">Asset Ledger</h1>
+                        <h1 className="text-3xl font-black text-slate-900 tracking-tight">Asset Ledger</h1>
                         <div className="flex items-center gap-2 mt-1">
                             <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" />
                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Verified Financial Records</p>
@@ -365,497 +363,478 @@ export default function Assets() {
                         </Button>
                     )}
                 </header>
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-10">
+                    <div className="flex items-center justify-between bg-white p-1.5 rounded-[2.25rem] border border-slate-100 shadow-sm">
+                        <TabsList className="bg-transparent border-none p-0 h-11">
+                            <TabsTrigger
+                                value="inventory"
+                                className="rounded-[1.75rem] px-10 font-black text-[10px] uppercase tracking-[0.2em] data-[state=active]:bg-slate-900 data-[state=active]:text-white transition-all duration-300 h-full"
+                            >
+                                <LayoutGrid className="w-3.5 h-3.5 mr-2" />
+                                Estate Inventory
+                            </TabsTrigger>
+                            <TabsTrigger
+                                value="detective"
+                                className="rounded-[1.75rem] px-10 font-black text-[10px] uppercase tracking-[0.2em] data-[state=active]:bg-indigo-600 data-[state=active]:text-white transition-all duration-300 h-full"
+                            >
+                                <Sparkles className="w-3.5 h-3.5 mr-2" />
+                                Asset Detective
+                            </TabsTrigger>
+                        </TabsList>
 
-                <main className="max-w-[1200px] w-full mx-auto px-8 py-10">
-                    <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-10">
-                        <div className="flex items-center justify-between bg-white p-1.5 rounded-[2.25rem] border border-slate-100 shadow-sm">
-                            <TabsList className="bg-transparent border-none p-0 h-11">
-                                <TabsTrigger
-                                    value="inventory"
-                                    className="rounded-[1.75rem] px-10 font-black text-[10px] uppercase tracking-[0.2em] data-[state=active]:bg-slate-900 data-[state=active]:text-white transition-all duration-300 h-full"
+                        {activeTab === "inventory" && (
+                            <div className="flex items-center gap-2 pr-2">
+                                <Button
+                                    variant={isSelectionMode ? "secondary" : "ghost"}
+                                    size="sm"
+                                    className="h-10 px-6 rounded-[1.25rem] font-black text-[10px] uppercase tracking-widest"
+                                    onClick={toggleSelectionMode}
                                 >
-                                    <LayoutGrid className="w-3.5 h-3.5 mr-2" />
-                                    Estate Inventory
-                                </TabsTrigger>
-                                <TabsTrigger
-                                    value="detective"
-                                    className="rounded-[1.75rem] px-10 font-black text-[10px] uppercase tracking-[0.2em] data-[state=active]:bg-indigo-600 data-[state=active]:text-white transition-all duration-300 h-full"
-                                >
-                                    <Sparkles className="w-3.5 h-3.5 mr-2" />
-                                    Asset Detective
-                                </TabsTrigger>
-                            </TabsList>
-
-                            {activeTab === "inventory" && (
-                                <div className="flex items-center gap-2 pr-2">
-                                    <Button
-                                        variant={isSelectionMode ? "secondary" : "ghost"}
-                                        size="sm"
-                                        className="h-10 px-6 rounded-[1.25rem] font-black text-[10px] uppercase tracking-widest"
-                                        onClick={toggleSelectionMode}
-                                    >
-                                        {isSelectionMode ? "Cancel" : "Batch Select"}
-                                    </Button>
-                                    <div className="h-6 w-px bg-slate-200 mx-2" />
-                                    <div className="px-4 py-2 bg-white rounded-xl border border-slate-200 text-[10px] font-black text-slate-500 uppercase tracking-widest">
-                                        {assets.length} Total Accounts
-                                    </div>
+                                    {isSelectionMode ? "Cancel" : "Batch Select"}
+                                </Button>
+                                <div className="h-6 w-px bg-slate-200 mx-2" />
+                                <div className="px-4 py-2 bg-white rounded-xl border border-slate-200 text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                                    {assets.length} Total Accounts
                                 </div>
-                            )}
+                            </div>
+                        )}
+                    </div>
+
+                    <TabsContent value="inventory" className="space-y-6 mt-0 outline-none">
+                        {/* Authority Landscape Summary */}
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+                            <AuthoritySummaryCard
+                                label="Court"
+                                count={authoritySummary.COURT_REQUIRED}
+                                icon={Scale}
+                                color="text-rose-600"
+                                bgColor="bg-rose-50"
+                            />
+                            <AuthoritySummaryCard
+                                label="Trust"
+                                count={authoritySummary.TRUSTEE_DIRECT}
+                                icon={ShieldCheck}
+                                color="text-emerald-600"
+                                bgColor="bg-emerald-50"
+                            />
+                            <AuthoritySummaryCard
+                                label="Affidavit"
+                                count={authoritySummary.AFFIDAVIT_SMALL}
+                                icon={FileText}
+                                color="text-amber-600"
+                                bgColor="bg-amber-50"
+                            />
+                            <AuthoritySummaryCard
+                                label="Contract"
+                                count={authoritySummary.BENEFICIARY_CONTRACT}
+                                icon={Users}
+                                color="text-indigo-600"
+                                bgColor="bg-indigo-50"
+                            />
+                            <AuthoritySummaryCard
+                                label="Title"
+                                count={authoritySummary.SURVIVORSHIP_TITLE}
+                                icon={Landmark}
+                                color="text-slate-600"
+                                bgColor="bg-slate-50"
+                            />
+                            <AuthoritySummaryCard
+                                label="Hold"
+                                count={authoritySummary.LITIGATION_HOLD}
+                                icon={Lock}
+                                color="text-rose-900"
+                                bgColor="bg-rose-100"
+                            />
                         </div>
 
-                        <TabsContent value="inventory" className="space-y-6 mt-0 outline-none">
-                            {/* Authority Landscape Summary */}
-                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-                                <AuthoritySummaryCard
-                                    label="Court"
-                                    count={authoritySummary.COURT_REQUIRED}
-                                    icon={Scale}
-                                    color="text-rose-600"
-                                    bgColor="bg-rose-50"
-                                />
-                                <AuthoritySummaryCard
-                                    label="Trust"
-                                    count={authoritySummary.TRUSTEE_DIRECT}
-                                    icon={ShieldCheck}
-                                    color="text-emerald-600"
-                                    bgColor="bg-emerald-50"
-                                />
-                                <AuthoritySummaryCard
-                                    label="Affidavit"
-                                    count={authoritySummary.AFFIDAVIT_SMALL}
-                                    icon={FileText}
-                                    color="text-amber-600"
-                                    bgColor="bg-amber-50"
-                                />
-                                <AuthoritySummaryCard
-                                    label="Contract"
-                                    count={authoritySummary.BENEFICIARY_CONTRACT}
-                                    icon={Users}
-                                    color="text-indigo-600"
-                                    bgColor="bg-indigo-50"
-                                />
-                                <AuthoritySummaryCard
-                                    label="Title"
-                                    count={authoritySummary.SURVIVORSHIP_TITLE}
-                                    icon={Landmark}
-                                    color="text-slate-600"
-                                    bgColor="bg-slate-50"
-                                />
-                                <AuthoritySummaryCard
-                                    label="Hold"
-                                    count={authoritySummary.LITIGATION_HOLD}
-                                    icon={Lock}
-                                    color="text-rose-900"
-                                    bgColor="bg-rose-100"
+                        <div className="flex items-center gap-3">
+                            <div className="relative flex-1">
+                                <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                <Input
+                                    placeholder="Search assets..."
+                                    className="pl-10 h-10 bg-white border-slate-200 rounded-lg text-sm"
                                 />
                             </div>
+                            <select className="h-10 px-4 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-700 cursor-pointer hover:border-slate-300 transition-colors">
+                                <option value="">All Authority Tiers</option>
+                                <option value="COURT_REQUIRED">Court Required</option>
+                                <option value="TRUSTEE_DIRECT">Trustee Direct</option>
+                                <option value="AFFIDAVIT_SMALL">Small Estate Affidavit</option>
+                                <option value="BENEFICIARY_CONTRACT">Beneficiary Contract</option>
+                                <option value="SURVIVORSHIP_TITLE">Survivorship Title</option>
+                                <option value="LITIGATION_HOLD">Litigation Hold</option>
+                            </select>
+                            <select className="h-10 px-4 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-700 cursor-pointer hover:border-slate-300 transition-colors">
+                                <option value="">All Statuses</option>
+                                <option value="discovered">Discovered</option>
+                                <option value="notified">Notified</option>
+                                <option value="claimed">Claimed</option>
+                                <option value="collected">Collected</option>
+                                <option value="closed">Closed</option>
+                            </select>
+                        </div>
 
-                            <div className="flex items-center gap-3">
-                                <div className="relative flex-1">
-                                    <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                                    <Input
-                                        placeholder="Search assets..."
-                                        className="pl-10 h-10 bg-white border-slate-200 rounded-lg text-sm"
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                            <div className="lg:col-span-2 space-y-10">
+                                {isLoading ? (
+                                    [1, 2, 3].map(i => (
+                                        <div key={i} className="h-32 bg-white border border-slate-100 rounded-2xl animate-pulse" />
+                                    ))
+                                ) : assets.length === 0 ? (
+                                    <div className="py-32 border border-dashed border-slate-200 rounded-[40px] text-center bg-white/50 relative overflow-hidden">
+                                        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-slate-50/30" />
+                                        <div className="relative z-10">
+                                            <div className="w-20 h-20 bg-white border border-slate-100 rounded-[28px] shadow-sm flex items-center justify-center mx-auto mb-6 transform -rotate-3 hover:rotate-0 transition-transform duration-500">
+                                                <Landmark className="w-10 h-10 text-slate-300" />
+                                            </div>
+                                            <h3 className="text-xl font-black text-slate-900 tracking-tight">No assets identified yet</h3>
+                                            <p className="text-slate-400 text-sm mb-10 max-w-xs mx-auto font-medium">Start by adding your first financial account or property to the estate.</p>
+                                            <div className="flex items-center justify-center gap-4">
+                                                <Button
+                                                    onClick={() => navigate('/add-asset')}
+                                                    className="rounded-2xl font-black px-10 h-12 bg-indigo-600 hover:bg-indigo-700 text-white shadow-xl shadow-indigo-100 transition-all hover:scale-[1.02]"
+                                                >
+                                                    Add First Asset
+                                                </Button>
+                                                <Button
+                                                    variant="outline"
+                                                    onClick={() => setActiveTab("detective")}
+                                                    className="rounded-2xl font-black px-10 h-12 border-slate-200 text-slate-600 hover:bg-slate-100 transition-all"
+                                                >
+                                                    Run Detective Scan
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <>
+                                        {groupedAssets.PROBATE.length > 0 && (
+                                            <section className="space-y-6">
+                                                <div className="flex items-center justify-between pb-2 border-b border-slate-50">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="p-3 rounded-2xl bg-rose-600 text-white shadow-lg shadow-rose-100">
+                                                            <Scale className="w-5 h-5" />
+                                                        </div>
+                                                        <div>
+                                                            <h2 className="text-xl font-black text-slate-900 tracking-tight">Probate Estate</h2>
+                                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-0.5">Managed by Executor under Court Authority</p>
+                                                        </div>
+                                                    </div>
+                                                    <Badge variant="outline" className="rounded-xl border-rose-100 bg-rose-50 text-rose-600 font-black px-4 py-1.5 uppercase text-[10px] tracking-widest shadow-sm">
+                                                        {groupedAssets.PROBATE.length} Assets
+                                                    </Badge>
+                                                </div>
+                                                <div className="grid grid-cols-1 gap-4">
+                                                    {groupedAssets.PROBATE.map((asset, index) => (
+                                                        <AssetItem
+                                                            key={asset.id}
+                                                            asset={asset}
+                                                            index={index}
+                                                            isSelectionMode={isSelectionMode}
+                                                            selectedAssetIds={selectedAssetIds}
+                                                            handleAssetClick={handleAssetClick}
+                                                            handleSelectAsset={handleSelectAsset}
+                                                            normalize={normalize}
+                                                        />
+                                                    ))}
+                                                </div>
+                                            </section>
+                                        )}
+
+                                        {groupedAssets.NON_PROBATE.length > 0 && (
+                                            <section className="space-y-6">
+                                                <div className="flex items-center justify-between pb-2 border-b border-slate-50">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="p-3 rounded-2xl bg-emerald-500 text-white shadow-lg shadow-emerald-100">
+                                                            <ArrowRight className="w-5 h-5" />
+                                                        </div>
+                                                        <div>
+                                                            <h2 className="text-xl font-black text-slate-900 tracking-tight">Non-Probate Transfers</h2>
+                                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-0.5">Direct transfers to Beneficiaries or Trust</p>
+                                                        </div>
+                                                    </div>
+                                                    <Badge variant="outline" className="rounded-xl border-emerald-100 bg-emerald-50 text-emerald-600 font-black px-4 py-1.5 uppercase text-[10px] tracking-widest shadow-sm">
+                                                        {groupedAssets.NON_PROBATE.length} Assets
+                                                    </Badge>
+                                                </div>
+                                                <div className="grid grid-cols-1 gap-4">
+                                                    {groupedAssets.NON_PROBATE.map((asset, index) => (
+                                                        <AssetItem
+                                                            key={asset.id}
+                                                            asset={asset}
+                                                            index={index}
+                                                            isSelectionMode={isSelectionMode}
+                                                            selectedAssetIds={selectedAssetIds}
+                                                            handleAssetClick={handleAssetClick}
+                                                            handleSelectAsset={handleSelectAsset}
+                                                            normalize={normalize}
+                                                        />
+                                                    ))}
+                                                </div>
+                                            </section>
+                                        )}
+
+                                        {groupedAssets.UNKNOWN.length > 0 && (
+                                            <section className="space-y-4">
+                                                <div className="flex items-center gap-3 opacity-50">
+                                                    <div className="p-2 rounded-xl bg-slate-50 text-slate-500 border border-slate-100">
+                                                        <HelpCircle className="w-5 h-5" />
+                                                    </div>
+                                                    <h2 className="text-lg font-black text-slate-900">Unclassified Items</h2>
+                                                </div>
+                                                <div className="grid grid-cols-1 gap-4">
+                                                    {groupedAssets.UNKNOWN.map((asset, index) => (
+                                                        <AssetItem
+                                                            key={asset.id}
+                                                            asset={asset}
+                                                            index={index}
+                                                            isSelectionMode={isSelectionMode}
+                                                            selectedAssetIds={selectedAssetIds}
+                                                            handleAssetClick={handleAssetClick}
+                                                            handleSelectAsset={handleSelectAsset}
+                                                            normalize={normalize}
+                                                        />
+                                                    ))}
+                                                </div>
+                                            </section>
+                                        )}
+                                    </>
+                                )}
+                            </div>
+
+                            <div className="space-y-6">
+                                <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm sticky top-24">
+                                    <div className="flex items-center gap-3 mb-6">
+                                        <div className="p-2.5 rounded-xl bg-indigo-50 text-indigo-600">
+                                            <Sparkles className="w-5 h-5" />
+                                        </div>
+                                        <div>
+                                            <h3 className="font-bold text-base text-slate-900">Suggested Actions</h3>
+                                            <p className="text-[10px] font-medium text-slate-500 uppercase tracking-widest">AI Insights</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-3">
+                                        {allSuggestedActions.length === 0 ? (
+                                            <div className="text-center py-8 rounded-xl border border-dashed border-slate-200 bg-slate-50">
+                                                <p className="text-xs font-bold text-slate-400">No pending actions</p>
+                                            </div>
+                                        ) : (
+                                            allSuggestedActions.map((action, idx) => (
+                                                <div key={idx} className="group p-4 rounded-xl border border-slate-100 bg-white hover:border-indigo-200 hover:shadow-md transition-all cursor-pointer">
+                                                    <div className="flex gap-3">
+                                                        <div className={cn(
+                                                            "h-8 w-8 rounded-lg flex items-center justify-center shrink-0",
+                                                            action.priority === 'high' ? "bg-rose-50 text-rose-600" : "bg-slate-50 text-slate-600"
+                                                        )}>
+                                                            {action.icon === 'Mail' && <Mail className="w-4 h-4" />}
+                                                            {action.icon === 'Gavel' && <Gavel className="w-4 h-4" />}
+                                                            {action.icon === 'FileText' && <FileText className="w-4 h-4" />}
+                                                            {action.icon === 'ArrowRight' && <ArrowRight className="w-4 h-4" />}
+                                                            {action.icon === 'Users' && <Users className="w-4 h-4" />}
+                                                            {action.icon === 'ShieldCheck' && <ShieldCheck className="w-4 h-4" />}
+                                                        </div>
+                                                        <div className="space-y-1 flex-1 min-w-0">
+                                                            <h4 className="text-xs font-bold text-slate-900 group-hover:text-indigo-600 truncate">{action.title}</h4>
+                                                            <p className="text-[10px] font-medium text-slate-500 leading-relaxed line-clamp-2">
+                                                                {action.description}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))
+                                        )}
+                                    </div>
+
+                                    <div className="mt-6 pt-4 border-t border-slate-100">
+                                        <Button variant="ghost" className="w-full justify-start text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 h-9 px-2 text-xs font-bold" onClick={() => setActiveTab("detective")}>
+                                            <SearchIcon className="w-3.5 h-3.5 mr-2" />
+                                            Run Discovery Scan
+                                        </Button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </TabsContent>
+
+                    <TabsContent value="detective" className="mt-0 outline-none">
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                            <div className="lg:col-span-5 space-y-6">
+                                <div className="bg-white border-none rounded-[32px] p-8 shadow-sm relative overflow-hidden">
+                                    {/* Background Glow */}
+                                    <div className="absolute top-[-10%] right-[-10%] w-64 h-64 bg-indigo-500/5 blur-3xl rounded-full pointer-events-none" />
+
+                                    <div className="flex items-center gap-4 mb-8">
+                                        <div className="p-3 rounded-2xl bg-indigo-600 text-white shadow-lg shadow-indigo-100">
+                                            <FileSearch className="w-6 h-6" />
+                                        </div>
+                                        <div>
+                                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400 mb-0.5">Discovery Scan</p>
+                                            <h2 className="text-2xl font-black tracking-tight text-slate-900">Forensic Scan</h2>
+                                        </div>
+                                    </div>
+                                    <p className="text-slate-500 text-sm leading-relaxed mb-4">
+                                        Upload bank statements, tax returns, or insurance policies. AI will scan for hidden transfers or "Summary of Holdings" that point to other accounts.
+                                    </p>
+                                    <p className="text-[10px] text-slate-400 italic mb-8">
+                                        This tool assists with discovery. It does not guarantee that all assets will be identified.
+                                    </p>
+
+                                    <DocumentScanner
+                                        onScanStart={() => {
+                                            setIsScanning(true);
+                                            setClues([]);
+                                        }}
+                                        onScanComplete={handleScanComplete}
+                                        onScanError={() => setIsScanning(false)}
+                                        saveToVault={true}
+                                        documentType="DISCOVERY_LOG"
                                     />
-                                </div>
-                                <select className="h-10 px-4 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-700 cursor-pointer hover:border-slate-300 transition-colors">
-                                    <option value="">All Authority Tiers</option>
-                                    <option value="COURT_REQUIRED">Court Required</option>
-                                    <option value="TRUSTEE_DIRECT">Trustee Direct</option>
-                                    <option value="AFFIDAVIT_SMALL">Small Estate Affidavit</option>
-                                    <option value="BENEFICIARY_CONTRACT">Beneficiary Contract</option>
-                                    <option value="SURVIVORSHIP_TITLE">Survivorship Title</option>
-                                    <option value="LITIGATION_HOLD">Litigation Hold</option>
-                                </select>
-                                <select className="h-10 px-4 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-700 cursor-pointer hover:border-slate-300 transition-colors">
-                                    <option value="">All Statuses</option>
-                                    <option value="discovered">Discovered</option>
-                                    <option value="notified">Notified</option>
-                                    <option value="claimed">Claimed</option>
-                                    <option value="collected">Collected</option>
-                                    <option value="closed">Closed</option>
-                                </select>
-                            </div>
 
-                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                                <div className="lg:col-span-2 space-y-10">
-                                    {isLoading ? (
-                                        [1, 2, 3].map(i => (
-                                            <div key={i} className="h-32 bg-white border border-slate-100 rounded-2xl animate-pulse" />
-                                        ))
-                                    ) : assets.length === 0 ? (
-                                        <div className="py-32 border border-dashed border-slate-200 rounded-[40px] text-center bg-white/50 relative overflow-hidden">
-                                            <div className="absolute inset-0 bg-gradient-to-b from-transparent to-slate-50/30" />
-                                            <div className="relative z-10">
-                                                <div className="w-20 h-20 bg-white border border-slate-100 rounded-[28px] shadow-sm flex items-center justify-center mx-auto mb-6 transform -rotate-3 hover:rotate-0 transition-transform duration-500">
-                                                    <Landmark className="w-10 h-10 text-slate-300" />
-                                                </div>
-                                                <h3 className="text-xl font-black text-slate-900 tracking-tight">No assets identified yet</h3>
-                                                <p className="text-slate-400 text-sm mb-10 max-w-xs mx-auto font-medium">Start by adding your first financial account or property to the estate.</p>
-                                                <div className="flex items-center justify-center gap-4">
-                                                    <Button
-                                                        onClick={() => navigate('/add-asset')}
-                                                        className="rounded-2xl font-black px-10 h-12 bg-indigo-600 hover:bg-indigo-700 text-white shadow-xl shadow-indigo-100 transition-all hover:scale-[1.02]"
-                                                    >
-                                                        Add First Asset
-                                                    </Button>
-                                                    <Button
-                                                        variant="outline"
-                                                        onClick={() => setActiveTab("detective")}
-                                                        className="rounded-2xl font-black px-10 h-12 border-slate-200 text-slate-600 hover:bg-slate-100 transition-all"
-                                                    >
-                                                        Run Detective Scan
-                                                    </Button>
-                                                </div>
-                                            </div>
+                                    <div className="mt-8 pt-8 border-t border-slate-100">
+                                        <div className="flex items-center gap-2 text-primary mb-3">
+                                            <AlertCircle className="w-4 h-4" />
+                                            <h3 className="text-xs font-black uppercase tracking-widest italic">Detective's Tip</h3>
                                         </div>
-                                    ) : (
-                                        <>
-                                            {groupedAssets.PROBATE.length > 0 && (
-                                                <section className="space-y-6">
-                                                    <div className="flex items-center justify-between pb-2 border-b border-slate-50">
-                                                        <div className="flex items-center gap-4">
-                                                            <div className="p-3 rounded-2xl bg-rose-600 text-white shadow-lg shadow-rose-100">
-                                                                <Scale className="w-5 h-5" />
-                                                            </div>
-                                                            <div>
-                                                                <h2 className="text-xl font-black text-slate-900 tracking-tight">Probate Estate</h2>
-                                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-0.5">Managed by Executor under Court Authority</p>
-                                                            </div>
-                                                        </div>
-                                                        <Badge variant="outline" className="rounded-xl border-rose-100 bg-rose-50 text-rose-600 font-black px-4 py-1.5 uppercase text-[10px] tracking-widest shadow-sm">
-                                                            {groupedAssets.PROBATE.length} Assets
-                                                        </Badge>
-                                                    </div>
-                                                    <div className="grid grid-cols-1 gap-4">
-                                                        {groupedAssets.PROBATE.map((asset, index) => (
-                                                            <AssetItem
-                                                                key={asset.id}
-                                                                asset={asset}
-                                                                index={index}
-                                                                isSelectionMode={isSelectionMode}
-                                                                selectedAssetIds={selectedAssetIds}
-                                                                handleAssetClick={handleAssetClick}
-                                                                handleSelectAsset={handleSelectAsset}
-                                                                normalize={normalize}
-                                                            />
-                                                        ))}
-                                                    </div>
-                                                </section>
-                                            )}
-
-                                            {groupedAssets.NON_PROBATE.length > 0 && (
-                                                <section className="space-y-6">
-                                                    <div className="flex items-center justify-between pb-2 border-b border-slate-50">
-                                                        <div className="flex items-center gap-4">
-                                                            <div className="p-3 rounded-2xl bg-emerald-500 text-white shadow-lg shadow-emerald-100">
-                                                                <ArrowRight className="w-5 h-5" />
-                                                            </div>
-                                                            <div>
-                                                                <h2 className="text-xl font-black text-slate-900 tracking-tight">Non-Probate Transfers</h2>
-                                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-0.5">Direct transfers to Beneficiaries or Trust</p>
-                                                            </div>
-                                                        </div>
-                                                        <Badge variant="outline" className="rounded-xl border-emerald-100 bg-emerald-50 text-emerald-600 font-black px-4 py-1.5 uppercase text-[10px] tracking-widest shadow-sm">
-                                                            {groupedAssets.NON_PROBATE.length} Assets
-                                                        </Badge>
-                                                    </div>
-                                                    <div className="grid grid-cols-1 gap-4">
-                                                        {groupedAssets.NON_PROBATE.map((asset, index) => (
-                                                            <AssetItem
-                                                                key={asset.id}
-                                                                asset={asset}
-                                                                index={index}
-                                                                isSelectionMode={isSelectionMode}
-                                                                selectedAssetIds={selectedAssetIds}
-                                                                handleAssetClick={handleAssetClick}
-                                                                handleSelectAsset={handleSelectAsset}
-                                                                normalize={normalize}
-                                                            />
-                                                        ))}
-                                                    </div>
-                                                </section>
-                                            )}
-
-                                            {groupedAssets.UNKNOWN.length > 0 && (
-                                                <section className="space-y-4">
-                                                    <div className="flex items-center gap-3 opacity-50">
-                                                        <div className="p-2 rounded-xl bg-slate-50 text-slate-500 border border-slate-100">
-                                                            <HelpCircle className="w-5 h-5" />
-                                                        </div>
-                                                        <h2 className="text-lg font-black text-slate-900">Unclassified Items</h2>
-                                                    </div>
-                                                    <div className="grid grid-cols-1 gap-4">
-                                                        {groupedAssets.UNKNOWN.map((asset, index) => (
-                                                            <AssetItem
-                                                                key={asset.id}
-                                                                asset={asset}
-                                                                index={index}
-                                                                isSelectionMode={isSelectionMode}
-                                                                selectedAssetIds={selectedAssetIds}
-                                                                handleAssetClick={handleAssetClick}
-                                                                handleSelectAsset={handleSelectAsset}
-                                                                normalize={normalize}
-                                                            />
-                                                        ))}
-                                                    </div>
-                                                </section>
-                                            )}
-                                        </>
-                                    )}
-                                </div>
-
-                                <div className="space-y-6">
-                                    <div className="bg-white border-none rounded-[32px] p-8 shadow-sm relative overflow-hidden sticky top-24">
-                                        {/* Background Glow */}
-                                        <div className="absolute top-[-10%] right-[-10%] w-64 h-64 bg-indigo-500/5 blur-3xl rounded-full pointer-events-none" />
-
-                                        <div className="flex items-center gap-3 mb-8">
-                                            <div className="p-3 rounded-2xl bg-indigo-600 text-white shadow-lg shadow-indigo-200">
-                                                <Sparkles className="w-5 h-5" />
-                                            </div>
-                                            <div>
-                                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400 mb-0.5">AI Insights</p>
-                                                <h3 className="font-black text-lg tracking-tight text-slate-900">Suggested Actions</h3>
-                                            </div>
-                                        </div>
-
-                                        <div className="space-y-4 relative z-10">
-                                            {allSuggestedActions.length === 0 ? (
-                                                <div className="text-center py-10 bg-slate-50/50 rounded-3xl border border-dashed border-slate-100">
-                                                    <p className="text-xs font-black text-slate-300 uppercase tracking-widest">No pending guidance</p>
-                                                </div>
-                                            ) : (
-                                                allSuggestedActions.map((action, idx) => (
-                                                    <div key={idx} className="group p-5 rounded-2xl border border-slate-100 bg-white hover:border-indigo-100 hover:shadow-md transition-all cursor-pointer">
-                                                        <div className="flex gap-4">
-                                                            <div className={cn(
-                                                                "h-10 w-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm",
-                                                                action.priority === 'high' ? "bg-rose-50 text-rose-600 border border-rose-100" : "bg-slate-50 text-slate-600 border border-slate-100"
-                                                            )}>
-                                                                {action.icon === 'Mail' && <Mail className="w-4 h-4" />}
-                                                                {action.icon === 'Gavel' && <Gavel className="w-4 h-4" />}
-                                                                {action.icon === 'FileText' && <FileText className="w-4 h-4" />}
-                                                                {action.icon === 'ArrowRight' && <ArrowRight className="w-4 h-4" />}
-                                                                {action.icon === 'Users' && <Users className="w-4 h-4" />}
-                                                                {action.icon === 'ShieldCheck' && <ShieldCheck className="w-4 h-4" />}
-                                                            </div>
-                                                            <div className="space-y-1.5 flex-1 min-w-0">
-                                                                <h4 className="text-[11px] font-black text-slate-900 group-hover:text-indigo-600 transition-colors uppercase tracking-wider truncate">{action.title}</h4>
-                                                                <p className="text-[10px] font-bold text-slate-400 leading-relaxed tracking-wide">
-                                                                    {action.description}
-                                                                </p>
-                                                            </div>
-                                                        </div>
-                                                        {action.relatedAssets.length > 0 && (
-                                                            <div className="mt-4 flex flex-wrap gap-1.5 items-center">
-                                                                <span className="text-[8px] font-black text-slate-300 uppercase tracking-[0.15em] mr-1">Targets:</span>
-                                                                {action.relatedAssets.slice(0, 2).map((a: any) => (
-                                                                    <Badge key={a.id} variant="secondary" className="text-[9px] font-black bg-slate-50 border-slate-100 text-slate-500 px-2 py-0 uppercase tracking-tighter">
-                                                                        {a.institution}
-                                                                    </Badge>
-                                                                ))}
-                                                                {action.relatedAssets.length > 2 && (
-                                                                    <span className="text-[9px] font-black text-slate-400/60 ml-1">+{action.relatedAssets.length - 2}</span>
-                                                                )}
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                ))
-                                            )}
-                                        </div>
-
-                                        <div className="mt-8 pt-6 border-t border-slate-50 relative z-10">
-                                            <Button variant="outline" className="w-full rounded-2xl border-slate-200 font-black text-[11px] uppercase tracking-widest h-12 gap-2 hover:bg-slate-50 hover:text-indigo-600 transition-all" onClick={() => setActiveTab("detective")}>
-                                                <SearchIcon className="w-4 h-4" />
-                                                Discover Assets
-                                            </Button>
-                                        </div>
+                                        <p className="text-xs text-slate-400 leading-relaxed font-medium">
+                                            "Look for ACH transfers or wire instructions. Often, a single Checking statement reveals a hidden Brokerage account or a secondary Savings account."
+                                        </p>
                                     </div>
                                 </div>
                             </div>
-                        </TabsContent>
 
-                        <TabsContent value="detective" className="mt-0 outline-none">
-                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                                <div className="lg:col-span-5 space-y-6">
-                                    <div className="bg-white border-none rounded-[32px] p-8 shadow-sm relative overflow-hidden">
-                                        {/* Background Glow */}
-                                        <div className="absolute top-[-10%] right-[-10%] w-64 h-64 bg-indigo-500/5 blur-3xl rounded-full pointer-events-none" />
-
-                                        <div className="flex items-center gap-4 mb-8">
-                                            <div className="p-3 rounded-2xl bg-indigo-600 text-white shadow-lg shadow-indigo-100">
-                                                <FileSearch className="w-6 h-6" />
-                                            </div>
-                                            <div>
-                                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400 mb-0.5">Discovery Scan</p>
-                                                <h2 className="text-2xl font-black tracking-tight text-slate-900">Forensic Scan</h2>
-                                            </div>
+                            <div className="lg:col-span-7 space-y-6">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 rounded-xl bg-primary/10 text-primary">
+                                            <TrendingUp className="w-5 h-5" />
                                         </div>
-                                        <p className="text-slate-500 text-sm leading-relaxed mb-4">
-                                            Upload bank statements, tax returns, or insurance policies. AI will scan for hidden transfers or "Summary of Holdings" that point to other accounts.
-                                        </p>
-                                        <p className="text-[10px] text-slate-400 italic mb-8">
-                                            This tool assists with discovery. It does not guarantee that all assets will be identified.
-                                        </p>
-
-                                        <DocumentScanner
-                                            onScanStart={() => {
-                                                setIsScanning(true);
-                                                setClues([]);
-                                            }}
-                                            onScanComplete={handleScanComplete}
-                                            onScanError={() => setIsScanning(false)}
-                                            saveToVault={true}
-                                            documentType="DISCOVERY_LOG"
-                                        />
-
-                                        <div className="mt-8 pt-8 border-t border-slate-100">
-                                            <div className="flex items-center gap-2 text-primary mb-3">
-                                                <AlertCircle className="w-4 h-4" />
-                                                <h3 className="text-xs font-black uppercase tracking-widest italic">Detective's Tip</h3>
-                                            </div>
-                                            <p className="text-xs text-slate-400 leading-relaxed font-medium">
-                                                "Look for ACH transfers or wire instructions. Often, a single Checking statement reveals a hidden Brokerage account or a secondary Savings account."
-                                            </p>
-                                        </div>
+                                        <h2 className="text-xl font-black tracking-tight">Discovery Findings</h2>
                                     </div>
+                                    <Badge variant="secondary" className="bg-slate-100 text-slate-500 border-none font-bold px-3 py-1">
+                                        {clues.length} Potential Leads
+                                    </Badge>
                                 </div>
 
-                                <div className="lg:col-span-7 space-y-6">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-3">
-                                            <div className="p-2 rounded-xl bg-primary/10 text-primary">
-                                                <TrendingUp className="w-5 h-5" />
-                                            </div>
-                                            <h2 className="text-xl font-black tracking-tight">Discovery Findings</h2>
-                                        </div>
-                                        <Badge variant="secondary" className="bg-slate-100 text-slate-500 border-none font-bold px-3 py-1">
-                                            {clues.length} Potential Leads
-                                        </Badge>
-                                    </div>
-
-                                    <div className="space-y-4">
-                                        <AnimatePresence mode="popLayout">
-                                            {isScanning ? (
-                                                <motion.div
-                                                    initial={{ opacity: 0 }}
-                                                    animate={{ opacity: 1 }}
-                                                    className="flex flex-col items-center justify-center py-20 bg-primary/5 border-2 border-dashed border-primary/10 rounded-[32px] text-center"
-                                                >
-                                                    <div className="relative mb-6">
-                                                        <div className="w-20 h-20 border-4 border-blue-100 border-t-primary rounded-full animate-spin" />
-                                                        <div className="absolute inset-0 flex items-center justify-center">
-                                                            <SearchIcon className="w-8 h-8 text-primary animate-pulse" />
-                                                        </div>
+                                <div className="space-y-4">
+                                    <AnimatePresence mode="popLayout">
+                                        {isScanning ? (
+                                            <motion.div
+                                                initial={{ opacity: 0 }}
+                                                animate={{ opacity: 1 }}
+                                                className="flex flex-col items-center justify-center py-20 bg-primary/5 border-2 border-dashed border-primary/10 rounded-[32px] text-center"
+                                            >
+                                                <div className="relative mb-6">
+                                                    <div className="w-20 h-20 border-4 border-blue-100 border-t-primary rounded-full animate-spin" />
+                                                    <div className="absolute inset-0 flex items-center justify-center">
+                                                        <SearchIcon className="w-8 h-8 text-primary animate-pulse" />
                                                     </div>
-                                                    <h3 className="font-black text-xl text-primary-900">Detective is investigating...</h3>
-                                                    <p className="text-sm text-slate-400 max-w-xs mt-3 font-bold leading-relaxed">
-                                                        Running forensic scan on your document to find hidden clues and assets.
-                                                    </p>
-                                                </motion.div>
-                                            ) : clues.length === 0 ? (
+                                                </div>
+                                                <h3 className="font-black text-xl text-primary-900">Detective is investigating...</h3>
+                                                <p className="text-sm text-slate-400 max-w-xs mt-3 font-bold leading-relaxed">
+                                                    Running forensic scan on your document to find hidden clues and assets.
+                                                </p>
+                                            </motion.div>
+                                        ) : clues.length === 0 ? (
+                                            <motion.div
+                                                key="empty"
+                                                initial={{ opacity: 0 }}
+                                                animate={{ opacity: 1 }}
+                                                className="flex flex-col items-center justify-center py-24 bg-slate-50/50 border-2 border-dashed border-slate-200 rounded-[32px] text-center"
+                                            >
+                                                <div className="p-5 rounded-[20px] bg-slate-100 mb-6">
+                                                    <SearchIcon className="w-10 h-10 text-slate-300" />
+                                                </div>
+                                                <h3 className="font-black text-xl text-slate-900">No clues discovered yet</h3>
+                                                <p className="text-sm text-slate-400 max-w-xs mt-3 font-bold">
+                                                    Upload a document on the left to start the forensic investigation.
+                                                </p>
+                                            </motion.div>
+                                        ) : (
+                                            clues.map((clue) => (
                                                 <motion.div
-                                                    key="empty"
-                                                    initial={{ opacity: 0 }}
-                                                    animate={{ opacity: 1 }}
-                                                    className="flex flex-col items-center justify-center py-24 bg-slate-50/50 border-2 border-dashed border-slate-200 rounded-[32px] text-center"
+                                                    key={clue.id}
+                                                    layout
+                                                    initial={{ opacity: 0, scale: 0.95 }}
+                                                    animate={{ opacity: 1, scale: 1 }}
+                                                    exit={{ opacity: 0, scale: 0.95 }}
+                                                    className={cn(
+                                                        "relative overflow-hidden group border border-slate-200 rounded-3xl p-6 transition-all",
+                                                        clue.added ? "bg-slate-50 opacity-60" : "bg-white hover:border-primary/20 shadow-sm"
+                                                    )}
                                                 >
-                                                    <div className="p-5 rounded-[20px] bg-slate-100 mb-6">
-                                                        <SearchIcon className="w-10 h-10 text-slate-300" />
-                                                    </div>
-                                                    <h3 className="font-black text-xl text-slate-900">No clues discovered yet</h3>
-                                                    <p className="text-sm text-slate-400 max-w-xs mt-3 font-bold">
-                                                        Upload a document on the left to start the forensic investigation.
-                                                    </p>
-                                                </motion.div>
-                                            ) : (
-                                                clues.map((clue) => (
-                                                    <motion.div
-                                                        key={clue.id}
-                                                        layout
-                                                        initial={{ opacity: 0, scale: 0.95 }}
-                                                        animate={{ opacity: 1, scale: 1 }}
-                                                        exit={{ opacity: 0, scale: 0.95 }}
-                                                        className={cn(
-                                                            "relative overflow-hidden group border border-slate-200 rounded-3xl p-6 transition-all",
-                                                            clue.added ? "bg-slate-50 opacity-60" : "bg-white hover:border-primary/20 shadow-sm"
-                                                        )}
-                                                    >
-                                                        <div className="flex justify-between items-start gap-4">
-                                                            <div className="space-y-2 flex-1">
-                                                                <div className="flex items-center gap-3">
-                                                                    <h3 className="font-black text-lg text-slate-900">{clue.institution}</h3>
-                                                                    <Badge variant="secondary" className="text-[10px] py-0.5 px-2 uppercase font-black tracking-widest bg-primary/5 text-primary border-none">
-                                                                        {clue.type}
-                                                                    </Badge>
-                                                                </div>
-                                                                <p className="text-sm font-bold text-slate-600">
-                                                                    {clue.title}
-                                                                </p>
-                                                                <p className="text-sm text-slate-400 mt-3 leading-relaxed font-medium italic">
-                                                                    "{clue.message}"
-                                                                </p>
-                                                            </div>
-
-                                                            {!clue.added ? (
-                                                                <div className="flex flex-col gap-2">
-                                                                    <Button
-                                                                        size="sm"
-                                                                        className="rounded-xl font-black bg-slate-900 text-white hover:bg-slate-800 shadow-lg px-6"
-                                                                        onClick={() => handleClaimAsset(clue)}
-                                                                    >
-                                                                        <Plus className="w-4 h-4 mr-2" />
-                                                                        Claim
-                                                                    </Button>
-                                                                    <Button
-                                                                        size="sm"
-                                                                        variant="ghost"
-                                                                        className="rounded-xl font-bold text-slate-400 hover:text-rose-500 hover:bg-rose-50"
-                                                                        onClick={() => removeClue(clue.id)}
-                                                                    >
-                                                                        Dismiss
-                                                                    </Button>
-                                                                </div>
-                                                            ) : (
-                                                                <Badge variant="default" className="bg-emerald-500 hover:bg-emerald-500 gap-1.5 py-1.5 px-4 rounded-xl font-black text-[10px] uppercase">
-                                                                    <CheckCircle2 className="w-4 h-4" />
-                                                                    Added to Ledger
+                                                    <div className="flex justify-between items-start gap-4">
+                                                        <div className="space-y-2 flex-1">
+                                                            <div className="flex items-center gap-3">
+                                                                <h3 className="font-black text-lg text-slate-900">{clue.institution}</h3>
+                                                                <Badge variant="secondary" className="text-[10px] py-0.5 px-2 uppercase font-black tracking-widest bg-primary/5 text-primary border-none">
+                                                                    {clue.type}
                                                                 </Badge>
-                                                            )}
+                                                            </div>
+                                                            <p className="text-sm font-bold text-slate-600">
+                                                                {clue.title}
+                                                            </p>
+                                                            <p className="text-sm text-slate-400 mt-3 leading-relaxed font-medium italic">
+                                                                "{clue.message}"
+                                                            </p>
                                                         </div>
 
-                                                        {!clue.added && (
-                                                            <div className="mt-6 pt-6 border-t border-slate-50 flex items-center justify-between">
-                                                                <div className="flex items-center gap-3">
-                                                                    <div className="w-32 h-2 bg-slate-100 rounded-full overflow-hidden">
-                                                                        <motion.div
-                                                                            initial={{ width: 0 }}
-                                                                            animate={{ width: `${clue.confidence * 100}%` }}
-                                                                            className="h-full bg-primary shadow-[0_0_8px_rgba(37,99,235,0.5)]"
-                                                                        />
-                                                                    </div>
-                                                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                                                                        {Math.round(clue.confidence * 100)}% Confidence
-                                                                    </span>
-                                                                </div>
-                                                                <Button variant="link" size="sm" className="h-auto p-0 text-indigo-600 font-black text-xs hover:no-underline flex items-center gap-1 group/link">
-                                                                    View Analysis <ChevronRight className="w-4 h-4 transition-transform group-hover/link:translate-x-0.5" />
+                                                        {!clue.added ? (
+                                                            <div className="flex flex-col gap-2">
+                                                                <Button
+                                                                    size="sm"
+                                                                    className="rounded-xl font-black bg-slate-900 text-white hover:bg-slate-800 shadow-lg px-6"
+                                                                    onClick={() => handleClaimAsset(clue)}
+                                                                >
+                                                                    <Plus className="w-4 h-4 mr-2" />
+                                                                    Claim
+                                                                </Button>
+                                                                <Button
+                                                                    size="sm"
+                                                                    variant="ghost"
+                                                                    className="rounded-xl font-bold text-slate-400 hover:text-rose-500 hover:bg-rose-50"
+                                                                    onClick={() => removeClue(clue.id)}
+                                                                >
+                                                                    Dismiss
                                                                 </Button>
                                                             </div>
+                                                        ) : (
+                                                            <Badge variant="default" className="bg-emerald-500 hover:bg-emerald-500 gap-1.5 py-1.5 px-4 rounded-xl font-black text-[10px] uppercase">
+                                                                <CheckCircle2 className="w-4 h-4" />
+                                                                Added to Ledger
+                                                            </Badge>
                                                         )}
-                                                    </motion.div>
-                                                ))
-                                            )}
-                                        </AnimatePresence>
-                                    </div>
+                                                    </div>
+
+                                                    {!clue.added && (
+                                                        <div className="mt-6 pt-6 border-t border-slate-50 flex items-center justify-between">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="w-32 h-2 bg-slate-100 rounded-full overflow-hidden">
+                                                                    <motion.div
+                                                                        initial={{ width: 0 }}
+                                                                        animate={{ width: `${clue.confidence * 100}%` }}
+                                                                        className="h-full bg-primary shadow-[0_0_8px_rgba(37,99,235,0.5)]"
+                                                                    />
+                                                                </div>
+                                                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                                                    {Math.round(clue.confidence * 100)}% Confidence
+                                                                </span>
+                                                            </div>
+                                                            <Button variant="link" size="sm" className="h-auto p-0 text-indigo-600 font-black text-xs hover:no-underline flex items-center gap-1 group/link">
+                                                                View Analysis <ChevronRight className="w-4 h-4 transition-transform group-hover/link:translate-x-0.5" />
+                                                            </Button>
+                                                        </div>
+                                                    )}
+                                                </motion.div>
+                                            ))
+                                        )}
+                                    </AnimatePresence>
                                 </div>
                             </div>
-                        </TabsContent>
-                    </Tabs>
-                </main>
-            </div>
+                        </div>
+                    </TabsContent>
+                </Tabs>
+            </DashboardLayout>
 
             {/* Batch Action Bar */}
             <AnimatePresence>
@@ -897,7 +876,7 @@ export default function Assets() {
                     </motion.div>
                 )}
             </AnimatePresence>
-        </div>
+        </>
     );
 }
 
@@ -905,29 +884,22 @@ export default function Assets() {
 function AuthoritySummaryCard({ label, count, icon: Icon, color, bgColor }: any) {
     return (
         <div className={cn(
-            "p-6 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col gap-4 bg-white hover:border-indigo-100 hover:shadow-md hover:scale-[1.03] transition-all duration-300 group cursor-default relative overflow-hidden",
-            count > 0 && "border-white"
+            "p-5 rounded-2xl border border-slate-200 bg-white shadow-sm flex flex-col gap-3 transition-all duration-300 group cursor-default hover:shadow-md hover:border-indigo-100",
+            count > 0 ? "opacity-100" : "opacity-70"
         )}>
-            {/* Ambient Background */}
-            <div className={cn("absolute inset-0 opacity-[0.03] transition-opacity group-hover:opacity-[0.05]", bgColor)} />
-
-            <div className="flex items-center justify-between relative z-10">
+            <div className="flex items-center justify-between">
                 <div className={cn(
-                    "p-3 rounded-2xl transition-all duration-500 border shadow-sm group-hover:rotate-6",
-                    bgColor, color,
-                    count > 0 ? "border-current/10" : "border-slate-50 opacity-40 shadow-none grayscale"
+                    "p-2.5 rounded-xl transition-all duration-300",
+                    count > 0 ? cn(bgColor, color) : "bg-slate-50 text-slate-400"
                 )}>
                     <Icon className="w-5 h-5 stroke-[2.5]" />
                 </div>
                 <span className={cn(
-                    "text-2xl font-['Outfit'] font-black leading-none tracking-tighter transition-all",
-                    count > 0 ? "text-slate-900 group-hover:text-indigo-600 scale-110" : "text-slate-200"
+                    "text-2xl font-['Outfit'] font-bold tracking-tight transition-colors",
+                    count > 0 ? "text-slate-900" : "text-slate-300"
                 )}>{count}</span>
             </div>
-            <p className={cn(
-                "text-[10px] font-black uppercase tracking-[0.25em] transition-colors relative z-10",
-                count > 0 ? "text-slate-400 group-hover:text-slate-600" : "text-slate-300"
-            )}>{label}</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">{label}</p>
         </div>
     );
 }
