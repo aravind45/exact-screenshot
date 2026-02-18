@@ -110,6 +110,13 @@ export default function Assets() {
     const [clues, setClues] = useState<any[]>([]);
     const [isScanning, setIsScanning] = useState(false);
 
+    const { data: estate } = useQuery({
+        queryKey: ["estate"],
+        queryFn: api.getMyEstate,
+    });
+
+    const isViewer = (estate as any)?.userRole === 'VIEWER';
+
     const { data: assetsData, isLoading, error } = useQuery({
         queryKey: ['assets'],
         queryFn: api.getAssets,
@@ -348,13 +355,15 @@ export default function Assets() {
                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Verified Financial Records</p>
                         </div>
                     </div>
-                    <Button
-                        onClick={() => navigate('/add-asset')}
-                        className="rounded-2xl font-black gap-2 h-12 px-8 bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-200 transition-all hover:scale-[1.02] active:scale-95 group"
-                    >
-                        <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" />
-                        Add New Asset
-                    </Button>
+                    {!isViewer && (
+                        <Button
+                            onClick={() => navigate('/add-asset')}
+                            className="rounded-2xl font-black gap-2 h-12 px-8 bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-200 transition-all hover:scale-[1.02] active:scale-95 group"
+                        >
+                            <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" />
+                            Add New Asset
+                        </Button>
+                    )}
                 </header>
 
                 <main className="max-w-[1200px] w-full mx-auto px-8 py-10">

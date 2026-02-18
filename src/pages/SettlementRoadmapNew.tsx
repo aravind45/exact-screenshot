@@ -21,6 +21,8 @@ export default function SettlementRoadmapNew() {
     queryFn: api.getMyEstate
   });
 
+  const isViewer = (estate as any)?.userRole === 'VIEWER';
+
   const roadmapMutation = useMutation({
     mutationFn: api.updateRoadmap,
     onSuccess: () => {
@@ -112,7 +114,7 @@ export default function SettlementRoadmapNew() {
         <main className="max-w-[1280px] w-full mx-auto px-10 py-10 space-y-8">
 
           {/* Authority Support Banner */}
-          {showAuthorityBanner && (
+          {showAuthorityBanner && !isViewer && (
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex items-start gap-5 relative overflow-hidden group">
               <div className="absolute top-0 left-0 w-1.5 h-full bg-indigo-500" />
               <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center flex-shrink-0">
@@ -158,7 +160,10 @@ export default function SettlementRoadmapNew() {
           </div>
 
           {/* Collapsible Chevron (Task List) */}
-          <CollapsiblePhaseChevron onTaskToggle={handleTaskToggle} />
+          <CollapsiblePhaseChevron
+            onTaskToggle={handleTaskToggle}
+            isViewer={isViewer}
+          />
         </main>
       </div>
     </div>

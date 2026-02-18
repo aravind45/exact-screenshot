@@ -35,6 +35,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 
 interface CollapsiblePhaseChevronProps {
   onTaskToggle: (taskId: string, completed: boolean, taskTitle: string, phaseName: string) => void;
+  isViewer?: boolean;
 }
 
 const PHASE_COLORS: Record<string, {
@@ -102,7 +103,7 @@ const PHASE_COLORS: Record<string, {
   }
 };
 
-export function CollapsiblePhaseChevron({ onTaskToggle }: CollapsiblePhaseChevronProps) {
+export function CollapsiblePhaseChevron({ onTaskToggle, isViewer }: CollapsiblePhaseChevronProps) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const {
@@ -407,7 +408,7 @@ export function CollapsiblePhaseChevron({ onTaskToggle }: CollapsiblePhaseChevro
                           {/* Round Checkbox (Custom Style) */}
                           <div className="mt-1">
                             <button
-                              onClick={() => !isLockedByDependency && onTaskToggle(task.id, !isTaskCompleted, task.title, phaseData.title)}
+                              onClick={() => !isLockedByDependency && !isViewer && onTaskToggle(task.id, !isTaskCompleted, task.title, phaseData.title)}
                               className={cn(
                                 "w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all",
                                 isTaskCompleted
@@ -415,9 +416,9 @@ export function CollapsiblePhaseChevron({ onTaskToggle }: CollapsiblePhaseChevro
                                   : isNext
                                     ? "bg-white border-indigo-500 hover:bg-indigo-50"
                                     : "bg-white border-slate-300 hover:border-indigo-400",
-                                isLockedByDependency && "border-slate-200 cursor-not-allowed"
+                                (isLockedByDependency || isViewer) && "border-slate-200 cursor-not-allowed"
                               )}
-                              disabled={isLockedByDependency}
+                              disabled={isLockedByDependency || isViewer}
                             >
                               {isTaskCompleted && <CheckCircle className="w-3.5 h-3.5 text-white" />}
                             </button>
@@ -482,20 +483,24 @@ export function CollapsiblePhaseChevron({ onTaskToggle }: CollapsiblePhaseChevro
                                         >
                                           <Eye className="w-3.5 h-3.5" />
                                         </Button>
-                                        <Button
-                                          variant="ghost"
-                                          size="sm"
-                                          className="h-7 w-7 p-0 text-slate-400 hover:text-red-600 hover:bg-red-50"
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            deleteMutation.mutate(uploaded.id);
-                                          }}
-                                        >
-                                          <Trash2 className="w-3.5 h-3.5" />
-                                        </Button>
+                                        {!isViewer && (
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="h-7 w-7 p-0 text-slate-400 hover:text-red-600 hover:bg-red-50"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              deleteMutation.mutate(uploaded.id);
+                                            }}
+                                          >
+                                            <Trash2 className="w-3.5 h-3.5" />
+                                          </Button>
+                                        )}
                                       </div>
                                     </div>
                                   );
+
+                                  if (isViewer) return null;
 
                                   return (
                                     <div key={idx} className="relative">
@@ -554,17 +559,19 @@ export function CollapsiblePhaseChevron({ onTaskToggle }: CollapsiblePhaseChevro
                                         >
                                           <Eye className="w-3 h-3" />
                                         </Button>
-                                        <Button
-                                          variant="ghost"
-                                          size="sm"
-                                          className="h-5 w-5 p-0 text-slate-400 hover:text-red-600"
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            deleteMutation.mutate(uploaded.id);
-                                          }}
-                                        >
-                                          <Trash2 className="w-3 h-3" />
-                                        </Button>
+                                        {!isViewer && (
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="h-5 w-5 p-0 text-slate-400 hover:text-red-600"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              deleteMutation.mutate(uploaded.id);
+                                            }}
+                                          >
+                                            <Trash2 className="w-3 h-3" />
+                                          </Button>
+                                        )}
                                       </div>
                                     </div>
                                   );
@@ -618,14 +625,16 @@ export function CollapsiblePhaseChevron({ onTaskToggle }: CollapsiblePhaseChevro
                                   >
                                     <Eye className="w-3.5 h-3.5" />
                                   </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-7 w-7 p-0 text-slate-400 hover:text-red-600 hover:bg-red-50"
-                                    onClick={() => deleteMutation.mutate(doc.id)}
-                                  >
-                                    <Trash2 className="w-3.5 h-3.5" />
-                                  </Button>
+                                  {!isViewer && (
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-7 w-7 p-0 text-slate-400 hover:text-red-600 hover:bg-red-50"
+                                      onClick={() => deleteMutation.mutate(doc.id)}
+                                    >
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                    </Button>
+                                  )}
                                 </div>
                               </div>
                             ))}
@@ -634,24 +643,26 @@ export function CollapsiblePhaseChevron({ onTaskToggle }: CollapsiblePhaseChevro
                       )}
 
                     {/* Phase Footer Action (Upload Miscellaneous) */}
-                    <div className="p-3 bg-slate-50/50 flex justify-center border-t border-slate-100">
-                      <div className="relative">
-                        <Button variant="ghost" size="sm" className="text-[10px] font-bold text-slate-500 uppercase tracking-widest gap-2 hover:text-primary transition-colors h-7">
-                          <FileUp className="w-3.5 h-3.5" /> Upload Miscellaneous
-                        </Button>
-                        <input
-                          type="file"
-                          className="absolute inset-0 opacity-0 cursor-pointer"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) {
-                              const name = window.prompt("Enter a name for this document:");
-                              if (name) handleDocumentUpload("OTHER", name, file);
-                            }
-                          }}
-                        />
+                    {!isViewer && (
+                      <div className="p-3 bg-slate-50/50 flex justify-center border-t border-slate-100">
+                        <div className="relative">
+                          <Button variant="ghost" size="sm" className="text-[10px] font-bold text-slate-500 uppercase tracking-widest gap-2 hover:text-primary transition-colors h-7">
+                            <FileUp className="w-3.5 h-3.5" /> Upload Miscellaneous
+                          </Button>
+                          <input
+                            type="file"
+                            className="absolute inset-0 opacity-0 cursor-pointer"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                const name = window.prompt("Enter a name for this document:");
+                                if (name) handleDocumentUpload("OTHER", name, file);
+                              }
+                            }}
+                          />
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 </motion.div>
               )}

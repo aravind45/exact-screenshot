@@ -358,14 +358,49 @@ export default function OnboardingWizard() {
                                             </button>
                                         </div>
 
-                                        <Button
-                                            size="lg"
-                                            onClick={() => setCurrentStep(1)}
-                                            disabled={!role}
-                                            className="w-full rounded-2xl h-14 text-lg font-bold mt-8 shadow-lg shadow-primary/20"
-                                        >
-                                            Next Step <ArrowRight className="ml-2 w-5 h-5" />
-                                        </Button>
+                                        <AnimatePresence>
+                                            {role === "heir" ? (
+                                                <motion.div
+                                                    initial={{ opacity: 0, height: 0 }}
+                                                    animate={{ opacity: 1, height: "auto" }}
+                                                    exit={{ opacity: 0, height: 0 }}
+                                                    className="p-6 rounded-2xl bg-indigo-50 border border-indigo-100 text-left space-y-3 mt-6"
+                                                >
+                                                    <div className="flex items-center gap-2 text-indigo-900 font-bold">
+                                                        <Info className="w-5 h-5" />
+                                                        Invitation Required
+                                                    </div>
+                                                    <p className="text-sm text-indigo-800 leading-relaxed">
+                                                        Heirs and beneficiaries join existing estates via a secure invitation link sent by the Executor.
+                                                        Initiating a new estate is reserved for Executors and legal representatives.
+                                                    </p>
+                                                    <div className="pt-2">
+                                                        <p className="text-xs font-bold text-indigo-900 uppercase tracking-wider mb-2">What to do next:</p>
+                                                        <ul className="text-xs text-indigo-700 space-y-1.5 list-disc pl-4">
+                                                            <li>Check your email for an invitation from the Executor.</li>
+                                                            <li>If you haven't received one, ask the Executor to invite you from their ExpectedEstate dashboard.</li>
+                                                            <li>Once you receive the link, simply click it to gain viewing access.</li>
+                                                        </ul>
+                                                    </div>
+                                                    <Button
+                                                        variant="outline"
+                                                        className="w-full mt-4 border-indigo-200 text-indigo-700 hover:bg-indigo-100 font-bold"
+                                                        onClick={() => navigate("/")}
+                                                    >
+                                                        Return Home
+                                                    </Button>
+                                                </motion.div>
+                                            ) : (
+                                                <Button
+                                                    size="lg"
+                                                    onClick={() => setCurrentStep(1)}
+                                                    disabled={!role}
+                                                    className="w-full rounded-2xl h-14 text-lg font-bold mt-8 shadow-lg shadow-primary/20"
+                                                >
+                                                    Next Step <ArrowRight className="ml-2 w-5 h-5" />
+                                                </Button>
+                                            )}
+                                        </AnimatePresence>
                                     </div>
                                 )}
 

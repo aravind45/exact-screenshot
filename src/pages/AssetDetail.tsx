@@ -227,6 +227,8 @@ export default function AssetDetail() {
     enabled: !!estate
   });
 
+  const isViewer = (estate as any)?.userRole === 'VIEWER';
+
   const { data: assets = [] } = useQuery({
     queryKey: ['assets'],
     queryFn: api.getAssets,
@@ -517,13 +519,17 @@ export default function AssetDetail() {
               </div>
 
               <div className="flex items-center gap-3">
-                <Button variant="outline" className="rounded-xl font-bold border-slate-200" onClick={() => setIsEditing(true)}>
-                  <Pencil className="w-4 h-4 mr-2" />
-                  Edit
-                </Button>
-                <Button className="bg-[#5C7491] hover:bg-[#4A5E75] text-white rounded-xl font-bold px-6 shadow-lg shadow-slate-100">
-                  Review
-                </Button>
+                {!isViewer && (
+                  <>
+                    <Button variant="outline" className="rounded-xl font-bold border-slate-200" onClick={() => setIsEditing(true)}>
+                      <Pencil className="w-4 h-4 mr-2" />
+                      Edit
+                    </Button>
+                    <Button className="bg-[#5C7491] hover:bg-[#4A5E75] text-white rounded-xl font-bold px-6 shadow-lg shadow-slate-100">
+                      Review
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
           </div>

@@ -16,6 +16,13 @@ export default function Liabilities() {
     const navigate = useNavigate();
     const [showAddDialog, setShowAddDialog] = useState(false);
 
+    const { data: estate } = useQuery({
+        queryKey: ["estate"],
+        queryFn: api.getMyEstate,
+    });
+
+    const isViewer = (estate as any)?.userRole === 'VIEWER';
+
     const { data: stats } = useQuery({
         queryKey: ["liabilityStations"],
         queryFn: api.getLiabilityStats
@@ -55,9 +62,11 @@ export default function Liabilities() {
                                 <h1 className="text-3xl font-black text-slate-900 tracking-tight">Liabilities & Creditors</h1>
                                 <p className="text-slate-500 mt-1">Track estate debts, manage creditor claims, and record payments.</p>
                             </div>
-                            <Button onClick={() => setShowAddDialog(true)} className="bg-indigo-600 text-white font-bold shadow-lg shadow-indigo-200 hover:bg-indigo-700">
-                                <Plus className="w-5 h-5 mr-2" /> Add Liability
-                            </Button>
+                            {!isViewer && (
+                                <Button onClick={() => setShowAddDialog(true)} className="bg-indigo-600 text-white font-bold shadow-lg shadow-indigo-200 hover:bg-indigo-700">
+                                    <Plus className="w-5 h-5 mr-2" /> Add Liability
+                                </Button>
+                            )}
                         </div>
                     </div>
 

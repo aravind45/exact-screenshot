@@ -65,6 +65,9 @@ export function Sidebar() {
 
     const isActive = (path: string) => location.pathname === path;
 
+    const userRole = (estate as any)?.userRole;
+    const isViewer = userRole === 'VIEWER';
+
     const NAV_CATEGORIES: { title: string; items: NavItem[] }[] = [
         {
             title: "Navigation",
@@ -80,14 +83,14 @@ export function Sidebar() {
                 { label: "Liabilities", icon: AlertCircle, path: "/liabilities" },
                 { label: "Accounting", icon: Calculator, path: "/accounting" },
                 { label: "Final Distribution", icon: CheckCircle2, path: "/distribution" },
-                { label: "Official Forms", icon: ScrollText, path: "/forms" },
-                ...(estate?.id ? [{ label: "AI Assistants", icon: Zap, path: `/estates/${estate.id}/agents` }] : []),
+                ...(!isViewer ? [{ label: "Official Forms", icon: ScrollText, path: "/forms" }] : []),
+                ...(estate?.id && !isViewer ? [{ label: "AI Assistants", icon: Zap, path: `/estates/${estate.id}/agents` }] : []),
             ]
         },
         {
             title: "Records",
             items: [
-                { label: "Discovery Assistant", icon: Search, path: "/discovery" },
+                ...(!isViewer ? [{ label: "Discovery Assistant", icon: Search, path: "/discovery" }] : []),
                 { label: "Document Vault", icon: Inbox, path: "/documents" },
                 { label: "Settlement Trail", icon: History, path: "/settlement-trail" },
                 { label: "Follow-Ups", icon: Bell, path: "/follow-ups" },
@@ -107,7 +110,7 @@ export function Sidebar() {
                 ),
             ]
         },
-        {
+        ...(!isViewer ? [{
             title: "Support",
             items: [
                 { label: "Help Center", icon: HelpCircle, path: "/help" },
@@ -121,13 +124,13 @@ export function Sidebar() {
                 },
                 { label: "Settings", icon: Settings, path: "/settings" },
             ]
-        },
+        }] : []),
         {
             title: "System",
             items: [
                 { label: "Profile", icon: User, path: "/profile" },
                 ...(isAdmin ? [{ label: "Admin Console", icon: ShieldCheck, path: "/admin" }] : []),
-                { label: "Billing & Plans", icon: Zap, path: "/pricing" },
+                ...(!isViewer ? [{ label: "Billing & Plans", icon: Zap, path: "/pricing" }] : []),
             ]
         }
     ];

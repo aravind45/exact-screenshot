@@ -112,6 +112,13 @@ export default function Dashboard() {
       return;
     }
 
+    // HEIRS (VIEWERS) should never be sent to the onboarding wizard
+    const isHeir = (estate as any)?.userRole === 'VIEWER';
+    if (isHeir) {
+      console.log("User is an Heir (Viewer), skipping onboarding check.");
+      return;
+    }
+
     if (estate && !isProfileComplete(estate)) {
       console.log("Estate profile incomplete, redirecting to onboarding...");
       navigate('/onboarding');
