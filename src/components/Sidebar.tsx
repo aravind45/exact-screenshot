@@ -73,7 +73,7 @@ export function Sidebar() {
             title: "Navigation",
             items: [
                 { label: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
-                { label: "Master Plan", icon: Map, path: "/roadmap" },
+            { label: "Action Plan", icon: Map, path: "/roadmap" },
             ]
         },
         {
@@ -192,7 +192,7 @@ export function Sidebar() {
                                         {active && (
                                             <div className="w-1 h-4 bg-indigo-600 rounded-full" />
                                         )}
-                                        {item.label === "Master Plan" && item.path && !isActive(item.path) && (
+                                        {item.label === "Action Plan" && item.path && !isActive(item.path) && (
                                             <div className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
                                         )}
                                     </div>

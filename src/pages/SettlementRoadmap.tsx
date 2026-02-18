@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Sidebar } from "@/components/Sidebar";
+import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { SettlementPhaseChevron } from "@/components/SettlementPhaseChevron";
 import { PhaseTaskList } from "@/components/PhaseTaskList";
 import { SETTLEMENT_PHASE_TASKS, type SettlementPhase } from "@/config/settlementPhases";
@@ -141,17 +141,27 @@ export default function SettlementRoadmap() {
     : 0;
 
   return (
-    <div className="flex min-h-screen bg-[#F8FAFC]">
-      <Sidebar />
+    <DashboardLayout maxWidth="max-w-[1240px]">
 
-      <div className="flex-1 ml-64 flex flex-col">
-        <main className="max-w-[1240px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-10 space-y-8">
+          {/* ── Bridge Banner: connects Dashboard actions to this page ── */}
+          <div className="flex items-start gap-3 p-4 bg-indigo-50/70 border border-indigo-100 rounded-2xl">
+            <span className="text-lg leading-none flex-shrink-0 mt-0.5">🗺️</span>
+            <div>
+              <p className="text-xs font-black text-indigo-900 mb-0.5">This is your complete Action Plan</p>
+              <p className="text-[11px] text-indigo-700 leading-relaxed font-medium">
+                Your <strong>Dashboard</strong> shows the single most urgent task to do right now.
+                This page shows <strong>all 6 phases and every task</strong> — the same plan, fully expanded.
+                Complete tasks here and your dashboard updates automatically.
+              </p>
+            </div>
+          </div>
+
           {/* Header */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
-                  <h1 className="text-2xl font-black text-slate-900 tracking-tight">Master Plan</h1>
+                  <h1 className="text-2xl font-black text-slate-900 tracking-tight">Action Plan</h1>
                   <Badge variant="outline" className="bg-indigo-600 text-white border-none text-[8px] font-black uppercase tracking-tighter px-1.5 h-4">
                     Derived from Ledger
                   </Badge>
@@ -261,7 +271,7 @@ export default function SettlementRoadmap() {
                       )}
                     </div>
                     <p className="text-lg font-bold leading-tight">
-                      {isContested ? "Litigation Hold detected on assets. Your Master Plan has been updated to the SPECIAL (Contested) overlay." : authorityRec.reason}
+                      {isContested ? "Litigation Hold detected on assets. Your Action Plan has been updated to the SPECIAL (Contested) overlay." : authorityRec.reason}
                     </p>
                     <div className="flex flex-wrap gap-2 mt-4">
                       <div className="flex items-center gap-1.5 px-2 py-1 bg-white/10 rounded border border-white/20">
@@ -518,8 +528,6 @@ export default function SettlementRoadmap() {
               })}
             </div>
           </div>
-        </main>
-      </div >
-    </div >
+    </DashboardLayout>
   );
 }

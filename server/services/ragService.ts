@@ -48,49 +48,78 @@ export class RAGService {
         try {
             const start = Date.now();
 
-            // 1. Parallel Search Execution Setup
-            const tasks: Promise<any>[] = [];
+            // 1. Run BM25 and vector searches independently — failure in one must not kill the other
+            let lexicalRows: any[] = [];
+            let denseRows: any[] = [];
 
-            // Lexical Search (BM25 via tsvector) - Always enabled
-            tasks.push(prisma.$queryRawUnsafe(`
-                SELECT 
-                    c.id,
-                    c.text as content,
-                    d."sourceUri" as source,
-                    d.title,
-                    ts_rank_cd(c.tsv, q) as score
-                FROM "rag_chunks" c,
-                     websearch_to_tsquery('english', $1) q
-                JOIN "rag_documents" d ON d.id = c.document_id
-                WHERE c.tsv @@ q
-                ORDER BY score DESC
-                LIMIT $2
-            `, query, limit));
-
-            // Dense Search (Vector Similarity) - Conditional
-            if (embeddings) {
-                const queryVector = await embeddings.embedQuery(query);
-                const vectorSql = `[${queryVector.join(',')}]`;
-
-                tasks.push(prisma.$queryRawUnsafe(`
-                    SELECT 
+            // ── Lexical Search (BM25 via tsvector) ──────────────────────────────
+            // FIX: expand websearch_to_tsquery() inline instead of using
+            // "FROM table, function() alias JOIN table" which PostgreSQL parses
+            // incorrectly (JOIN binds tighter than comma, causing a syntax error).
+            try {
+                lexicalRows = await prisma.$queryRawUnsafe(`
+                    SELECT
                         c.id,
-                        c.text as content,
-                        d."sourceUri" as source,
+                        c.text         AS content,
+                        d."sourceUri"  AS source,
                         d.title,
-                        1 - (ce.embedding <=> $1::vector) as score
-                    FROM "rag_chunk_embeddings" ce
-                    JOIN "rag_chunks" c ON c.id = ce.chunk_id
+                        ts_rank_cd(c.tsv, websearch_to_tsquery('english', $1)) AS score
+                    FROM "rag_chunks"   c
                     JOIN "rag_documents" d ON d.id = c.document_id
-                    WHERE ce.vector_type = 'content'
+                    WHERE c.tsv @@ websearch_to_tsquery('english', $1)
                     ORDER BY score DESC
                     LIMIT $2
-                `, vectorSql, limit));
+                `, query, limit) as any[];
+            } catch (lexErr) {
+                logger.warn("BM25 lexical search failed (non-fatal):", lexErr);
             }
 
-            const results = await Promise.all(tasks);
-            const lexicalRows = results[0] as any[];
-            const denseRows = results[1] ? (results[1] as any[]) : [];
+            // ── Dense Vector Search ──────────────────────────────────────────────
+            if (embeddings) {
+                try {
+                    const queryVector = await embeddings.embedQuery(query);
+                    const vectorSql = `[${queryVector.join(',')}]`;
+
+                    denseRows = await prisma.$queryRawUnsafe(`
+                        SELECT
+                            c.id,
+                            c.text         AS content,
+                            d."sourceUri"  AS source,
+                            d.title,
+                            1 - (ce.embedding <=> $1::vector) AS score
+                        FROM "rag_chunk_embeddings" ce
+                        JOIN "rag_chunks"   c ON c.id  = ce.chunk_id
+                        JOIN "rag_documents" d ON d.id = c.document_id
+                        WHERE ce.vector_type = 'content'
+                        ORDER BY score DESC
+                        LIMIT $2
+                    `, vectorSql, limit) as any[];
+                } catch (vecErr) {
+                    logger.warn("Vector search failed (non-fatal):", vecErr);
+                }
+            }
+
+            // ── Fallback: plain ILIKE text search if both above return nothing ───
+            if (lexicalRows.length === 0 && denseRows.length === 0) {
+                logger.warn("Both BM25 and vector returned 0 results — falling back to ILIKE");
+                try {
+                    lexicalRows = await prisma.$queryRawUnsafe(`
+                        SELECT
+                            c.id,
+                            c.text         AS content,
+                            d."sourceUri"  AS source,
+                            d.title,
+                            1.0            AS score
+                        FROM "rag_chunks"   c
+                        JOIN "rag_documents" d ON d.id = c.document_id
+                        WHERE c.text ILIKE $1
+                        ORDER BY c."created_at" DESC
+                        LIMIT $2
+                    `, `%${query.split(' ').slice(0, 3).join('%')}%`, limit) as any[];
+                } catch (ilikeErr) {
+                    logger.warn("ILIKE fallback also failed:", ilikeErr);
+                }
+            }
 
             // 2. Reciprocal Rank Fusion (RRF)
             const fusedIds = this.rrfFuse(

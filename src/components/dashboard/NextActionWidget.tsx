@@ -53,6 +53,44 @@ const PHASE_LABELS: Record<string, string> = {
   final_distribution: "Final Distribution",
 };
 
+// Plain-English "Why this matters" context — derived from phase, not hardcoded per task
+const PHASE_CONTEXT: Record<string, {
+  whyItMatters: string;    // one sentence for new users
+  afterThis: string;       // what phase comes next
+  phaseNum: number;
+}> = {
+  immediate_actions: {
+    whyItMatters: "The first 14 days set everything up. Failing to act quickly can let assets get lost or creditors complicate things.",
+    afterThis: "Once secured, you'll petition the court for legal authority to access accounts.",
+    phaseNum: 1,
+  },
+  court_filing: {
+    whyItMatters: "Without a court order, no bank or brokerage will let you touch the estate's accounts — even if you're the executor named in the Will.",
+    afterThis: "Once you have court authority (Letters), you can officially inventory all assets.",
+    phaseNum: 2,
+  },
+  asset_discovery: {
+    whyItMatters: "You're legally required to find and report every asset the estate owns. Missing accounts can cause delays in distribution.",
+    afterThis: "After inventory is filed, the creditor notice period begins.",
+    phaseNum: 3,
+  },
+  creditor_claims: {
+    whyItMatters: "You cannot pay heirs until all valid debts are handled. Paying heirs first — or paying debts in the wrong order — can make you personally liable.",
+    afterThis: "After the creditor period closes, you can start transferring assets to heirs.",
+    phaseNum: 4,
+  },
+  asset_liquidation: {
+    whyItMatters: "This is where the estate's assets actually move. You'll transfer accounts, sell property if needed, and file the estate's tax returns.",
+    afterThis: "Once all assets are transferred and taxes paid, you can file for final court distribution.",
+    phaseNum: 5,
+  },
+  final_distribution: {
+    whyItMatters: "The final step — you need court approval to pay heirs their share and officially close the estate.",
+    afterThis: "After the final hearing, the estate is closed and your duties are complete.",
+    phaseNum: 6,
+  },
+};
+
 export function NextActionWidget({ estate, assets = [] }: NextActionWidgetProps) {
   const navigate = useNavigate();
   const { completedTaskIds } = useWorkflow();
@@ -296,6 +334,24 @@ export function NextActionWidget({ estate, assets = [] }: NextActionWidgetProps)
         )}
       </div>
 
+      {/* ── Why this matters (plain English for new users) ── */}
+      {PHASE_CONTEXT[nextAction.phase] && (
+        <div className="p-3 bg-slate-50 border border-slate-100 rounded-2xl space-y-1.5">
+          <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">
+            Why This Matters
+          </p>
+          <p className="text-[11px] text-slate-600 leading-relaxed font-medium">
+            {PHASE_CONTEXT[nextAction.phase].whyItMatters}
+          </p>
+          <div className="flex items-center gap-1.5 mt-1">
+            <ArrowRight className="w-3 h-3 text-indigo-400 flex-shrink-0" />
+            <p className="text-[10px] text-indigo-600 font-black">
+              {PHASE_CONTEXT[nextAction.phase].afterThis}
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* ── Inline task alert ── */}
       {nextAction.task.alerts?.length > 0 && (
         <div className="p-3 bg-white/90 border border-amber-100 rounded-2xl flex gap-2.5 items-start">
@@ -306,6 +362,39 @@ export function NextActionWidget({ estate, assets = [] }: NextActionWidgetProps)
         </div>
       )}
 
+      {/* ── Phase position indicator ── */}
+      {PHASE_CONTEXT[nextAction.phase] && (
+        <div className="flex items-center gap-1.5">
+          {PHASE_ORDER.map((p, i) => (
+            <div
+              key={p}
+              className={cn(
+                "h-1 rounded-full flex-1 transition-all",
+                i < PHASE_CONTEXT[nextAction.phase].phaseNum
+                  ? "bg-indigo-500"
+                  : "bg-slate-200"
+              )}
+            />
+          ))}
+          <span className="text-[9px] font-black text-slate-400 ml-1 whitespace-nowrap">
+            Phase {PHASE_CONTEXT[nextAction.phase].phaseNum}/{PHASE_ORDER.length}
+          </span>
+        </div>
+      )}
+
+      {/* ── Link to full plan + CTA ── */}
+      <div className="flex items-center justify-between px-0.5">
+        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">
+          From your 6-phase Action Plan
+        </p>
+        <button
+          onClick={() => navigate("/roadmap")}
+          className="text-[9px] font-black uppercase tracking-[0.2em] text-indigo-500 hover:text-indigo-700 transition-colors"
+        >
+          See all tasks →
+        </button>
+      </div>
+
       {/* ── CTA ── */}
       <Button
         className={cn(
@@ -314,7 +403,7 @@ export function NextActionWidget({ estate, assets = [] }: NextActionWidgetProps)
         )}
         onClick={() => navigate("/roadmap")}
       >
-        Start This Task
+        Open Full Action Plan
         <ArrowRight className="w-4 h-4 ml-2" />
       </Button>
     </motion.div>

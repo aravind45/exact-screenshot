@@ -55,6 +55,7 @@ import { isProfileComplete } from "@/lib/authorityEngine";
 import { TaxAlerts } from "@/components/dashboard/TaxAlerts";
 import { NextActionWidget } from "@/components/dashboard/NextActionWidget";
 import { AttorneyReviewWidget } from "@/components/dashboard/AttorneyReviewWidget";
+import { EstateJourneyBanner } from "@/components/dashboard/EstateJourneyBanner";
 import { generateCPAExport } from "@/lib/csvExport";
 
 const normalize = (str: string | null) => str?.toLowerCase() || '';
@@ -388,8 +389,22 @@ export default function Dashboard() {
         </div>
       </motion.div>
 
+      {/* ── Estate Journey Map — "You Are Here" stepper for new users ── */}
+      <EstateJourneyBanner estate={estate} assets={assets} />
 
-
+      {/* First-timer tip — shown only when < 3 tasks completed */}
+      {(completedTaskIds?.length || 0) < 3 && (
+        <div className="flex items-start gap-3 p-4 bg-indigo-50/60 border border-indigo-100 rounded-2xl">
+          <span className="text-xl leading-none flex-shrink-0">👋</span>
+          <div>
+            <p className="text-xs font-black text-indigo-900 mb-0.5">New to estate settlement?</p>
+            <p className="text-[11px] text-indigo-700 leading-relaxed font-medium">
+              Estate settlement has 6 phases and typically takes 6–14 months. You don't need to understand everything at
+              once — the journey map above shows where you are, and the card below shows exactly what to do next.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Stat Cards - Full Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
