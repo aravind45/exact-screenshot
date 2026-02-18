@@ -123,13 +123,13 @@ export default function SettlementRoadmapNew() {
               <div className="flex-1">
                 <h3 className="text-lg font-bold text-slate-900 tracking-tight">Authority Support Required</h3>
                 <p className="text-sm text-slate-600 mt-1 leading-relaxed max-w-2xl">
-                  <strong className="text-slate-900 font-semibold">{assets.length} assets are</strong> awaiting your Letters Testamentary (DE-150) to finalize ownership.
-                  These assets require probate authority (Letters Testamentary (DE-150)) to complete the transfer process.
+                  <strong className="text-slate-900 font-semibold">{probateBlockers.length} assets are</strong> awaiting your Letters Testamentary (DE-150) to finalize ownership.
+                  These assets require probate authority to complete the transfer process.
                 </p>
                 <div className="mt-4 flex items-center gap-4">
                   <Button
                     className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-6 h-10 rounded-lg shadow-md shadow-indigo-200 transition-all active:scale-95"
-                    onClick={() => navigate('/official-forms')} // Assuming this goes to where they get documents
+                    onClick={() => navigate('/official-forms')}
                   >
                     <FileText className="w-4 h-4 mr-2" />
                     FINALIZE DOCUMENTS
@@ -146,10 +146,6 @@ export default function SettlementRoadmapNew() {
             </div>
           )}
 
-          {/* Probate Blocker Alert */}
-          {probateBlockers.length > 0 && (
-            <ProbateBlockerAlert />
-          )}
 
           {/* Horizontal Phase Progress */}
           <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">

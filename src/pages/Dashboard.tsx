@@ -53,6 +53,8 @@ import { useTerminology } from "@/hooks/use-terminology";
 import { ProbateStatusUpdater } from "@/components/dashboard/ProbateStatusUpdater";
 import { isProfileComplete } from "@/lib/authorityEngine";
 import { TaxAlerts } from "@/components/dashboard/TaxAlerts";
+import { NextActionWidget } from "@/components/dashboard/NextActionWidget";
+import { AttorneyReviewWidget } from "@/components/dashboard/AttorneyReviewWidget";
 import { generateCPAExport } from "@/lib/csvExport";
 
 const normalize = (str: string | null) => str?.toLowerCase() || '';
@@ -494,6 +496,33 @@ export default function Dashboard() {
 
 
 
+      {/* ──────────────────────────────────────────────────────────────
+          NEXT ACTION + CRITICAL DATES — Two-column hero strip
+          Left: single "What To Do Today" card  |  Right: deadline strip
+      ────────────────────────────────────────────────────────────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* Left: What To Do Today (5/12) */}
+        <div className="lg:col-span-5">
+          <NextActionWidget estate={estate} assets={assets} />
+        </div>
+
+        {/* Right: Critical Dates (7/12) */}
+        <div className="lg:col-span-7 space-y-3">
+          <div className="flex items-center gap-3 px-1">
+            <div className="w-8 h-8 rounded-xl bg-red-50 flex items-center justify-center">
+              <Clock className="w-4 h-4 text-red-500" />
+            </div>
+            <div>
+              <h2 className="text-base font-black text-slate-900 tracking-tight">Critical Dates</h2>
+              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
+                Statutory Deadlines — Miss one and face personal liability
+              </p>
+            </div>
+          </div>
+          <DeadlineTracker estateId={estate?.id || ""} />
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Main Content (Left Column - 8/12 = 66%) */}
         <div className="lg:col-span-8 space-y-8">
@@ -658,14 +687,15 @@ export default function Dashboard() {
 
         {/* Sidebar (Right Column - 4/12 = 33%) */}
         <div className="lg:col-span-4 space-y-6">
+
+          {/* ⚠️ Attorney Review Nodes — GAP-09 */}
+          <AttorneyReviewWidget estate={estate} assets={assets} />
+
           {/* Settlement Health Engine */}
           <SettlementHealthEngine
             scores={healthScores}
             alerts={healthAlerts}
           />
-
-          {/* Critical Dates */}
-          <DeadlineTracker estateId={estate?.id || ""} />
 
           {/* Diligence Gaps (if any) */}
           <SafetyNetWidget
