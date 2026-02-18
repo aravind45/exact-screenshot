@@ -286,24 +286,15 @@ export function CollapsiblePhaseChevron({ onTaskToggle }: CollapsiblePhaseChevro
               disabled={lockStatus.isLocked}
             >
               <div className="flex items-center gap-3 flex-1">
-                {/* Status Icon */}
+                {/* Status Indicator (Simplified) */}
                 <div className="flex-shrink-0">
                   {isCompleted ? (
                     <CheckCircle className="w-5 h-5 text-green-600 focus:outline-none" />
-                  ) : lockStatus.isLocked ? (
-                    <Lock className="w-5 h-5 text-slate-400" />
-                  ) : isCurrent ? (
-                    <div className={cn("relative flex items-center justify-center")}>
-                      <Circle className={cn("w-5 h-5 fill-current", phaseTheme.icon)} />
-                      <motion.div
-                        initial={{ scale: 0.8, opacity: 0.5 }}
-                        animate={{ scale: 1.5, opacity: 0 }}
-                        transition={{ repeat: Infinity, duration: 2, ease: "easeOut" }}
-                        className={cn("absolute w-5 h-5 rounded-full border-2", phaseTheme.border.split(' ')[0])}
-                      />
-                    </div>
                   ) : (
-                    <Circle className="w-5 h-5 text-slate-300" />
+                    <Circle className={cn(
+                      "w-5 h-5",
+                      isCurrent ? phaseTheme.icon : "text-slate-300"
+                    )} />
                   )}
                 </div>
 
@@ -311,7 +302,7 @@ export function CollapsiblePhaseChevron({ onTaskToggle }: CollapsiblePhaseChevro
                 <div className="flex-1 text-left">
                   <div className="flex items-center gap-2 mb-1">
                     <h3 className={cn(
-                      "font-bold text-sm tracking-tight",
+                      "font-semibold text-lg tracking-tight",
                       isCompleted && "text-green-900",
                       isCurrent && !isCompleted && phaseTheme.text,
                       lockStatus.isLocked && "text-slate-500"

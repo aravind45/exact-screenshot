@@ -107,23 +107,11 @@ export function SettlementPhaseChevron({
                       : "polygon(24px 0, calc(100% - 24px) 0, 100% 50%, calc(100% - 24px) 100%, 24px 100%, 0 50%)"
                   }}
                 >
-                  <div className="flex items-center gap-4 px-8">
-                    {/* Status Icon */}
-                    <div className={cn(
-                      "flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center",
-                      isCompleted && "text-indigo-600 bg-indigo-50",
-                      isCurrent && "text-indigo-600 bg-white shadow-sm",
-                      isUpcoming && "text-slate-300"
-                    )}>
-                      {isCompleted && <Check className="w-3.5 h-3.5" />}
-                      {isCurrent && <Lock className="w-3.5 h-3.5 hidden" />} {/* Current phase has no icon in screenshot, just text? Actually screenshot has no icon for current. */}
-                      {isUpcoming && <Lock className="w-3.5 h-3.5" />}
-                    </div>
-
+                  <div className="flex flex-col items-center px-4 w-full">
                     {/* Phase Info */}
-                    <div className="flex flex-col min-w-0">
+                    <div className="flex flex-col items-center text-center min-w-0">
                       <span className={cn(
-                        "text-sm font-bold tracking-tight leading-tight",
+                        "text-base font-bold tracking-tight leading-tight",
                         isCurrent && "text-white",
                         isCompleted && "text-indigo-900",
                         isUpcoming && "text-slate-400"
@@ -131,7 +119,7 @@ export function SettlementPhaseChevron({
                         {phase.title}
                       </span>
                       <span className={cn(
-                        "text-[10px] font-medium leading-tight mt-0.5 uppercase tracking-wide",
+                        "text-sm font-normal leading-tight mt-0.5 uppercase tracking-wide",
                         isCurrent && "text-indigo-100",
                         isCompleted && "text-indigo-600/70",
                         isUpcoming && "text-slate-400/70"
@@ -139,7 +127,7 @@ export function SettlementPhaseChevron({
                         {phase.subtitle}
                       </span>
                       <span className={cn(
-                        "text-[9px] font-bold leading-tight mt-1 uppercase tracking-wider",
+                        "text-[9px] font-medium leading-tight mt-1 uppercase tracking-wider",
                         isCurrent && "text-indigo-200",
                         isCompleted && "text-indigo-400",
                         isUpcoming && "text-slate-300"
@@ -189,16 +177,6 @@ export function SettlementPhaseChevron({
                 isUpcoming && "bg-slate-50 border border-slate-200"
               )}
             >
-              <div className={cn(
-                "flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center",
-                isCompleted && "bg-green-600",
-                isCurrent && "bg-blue-600",
-                isUpcoming && "bg-slate-300"
-              )}>
-                {isCompleted && <Check className="w-5 h-5 text-white" />}
-                {isCurrent && <Clock className="w-5 h-5 text-white" />}
-                {isUpcoming && <Lock className="w-4 h-4 text-slate-500" />}
-              </div>
 
               <div className="flex-1">
                 <div className={cn(

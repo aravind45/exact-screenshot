@@ -67,8 +67,8 @@ export default function SettlementRoadmapNew() {
         {/* Header */}
         <header className="h-24 bg-white px-10 flex items-center justify-between sticky top-0 z-10 border-b border-slate-100 shadow-sm">
           <div>
-            <h1 className="text-3xl font-black text-slate-900 tracking-tight">Master Plan</h1>
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mt-1">
+            <h1 className="text-[30px] font-bold text-slate-900 tracking-tight leading-none">Master Plan</h1>
+            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-2">
               Your Complete 6-Phase Guide
             </p>
           </div>
