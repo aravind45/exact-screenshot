@@ -340,17 +340,17 @@ export default function Assets() {
             <Sidebar />
 
             <div className="flex-1 ml-64 flex flex-col">
-                <header className="h-20 border-b border-white/5 bg-white/80 backdrop-blur-xl px-12 flex items-center justify-between sticky top-0 z-10">
+                <header className="h-24 border-b border-slate-100 bg-white/80 backdrop-blur-xl px-12 flex items-center justify-between sticky top-0 z-10">
                     <div>
-                        <h1 className="text-2xl font-['Outfit'] font-black text-slate-900 tracking-tight">Asset Ledger</h1>
-                        <div className="flex items-center gap-2 mt-0.5">
-                            <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Verified Financial Records</p>
+                        <h1 className="text-3xl font-['Outfit'] font-black text-slate-900 tracking-tight">Asset Ledger</h1>
+                        <div className="flex items-center gap-2 mt-1">
+                            <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" />
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Verified Financial Records</p>
                         </div>
                     </div>
                     <Button
                         onClick={() => navigate('/add-asset')}
-                        className="rounded-2xl font-black gap-2 h-11 px-8 bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95 group"
+                        className="rounded-2xl font-black gap-2 h-12 px-8 bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-200 transition-all hover:scale-[1.02] active:scale-95 group"
                     >
                         <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" />
                         Add New Asset
@@ -359,20 +359,20 @@ export default function Assets() {
 
                 <main className="max-w-[1200px] w-full mx-auto px-8 py-10">
                     <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-10">
-                        <div className="flex items-center justify-between bg-slate-50 p-2 rounded-[2rem] border border-slate-100 shadow-sm">
-                            <TabsList className="bg-transparent border-none p-0 h-12">
+                        <div className="flex items-center justify-between bg-white p-1.5 rounded-[2.25rem] border border-slate-100 shadow-sm">
+                            <TabsList className="bg-transparent border-none p-0 h-11">
                                 <TabsTrigger
                                     value="inventory"
-                                    className="rounded-[1.5rem] px-8 font-black text-xs uppercase tracking-widest data-[state=active]:bg-slate-900 data-[state=active]:text-white transition-all h-full"
+                                    className="rounded-[1.75rem] px-10 font-black text-[10px] uppercase tracking-[0.2em] data-[state=active]:bg-slate-900 data-[state=active]:text-white transition-all duration-300 h-full"
                                 >
-                                    <LayoutGrid className="w-4 h-4 mr-2" />
+                                    <LayoutGrid className="w-3.5 h-3.5 mr-2" />
                                     Estate Inventory
                                 </TabsTrigger>
                                 <TabsTrigger
                                     value="detective"
-                                    className="rounded-[1.5rem] px-8 font-black text-xs uppercase tracking-widest data-[state=active]:bg-primary data-[state=active]:text-white transition-all h-full"
+                                    className="rounded-[1.75rem] px-10 font-black text-[10px] uppercase tracking-[0.2em] data-[state=active]:bg-indigo-600 data-[state=active]:text-white transition-all duration-300 h-full"
                                 >
-                                    <Sparkles className="w-4 h-4 mr-2" />
+                                    <Sparkles className="w-3.5 h-3.5 mr-2" />
                                     Asset Detective
                                 </TabsTrigger>
                             </TabsList>
@@ -476,44 +476,46 @@ export default function Assets() {
                                             <div key={i} className="h-32 bg-white border border-slate-100 rounded-2xl animate-pulse" />
                                         ))
                                     ) : assets.length === 0 ? (
-                                        <div className="py-24 border-2 border-dashed border-slate-200 rounded-[40px] text-center bg-white/50">
-                                            {/* ... existing empty state ... */}
-                                            <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                                <Landmark className="w-8 h-8 text-slate-400" />
-                                            </div>
-                                            <h3 className="text-lg font-black text-slate-900">No assets identified yet</h3>
-                                            <p className="text-slate-500 text-sm mb-6 max-w-xs mx-auto">Start by adding your first financial account or property to the estate.</p>
-                                            <div className="flex items-center justify-center gap-4">
-                                                <Button
-                                                    onClick={() => navigate('/add-asset')}
-                                                    className="rounded-xl font-bold px-8 shadow-lg shadow-indigo-100"
-                                                >
-                                                    Add Your First Asset
-                                                </Button>
-                                                <Button
-                                                    variant="outline"
-                                                    onClick={() => setActiveTab("detective")}
-                                                    className="rounded-xl font-bold px-8 border-slate-200"
-                                                >
-                                                    Run Detective Scan
-                                                </Button>
+                                        <div className="py-32 border border-dashed border-slate-200 rounded-[40px] text-center bg-white/50 relative overflow-hidden">
+                                            <div className="absolute inset-0 bg-gradient-to-b from-transparent to-slate-50/30" />
+                                            <div className="relative z-10">
+                                                <div className="w-20 h-20 bg-white border border-slate-100 rounded-[28px] shadow-sm flex items-center justify-center mx-auto mb-6 transform -rotate-3 hover:rotate-0 transition-transform duration-500">
+                                                    <Landmark className="w-10 h-10 text-slate-300" />
+                                                </div>
+                                                <h3 className="text-xl font-black text-slate-900 tracking-tight">No assets identified yet</h3>
+                                                <p className="text-slate-400 text-sm mb-10 max-w-xs mx-auto font-medium">Start by adding your first financial account or property to the estate.</p>
+                                                <div className="flex items-center justify-center gap-4">
+                                                    <Button
+                                                        onClick={() => navigate('/add-asset')}
+                                                        className="rounded-2xl font-black px-10 h-12 bg-indigo-600 hover:bg-indigo-700 text-white shadow-xl shadow-indigo-100 transition-all hover:scale-[1.02]"
+                                                    >
+                                                        Add First Asset
+                                                    </Button>
+                                                    <Button
+                                                        variant="outline"
+                                                        onClick={() => setActiveTab("detective")}
+                                                        className="rounded-2xl font-black px-10 h-12 border-slate-200 text-slate-600 hover:bg-slate-100 transition-all"
+                                                    >
+                                                        Run Detective Scan
+                                                    </Button>
+                                                </div>
                                             </div>
                                         </div>
                                     ) : (
                                         <>
                                             {groupedAssets.PROBATE.length > 0 && (
-                                                <section className="space-y-4">
-                                                    <div className="flex items-center justify-between">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="p-2 rounded-xl bg-rose-50 text-rose-600 border border-rose-100">
+                                                <section className="space-y-6">
+                                                    <div className="flex items-center justify-between pb-2 border-b border-slate-50">
+                                                        <div className="flex items-center gap-4">
+                                                            <div className="p-3 rounded-2xl bg-rose-600 text-white shadow-lg shadow-rose-100">
                                                                 <Scale className="w-5 h-5" />
                                                             </div>
                                                             <div>
-                                                                <h2 className="text-lg font-black text-slate-900">Probate Estate</h2>
-                                                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Managed by Executor under Court Authority</p>
+                                                                <h2 className="text-xl font-black text-slate-900 tracking-tight">Probate Estate</h2>
+                                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-0.5">Managed by Executor under Court Authority</p>
                                                             </div>
                                                         </div>
-                                                        <Badge variant="outline" className="rounded-full border-rose-100 text-rose-600 font-bold">
+                                                        <Badge variant="outline" className="rounded-xl border-rose-100 bg-rose-50 text-rose-600 font-black px-4 py-1.5 uppercase text-[10px] tracking-widest shadow-sm">
                                                             {groupedAssets.PROBATE.length} Assets
                                                         </Badge>
                                                     </div>
@@ -535,18 +537,18 @@ export default function Assets() {
                                             )}
 
                                             {groupedAssets.NON_PROBATE.length > 0 && (
-                                                <section className="space-y-4">
-                                                    <div className="flex items-center justify-between">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="p-2 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100">
+                                                <section className="space-y-6">
+                                                    <div className="flex items-center justify-between pb-2 border-b border-slate-50">
+                                                        <div className="flex items-center gap-4">
+                                                            <div className="p-3 rounded-2xl bg-emerald-500 text-white shadow-lg shadow-emerald-100">
                                                                 <ArrowRight className="w-5 h-5" />
                                                             </div>
                                                             <div>
-                                                                <h2 className="text-lg font-black text-slate-900">Non-Probate Transfers</h2>
-                                                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Direct transfers to Beneficiaries or Trust</p>
+                                                                <h2 className="text-xl font-black text-slate-900 tracking-tight">Non-Probate Transfers</h2>
+                                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-0.5">Direct transfers to Beneficiaries or Trust</p>
                                                             </div>
                                                         </div>
-                                                        <Badge variant="outline" className="rounded-full border-emerald-100 text-emerald-600 font-bold">
+                                                        <Badge variant="outline" className="rounded-xl border-emerald-100 bg-emerald-50 text-emerald-600 font-black px-4 py-1.5 uppercase text-[10px] tracking-widest shadow-sm">
                                                             {groupedAssets.NON_PROBATE.length} Assets
                                                         </Badge>
                                                     </div>
@@ -596,26 +598,32 @@ export default function Assets() {
                                 </div>
 
                                 <div className="space-y-6">
-                                    <div className="bg-white border border-slate-200 rounded-[32px] p-6 shadow-sm sticky top-24">
-                                        <div className="flex items-center gap-3 mb-6">
-                                            <div className="p-2.5 rounded-2xl bg-indigo-50 text-indigo-600">
+                                    <div className="bg-white border-none rounded-[32px] p-8 shadow-sm relative overflow-hidden sticky top-24">
+                                        {/* Background Glow */}
+                                        <div className="absolute top-[-10%] right-[-10%] w-64 h-64 bg-indigo-500/5 blur-3xl rounded-full pointer-events-none" />
+
+                                        <div className="flex items-center gap-3 mb-8">
+                                            <div className="p-3 rounded-2xl bg-indigo-600 text-white shadow-lg shadow-indigo-200">
                                                 <Sparkles className="w-5 h-5" />
                                             </div>
-                                            <h3 className="font-black text-lg tracking-tight">Suggested Actions</h3>
+                                            <div>
+                                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400 mb-0.5">AI Insights</p>
+                                                <h3 className="font-black text-lg tracking-tight text-slate-900">Suggested Actions</h3>
+                                            </div>
                                         </div>
 
-                                        <div className="space-y-4">
+                                        <div className="space-y-4 relative z-10">
                                             {allSuggestedActions.length === 0 ? (
-                                                <div className="text-center py-8">
-                                                    <p className="text-xs font-bold text-slate-400 italic">No pending recommendations</p>
+                                                <div className="text-center py-10 bg-slate-50/50 rounded-3xl border border-dashed border-slate-100">
+                                                    <p className="text-xs font-black text-slate-300 uppercase tracking-widest">No pending guidance</p>
                                                 </div>
                                             ) : (
                                                 allSuggestedActions.map((action, idx) => (
-                                                    <div key={idx} className="group p-4 rounded-2xl border border-slate-100 hover:border-indigo-200 hover:bg-indigo-50/30 transition-all cursor-pointer">
-                                                        <div className="flex gap-3">
+                                                    <div key={idx} className="group p-5 rounded-2xl border border-slate-100 bg-white hover:border-indigo-100 hover:shadow-md transition-all cursor-pointer">
+                                                        <div className="flex gap-4">
                                                             <div className={cn(
-                                                                "h-8 w-8 rounded-lg flex items-center justify-center shrink-0",
-                                                                action.priority === 'high' ? "bg-rose-100 text-rose-600" : "bg-slate-100 text-slate-600"
+                                                                "h-10 w-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm",
+                                                                action.priority === 'high' ? "bg-rose-50 text-rose-600 border border-rose-100" : "bg-slate-50 text-slate-600 border border-slate-100"
                                                             )}>
                                                                 {action.icon === 'Mail' && <Mail className="w-4 h-4" />}
                                                                 {action.icon === 'Gavel' && <Gavel className="w-4 h-4" />}
@@ -624,23 +632,23 @@ export default function Assets() {
                                                                 {action.icon === 'Users' && <Users className="w-4 h-4" />}
                                                                 {action.icon === 'ShieldCheck' && <ShieldCheck className="w-4 h-4" />}
                                                             </div>
-                                                            <div className="space-y-1">
-                                                                <h4 className="text-xs font-black text-slate-900 group-hover:text-indigo-600 transition-colors">{action.title}</h4>
-                                                                <p className="text-[10px] font-bold text-slate-400 leading-relaxed uppercase tracking-wider line-clamp-2">
+                                                            <div className="space-y-1.5 flex-1 min-w-0">
+                                                                <h4 className="text-[11px] font-black text-slate-900 group-hover:text-indigo-600 transition-colors uppercase tracking-wider truncate">{action.title}</h4>
+                                                                <p className="text-[10px] font-bold text-slate-400 leading-relaxed tracking-wide">
                                                                     {action.description}
                                                                 </p>
                                                             </div>
                                                         </div>
                                                         {action.relatedAssets.length > 0 && (
-                                                            <div className="mt-3 flex flex-wrap gap-1">
-                                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mr-1">For:</span>
+                                                            <div className="mt-4 flex flex-wrap gap-1.5 items-center">
+                                                                <span className="text-[8px] font-black text-slate-300 uppercase tracking-[0.15em] mr-1">Targets:</span>
                                                                 {action.relatedAssets.slice(0, 2).map((a: any) => (
-                                                                    <Badge key={a.id} variant="secondary" className="text-[8px] bg-white border-slate-200 px-1.5 py-0">
+                                                                    <Badge key={a.id} variant="secondary" className="text-[9px] font-black bg-slate-50 border-slate-100 text-slate-500 px-2 py-0 uppercase tracking-tighter">
                                                                         {a.institution}
                                                                     </Badge>
                                                                 ))}
                                                                 {action.relatedAssets.length > 2 && (
-                                                                    <span className="text-[8px] font-bold text-slate-400">+{action.relatedAssets.length - 2} more</span>
+                                                                    <span className="text-[9px] font-black text-slate-400/60 ml-1">+{action.relatedAssets.length - 2}</span>
                                                                 )}
                                                             </div>
                                                         )}
@@ -649,10 +657,10 @@ export default function Assets() {
                                             )}
                                         </div>
 
-                                        <div className="mt-8 pt-6 border-t border-slate-100">
-                                            <Button variant="outline" className="w-full rounded-2xl border-slate-200 font-black text-xs h-12 gap-2" onClick={() => setActiveTab("detective")}>
+                                        <div className="mt-8 pt-6 border-t border-slate-50 relative z-10">
+                                            <Button variant="outline" className="w-full rounded-2xl border-slate-200 font-black text-[11px] uppercase tracking-widest h-12 gap-2 hover:bg-slate-50 hover:text-indigo-600 transition-all" onClick={() => setActiveTab("detective")}>
                                                 <SearchIcon className="w-4 h-4" />
-                                                Discover More Assets
+                                                Discover Assets
                                             </Button>
                                         </div>
                                     </div>
@@ -663,12 +671,18 @@ export default function Assets() {
                         <TabsContent value="detective" className="mt-0 outline-none">
                             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                                 <div className="lg:col-span-5 space-y-6">
-                                    <div className="bg-white border border-slate-200 rounded-[32px] p-8 shadow-sm">
-                                        <div className="flex items-center gap-3 mb-6">
-                                            <div className="p-2.5 rounded-2xl bg-primary/10 text-primary">
+                                    <div className="bg-white border-none rounded-[32px] p-8 shadow-sm relative overflow-hidden">
+                                        {/* Background Glow */}
+                                        <div className="absolute top-[-10%] right-[-10%] w-64 h-64 bg-indigo-500/5 blur-3xl rounded-full pointer-events-none" />
+
+                                        <div className="flex items-center gap-4 mb-8">
+                                            <div className="p-3 rounded-2xl bg-indigo-600 text-white shadow-lg shadow-indigo-100">
                                                 <FileSearch className="w-6 h-6" />
                                             </div>
-                                            <h2 className="text-xl font-black tracking-tight">Forensic Scan</h2>
+                                            <div>
+                                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400 mb-0.5">Discovery Scan</p>
+                                                <h2 className="text-2xl font-black tracking-tight text-slate-900">Forensic Scan</h2>
+                                            </div>
                                         </div>
                                         <p className="text-slate-500 text-sm leading-relaxed mb-4">
                                             Upload bank statements, tax returns, or insurance policies. AI will scan for hidden transfers or "Summary of Holdings" that point to other accounts.
@@ -881,14 +895,30 @@ export default function Assets() {
 
 function AuthoritySummaryCard({ label, count, icon: Icon, color, bgColor }: any) {
     return (
-        <div className={cn("p-5 rounded-[2rem] border border-slate-100 shadow-premium flex flex-col gap-3 bg-white hover:border-primary/20 hover:scale-105 transition-all group cursor-default", count > 0 && "border-slate-200")}>
-            <div className="flex items-center justify-between">
-                <div className={cn("p-2.5 rounded-xl transition-all group-hover:scale-110 border shadow-sm", bgColor, color, count > 0 ? "border-current/10" : "border-slate-100 opacity-60")}>
+        <div className={cn(
+            "p-6 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col gap-4 bg-white hover:border-indigo-100 hover:shadow-md hover:scale-[1.03] transition-all duration-300 group cursor-default relative overflow-hidden",
+            count > 0 && "border-white"
+        )}>
+            {/* Ambient Background */}
+            <div className={cn("absolute inset-0 opacity-[0.03] transition-opacity group-hover:opacity-[0.05]", bgColor)} />
+
+            <div className="flex items-center justify-between relative z-10">
+                <div className={cn(
+                    "p-3 rounded-2xl transition-all duration-500 border shadow-sm group-hover:rotate-6",
+                    bgColor, color,
+                    count > 0 ? "border-current/10" : "border-slate-50 opacity-40 shadow-none grayscale"
+                )}>
                     <Icon className="w-5 h-5 stroke-[2.5]" />
                 </div>
-                <span className={cn("text-xl font-['Outfit'] font-black leading-none", count > 0 ? "text-slate-900" : "text-slate-300")}>{count}</span>
+                <span className={cn(
+                    "text-2xl font-['Outfit'] font-black leading-none tracking-tighter transition-all",
+                    count > 0 ? "text-slate-900 group-hover:text-indigo-600 scale-110" : "text-slate-200"
+                )}>{count}</span>
             </div>
-            <p className={cn("text-[10px] font-black uppercase tracking-[0.2em]", count > 0 ? "text-slate-600" : "text-slate-400")}>{label}</p>
+            <p className={cn(
+                "text-[10px] font-black uppercase tracking-[0.25em] transition-colors relative z-10",
+                count > 0 ? "text-slate-400 group-hover:text-slate-600" : "text-slate-300"
+            )}>{label}</p>
         </div>
     );
 }

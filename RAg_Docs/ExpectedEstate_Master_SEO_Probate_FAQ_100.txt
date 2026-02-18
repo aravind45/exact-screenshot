@@ -1,0 +1,311 @@
+EXPECTED ESTATE – MASTER PROBATE SEO FAQ (100 QUESTIONS)
+
+CORE PROBATE AUTHORITY SECTION
+
+1.  What is probate? Probate is the court-supervised legal process of
+    validating a will, appointing a personal representative, settling
+    debts, and distributing assets.
+
+2.  What does probate court do? Probate court oversees estate
+    administration, validates wills, resolves disputes, and authorizes
+    distributions.
+
+3.  Is probate always required? No. Probate is required only for assets
+    solely owned without beneficiary designations or joint survivorship.
+
+4.  How do you start probate? File a petition in the county probate
+    court where the decedent lived.
+
+5.  What documents are required to file probate? Death certificate,
+    original will (if available), petition forms, and list of heirs.
+
+6.  How long does probate take? Typically 6–18 months depending on
+    complexity.
+
+7.  What delays probate? Creditor claims, disputes, tax filings, real
+    estate sales.
+
+8.  How much does probate cost? Court fees, attorney fees, executor
+    compensation, appraisals, publication costs.
+
+9.  Who pays probate fees? The estate pays before beneficiary
+    distributions.
+
+10. Can probate be avoided? Yes through trusts, POD/TOD accounts, and
+    joint ownership.
+
+EXECUTOR & ADMINISTRATION (11–25)
+
+11. What are executor duties? Secure assets, notify creditors, file
+    taxes, distribute assets.
+
+12. Can an executor be removed? Yes, by court petition for misconduct or
+    incapacity.
+
+13. Does an executor get paid? Yes, statutory or reasonable
+    compensation.
+
+14. Is executor personally liable? Yes, for breach of fiduciary duty.
+
+15. What is fiduciary duty? Legal obligation to act in beneficiaries’
+    best interests.
+
+16. Can executor sell property? Yes, sometimes with court approval.
+
+17. What is estate inventory? List of probate assets and values.
+
+18. What is estate accounting? Detailed record of estate income and
+    expenses.
+
+19. Can beneficiaries request accounting? Yes.
+
+20. When can executor distribute assets? After debts and taxes are
+    resolved.
+
+21. What if executor refuses to act? Court may appoint replacement.
+
+22. What is probate bond? Insurance protecting estate from executor
+    misconduct.
+
+23. When is bond required? If will does not waive it or court orders it.
+
+24. What is Letters Testamentary? Court document granting executor
+    authority.
+
+25. What is Letters of Administration? Authority granted when no will
+    exists.
+
+PROBATE WITHOUT A WILL (26–35)
+
+26. What is intestate succession? State rules determining inheritance
+    without a will.
+
+27. Who inherits if no will? Spouse, children, parents, siblings based
+    on statute.
+
+28. Does spouse inherit everything? Depends on state and presence of
+    children.
+
+29. Do stepchildren inherit? Generally no unless legally adopted.
+
+30. What if no heirs exist? Estate may escheat to the state.
+
+31. Can intestate estates avoid probate? Only if assets are non-probate.
+
+32. How is administrator chosen? Court appoints closest qualified heir.
+
+33. Are intestate estates slower? Often similar timeline.
+
+34. Do intestate estates cost more? Not necessarily.
+
+35. Can heirs disagree? Yes, court resolves disputes.
+
+ASSET TYPES & SPECIAL SCENARIOS (36–60)
+
+36. What are probate assets? Solely owned assets without beneficiaries.
+
+37. What are non-probate assets? Life insurance, retirement accounts,
+    trust property.
+
+38. Does real estate go through probate? If solely owned, yes.
+
+39. What is ancillary probate? Secondary probate in another state.
+
+40. Do bank accounts go through probate? If no beneficiary or joint
+    owner.
+
+41. What about digital assets? Included if solely owned.
+
+42. What is RUFADAA? Law governing fiduciary access to digital assets.
+
+43. What happens to business interests? Subject to operating agreement
+    terms.
+
+44. What if estate is insolvent? Debts paid in statutory priority.
+
+45. What are creditor claim deadlines? State-defined period after notice
+    publication.
+
+46. Are funeral expenses paid first? High priority claim.
+
+47. Are taxes owed after death? Final 1040 and possible estate return
+    required.
+
+48. Does every estate pay federal estate tax? Only estates exceeding
+    exemption threshold.
+
+49. What is estate income tax (1041)? Tax on post-death estate income.
+
+50. What is step-up in basis? Asset tax basis adjusts to date-of-death
+    value.
+
+51. What is a small estate affidavit? Simplified collection process
+    below state limit.
+
+52. What qualifies as small estate? Estate under state-specific dollar
+    threshold.
+
+53. Is probate public record? Yes.
+
+54. Can probate be sealed? Rarely, under special circumstances.
+
+55. Can beneficiaries contest a will? Yes.
+
+56. What are grounds for contest? Undue influence, lack of capacity,
+    fraud.
+
+57. Can probate reopen? Yes, for newly discovered assets.
+
+58. What is partial distribution? Early distribution before final
+    closing.
+
+59. Can probate cross state lines? Yes via ancillary proceedings.
+
+60. What if beneficiary dies during probate? Distribution passes under
+    anti-lapse rules.
+
+TIMELINE & PROCESS CHECKLIST (61–75)
+
+61. File petition.
+62. Obtain letters.
+63. Notify creditors.
+64. Inventory assets.
+65. Open estate account.
+66. Pay debts.
+67. File taxes.
+68. Sell property if needed.
+69. Distribute assets.
+70. File final accounting.
+71. Obtain court approval.
+72. Close estate.
+73. Retain records.
+74. Provide beneficiary statements.
+75. Archive documentation.
+
+INTERNATIONAL & VISA ISSUES (76–85)
+
+76. Can foreign heirs inherit? Yes.
+
+77. Are foreign beneficiaries taxed? Possible withholding applies.
+
+78. What if deceased was non-resident? Probate required if assets in
+    U.S.
+
+79. Can documents require apostille? Yes for foreign use.
+
+80. What if H1B holder dies? Estate handled under U.S. probate law.
+
+81. Do dependents affect probate? Not legally, but may affect
+    administration logistics.
+
+82. Can estate funds be wired overseas? Yes after compliance checks.
+
+83. Are international estates slower? Often due to documentation delays.
+
+84. Can foreign executors serve? Sometimes with court approval.
+
+85. Do immigration timelines affect probate? No direct effect on estate
+    validity.
+
+TRUST VS PROBATE (86–100)
+
+86. Does a trust avoid probate? Yes for funded assets.
+
+87. What is a pour-over will? Will directing assets into trust.
+
+88. Is trust administration faster? Often yes.
+
+89. Is trust private? Yes, unlike probate.
+
+90. Does trust reduce cost? Often reduces court costs.
+
+91. Can trust be contested? Yes.
+
+92. Do trusts require accounting? Yes to beneficiaries.
+
+93. What if trust is unfunded? Assets may require probate.
+
+94. Are revocable trusts taxable? Included in estate for tax purposes.
+
+95. What is successor trustee? Person managing trust after death.
+
+96. Do trusts eliminate court? Generally yes unless dispute.
+
+97. Is probate required for trust assets? No.
+
+98. Should everyone avoid probate? Not always; depends on planning
+    goals.
+
+99. Can probate be simplified? Yes under small estate procedures.
+
+100. How can executors stay organized? Use structured estate workflow
+     tools.
+
+==========================================================
+STATE-SPECIFIC SEO CLUSTERS
+==========================================================
+
+CALIFORNIA PROBATE PROCESS
+
+Keywords: California probate process, CA probate timeline, California
+small estate affidavit, California executor duties
+
+-   What is California probate threshold? (Check current CA statutory
+    limit)
+-   How long is probate in California?
+-   Are California probate fees statutory percentage?
+-   What is California small estate affidavit limit?
+-   Is court confirmation required for property sale?
+-   What is California Form DE-111?
+-   What is California creditor claim period?
+-   Does California require probate referee appraisal?
+-   What is independent administration in CA?
+-   How to close probate in California?
+
+TEXAS PROBATE PROCESS
+
+Keywords: Texas probate process, Texas independent administration, Texas
+small estate affidavit
+
+-   What is independent administration in Texas?
+-   How long is probate in Texas?
+-   What is Texas small estate affidavit limit?
+-   Does Texas require executor bond?
+-   What is muniment of title in Texas?
+-   How are Texas intestate rules structured?
+-   Can Texas probate be completed without attorney?
+-   What is Texas creditor claim period?
+-   Does Texas require court approval for sale?
+-   How to close Texas probate?
+
+NEW YORK PROBATE PROCESS
+
+Keywords: New York probate process, NY Surrogate Court, NY small estate
+
+-   What court handles NY probate?
+-   What is NY small estate limit?
+-   How long is probate in New York?
+-   Are NY executor commissions statutory?
+-   What is NY ancillary probate?
+-   How does NY intestacy work?
+-   What is NY creditor claim deadline?
+-   Does NY require bond?
+-   What forms are required in NY probate?
+-   How to file probate in NYC?
+
+FLORIDA PROBATE PROCESS
+
+Keywords: Florida probate process, Florida summary administration
+
+-   What is Florida summary administration?
+-   What is Florida probate threshold?
+-   How long is probate in Florida?
+-   Are Florida probate fees statutory?
+-   What is Florida homestead exemption rule?
+-   What is Florida creditor claim period?
+-   Is probate required for Florida real estate?
+-   What is formal vs summary administration in Florida?
+-   Does Florida require attorney representation?
+-   How to close Florida probate?
+
+END OF MASTER SEO FILE

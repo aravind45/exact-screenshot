@@ -45,38 +45,34 @@ export class RAGService {
      * Hybrid Retrieval: Combine Lexical (BM25) and Dense (Vector) search using RRF
      */
     static async retrieveHybrid(query: string, limit = 10, filters?: any) {
-        if (!embeddings) {
-            logger.error("RAG Error: OPENAI_API_KEY is missing. Semantic search disabled.");
-            return { chunks: [], evidence: [], metadata: { error: "OPENAI_API_KEY missing" } };
-        }
-
         try {
             const start = Date.now();
 
-            // 1. Generate Query Vector
-            const queryVector = await embeddings.embedQuery(query);
-            const vectorSql = `[${queryVector.join(',')}]`;
+            // 1. Parallel Search Execution Setup
+            const tasks: Promise<any>[] = [];
 
-            // 2. Parallel Search Execution
-            const [lexicalResults, denseResults] = await Promise.all([
-                // Lexical Search (BM25 via tsvector)
-                prisma.$queryRawUnsafe(`
-                    SELECT 
-                        c.id,
-                        c.text as content,
-                        d."sourceUri" as source,
-                        d.title,
-                        ts_rank_cd(c.tsv, q) as score
-                    FROM "rag_chunks" c,
-                         websearch_to_tsquery('english', $1) q
-                    JOIN "rag_documents" d ON d.id = c.document_id
-                    WHERE c.tsv @@ q
-                    ORDER BY score DESC
-                    LIMIT $2
-                `, query, limit),
+            // Lexical Search (BM25 via tsvector) - Always enabled
+            tasks.push(prisma.$queryRawUnsafe(`
+                SELECT 
+                    c.id,
+                    c.text as content,
+                    d."sourceUri" as source,
+                    d.title,
+                    ts_rank_cd(c.tsv, q) as score
+                FROM "rag_chunks" c,
+                     websearch_to_tsquery('english', $1) q
+                JOIN "rag_documents" d ON d.id = c.document_id
+                WHERE c.tsv @@ q
+                ORDER BY score DESC
+                LIMIT $2
+            `, query, limit));
 
-                // Dense Search (Vector Similarity)
-                prisma.$queryRawUnsafe(`
+            // Dense Search (Vector Similarity) - Conditional
+            if (embeddings) {
+                const queryVector = await embeddings.embedQuery(query);
+                const vectorSql = `[${queryVector.join(',')}]`;
+
+                tasks.push(prisma.$queryRawUnsafe(`
                     SELECT 
                         c.id,
                         c.text as content,
@@ -89,20 +85,21 @@ export class RAGService {
                     WHERE ce.vector_type = 'content'
                     ORDER BY score DESC
                     LIMIT $2
-                `, vectorSql, limit)
-            ]);
+                `, vectorSql, limit));
+            }
 
-            const lexicalRows = lexicalResults as any[];
-            const denseRows = denseResults as any[];
+            const results = await Promise.all(tasks);
+            const lexicalRows = results[0] as any[];
+            const denseRows = results[1] ? (results[1] as any[]) : [];
 
-            // 3. Reciprocal Rank Fusion (RRF)
+            // 2. Reciprocal Rank Fusion (RRF)
             const fusedIds = this.rrfFuse(
                 lexicalRows.map(r => r.id),
                 denseRows.map(r => r.id),
                 60 // k constant
             );
 
-            // 4. Hydrate Results (Map back to content)
+            // 3. Hydrate Results (Map back to content)
             const allRowsMap = new Map([...lexicalRows, ...denseRows].map(r => [r.id, r]));
 
             const fusedResults = fusedIds
@@ -112,15 +109,15 @@ export class RAGService {
 
             logger.info(`🔍 Hybrid Retrieval: Lexical=${lexicalRows.length}, Dense=${denseRows.length} -> Fused=${fusedResults.length}`);
 
-            // 5. Structure for Agents
+            // 4. Structure for Agents
             const evidence = fusedResults.map((r, i) => ({
                 evidence_id: `e${i + 1}`,
                 chunk_id: r.id,
                 source: r.source || r.title,
                 snippet: r.content.slice(0, 220),
                 full_content: r.content,
-                score: r.score, // Note: RRF score isn't preserved here, maybe use rank
-                metadata: { title: r.title, method: "hybrid_rrf" }
+                score: r.score,
+                metadata: { title: r.title, method: embeddings ? "hybrid_rrf" : "lexical_only" }
             }));
 
             return {
@@ -137,7 +134,7 @@ export class RAGService {
             };
 
         } catch (error) {
-            logger.error("Hybrid Retrieval Error:", error);
+            logger.error("Retrieval Error:", error);
             return { chunks: [], evidence: [], metadata: { error: String(error) } };
         }
     }

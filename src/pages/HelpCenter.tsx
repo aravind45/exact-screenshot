@@ -386,10 +386,10 @@ export default function HelpCenter() {
                         </Card>
                     </div>
 
-                    {/* Strategic Settlement Paths */}
+                    {/* Strategic Master Plans */}
                     <div className="space-y-6">
                         <div className="flex items-center justify-between px-1">
-                            <h2 className="text-xl font-bold text-slate-900">Strategic Settlement Paths</h2>
+                            <h2 className="text-xl font-bold text-slate-900">Strategic Master Plans</h2>
                             <Badge variant="outline" className="bg-indigo-50 text-indigo-700 border-indigo-100 text-[10px] uppercase font-black tracking-widest px-2 py-0.5">
                                 Strategy Guide
                             </Badge>

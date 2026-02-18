@@ -48,7 +48,7 @@ const PHASE_COLORS: Record<string, {
 }> = {
   immediate_actions: {
     border: 'border-indigo-200 hover:border-indigo-400',
-    bgActive: 'bg-indigo-50/60',
+    bgActive: 'bg-white',
     bgLight: 'bg-indigo-50/20',
     text: 'text-indigo-900',
     progress: 'bg-indigo-600',
@@ -56,49 +56,49 @@ const PHASE_COLORS: Record<string, {
     icon: 'text-indigo-600'
   },
   court_filing: {
-    border: 'border-violet-200 hover:border-violet-400',
-    bgActive: 'bg-violet-50/60',
-    bgLight: 'bg-violet-50/20',
-    text: 'text-violet-900',
-    progress: 'bg-violet-600',
-    badge: 'bg-violet-100 text-violet-700 border-violet-200',
-    icon: 'text-violet-600'
+    border: 'border-indigo-200 hover:border-indigo-400',
+    bgActive: 'bg-white',
+    bgLight: 'bg-indigo-50/20',
+    text: 'text-indigo-900',
+    progress: 'bg-indigo-600',
+    badge: 'bg-indigo-100 text-indigo-700 border-indigo-200',
+    icon: 'text-indigo-600'
   },
   asset_discovery: {
-    border: 'border-blue-200 hover:border-blue-400',
-    bgActive: 'bg-blue-50/60',
-    bgLight: 'bg-blue-50/20',
-    text: 'text-blue-900',
-    progress: 'bg-blue-600',
-    badge: 'bg-blue-100 text-blue-700 border-blue-200',
-    icon: 'text-blue-600'
+    border: 'border-indigo-200 hover:border-indigo-400',
+    bgActive: 'bg-white',
+    bgLight: 'bg-indigo-50/20',
+    text: 'text-indigo-900',
+    progress: 'bg-indigo-600',
+    badge: 'bg-indigo-100 text-indigo-700 border-indigo-200',
+    icon: 'text-indigo-600'
   },
   creditor_claims: {
-    border: 'border-amber-200 hover:border-amber-400',
-    bgActive: 'bg-amber-50/60',
-    bgLight: 'bg-amber-50/20',
-    text: 'text-amber-900',
-    progress: 'bg-amber-600',
-    badge: 'bg-amber-100 text-amber-700 border-amber-200',
-    icon: 'text-amber-600'
+    border: 'border-indigo-200 hover:border-indigo-400',
+    bgActive: 'bg-white',
+    bgLight: 'bg-indigo-50/20',
+    text: 'text-indigo-900',
+    progress: 'bg-indigo-600',
+    badge: 'bg-indigo-100 text-indigo-700 border-indigo-200',
+    icon: 'text-indigo-600'
   },
   asset_liquidation: {
-    border: 'border-emerald-200 hover:border-emerald-400',
-    bgActive: 'bg-emerald-50/60',
-    bgLight: 'bg-emerald-50/20',
-    text: 'text-emerald-900',
-    progress: 'bg-emerald-600',
-    badge: 'bg-emerald-100 text-emerald-700 border-emerald-200',
-    icon: 'text-emerald-600'
+    border: 'border-indigo-200 hover:border-indigo-400',
+    bgActive: 'bg-white',
+    bgLight: 'bg-indigo-50/20',
+    text: 'text-indigo-900',
+    progress: 'bg-indigo-600',
+    badge: 'bg-indigo-100 text-indigo-700 border-indigo-200',
+    icon: 'text-indigo-600'
   },
   final_distribution: {
-    border: 'border-orange-200 hover:border-orange-400',
-    bgActive: 'bg-orange-50/60',
-    bgLight: 'bg-orange-50/20',
-    text: 'text-orange-900',
-    progress: 'bg-orange-600',
-    badge: 'bg-orange-100 text-orange-700 border-orange-200',
-    icon: 'text-orange-600'
+    border: 'border-indigo-200 hover:border-indigo-400',
+    bgActive: 'bg-white',
+    bgLight: 'bg-indigo-50/20',
+    text: 'text-indigo-900',
+    progress: 'bg-indigo-600',
+    badge: 'bg-indigo-100 text-indigo-700 border-indigo-200',
+    icon: 'text-indigo-600'
   }
 };
 
@@ -404,66 +404,60 @@ export function CollapsiblePhaseChevron({ onTaskToggle }: CollapsiblePhaseChevro
                         <div
                           key={task.id}
                           className={cn(
-                            "flex items-start gap-2.5 p-2.5 rounded-lg border transition-all",
+                            "flex items-start gap-4 p-4 rounded-xl border transition-all duration-200",
                             isTaskCompleted
-                              ? "bg-green-50 border-green-200"
-                              : isLockedByDependency
-                                ? "bg-slate-50 border-slate-200 opacity-70"
-                                : task.category === 'probate'
-                                  ? "bg-amber-50 border-amber-200 hover:border-amber-400"
-                                  : task.category === 'court-issued'
-                                    ? "bg-violet-50 border-violet-200 hover:border-violet-400"
-                                    : "bg-white border-slate-200 hover:border-primary/30",
-                            isNext && !isLockedByDependency && "ring-2 ring-primary/20 border-primary shadow-sm"
+                              ? "bg-white border-slate-100 opacity-60"
+                              : isNext && !isLockedByDependency
+                                ? "bg-indigo-50/30 border-indigo-200 ring-1 ring-indigo-200 shadow-sm"
+                                : "bg-white border-slate-200 hover:border-indigo-200",
+                            isLockedByDependency && "bg-slate-50 border-slate-200 opacity-60"
                           )}
                         >
-                          {/* Checkbox */}
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <div>
-                                  <Checkbox
-                                    checked={isTaskCompleted}
-                                    onCheckedChange={(checked) => onTaskToggle(task.id, !!checked, task.title, phaseData.title)}
-                                    className="mt-0.5"
-                                    disabled={isLockedByDependency}
-                                  />
-                                </div>
-                              </TooltipTrigger>
-                              {isLockedByDependency && (
-                                <TooltipContent>
-                                  <p>Complete required tasks first</p>
-                                </TooltipContent>
+                          {/* Round Checkbox (Custom Style) */}
+                          <div className="mt-1">
+                            <button
+                              onClick={() => !isLockedByDependency && onTaskToggle(task.id, !isTaskCompleted, task.title, phaseData.title)}
+                              className={cn(
+                                "w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all",
+                                isTaskCompleted
+                                  ? "bg-green-500 border-green-500"
+                                  : isNext
+                                    ? "bg-white border-indigo-500 hover:bg-indigo-50"
+                                    : "bg-white border-slate-300 hover:border-indigo-400",
+                                isLockedByDependency && "border-slate-200 cursor-not-allowed"
                               )}
-                            </Tooltip>
-                          </TooltipProvider>
+                              disabled={isLockedByDependency}
+                            >
+                              {isTaskCompleted && <CheckCircle className="w-3.5 h-3.5 text-white" />}
+                            </button>
+                          </div>
 
                           {/* Task Content */}
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1 flex-wrap">
                               <h4 className={cn(
-                                "text-sm font-semibold",
-                                isTaskCompleted ? "line-through text-slate-500" : "text-slate-900",
+                                "text-sm font-semibold tracking-tight",
+                                isTaskCompleted ? "line-through text-slate-400" : "text-slate-900",
                                 isLockedByDependency && "text-slate-400"
                               )}>
                                 {task.title}
                               </h4>
-                              {isNext && !isLockedByDependency && <Badge variant="secondary" className="bg-primary/10 text-primary text-[8px] font-black uppercase h-4 px-1">Next Step</Badge>}
-                              {task.isOptional && <Badge variant="outline" className="text-slate-500 text-[8px] uppercase tracking-wider h-4 px-1 border-slate-300">Optional</Badge>}
+                              {isNext && !isLockedByDependency && <Badge variant="secondary" className="bg-indigo-100 text-indigo-700 text-[9px] font-bold uppercase h-5 px-1.5 tracking-tight border border-indigo-200">Next Step</Badge>}
+                              {task.isOptional && <Badge variant="outline" className="text-slate-500 text-[9px] uppercase tracking-wider h-5 px-1.5 border-slate-200">Optional</Badge>}
                               {task.deadlineWarningId && (
-                                <Badge variant="destructive" className="bg-red-50 text-red-600 border-red-200 text-[8px] font-bold h-4 px-1 gap-1 hover:bg-red-100">
-                                  <CalendarClock className="w-2.5 h-2.5" />
+                                <Badge variant="destructive" className="bg-red-50 text-red-600 border-red-200 text-[9px] font-bold h-5 px-1.5 gap-1 hover:bg-red-100">
+                                  <CalendarClock className="w-3 h-3" />
                                   Check Deadline
                                 </Badge>
                               )}
                               {isLockedByDependency && (
-                                <Badge variant="secondary" className="bg-slate-100 text-slate-500 text-[8px] uppercase tracking-wider h-4 px-1 border-slate-200 gap-1">
-                                  <Ban className="w-2.5 h-2.5" />
+                                <Badge variant="secondary" className="bg-slate-100 text-slate-500 text-[9px] uppercase tracking-wider h-5 px-1.5 border-slate-200 gap-1">
+                                  <Ban className="w-3 h-3" />
                                   Locked
                                 </Badge>
                               )}
                             </div>
-                            <p className="text-xs text-slate-600 mb-2">{task.description}</p>
+                            <p className="text-xs text-slate-500 leading-relaxed mb-3">{task.description}</p>
 
                             {/* Integrated Document Controls */}
                             {!isTaskCompleted && (
@@ -517,9 +511,9 @@ export function CollapsiblePhaseChevron({ onTaskToggle }: CollapsiblePhaseChevro
                                       <Button
                                         variant="outline"
                                         size="sm"
-                                        className="h-7 px-2 text-[10px] bg-indigo-50 border-indigo-200 text-indigo-700 hover:bg-indigo-100 font-bold uppercase tracking-tight gap-1.5"
+                                        className="h-8 px-3 text-xs bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-900 font-medium tracking-tight gap-2 shadow-sm"
                                       >
-                                        <FileUp className="w-3 h-3" />
+                                        <FileUp className="w-3.5 h-3.5 text-slate-500" />
                                         Upload {doc}
                                       </Button>
                                       <input

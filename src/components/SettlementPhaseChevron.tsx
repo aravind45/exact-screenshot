@@ -17,28 +17,28 @@ const DEFAULT_PHASES: PhaseConfig[] = [
     title: "Strategic Assessment",
     subtitle: "Secure & Notify",
     milestone: "Death to Filing",
-    color: "bg-red-500"
+    color: "bg-indigo-500"
   },
   {
     id: "court_filing",
     title: "Petition & Authority",
     subtitle: "Obtaining Powers",
     milestone: "After Petition Filed",
-    color: "bg-orange-500"
+    color: "bg-indigo-500"
   },
   {
     id: "asset_discovery",
     title: "Asset Discovery",
     subtitle: "Inventory & Appraisal",
     milestone: "After Letters Issued",
-    color: "bg-yellow-500"
+    color: "bg-indigo-500"
   },
   {
     id: "creditor_claims",
     title: "Creditor Claims",
     subtitle: "Notice & Priority",
     milestone: "After Notice Published",
-    color: "bg-blue-500"
+    color: "bg-indigo-500"
   },
   {
     id: "asset_liquidation",
@@ -52,7 +52,7 @@ const DEFAULT_PHASES: PhaseConfig[] = [
     title: "Final Distribution",
     subtitle: "Estate In Closing",
     milestone: "After Claim Period",
-    color: "bg-green-500"
+    color: "bg-indigo-500"
   }
 ];
 
@@ -96,10 +96,10 @@ export function SettlementPhaseChevron({
                   className={cn(
                     "relative h-20 w-52 flex items-center justify-center transition-all duration-300",
                     "clip-chevron",
-                    isCompleted && "bg-gradient-to-r from-green-600 to-green-500",
-                    isCurrent && (phase.isEscalationPath ? "bg-gradient-to-r from-amber-600 to-amber-500" : "bg-gradient-to-r from-indigo-600 to-indigo-500"),
-                    isUpcoming && (phase.isEscalationPath ? "bg-amber-50 border-l border-amber-200" : "bg-slate-100"),
-                    isCurrent && "scale-[1.03] z-20 shadow-2xl ring-4 ring-white/40"
+                    isCompleted && "bg-white border-2 border-indigo-100",
+                    isCurrent && "bg-indigo-600 shadow-lg shadow-indigo-200",
+                    isUpcoming && "bg-white border border-slate-100",
+                    isCurrent && "scale-[1.03] z-20"
                   )}
                   style={{
                     clipPath: index === 0
@@ -110,36 +110,39 @@ export function SettlementPhaseChevron({
                   <div className="flex items-center gap-4 px-8">
                     {/* Status Icon */}
                     <div className={cn(
-                      "flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center shadow-sm",
-                      isCompleted && "bg-white/20 backdrop-blur-sm",
-                      isCurrent && "bg-white/30 backdrop-blur-sm ring-2 ring-white/50",
-                      isUpcoming && "bg-slate-200"
+                      "flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center",
+                      isCompleted && "text-indigo-600 bg-indigo-50",
+                      isCurrent && "text-indigo-600 bg-white shadow-sm",
+                      isUpcoming && "text-slate-300"
                     )}>
-                      {isCompleted && <Check className="w-5 h-5 text-white" />}
-                      {isCurrent && <Clock className="w-5 h-5 text-white animate-pulse" />}
-                      {isUpcoming && <Lock className="w-4 h-4 text-slate-400" />}
+                      {isCompleted && <Check className="w-3.5 h-3.5" />}
+                      {isCurrent && <Lock className="w-3.5 h-3.5 hidden" />} {/* Current phase has no icon in screenshot, just text? Actually screenshot has no icon for current. */}
+                      {isUpcoming && <Lock className="w-3.5 h-3.5" />}
                     </div>
 
                     {/* Phase Info */}
                     <div className="flex flex-col min-w-0">
                       <span className={cn(
-                        "text-sm font-black tracking-tight leading-tight",
-                        (isCompleted || isCurrent) && "text-white",
-                        isUpcoming && (phase.isEscalationPath ? "text-amber-900" : "text-slate-900")
+                        "text-sm font-bold tracking-tight leading-tight",
+                        isCurrent && "text-white",
+                        isCompleted && "text-indigo-900",
+                        isUpcoming && "text-slate-400"
                       )}>
                         {phase.title}
                       </span>
                       <span className={cn(
-                        "text-[11px] font-bold leading-tight mt-0.5",
-                        (isCompleted || isCurrent) && "text-white/90",
-                        isUpcoming && (phase.isEscalationPath ? "text-amber-800" : "text-slate-500")
+                        "text-[10px] font-medium leading-tight mt-0.5 uppercase tracking-wide",
+                        isCurrent && "text-indigo-100",
+                        isCompleted && "text-indigo-600/70",
+                        isUpcoming && "text-slate-400/70"
                       )}>
                         {phase.subtitle}
                       </span>
                       <span className={cn(
-                        "text-[10px] font-medium leading-tight mt-1 opacity-80 uppercase tracking-wider",
-                        (isCompleted || isCurrent) && "text-white/70",
-                        isUpcoming && (phase.isEscalationPath ? "text-amber-700/70" : "text-slate-400")
+                        "text-[9px] font-bold leading-tight mt-1 uppercase tracking-wider",
+                        isCurrent && "text-indigo-200",
+                        isCompleted && "text-indigo-400",
+                        isUpcoming && "text-slate-300"
                       )}>
                         {phase.milestone}
                       </span>

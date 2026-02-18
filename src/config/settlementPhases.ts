@@ -59,8 +59,8 @@ export interface PhaseTaskList {
 export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
   {
     phase: "immediate_actions",
-    title: "Preliminary Assessment",
-    subtitle: "Determine Strategy",
+    title: "Strategic Assessment",
+    subtitle: "Secure & Notify",
     milestone: "Death to Filing",
     description: "Evaluate the estate's characteristics before taking irrevocable actions.",
     tasks: [
@@ -411,8 +411,8 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
   },
   {
     phase: "court_filing",
-    title: "Court Filing",
-    subtitle: "Petition & Authority",
+    title: "Petition & Authority",
+    subtitle: "Obtaining Powers",
     milestone: "After Petition Filed",
     description: "Submitting the probate petition to the court to obtain official fiduciary authority (Letters).",
     tasks: [

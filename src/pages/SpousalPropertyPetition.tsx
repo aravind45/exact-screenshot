@@ -159,7 +159,7 @@ export default function SpousalPropertyPetition() {
                                 <div>
                                     <h4 className="text-[11px] font-black text-amber-900 uppercase">Path Not Applicable</h4>
                                     <p className="text-[10px] text-amber-700 leading-tight">
-                                        Your current settlement path (<strong>{estate?.authorityType}</strong>) is not a dedicated Spousal Property Petition.
+                                        Your current Master Plan (<strong>{estate?.authorityType}</strong>) is not a dedicated Spousal Property Petition.
                                         Using this form may be incorrect.
                                     </p>
                                 </div>

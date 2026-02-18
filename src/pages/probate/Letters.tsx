@@ -74,7 +74,7 @@ export default function Letters() {
                                 <div>
                                     <h4 className="text-[11px] font-black text-amber-900 uppercase">Path Not Applicable</h4>
                                     <p className="text-[10px] text-amber-700 leading-tight">
-                                        Your current settlement path (<strong>{estate.authorityType}</strong>) typically does not require formal Letters of Administration.
+                                        Your current Master Plan (<strong>{estate.authorityType}</strong>) typically does not require formal Letters of Administration.
                                     </p>
                                 </div>
                             </CardContent>

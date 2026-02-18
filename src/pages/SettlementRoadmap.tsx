@@ -151,7 +151,7 @@ export default function SettlementRoadmap() {
             <div className="flex items-center justify-between">
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
-                  <h1 className="text-2xl font-black text-slate-900 tracking-tight">Settlement Path</h1>
+                  <h1 className="text-2xl font-black text-slate-900 tracking-tight">Master Plan</h1>
                   <Badge variant="outline" className="bg-indigo-600 text-white border-none text-[8px] font-black uppercase tracking-tighter px-1.5 h-4">
                     Derived from Ledger
                   </Badge>
@@ -261,7 +261,7 @@ export default function SettlementRoadmap() {
                       )}
                     </div>
                     <p className="text-lg font-bold leading-tight">
-                      {isContested ? "Litigation Hold detected on assets. Settlement path has been updated to the SPECIAL (Contested) overlay." : authorityRec.reason}
+                      {isContested ? "Litigation Hold detected on assets. Your Master Plan has been updated to the SPECIAL (Contested) overlay." : authorityRec.reason}
                     </p>
                     <div className="flex flex-wrap gap-2 mt-4">
                       <div className="flex items-center gap-1.5 px-2 py-1 bg-white/10 rounded border border-white/20">

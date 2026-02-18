@@ -1,0 +1,218 @@
+EXPECTED ESTATE – PROBATE FAQ (SEO-OPTIMIZED VERSION)
+
+Primary Keywords Targeted: probate process, how probate works, executor
+duties, probate timeline, probate cost, avoid probate, small estate
+affidavit, intestate succession, probate court process, estate
+administration checklist
+
+  -------------------------------------------
+  H1: What Is Probate and How Does It Work?
+  -------------------------------------------
+
+1.  What is probate? Probate is the legal court process used to validate
+    a will, appoint an executor, settle debts, and distribute assets
+    after someone passes away.
+
+2.  How does the probate process work step-by-step? The probate process
+    generally includes:
+
+-   Filing a petition with probate court
+-   Appointing a personal representative
+-   Identifying and valuing assets
+-   Notifying creditors
+-   Paying debts and taxes
+-   Distributing remaining assets
+-   Closing the estate
+
+3.  When is probate required? Probate is required when a person dies
+    owning assets solely in their name without beneficiary designations
+    or joint ownership.
+
+4.  When can probate be avoided? Probate can be avoided if assets are
+    held in a living trust, jointly owned with survivorship rights, or
+    have payable-on-death (POD) or transfer-on-death (TOD) designations.
+
+  ---------------------------------
+  H2: How Long Does Probate Take?
+  ---------------------------------
+
+5.  How long does probate take? Most probate cases take 6–18 months
+    depending on state law, estate complexity, and whether disputes
+    arise.
+
+6.  Why does probate take so long? Common delays include creditor claim
+    periods, real estate sales, tax filings, and beneficiary
+    disagreements.
+
+  ---------------------------------
+  H2: How Much Does Probate Cost?
+  ---------------------------------
+
+7.  How much does probate cost? Costs vary by state and estate size but
+    may include court fees, attorney fees, executor fees, appraisal
+    fees, and publication costs.
+
+8.  Are probate attorney fees required? Not always, but complex estates
+    often require legal representation.
+
+  ------------------------------------------
+  H2: Executor Duties and Responsibilities
+  ------------------------------------------
+
+9.  What are the duties of an executor? An executor must:
+
+-   Secure assets
+-   Open an estate bank account
+-   Notify creditors
+-   File tax returns
+-   Maintain records
+-   Distribute assets according to the will
+
+10. Can an executor be held personally liable? Yes. Executors have
+    fiduciary duties and may be liable for negligence or improper
+    distributions.
+
+  ----------------------------------------
+  H2: Probate Without a Will (Intestate)
+  ----------------------------------------
+
+11. What happens if someone dies without a will? The estate is
+    distributed according to state intestate succession laws.
+
+12. Who inherits under intestate succession? Typically surviving spouse,
+    children, parents, or siblings in a priority order defined by state
+    law.
+
+  ----------------------------
+  H2: Small Estate Affidavit
+  ----------------------------
+
+13. What is a small estate affidavit? A simplified process allowing
+    heirs to collect assets without full probate if the estate falls
+    below a state threshold.
+
+14. What is the small estate limit? The limit varies by state and is
+    defined by statute.
+
+  ------------------------------------------
+  H2: Probate Assets vs Non-Probate Assets
+  ------------------------------------------
+
+15. What are probate assets? Assets solely owned by the deceased without
+    named beneficiaries.
+
+16. What are non-probate assets? Assets that pass automatically to
+    beneficiaries, such as:
+
+-   Life insurance
+-   Retirement accounts
+-   Joint bank accounts
+-   Trust property
+
+  -----------------------------
+  H2: Probate for Real Estate
+  -----------------------------
+
+17. Does real estate go through probate? Yes, if solely owned by the
+    deceased.
+
+18. What is ancillary probate? Ancillary probate is required if the
+    deceased owned property in another state.
+
+  --------------------------------
+  H2: Probate Timeline Checklist
+  --------------------------------
+
+19. What is the first step in probate? File a petition in the probate
+    court located in the decedent’s county of residence.
+
+20. When can beneficiaries receive distributions? Distributions usually
+    occur after creditor periods expire and taxes are resolved.
+
+  -----------------------
+  H2: Probate and Taxes
+  -----------------------
+
+21. Does every estate pay estate tax? No. Federal estate tax applies
+    only above exemption thresholds.
+
+22. Are income taxes required after death? Yes. A final individual tax
+    return and possibly an estate income tax return (Form 1041) may be
+    required.
+
+  -------------------------------
+  H2: Can Probate Be Contested?
+  -------------------------------
+
+23. Can a will be contested? Yes. Grounds include lack of capacity,
+    undue influence, fraud, or improper execution.
+
+24. What happens during probate litigation? The court reviews evidence
+    and determines validity or resolves disputes.
+
+  --------------------------------
+  H2: Probate for Digital Assets
+  --------------------------------
+
+25. Are digital assets part of probate? Yes, if solely owned. Executors
+    may need court authority to access accounts.
+
+  ---------------------------------
+  H2: International Beneficiaries
+  ---------------------------------
+
+26. Can foreign beneficiaries inherit? Yes, but tax withholding and
+    documentation requirements may apply.
+
+  --------------------------
+  H2: How to Start Probate
+  --------------------------
+
+27. What documents are needed to start probate?
+
+-   Death certificate
+-   Original will (if available)
+-   Asset list
+-   Names and addresses of heirs
+
+28. Where do you file probate? In the probate court of the county where
+    the deceased lived.
+
+  -------------------------------------
+  H2: Probate vs Trust Administration
+  -------------------------------------
+
+29. Does a trust avoid probate? Yes. Assets properly funded into a
+    living trust bypass probate.
+
+30. What is a pour-over will? A will that directs assets into a trust
+    upon death.
+
+  -----------------------------------------
+  H2: Frequently Asked Executor Questions
+  -----------------------------------------
+
+31. Can an executor sell property during probate? Yes, subject to court
+    approval in some states.
+
+32. Can probate be done without a lawyer? In simple estates, yes.
+    Complex estates typically require legal guidance.
+
+33. Is probate public record? Yes. Probate filings are generally public
+    documents.
+
+34. How do I track probate progress? Executors should maintain an estate
+    administration checklist and timeline.
+
+  ------------------------
+  CALL TO ACTION SECTION
+  ------------------------
+
+Need help organizing probate tasks step-by-step?
+
+ExpectedEstate provides a guided probate workflow engine that helps
+executors: - Identify required legal paths - Track deadlines - Organize
+assets and liabilities - Monitor creditor periods - Prepare distribution
+summaries
+
+Start your estate settlement dashboard today.

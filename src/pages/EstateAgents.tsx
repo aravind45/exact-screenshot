@@ -3,12 +3,13 @@ import { useParams } from 'react-router-dom';
 import { FormFillingAgent } from '../components/agents/FormFillingAgent';
 import { ChecklistAgent } from '../components/agents/ChecklistAgent';
 import { TimelineAgent } from '../components/agents/TimelineAgent';
-import { Bot, FileText, CheckSquare, Calendar } from 'lucide-react';
+import { Bot, FileText, CheckSquare, Calendar, Search } from 'lucide-react';
 import { Sidebar } from '@/components/Sidebar';
+import { AIChat } from '../components/chat/AIChat';
 
 export default function EstateAgents() {
     const { estateId } = useParams<{ estateId: string }>();
-    const [activeTab, setActiveTab] = useState<'forms' | 'checklist' | 'timeline'>('checklist');
+    const [activeTab, setActiveTab] = useState<'forms' | 'checklist' | 'timeline' | 'research'>('checklist');
 
     if (!estateId) {
         return <div>Estate not found</div>;
@@ -18,6 +19,7 @@ export default function EstateAgents() {
         { id: 'checklist' as const, label: 'Checklist', icon: CheckSquare },
         { id: 'timeline' as const, label: 'Timeline', icon: Calendar },
         { id: 'forms' as const, label: 'Form Assistant', icon: FileText },
+        { id: 'research' as const, label: 'Legal Research', icon: Search },
     ];
 
     return (
@@ -49,8 +51,8 @@ export default function EstateAgents() {
                                             key={tab.id}
                                             onClick={() => setActiveTab(tab.id)}
                                             className={`flex items-center gap-2 px-6 py-4 border-b-2 font-medium text-sm transition-colors ${isActive
-                                                    ? 'border-blue-600 text-blue-600'
-                                                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                                ? 'border-blue-600 text-blue-600'
+                                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                                                 }`}
                                         >
                                             <Icon className="w-5 h-5" />
@@ -81,6 +83,10 @@ export default function EstateAgents() {
                                 }}
                             />
                         )}
+
+                        {activeTab === 'research' && (
+                            <AIChat />
+                        )}
                     </div>
 
                     {/* Info Box */}
@@ -93,6 +99,7 @@ export default function EstateAgents() {
                                     <li>• <strong>Checklist:</strong> AI analyzes your estate and creates a personalized action plan</li>
                                     <li>• <strong>Timeline:</strong> Calculates all statutory deadlines based on California law</li>
                                     <li>• <strong>Form Assistant:</strong> Automatically fills probate forms using your estate data</li>
+                                    <li>• <strong>Legal Research:</strong> Answers complex questions using California statutes and expert legal guides</li>
                                 </ul>
                                 <p className="text-xs text-blue-700 mt-3">
                                     AI-generated content provides educational guidance to help you navigate the process. For personalized advice, consider consulting with a qualified professional.

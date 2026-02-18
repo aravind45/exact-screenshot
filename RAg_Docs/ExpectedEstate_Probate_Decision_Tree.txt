@@ -1,0 +1,134 @@
+EXPECTED ESTATE – PROBATE DECISION TREE ENGINE
+
+ROOT NODE: DEATH EVENT
+
+Input Required: - Death Certificate (Yes/No) - State of Domicile - Date
+of Death
+
+IF Death Certificate = No → STOP (Cannot Proceed) IF Yes → Move to NODE
+1
+
+------------------------------------------------------------------------
+
+NODE 1: ESTATE PLANNING DOCUMENT CHECK
+
+Q1: Is there a valid Will? (Yes/No/Unknown) Q2: Is there a Revocable
+Living Trust? (Yes/No) Q3: Are there Beneficiary Designations? (Yes/No)
+
+IF Trust = Yes → PATH T1 (Trust Administration Primary) IF Will = Yes
+AND Trust = No → PATH P1 (Formal Probate - Testate) IF Will = No → PATH
+P2 (Intestate Probate) IF Only Beneficiary Assets → PATH NP1
+(Non-Probate Distribution)
+
+------------------------------------------------------------------------
+
+PATH T1: TRUST ADMINISTRATION
+
+-   Verify trust funding
+-   Identify successor trustee
+-   Inventory trust assets
+-   Notify beneficiaries
+-   Administer per trust terms IF Unfunded assets exist → Branch to
+    Probate Sub-Path
+
+------------------------------------------------------------------------
+
+PATH P1: FORMAL PROBATE (WILL EXISTS)
+
+NODE P1-1: Petition Filing - File Petition for Probate - Submit original
+will - Request Letters Testamentary
+
+NODE P1-2: Executor Qualification - Bond Required? (Yes/No) - Oath
+Filed?
+
+NODE P1-3: Asset Classification Classify Assets: A. Sole Ownership →
+Probate Asset B. Joint Tenancy → Transfer to Survivor C. POD/TOD →
+Direct Transfer D. Trust-Owned → Exclude from Probate
+
+IF Probate Asset Value < Small Estate Threshold → Redirect to PATH SE1
+
+NODE P1-4: Creditor Management - Publish Notice to Creditors - Claims
+Bar Date Calculation - Validate Claims - Apply Priority Order: 1. Admin
+Expenses 2. Secured Debts 3. Funeral Costs 4. Taxes 5. Unsecured Debts
+
+NODE P1-5: Tax Compliance - Final 1040 - Estate 1041 - Estate Tax (if
+applicable)
+
+NODE P1-6: Distribution - Partial Distribution Allowed? - Final
+Accounting - Court Approval - Close Estate
+
+------------------------------------------------------------------------
+
+PATH P2: INTESTATE PROBATE (NO WILL)
+
+NODE P2-1: Heir Determination Apply State Intestacy Rules: - Surviving
+Spouse? - Children? - Parents? - Siblings?
+
+NODE P2-2: Administrator Appointment - Petition Court - Letters of
+Administration - Bond Requirement?
+
+Follow same Asset, Creditor, Tax, and Distribution nodes as P1
+
+------------------------------------------------------------------------
+
+PATH SE1: SMALL ESTATE PROCEDURE
+
+Eligibility Check: - Estate Value Below State Threshold? - Real Property
+Included?
+
+IF Eligible: - Prepare Small Estate Affidavit - Collect Assets
+Directly - No Formal Court Supervision
+
+------------------------------------------------------------------------
+
+PATH NP1: NON-PROBATE TRANSFER
+
+Asset Types: - Life Insurance (Beneficiary Designated) - Retirement
+Accounts - Joint Accounts - TOD/POD Accounts
+
+Action: - Provide Death Certificate - Complete Claim Forms - Direct
+Transfer to Beneficiary
+
+------------------------------------------------------------------------
+
+SPECIAL BRANCHES
+
+BR1: REAL ESTATE IN MULTIPLE STATES → Trigger Ancillary Probate Node
+
+BR2: BUSINESS OWNERSHIP → Review Operating Agreement → Transfer
+Restrictions Check
+
+BR3: DIGITAL ASSETS → Apply RUFADAA → Obtain Court Authorization if
+Required
+
+BR4: MINOR BENEFICIARY → Guardianship or Restricted Account Required
+
+BR5: FOREIGN BENEFICIARY → Tax Withholding Review → Apostille
+Documentation
+
+BR6: INSOLVENT ESTATE → Apply Statutory Priority → No Beneficiary
+Distribution if Insufficient Funds
+
+------------------------------------------------------------------------
+
+CLOSURE NODE
+
+Conditions to Close: - Creditor Period Expired - Taxes Filed - Assets
+Distributed - Final Accounting Approved
+
+Status = ESTATE CLOSED
+
+------------------------------------------------------------------------
+
+ENGINE IMPLEMENTATION LOGIC (FOR PATH ENGINE)
+
+Each Node Should Contain: - Node_ID - Eligibility_Conditions -
+Required_Documents - Risk_Flags - Next_Node_On_Yes - Next_Node_On_No -
+Compliance_Checklist - Deadline_Timer - Responsible_Role
+(Executor/Trustee/Court)
+
+This structure allows: - Dynamic branching - Conditional routing -
+Multi-path estate handling - Risk-based alerts - Executor dashboard
+tracking
+
+END OF DECISION TREE

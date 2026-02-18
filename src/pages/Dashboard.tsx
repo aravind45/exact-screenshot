@@ -329,157 +329,162 @@ export default function Dashboard() {
       <Sidebar />
 
       <div className="flex-1 ml-64 flex flex-col">
-        <main className="max-w-[1240px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8 space-y-6">
+        <main className="max-w-[1440px] w-full mx-auto px-4 sm:px-8 py-8 space-y-8">
           {/* Top Metadata Bar */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 pb-2">
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="flex items-center gap-4"
-            >
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2">
-                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/5 text-primary text-[10px] font-black uppercase tracking-[0.2em] border border-primary/10">
-                    <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                    Estate Active
-                  </div>
-                  {estate?.probateStatus && estate.probateStatus !== "NOT_STARTED" && (
-                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-50 text-indigo-700 text-[10px] font-black uppercase tracking-[0.2em] border border-indigo-100">
-                      {getStatusLabel(estate.probateStatus)}
-                    </div>
-                  )}
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-slate-100"
+          >
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-50 text-indigo-600 text-[10px] font-black uppercase tracking-[0.2em] border border-indigo-100/50">
+                  <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse outline outline-4 outline-indigo-500/20" />
+                  Estate Active
                 </div>
-                {estate?.estateType && estate.estateType !== "UNSET" && (
-                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900/5 text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] border border-slate-200">
-                    {estate.estateType.replace(/_/g, " ")} TRACK
+                {estate?.probateStatus && estate.probateStatus !== "NOT_STARTED" && (
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-black uppercase tracking-[0.2em] border border-slate-200/50">
+                    {getStatusLabel(estate.probateStatus)}
                   </div>
                 )}
-                <ProbateStatusUpdater
-                  currentStatus={estate?.probateStatus || "NOT_STARTED"}
-                  currentCaseNumber={estate?.courtCaseNumber}
-                />
               </div>
-              <div className="h-6 w-px bg-slate-200 hidden sm:block" />
-              <div className="flex flex-col">
-                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.1em] hidden sm:block">
-                  Managing: <span className="text-slate-900 font-black">{estate?.deceasedFirstName} {estate?.deceasedLastName}</span>
+              <div className="h-4 w-px bg-slate-200 hidden md:block" />
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-50 text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] border border-slate-200/50">
+                {authorityType.replace(/_/g, " ")} TRACK
+              </div>
+              <ProbateStatusUpdater
+                currentStatus={estate?.probateStatus || "NOT_STARTED"}
+                currentCaseNumber={estate?.courtCaseNumber}
+              />
+            </div>
+
+            <div className="flex items-center gap-4">
+              <div className="flex flex-col items-end">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">
+                  Managing
                 </p>
-                {estate?.courtCaseNumber && (
-                  <p className="text-[10px] font-medium text-indigo-600 uppercase tracking-[0.05em] hidden sm:block">
-                    Case: {estate.courtCaseNumber}
-                  </p>
-                )}
+                <p className="text-sm font-black text-slate-900 tracking-tight">
+                  {estate?.deceasedFirstName} {estate?.deceasedLastName}
+                </p>
               </div>
-            </motion.div>
-          </div>
+              {estate?.courtCaseNumber && (
+                <>
+                  <div className="h-8 w-px bg-slate-200" />
+                  <div className="flex flex-col items-end">
+                    <p className="text-[10px] font-black text-indigo-600 uppercase tracking-widest leading-none mb-1">
+                      Case Number
+                    </p>
+                    <p className="text-sm font-black text-slate-900 tracking-tight uppercase">
+                      {estate.courtCaseNumber}
+                    </p>
+                  </div>
+                </>
+              )}
+            </div>
+          </motion.div>
 
 
 
 
           {/* Stat Cards - Full Row */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-premium flex flex-col justify-between hover:border-primary/20 transition-all hover:scale-[1.02] group">
-              <div className="flex justify-between items-start mb-6">
-                <div className="p-3 bg-primary/5 rounded-xl group-hover:bg-primary group-hover:text-white transition-colors">
-                  <DollarSign className="w-5 h-5 text-primary group-hover:text-white transition-colors stroke-[2.5]" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between hover:shadow-md transition-all group">
+              <div className="flex justify-between items-start mb-8">
+                <div className="p-3 bg-indigo-50 rounded-2xl group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300">
+                  <DollarSign className="w-5 h-5 text-indigo-600 group-hover:text-white transition-colors" />
                 </div>
-                <div className="text-[10px] font-black text-primary uppercase tracking-widest">Global Assets</div>
+                <div className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Global Assets</div>
               </div>
               <div>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 leading-none">Gross Estate Value</p>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 leading-none">Gross Estate Value</p>
                 {isAssetsLocked ? (
-                  <div className="flex items-baseline gap-1">
-                    <p className="text-3xl font-black text-slate-300 tracking-tighter leading-none">$---</p>
-                    <span className="text-[10px] font-black text-primary uppercase bg-primary/10 px-1.5 py-0.5 rounded">Premium</span>
+                  <div className="flex items-baseline gap-2">
+                    <p className="text-3xl font-black text-slate-200 tracking-tighter leading-none">$---</p>
+                    <Badge className="bg-indigo-600 text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-md border-none">Premium</Badge>
                   </div>
                 ) : (
-                  <p className="text-3xl font-black text-slate-900 tracking-tighter leading-none">${(totalValue / 1000).toFixed(0)}K</p>
+                  <p className="text-4xl font-black text-slate-900 tracking-tighter leading-none">${(totalValue / 1000).toFixed(0)}K</p>
                 )}
               </div>
             </div>
 
-            <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-premium flex flex-col justify-between hover:border-primary/20 transition-all hover:scale-[1.02] group">
-              <div className="flex justify-between items-start mb-6">
-                <div className="p-3 bg-primary/5 rounded-xl group-hover:bg-primary group-hover:text-white transition-colors">
-                  <CheckCircle2 className="w-5 h-5 text-primary group-hover:text-white transition-colors stroke-[2.5]" />
+            <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between hover:shadow-md transition-all group">
+              <div className="flex justify-between items-start mb-8">
+                <div className="p-3 bg-indigo-50 rounded-2xl group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300">
+                  <CheckCircle2 className="w-5 h-5 text-indigo-600 group-hover:text-white transition-colors" />
                 </div>
-                <div className="text-[10px] font-black text-primary uppercase tracking-widest">{completed}/{assets.length} Tasks</div>
+                <div className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">{completed}/{assets.length} Resolved</div>
               </div>
               <div>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 leading-none">Overall Progress</p>
-                <div className="flex items-center gap-3">
-                  {isActivitiesLocked ? (
-                    <div className="flex items-center gap-2">
-                      <p className="text-3xl font-black text-slate-300 tracking-tighter leading-none">--%</p>
-                      <span className="text-[9px] font-bold text-slate-400 uppercase px-1.5 py-0.5 border border-slate-200 rounded-lg">Trial Required</span>
-                    </div>
-                  ) : (
-                    <>
-                      <p className="text-3xl font-black text-slate-900 tracking-tighter leading-none">{progressPercent}%</p>
-                      <div className="flex-1 h-2 bg-slate-50 rounded-full overflow-hidden">
-                        <div className="h-full bg-primary transition-all duration-1000" style={{ width: `${progressPercent}%` }} />
-                      </div>
-                    </>
-                  )}
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 leading-none">Overall Progress</p>
+                <div className="space-y-2">
+                  <div className="flex items-baseline gap-2">
+                    <p className="text-4xl font-black text-slate-900 tracking-tighter leading-none">{progressPercent}%</p>
+                  </div>
+                  <div className="h-1.5 bg-slate-50 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-indigo-600 transition-all duration-1000 ease-out"
+                      style={{ width: `${progressPercent}%` }}
+                    />
+                  </div>
                 </div>
               </div>
             </div>
 
             <div
               className={cn(
-                "p-6 rounded-2xl border transition-all hover:scale-[1.02] shadow-premium flex flex-col justify-between cursor-pointer group",
+                "p-6 rounded-3xl border transition-all cursor-pointer group shadow-sm hover:shadow-md flex flex-col justify-between",
                 attentionNeededCount > 0
-                  ? "bg-primary/[0.02] border-primary/20"
-                  : "bg-white border-slate-100 hover:border-primary/20"
+                  ? "bg-white border-indigo-100 ring-1 ring-indigo-50"
+                  : "bg-white border-slate-100"
               )}
               onClick={() => navigate('/assets')}
             >
-              <div className="flex justify-between items-start mb-6">
+              <div className="flex justify-between items-start mb-8">
                 <div className={cn(
-                  "p-3 rounded-xl transition-colors",
-                  attentionNeededCount > 0 ? "bg-primary text-white shadow-lg shadow-primary/20" : "bg-primary/5 text-primary group-hover:bg-primary group-hover:text-white"
+                  "p-3 rounded-2xl transition-all duration-300",
+                  attentionNeededCount > 0 ? "bg-indigo-600 text-white shadow-lg shadow-indigo-200" : "bg-indigo-50 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white"
                 )}>
-                  <Bell className="w-5 h-5 transition-colors stroke-[2.5]" />
+                  <Bell className="w-5 h-5 transition-colors" />
                 </div>
-                {taxonomyStats.action_required > 0 && <Badge variant="destructive" className="animate-pulse text-[10px] font-black px-2 py-1 rounded-lg tracking-widest uppercase border-none">Urgent</Badge>}
+                {taxonomyStats.action_required > 0 && (
+                  <Badge variant="destructive" className="animate-pulse bg-red-500 text-[8px] font-black px-2 py-1 rounded-md tracking-widest uppercase border-none">
+                    Urgent
+                  </Badge>
+                )}
               </div>
               <div>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 leading-none">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 leading-none">
                   Guidance Required
                 </p>
-                <div className="flex items-center gap-2">
-                  {isAssetsLocked ? (
-                    <p className="text-sm font-bold text-slate-400">Upgrade to View Actions</p>
-                  ) : (
-                    <>
-                      <p className="text-3xl font-black text-slate-900 tracking-tighter leading-none">{attentionNeededCount}</p>
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Required</span>
-                    </>
-                  )}
+                <div className="flex items-baseline gap-2">
+                  <p className="text-4xl font-black text-slate-900 tracking-tighter leading-none">{attentionNeededCount}</p>
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tasks</span>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-premium flex flex-col justify-between hover:border-primary/20 transition-all hover:scale-[1.02] group">
-              <div className="flex justify-between items-start mb-6">
-                <div className="p-3 bg-primary/5 rounded-xl group-hover:bg-primary group-hover:text-white transition-colors">
-                  <Landmark className="w-5 h-5 text-primary group-hover:text-white transition-colors" />
+            <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between hover:shadow-md transition-all group">
+              <div className="flex justify-between items-start mb-8">
+                <div className="p-3 bg-indigo-50 rounded-2xl group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300">
+                  <Landmark className="w-5 h-5 text-indigo-600 group-hover:text-white transition-colors" />
                 </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 text-[8px] uppercase font-black tracking-widest text-indigo-600 hover:bg-indigo-50 px-2 py-0 border border-indigo-100"
+                  disabled={isAssetsLocked}
+                  onClick={() => generateCPAExport(assets, liabilities)}
+                >
+                  {isAssetsLocked ? 'Premium' : 'CPA Export'}
+                </Button>
               </div>
               <div>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 leading-none">Settlement Track</p>
-                <div className="flex items-center justify-between gap-2">
-                  <p className="text-2xl font-black text-slate-900 tracking-tighter leading-none truncate">{authorityType.replace(/_/g, " ")}</p>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 text-[9px] uppercase font-black text-primary hover:bg-primary/10 border border-primary/20 rounded-xl px-3"
-                    disabled={isAssetsLocked}
-                    onClick={() => generateCPAExport(assets, liabilities)}
-                  >
-                    {isAssetsLocked ? 'Premium' : 'CPA Handoff'}
-                  </Button>
-                </div>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 leading-none">Settlement Track</p>
+                <p className="text-4xl font-black text-slate-900 tracking-tighter leading-none truncate antialiased">
+                  {authorityType.split('_')[0]}
+                  <span className="text-indigo-600 text-2xl">.</span>
+                </p>
               </div>
             </div>
           </div>
@@ -491,18 +496,23 @@ export default function Dashboard() {
             <div className="lg:col-span-8 space-y-8">
               <TaxAlerts estate={estate} totalValue={totalValue} />
 
-              <section className="space-y-4">
-                <div className="flex items-center gap-2 px-1">
-                  <Lightbulb className="w-5 h-5 text-indigo-500" />
-                  <h2 className="text-lg font-bold text-slate-900 tracking-tight">Support Requested</h2>
+              <section className="space-y-6">
+                <div className="flex items-center gap-3 px-1">
+                  <div className="w-10 h-10 rounded-2xl bg-indigo-50 flex items-center justify-center">
+                    <Lightbulb className="w-5 h-5 text-indigo-600" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-black text-slate-900 tracking-tight">Support Requested</h2>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Fiduciary Guidance Queue</p>
+                  </div>
                   {(realFollowUps.length > 0 || taxonomyStats.blocked > 0) && (
-                    <Badge variant="secondary" className="bg-amber-100 text-amber-900 text-[10px] border-none">
+                    <Badge variant="secondary" className="bg-indigo-100 text-indigo-700 text-[10px] font-black border-none rounded-lg px-2">
                       {realFollowUps.length + taxonomyStats.blocked}
                     </Badge>
                   )}
                 </div>
 
-                <div className="space-y-3">
+                <div className="space-y-4">
                   {taxonomyStats.blocked > 0 && (
                     <div className="p-4 bg-indigo-50 border border-indigo-100 rounded-2xl flex gap-3 items-start">
                       <div className="p-2 bg-indigo-500 text-white rounded-xl">
@@ -557,23 +567,28 @@ export default function Dashboard() {
               </section>
 
               {/* Recent Proof of Work */}
-              <section className="space-y-4">
+              <section className="space-y-6">
                 <div className="flex items-center justify-between px-1">
-                  <div className="flex items-center gap-2">
-                    <HistoryIcon className="w-5 h-5 text-indigo-500" />
-                    <h2 className="text-lg font-bold text-slate-900 tracking-tight">Recent Proof of Work</h2>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-2xl bg-indigo-50 flex items-center justify-center">
+                      <HistoryIcon className="w-5 h-5 text-indigo-600" />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-black text-slate-900 tracking-tight">Recent Proof of Work</h2>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Immutable Activity Log</p>
+                    </div>
                   </div>
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-7 text-[10px] uppercase font-black text-indigo-600"
+                    className="h-8 text-[10px] uppercase font-black tracking-widest text-indigo-600 hover:bg-indigo-50 border border-indigo-100/50 rounded-xl px-4"
                     onClick={() => navigate('/settlement-trail')}
                   >
-                    View Full Trail
+                    View Trail
                   </Button>
                 </div>
 
-                <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+                <div className="bg-white rounded-3xl border border-slate-100 overflow-hidden shadow-sm">
                   {isTimelineLocked ? (
                     <div className="p-12 text-center flex flex-col items-center justify-center">
                       <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center mb-4">
@@ -660,6 +675,6 @@ export default function Dashboard() {
         </main>
       </div>
       <WelcomeModal />
-    </div>
+    </div >
   );
 }

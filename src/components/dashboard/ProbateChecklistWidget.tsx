@@ -123,7 +123,7 @@ export function ProbateChecklistWidget({ estateType, deceasedState = "CA" }: Pro
                             <Info className="w-5 h-5" />
                         </div>
                         <div>
-                            <h3 className="text-xs font-black text-indigo-900 uppercase tracking-tight">Finalizing Your Settlement Path</h3>
+                            <h3 className="text-xs font-black text-indigo-900 uppercase tracking-tight">Finalizing Your Master Plan</h3>
                             <p className="text-[11px] text-indigo-700 leading-relaxed max-w-lg mt-0.5">
                                 We just need a few more details to calibrate your personalized settlement track and ensure everything is documented correctly.
                             </p>
