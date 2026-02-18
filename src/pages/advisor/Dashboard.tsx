@@ -4,10 +4,11 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Loader2, TrendingUp, Users, Calendar, DollarSign, ArrowUpRight, Settings } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 export default function AdvisorDashboard() {
     const { user } = useAuth();
+    const navigate = useNavigate();
     const [stats, setStats] = useState<any>(null);
     const [upcomingSessions, setUpcomingSessions] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -178,11 +179,19 @@ export default function AdvisorDashboard() {
                             <CardTitle className="text-base">Quick Links</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-2">
-                            <Button variant="outline" className="w-full justify-start h-10">
+                            <Button
+                                variant="outline"
+                                className="w-full justify-start h-10"
+                                onClick={() => navigate('/advisor/payouts')}
+                            >
                                 <DollarSign className="w-4 h-4 mr-2" />
                                 Update Payout Method
                             </Button>
-                            <Button variant="outline" className="w-full justify-start h-10">
+                            <Button
+                                variant="outline"
+                                className="w-full justify-start h-10"
+                                onClick={() => navigate('/advisor/profile')}
+                            >
                                 <Calendar className="w-4 h-4 mr-2" />
                                 Manage Availability
                             </Button>

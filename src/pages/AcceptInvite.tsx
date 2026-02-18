@@ -35,6 +35,8 @@ export default function AcceptInvite() {
         if (!user) {
             // Store target in session storage to redirect after login
             sessionStorage.setItem("after_login_redirect", `/invite/${token}`);
+            // Hint to Auth page that this signup is for an heir
+            sessionStorage.setItem("signup_role", "HEIR");
             navigate("/auth?mode=signup");
             return;
         }

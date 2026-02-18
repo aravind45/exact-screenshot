@@ -13,8 +13,18 @@ import {
   ShieldCheck,
   Info,
   AlertCircle,
-  Zap
+  Zap,
+  Scale,
+  X,
+  FileText
 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
@@ -36,6 +46,24 @@ export default function SettlementRoadmap() {
     queryKey: ['assets'],
     queryFn: api.getAssets,
   });
+
+  // Estate documents — used for document stage-gate checks
+  const { data: uploadedDocs = [] } = useQuery({
+    queryKey: ['estateDocuments'],
+    queryFn: api.getEstateDocuments,
+    enabled: !!estate,
+  });
+
+  // Derive a Set of uploaded document type keys for fast lookup
+  const uploadedDocTypes = useMemo<Set<string>>(() => {
+    const types = new Set<string>();
+    for (const doc of uploadedDocs as any[]) {
+      if (doc.documentType) types.add(doc.documentType.toLowerCase());
+      if (doc.name) types.add(doc.name.toLowerCase());
+      if (doc.type) types.add(doc.type.toLowerCase());
+    }
+    return types;
+  }, [uploadedDocs]);
 
   const authorityRec = useMemo(() => {
     if (!estate) return null;
@@ -61,6 +89,17 @@ export default function SettlementRoadmap() {
 
   const [completedPhases, setCompletedPhases] = useState<SettlementPhase[]>([]);
   const [completedTaskIds, setCompletedTaskIds] = useState<string[]>([]);
+  const [pendingAttorneyTask, setPendingAttorneyTask] = useState<{
+    taskId: string;
+    taskTitle: string;
+  } | null>(null);
+
+  const [pendingDocTask, setPendingDocTask] = useState<{
+    taskId: string;
+    taskTitle: string;
+    requiredDocs: string[];
+    missingDocs: string[];
+  } | null>(null);
 
   useEffect(() => {
     if (estate?.roadmapProgress) {
@@ -102,9 +141,50 @@ export default function SettlementRoadmap() {
 
   const handleTaskToggle = (taskId: string, completed: boolean) => {
     if (completed) {
+      const allTasks = dynamicRoadmap.flatMap(p => p.tasks);
+      const task = allTasks.find(t => t.id === taskId);
+
+      // 1️⃣ Attorney review gate — takes priority
+      if (task?.isAttorneyReviewNode) {
+        setPendingAttorneyTask({ taskId, taskTitle: task.title });
+        return;
+      }
+
+      // 2️⃣ Document stage gate — check required docs vs uploaded
+      if (task?.requiredDocs && (task.requiredDocs as string[]).length > 0) {
+        const required: string[] = task.requiredDocs as string[];
+        const missing = required.filter(doc => {
+          const key = doc.toLowerCase();
+          return !uploadedDocTypes.has(key);
+        });
+        if (missing.length > 0) {
+          setPendingDocTask({
+            taskId,
+            taskTitle: task.title,
+            requiredDocs: required,
+            missingDocs: missing,
+          });
+          return;
+        }
+      }
+
       completeMutation.mutate({ taskId });
     } else {
       uncompleteMutation.mutate(taskId);
+    }
+  };
+
+  const handleAttorneyAcknowledge = () => {
+    if (pendingAttorneyTask) {
+      completeMutation.mutate({ taskId: pendingAttorneyTask.taskId });
+      setPendingAttorneyTask(null);
+    }
+  };
+
+  const handleDocAcknowledge = () => {
+    if (pendingDocTask) {
+      completeMutation.mutate({ taskId: pendingDocTask.taskId });
+      setPendingDocTask(null);
     }
   };
 
@@ -305,17 +385,73 @@ export default function SettlementRoadmap() {
               <Badge variant="outline" className="bg-indigo-50 text-indigo-700 border-indigo-100 text-[9px] font-bold">Acting Executor</Badge>
             </div>
 
+            {/* Sprint 3: Phase-level liability risk alert — shown when any upcoming task is a legal decision point */}
+            {phaseData?.tasks.some(t => !completedTaskIds.includes(t.id) && (t as any).isAttorneyReviewNode) && (
+              <div className="flex items-start gap-3 p-3.5 bg-rose-50 border border-rose-200 rounded-2xl">
+                <div className="w-7 h-7 rounded-lg bg-rose-100 border border-rose-200 flex items-center justify-center shrink-0 mt-0.5">
+                  <AlertCircle className="w-4 h-4 text-rose-600" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[11px] font-black text-rose-900 uppercase tracking-widest leading-none mb-1">Personal Liability Alert</p>
+                  <p className="text-[11px] text-rose-700 leading-relaxed font-medium">
+                    This phase contains <strong>high-risk legal decision points</strong>. Completing them incorrectly can expose you to personal fiduciary liability.{' '}
+                    <button
+                      onClick={() => navigate("/marketplace")}
+                      className="underline underline-offset-2 font-bold text-rose-800 hover:text-rose-900"
+                    >
+                      Consult an estate attorney →
+                    </button>
+                  </p>
+                </div>
+              </div>
+            )}
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {phaseData?.tasks.filter(t => !completedTaskIds.includes(t.id)).slice(0, 3).map(task => (
-                <div key={task.id} className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm hover:border-indigo-300 transition-all group">
+              {phaseData?.tasks.filter(t => !completedTaskIds.includes(t.id)).slice(0, 3).map(task => {
+                const isHighRisk = !!(task as any).isAttorneyReviewNode;
+                const hasMissingDocs = !!(task as any).requiredDocs?.length;
+                return (
+                <div
+                  key={task.id}
+                  className={cn(
+                    "bg-white p-4 rounded-2xl border shadow-sm transition-all group",
+                    isHighRisk
+                      ? "border-rose-200 hover:border-rose-300 bg-rose-50/30"
+                      : "border-slate-200 hover:border-indigo-300"
+                  )}
+                >
                   <div className="flex items-start justify-between mb-2">
-                    <Badge variant="outline" className="text-[8px] font-black uppercase tracking-tight bg-slate-50 border-slate-200 text-slate-500">Next Required</Badge>
-                    <Clock className="w-3.5 h-3.5 text-slate-300 group-hover:text-indigo-400 transition-colors" />
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <Badge variant="outline" className="text-[8px] font-black uppercase tracking-tight bg-slate-50 border-slate-200 text-slate-500">Next Required</Badge>
+                      {isHighRisk && (
+                        <Badge className="text-[8px] font-black uppercase tracking-tight bg-rose-600 text-white border-rose-600 px-1.5">
+                          ⚠ Liability Risk
+                        </Badge>
+                      )}
+                      {hasMissingDocs && !isHighRisk && (
+                        <Badge className="text-[8px] font-black uppercase tracking-tight bg-blue-600 text-white border-blue-600 px-1.5">
+                          <FileText className="w-2.5 h-2.5 mr-0.5" />
+                          Docs Required
+                        </Badge>
+                      )}
+                    </div>
+                    {isHighRisk ? (
+                      <Scale className="w-3.5 h-3.5 text-rose-400 group-hover:text-rose-600 transition-colors" />
+                    ) : (
+                      <Clock className="w-3.5 h-3.5 text-slate-300 group-hover:text-indigo-400 transition-colors" />
+                    )}
                   </div>
                   <h4 className="text-sm font-bold text-slate-900 leading-tight">{task.title}</h4>
                   <p className="text-[11px] text-slate-500 line-clamp-2 mt-1.5">{task.description}</p>
+                  {isHighRisk && (
+                    <div className="mt-2.5 pt-2.5 border-t border-rose-100 flex items-center gap-1.5">
+                      <AlertCircle className="w-3 h-3 text-rose-500 shrink-0" />
+                      <p className="text-[10px] text-rose-600 font-semibold">Attorney review recommended before completing</p>
+                    </div>
+                  )}
                 </div>
-              ))}
+                );
+              })}
               {phaseData?.tasks.filter(t => !completedTaskIds.includes(t.id)).length === 0 && (
                 <div className="col-span-full bg-slate-50 border border-slate-200 rounded-2xl p-6 text-center">
                   <CheckCircle2 className="w-8 h-8 text-emerald-500 mx-auto mb-2 opacity-50" />
@@ -528,6 +664,134 @@ export default function SettlementRoadmap() {
               })}
             </div>
           </div>
+      {/* ── Document Stage-Gate Modal ── */}
+      <Dialog open={!!pendingDocTask} onOpenChange={(open) => { if (!open) setPendingDocTask(null); }}>
+        <DialogContent className="max-w-md rounded-[2rem] p-0 overflow-hidden">
+          {/* Top accent bar */}
+          <div className="h-1.5 bg-gradient-to-r from-blue-500 to-slate-600 w-full" />
+          <div className="p-6 space-y-5">
+            <DialogHeader>
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center shrink-0">
+                  <FileText className="w-6 h-6 text-blue-600" />
+                </div>
+                <div className="flex-1">
+                  <DialogTitle className="text-lg font-black text-slate-900 leading-tight">
+                    Documents Required
+                  </DialogTitle>
+                  <DialogDescription className="text-sm text-slate-600 font-medium mt-1 leading-relaxed">
+                    This task requires certain documents to be uploaded before it can be marked complete.
+                  </DialogDescription>
+                </div>
+              </div>
+            </DialogHeader>
+
+            {/* Task name */}
+            <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4">
+              <p className="text-[9px] font-black text-blue-700 uppercase tracking-widest mb-1">Task</p>
+              <p className="text-sm font-bold text-blue-900">{pendingDocTask?.taskTitle}</p>
+            </div>
+
+            {/* Missing docs list */}
+            <div className="space-y-2">
+              <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                Missing documents ({pendingDocTask?.missingDocs.length})
+              </p>
+              <div className="space-y-1.5">
+                {pendingDocTask?.missingDocs.map((doc) => (
+                  <div key={doc} className="flex items-center gap-2.5 p-2.5 bg-rose-50 border border-rose-100 rounded-xl">
+                    <div className="w-5 h-5 rounded-full bg-rose-100 flex items-center justify-center shrink-0">
+                      <X className="w-3 h-3 text-rose-600" />
+                    </div>
+                    <span className="text-sm font-semibold text-rose-900 capitalize">{doc}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Upload the required documents in the <strong className="text-slate-700">Document Vault</strong> to satisfy this gate, or mark complete anyway if you have them on file elsewhere.
+            </p>
+
+            {/* Action buttons */}
+            <div className="flex flex-col gap-2.5 pt-1">
+              <Button
+                onClick={() => { setPendingDocTask(null); navigate("/documents"); }}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold h-11 rounded-xl shadow-lg shadow-blue-200"
+              >
+                <FileText className="w-4 h-4 mr-2" />
+                Go to Document Vault
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={handleDocAcknowledge}
+                className="w-full text-slate-500 hover:text-slate-700 font-semibold text-sm h-10 rounded-xl hover:bg-slate-50"
+              >
+                I have them elsewhere — mark complete anyway
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Attorney Review Interstitial Modal ── */}
+      <Dialog open={!!pendingAttorneyTask} onOpenChange={(open) => { if (!open) setPendingAttorneyTask(null); }}>
+        <DialogContent className="max-w-md rounded-[2rem] p-0 overflow-hidden">
+          {/* Top accent bar */}
+          <div className="h-1.5 bg-gradient-to-r from-amber-400 to-orange-500 w-full" />
+          <div className="p-6 space-y-5">
+            <DialogHeader>
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-amber-50 border border-amber-100 flex items-center justify-center shrink-0">
+                  <Scale className="w-6 h-6 text-amber-600" />
+                </div>
+                <div className="flex-1">
+                  <DialogTitle className="text-lg font-black text-slate-900 leading-tight">
+                    Attorney Review Recommended
+                  </DialogTitle>
+                  <DialogDescription className="text-sm text-slate-600 font-medium mt-1 leading-relaxed">
+                    This task involves a legal decision that carries personal fiduciary risk.
+                  </DialogDescription>
+                </div>
+              </div>
+            </DialogHeader>
+
+            {/* Task name */}
+            <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4">
+              <p className="text-[9px] font-black text-amber-700 uppercase tracking-widest mb-1">Task</p>
+              <p className="text-sm font-bold text-amber-900">{pendingAttorneyTask?.taskTitle}</p>
+            </div>
+
+            {/* Warning content */}
+            <div className="space-y-3 text-sm text-slate-700 leading-relaxed">
+              <p>
+                Completing this task incorrectly — without proper legal guidance — could expose you to <strong className="text-slate-900">personal liability as executor</strong>.
+              </p>
+              <p className="text-slate-500 text-xs">
+                Courts hold executors to a fiduciary standard. A verified estate attorney can review this step and provide a written opinion that protects you.
+              </p>
+            </div>
+
+            {/* Action buttons */}
+            <div className="flex flex-col gap-2.5 pt-1">
+              <Button
+                onClick={() => navigate("/marketplace")}
+                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold h-11 rounded-xl shadow-lg shadow-indigo-200"
+              >
+                <Scale className="w-4 h-4 mr-2" />
+                Connect with an Attorney
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={handleAttorneyAcknowledge}
+                className="w-full text-slate-500 hover:text-slate-700 font-semibold text-sm h-10 rounded-xl hover:bg-slate-50"
+              >
+                I understand the risk — mark complete anyway
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 }

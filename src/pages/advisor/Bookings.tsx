@@ -38,7 +38,8 @@ export default function AdvisorBookings() {
 
     const { data: bookings, isLoading } = useQuery({
         queryKey: ['advisor-bookings'],
-        queryFn: () => api.bookings.getAdvisorBookings()
+        // Use the marketplace advisor bookings endpoint (GET /api/advisor/bookings)
+        queryFn: () => api.marketplace.getAdvisorBookings(),
     });
 
     const confirmMutation = useMutation({

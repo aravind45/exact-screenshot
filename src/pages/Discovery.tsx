@@ -3,13 +3,14 @@ import { SEO } from "@/components/SEO";
 import { Sidebar } from "@/components/Sidebar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Upload, Search, CheckCircle2, Sparkles, Plus, AlertCircle, Loader2, Info, ArrowRight, ShieldCheck, Zap, Clock } from "lucide-react";
+import { Upload, Search, CheckCircle2, Sparkles, Plus, AlertCircle, Loader2, Info, ArrowRight, ShieldCheck, Zap, Clock, MapPin } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api, DiscoveryCategory, DiscoveryStatus } from "@/lib/api";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
+import { useNavigate } from "react-router-dom";
 import {
     Table,
     TableBody,
@@ -186,6 +187,7 @@ interface DiscoveredAsset {
 
 export default function Discovery() {
     const { user } = useAuth();
+    const navigate = useNavigate();
     const queryClient = useQueryClient();
     const [isDragging, setIsDragging] = useState(false);
     const [findings, setFindings] = useState<DiscoveredAsset[]>([]);
@@ -508,22 +510,54 @@ export default function Discovery() {
                         </AnimatePresence>
                     </div>
 
-                    {/* Discovery Phase Complete Banner (Compact) */}
+                    {/* Discovery Phase Complete Banner — Prominent Roadmap Unlock CTA */}
                     <AnimatePresence>
                         {discoveryStatus?.progress.isComplete && (
                             <motion.div
-                                initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: 'auto' }}
-                                className="bg-emerald-50 rounded-xl p-3 border border-emerald-100 flex items-center gap-3"
+                                initial={{ opacity: 0, y: 16 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.4, ease: "easeOut" }}
+                                className="relative overflow-hidden rounded-[1.75rem] border border-emerald-200 bg-gradient-to-br from-emerald-600 to-teal-700 shadow-2xl shadow-emerald-200/60 p-6"
                             >
-                                <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center shrink-0">
-                                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                                </div>
-                                <div className="flex-1">
-                                    <h3 className="text-sm font-black text-emerald-900">Discovery Phase Complete</h3>
-                                    <p className="text-xs text-emerald-700 font-medium leading-normal">
-                                        All required asset categories have been systematically reviewed. Your diligence record is defensible.
-                                    </p>
+                                {/* Decorative glow rings */}
+                                <div className="absolute -top-8 -right-8 w-36 h-36 rounded-full bg-white/10 pointer-events-none" />
+                                <div className="absolute -bottom-6 -left-6 w-24 h-24 rounded-full bg-white/5 pointer-events-none" />
+
+                                <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center gap-5">
+                                    <div className="w-14 h-14 rounded-2xl bg-white/20 border border-white/30 flex items-center justify-center shrink-0 backdrop-blur-sm">
+                                        <ShieldCheck className="w-7 h-7 text-white" />
+                                    </div>
+
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <Badge className="bg-white/20 text-white border-none text-[8px] font-black uppercase tracking-widest px-2 h-4">
+                                                Phase Complete
+                                            </Badge>
+                                            <Badge className="bg-emerald-400/30 text-emerald-100 border-none text-[8px] font-black uppercase tracking-widest px-2 h-4 animate-pulse">
+                                                Roadmap Unlocked
+                                            </Badge>
+                                        </div>
+                                        <h3 className="text-xl font-black text-white tracking-tight leading-tight">
+                                            Discovery Complete — Your Roadmap Is Ready
+                                        </h3>
+                                        <p className="text-sm text-emerald-100 font-medium mt-1 leading-relaxed">
+                                            All {discoveryStatus.progress.total} asset categories reviewed. Your defensible diligence record has been created. The full probate action plan is now unlocked.
+                                        </p>
+                                    </div>
+
+                                    <div className="flex flex-col gap-2 shrink-0">
+                                        <Button
+                                            onClick={() => navigate("/roadmap")}
+                                            className="bg-white hover:bg-emerald-50 text-emerald-800 font-black text-xs px-6 h-11 rounded-xl shadow-lg shadow-emerald-900/20 transition-all active:scale-95 whitespace-nowrap"
+                                        >
+                                            <MapPin className="w-4 h-4 mr-2" />
+                                            View Your Action Plan
+                                            <ArrowRight className="w-4 h-4 ml-2" />
+                                        </Button>
+                                        <p className="text-[9px] text-emerald-200 font-bold text-center uppercase tracking-widest">
+                                            All 6 phases unlocked
+                                        </p>
+                                    </div>
                                 </div>
                             </motion.div>
                         )}

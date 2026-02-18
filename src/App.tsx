@@ -80,6 +80,8 @@ const AdvisorDashboard = lazy(() => import("./pages/advisor/Dashboard"));
 const AdvisorOnboarding = lazy(() => import("./pages/advisor/Onboarding"));
 const AdvisorDashboardNew = lazy(() => import("./pages/advisor/AdvisorDashboardNew"));
 const AdvisorBookings = lazy(() => import("./pages/advisor/Bookings"));
+const AdvisorProfileSettings = lazy(() => import("./pages/advisor/Profile"));
+const AdvisorAccountSettings = lazy(() => import("./pages/advisor/Settings"));
 const AdvisorMarketplace = lazy(() => import("./pages/AdvisorMarketplace"));
 const AdvisorPayouts = lazy(() => import("./pages/AdvisorPayouts"));
 const MyBookings = lazy(() => import("./pages/MyBookings"));
@@ -266,10 +268,10 @@ const App = () => (
                         </ProtectedRoute>
                       }>
                         <Route path="dashboard" element={<AdvisorDashboard />} />
-                        <Route path="profile" element={<div className="p-8">Profile Settings (Coming Soon)</div>} />
+                        <Route path="profile" element={<AdvisorProfileSettings />} />
                         <Route path="bookings" element={<AdvisorBookings />} />
                         <Route path="earnings" element={<Navigate to="/advisor/payouts" replace />} />
-                        <Route path="settings" element={<div className="p-8">Account Settings (Coming Soon)</div>} />
+                        <Route path="settings" element={<AdvisorAccountSettings />} />
                         <Route path="payouts" element={<AdvisorPayouts />} />
                       </Route>
 

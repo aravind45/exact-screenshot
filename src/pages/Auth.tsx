@@ -5,7 +5,7 @@ import { api } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Landmark, ArrowRight, Loader2, ShieldCheck, Clock, FileCheck, ChevronLeft, Briefcase, User } from 'lucide-react';
+import { Landmark, ArrowRight, Loader2, ShieldCheck, Clock, FileCheck, ChevronLeft, Briefcase, User, Users } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from '@/hooks/use-toast';
 import { z } from 'zod';
@@ -18,7 +18,7 @@ const emailSchema = z.string().trim().email('Please enter a valid email address'
 const passwordSchema = z.string().min(8, 'Password must be at least 8 characters');
 const nameSchema = z.string().trim().min(1, 'Name is required').max(100, 'Name is too long');
 
-type UserType = 'EXECUTOR' | 'ADVISOR';
+type UserType = 'EXECUTOR' | 'ADVISOR' | 'HEIR';
 
 // Helper function to determine default dashboard based on user role/type
 const getDefaultDashboard = (user: { role?: string; userType?: string } | null): string => {
@@ -72,6 +72,20 @@ export default function Auth() {
       setStep('form');
     }
   }, [authMode, userType, initialRole]);
+
+  // Detect invite flow — pre-select HEIR when coming from an invitation link
+  const [isInviteFlow, setIsInviteFlow] = useState(false);
+  useEffect(() => {
+    if (signupMode) {
+      const pendingRedirect = sessionStorage.getItem("after_login_redirect");
+      const signupRole = sessionStorage.getItem("signup_role");
+      if (pendingRedirect?.includes('/invite/') || signupRole === 'HEIR') {
+        setUserType('HEIR');
+        setIsInviteFlow(true);
+        setStep('form');
+      }
+    }
+  }, [signupMode]);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -219,6 +233,17 @@ export default function Auth() {
             trackEvent('intake_started', { role: 'ADVISOR', email });
             console.log('[AUTH] Routing advisor to /advisor/onboarding');
             navigate('/advisor/onboarding');
+          } else if (selectedType === 'HEIR' || newUser?.role === 'HEIR' || newUser?.userType === 'HEIR') {
+            // Heir: go back to the invite link if present, otherwise dashboard
+            trackEvent('intake_started', { role: 'HEIR', email });
+            // Clear signup_role hint
+            sessionStorage.removeItem("signup_role");
+            console.log('[AUTH] Routing heir to invite or dashboard');
+            if (redirect?.includes('/invite/')) {
+              navigate(redirect);
+            } else {
+              navigate('/dashboard');
+            }
           } else {
             trackEvent('intake_started', { role: 'EXECUTOR', email });
             console.log('[AUTH] Routing executor to /onboarding');
@@ -363,14 +388,19 @@ export default function Auth() {
                   <h1 className="text-4xl font-['Outfit'] font-black text-slate-900 mb-3 tracking-tight">
                     {step === 'type-selection' ? 'Choose Account Type' :
                       authMode === 'login' ? 'Welcome Back' :
-                        authMode === 'signup' ? (userType === 'ADVISOR' ? 'Advisor Registration' : 'Executor Registration') :
-                          'Reset Password'}
+                        authMode === 'signup'
+                          ? userType === 'ADVISOR' ? 'Advisor Registration'
+                            : userType === 'HEIR' ? 'Heir Registration'
+                            : 'Executor Registration'
+                          : 'Reset Password'}
                   </h1>
                   <p className="text-slate-500 font-medium">
                     {step === 'type-selection'
                       ? 'Select how you will be using ExpectedEstate.'
                       : authMode === 'login'
                         ? 'Select your access method below to continue.'
+                        : authMode === 'signup' && userType === 'HEIR'
+                          ? 'Create your beneficiary account to view your estate share.'
                         : authMode === 'signup'
                           ? `Create your ${userType?.toLowerCase() || 'account'} profile to get started.`
                           : 'Enter your email to receive a secure reset link.'}
@@ -414,6 +444,21 @@ export default function Auth() {
                     </div>
                     <p className="text-slate-500 text-sm ml-[60px]">
                       I'm a professional offering services to estates (Attorney, CPA, Realtor).
+                    </p>
+                  </button>
+
+                  <button
+                    onClick={() => { setUserType('HEIR'); setStep('form'); }}
+                    className="w-full p-6 rounded-2xl border-2 border-slate-100 hover:border-emerald-400 hover:bg-emerald-50 transition-all text-left group"
+                  >
+                    <div className="flex items-center gap-4 mb-2">
+                      <div className="p-3 rounded-xl bg-emerald-100 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                        <Users className="w-6 h-6" />
+                      </div>
+                      <h3 className="font-['Outfit'] font-bold text-lg text-slate-900">I am an Heir / Beneficiary</h3>
+                    </div>
+                    <p className="text-slate-500 text-sm ml-[60px]">
+                      I was invited by an executor to view my inheritance and estate progress.
                     </p>
                   </button>
 

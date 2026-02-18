@@ -29,8 +29,24 @@ export default function AdvisorPayouts() {
 
     const { data: stripeStatus, isLoading: isStripeLoading } = useQuery({
         queryKey: ['stripe-status'],
-        queryFn: () => api.advisors.getStripeStatus(),
-        retry: 2
+        queryFn: async () => {
+            try {
+                return await api.advisors.getStripeStatus();
+            } catch (err: any) {
+                // Stripe restricted-key permission errors should not crash the page.
+                // Return a safe "not connected" default so the advisor can still
+                // click through to begin the onboarding flow.
+                console.warn('Stripe status check failed (likely key permissions):', err?.message);
+                return {
+                    connected: false,
+                    stripeOnboardingComplete: false,
+                    stripeDetailsSubmitted: false,
+                    chargesEnabled: false,
+                    payoutsEnabled: false,
+                };
+            }
+        },
+        retry: false,
     });
 
     const handleStartStripe = async () => {

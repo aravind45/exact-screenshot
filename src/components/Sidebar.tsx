@@ -21,6 +21,8 @@ import {
     MessageSquare,
     CreditCard,
     Home,
+    Users,
+    Eye,
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -67,6 +69,118 @@ export function Sidebar() {
 
     const userRole = (estate as any)?.userRole;
     const isViewer = userRole === 'VIEWER';
+    const isHeir = user?.role === 'HEIR' || (user as any)?.userType === 'HEIR';
+
+    // ─── HEIR SIDEBAR (read-only) ────────────────────────────────────────────
+    if (isHeir) {
+        const HEIR_NAV: { title: string; items: NavItem[] }[] = [
+            {
+                title: "Estate Overview",
+                items: [
+                    { label: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
+                    { label: "Asset Ledger", icon: Landmark, path: "/assets" },
+                    { label: "Final Distribution", icon: CheckCircle2, path: "/distribution" },
+                ]
+            },
+            {
+                title: "Records",
+                items: [
+                    { label: "Document Vault", icon: Inbox, path: "/documents" },
+                    { label: "Settlement Trail", icon: History, path: "/settlement-trail" },
+                ]
+            },
+            {
+                title: "Account",
+                items: [
+                    { label: "Profile", icon: User, path: "/profile" },
+                ]
+            }
+        ];
+
+        return (
+            <div className="w-[220px] h-screen bg-white text-slate-600 flex flex-col fixed left-0 top-0 z-50 border-r border-slate-200 shadow-sm">
+                {/* Brand */}
+                <div className="p-4 pb-3">
+                    <div className="flex items-center gap-2.5 mb-4">
+                        <div className="p-2 rounded-xl bg-emerald-600 shadow-sm">
+                            <Home className="w-5 h-5 text-white" />
+                        </div>
+                        <span className="font-['Outfit'] font-black text-xl tracking-tight text-slate-900 antialiased">ExpectedEstate</span>
+                    </div>
+                    {/* Read-only badge */}
+                    <div className="pl-0.5">
+                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-100 shadow-sm">
+                            <Eye className="w-3 h-3 text-emerald-600" />
+                            <span className="text-[9px] font-bold uppercase tracking-widest text-emerald-700">
+                                Beneficiary View
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Heir Nav */}
+                <nav className="flex-1 px-2.5 space-y-4 overflow-y-auto pt-2 pb-4 custom-scrollbar scroll-smooth">
+                    {HEIR_NAV.map((category) => (
+                        <div key={category.title} className="space-y-0.5">
+                            <p className="px-3 text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2 antialiased">
+                                {category.title}
+                            </p>
+                            {category.items.map((item) => {
+                                const active = item.path && isActive(item.path);
+                                return (
+                                    <button
+                                        key={item.label}
+                                        onClick={() => item.path && navigate(item.path)}
+                                        className={cn(
+                                            "w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all duration-200 group relative",
+                                            active ? "bg-emerald-50/60" : "hover:bg-slate-50"
+                                        )}
+                                    >
+                                        <div className="flex items-center gap-3 relative z-10">
+                                            <item.icon className={cn(
+                                                "w-4.5 h-4.5 transition-colors duration-200",
+                                                active ? "text-emerald-600" : "text-slate-400 group-hover:text-slate-600"
+                                            )} />
+                                            <span className={cn(
+                                                "text-sm font-semibold tracking-tight transition-colors duration-200 antialiased",
+                                                active ? "text-slate-900" : "text-slate-600 group-hover:text-slate-800"
+                                            )}>
+                                                {item.label}
+                                            </span>
+                                        </div>
+                                        {active && (
+                                            <div className="w-1 h-4 bg-emerald-600 rounded-full" />
+                                        )}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    ))}
+                </nav>
+
+                {/* User Footer */}
+                <div className="p-3 bg-white border-t border-slate-100">
+                    <div className="flex items-center gap-2.5 mb-2.5 px-1.5">
+                        <div className="w-9 h-9 rounded-full bg-emerald-50 flex items-center justify-center border border-emerald-100">
+                            <Users className="w-4.5 h-4.5 text-emerald-600" />
+                        </div>
+                        <div className="flex flex-col min-w-0">
+                            <span className="text-[12px] font-bold text-slate-900 truncate antialiased">{user?.fullName || "Heir"}</span>
+                            <span className="text-[10px] font-medium text-emerald-600 truncate tracking-tight">Beneficiary</span>
+                        </div>
+                    </div>
+                    <button
+                        onClick={signOut}
+                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition-all font-bold text-[10px] uppercase tracking-widest"
+                    >
+                        <LogOut className="w-3.5 h-3.5" />
+                        Sign Out
+                    </button>
+                </div>
+            </div>
+        );
+    }
+    // ────────────────────────────────────────────────────────────────────────────
 
     const NAV_CATEGORIES: { title: string; items: NavItem[] }[] = [
         {
