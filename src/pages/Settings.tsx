@@ -125,7 +125,6 @@ export default function Settings() {
     const isConfigurationComplete = isCaseDataComplete && heirs.length > 0;
 
     return (
-    return (
         <DashboardLayout>
             <div className="max-w-4xl mx-auto space-y-8">
                 <header className="flex items-start justify-between gap-8">
