@@ -706,9 +706,9 @@ function KnowledgeManager() {
         queryFn: () => api.adminKnowledge.getStats()
     });
 
-    const { data: chunks, isLoading: chunksLoading } = useQuery({
-        queryKey: ["admin", "knowledge", "chunks"],
-        queryFn: () => api.adminKnowledge.getChunks()
+    const { data: documents, isLoading: documentsLoading } = useQuery({
+        queryKey: ["admin", "knowledge", "documents"],
+        queryFn: () => api.adminKnowledge.getDocuments()
     });
 
     const ingestMutation = useMutation({
@@ -720,6 +720,7 @@ function KnowledgeManager() {
             });
             setRawText("");
             setSourceName("");
+            setSourceName("");
             queryClient.invalidateQueries({ queryKey: ["admin", "knowledge"] });
         },
         onError: (err: any) => {
@@ -728,9 +729,9 @@ function KnowledgeManager() {
     });
 
     const deleteMutation = useMutation({
-        mutationFn: (id: string) => api.adminKnowledge.deleteChunk(id),
+        mutationFn: (id: string) => api.adminKnowledge.deleteDocument(id),
         onSuccess: () => {
-            toast({ title: "Chunk Deleted" });
+            toast({ title: "Document Deleted" });
             queryClient.invalidateQueries({ queryKey: ["admin", "knowledge"] });
         }
     });
@@ -768,16 +769,16 @@ function KnowledgeManager() {
                             <BookOpen className="w-4 h-4" /> Primary Sources
                         </CardDescription>
                         <CardTitle className="text-3xl font-bold">
-                            {statsLoading ? "..." : stats?.sourceCount || 0}
+                            {statsLoading ? "..." : stats?.totalDocs || 0}
                         </CardTitle>
                     </CardHeader>
                 </Card>
                 <Card className="bg-indigo-600 text-white border-none shadow-lg">
                     <CardHeader className="pb-2 text-xs">
-                        {stats?.sources?.map((s: any, idx: number) => (
+                        {stats?.documents?.slice(0, 5).map((d: any, idx: number) => (
                             <div key={idx} className="flex justify-between items-center py-1 border-b border-white/10 last:border-0 uppercase tracking-tighter">
-                                <span className="truncate mr-2">{s.name}</span>
-                                <span className="font-bold">{s.count}</span>
+                                <span className="truncate mr-2 text-[10px]">{d.title}</span>
+                                <span className="font-bold text-xs">{d._count?.chunks || 0}</span>
                             </div>
                         ))}
                     </CardHeader>
@@ -845,48 +846,53 @@ function KnowledgeManager() {
             {/* Manage Chunks */}
             <Card className="card-elevated border-none overflow-hidden">
                 <CardHeader className="bg-slate-50/50 border-b">
-                    <CardTitle>Recent Knowledge Chunks</CardTitle>
-                    <CardDescription>The underlying data being used by the RAG assistant.</CardDescription>
+                    <CardTitle>Recent Knowledge Documents</CardTitle>
+                    <CardDescription>The source documents ingested into the RAG system.</CardDescription>
                 </CardHeader>
                 <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm">
                         <thead className="bg-muted/50 text-muted-foreground font-medium uppercase tracking-wider text-[10px]">
                             <tr>
-                                <th className="px-6 py-4">Snippet</th>
-                                <th className="px-6 py-4">Source</th>
-                                <th className="px-6 py-4">Created</th>
+                                <th className="px-6 py-4">Document Title</th>
+                                <th className="px-6 py-4">Type</th>
+                                <th className="px-6 py-4">Chunks</th>
+                                <th className="px-6 py-4">Ingested</th>
                                 <th className="px-6 py-4 text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border/50">
-                            {chunksLoading ? (
+                            {documentsLoading ? (
                                 <tr>
-                                    <td colSpan={4} className="px-6 py-20 text-center text-muted-foreground">
+                                    <td colSpan={5} className="px-6 py-20 text-center text-muted-foreground">
                                         <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" />
-                                        Loading chunks...
+                                        Loading documents...
                                     </td>
                                 </tr>
-                            ) : chunks?.map((chunk: any) => (
-                                <tr key={chunk.id} className="hover:bg-muted/30 transition-colors">
+                            ) : documents?.map((doc: any) => (
+                                <tr key={doc.id} className="hover:bg-muted/30 transition-colors">
                                     <td className="px-6 py-4">
-                                        <p className="line-clamp-2 max-w-sm text-xs leading-relaxed italic text-slate-600">
-                                            "{chunk.content}"
-                                        </p>
+                                        <div className="flex flex-col">
+                                            <span className="font-semibold text-sm truncate max-w-[200px]" title={doc.title}>{doc.title}</span>
+                                            <span className="text-[10px] text-muted-foreground truncate max-w-[200px]" title={doc.sourceUri}>{doc.sourceUri}</span>
+                                        </div>
                                     </td>
                                     <td className="px-6 py-4">
                                         <Badge variant="outline" className="text-[10px] font-bold">
-                                            {chunk.source}
+                                            {doc.docType}
                                         </Badge>
                                     </td>
+                                    <td className="px-6 py-4 text-xs font-mono">
+                                        {doc._count?.chunks || 0}
+                                    </td>
                                     <td className="px-6 py-4 text-xs text-muted-foreground">
-                                        {new Date(chunk.createdAt).toLocaleDateString()}
+                                        {new Date(doc.ingestedAt).toLocaleDateString()}
                                     </td>
                                     <td className="px-6 py-4 text-right">
                                         <Button
                                             variant="ghost"
                                             size="icon"
                                             className="h-8 w-8 text-destructive"
-                                            onClick={() => deleteMutation.mutate(chunk.id)}
+                                            onClick={() => deleteMutation.mutate(doc.id)}
                                             disabled={deleteMutation.isPending}
                                         >
                                             <X className="w-4 h-4" />
@@ -896,12 +902,12 @@ function KnowledgeManager() {
                             ))}
                         </tbody>
                     </table>
-                    {chunks?.length === 0 && !chunksLoading && (
+                    {documents?.length === 0 && !documentsLoading && (
                         <div className="p-20 text-center text-muted-foreground">
                             <div className="bg-slate-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <Search className="w-8 h-8 text-slate-400" />
                             </div>
-                            <p className="font-medium">No knowledge chunks found.</p>
+                            <p className="font-medium">No knowledge documents found.</p>
                             <p className="text-sm">Start by uploading legal materials above.</p>
                         </div>
                     )}

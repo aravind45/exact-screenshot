@@ -1422,22 +1422,22 @@ export const api = {
             });
             return parseResponse(response);
         },
-        getChunks: async (offset = 0, limit = 100) => {
-            const response = await fetch(`${API_URL}/admin/knowledge/chunks?offset=${offset}&limit=${limit}`, {
+        getDocuments: async (offset = 0, limit = 100) => {
+            const response = await fetch(`${API_URL}/admin/knowledge/documents?offset=${offset}&limit=${limit}`, {
                 headers: getHeaders(),
             });
             return parseResponse(response);
         },
-        ingestText: async (text: string, source: string) => {
+        ingestText: async (text: string, source: string, title?: string, docType: string = 'OTHER', jurisdiction?: string) => {
             const response = await fetch(`${API_URL}/admin/knowledge/ingest`, {
                 method: "POST",
                 headers: getHeaders(),
-                body: JSON.stringify({ text, source }),
+                body: JSON.stringify({ text, source, title: title || source, docType, jurisdiction }),
             });
             return parseResponse(response);
         },
-        deleteChunk: async (id: string) => {
-            const response = await fetch(`${API_URL}/admin/knowledge/chunks/${id}`, {
+        deleteDocument: async (id: string) => {
+            const response = await fetch(`${API_URL}/admin/knowledge/documents/${id}`, {
                 method: "DELETE",
                 headers: getHeaders(),
             });
