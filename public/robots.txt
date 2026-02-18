@@ -1,4 +1,20 @@
 User-agent: *
 Allow: /
+Disallow: /dashboard
+Disallow: /roadmap
+Disallow: /assets
+Disallow: /liabilities
+Disallow: /documents
+Disallow: /discovery
+Disallow: /accounting
+Disallow: /distribution
+Disallow: /communications
+Disallow: /follow-ups
+Disallow: /heirs
+Disallow: /settings
+Disallow: /admin
+Disallow: /api
+Disallow: /advisor/dashboard
+Disallow: /advisor/bookings
 
-Sitemap: https://expectedestate.com/sitemap.xml
+Sitemap: https://www.expectedestate.com/sitemap.xml

@@ -299,8 +299,101 @@ export default function Auth() {
   return (
     <div className="min-h-screen bg-white flex overflow-hidden">
       <SEO
-        title={authMode === 'login' ? 'Sign In - ExpectedEstate' : 'Create Account - ExpectedEstate'}
-        description="Secure login for executors and advisors. Manage estate settlement, track assets, and generate probate forms."
+        title={authMode === 'login'
+          ? 'Sign In | ExpectedEstate — Probate & Estate Settlement Software'
+          : 'Free Probate Software for Executors | Start ExpectedEstate'
+        }
+        description={authMode === 'login'
+          ? 'Sign in to ExpectedEstate — your AI-powered estate settlement dashboard. Track assets, manage probate deadlines, and connect with verified estate advisors.'
+          : 'Start settling your loved one\'s estate for free. ExpectedEstate gives executors a step-by-step AI action plan, deadline tracker, document vault, and probate forms — in one place.'
+        }
+        canonical={authMode === 'login'
+          ? 'https://www.expectedestate.com/login'
+          : 'https://www.expectedestate.com/register'
+        }
+        ogTitle={authMode === 'login'
+          ? 'Sign In to ExpectedEstate'
+          : 'Free Estate Settlement Software — No Attorney Required'
+        }
+        ogDescription="Get a personalized probate action plan in minutes. ExpectedEstate helps executors navigate every legal deadline, form, and decision — free to start."
+        structuredData={authMode === 'signup' ? {
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "SoftwareApplication",
+              "name": "ExpectedEstate",
+              "applicationCategory": "LegalApplication",
+              "operatingSystem": "Web",
+              "url": "https://www.expectedestate.com",
+              "offers": {
+                "@type": "Offer",
+                "price": "0",
+                "priceCurrency": "USD",
+                "description": "Free to start — no credit card required"
+              },
+              "description": "AI-powered probate and estate settlement software for executors. Get a step-by-step action plan, track assets, manage deadlines, and connect with verified estate attorneys.",
+              "featureList": [
+                "AI-powered probate action plan",
+                "Asset discovery and inventory",
+                "Statutory deadline tracker",
+                "Document vault",
+                "Creditor notice management",
+                "Verified advisor marketplace"
+              ],
+              "screenshot": "https://www.expectedestate.com/modern_roadmap_banner.png",
+              "provider": {
+                "@type": "Organization",
+                "name": "ExpectedEstate",
+                "url": "https://www.expectedestate.com"
+              }
+            },
+            {
+              "@type": "FAQPage",
+              "mainEntity": [
+                {
+                  "@type": "Question",
+                  "name": "How long does probate take in California?",
+                  "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Most California probate cases take 9–18 months from filing to final distribution. Simple estates under $184,500 may qualify for a small estate affidavit, which can be completed in 30–60 days. Contested estates with disputes can take 2–5 years."
+                  }
+                },
+                {
+                  "@type": "Question",
+                  "name": "What does an executor of an estate have to do?",
+                  "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "An executor must: file the deceased's will with probate court, obtain Letters Testamentary, inventory all estate assets, notify creditors and heirs, pay valid debts and taxes, file the final income tax return, and distribute remaining assets to heirs — all while meeting court-mandated legal deadlines."
+                  }
+                },
+                {
+                  "@type": "Question",
+                  "name": "Do I need an attorney to settle an estate in California?",
+                  "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "In California, you are not legally required to hire an attorney to serve as executor, but probate involves complex legal procedures and strict deadlines. Software like ExpectedEstate provides step-by-step guidance, forms, and access to verified estate attorneys when needed — typically saving executors $5,000–$15,000 in legal fees."
+                  }
+                },
+                {
+                  "@type": "Question",
+                  "name": "What is the deadline to file for probate after someone dies in California?",
+                  "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "California does not have a strict statutory deadline to file for probate, but executors should file the petition within 30 days of the decedent's death. Creditor claims must be filed within 60 days of the first notice to creditors. Delays can complicate asset management and expose the executor to personal liability."
+                  }
+                },
+                {
+                  "@type": "Question",
+                  "name": "What is probate software and how does it help executors?",
+                  "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Probate software like ExpectedEstate helps executors manage the estate settlement process from start to finish. It provides a customized action plan based on the estate's legal track, tracks statutory deadlines, generates court-required forms, manages asset inventory, coordinates creditor notices, and connects executors with vetted legal advisors — all in one platform."
+                  }
+                }
+              ]
+            }
+          ]
+        } : undefined}
       />
       {/* Left side: branding and value propositions (Visual) */}
       <div className="hidden lg:flex lg:w-1/2 relative bg-slate-900 items-center justify-center p-12 overflow-hidden">

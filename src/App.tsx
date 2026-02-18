@@ -99,6 +99,10 @@ const EstateAgents = lazy(() => import("./pages/EstateAgents"));
 const ChecklistLanding = lazy(() => import("./pages/ChecklistLanding"));
 const DiscoveryQuiz = lazy(() => import("./components/landing/DiscoveryQuiz"));
 const ProbateGuide = lazy(() => import("./pages/guides/ProbateGuide"));
+const CaliforniaProbateDeadlines = lazy(() => import("./pages/guides/CaliforniaProbateDeadlines"));
+
+// Public landing page (SEO-optimized marketing page)
+const Landing = lazy(() => import("./pages/Landing"));
 
 // Legal Pages
 const TermsOfService = lazy(() => import("./pages/legal/TermsOfService"));
@@ -141,7 +145,8 @@ const App = () => (
                     </div>
                   }>
                     <Routes>
-                      <Route path="/" element={<Index />} />
+                      <Route path="/" element={<Landing />} />
+                      <Route path="/home" element={<Index />} />
                       <Route path="/auth" element={<Auth />} />
                       <Route path="/reset-password" element={<ResetPassword />} />
                       <Route path="/pricing" element={<Pricing />} />
@@ -149,6 +154,7 @@ const App = () => (
                       <Route path="/checklist" element={<ChecklistLanding />} />
                       <Route path="/start" element={<DiscoveryQuiz />} />
                       <Route path="/guides/probate" element={<ProbateGuide />} />
+                      <Route path="/guides/california-probate-deadlines" element={<CaliforniaProbateDeadlines />} />
 
                       {/* SEO Pillar Pages */}
                       <Route path="/probate-process" element={<ProbateProcess />} />
