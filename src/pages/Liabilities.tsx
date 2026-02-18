@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { Sidebar } from "@/components/Sidebar";
+import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Plus } from "lucide-react";
+import { Plus, AlertCircle, CheckCircle2, TrendingDown, Clock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
@@ -43,69 +43,105 @@ export default function Liabilities() {
         queryFn: api.getPriorityOptions
     });
 
+    // Derived stats from real data (no hardcoded values)
+    const liabilitiesArray = Array.isArray(liabilities) ? liabilities as any[] : [];
+    const totalDebt = liabilitiesArray.reduce((s: number, l: any) => s + (Number(l.amount) || 0), 0);
+    const paidCount = liabilitiesArray.filter((l: any) => l.status === 'PAID').length;
+    const pendingCount = liabilitiesArray.filter((l: any) => l.status !== 'PAID').length;
+    const overdueCount = liabilitiesArray.filter((l: any) => {
+        if (!l.dueDate || l.status === 'PAID') return false;
+        return new Date(l.dueDate) < new Date();
+    }).length;
+
     return (
-        <div className="flex bg-[#F8FAFC] min-h-screen">
+        <DashboardLayout maxWidth="max-w-[1200px]">
             <SEO
                 title="Liabilities & Creditors"
                 description="Manage estate debts and creditor claims. Ensure legal payment priority and track solvency to prevent executor liability."
             />
-            <Sidebar />
-            <main className="flex-1 ml-64 p-8">
-                <div className="max-w-5xl mx-auto space-y-8">
-                    {/* Header */}
-                    <div className="space-y-4">
-                        <Button variant="ghost" className="pl-0 hover:bg-transparent" onClick={() => navigate(-1)}>
-                            <ArrowLeft className="w-4 h-4 mr-2" /> Back
-                        </Button>
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <h1 className="text-3xl font-black text-slate-900 tracking-tight">Liabilities & Creditors</h1>
-                                <p className="text-slate-500 mt-1">Track estate debts, manage creditor claims, and record payments.</p>
+
+            {/* ── Compact Sticky Header ──────────────────────────────── */}
+            <header className="h-16 border-b border-slate-100 bg-white/80 backdrop-blur-xl px-4 sm:px-12 flex items-center justify-between sticky top-0 z-10 -mx-6 -mt-6 mb-6 pt-0">
+                <div className="flex items-center gap-3">
+                    <h1 className="text-xl font-black text-slate-900 tracking-tight">Liabilities & Creditors</h1>
+                    <div className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] hidden md:block">Debt Ledger</p>
+
+                    {/* Dynamic summary chips — derived from real data */}
+                    {liabilitiesArray.length > 0 && (
+                        <div className="flex items-center gap-2 ml-2">
+                            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 text-[10px] font-black text-slate-600 border border-slate-200">
+                                <span>{liabilitiesArray.length} total</span>
                             </div>
-                            {!isViewer && (
-                                <Button onClick={() => setShowAddDialog(true)} className="bg-indigo-600 text-white font-bold shadow-lg shadow-indigo-200 hover:bg-indigo-700">
-                                    <Plus className="w-5 h-5 mr-2" /> Add Liability
-                                </Button>
+                            {pendingCount > 0 && (
+                                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 text-[10px] font-black text-amber-700 border border-amber-200">
+                                    <Clock className="w-3 h-3" />
+                                    <span>{pendingCount} pending</span>
+                                </div>
+                            )}
+                            {overdueCount > 0 && (
+                                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-50 text-[10px] font-black text-rose-700 border border-rose-200">
+                                    <AlertCircle className="w-3 h-3" />
+                                    <span>{overdueCount} overdue</span>
+                                </div>
+                            )}
+                            {paidCount > 0 && (
+                                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-[10px] font-black text-emerald-700 border border-emerald-200">
+                                    <CheckCircle2 className="w-3 h-3" />
+                                    <span>{paidCount} paid</span>
+                                </div>
                             )}
                         </div>
-                    </div>
+                    )}
+                </div>
+                {!isViewer && (
+                    <Button
+                        onClick={() => setShowAddDialog(true)}
+                        className="h-9 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-xl px-5 text-[11px] gap-1.5 shadow-sm"
+                    >
+                        <Plus className="w-3.5 h-3.5" /> Add Liability
+                    </Button>
+                )}
+            </header>
 
-                    {/* Stats */}
-                    {stats && <LiabilityStatsWidget stats={stats} />}
+            <div className="space-y-6">
+                {/* Stats Widget */}
+                {stats && <LiabilityStatsWidget stats={stats} />}
 
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                        {solvency && (
-                            <SolvencyTracker solvency={solvency} isLoading={solvencyLoading} />
-                        )}
-                        {stats && (
-                            <ClaimsPriorityEngine
-                                stats={stats}
-                                solvency={solvency}
-                                isLoading={isLoading}
-                                priorityOptions={priorityOptions?.options}
-                            />
-                        )}
-                    </div>
-
-                    {/* List */}
-                    {isLoading ? (
-                        <div className="py-20 text-center">
-                            <div className="animate-spin w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full mx-auto"></div>
-                            <p className="text-sm font-medium text-slate-400 mt-4">Loading liabilities...</p>
-                        </div>
-                    ) : (
-                        <LiabilityList
-                            liabilities={liabilities}
+                {/* Solvency + Priority — side-by-side, space-conscious */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                    {solvency && (
+                        <SolvencyTracker solvency={solvency} isLoading={solvencyLoading} />
+                    )}
+                    {stats && (
+                        <ClaimsPriorityEngine
+                            stats={stats}
+                            solvency={solvency}
+                            isLoading={isLoading}
                             priorityOptions={priorityOptions?.options}
                         />
                     )}
                 </div>
-            </main>
+
+                {/* Liability List */}
+                {isLoading ? (
+                    <div className="space-y-2">
+                        {[1,2,3].map(i => (
+                            <div key={i} className="h-16 bg-white border border-slate-100 rounded-2xl animate-pulse" />
+                        ))}
+                    </div>
+                ) : (
+                    <LiabilityList
+                        liabilities={liabilities}
+                        priorityOptions={priorityOptions?.options}
+                    />
+                )}
+            </div>
 
             <AddLiabilityDialog
                 open={showAddDialog}
                 onOpenChange={setShowAddDialog}
             />
-        </div>
+        </DashboardLayout>
     );
 }

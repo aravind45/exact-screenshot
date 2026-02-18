@@ -345,21 +345,19 @@ export default function Assets() {
                     description="Consolidate and track all estate assets, including bank accounts, real estate, and investments, in a secure and auditable ledger."
                 />
 
-                <header className="h-24 border-b border-slate-100 bg-white/80 backdrop-blur-xl px-4 sm:px-12 flex items-center justify-between sticky top-0 z-10 -mx-6 -mt-6 mb-8 pt-6">
-                    <div>
-                        <h1 className="text-3xl font-black text-slate-900 tracking-tight">Asset Ledger</h1>
-                        <div className="flex items-center gap-2 mt-1">
-                            <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" />
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Verified Financial Records</p>
-                        </div>
+                <header className="h-16 border-b border-slate-100 bg-white/80 backdrop-blur-xl px-4 sm:px-12 flex items-center justify-between sticky top-0 z-10 -mx-6 -mt-6 mb-6 pt-0">
+                    <div className="flex items-center gap-3">
+                        <h1 className="text-xl font-black text-slate-900 tracking-tight">Asset Ledger</h1>
+                        <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" />
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] hidden md:block">Verified Financial Records</p>
                     </div>
                     {!isViewer && (
                         <Button
                             onClick={() => navigate('/add-asset')}
-                            className="rounded-2xl font-black gap-2 h-12 px-8 bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-200 transition-all hover:scale-[1.02] active:scale-95 group"
+                            className="rounded-xl font-black gap-2 h-9 px-5 bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] shadow-sm"
                         >
-                            <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" />
-                            Add New Asset
+                            <Plus className="w-4 h-4" />
+                            Add Asset
                         </Button>
                     )}
                 </header>
@@ -400,72 +398,53 @@ export default function Assets() {
                         )}
                     </div>
 
-                    <TabsContent value="inventory" className="space-y-6 mt-0 outline-none">
-                        {/* Authority Landscape Summary */}
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-                            <AuthoritySummaryCard
-                                label="Court"
-                                count={authoritySummary.COURT_REQUIRED}
-                                icon={Scale}
-                                color="text-rose-600"
-                                bgColor="bg-rose-50"
-                            />
-                            <AuthoritySummaryCard
-                                label="Trust"
-                                count={authoritySummary.TRUSTEE_DIRECT}
-                                icon={ShieldCheck}
-                                color="text-emerald-600"
-                                bgColor="bg-emerald-50"
-                            />
-                            <AuthoritySummaryCard
-                                label="Affidavit"
-                                count={authoritySummary.AFFIDAVIT_SMALL}
-                                icon={FileText}
-                                color="text-amber-600"
-                                bgColor="bg-amber-50"
-                            />
-                            <AuthoritySummaryCard
-                                label="Contract"
-                                count={authoritySummary.BENEFICIARY_CONTRACT}
-                                icon={Users}
-                                color="text-indigo-600"
-                                bgColor="bg-indigo-50"
-                            />
-                            <AuthoritySummaryCard
-                                label="Title"
-                                count={authoritySummary.SURVIVORSHIP_TITLE}
-                                icon={Landmark}
-                                color="text-slate-600"
-                                bgColor="bg-slate-50"
-                            />
-                            <AuthoritySummaryCard
-                                label="Hold"
-                                count={authoritySummary.LITIGATION_HOLD}
-                                icon={Lock}
-                                color="text-rose-900"
-                                bgColor="bg-rose-100"
-                            />
+                    <TabsContent value="inventory" className="space-y-4 mt-0 outline-none">
+
+                        {/* ── Compact Authority Chips Row ─────────────────────── */}
+                        <div className="flex items-center gap-2 flex-wrap">
+                            {[
+                                { label: "Court", count: authoritySummary.COURT_REQUIRED,     icon: Scale,       dot: "bg-rose-500" },
+                                { label: "Trust", count: authoritySummary.TRUSTEE_DIRECT,     icon: ShieldCheck, dot: "bg-emerald-500" },
+                                { label: "Affidavit", count: authoritySummary.AFFIDAVIT_SMALL, icon: FileText,   dot: "bg-amber-500" },
+                                { label: "Contract", count: authoritySummary.BENEFICIARY_CONTRACT, icon: Users, dot: "bg-indigo-500" },
+                                { label: "Title", count: authoritySummary.SURVIVORSHIP_TITLE,  icon: Landmark,   dot: "bg-slate-500" },
+                                { label: "Hold", count: authoritySummary.LITIGATION_HOLD,      icon: Lock,       dot: "bg-red-700" },
+                            ].map(chip => (
+                                <div key={chip.label} className={cn(
+                                    "flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border shadow-sm text-[11px] font-black transition-all",
+                                    chip.count > 0 ? "border-slate-200 text-slate-700" : "border-slate-100 text-slate-300"
+                                )}>
+                                    <div className={cn("w-1.5 h-1.5 rounded-full", chip.count > 0 ? chip.dot : "bg-slate-200")} />
+                                    <span className="uppercase tracking-wide">{chip.label}</span>
+                                    <span className={cn("font-black", chip.count > 0 ? "text-slate-900" : "text-slate-300")}>{chip.count}</span>
+                                </div>
+                            ))}
+                            <div className="ml-auto flex items-center gap-1.5 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                <div className="w-1.5 h-1.5 rounded-full bg-slate-300" />
+                                {assets.length} total
+                            </div>
                         </div>
 
-                        <div className="flex items-center gap-3">
+                        {/* ── Search + Filters ─────────────────────────────────── */}
+                        <div className="flex items-center gap-2">
                             <div className="relative flex-1">
-                                <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
                                 <Input
-                                    placeholder="Search assets..."
-                                    className="pl-10 h-10 bg-white border-slate-200 rounded-lg text-sm"
+                                    placeholder="Search assets by institution, type, or status..."
+                                    className="pl-9 h-9 bg-white border-slate-200 rounded-xl text-xs"
                                 />
                             </div>
-                            <select className="h-10 px-4 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-700 cursor-pointer hover:border-slate-300 transition-colors">
-                                <option value="">All Authority Tiers</option>
-                                <option value="COURT_REQUIRED">Court Required</option>
-                                <option value="TRUSTEE_DIRECT">Trustee Direct</option>
-                                <option value="AFFIDAVIT_SMALL">Small Estate Affidavit</option>
-                                <option value="BENEFICIARY_CONTRACT">Beneficiary Contract</option>
-                                <option value="SURVIVORSHIP_TITLE">Survivorship Title</option>
-                                <option value="LITIGATION_HOLD">Litigation Hold</option>
+                            <select className="h-9 px-3 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-600 cursor-pointer">
+                                <option value="">All Authority</option>
+                                <option value="COURT_REQUIRED">Court</option>
+                                <option value="TRUSTEE_DIRECT">Trust</option>
+                                <option value="AFFIDAVIT_SMALL">Affidavit</option>
+                                <option value="BENEFICIARY_CONTRACT">Contract</option>
+                                <option value="SURVIVORSHIP_TITLE">Title</option>
+                                <option value="LITIGATION_HOLD">Hold</option>
                             </select>
-                            <select className="h-10 px-4 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-700 cursor-pointer hover:border-slate-300 transition-colors">
-                                <option value="">All Statuses</option>
+                            <select className="h-9 px-3 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-600 cursor-pointer">
+                                <option value="">All Status</option>
                                 <option value="discovered">Discovered</option>
                                 <option value="notified">Notified</option>
                                 <option value="claimed">Claimed</option>
@@ -474,187 +453,107 @@ export default function Assets() {
                             </select>
                         </div>
 
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                            <div className="lg:col-span-2 space-y-10">
-                                {isLoading ? (
-                                    [1, 2, 3].map(i => (
-                                        <div key={i} className="h-32 bg-white border border-slate-100 rounded-2xl animate-pulse" />
-                                    ))
-                                ) : assets.length === 0 ? (
-                                    <div className="py-32 border border-dashed border-slate-200 rounded-[40px] text-center bg-white/50 relative overflow-hidden">
-                                        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-slate-50/30" />
-                                        <div className="relative z-10">
-                                            <div className="w-20 h-20 bg-white border border-slate-100 rounded-[28px] shadow-sm flex items-center justify-center mx-auto mb-6 transform -rotate-3 hover:rotate-0 transition-transform duration-500">
-                                                <Landmark className="w-10 h-10 text-slate-300" />
+                        {/* ── AI Actions Strip (collapsed by default) ─────────── */}
+                        {allSuggestedActions.length > 0 && (
+                            <div className="bg-indigo-50/60 border border-indigo-100 rounded-2xl p-3 flex items-start gap-3">
+                                <div className="p-1.5 rounded-lg bg-indigo-600 text-white flex-shrink-0">
+                                    <Sparkles className="w-3.5 h-3.5" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-indigo-600 mb-1.5">
+                                        {allSuggestedActions.length} Suggested Actions
+                                    </p>
+                                    <div className="flex flex-wrap gap-2">
+                                        {allSuggestedActions.slice(0, 4).map((action, idx) => (
+                                            <div key={idx} className="flex items-center gap-1.5 px-2.5 py-1 bg-white rounded-lg border border-indigo-100 shadow-sm cursor-pointer hover:border-indigo-300 transition-colors">
+                                                <div className={cn("w-1.5 h-1.5 rounded-full", action.priority === 'high' ? "bg-rose-500" : "bg-slate-400")} />
+                                                <span className="text-[10px] font-bold text-slate-700 truncate max-w-[160px]">{action.title}</span>
                                             </div>
-                                            <h3 className="text-xl font-black text-slate-900 tracking-tight">No assets identified yet</h3>
-                                            <p className="text-slate-400 text-sm mb-10 max-w-xs mx-auto font-medium">Start by adding your first financial account or property to the estate.</p>
-                                            <div className="flex items-center justify-center gap-4">
-                                                <Button
-                                                    onClick={() => navigate('/add-asset')}
-                                                    className="rounded-2xl font-black px-10 h-12 bg-indigo-600 hover:bg-indigo-700 text-white shadow-xl shadow-indigo-100 transition-all hover:scale-[1.02]"
-                                                >
-                                                    Add First Asset
-                                                </Button>
-                                                <Button
-                                                    variant="outline"
-                                                    onClick={() => setActiveTab("detective")}
-                                                    className="rounded-2xl font-black px-10 h-12 border-slate-200 text-slate-600 hover:bg-slate-100 transition-all"
-                                                >
-                                                    Run Detective Scan
-                                                </Button>
+                                        ))}
+                                        {allSuggestedActions.length > 4 && (
+                                            <div className="flex items-center gap-1 px-2.5 py-1 text-[10px] text-indigo-500 font-black">
+                                                +{allSuggestedActions.length - 4} more
                                             </div>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <>
-                                        {groupedAssets.PROBATE.length > 0 && (
-                                            <section className="space-y-6">
-                                                <div className="flex items-center justify-between pb-2 border-b border-slate-50">
-                                                    <div className="flex items-center gap-4">
-                                                        <div className="p-3 rounded-2xl bg-rose-600 text-white shadow-lg shadow-rose-100">
-                                                            <Scale className="w-5 h-5" />
-                                                        </div>
-                                                        <div>
-                                                            <h2 className="text-xl font-black text-slate-900 tracking-tight">Probate Estate</h2>
-                                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-0.5">Managed by Executor under Court Authority</p>
-                                                        </div>
-                                                    </div>
-                                                    <Badge variant="outline" className="rounded-xl border-rose-100 bg-rose-50 text-rose-600 font-black px-4 py-1.5 uppercase text-[10px] tracking-widest shadow-sm">
-                                                        {groupedAssets.PROBATE.length} Assets
-                                                    </Badge>
-                                                </div>
-                                                <div className="grid grid-cols-1 gap-4">
-                                                    {groupedAssets.PROBATE.map((asset, index) => (
-                                                        <AssetItem
-                                                            key={asset.id}
-                                                            asset={asset}
-                                                            index={index}
-                                                            isSelectionMode={isSelectionMode}
-                                                            selectedAssetIds={selectedAssetIds}
-                                                            handleAssetClick={handleAssetClick}
-                                                            handleSelectAsset={handleSelectAsset}
-                                                            normalize={normalize}
-                                                        />
-                                                    ))}
-                                                </div>
-                                            </section>
                                         )}
-
-                                        {groupedAssets.NON_PROBATE.length > 0 && (
-                                            <section className="space-y-6">
-                                                <div className="flex items-center justify-between pb-2 border-b border-slate-50">
-                                                    <div className="flex items-center gap-4">
-                                                        <div className="p-3 rounded-2xl bg-emerald-500 text-white shadow-lg shadow-emerald-100">
-                                                            <ArrowRight className="w-5 h-5" />
-                                                        </div>
-                                                        <div>
-                                                            <h2 className="text-xl font-black text-slate-900 tracking-tight">Non-Probate Transfers</h2>
-                                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-0.5">Direct transfers to Beneficiaries or Trust</p>
-                                                        </div>
-                                                    </div>
-                                                    <Badge variant="outline" className="rounded-xl border-emerald-100 bg-emerald-50 text-emerald-600 font-black px-4 py-1.5 uppercase text-[10px] tracking-widest shadow-sm">
-                                                        {groupedAssets.NON_PROBATE.length} Assets
-                                                    </Badge>
-                                                </div>
-                                                <div className="grid grid-cols-1 gap-4">
-                                                    {groupedAssets.NON_PROBATE.map((asset, index) => (
-                                                        <AssetItem
-                                                            key={asset.id}
-                                                            asset={asset}
-                                                            index={index}
-                                                            isSelectionMode={isSelectionMode}
-                                                            selectedAssetIds={selectedAssetIds}
-                                                            handleAssetClick={handleAssetClick}
-                                                            handleSelectAsset={handleSelectAsset}
-                                                            normalize={normalize}
-                                                        />
-                                                    ))}
-                                                </div>
-                                            </section>
-                                        )}
-
-                                        {groupedAssets.UNKNOWN.length > 0 && (
-                                            <section className="space-y-4">
-                                                <div className="flex items-center gap-3 opacity-50">
-                                                    <div className="p-2 rounded-xl bg-slate-50 text-slate-500 border border-slate-100">
-                                                        <HelpCircle className="w-5 h-5" />
-                                                    </div>
-                                                    <h2 className="text-lg font-black text-slate-900">Unclassified Items</h2>
-                                                </div>
-                                                <div className="grid grid-cols-1 gap-4">
-                                                    {groupedAssets.UNKNOWN.map((asset, index) => (
-                                                        <AssetItem
-                                                            key={asset.id}
-                                                            asset={asset}
-                                                            index={index}
-                                                            isSelectionMode={isSelectionMode}
-                                                            selectedAssetIds={selectedAssetIds}
-                                                            handleAssetClick={handleAssetClick}
-                                                            handleSelectAsset={handleSelectAsset}
-                                                            normalize={normalize}
-                                                        />
-                                                    ))}
-                                                </div>
-                                            </section>
-                                        )}
-                                    </>
-                                )}
-                            </div>
-
-                            <div className="space-y-6">
-                                <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm sticky top-24">
-                                    <div className="flex items-center gap-3 mb-6">
-                                        <div className="p-2.5 rounded-xl bg-indigo-50 text-indigo-600">
-                                            <Sparkles className="w-5 h-5" />
-                                        </div>
-                                        <div>
-                                            <h3 className="font-bold text-base text-slate-900">Suggested Actions</h3>
-                                            <p className="text-[10px] font-medium text-slate-500 uppercase tracking-widest">AI Insights</p>
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-3">
-                                        {allSuggestedActions.length === 0 ? (
-                                            <div className="text-center py-8 rounded-xl border border-dashed border-slate-200 bg-slate-50">
-                                                <p className="text-xs font-bold text-slate-400">No pending actions</p>
-                                            </div>
-                                        ) : (
-                                            allSuggestedActions.map((action, idx) => (
-                                                <div key={idx} className="group p-4 rounded-xl border border-slate-100 bg-white hover:border-indigo-200 hover:shadow-md transition-all cursor-pointer">
-                                                    <div className="flex gap-3">
-                                                        <div className={cn(
-                                                            "h-8 w-8 rounded-lg flex items-center justify-center shrink-0",
-                                                            action.priority === 'high' ? "bg-rose-50 text-rose-600" : "bg-slate-50 text-slate-600"
-                                                        )}>
-                                                            {action.icon === 'Mail' && <Mail className="w-4 h-4" />}
-                                                            {action.icon === 'Gavel' && <Gavel className="w-4 h-4" />}
-                                                            {action.icon === 'FileText' && <FileText className="w-4 h-4" />}
-                                                            {action.icon === 'ArrowRight' && <ArrowRight className="w-4 h-4" />}
-                                                            {action.icon === 'Users' && <Users className="w-4 h-4" />}
-                                                            {action.icon === 'ShieldCheck' && <ShieldCheck className="w-4 h-4" />}
-                                                        </div>
-                                                        <div className="space-y-1 flex-1 min-w-0">
-                                                            <h4 className="text-xs font-bold text-slate-900 group-hover:text-indigo-600 truncate">{action.title}</h4>
-                                                            <p className="text-[10px] font-medium text-slate-500 leading-relaxed line-clamp-2">
-                                                                {action.description}
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            ))
-                                        )}
-                                    </div>
-
-                                    <div className="mt-6 pt-4 border-t border-slate-100">
-                                        <Button variant="ghost" className="w-full justify-start text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 h-9 px-2 text-xs font-bold" onClick={() => setActiveTab("detective")}>
-                                            <SearchIcon className="w-3.5 h-3.5 mr-2" />
-                                            Run Discovery Scan
-                                        </Button>
                                     </div>
                                 </div>
+                                <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    className="h-7 text-[9px] font-black uppercase tracking-widest text-indigo-600 hover:bg-indigo-100 rounded-lg px-3 flex-shrink-0"
+                                    onClick={() => setActiveTab("detective")}
+                                >
+                                    Scan →
+                                </Button>
                             </div>
-                        </div>
+                        )}
+
+                        {/* ── Full-Width Asset List ─────────────────────────────── */}
+                        {isLoading ? (
+                            <div className="space-y-1">
+                                {[1,2,3,4,5].map(i => (
+                                    <div key={i} className="h-14 bg-white border border-slate-100 rounded-xl animate-pulse" />
+                                ))}
+                            </div>
+                        ) : assets.length === 0 ? (
+                            <div className="py-20 border border-dashed border-slate-200 rounded-2xl text-center bg-white/50">
+                                <div className="w-14 h-14 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                    <Landmark className="w-7 h-7 text-slate-300" />
+                                </div>
+                                <h3 className="text-base font-black text-slate-900 tracking-tight mb-1">No assets yet</h3>
+                                <p className="text-slate-400 text-xs mb-6 font-medium">Add your first financial account or property.</p>
+                                <div className="flex items-center justify-center gap-3">
+                                    <Button onClick={() => navigate('/add-asset')} className="rounded-xl font-black h-9 px-6 bg-indigo-600 hover:bg-indigo-700 text-white text-xs">
+                                        Add First Asset
+                                    </Button>
+                                    <Button variant="outline" onClick={() => setActiveTab("detective")} className="rounded-xl font-black h-9 px-6 border-slate-200 text-xs">
+                                        Run Detective Scan
+                                    </Button>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="space-y-4">
+                                {groupedAssets.PROBATE.length > 0 && (
+                                    <AssetGroup
+                                        label="Probate Estate"
+                                        sublabel="Court authority required"
+                                        assets={groupedAssets.PROBATE}
+                                        dotColor="bg-rose-500"
+                                        isSelectionMode={isSelectionMode}
+                                        selectedAssetIds={selectedAssetIds}
+                                        onAssetClick={handleAssetClick}
+                                        onSelectAsset={handleSelectAsset}
+                                        normalize={normalize}
+                                    />
+                                )}
+                                {groupedAssets.NON_PROBATE.length > 0 && (
+                                    <AssetGroup
+                                        label="Non-Probate Transfers"
+                                        sublabel="Direct transfer to beneficiaries or trust"
+                                        assets={groupedAssets.NON_PROBATE}
+                                        dotColor="bg-emerald-500"
+                                        isSelectionMode={isSelectionMode}
+                                        selectedAssetIds={selectedAssetIds}
+                                        onAssetClick={handleAssetClick}
+                                        onSelectAsset={handleSelectAsset}
+                                        normalize={normalize}
+                                    />
+                                )}
+                                {groupedAssets.UNKNOWN.length > 0 && (
+                                    <AssetGroup
+                                        label="Unclassified"
+                                        sublabel="Authority type not yet determined"
+                                        assets={groupedAssets.UNKNOWN}
+                                        dotColor="bg-slate-400"
+                                        isSelectionMode={isSelectionMode}
+                                        selectedAssetIds={selectedAssetIds}
+                                        onAssetClick={handleAssetClick}
+                                        onSelectAsset={handleSelectAsset}
+                                        normalize={normalize}
+                                    />
+                                )}
+                            </div>
+                        )}
                     </TabsContent>
 
                     <TabsContent value="detective" className="mt-0 outline-none">
@@ -880,6 +779,94 @@ export default function Assets() {
     );
 }
 
+
+function AssetGroup({ label, sublabel, assets, dotColor, isSelectionMode, selectedAssetIds, onAssetClick, onSelectAsset, normalize }: any) {
+    if (!assets || assets.length === 0) return null;
+    return (
+        <div className="space-y-1.5">
+            <div className="flex items-center gap-2 px-1">
+                <div className={cn("w-2 h-2 rounded-full flex-shrink-0", dotColor)} />
+                <span className="text-[11px] font-black text-slate-700 uppercase tracking-widest">{label}</span>
+                {sublabel && <span className="text-[10px] text-slate-400 font-medium">{sublabel}</span>}
+                <div className="ml-auto text-[10px] font-black text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">{assets.length}</div>
+            </div>
+            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden divide-y divide-slate-50">
+                {assets.map((asset: any) => (
+                    <CompactAssetRow
+                        key={asset.id}
+                        asset={asset}
+                        isSelectionMode={isSelectionMode}
+                        selected={selectedAssetIds.includes(asset.id)}
+                        onAssetClick={onAssetClick}
+                        onSelectAsset={onSelectAsset}
+                        normalize={normalize}
+                    />
+                ))}
+            </div>
+        </div>
+    );
+}
+
+function CompactAssetRow({ asset, isSelectionMode, selected, onAssetClick, onSelectAsset, normalize }: any) {
+    const taxState = getAssetTaxonomyState(asset);
+    const STATUS_COLORS: Record<string, string> = {
+        action_required: "bg-red-100 text-red-700",
+        waiting: "bg-amber-100 text-amber-700",
+        blocked: "bg-orange-100 text-orange-700",
+        ready: "bg-emerald-100 text-emerald-700",
+        monitoring: "bg-blue-100 text-blue-700",
+        resolved: "bg-slate-100 text-slate-500",
+    };
+    const displayValue = normalize && asset.value > 0
+        ? `$${(asset.value / 1000).toFixed(0)}K`
+        : asset.value > 0 ? `$${asset.value.toLocaleString()}` : null;
+
+    return (
+        <div
+            className={cn(
+                "flex items-center gap-3 px-4 py-3 hover:bg-slate-50 transition-colors cursor-pointer group",
+                selected && "bg-indigo-50/50"
+            )}
+            onClick={() => {
+                if (isSelectionMode) {
+                    onSelectAsset(asset.id);
+                } else {
+                    onAssetClick(asset.id);
+                }
+            }}
+        >
+            {isSelectionMode && (
+                <div className={cn(
+                    "w-5 h-5 rounded-full border-2 flex-shrink-0 transition-colors",
+                    selected ? "bg-indigo-500 border-indigo-500" : "border-slate-300"
+                )} />
+            )}
+            <div className="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center flex-shrink-0">
+                <Landmark className="w-4 h-4 text-slate-400" />
+            </div>
+            <div className="flex-1 min-w-0">
+                <p className="text-sm font-bold text-slate-800 truncate leading-tight">
+                    {asset.institution || "Unknown Institution"}
+                </p>
+                <p className="text-[10px] text-slate-400 font-medium capitalize leading-tight">
+                    {asset.assetType || asset.category || "Asset"}
+                </p>
+            </div>
+            <Badge className={cn(
+                "text-[9px] font-black border-none px-2 py-0.5 rounded-lg flex-shrink-0",
+                STATUS_COLORS[taxState] || "bg-slate-100 text-slate-500"
+            )}>
+                {taxState.replace(/_/g, " ")}
+            </Badge>
+            {displayValue && (
+                <p className="text-xs font-black text-slate-700 w-16 text-right flex-shrink-0">
+                    {displayValue}
+                </p>
+            )}
+            <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-indigo-400 transition-colors flex-shrink-0" />
+        </div>
+    );
+}
 
 function AuthoritySummaryCard({ label, count, icon: Icon, color, bgColor }: any) {
     return (

@@ -1,8 +1,7 @@
 import React, { useState } from "react";
-import { Sidebar } from "@/components/Sidebar";
+import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import {
     Calculator,
-    ArrowUpRight,
     ArrowDownRight,
     FileText,
     CheckCircle2,
@@ -11,11 +10,7 @@ import {
     ShieldCheck,
     Lock,
     ArrowRight,
-    FileSearch,
-    Download,
     Search,
-    TrendingUp,
-    Briefcase,
     Plus,
     Sparkles
 } from "lucide-react";
@@ -133,59 +128,48 @@ export default function Accounting() {
     };
 
     return (
-        <div className="flex bg-slate-50 min-h-screen">
-            <Sidebar />
-            <main className="flex-1 ml-64 p-8">
-                <div className="max-w-6xl mx-auto space-y-6">
-                    {/* Header */}
-                    <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <div>
-                            <div className="flex items-center gap-2 mb-1">
-                                <div className="p-1.5 bg-emerald-600 rounded-md shadow-sm">
-                                    <Calculator className="w-4 h-4 text-white" />
-                                </div>
-                                <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Estate Accounting</h1>
-                                <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 uppercase text-[10px] font-black tracking-widest">
-                                    Probate Code § 1060
-                                </Badge>
+        <DashboardLayout maxWidth="max-w-[1200px]">
+                <div className="space-y-5">
+                    {/* ── Compact Sticky Header ──────────────────────────────── */}
+                    <header className="h-16 border-b border-slate-100 bg-white/80 backdrop-blur-xl px-4 sm:px-12 flex items-center justify-between sticky top-0 z-10 -mx-6 -mt-6 mb-6 pt-0">
+                        <div className="flex items-center gap-3">
+                            <div className="p-1.5 bg-emerald-600 rounded-lg shadow-sm">
+                                <Calculator className="w-4 h-4 text-white" />
                             </div>
-                            <p className="text-slate-500 text-sm font-medium"> Financial command center for fiduciary transparency and court reporting. </p>
+                            <h1 className="text-xl font-black text-slate-900 tracking-tight">Estate Accounting</h1>
+                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] hidden md:block">
+                                Probate Code § 1060
+                            </span>
+                            {/* Readiness pill — computed, not hardcoded */}
+                            <div className={cn(
+                                "flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wide border",
+                                isReady ? "bg-emerald-50 text-emerald-700 border-emerald-200" :
+                                    isDraft ? "bg-amber-50 text-amber-700 border-amber-200" :
+                                        "bg-rose-50 text-rose-700 border-rose-200"
+                            )}>
+                                <div className={cn("w-1.5 h-1.5 rounded-full", isReady ? "bg-emerald-500" : isDraft ? "bg-amber-500" : "bg-rose-500")} />
+                                {readinessScore}% Ready
+                            </div>
                         </div>
-                        <div className="flex gap-4">
-                            <div className="flex flex-col items-end">
-                                <div className="flex items-center gap-3 bg-white p-2 px-4 rounded-2xl border border-slate-200">
-                                    <div className="text-right">
-                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Readiness Score</p>
-                                        <p className="text-lg font-black text-slate-900 leading-tight">{readinessScore}%</p>
-                                    </div>
-                                    <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center border-2 border-slate-100 relative overflow-hidden">
-                                        <div
-                                            className="absolute bottom-0 left-0 right-0 bg-emerald-500 transition-all duration-1000"
-                                            style={{ height: `${readinessScore}%` }}
-                                        />
-                                        <Calculator className="w-4 h-4 text-slate-900 relative z-10 mix-blend-difference" />
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="flex flex-col items-end">
-                                <Button
-                                    variant={isWaiverEnabled ? "default" : "outline"}
-                                    size="sm"
-                                    className={cn(
-                                        "h-10 text-[10px] font-black uppercase tracking-widest px-4 transition-all rounded-xl",
-                                        isWaiverEnabled ? "bg-amber-500 hover:bg-amber-600 border-none shadow-lg shadow-amber-200" : "border-slate-200 bg-white"
-                                    )}
-                                    onClick={() => setIsWaiverEnabled(!isWaiverEnabled)}
-                                >
-                                    {isWaiverEnabled ? "Accounting Waived" : "Waiver of Accounting"}
-                                </Button>
-                                <p className="text-[9px] text-slate-400 font-bold mt-1 uppercase tracking-tighter">Requires all-heir consent</p>
-                            </div>
+                        <div className="flex items-center gap-2">
+                            <Button
+                                variant={isWaiverEnabled ? "default" : "outline"}
+                                size="sm"
+                                className={cn(
+                                    "h-9 text-[10px] font-black uppercase tracking-widest px-4 rounded-xl transition-all",
+                                    isWaiverEnabled ? "bg-amber-500 hover:bg-amber-600 border-none text-white" : "border-slate-200 bg-white text-slate-700"
+                                )}
+                                onClick={() => setIsWaiverEnabled(!isWaiverEnabled)}
+                            >
+                                {isWaiverEnabled ? "Waiver Active" : "Waive Accounting"}
+                            </Button>
                             <Button
                                 onClick={handleExportReport}
-                                className="h-10 bg-slate-900 hover:bg-slate-800 text-white font-bold px-6 shadow-lg shadow-slate-200 rounded-xl"
+                                size="sm"
+                                className="h-9 bg-slate-900 hover:bg-slate-800 text-white font-black px-5 rounded-xl text-[11px] gap-1.5"
                             >
-                                <FileText className="w-4 h-4 mr-2" /> Export Report
+                                <FileText className="w-3.5 h-3.5" /> Export CSV
                             </Button>
                         </div>
                     </header>
@@ -408,8 +392,7 @@ export default function Accounting() {
                         </div>
                     </footer>
                 </div>
-            </main>
-        </div>
+        </DashboardLayout>
     );
 }
 
