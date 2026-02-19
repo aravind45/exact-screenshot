@@ -1,6 +1,7 @@
 import { prisma } from "../db.js";
 import { CommunicationService } from "./communicationService.js";
 import { ConfigService } from "./configService.js";
+import { logger } from "../lib/logger.js";
 
 interface FaxPayload {
     assetId: string;
@@ -18,11 +19,11 @@ export const FaxService = {
         const apiSecret = await ConfigService.get("PAMFAX_API_SECRET");
 
         if (!apiKey || !apiSecret) {
-            console.warn("[FaxService] PAMFAX_API_KEY or PAMFAX_API_SECRET missing. Falling back to simulation.");
+            logger.warn("[FaxService] PAMFAX_API_KEY or PAMFAX_API_SECRET missing. Falling back to simulation.");
             return this.simulateFax(payload);
         }
 
-        console.log(`[FaxService] Sending Real Fax to ${faxNumber} via PamFax...`);
+        logger.info(`[FaxService] Sending Real Fax to ${faxNumber} via PamFax...`);
 
         try {
             // 1. Authenticate (Note: PamFax API uses a specific authentication flow)
@@ -84,7 +85,7 @@ export const FaxService = {
                 message: "Fax sent successfully via PamFax"
             };
         } catch (error: any) {
-            console.error("[FaxService] Exception:", error);
+            logger.error("[FaxService] Exception:", error);
             // Fallback to simulation if production API fails during dev
             return this.simulateFax(payload);
         }

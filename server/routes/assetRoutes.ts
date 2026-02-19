@@ -46,7 +46,7 @@ router.get("/:id", async (req: any, res: Response) => {
         if (!asset) return res.status(404).json({ error: "Asset not found" });
         res.json(asset);
     } catch (error: any) {
-        console.error("Error fetching asset:", error);
+        logger.error("Error fetching asset:", error);
         res.status(500).json({ error: "Failed to fetch asset" });
     }
 });
@@ -84,8 +84,8 @@ router.delete("/:id", async (req: any, res: Response) => {
         const result = await AssetService.delete(req.params.id, req.user.id);
         res.json(result);
     } catch (error: any) {
-        console.error("Error deleting asset:", error);
-        res.status(403).json({ error: error.message });
+        logger.error("Error deleting asset:", error);
+        res.status(503).json({ error: error.message });
     }
 });
 
@@ -131,7 +131,7 @@ router.post("/:id/generate-draft", async (req: any, res: Response) => {
         });
         res.json(result);
     } catch (error: any) {
-        console.error("Error generating draft:", error);
+        logger.error("Error generating draft:", error);
         res.status(500).json({ error: error.message });
     }
 });
@@ -148,13 +148,13 @@ router.post("/:id/generate-letter", async (req: any, res: Response) => {
         });
         if (!estate) return res.status(404).json({ error: "Estate not found" });
 
-        const { PdfService } = await import("../services/pdfService.js");
-        const pdfBytes = await PdfService.generateLetter(asset, estate, req.body);
+        const { DocumentService } = await import("../services/DocumentService.js");
+        const pdfBytes = await DocumentService.generateLetter(asset, estate, req.body);
 
         res.contentType("application/pdf");
         res.send(Buffer.from(pdfBytes));
     } catch (error: any) {
-        console.error("Error generating letter:", error);
+        logger.error("Error generating letter:", error);
         res.status(500).json({ error: error.message });
     }
 });
@@ -180,12 +180,12 @@ router.post("/batch-generate-letters", async (req: any, res: Response) => {
             }
         });
 
-        const { PdfService } = await import("../services/pdfService.js");
+        const { DocumentService } = await import("../services/DocumentService.js");
         const { PDFDocument } = await import("pdf-lib");
         const combinedDoc = await PDFDocument.create();
 
         for (const asset of assets) {
-            const letterBytes = await PdfService.generateLetter(asset, estate);
+            const letterBytes = await DocumentService.generateLetter(asset, estate);
             const letterDoc = await PDFDocument.load(letterBytes);
             const copiedPages = await combinedDoc.copyPages(letterDoc, letterDoc.getPageIndices());
             copiedPages.forEach((page) => combinedDoc.addPage(page));
@@ -195,7 +195,7 @@ router.post("/batch-generate-letters", async (req: any, res: Response) => {
         res.contentType("application/pdf");
         res.send(Buffer.from(combinedPdfBytes));
     } catch (error: any) {
-        console.error("Error batch generating letters:", error);
+        logger.error("Error batch generating letters:", error);
         res.status(500).json({ error: error.message });
     }
 });
@@ -208,7 +208,7 @@ router.get("/:id/documents", async (req: any, res: Response) => {
         });
         res.json(documents);
     } catch (error: any) {
-        console.error("Error fetching asset documents:", error);
+        logger.error("Error fetching asset documents:", error);
         res.status(500).json({ error: "Failed to fetch documents" });
     }
 });
@@ -237,7 +237,7 @@ router.post("/:id/documents", async (req: any, res: Response) => {
 
         res.json(document);
     } catch (error: any) {
-        console.error("Error uploading asset document:", error);
+        logger.error("Error uploading asset document:", error);
         res.status(500).json({ error: "Failed to upload document" });
     }
 });

@@ -1,4 +1,5 @@
 import { prisma } from "../db.js";
+import { logger } from "../lib/logger.js";
 
 /**
  * Document Recommendation Service
@@ -284,7 +285,7 @@ export class DocumentRecommendationService {
     }
 
     // In a real implementation, you'd create attachment records here
-    console.log(`Would attach ${documentIds.length} documents to communication ${communicationId}`);
+    logger.info(`Would attach ${documentIds.length} documents to communication ${communicationId}`);
   }
 
   /**

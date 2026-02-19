@@ -1,5 +1,5 @@
-import { Request, Response, NextFunction } from "express";
 import { prisma } from "../db.js";
+import { logger } from "../lib/logger.js";
 
 export type EstateRole = 'OWNER' | 'CO_EXECUTOR' | 'ATTORNEY' | 'VIEWER';
 
@@ -93,7 +93,7 @@ export const requireRole = (requiredRole: EstateRole) => {
             req.estateId = estateId;
             next();
         } catch (error) {
-            console.error("RBAC Check Error:", error);
+            logger.error("RBAC Check Error:", error);
             res.status(500).json({ error: "Authorization check failed" });
         }
     };

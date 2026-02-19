@@ -32,6 +32,8 @@ model User {
   stripeSubscriptionId    String?                   @map("stripe_subscription_id")
   subscriptionStatus      String?                   @default("FREE") @map("subscription_status")
   trialStartedAt          DateTime?                 @default(now()) @map("trial_started_at")
+  emailVerifiedAt         DateTime?                 @map("email_verified_at")
+  verificationToken       String?                   @map("verification_token")
   agentExecutions         AgentExecution[]
   communications          AssetCommunication[]
   uploadedAttachments     CommunicationAttachment[]

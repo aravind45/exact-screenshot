@@ -246,7 +246,7 @@ Which asset ID does this email most likely belong to? Return ONLY the ID. If non
             body: formData
         });
 
-        console.log(`[EmailService] Mailgun Response Status: ${response.status}`);
+        logger.debug(`[EmailService] Mailgun Response Status: ${response.status}`);
 
         if (!response.ok) {
             const error = await response.text();
@@ -279,7 +279,7 @@ Which asset ID does this email most likely belong to? Return ONLY the ID. If non
 
         const baseUrl = process.env.MAILGUN_BASE_URL || "https://api.mailgun.net";
 
-        console.log(`[EmailService] Posting to Mailgun: ${baseUrl}/v3/${domain}/messages`);
+        logger.debug(`[EmailService] Posting to Mailgun: ${baseUrl}/v3/${domain}/messages`);
 
         const response = await fetch(`${baseUrl}/v3/${domain}/messages`, {
             method: "POST",
@@ -289,7 +289,7 @@ Which asset ID does this email most likely belong to? Return ONLY the ID. If non
             body: formData
         });
 
-        console.log(`[EmailService] Mailgun Response Status: ${response.status}`);
+        logger.debug(`[EmailService] Mailgun Response Status: ${response.status}`);
 
         if (!response.ok) {
             const error = await response.text();
@@ -339,5 +339,43 @@ Which asset ID does this email most likely belong to? Return ONLY the ID. If non
 
         logger.info(`[EmailService] Internal notification sent: ${subject}`);
         return { status: "sent" };
+    }
+
+    static async sendVerificationEmail(to: string, verificationLink: string) {
+        const domain = await ConfigService.get("MAILGUN_DOMAIN") || "expectedestate.com";
+        const apiKey = await ConfigService.get("MAILGUN_API_KEY");
+
+        logger.debug(`[EmailService] Attempting to send verification email to: ${to}`);
+
+        if (!apiKey) {
+            logger.info(`📧 [SIMULATED] EMAIL VERIFICATION for ${to}`);
+            return;
+        }
+
+        const encodedKey = Buffer.from(`api:${apiKey}`).toString("base64");
+        const formData = new URLSearchParams();
+        const sender = `ExpectedEstate <noreply@${domain}>`;
+        formData.append("from", sender);
+        formData.append("to", to);
+        formData.append("subject", "Verify your ExpectedEstate account");
+        formData.append("text", `Welcome to ExpectedEstate! Please verify your email address by clicking the link below:\n\n${verificationLink}\n\nIf you did not sign up for an account, you can safely ignore this email.`);
+
+        const baseUrl = process.env.MAILGUN_BASE_URL || "https://api.mailgun.net";
+
+        const response = await fetch(`${baseUrl}/v3/${domain}/messages`, {
+            method: "POST",
+            headers: {
+                "Authorization": `Basic ${encodedKey}`
+            },
+            body: formData
+        });
+
+        if (!response.ok) {
+            const error = await response.text();
+            logger.error("[EmailService] Verification Email Error:", error);
+            throw new Error(`Failed to send verification email`);
+        }
+
+        logger.info(`[EmailService] Verification email successfully accepted by Mailgun for ${to}`);
     }
 }

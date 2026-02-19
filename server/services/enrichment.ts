@@ -21,7 +21,7 @@ export async function enrichInstitutionData(institutionName: string): Promise<En
             app = new FirecrawlApp({ apiKey: process.env.FIRECRAWL_API_KEY });
         }
 
-        console.log(`Enriching data for: ${institutionName}`);
+        logger.info(`Enriching data for: ${institutionName}`);
 
         // Search for "Death Notification Number" or "Estate Resolution Fax"
         // Target specific keywords that often appear in institutional estate guides

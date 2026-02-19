@@ -1,6 +1,7 @@
 
 import { Hyperbrowser } from "@hyperbrowser/sdk";
 import "dotenv/config";
+import { logger } from "../lib/logger.js";
 
 /**
  * SettlementAgentService
@@ -46,7 +47,7 @@ export class SettlementAgentService {
                 steps: result.data?.steps
             };
         } catch (error: any) {
-            console.error("HyperAgent Error:", error);
+            logger.error("HyperAgent Error:", error);
             return { success: false, error: error.message };
         }
     }

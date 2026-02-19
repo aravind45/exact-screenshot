@@ -1,135 +1,191 @@
 import { Router, Request, Response } from "express";
-import multer from "multer";
-import path from "path";
-import fs from "fs";
 import { prisma } from "../db.js";
-import { analyzeDocument } from "../services/ai.js";
-import { AgentService } from "../services/agentService.js";
-import { createRequire } from "module";
+import { DocumentService, FormMapping } from "../services/DocumentService.js";
+import { FORM_MAPPINGS, FORM_AUTHORITIES } from "../services/formMappings.js";
+import { DistributionService } from "../services/distributionService.js";
+import { AccountingService } from "../services/accountingService.js";
 import { z } from "zod";
 import { logger } from "../lib/logger.js";
 import { requireSubscription } from "../middleware/subscription.js";
-import { encryptBuffer } from "../utils/encryption.js";
 
-const require = createRequire(import.meta.url);
-const pdf = require("pdf-parse");
+const generateDocumentSchema = z.object({
+    documentId: z.string().min(1), // Previously formId
+    isPreview: z.boolean().optional(),
+    overrides: z.record(z.any()).optional()
+});
 
 const router = Router();
 router.use(requireSubscription);
 
-const scanQuerySchema = z.object({
-    saveToVault: z.string().optional(),
-    documentType: z.string().optional()
-});
+const getEstateId = async (userId: string) => {
+    const grant = await prisma.estateGrant.findFirst({
+        where: { userId },
+        include: { estate: true }
+    });
+    if (grant) return grant.estateId;
+    const estate = await prisma.estate.findFirst({ where: { userId } });
+    return estate?.id;
+};
 
-const isVercel = process.env.VERCEL === "1";
-const uploadDir = isVercel
-    ? path.join("/tmp", "uploads")
-    : path.join(process.cwd(), "server/uploads");
-
-if (!fs.existsSync(uploadDir)) {
+// GET /api/documents/templates - List available templates
+router.get("/templates", async (req: Request, res: Response) => {
     try {
-        fs.mkdirSync(uploadDir, { recursive: true });
-    } catch (e: any) {
-        logger.warn("Could not create upload directory:", e.message);
-    }
-}
-
-// Configuration for Document Repository (Persistence)
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, uploadDir);
-    },
-    filename: function (req, file, cb) {
-        const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-        cb(null, uniqueSuffix + "-" + file.originalname);
-    },
-});
-
-const uploadRepo = multer({ storage: storage });
-const uploadMemory = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
-
-// Scans / Analyzes a document
-router.post("/scan", uploadMemory.single("file"), async (req: any, res: Response): Promise<any> => {
-    try {
-        if (!req.file) return res.status(400).json({ error: "No file provided" });
-
-        let textToAnalyze = "";
-
-        if (req.file.mimetype === "application/pdf") {
-            try {
-                const parseFunc = typeof pdf === "function" ? pdf : pdf.default;
-                const data = await parseFunc(req.file.buffer);
-                textToAnalyze = data.text;
-                if (!textToAnalyze || textToAnalyze.trim().length === 0) {
-                    return res.status(422).json({ error: "PDF text extraction failed: No text found. Is it a scanned image?" });
-                }
-            } catch (pdfError) {
-                return res.status(422).json({ error: "Failed to parse PDF file." });
+        const templates = await prisma.formTemplate.findMany({
+            select: {
+                id: true,
+                name: true,
+                title: true,
+                description: true,
+                icon: true,
+                state: true,
+                category: true,
+                updatedAt: true
             }
-        } else if (req.file.mimetype.startsWith("text/")) {
-            textToAnalyze = req.file.buffer.toString("utf-8");
-        } else if (req.file.mimetype.startsWith("image/")) {
-            const imageBase64 = req.file.buffer.toString("base64");
-            const extractedData = await analyzeDocument(undefined, imageBase64);
-            const agentInsights = await AgentService.runDetectiveDiscovery("", imageBase64);
-            return res.json({
-                ...(extractedData || { institution: "Unknown", assetType: "Account", value: 0 }),
-                agentInsights
-            });
-        } else {
-            return res.status(400).json({ error: "Unsupported file type" });
-        }
-
-        const extractedData = await analyzeDocument(textToAnalyze);
-        const agentInsights = await AgentService.runDetectiveDiscovery(textToAnalyze, "");
-
-        // If estateId is provided, we can optionally link/save this discovery
-        const queryValidated = scanQuerySchema.parse(req.query);
-        if (queryValidated.saveToVault === 'true' && req.user) {
-            const estate = await prisma.estate.findFirst({ where: { userId: req.user.id } });
-            if (estate) {
-                const docType = queryValidated.documentType || "OTHER_DISCOVERY";
-                const existing = docType !== "OTHER_DISCOVERY"
-                    ? await prisma.estateDocument.findFirst({
-                        where: { estateId: estate.id, documentType: docType }
-                    })
-                    : null;
-
-                const commonData = {
-                    content: encryptBuffer(req.file.buffer) as any, // Cast to any to resolve Buffer/Uint8Array mismatch
-                    name: req.file.originalname,
-                    status: "OBTAINED",
-                    obtainedDate: new Date(),
-                    clues: agentInsights as any
-                };
-
-                if (existing) {
-                    await prisma.estateDocument.update({
-                        where: { id: existing.id },
-                        data: commonData
-                    });
-                } else {
-                    await prisma.estateDocument.create({
-                        data: {
-                            ...commonData,
-                            estateId: estate.id,
-                            userId: req.user.id as string,
-                            documentType: docType
-                        }
-                    });
-                }
-            }
-        }
-
-        res.json({
-            ...(extractedData || { institution: "Unknown", assetType: "Account", value: 0 }),
-            agentInsights
         });
+
+        const enriched = templates.map((t: any) => ({
+            ...t,
+            authorityTier: FORM_AUTHORITIES[t.name] || 'COURT_REQUIRED'
+        }));
+
+        res.json(enriched);
     } catch (error: any) {
-        if (error instanceof z.ZodError) return res.status(400).json({ error: "Invalid scan parameters", details: error.errors });
-        logger.error("Scan Error:", error.message);
-        res.status(500).json({ error: "Failed to process document" });
+        logger.error("Failed to fetch document templates:", error.message);
+        res.status(500).json({ error: "Failed to fetch document templates" });
+    }
+});
+
+// GET /api/documents/readiness - Consolidated readiness checks
+router.get("/readiness", async (req: any, res: Response) => {
+    try {
+        const estateId = await getEstateId(req.user.id);
+        if (!estateId) return res.status(404).json({ error: "Estate not found" });
+
+        const estate = await prisma.estate.findUnique({ where: { id: estateId } });
+        const accountingReadiness = await AccountingService.getReadiness(estateId);
+
+        const readiness = {
+            'DE-111': {
+                ready: !!(estate?.deceasedFirstName && estate?.deceasedLastName),
+                reason: "Requires decedent name and address.",
+                status: !!(estate?.deceasedFirstName && estate?.deceasedLastName) ? "READY" : "LOCKED",
+                authorityTier: "COURT_REQUIRED"
+            },
+            'DE-121': {
+                ready: !!(estate?.deceasedFirstName && estate?.deceasedLastName),
+                reason: "Requires decedent name and address.",
+                status: !!(estate?.deceasedFirstName && estate?.deceasedLastName) ? "READY" : "LOCKED",
+                authorityTier: "COURT_REQUIRED"
+            },
+            'DE-150': {
+                ready: estate?.status === 'APPOINTED' || estate?.status === 'SETTLEMENT',
+                reason: "Can be prepared once the court has issued appointment orders.",
+                status: (estate?.status === 'APPOINTED' || estate?.status === 'SETTLEMENT') ? "READY (Letters Issued)" : "PENDING COURT ORDER",
+                authorityTier: "COURT_REQUIRED"
+            },
+            'DE-160': {
+                ready: accountingReadiness.checks.inventoryObtained || estate?.status === 'SETTLEMENT',
+                reason: "Appropriate once assets have been discovered and valued.",
+                status: (accountingReadiness.checks.inventoryObtained || estate?.status === 'SETTLEMENT') ? "READY (Inventory Open)" : "COLLECTING ASSETS",
+                authorityTier: "COURT_REQUIRED"
+            }
+        };
+
+        res.json(readiness);
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// POST /api/documents/generate - Unified generation endpoint
+router.post("/generate", async (req: any, res: Response) => {
+    try {
+        const validated = generateDocumentSchema.parse(req.body);
+        const { documentId: formId, isPreview, overrides } = validated;
+        const estateId = await getEstateId(req.user.id);
+
+        if (!estateId) return res.status(404).json({ error: "Estate not found" });
+
+        const estate = await prisma.estate.findUnique({
+            where: { id: estateId },
+            include: { user: true }
+        });
+
+        if (!estate) return res.status(404).json({ error: "Estate data not found" });
+
+        const mergedData = { ...estate, ...overrides };
+        let pdfBytes: Buffer;
+
+        // Check for specialised generator first
+        const specializedGenerators: Record<string, Function> = {
+            'DE-111': DocumentService.generateDE111,
+            'DE-160': async (data: any) => {
+                const assets = await prisma.asset.findMany({ where: { estateId } });
+                return DocumentService.generateDE160(data, assets);
+            },
+            'DE-121': DocumentService.generateDE121,
+            'DE-150': DocumentService.generateDE150,
+            'DE-221': DocumentService.generateDE221,
+            'DE-120': DocumentService.generateDE120,
+            'DE-226': DocumentService.generateDE226,
+            'DE-310': async (data: any) => {
+                const assets = await prisma.asset.findMany({ where: { estateId } });
+                const total = assets.reduce((sum, a) => sum + Number(a.inventoryValue || 0), 0);
+                return DocumentService.generateDE310(data, total);
+            },
+            'DE-315': DocumentService.generateDE315,
+            'DE-350': DocumentService.generateDE350,
+            'DE-351': DocumentService.generateDE351,
+            'DE-142': DocumentService.generateDE142,
+            'DE-143': DocumentService.generateDE143,
+            'DE-174': async (data: any) => {
+                // If overrides contains a liabilityId, fetch it
+                if (overrides?.liabilityId) {
+                    const liability = await prisma.liability.findUnique({ where: { id: overrides.liabilityId } });
+                    return DocumentService.generateDE174(data, liability);
+                }
+                return DocumentService.generateDE174(data, {});
+            }
+        };
+
+        if (specializedGenerators[formId]) {
+            pdfBytes = await specializedGenerators[formId](mergedData);
+        } else {
+            // Fallback to Overlay processing
+            const mapping = FORM_MAPPINGS[formId];
+            if (!mapping) {
+                return res.status(400).json({ error: `No generation path found for document ${formId}` });
+            }
+
+            // Prepare baseline data for overlay
+            const overlayData: Record<string, any> = {
+                'estateOf': `${estate.deceasedFirstName || ''} ${estate.deceasedLastName || ''}`.toUpperCase(),
+                'partyName': estate.user?.fullName || '',
+                'attorneyName': estate.user?.fullName || '',
+                'petitionerName': estate.user?.fullName || '',
+                ...overrides
+            };
+
+            pdfBytes = await DocumentService.generateOverlayPdf(formId, overlayData, mapping);
+        }
+
+        // Audit Trail Logging
+        await DistributionService.logEvent(estateId, req.user.id, isPreview ? 'VIEWED' : 'PREPARED',
+            `${isPreview ? 'PREVIEWED' : 'PREPARED'} – ${formId} document generated (auto-fill)`);
+
+        // Return Base64 as the standard response contract
+        const base64Pdf = Buffer.from(pdfBytes).toString('base64');
+        res.json({
+            documentId: formId,
+            pdfBase64: base64Pdf,
+            mimeType: 'application/pdf',
+            filename: `${formId}_Generated.pdf`
+        });
+
+    } catch (e: any) {
+        if (e instanceof z.ZodError) return res.status(400).json({ error: "Invalid document request", details: e.errors });
+        logger.error(`Error generating ${req.body.documentId}:`, e.message);
+        res.status(500).json({ error: "Failed to generate document" });
     }
 });
 

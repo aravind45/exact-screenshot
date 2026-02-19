@@ -1,6 +1,7 @@
 import { prisma } from "../db.js";
 import { calculateAuthorityRecommendation } from "../../src/lib/authorityEngine.js";
 import { AuditService } from "./auditService.js";
+import { logger } from "../lib/logger.js";
 
 export const AuthorityService = {
     /**
@@ -54,7 +55,7 @@ export const AuthorityService = {
         const oldType = estate?.authorityType;
 
         if (oldType && oldType !== newRecommendation.type) {
-            console.log(`Estate ${estateId} reclassified from ${oldType} to ${newRecommendation.type}`);
+            logger.info(`Estate ${estateId} reclassified from ${oldType} to ${newRecommendation.type}`);
 
             // Log reclassification event
             await this.trackDecision(

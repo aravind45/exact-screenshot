@@ -2,6 +2,7 @@ import { Router, Request, Response } from "express";
 import { EmailService } from "../services/emailService.js";
 import { StripeService } from "../services/stripeService.js";
 import { logger } from "../lib/logger.js";
+import { prisma } from "../db.js";
 import Stripe from 'stripe';
 
 const router = Router();
@@ -56,7 +57,7 @@ router.post("/stripe", async (req: Request, res: Response) => {
 
         // Verify webhook signature
         const event = stripe.webhooks.constructEvent(
-            req.body,
+            (req as any).rawBody || req.body,
             sig,
             webhookSecret
         );
@@ -79,14 +80,25 @@ router.post("/stripe", async (req: Request, res: Response) => {
             case 'payment_intent.payment_failed': {
                 const paymentIntent = event.data.object as Stripe.PaymentIntent;
                 logger.error(`❌ Payment failed for booking: ${paymentIntent.metadata.bookingId}`);
-                // TODO: Update booking status to PAYMENT_FAILED
+                if (paymentIntent.metadata.bookingId) {
+                    await prisma.booking.update({
+                        where: { id: paymentIntent.metadata.bookingId },
+                        data: { status: 'PAYMENT_FAILED' }
+                    });
+                }
                 break;
             }
 
             case 'account.updated': {
                 const account = event.data.object as Stripe.Account;
                 logger.info(`Stripe Connect account updated: ${account.id}`);
-                // TODO: Update advisor's stripeOnboardingComplete status
+                if (account.details_submitted) {
+                    await prisma.advisor.updateMany({
+                        where: { stripeAccountId: account.id },
+                        data: { stripeOnboardingComplete: true }
+                    });
+                    logger.info(`✅ Advisor onboarding marked complete for account: ${account.id}`);
+                }
                 break;
             }
 

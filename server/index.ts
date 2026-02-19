@@ -24,8 +24,6 @@ import collaborationRoutes from "./routes/collaborationRoutes.js";
 import liabilityRoutes from "./routes/liabilityRoutes.js";
 import discoveryRoutes from "./routes/discoveryRoutes.js";
 import { heirRoutes } from "./routes/heirRoutes.js";
-import { pdfRoutes } from "./routes/pdfRoutes.js";
-import formRoutes from "./routes/formRoutes.js";
 import helpRoutes from "./routes/helpRoutes.js";
 import billingRoutes from "./routes/billingRoutes.js";
 import marketingRoutes from "./routes/marketingRoutes.js";
@@ -113,7 +111,14 @@ const limiter = rateLimit({
 
 app.use("/api/", limiter);
 
-app.use(express.json({ limit: '50mb' })); // Increased limit for base64 uploads
+app.use(express.json({
+    limit: '50mb',
+    verify: (req: any, res, buf) => {
+        if (req.originalUrl.startsWith('/api/webhooks/stripe')) {
+            req.rawBody = buf;
+        }
+    }
+}));
 app.use(express.raw({
     type: ['application/pdf', 'image/jpeg', 'image/png'],
     limit: '50mb'
@@ -129,6 +134,7 @@ app.use((req, res, next) => {
 });
 
 import { authenticate } from "./middleware/auth.js";
+import { requireVerification } from "./middleware/verifyAuth.js";
 
 // Health & Ping
 app.get("/api/health", async (req, res) => {
@@ -149,28 +155,26 @@ app.get("/api/ping", (req, res) => {
 // Routes
 logger.info("📋 Registering routes...");
 app.use("/api/auth", authRoutes);
-app.use("/api/assets", authenticate, assetRoutes);
-app.use("/api/documents", authenticate, documentRoutes);
-app.use("/api/estates", authenticate, estateRoutes);
-app.use("/api/enrichment", authenticate, enrichmentRoutes);
+app.use("/api/assets", authenticate, requireVerification, assetRoutes);
+app.use("/api/documents", authenticate, requireVerification, documentRoutes);
+app.use("/api/estates", authenticate, requireVerification, estateRoutes);
+app.use("/api/enrichment", authenticate, requireVerification, enrichmentRoutes);
 app.use("/api/admin", authenticate, adminRoutes);
-app.use("/api/agent", authenticate, agentRoutes);
-app.use("/api/communications", authenticate, communicationRoutes);
-app.use("/api/collaboration", authenticate, collaborationRoutes);
-app.use("/api/liabilities", authenticate, liabilityRoutes);
-app.use("/api/discovery", authenticate, discoveryRoutes);
-app.use("/api/heirs", authenticate, heirRoutes);
-app.use("/api/pdf", authenticate, pdfRoutes);
-app.use("/api/forms", authenticate, formRoutes);
-app.use("/api/help", authenticate, helpRoutes);
-app.use("/api/billing", authenticate, billingRoutes);
+app.use("/api/agents", authenticate, requireVerification, agentRoutes);
+app.use("/api/communications", authenticate, requireVerification, communicationRoutes);
+app.use("/api/collaboration", authenticate, requireVerification, collaborationRoutes);
+app.use("/api/liabilities", authenticate, requireVerification, liabilityRoutes);
+app.use("/api/discovery", authenticate, requireVerification, discoveryRoutes);
+app.use("/api/heirs", authenticate, requireVerification, heirRoutes);
+app.use("/api/help", authenticate, requireVerification, helpRoutes);
+app.use("/api/billing", authenticate, requireVerification, billingRoutes);
 app.use("/api/marketing", marketingRoutes);
 app.use("/api/advisors", advisorRoutes);
-app.use("/api/bookings", authenticate, bookingRoutes);
+app.use("/api/bookings", authenticate, requireVerification, bookingRoutes);
 app.use("/api/webhooks", webhookRoutes); // Auth handled via Mailgun signatures
 app.use("/api/marketplace", marketplaceRoutes);
-app.use("/api/advisor", authenticate, advisorProfileRoutes);
-app.use("/api/bookings/marketplace", authenticate, bookingMarketplaceRoutes);
+app.use("/api/advisor", authenticate, requireVerification, advisorProfileRoutes);
+app.use("/api/bookings/marketplace", authenticate, requireVerification, bookingMarketplaceRoutes);
 app.use("/api/admin/marketplace", authenticate, adminMarketplaceRoutes);
 
 // Profile (simple, keep here or move if grows)
@@ -190,7 +194,7 @@ app.put("/api/auth/me", authenticate, async (req: any, res) => {
 
 // Serve Static Files (Disabled in serverless to avoid path issues)
 if (!isServerless) {
-    console.log("📂 Setting up static file serving...");
+    logger.info("📂 Setting up static file serving...");
     app.use(express.static(distPath));
 
     // Catch-all to serve index.html for React Router
@@ -201,7 +205,7 @@ if (!isServerless) {
         res.sendFile(path.join(distPath, "index.html"));
     });
 } else {
-    console.log("📂 Skipping static file serving in serverless mode");
+    logger.info("📂 Skipping static file serving in serverless mode");
 }
 
 // Error handler
@@ -220,48 +224,48 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 
 // Always listen when in production or no specific VITE_API_URL is set
 // Cloud Run expects the server to listen on the PORT environment variable
-console.log(`🎧 Starting server on 0.0.0.0:${port}...`);
+logger.info(`🎧 Starting server on 0.0.0.0:${port}...`);
 
 let server: any; // Declare server variable outside the conditional block
 
 if (!isServerless) {
     server = app.listen(port, '0.0.0.0', async () => {
-        console.log(`✅ Server running on http://0.0.0.0:${port}`);
-        console.log(`✅ Environment: ${process.env.NODE_ENV || 'development'}`);
+        logger.info(`✅ Server running on http://0.0.0.0:${port}`);
+        logger.info(`✅ Environment: ${process.env.NODE_ENV || 'development'}`);
 
         // Background Database Sync & Seeding (Non-blocking)
         (async () => {
-            console.log("ℹ️ Skipping auto-db-push in production for safety. Use 'prisma migrate deploy' in CI/CD.");
+            logger.info("ℹ️ Skipping auto-db-push in production for safety. Use 'prisma migrate deploy' in CI/CD.");
 
             try {
                 // Seed default forms if DB is empty
                 const { FormSeedingService } = await import("./services/formSeedingService.js");
                 const count = await prisma.formTemplate.count();
                 if (count === 0) {
-                    console.log("🌱 Seeding default forms...");
+                    logger.info("🌱 Seeding default forms...");
                     await FormSeedingService.seedDefaults();
                 }
-                console.log(`🎉 Background initialization complete! Server is fully ready.`);
+                logger.info(`🎉 Background initialization complete! Server is fully ready.`);
             } catch (e) {
-                console.error("❌ Background initialization error:", e);
+                logger.error("❌ Background initialization error:", e);
             }
         })();
     });
 
     server.on('error', (err: any) => {
-        console.error("❌ Failed to start server:", err);
+        logger.error("❌ Failed to start server:", err);
         process.exit(1);
     });
 } else {
-    console.log(`🔧 Running in serverless mode - app exported for function invocation`);
+    logger.info(`🔧 Running in serverless mode - app exported for function invocation`);
 }
 
 // Graceful shutdown (only if server is running)
 if (server) {
     process.on('SIGTERM', () => {
-        console.log('SIGTERM signal received: closing HTTP server');
+        logger.info('SIGTERM signal received: closing HTTP server');
         server.close(() => {
-            console.log('HTTP server closed');
+            logger.info('HTTP server closed');
         });
     });
 }
@@ -269,12 +273,12 @@ if (server) {
 
 // Catch unhandled errors
 process.on('uncaughtException', (err) => {
-    console.error('❌ Uncaught Exception:', err);
+    logger.error('❌ Uncaught Exception:', err);
     if (!isServerless) process.exit(1);
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-    console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
+    logger.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
     if (!isServerless) process.exit(1);
 });
 

@@ -260,7 +260,7 @@ router.get("/asset/:assetId/document-recommendations", async (req: any, res: Res
 
         res.json(recommendations);
     } catch (error: any) {
-        console.error("Get Document Recommendations Error:", error);
+        logger.error("Get Document Recommendations Error:", error);
         res.status(500).json({ error: error.message });
     }
 });
@@ -274,7 +274,7 @@ router.get("/estate/available-documents", async (req: any, res: Response) => {
         const documents = await DocumentRecommendationService.getAvailableDocuments(estate.id);
         res.json(documents);
     } catch (error: any) {
-        console.error("Get Available Documents Error:", error);
+        logger.error("Get Available Documents Error:", error);
         res.status(500).json({ error: error.message });
     }
 });
@@ -297,7 +297,7 @@ router.post("/validate-completeness", async (req: any, res: Response) => {
 
         res.json(validation);
     } catch (error: any) {
-        console.error("Validate Completeness Error:", error);
+        logger.error("Validate Completeness Error:", error);
         res.status(500).json({ error: error.message });
     }
 });

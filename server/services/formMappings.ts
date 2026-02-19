@@ -1,4 +1,4 @@
-import { FormMapping } from './formService.js';
+import { FormMapping } from './DocumentService.js';
 
 /**
  * Standard California Judicial Council Form Header (Top Sections)

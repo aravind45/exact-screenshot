@@ -1,20 +1,26 @@
 
 Running 1 test using 1 worker
 
-  Γ£ÿ  1 [chromium] ΓÇ║ e2e\documents.spec.ts:39:5 ΓÇ║ Document Generation Unification ΓÇ║ should verify document readiness and generation flow (30.2s)
+  Γ£ÿ  1 [chromium] ΓÇ║ e2e\documents.spec.ts:5:5 ΓÇ║ Document Generation Unification ΓÇ║ should verify document readiness and generation flow (32.1s)
 
 
-  1) [chromium] ΓÇ║ e2e\documents.spec.ts:39:5 ΓÇ║ Document Generation Unification ΓÇ║ should verify document readiness and generation flow 
+  1) [chromium] ΓÇ║ e2e\documents.spec.ts:5:5 ΓÇ║ Document Generation Unification ΓÇ║ should verify document readiness and generation flow 
 
     [31mTest timeout of 30000ms exceeded.[39m
 
-    Error: page.fill: Test timeout of 30000ms exceeded.
+    Error: page.waitForSelector: Test timeout of 30000ms exceeded.
     Call log:
-    [2m  - waiting for locator('input[name="fullName"]')[22m
+    [2m  - waiting for locator('text=/success|verified/i') to be visible[22m
 
 
-
-        at C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\e2e\documents.spec.ts:50:20
+      38 |         const user: any = await prisma.user.findUnique({ where: { email } });
+      39 |         await page.goto(`/verify-email?token=${user?.verificationToken}`);
+    > 40 |         await page.waitForSelector('text=/success|verified/i');
+         |                    ^
+      41 |
+      42 |         // 4. Verify Templates Listing
+      43 |         await page.goto('/documents');
+        at C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\e2e\documents.spec.ts:40:20
 
     attachment #1: screenshot (image/png) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
     test-results\documents-Document-Generat-1e202-adiness-and-generation-flow-chromium\test-failed-1.png
@@ -27,6 +33,6 @@ Running 1 test using 1 worker
     Error Context: test-results\documents-Document-Generat-1e202-adiness-and-generation-flow-chromium\error-context.md
 
   1 failed
-    [chromium] ΓÇ║ e2e\documents.spec.ts:39:5 ΓÇ║ Document Generation Unification ΓÇ║ should verify document readiness and generation flow 
+    [chromium] ΓÇ║ e2e\documents.spec.ts:5:5 ΓÇ║ Document Generation Unification ΓÇ║ should verify document readiness and generation flow 
 
-[36m  Serving HTML report at http://localhost:60648. Press Ctrl+C to quit.[39m
+[36m  Serving HTML report at http://localhost:63994. Press Ctrl+C to quit.[39m

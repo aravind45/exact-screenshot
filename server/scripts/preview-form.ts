@@ -1,5 +1,5 @@
 
-import { FormService } from '../services/formService.js';
+import { DocumentService } from '../services/DocumentService.js';
 import { DE160_MAPPING } from '../services/formMappings.js';
 import fs from 'fs';
 import path from 'path';
@@ -17,7 +17,7 @@ async function preview() {
     };
 
     try {
-        const pdfBytes = await FormService.generateOverlayPdf(
+        const pdfBytes = await DocumentService.generateOverlayPdf(
             'DE-160 INVENTORY AND APPRAISAL.pdf',
             sampleData,
             DE160_MAPPING
