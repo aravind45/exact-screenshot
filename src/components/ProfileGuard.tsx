@@ -36,7 +36,7 @@ export function ProfileGuard({ children }: ProfileGuardProps) {
         // Skip if still loading
         if (isLoading) return;
 
-        // Skip if already on onboarding routes
+        // Skip if already on onboarding/advisor routes
         const isAtOnboarding = location.pathname === "/onboarding";
         const isAtAdvisorOnboarding = location.pathname === "/advisor/onboarding";
         const isAdvisorRoute = location.pathname.startsWith("/advisor") || location.pathname === "/marketplace";
@@ -48,27 +48,17 @@ export function ProfileGuard({ children }: ProfileGuardProps) {
         const isViewer = (estate as any)?.userRole === 'VIEWER';
         if (isHeir || isViewer) return;
 
-        // If there's an error fetching estate (404 = no estate yet), redirect to onboarding
-        if (isError) {
+        // Do NOT redirect on API errors (network issues, 500s, etc.)
+        // Those are transient — we'd break all users during any server blip.
+        if (isError) return;
+
+        // Only redirect when estate is CONFIRMED to not exist (server returned null)
+        if (estate === null) {
             console.log("No estate found, redirecting to onboarding");
             navigate("/onboarding", { replace: true });
             return;
         }
-
-        // Skip if no estate data yet (still loading or brand new user)
-        if (!estate) return;
-
-        // Check if executor profile is complete
-        const complete = isProfileComplete(estate);
-        if (!complete) {
-            console.log("Executor profile incomplete, redirecting to onboarding. Missing:", {
-                deceasedFirstName: !!estate.deceasedFirstName,
-                deceasedLastName: !!estate.deceasedLastName,
-                deceasedState: !!estate.deceasedState,
-                authorityType: estate.authorityType,
-            });
-            navigate("/onboarding", { replace: true });
-        }
+        // Any existing estate (even incomplete) → allow access
     }, [user, estate, isLoading, isError, navigate, location.pathname, shouldSkipCheck]);
 
     // Show loading only for executors
