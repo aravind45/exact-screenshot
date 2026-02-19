@@ -51,7 +51,7 @@ import { type SettlementPhase } from "@/config/settlementPhases";
 import { SEO } from "@/components/SEO";
 import { useTerminology } from "@/hooks/use-terminology";
 import { ProbateStatusUpdater } from "@/components/dashboard/ProbateStatusUpdater";
-import { isProfileComplete } from "@/lib/authorityEngine";
+import { isProfileComplete, calculateAuthorityRecommendation } from "@/lib/authorityEngine";
 import { TaxAlerts } from "@/components/dashboard/TaxAlerts";
 import { NextActionWidget } from "@/components/dashboard/NextActionWidget";
 import { AttorneyReviewWidget } from "@/components/dashboard/AttorneyReviewWidget";
@@ -103,6 +103,8 @@ export default function Dashboard() {
     enabled: !!user,
   });
 
+  const queryClient = useQueryClient();
+
   // Automatically redirect to onboarding if estate profile is incomplete or track is unset
   useEffect(() => {
     // Advisors and Admins should land on their own dashboards
@@ -116,17 +118,49 @@ export default function Dashboard() {
     }
 
     // HEIRS (VIEWERS) should never be sent to the onboarding wizard
-    const isHeir = (estate as any)?.userRole === 'VIEWER';
+    const isHeir = user?.role === 'HEIR' || (user as any)?.userType === 'HEIR' || (estate as any)?.userRole === 'VIEWER';
     if (isHeir) {
       console.log("User is an Heir (Viewer), skipping onboarding check.");
       return;
     }
 
-    if (estate && !isProfileComplete(estate)) {
+    if (!estate) return;
+
+    // If the estate has basic info but authorityType is UNSET, auto-calculate it
+    // instead of kicking the user back to the full onboarding wizard.
+    const hasBasicInfo = !!(
+      estate.deceasedFirstName?.trim() &&
+      estate.deceasedLastName?.trim() &&
+      estate.deceasedState?.trim()
+    );
+    const isAuthorityUnset = !estate.authorityType || estate.authorityType === 'UNSET';
+
+    if (hasBasicInfo && isAuthorityUnset) {
+      console.log("Estate has basic info but UNSET authorityType — auto-calculating track.");
+      const rec = calculateAuthorityRecommendation(
+        [],
+        estate.deceasedState,
+        {
+          hasWill: estate.hasWill ?? true,
+          isSpouse: estate.isSurvivingSpouse ?? false,
+          isOutOfState: estate.hasOutOfStateProperty ?? false,
+          estimatedValue: estate.estimatedPersonalProperty ?? 0,
+          isTrustRevocable: estate.isTrustRevocable ?? true,
+          hasTODDeed: estate.hasTODDeed ?? false,
+          hasContest: estate.hasContest ?? false,
+        }
+      );
+      api.updateMyEstate({ authorityType: rec.type, estateType: rec.type })
+        .then(() => queryClient.invalidateQueries({ queryKey: ['estate'] }))
+        .catch(err => console.error("Failed to auto-set authorityType:", err));
+      return; // Don't redirect — let the invalidation refresh data
+    }
+
+    if (!isProfileComplete(estate)) {
       console.log("Estate profile incomplete, redirecting to onboarding...");
       navigate('/onboarding');
     }
-  }, [estate, navigate, user?.role]);
+  }, [estate, navigate, user?.role, queryClient]);
 
   const totalValue = assets.reduce((sum: number, asset: any) => sum + (asset.value || 0), 0);
 
