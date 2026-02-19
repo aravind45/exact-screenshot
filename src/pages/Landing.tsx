@@ -301,6 +301,25 @@ export default function Landing() {
                   4.9/5 Average Rating
                 </div>
               </div>
+
+              {/* Product Preview Video — autoplay muted loop */}
+              <motion.div
+                initial={{ opacity: 0, y: 32 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.6, duration: 0.6 }}
+                className="mt-16 max-w-3xl mx-auto rounded-2xl overflow-hidden border border-white/10 shadow-2xl shadow-indigo-950/60"
+              >
+                <video
+                  src="/Your_4-Step_Executor_Roadmap_version_1.mp4"
+                  poster="/Your_4-Step_Executor_Roadmap_version_2.png"
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  className="w-full"
+                  aria-label="Your 4-step executor roadmap walkthrough"
+                />
+              </motion.div>
             </motion.div>
           </div>
         </section>
@@ -332,6 +351,41 @@ export default function Landing() {
               Miss a deadline → personal liability. Miss a creditor → lawsuit.
               <strong className="text-slate-900"> ExpectedEstate tracks it all for you.</strong>
             </p>
+          </div>
+        </section>
+
+        {/* ── See It In Action ── */}
+        <section className="py-20 px-6 bg-white">
+          <div className="max-w-5xl mx-auto">
+            <div className="text-center mb-10">
+              <Badge className="bg-indigo-50 text-indigo-600 border border-indigo-100 mb-4 text-xs font-black uppercase tracking-widest">
+                See It In Action
+              </Badge>
+              <h2 className="text-3xl font-black text-slate-900 tracking-tight">
+                Watch the platform work in real time
+              </h2>
+              <p className="text-slate-500 font-medium mt-2">Real-time progress tracking so you — and your heirs — always know where things stand.</p>
+            </div>
+            <div className="rounded-3xl overflow-hidden border border-slate-200 shadow-xl">
+              <video
+                src="/Real-Time_Progress_Tracking_version_1.mp4"
+                poster="/Real-Time_Progress_Tracking_version_1.png"
+                controls
+                playsInline
+                preload="metadata"
+                className="w-full"
+                aria-label="Real-time estate progress tracking demo"
+              />
+            </div>
+            <div className="flex justify-center mt-8">
+              <Button
+                onClick={() => window.location.href = "/auth?mode=signup"}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white font-black px-8 h-12 rounded-xl shadow-lg shadow-indigo-200"
+              >
+                Try It Free — No Card Required
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            </div>
           </div>
         </section>
 
@@ -555,25 +609,52 @@ export default function Landing() {
         </section>
 
         {/* ── Final CTA ── */}
-        <section className="bg-indigo-600 py-20 px-6 text-center text-white">
-          <div className="max-w-2xl mx-auto">
-            <h2 className="text-4xl font-black tracking-tight mb-4">
-              Start settling the estate today.
-            </h2>
-            <p className="text-indigo-200 font-medium text-lg mb-10">
-              Free account. No credit card. Your personalized action plan is ready in minutes.
-            </p>
-            <Button
-              onClick={() => navigate("/register?mode=signup")}
-              size="lg"
-              className="bg-white hover:bg-indigo-50 text-indigo-700 font-black text-lg px-12 h-14 rounded-2xl shadow-2xl"
+        <section className="bg-indigo-600 py-20 px-6 text-white overflow-hidden">
+          <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-12 items-center">
+            {/* Image column */}
+            <motion.div
+              initial={{ opacity: 0, x: -32 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="rounded-2xl overflow-hidden shadow-2xl shadow-indigo-900/50 border border-white/10"
             >
-              Create Free Account
-              <ArrowRight className="w-5 h-5 ml-2" />
-            </Button>
-            <p className="text-indigo-300 text-sm font-semibold mt-6">
-              Join executors across all 50 states who chose clarity over chaos.
-            </p>
+              <img
+                src="/Finalize_with_Confidence_version_1.png"
+                alt="Finalize your estate with confidence — ExpectedEstate dashboard"
+                className="w-full h-auto"
+                loading="lazy"
+              />
+            </motion.div>
+
+            {/* Text + CTA column */}
+            <motion.div
+              initial={{ opacity: 0, x: 32 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+              className="text-center md:text-left"
+            >
+              <h2 className="text-4xl md:text-5xl font-black tracking-tight mb-5 leading-tight">
+                Finalize with
+                <br />
+                <span className="text-indigo-200">confidence.</span>
+              </h2>
+              <p className="text-indigo-200 font-medium text-lg mb-8 leading-relaxed">
+                Free account. No credit card. Your personalized action plan is ready in minutes.
+              </p>
+              <Button
+                onClick={() => navigate("/register?mode=signup")}
+                size="lg"
+                className="bg-white hover:bg-indigo-50 text-indigo-700 font-black text-lg px-12 h-14 rounded-2xl shadow-2xl w-full sm:w-auto"
+              >
+                Create Free Account
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </Button>
+              <p className="text-indigo-300 text-sm font-semibold mt-6">
+                Join executors across all 50 states who chose clarity over chaos.
+              </p>
+            </motion.div>
           </div>
         </section>
 
