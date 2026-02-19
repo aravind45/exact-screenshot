@@ -15,8 +15,6 @@ const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || 
 import { useAuth } from "@/contexts/AuthContext";
 import { SEO } from "@/components/SEO";
 
-// ... existing code ...
-
 export default function Pricing() {
     const navigate = useNavigate();
     const { toast } = useToast();
@@ -61,11 +59,10 @@ export default function Pricing() {
     return (
         <div className="min-h-screen bg-[#0f172a] text-slate-200 selection:bg-indigo-500/30">
             <SEO
-                title="Pricing & Plans"
+                title="Pricing & Plans | ExpectedEstate"
                 description="Simple, transparent pricing for estate settlement. One plan includes all assets, unlimited document generation, and court forms."
-                canonical="https://expectedestate.com/pricing"
+                canonical="https://www.expectedestate.com/pricing"
             />
-        // ... rest of component
 
             {/* Header */}
             <header className="border-b border-slate-800 bg-slate-900/50 backdrop-blur-xl sticky top-0 z-50">
