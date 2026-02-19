@@ -16,10 +16,10 @@ export function ProfileGuard({ children }: ProfileGuardProps) {
     const location = useLocation();
 
     // CRITICAL FIX: Skip all checks for advisors and admins
-    const shouldSkipCheck = 
-        !user || 
-        user.role === 'ADMIN' || 
-        user.role === 'ADVISOR' || 
+    const shouldSkipCheck =
+        !user ||
+        user.role === 'ADMIN' ||
+        user.role === 'ADVISOR' ||
         user.userType === 'ADVISOR';
 
     const { data: estate, isLoading, isError } = useQuery({
@@ -40,8 +40,13 @@ export function ProfileGuard({ children }: ProfileGuardProps) {
         const isAtOnboarding = location.pathname === "/onboarding";
         const isAtAdvisorOnboarding = location.pathname === "/advisor/onboarding";
         const isAdvisorRoute = location.pathname.startsWith("/advisor") || location.pathname === "/marketplace";
-        
+
         if (isAtOnboarding || isAtAdvisorOnboarding || isAdvisorRoute) return;
+
+        // HEIRS (VIEWERS) should never be sent to the onboarding wizard
+        const isHeir = user?.role === 'HEIR' || (user as any)?.userType === 'HEIR';
+        const isViewer = (estate as any)?.userRole === 'VIEWER';
+        if (isHeir || isViewer) return;
 
         // If there's an error fetching estate (404 = no estate yet), redirect to onboarding
         if (isError) {
