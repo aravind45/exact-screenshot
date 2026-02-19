@@ -376,14 +376,15 @@ export function getInstitutionAuthorityRequirement(
 export function isProfileComplete(estate: any): boolean {
     if (!estate) return false;
 
-    // Critical fields for rule engine and identification
+    // Only require the essential identity fields needed to identify the estate.
+    // authorityType (the settlement track) is NOT required here — the entire
+    // app functions with UNSET authority using sensible defaults. Requiring it
+    // caused an endless redirect loop for users who skipped the Track Scout step.
     const hasCriticalFields = !!(
         estate.deceasedFirstName?.trim() &&
         estate.deceasedLastName?.trim() &&
         estate.deceasedState?.trim()
     );
 
-    const hasAuthority = estate.authorityType && estate.authorityType !== "UNSET";
-
-    return hasCriticalFields && hasAuthority;
+    return hasCriticalFields;
 }
