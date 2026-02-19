@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1200">
+<title>OG Image — ExpectedEstate</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    width: 1200px;
+    height: 630px;
+    overflow: hidden;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #0F172A;
+  }
+
+  .canvas {
+    width: 1200px;
+    height: 630px;
+    position: relative;
+    background: linear-gradient(135deg, #0F172A 0%, #111827 45%, #1E1B4B 100%);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+  }
+
+  /* ── Background decorative elements ── */
+  .bg-glow-top {
+    position: absolute;
+    top: -120px;
+    right: -80px;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(99,102,241,0.28) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  .bg-glow-bottom {
+    position: absolute;
+    bottom: -100px;
+    left: 350px;
+    width: 380px;
+    height: 380px;
+    background: radial-gradient(circle, rgba(79,70,229,0.18) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  .bg-ring-1 {
+    position: absolute;
+    top: 50%;
+    right: 80px;
+    transform: translateY(-50%);
+    width: 520px;
+    height: 520px;
+    border: 1px solid rgba(99,102,241,0.12);
+    border-radius: 50%;
+  }
+  .bg-ring-2 {
+    position: absolute;
+    top: 50%;
+    right: 140px;
+    transform: translateY(-50%);
+    width: 380px;
+    height: 380px;
+    border: 1px solid rgba(99,102,241,0.08);
+    border-radius: 50%;
+  }
+  .bg-dots {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image: radial-gradient(rgba(99,102,241,0.12) 1px, transparent 1px);
+    background-size: 32px 32px;
+    mask-image: linear-gradient(to right, transparent 0%, transparent 40%, black 70%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, transparent 40%, black 70%, transparent 100%);
+  }
+
+  /* ── Left panel: messaging ── */
+  .left {
+    position: relative;
+    z-index: 10;
+    width: 620px;
+    padding: 0 64px;
+    flex-shrink: 0;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(99,102,241,0.2);
+    border: 1px solid rgba(99,102,241,0.4);
+    color: #A5B4FC;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 7px 16px;
+    border-radius: 100px;
+    margin-bottom: 28px;
+  }
+  .badge-dot {
+    width: 6px;
+    height: 6px;
+    background: #6366F1;
+    border-radius: 50%;
+  }
+
+  .logo-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 28px;
+  }
+  .logo-icon {
+    width: 40px;
+    height: 40px;
+    background: #4F46E5;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .logo-icon svg {
+    width: 22px;
+    height: 22px;
+    fill: none;
+    stroke: white;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .logo-name {
+    font-size: 22px;
+    font-weight: 900;
+    color: white;
+    letter-spacing: -0.02em;
+  }
+
+  .headline {
+    font-size: 52px;
+    font-weight: 900;
+    color: white;
+    line-height: 1.08;
+    letter-spacing: -0.03em;
+    margin-bottom: 20px;
+  }
+  .headline .accent {
+    color: #818CF8;
+  }
+
+  .sub {
+    font-size: 18px;
+    font-weight: 500;
+    color: #94A3B8;
+    line-height: 1.55;
+    margin-bottom: 36px;
+    max-width: 480px;
+  }
+  .sub strong {
+    color: #E2E8F0;
+    font-weight: 700;
+  }
+
+  .trust-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .trust-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: #CBD5E1;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 7px 14px;
+    border-radius: 100px;
+  }
+  .trust-pill .check {
+    width: 14px;
+    height: 14px;
+    background: #10B981;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 8px;
+    color: white;
+    font-weight: 900;
+  }
+  .trust-pill .star {
+    color: #F59E0B;
+    font-size: 11px;
+  }
+
+  /* ── Right panel: dashboard mockup ── */
+  .right {
+    position: relative;
+    z-index: 10;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 48px 48px 48px 0;
+  }
+
+  .card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px;
+    padding: 20px 24px;
+    backdrop-filter: blur(8px);
+  }
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .card-label {
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #64748B;
+  }
+  .card-badge {
+    font-size: 10px;
+    font-weight: 800;
+    padding: 3px 10px;
+    border-radius: 100px;
+  }
+  .badge-green {
+    background: rgba(16,185,129,0.15);
+    color: #10B981;
+    border: 1px solid rgba(16,185,129,0.3);
+  }
+  .badge-amber {
+    background: rgba(245,158,11,0.15);
+    color: #F59E0B;
+    border: 1px solid rgba(245,158,11,0.3);
+  }
+  .badge-red {
+    background: rgba(239,68,68,0.15);
+    color: #EF4444;
+    border: 1px solid rgba(239,68,68,0.3);
+  }
+
+  /* Card: Progress */
+  .progress-title {
+    font-size: 15px;
+    font-weight: 800;
+    color: white;
+    margin-bottom: 10px;
+  }
+  .progress-bar-track {
+    height: 8px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 100px;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    width: 63%;
+    background: linear-gradient(90deg, #4F46E5, #818CF8);
+    border-radius: 100px;
+  }
+  .progress-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: #64748B;
+    font-weight: 600;
+  }
+  .progress-pct {
+    color: #818CF8;
+    font-weight: 800;
+  }
+
+  /* Card: Deadlines */
+  .deadline-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .deadline-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .deadline-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: #CBD5E1;
+  }
+  .deadline-date {
+    font-size: 11px;
+    font-weight: 700;
+    color: #64748B;
+  }
+  .deadline-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 8px;
+    flex-shrink: 0;
+  }
+  .dot-green { background: #10B981; }
+  .dot-amber { background: #F59E0B; }
+  .dot-red   { background: #EF4444; }
+
+  /* Card: assets quick stats */
+  .stats-row {
+    display: flex;
+    gap: 12px;
+  }
+  .stat-box {
+    flex: 1;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 10px;
+    padding: 12px;
+    text-align: center;
+  }
+  .stat-value {
+    font-size: 22px;
+    font-weight: 900;
+    color: white;
+    letter-spacing: -0.03em;
+  }
+  .stat-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: #64748B;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-top: 3px;
+  }
+
+  /* Vertical separator line */
+  .divider {
+    position: absolute;
+    left: 618px;
+    top: 60px;
+    bottom: 60px;
+    width: 1px;
+    background: linear-gradient(to bottom, transparent, rgba(99,102,241,0.2) 30%, rgba(99,102,241,0.2) 70%, transparent);
+    z-index: 5;
+  }
+</style>
+</head>
+<body>
+<div class="canvas">
+  <!-- Background decorations -->
+  <div class="bg-glow-top"></div>
+  <div class="bg-glow-bottom"></div>
+  <div class="bg-ring-1"></div>
+  <div class="bg-ring-2"></div>
+  <div class="bg-dots"></div>
+
+  <!-- Vertical divider -->
+  <div class="divider"></div>
+
+  <!-- LEFT: Messaging -->
+  <div class="left">
+    <div class="badge">
+      <span class="badge-dot"></span>
+      Free to Start — No Credit Card
+    </div>
+
+    <div class="logo-row">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24">
+          <path d="M3 21h18M9 8h1M14 8h1M9 12h1M14 12h1M9 16h1M14 16h1M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"/>
+        </svg>
+      </div>
+      <span class="logo-name">ExpectedEstate</span>
+    </div>
+
+    <h1 class="headline">
+      The Probate Software<br>
+      <span class="accent">That Pays for Itself.</span>
+    </h1>
+
+    <p class="sub">
+      Skip the <strong>$15,000 attorney fee.</strong> Get a personalized
+      AI action plan, track every legal deadline, and settle the estate
+      in months — not years.
+    </p>
+
+    <div class="trust-row">
+      <div class="trust-pill">
+        <div class="check">✓</div>
+        All 50 States
+      </div>
+      <div class="trust-pill">
+        <div class="check">✓</div>
+        SOC 2 Compliant
+      </div>
+      <div class="trust-pill">
+        <span class="star">★</span>
+        4.9 / 5 Rating
+      </div>
+      <div class="trust-pill">
+        <div class="check">✓</div>
+        $0 to Start
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Dashboard mockup -->
+  <div class="right">
+    <!-- Estate Progress card -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-label">Estate Progress</span>
+        <span class="card-badge badge-green">On Track</span>
+      </div>
+      <div class="progress-title">Johnson Estate — California Formal Probate</div>
+      <div class="progress-bar-track">
+        <div class="progress-bar-fill"></div>
+      </div>
+      <div class="progress-meta">
+        <span>12 of 19 tasks complete</span>
+        <span class="progress-pct">63% done</span>
+      </div>
+    </div>
+
+    <!-- Upcoming Deadlines card -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-label">Upcoming Deadlines</span>
+        <span class="card-badge badge-amber">2 Due Soon</span>
+      </div>
+      <div class="deadline-list">
+        <div class="deadline-item">
+          <div style="display:flex;align-items:center;">
+            <div class="deadline-dot dot-red"></div>
+            <span class="deadline-name">Creditor Notice Publication</span>
+          </div>
+          <span class="deadline-date">Due in 4 days</span>
+        </div>
+        <div class="deadline-item">
+          <div style="display:flex;align-items:center;">
+            <div class="deadline-dot dot-amber"></div>
+            <span class="deadline-name">Inventory & Appraisal Filing</span>
+          </div>
+          <span class="deadline-date">Due in 18 days</span>
+        </div>
+        <div class="deadline-item">
+          <div style="display:flex;align-items:center;">
+            <div class="deadline-dot dot-green"></div>
+            <span class="deadline-name">Final Distribution Order</span>
+          </div>
+          <span class="deadline-date">Due in 61 days</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick stats card -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-label">Estate Summary</span>
+      </div>
+      <div class="stats-row">
+        <div class="stat-box">
+          <div class="stat-value">$847K</div>
+          <div class="stat-label">Total Assets</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-value">$42K</div>
+          <div class="stat-label">Liabilities</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-value">3</div>
+          <div class="stat-label">Beneficiaries</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-value">$0</div>
+          <div class="stat-label">Atty Fees Paid</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
