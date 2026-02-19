@@ -105,7 +105,9 @@ export default function Dashboard() {
 
   const queryClient = useQueryClient();
 
-  // Automatically redirect to onboarding if estate profile is incomplete or track is unset
+  // Redirect to onboarding ONLY if the user has no estate at all.
+  // An incomplete estate (missing some fields) is fine — the user is already onboarded.
+  // ProfileGuard handles route-level access control for sensitive pages.
   useEffect(() => {
     // Advisors and Admins should land on their own dashboards
     if (user?.role === 'ADVISOR') {
@@ -117,19 +119,16 @@ export default function Dashboard() {
       return;
     }
 
-    // HEIRS (VIEWERS) should never be sent to the onboarding wizard
+    // HEIRS and VIEWERS should never be sent to the onboarding wizard
     const isHeir = user?.role === 'HEIR' || (user as any)?.userType === 'HEIR' || (estate as any)?.userRole === 'VIEWER';
-    if (isHeir) {
-      console.log("User is an Heir (Viewer), skipping onboarding check.");
-      return;
-    }
+    if (isHeir) return;
 
-    if (!estate) return;
-
-    if (!isProfileComplete(estate)) {
-      console.log("Estate profile incomplete, redirecting to onboarding...");
+    // estate === undefined means still loading; estate === null means confirmed no estate
+    if (estate === null) {
+      console.log("No estate found, redirecting new user to onboarding.");
       navigate('/onboarding');
     }
+    // Any existing estate (even incomplete) → stay on the dashboard
   }, [estate, navigate, user?.role, queryClient]);
 
   const totalValue = assets.reduce((sum: number, asset: any) => sum + (asset.value || 0), 0);
