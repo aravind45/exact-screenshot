@@ -100,6 +100,8 @@ const ChecklistLanding = lazy(() => import("./pages/ChecklistLanding"));
 const DiscoveryQuiz = lazy(() => import("./components/landing/DiscoveryQuiz"));
 const ProbateGuide = lazy(() => import("./pages/guides/ProbateGuide"));
 const CaliforniaProbateDeadlines = lazy(() => import("./pages/guides/CaliforniaProbateDeadlines"));
+const TexasProbateDeadlines = lazy(() => import("./pages/guides/TexasProbateDeadlines"));
+const FloridaProbateDeadlines = lazy(() => import("./pages/guides/FloridaProbateDeadlines"));
 
 // Public landing page (SEO-optimized marketing page)
 const Landing = lazy(() => import("./pages/Landing"));
@@ -155,6 +157,8 @@ const App = () => (
                       <Route path="/start" element={<DiscoveryQuiz />} />
                       <Route path="/guides/probate" element={<ProbateGuide />} />
                       <Route path="/guides/california-probate-deadlines" element={<CaliforniaProbateDeadlines />} />
+                      <Route path="/guides/texas-probate-deadlines" element={<TexasProbateDeadlines />} />
+                      <Route path="/guides/florida-probate-deadlines" element={<FloridaProbateDeadlines />} />
 
                       {/* SEO Pillar Pages */}
                       <Route path="/probate-process" element={<ProbateProcess />} />
