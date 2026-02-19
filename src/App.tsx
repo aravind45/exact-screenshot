@@ -150,6 +150,10 @@ const App = () => (
                       <Route path="/" element={<Landing />} />
                       <Route path="/home" element={<Index />} />
                       <Route path="/auth" element={<Auth />} />
+                      {/* Legacy login/register URL redirects */}
+                      <Route path="/login" element={<Navigate to="/auth" replace />} />
+                      <Route path="/register" element={<Navigate to="/auth?mode=signup" replace />} />
+                      <Route path="/signup" element={<Navigate to="/auth?mode=signup" replace />} />
                       <Route path="/reset-password" element={<ResetPassword />} />
                       <Route path="/pricing" element={<Pricing />} />
                       <Route path="/invite/:token" element={<AcceptInvite />} />

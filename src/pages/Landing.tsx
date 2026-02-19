@@ -204,15 +204,22 @@ export default function Landing() {
               </div>
               <span className="font-black text-lg text-slate-900 tracking-tight">ExpectedEstate</span>
             </Link>
+            {/* Desktop nav links */}
+            <div className="hidden md:flex items-center gap-6 text-sm font-semibold text-slate-600">
+              <a href="#features" className="hover:text-indigo-600 transition-colors">Features</a>
+              <a href="#how-it-works" className="hover:text-indigo-600 transition-colors">How It Works</a>
+              <Link to="/pricing" className="hover:text-indigo-600 transition-colors">Pricing</Link>
+              <Link to="/guides/probate" className="hover:text-indigo-600 transition-colors">Guides</Link>
+            </div>
             <div className="flex items-center gap-3">
               <Link
-                to="/login"
+                to="/auth"
                 className="text-sm font-bold text-slate-600 hover:text-indigo-600 transition-colors"
               >
                 Sign In
               </Link>
               <Button
-                onClick={() => navigate("/register?mode=signup")}
+                onClick={() => navigate("/auth?mode=signup")}
                 className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl h-9 px-5 text-sm shadow-lg shadow-indigo-200"
               >
                 Start Free
@@ -329,7 +336,7 @@ export default function Landing() {
         </section>
 
         {/* ── How It Works ── */}
-        <section className="py-24 px-6 max-w-5xl mx-auto">
+        <section id="how-it-works" className="py-24 px-6 max-w-5xl mx-auto">
           <div className="text-center mb-16">
             <Badge className="bg-indigo-50 text-indigo-600 border border-indigo-100 mb-4 text-xs font-black uppercase tracking-widest">
               How It Works
@@ -372,7 +379,7 @@ export default function Landing() {
         </section>
 
         {/* ── Features ── */}
-        <section className="bg-slate-50 py-24 px-6">
+        <section id="features" className="bg-slate-50 py-24 px-6">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
               <Badge className="bg-indigo-50 text-indigo-600 border border-indigo-100 mb-4 text-xs font-black uppercase tracking-widest">
