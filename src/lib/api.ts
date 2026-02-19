@@ -294,7 +294,7 @@ export const api = {
         return data;
     },
 
-    register: async (data: { email: string, password: string, fullName: string, state?: string, role?: string, userType?: "EXECUTOR" | "ADVISOR" }) => {
+    register: async (data: { email: string, password: string, fullName: string, state?: string, role?: string, userType?: "EXECUTOR" | "ADVISOR" | "HEIR" }) => {
         const response = await fetch(`${API_URL}/auth/register`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -308,6 +308,14 @@ export const api = {
 
         localStorage.setItem("auth_token", result.token);
         return result;
+    },
+
+    resendVerificationEmail: async () => {
+        const response = await fetch(`${API_URL}/auth/resend-verification`, {
+            method: "POST",
+            headers: getHeaders(),
+        });
+        return parseResponse(response);
     },
 
     getMe: async () => {

@@ -9,6 +9,7 @@ export interface User {
   userType: string;
   state?: string;
   isTrialing?: boolean;
+  emailVerifiedAt?: string | null;
 }
 
 interface AuthContextType {

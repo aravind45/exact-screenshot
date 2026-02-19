@@ -12,7 +12,7 @@ import { calculateIsTrialing } from "../utils/trialUtils.js";
 import { RoleUtils } from "../utils/userUtils.js";
 
 export const AuthService = {
-    async register(data: { email: string, password: string, fullName: string, state?: string, role?: string, userType?: "EXECUTOR" | "ADVISOR", ip?: string }) {
+    async register(data: { email: string, password: string, fullName: string, state?: string, role?: string, userType?: "EXECUTOR" | "ADVISOR" | "HEIR", ip?: string }) {
         const { email, password, fullName, state, role, userType, ip } = data;
 
         const existingUser = await prisma.user.findUnique({ where: { email } });
@@ -28,6 +28,8 @@ export const AuthService = {
                 assignedRole = 'ADMIN';
             } else if (safeUserType === "ADVISOR") {
                 assignedRole = 'ADVISOR';
+            } else if (safeUserType === "HEIR") {
+                assignedRole = 'HEIR';
             } else {
                 assignedRole = 'EXECUTOR';
             }
@@ -45,32 +47,41 @@ export const AuthService = {
                 lastLoginAt: new Date(),
                 trialStartedAt: new Date(),
                 verificationToken: crypto.randomBytes(32).toString('hex')
-            }
+            } as any
         });
+
 
         // Send Verification Email
         const appUrl = (await EmailService.getAppUrl()).replace(/\/$/, "");
-        const verificationLink = `${appUrl}/verify-email?email=${encodeURIComponent(email)}&token=${user.verificationToken}`;
+        const verificationLink = `${appUrl}/verify-email?email=${encodeURIComponent(email)}&token=${(user as any).verificationToken}`;
         await EmailService.sendVerificationEmail(email, verificationLink);
 
-        // Create an initial estate for the user ONLY if they are an executor
-        if (safeUserType === "EXECUTOR") {
-            await prisma.estate.create({
-                data: {
-                    userId: user.id,
-                    name: `${fullName || 'My'}'s Estate`,
-                    deceasedFirstName: "TBD",
-                    deceasedLastName: "TBD",
-                    deceasedDateOfDeath: new Date(),
-                    deceasedState: state || "CA",
-                    probateStatus: "NOT_STARTED"
-                }
-            });
-        }
+        // NOTE: We intentionally do NOT create an estate here.
+        // The estate is created during the onboarding wizard when the user provides
+        // real data (deceased name, state, etc.). This keeps the DB clean and makes
+        // the "estate === null → go to onboarding" logic reliable.
+
 
         const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: "30d" });
         const isTrialing = calculateIsTrialing(user.trialStartedAt);
         return { user: { ...user, isTrialing }, token };
+    },
+
+    async resendVerification(userId: string) {
+        const user = await prisma.user.findUnique({ where: { id: userId } }) as any;
+        if (!user) throw new Error("User not found");
+        if (user.emailVerifiedAt) return { message: "Email already verified" };
+
+        const newToken = crypto.randomBytes(32).toString('hex');
+        await prisma.user.update({
+            where: { id: userId },
+            data: { verificationToken: newToken } as any
+        });
+
+        const appUrl = (await EmailService.getAppUrl()).replace(/\/$/, "");
+        const verificationLink = `${appUrl}/verify-email?email=${encodeURIComponent(user.email)}&token=${newToken}`;
+        await EmailService.sendVerificationEmail(user.email, verificationLink);
+        return { message: "Verification email sent" };
     },
 
     async login(email: string, password: string, ip?: string) {
@@ -208,7 +219,7 @@ export const AuthService = {
     async verifyEmail(email: string, token: string) {
         const user = await prisma.user.findUnique({ where: { email } });
 
-        if (!user || user.verificationToken !== token) {
+        if (!user || (user as any).verificationToken !== token) {
             throw new Error("Invalid or expired verification token");
         }
 
@@ -217,8 +228,9 @@ export const AuthService = {
             data: {
                 verificationToken: null,
                 emailVerifiedAt: new Date()
-            }
+            } as any
         });
+
 
         return { message: "Email verified successfully" };
     }

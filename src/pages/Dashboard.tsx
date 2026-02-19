@@ -105,8 +105,9 @@ export default function Dashboard() {
 
   const queryClient = useQueryClient();
 
-  // Redirect to onboarding ONLY if the user has no estate at all.
-  // An incomplete estate (missing some fields) is fine — the user is already onboarded.
+  // Redirect to onboarding ONLY if the user has no estate at all, OR if the estate
+  // has placeholder "TBD" data from registration (meaning they never completed onboarding).
+  // An incomplete-but-real estate → stay on dashboard.
   // ProfileGuard handles route-level access control for sensitive pages.
   useEffect(() => {
     // Advisors and Admins should land on their own dashboards
@@ -123,13 +124,27 @@ export default function Dashboard() {
     const isHeir = user?.role === 'HEIR' || (user as any)?.userType === 'HEIR' || (estate as any)?.userRole === 'VIEWER';
     if (isHeir) return;
 
-    // estate === undefined means still loading; estate === null means confirmed no estate
+    // estate === undefined means still loading; don't act yet
+    if (estate === undefined) return;
+
+    // estate === null means confirmed no estate → send to onboarding
     if (estate === null) {
       console.log("No estate found, redirecting new user to onboarding.");
       navigate('/onboarding');
+      return;
     }
-    // Any existing estate (even incomplete) → stay on the dashboard
+
+    // estate exists but still has "TBD" placeholder data from registration
+    // → user abandoned setup after signup, send them back to complete it
+    const isPlaceholder = (estate as any).deceasedFirstName === 'TBD' &&
+      (estate as any).deceasedLastName === 'TBD';
+    if (isPlaceholder) {
+      console.log("Estate has placeholder data, redirecting to onboarding to complete setup.");
+      navigate('/onboarding');
+    }
+    // Any real estate (even incomplete) → stay on the dashboard
   }, [estate, navigate, user?.role, queryClient]);
+
 
   const totalValue = assets.reduce((sum: number, asset: any) => sum + (asset.value || 0), 0);
 

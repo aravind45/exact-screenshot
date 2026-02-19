@@ -155,27 +155,28 @@ app.get("/api/ping", (req, res) => {
 // Routes
 logger.info("📋 Registering routes...");
 app.use("/api/auth", authRoutes);
-app.use("/api/assets", authenticate, requireVerification, assetRoutes);
-app.use("/api/documents", authenticate, requireVerification, documentRoutes);
-app.use("/api/estates", authenticate, requireVerification, estateRoutes);
-app.use("/api/enrichment", authenticate, requireVerification, enrichmentRoutes);
+app.use("/api/assets", authenticate, assetRoutes);
+app.use("/api/documents", authenticate, documentRoutes);
+app.use("/api/estates", authenticate, estateRoutes);
+app.use("/api/enrichment", authenticate, enrichmentRoutes);
 app.use("/api/admin", authenticate, adminRoutes);
-app.use("/api/agents", authenticate, requireVerification, agentRoutes);
-app.use("/api/communications", authenticate, requireVerification, communicationRoutes);
-app.use("/api/collaboration", authenticate, requireVerification, collaborationRoutes);
-app.use("/api/liabilities", authenticate, requireVerification, liabilityRoutes);
-app.use("/api/discovery", authenticate, requireVerification, discoveryRoutes);
-app.use("/api/heirs", authenticate, requireVerification, heirRoutes);
-app.use("/api/help", authenticate, requireVerification, helpRoutes);
-app.use("/api/billing", authenticate, requireVerification, billingRoutes);
+app.use("/api/agents", authenticate, agentRoutes);
+app.use("/api/communications", authenticate, communicationRoutes);
+app.use("/api/collaboration", authenticate, collaborationRoutes);
+app.use("/api/liabilities", authenticate, liabilityRoutes);
+app.use("/api/discovery", authenticate, discoveryRoutes);
+app.use("/api/heirs", authenticate, heirRoutes);
+app.use("/api/help", authenticate, helpRoutes);
+app.use("/api/billing", authenticate, billingRoutes);
 app.use("/api/marketing", marketingRoutes);
 app.use("/api/advisors", advisorRoutes);
-app.use("/api/bookings", authenticate, requireVerification, bookingRoutes);
+app.use("/api/bookings", authenticate, bookingRoutes);
 app.use("/api/webhooks", webhookRoutes); // Auth handled via Mailgun signatures
 app.use("/api/marketplace", marketplaceRoutes);
-app.use("/api/advisor", authenticate, requireVerification, advisorProfileRoutes);
-app.use("/api/bookings/marketplace", authenticate, requireVerification, bookingMarketplaceRoutes);
+app.use("/api/advisor", authenticate, advisorProfileRoutes);
+app.use("/api/bookings/marketplace", authenticate, bookingMarketplaceRoutes);
 app.use("/api/admin/marketplace", authenticate, adminMarketplaceRoutes);
+
 
 // Profile (simple, keep here or move if grows)
 app.get("/api/auth/me", authenticate, (req: any, res) => {

@@ -12,8 +12,8 @@ const registerSchema = z.object({
     password: z.string().min(8),
     fullName: z.string().min(2),
     state: z.string().length(2).optional(),
-    role: z.enum(["EXECUTOR", "ADVISOR"]).optional(),
-    userType: z.enum(["EXECUTOR", "ADVISOR"]).optional()
+    role: z.enum(["EXECUTOR", "ADVISOR", "HEIR"]).optional(),
+    userType: z.enum(["EXECUTOR", "ADVISOR", "HEIR"]).optional()
 });
 
 const loginSchema = z.object({
@@ -144,7 +144,16 @@ router.post("/logout", authenticate, async (req: Request, res: Response) => {
     }
 });
 
-// The /me route requires authentication, which is handled in index.ts for simplicity
-// or we can export a middleware.
+router.post("/resend-verification", authenticate, async (req: any, res: Response) => {
+    try {
+        if (!req.user) return res.status(401).json({ error: "Not authenticated" });
+        const result = await AuthService.resendVerification(req.user.id);
+        res.json(result);
+    } catch (error: any) {
+        logger.error("Resend Verification Error:", error.message);
+        res.status(500).json({ error: "Failed to resend verification email" });
+    }
+});
 
 export default router;
+
