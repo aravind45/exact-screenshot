@@ -28,7 +28,7 @@ export const SEO: React.FC<SEOProps> = ({
     const fullTitle = title ? `${title} | ${siteName}` : siteName;
     const defaultDescription = "Simplify estate settlement with clarity and peace of mind. ExpectedEstate helps executors navigate probate, track assets, and manage paperwork.";
     const siteUrl = "https://www.expectedestate.com";
-    const defaultOgImage = `${siteUrl}/og-dashboard.png`;
+    const defaultOgImage = `${siteUrl}/og-image-v2.png`;
 
     // Ensure image is absolute
     const finalOgImage = ogImage
