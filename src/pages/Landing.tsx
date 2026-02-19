@@ -16,6 +16,10 @@ import {
   AlertCircle,
   Star,
   ChevronDown,
+  MessageSquare,
+  BookOpen,
+  CreditCard,
+  Bell,
 } from "lucide-react";
 
 const FEATURES = [
@@ -60,6 +64,34 @@ const FEATURES = [
     description:
       "Need an estate attorney, CPA, or real-estate professional? Book verified advisors directly — no cold-call guessing.",
     color: "bg-purple-50 text-purple-600",
+  },
+  {
+    icon: MessageSquare,
+    title: "AI Legal Q&A — Grounded in Law",
+    description:
+      "Ask any probate question and get answers sourced directly from your state's statutes and court rules — not generic internet advice. Powered by retrieval-augmented AI.",
+    color: "bg-teal-50 text-teal-600",
+  },
+  {
+    icon: BookOpen,
+    title: "Estate Accounting",
+    description:
+      "Track every income receipt, expense, and distribution in a court-ready ledger. Generates the formal accounting report that courts and beneficiaries require at closing.",
+    color: "bg-orange-50 text-orange-600",
+  },
+  {
+    icon: CreditCard,
+    title: "Liabilities & Debt Tracker",
+    description:
+      "Log every known debt — mortgages, credit cards, medical bills, taxes. Track payment status, dispute flags, and outstanding balances so nothing slips through.",
+    color: "bg-red-50 text-red-600",
+  },
+  {
+    icon: Bell,
+    title: "Follow-Up & Task Reminders",
+    description:
+      "Set follow-up tasks for pending items — unanswered creditor calls, awaited appraisals, overdue court responses. Never let a loose end become a liability.",
+    color: "bg-yellow-50 text-yellow-600",
   },
 ];
 
@@ -179,6 +211,7 @@ export default function Landing() {
                 "Creditor notice management",
                 "Heir collaboration portal",
                 "Verified advisor marketplace",
+                "AI legal Q&A grounded in state statutes (RAG)",
               ],
               "screenshot": "https://www.expectedestate.com/modern_roadmap_banner.png",
             },
@@ -302,22 +335,17 @@ export default function Landing() {
                 </div>
               </div>
 
-              {/* Product Preview Video — autoplay muted loop */}
+              {/* Product Preview Screenshot */}
               <motion.div
                 initial={{ opacity: 0, y: 32 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.6, duration: 0.6 }}
                 className="mt-16 max-w-3xl mx-auto rounded-2xl overflow-hidden border border-white/10 shadow-2xl shadow-indigo-950/60"
               >
-                <video
-                  src="/Your_4-Step_Executor_Roadmap_version_1.mp4"
-                  poster="/Your_4-Step_Executor_Roadmap_version_2.png"
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
-                  className="w-full"
-                  aria-label="Your 4-step executor roadmap walkthrough"
+                <img
+                  src="/Your_4-Step_Executor_Roadmap_version_2.png"
+                  alt="Your 4-step executor roadmap — ExpectedEstate dashboard"
+                  className="w-full h-auto"
                 />
               </motion.div>
             </motion.div>
@@ -354,32 +382,35 @@ export default function Landing() {
           </div>
         </section>
 
-        {/* ── See It In Action ── */}
+        {/* ── Product Screenshot ── */}
         <section className="py-20 px-6 bg-white">
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-10">
               <Badge className="bg-indigo-50 text-indigo-600 border border-indigo-100 mb-4 text-xs font-black uppercase tracking-widest">
-                See It In Action
+                Real-Time Tracking
               </Badge>
               <h2 className="text-3xl font-black text-slate-900 tracking-tight">
-                Watch the platform work in real time
+                Always know where things stand
               </h2>
               <p className="text-slate-500 font-medium mt-2">Real-time progress tracking so you — and your heirs — always know where things stand.</p>
             </div>
-            <div className="rounded-3xl overflow-hidden border border-slate-200 shadow-xl">
-              <video
-                src="/Real-Time_Progress_Tracking_version_1.mp4"
-                poster="/Real-Time_Progress_Tracking_version_1.png"
-                controls
-                playsInline
-                preload="metadata"
-                className="w-full"
-                aria-label="Real-time estate progress tracking demo"
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+              className="rounded-3xl overflow-hidden border border-slate-200 shadow-xl"
+            >
+              <img
+                src="/Real-Time_Progress_Tracking_version_1.png"
+                alt="Real-time estate progress tracking dashboard — ExpectedEstate"
+                className="w-full h-auto"
+                loading="lazy"
               />
-            </div>
+            </motion.div>
             <div className="flex justify-center mt-8">
               <Button
-                onClick={() => window.location.href = "/auth?mode=signup"}
+                onClick={() => navigate("/auth?mode=signup")}
                 className="bg-indigo-600 hover:bg-indigo-700 text-white font-black px-8 h-12 rounded-xl shadow-lg shadow-indigo-200"
               >
                 Try It Free — No Card Required
