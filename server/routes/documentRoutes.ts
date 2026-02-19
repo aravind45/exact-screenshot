@@ -114,7 +114,7 @@ router.post("/generate", async (req: any, res: Response) => {
         if (!estate) return res.status(404).json({ error: "Estate data not found" });
 
         const mergedData = { ...estate, ...overrides };
-        let pdfBytes: Buffer;
+        let pdfBytes: Uint8Array;
 
         // Check for specialised generator first
         const specializedGenerators: Record<string, Function> = {

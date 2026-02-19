@@ -66,7 +66,7 @@ router.post("/stripe", async (req, res) => {
                 if (paymentIntent.metadata.bookingId) {
                     await prisma.booking.update({
                         where: { id: paymentIntent.metadata.bookingId },
-                        data: { status: 'PAYMENT_FAILED' }
+                        data: { status: 'CANCELLED' }
                     });
                 }
                 break;
@@ -75,7 +75,7 @@ router.post("/stripe", async (req, res) => {
                 const account = event.data.object;
                 logger.info(`Stripe Connect account updated: ${account.id}`);
                 if (account.details_submitted) {
-                    await prisma.advisor.updateMany({
+                    await prisma.advisorProfile.updateMany({
                         where: { stripeAccountId: account.id },
                         data: { stripeOnboardingComplete: true }
                     });

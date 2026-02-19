@@ -1,5 +1,6 @@
 import { prisma } from "../db.js";
 import { logger } from "../lib/logger.js";
+import { Response, NextFunction } from "express";
 
 export type EstateRole = 'OWNER' | 'CO_EXECUTOR' | 'ATTORNEY' | 'VIEWER';
 
