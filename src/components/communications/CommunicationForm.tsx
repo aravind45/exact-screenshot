@@ -57,8 +57,8 @@ export function CommunicationForm({ onSubmit, onCancel, isLoading, initialData }
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            type: "call",
-            direction: "outbound",
+            type: "CALL",
+            direction: "OUTBOUND",
             occurredAt: new Date(),
             notes: "",
             ...initialData
@@ -84,11 +84,11 @@ export function CommunicationForm({ onSubmit, onCancel, isLoading, initialData }
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
-                                            <SelectItem value="call"><div className="flex items-center gap-2"><Phone className="w-4 h-4" /> Phone Call</div></SelectItem>
-                                            <SelectItem value="email"><div className="flex items-center gap-2"><Mail className="w-4 h-4" /> Email</div></SelectItem>
-                                            <SelectItem value="letter"><div className="flex items-center gap-2"><FileText className="w-4 h-4" /> Letter</div></SelectItem>
-                                            <SelectItem value="fax"><div className="flex items-center gap-2"><Printer className="w-4 h-4" /> Fax</div></SelectItem>
-                                            <SelectItem value="in-person"><div className="flex items-center gap-2"><Users className="w-4 h-4" /> In-Person</div></SelectItem>
+                                            <SelectItem value="CALL"><div className="flex items-center gap-2"><Phone className="w-4 h-4" /> Phone Call</div></SelectItem>
+                                            <SelectItem value="EMAIL"><div className="flex items-center gap-2"><Mail className="w-4 h-4" /> Email</div></SelectItem>
+                                            <SelectItem value="POSTAL_MAIL"><div className="flex items-center gap-2"><FileText className="w-4 h-4" /> Letter</div></SelectItem>
+                                            <SelectItem value="FAX"><div className="flex items-center gap-2"><Printer className="w-4 h-4" /> Fax</div></SelectItem>
+                                            <SelectItem value="IN_PERSON"><div className="flex items-center gap-2"><Users className="w-4 h-4" /> In-Person</div></SelectItem>
                                         </SelectContent>
                                     </Select>
                                     <FormMessage />
@@ -109,8 +109,8 @@ export function CommunicationForm({ onSubmit, onCancel, isLoading, initialData }
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
-                                            <SelectItem value="outbound">Outbound (You reached out)</SelectItem>
-                                            <SelectItem value="inbound">Inbound (They reached out)</SelectItem>
+                                            <SelectItem value="OUTBOUND">Outbound (You reached out)</SelectItem>
+                                            <SelectItem value="INBOUND">Inbound (They reached out)</SelectItem>
                                         </SelectContent>
                                     </Select>
                                     <FormMessage />

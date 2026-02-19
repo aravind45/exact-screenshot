@@ -1,12 +1,13 @@
 import Groq from "groq-sdk";
 import "dotenv/config";
+import { logger } from "../lib/logger.js";
 // Lazy init or global init
 let groq;
 try {
     groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 }
 catch (e) {
-    console.error("Failed to initialize Groq client:", e);
+    logger.error("Failed to initialize Groq client:", e);
 }
 export async function analyzeDocument(text, imageBase64) {
     const prompt = `You are a forensic "Detective Agent" for the ExpectedEstate platform. 
@@ -63,7 +64,7 @@ export async function analyzeDocument(text, imageBase64) {
             response_format: { type: "json_object" },
         });
         const content = completion.choices[0]?.message?.content || "";
-        console.log(`[AI] analyzeDocument response: ${content.substring(0, 200)}...`);
+        logger.debug(`[AI] analyzeDocument response: ${content.substring(0, 200)}...`);
         if (!content)
             return null;
         const parsed = JSON.parse(content);
@@ -80,9 +81,9 @@ export async function analyzeDocument(text, imageBase64) {
         };
     }
     catch (error) {
-        console.error("AI Analysis Error:", error.message);
+        logger.error("AI Analysis Error:", error.message);
         if (error.response?.data)
-            console.error("Groq Error Body:", JSON.stringify(error.response.data));
+            logger.error("Groq Error Body:", JSON.stringify(error.response.data));
         return null;
     }
 }
@@ -90,9 +91,9 @@ export async function analyzeDocument(text, imageBase64) {
  * The "Detective Agent": Scans documents for clues pointing to OTHER related assets.
  */
 export async function discoverRelatedAssets(text, imageBase64) {
-    console.log(`[AI] discoverRelatedAssets called. Text length: ${text?.length || 0}, Image: ${!!imageBase64}`);
+    logger.debug(`[AI] discoverRelatedAssets called. Text length: ${text?.length || 0}, Image: ${!!imageBase64}`);
     if (!groq) {
-        console.error(`[AI] ERROR: Groq client not initialized. Check GROQ_API_KEY environment variable.`);
+        logger.error(`[AI] ERROR: Groq client not initialized. Check GROQ_API_KEY environment variable.`);
         return [];
     }
     const prompt = `You are a forensic "Detective Agent" for the ExpectedEstate platform. 
@@ -139,20 +140,20 @@ export async function discoverRelatedAssets(text, imageBase64) {
     try {
         const contentMessage = [];
         if (text) {
-            console.log(`[AI] Adding text content to message (${text.length} chars)`);
-            console.log(`[AI] Text preview:`, text.substring(0, 300));
+            logger.debug(`[AI] Adding text content to message (${text.length} chars)`);
+            logger.debug(`[AI] Text preview: ${text.substring(0, 300)}`);
             contentMessage.push({ type: "text", text: `Detect clues in this text:\n\n${text.substring(0, 10000)}` });
         }
         if (imageBase64) {
-            console.log(`[AI] Adding image content to message (${imageBase64.length} chars base64)`);
+            logger.debug(`[AI] Adding image content to message (${imageBase64.length} chars base64)`);
             contentMessage.push({
                 type: "image_url",
                 image_url: { url: `data:image/jpeg;base64,${imageBase64}` }
             });
         }
         const model = imageBase64 ? "meta-llama/llama-4-maverick-17b-128e-instruct" : "llama-3.3-70b-versatile";
-        console.log(`[AI] Using model: ${model}`);
-        console.log(`[AI] Calling Groq API...`);
+        logger.info(`[AI] Using model: ${model}`);
+        logger.debug(`[AI] Calling Groq API...`);
         const completion = await groq.chat.completions.create({
             messages: [
                 { role: "system", content: prompt },
@@ -162,63 +163,63 @@ export async function discoverRelatedAssets(text, imageBase64) {
             response_format: { type: "json_object" },
             temperature: 0,
         });
-        console.log(`[AI] Groq API call successful`);
+        logger.debug(`[AI] Groq API call successful`);
         const content = completion.choices[0]?.message?.content;
-        console.log(`[AI] Response content length:`, content?.length || 0);
-        console.log(`[AI] Response content:`, content);
+        logger.debug(`[AI] Response content length: ${content?.length || 0}`);
+        logger.debug(`[AI] Response content: ${content}`);
         if (!content) {
-            console.log(`[AI] WARNING: No content returned from AI`);
+            logger.warn(`[AI] WARNING: No content returned from AI`);
             return [];
         }
         const parsed = JSON.parse(content);
-        console.log(`[AI] Parsed JSON:`, JSON.stringify(parsed, null, 2));
+        logger.debug(`[AI] Parsed JSON: ${JSON.stringify(parsed, null, 2)}`);
         // Extremely robust parsing for various list formats
         let clues = [];
         if (Array.isArray(parsed)) {
-            console.log(`[AI] Response is array, using directly`);
+            logger.debug(`[AI] Response is array, using directly`);
             clues = parsed;
         }
         else if (Array.isArray(parsed.clues)) {
-            console.log(`[AI] Found clues array in response.clues`);
+            logger.debug(`[AI] Found clues array in response.clues`);
             clues = parsed.clues;
         }
         else if (Array.isArray(parsed.assets)) {
-            console.log(`[AI] Found clues array in response.assets`);
+            logger.debug(`[AI] Found clues array in response.assets`);
             clues = parsed.assets;
         }
         else if (Array.isArray(parsed.findings)) {
-            console.log(`[AI] Found clues array in response.findings`);
+            logger.debug(`[AI] Found clues array in response.findings`);
             clues = parsed.findings;
         }
         else if (typeof parsed === 'object' && parsed !== null) {
             // Check for single object response
             if (parsed.institution && parsed.potentialAsset) {
-                console.log(`[AI] Response is single object, wrapping in array`);
+                logger.debug(`[AI] Response is single object, wrapping in array`);
                 clues = [parsed];
             }
             else {
-                console.log(`[AI] Searching for array in object values`);
+                logger.debug(`[AI] Searching for array in object values`);
                 clues = Object.values(parsed).find(v => Array.isArray(v)) || [];
             }
         }
-        console.log(`[AI] Extracted ${clues.length} clues from response`);
+        logger.info(`[AI] Extracted ${clues.length} clues from response`);
         if (clues.length === 0) {
-            console.log(`[AI] WARNING: No clues extracted. This could mean:`);
-            console.log(`[AI]   1. The AI didn't find any financial institutions in the text`);
-            console.log(`[AI]   2. The response format was unexpected`);
-            console.log(`[AI]   3. The text doesn't contain recognizable financial content`);
+            logger.warn(`[AI] WARNING: No clues extracted. This could mean:`);
+            logger.warn(`[AI]   1. The AI didn't find any financial institutions in the text`);
+            logger.warn(`[AI]   2. The response format was unexpected`);
+            logger.warn(`[AI]   3. The text doesn't contain recognizable financial content`);
         }
         return clues;
     }
     catch (error) {
-        console.error("[AI] ========== GROQ API ERROR ==========");
-        console.error("[AI] Error:", error);
-        console.error("[AI] Error message:", error.message);
-        console.error("[AI] Error stack:", error.stack);
+        logger.error("[AI] ========== GROQ API ERROR ==========");
+        logger.error("[AI] Error:", error);
+        logger.error("[AI] Error message:", error.message);
+        logger.error("[AI] Error stack:", error.stack);
         if (error.response?.data) {
-            console.error("[AI] Groq Error Response:", JSON.stringify(error.response.data, null, 2));
+            logger.error("[AI] Groq Error Response:", JSON.stringify(error.response.data, null, 2));
         }
-        console.error("[AI] =====================================");
+        logger.error("[AI] =====================================");
         return [];
     }
 }
@@ -245,7 +246,7 @@ export async function extractContactInfo(text) {
         return content ? JSON.parse(content) : null;
     }
     catch (error) {
-        console.error("AI Extraction Error:", error);
+        logger.error("AI Extraction Error:", error);
         return null;
     }
 }
@@ -280,7 +281,7 @@ export async function generateCommunicationDraft(params) {
         return content ? JSON.parse(content) : null;
     }
     catch (error) {
-        console.error("AI Generation Error:", error);
+        logger.error("AI Generation Error:", error);
         return null;
     }
 }
@@ -300,7 +301,7 @@ export async function generateText(prompt, profile = "medium") {
         return completion.choices[0]?.message?.content || "";
     }
     catch (error) {
-        console.error("AI Text Generation Error:", error);
+        logger.error("AI Text Generation Error:", error);
         return "";
     }
 }

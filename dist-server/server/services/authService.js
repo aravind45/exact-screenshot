@@ -1,6 +1,7 @@
 import { prisma } from "../db.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
 import { EmailService } from "./emailService.js";
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {
@@ -38,9 +39,14 @@ export const AuthService = {
                 userType: safeUserType,
                 lastIp: ip,
                 lastLoginAt: new Date(),
-                trialStartedAt: new Date()
+                trialStartedAt: new Date(),
+                verificationToken: crypto.randomBytes(32).toString('hex')
             }
         });
+        // Send Verification Email
+        const appUrl = (await EmailService.getAppUrl()).replace(/\/$/, "");
+        const verificationLink = `${appUrl}/verify-email?email=${encodeURIComponent(email)}&token=${user.verificationToken}`;
+        await EmailService.sendVerificationEmail(email, verificationLink);
         // Create an initial estate for the user ONLY if they are an executor
         if (safeUserType === "EXECUTOR") {
             await prisma.estate.create({
@@ -167,5 +173,19 @@ export const AuthService = {
             }
         });
         return { message: "Password updated successfully" };
+    },
+    async verifyEmail(email, token) {
+        const user = await prisma.user.findUnique({ where: { email } });
+        if (!user || user.verificationToken !== token) {
+            throw new Error("Invalid or expired verification token");
+        }
+        await prisma.user.update({
+            where: { id: user.id },
+            data: {
+                verificationToken: null,
+                emailVerifiedAt: new Date()
+            }
+        });
+        return { message: "Email verified successfully" };
     }
 };

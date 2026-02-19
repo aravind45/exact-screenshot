@@ -25,6 +25,10 @@ const resetPasswordSchema = z.object({
     token: z.string(),
     newPassword: z.string().min(8)
 });
+const verifyEmailSchema = z.object({
+    email: z.string().email(),
+    token: z.string()
+});
 // Middleware inside index.ts will handle global authentication if needed,
 // but for specific routes, we can use it here.
 // For now, these are the public auth routes.
@@ -95,6 +99,20 @@ router.post("/reset-password", async (req, res) => {
             return res.status(400).json({ error: "Invalid input" });
         }
         logger.error("Reset Password Error:", error.message);
+        res.status(400).json({ error: error.message });
+    }
+});
+router.post("/verify-email", async (req, res) => {
+    try {
+        const { email, token } = verifyEmailSchema.parse(req.body);
+        const result = await AuthService.verifyEmail(email, token);
+        res.json(result);
+    }
+    catch (error) {
+        if (error instanceof z.ZodError) {
+            return res.status(400).json({ error: "Invalid input" });
+        }
+        logger.error("Verify Email Error:", error.message);
         res.status(400).json({ error: error.message });
     }
 });

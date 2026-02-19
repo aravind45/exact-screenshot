@@ -1,5 +1,6 @@
 import { prisma } from "../db.js";
 import { AuditService } from "./auditService.js";
+import { logger } from "../lib/logger.js";
 export const AuthorityService = {
     /**
      * Snapshot the current inputs and decision for auditability (Gap A)
@@ -39,7 +40,7 @@ export const AuthorityService = {
         const oldDecision = estate?.authorityDecision;
         const oldType = estate?.authorityType;
         if (oldType && oldType !== newRecommendation.type) {
-            console.log(`Estate ${estateId} reclassified from ${oldType} to ${newRecommendation.type}`);
+            logger.info(`Estate ${estateId} reclassified from ${oldType} to ${newRecommendation.type}`);
             // Log reclassification event
             await this.trackDecision(estateId, userId, { /* snapshot would go here */}, newRecommendation, `Automated reclassification from ${oldType} to ${newRecommendation.type}`);
             // TODO: Logic for carrying forward completed tasks that still exist in the new roadmap

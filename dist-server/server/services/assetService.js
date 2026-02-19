@@ -106,7 +106,7 @@ export const AssetService = {
             const { calculateAuthorityRecommendation } = await import("../../src/lib/authorityEngine.js");
             const newRec = calculateAuthorityRecommendation(allAssets, estate.deceasedState || "CA", {
                 hasWill: estate.hasWill,
-                isSpouse: false // TODO: derive from session
+                isSpouse: estate.isSurvivingSpouse
             });
             await AuthorityService.handleReclassification(estate.id, userId, newRec);
         }
@@ -183,7 +183,7 @@ export const AssetService = {
             if (estate) {
                 const newRec = calculateAuthorityRecommendation(allAssets, estate.deceasedState || "CA", {
                     hasWill: estate.hasWill,
-                    isSpouse: false
+                    isSpouse: estate.isSurvivingSpouse
                 });
                 await AuthorityService.handleReclassification(estate.id, userId, newRec);
             }

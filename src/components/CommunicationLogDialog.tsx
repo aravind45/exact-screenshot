@@ -39,11 +39,11 @@ export interface CommunicationData {
 }
 
 const methodIcons: Record<string, any> = {
-    phone: Phone,
-    email: Mail,
-    fax: Printer,
-    mail: FileTextIcon,
-    portal: ExternalLink,
+    CALL: Phone,
+    EMAIL: Mail,
+    FAX: Printer,
+    POSTAL_MAIL: FileTextIcon,
+    PORTAL: ExternalLink,
 };
 
 interface DocumentRecommendation {
@@ -79,12 +79,12 @@ export function CommunicationLogDialog({
     const [recommendations, setRecommendations] = useState<DocumentRecommendation | null>(null);
     const [loadingRecommendations, setLoadingRecommendations] = useState(false);
     const [formData, setFormData] = useState<CommunicationData>({
-        method: "email",
+        method: "EMAIL",
         subject: "",
         notes: "",
         occurredAt: new Date().toISOString().slice(0, 16),
-        type: "initial_contact",
-        direction: "outbound",
+        type: "INITIAL_CONTACT",
+        direction: "OUTBOUND",
         contactPerson: "",
         statusChange: "none",
         recipientEmail: ""
@@ -119,7 +119,7 @@ export function CommunicationLogDialog({
 
     const loadDocumentRecommendations = async () => {
         if (!assetId) return;
-        
+
         setLoadingRecommendations(true);
         try {
             const recs = await api.getDocumentRecommendations(assetId, {
@@ -127,7 +127,7 @@ export function CommunicationLogDialog({
                 communicationType: formData.method
             });
             setRecommendations(recs);
-            
+
             // Auto-select required documents that are available
             if (recs.required.length > 0) {
                 const requiredTypes = recs.required.map((r: any) => r.documentType);
@@ -153,12 +153,12 @@ export function CommunicationLogDialog({
             }, 100);
         } else if (open && initialData) {
             setFormData({
-                method: initialData.method || "email",
+                method: (initialData as any).type || "EMAIL",
                 subject: initialData.subject || "",
                 notes: initialData.notes || "",
                 occurredAt: initialData.occurredAt ? new Date(initialData.occurredAt).toISOString().slice(0, 16) : new Date().toISOString().slice(0, 16),
-                type: initialData.type || "initial_contact",
-                direction: initialData.direction || "outbound",
+                type: initialData.type || "INITIAL_CONTACT",
+                direction: initialData.direction || "OUTBOUND",
                 contactPerson: initialData.contactPerson || "",
                 statusChange: initialData.statusChange || "none",
                 recipientEmail: initialData.recipientEmail || ""
@@ -205,7 +205,11 @@ export function CommunicationLogDialog({
             }
         }
 
-        onSubmit({ ...formData, notes: finalNotes });
+        onSubmit({
+            ...formData,
+            type: formData.method, // Important mapping
+            notes: finalNotes
+        });
     };
 
     const handleClose = () => {
@@ -214,12 +218,12 @@ export function CommunicationLogDialog({
         setTimeout(() => {
             if (!initialData) {
                 setFormData({
-                    method: "email",
+                    method: "EMAIL",
                     subject: "",
                     notes: "",
                     occurredAt: new Date().toISOString().slice(0, 16),
-                    type: "initial_contact",
-                    direction: "outbound",
+                    type: "INITIAL_CONTACT",
+                    direction: "OUTBOUND",
                     contactPerson: "",
                     statusChange: "none",
                     recipientEmail: ""
@@ -281,17 +285,11 @@ export function CommunicationLogDialog({
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {Object.keys(methodIcons).map(method => {
-                                            const Icon = methodIcons[method];
-                                            return (
-                                                <SelectItem key={method} value={method}>
-                                                    <div className="flex items-center gap-2">
-                                                        <Icon className="w-4 h-4" />
-                                                        <span className="capitalize">{method}</span>
-                                                    </div>
-                                                </SelectItem>
-                                            );
-                                        })}
+                                        <SelectItem value="CALL"><div className="flex items-center gap-2"><Phone className="w-4 h-4" /> Phone</div></SelectItem>
+                                        <SelectItem value="EMAIL"><div className="flex items-center gap-2"><Mail className="w-4 h-4" /> Email</div></SelectItem>
+                                        <SelectItem value="FAX"><div className="flex items-center gap-2"><Printer className="w-4 h-4" /> Fax</div></SelectItem>
+                                        <SelectItem value="POSTAL_MAIL"><div className="flex items-center gap-2"><FileTextIcon className="w-4 h-4" /> Letter/Mail</div></SelectItem>
+                                        <SelectItem value="PORTAL"><div className="flex items-center gap-2"><ExternalLink className="w-4 h-4" /> Portal</div></SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -307,8 +305,8 @@ export function CommunicationLogDialog({
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="outbound">Outbound (I contacted them)</SelectItem>
-                                        <SelectItem value="inbound">Inbound (They contacted me)</SelectItem>
+                                        <SelectItem value="OUTBOUND">Outbound (I contacted them)</SelectItem>
+                                        <SelectItem value="INBOUND">Inbound (They contacted me)</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -326,10 +324,10 @@ export function CommunicationLogDialog({
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="initial_contact">Initial Contact</SelectItem>
-                                        <SelectItem value="follow_up">Follow-up</SelectItem>
-                                        <SelectItem value="document_submission">Document Submission</SelectItem>
-                                        <SelectItem value="status_check">Status Check</SelectItem>
+                                        <SelectItem value="INITIAL_CONTACT">Initial Contact</SelectItem>
+                                        <SelectItem value="FOLLOW_UP">Follow-up</SelectItem>
+                                        <SelectItem value="DOCUMENT_SUBMISSION">Document Submission</SelectItem>
+                                        <SelectItem value="STATUS_CHECK">Status Check</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -448,11 +446,11 @@ export function CommunicationLogDialog({
                                         </Label>
                                         <div className="space-y-1">
                                             {recommendations.required.map((req: any) => {
-                                                const hasDoc = availableDocuments.some((doc: any) => 
+                                                const hasDoc = availableDocuments.some((doc: any) =>
                                                     doc.documentType === req.documentType
                                                 );
                                                 return (
-                                                    <div 
+                                                    <div
                                                         key={req.documentType}
                                                         className={cn(
                                                             "flex items-start gap-2 p-2 rounded-lg text-[10px]",
@@ -493,11 +491,11 @@ export function CommunicationLogDialog({
                                         </Label>
                                         <div className="space-y-1">
                                             {recommendations.suggested.map((sug: any) => {
-                                                const hasDoc = availableDocuments.some((doc: any) => 
+                                                const hasDoc = availableDocuments.some((doc: any) =>
                                                     doc.documentType === sug.documentType
                                                 );
                                                 return (
-                                                    <div 
+                                                    <div
                                                         key={sug.documentType}
                                                         className="flex items-start gap-2 p-2 rounded-lg bg-slate-50 border border-slate-200 text-[10px]"
                                                     >

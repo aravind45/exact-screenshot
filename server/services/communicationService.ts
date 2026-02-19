@@ -1,4 +1,6 @@
 import { prisma } from "../db.js";
+import { normalizeDirection, normalizeType, normalizeChannel } from "../lib/communicationUtils.js";
+import { CommunicationDirections } from "../lib/communicationConstants.js";
 
 export const CommunicationService = {
     async create(userId: string, data: any) {
@@ -8,12 +10,12 @@ export const CommunicationService = {
                 data: {
                     estateId: data.estateId,
                     assetId: data.assetId,
-                    type: data.type,
-                    direction: data.direction,
+                    type: normalizeType(data.type),
+                    direction: normalizeDirection(data.direction),
                     occurredAt: new Date(data.occurredAt),
                     institutionName: data.institutionName,
                     contactName: data.contactName,
-                    contactChannel: data.contactChannel,
+                    contactChannel: data.contactChannel ? normalizeChannel(data.contactChannel) : null,
                     subject: data.subject,
                     notes: data.notes,
                     followUpDueAt: data.followUpDueAt ? new Date(data.followUpDueAt) : null,
@@ -38,25 +40,28 @@ export const CommunicationService = {
             });
 
             // 3. Log Activity
+            const normalizedDirection = normalizeDirection(data.direction);
+            const label = normalizedDirection === CommunicationDirections.OUTBOUND ? 'Sent' : 'Received';
+
             await tx.settlementActivity.create({
                 data: {
                     estateId: data.estateId,
                     userId,
                     type: 'COMMUNICATION',
                     action: 'CREATED',
-                    notes: `${data.direction === 'outbound' ? 'Sent' : 'Received'} ${data.type}: ${data.subject} (${data.institutionName})`
+                    notes: `${label} ${normalizeType(data.type)}: ${data.subject || 'No subject'} (${data.institutionName || 'Unknown Institution'})`
                 }
             });
 
             // 4. Log Waiting State if follow-up is pending
-            if (data.direction === 'outbound' && data.followUpDueAt && !data.followUpCompletedAt) {
+            if (normalizedDirection === CommunicationDirections.OUTBOUND && data.followUpDueAt && !data.followUpCompletedAt) {
                 await tx.settlementActivity.create({
                     data: {
                         estateId: data.estateId,
                         userId,
                         type: 'COMMUNICATION',
                         action: 'WAITING',
-                        notes: `WAITING – Institution response pending (${data.institutionName}). Follow-up scheduled for ${new Date(data.followUpDueAt).toLocaleDateString()}.`
+                        notes: `WAITING – Institution response pending (${data.institutionName || 'Unknown'}). Follow-up scheduled for ${new Date(data.followUpDueAt).toLocaleDateString()}.`
                     }
                 });
             }
@@ -173,15 +178,16 @@ export const CommunicationService = {
             const updated = await tx.communication.update({
                 where: { id },
                 data: {
-                    type: data.type,
-                    direction: data.direction,
+                    type: data.type ? normalizeType(data.type) : undefined,
+                    direction: data.direction ? normalizeDirection(data.direction) : undefined,
                     occurredAt: data.occurredAt ? new Date(data.occurredAt) : undefined,
                     institutionName: data.institutionName,
                     contactName: data.contactName,
-                    contactChannel: data.contactChannel,
+                    contactChannel: data.contactChannel ? normalizeChannel(data.contactChannel) : undefined,
                     subject: data.subject,
                     notes: data.notes,
-                    followUpDueAt: data.followUpDueAt ? new Date(data.followUpDueAt) : null,
+                    followUpDueAt: data.followUpDueAt !== undefined ? (data.followUpDueAt ? new Date(data.followUpDueAt) : null) : undefined,
+                    followUpCompletedAt: data.followUpCompletedAt !== undefined ? (data.followUpCompletedAt ? new Date(data.followUpCompletedAt) : null) : undefined,
                     statusChange: data.statusChange,
                 }
             });

@@ -95,7 +95,7 @@ router.get("/my", async (req, res) => {
                 await EmailService.ensureEstateHandle(estate.id);
             }
             catch (handleErr) {
-                console.warn("Failed to ensure estate handle (non-fatal):", handleErr);
+                logger.warn("Failed to ensure estate handle (non-fatal):", handleErr);
             }
             // Re-fetch to get the new handle/email if it was just created
             const updatedEstate = await prisma.estate.findUnique({
@@ -359,10 +359,10 @@ router.get("/my/activities/download", requireSubscription, async (req, res) => {
         const phaseData = SETTLEMENT_PHASE_TASKS.find((p) => p.phase === currentPhase);
         const completedTaskIds = estate.roadmapProgress?.completedTaskIds || [];
         const pendingTasks = phaseData?.tasks.filter((t) => !completedTaskIds.includes(t.id)) || [];
-        const { PdfService } = await import("../services/pdfService.js");
+        const { DocumentService } = await import("../services/DocumentService.js");
         // SEC-003: Verify Chain Integrity before export
         const verification = await AuditService.verifyChain(estate.id);
-        const pdfBytes = await PdfService.generateActivityLogPdf(estate, activities, req.user.fullName, {
+        const pdfBytes = await DocumentService.generateActivityLogPdf(estate, activities, req.user.fullName, {
             pendingTasks,
             negativeFindings,
             verification // Pass verification result to PDF
@@ -372,12 +372,12 @@ router.get("/my/activities/download", requireSubscription, async (req, res) => {
         res.send(Buffer.from(pdfBytes));
     }
     catch (e) {
-        console.error("Activity download error:", e);
+        logger.error("Activity download error:", e);
         res.status(500).json({ error: "Failed to download activity log" });
     }
 });
 // [REMOVED DUPLICATE HEIR ROUTES - HANDLED IN heirRoutes.ts]
-import { PdfService } from "../services/pdfService.js";
+import { DocumentService } from "../services/DocumentService.js";
 router.get("/my/petition/pdf", requireSubscription, async (req, res) => {
     try {
         const estate = await prisma.estate.findFirst({
@@ -386,7 +386,7 @@ router.get("/my/petition/pdf", requireSubscription, async (req, res) => {
         });
         if (!estate)
             return res.status(404).json({ error: "Estate not found" });
-        const pdfBytes = await PdfService.generateDE111(estate);
+        const pdfBytes = await DocumentService.generateDE111(estate);
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', 'attachment; filename=Petition_DE111.pdf');
         res.send(Buffer.from(pdfBytes));
@@ -452,7 +452,7 @@ router.post("/:estateId/documents", requireSubscription, requireEstateAccess, as
         res.json({ success: true, document: { ...document, content: undefined } }); // Hide content in JSON response
     }
     catch (e) {
-        console.error("Document upload error:", e);
+        logger.error("Document upload error:", e);
         res.status(500).json({ error: "Failed to upload document" });
     }
 });
@@ -502,7 +502,7 @@ router.post("/my/documents", requireSubscription, async (req, res) => {
         res.json(document);
     }
     catch (error) {
-        console.error("Create document error:", error);
+        logger.error("Create document error:", error);
         res.status(500).json({ error: "Failed to create document" });
     }
 });
@@ -578,7 +578,7 @@ router.post("/my/documents/:id/upload", async (req, res) => {
         res.json({ success: true, document: { ...document, content: undefined } });
     }
     catch (error) {
-        console.error("Document upload error:", error);
+        logger.error("Document upload error:", error);
         res.status(500).json({ error: "Failed to upload file" });
     }
 });
@@ -701,7 +701,7 @@ router.get("/my/dossier/download", async (req, res) => {
         res.send(report);
     }
     catch (e) {
-        console.error("Dossier generation error:", e);
+        logger.error("Dossier generation error:", e);
         res.status(500).json({ error: "Failed to generate compliance dossier" });
     }
 });

@@ -1,4 +1,5 @@
 import { prisma } from "../db.js";
+import { logger } from "../lib/logger.js";
 export class DocumentRecommendationService {
     /**
      * Get document recommendations for a communication
@@ -211,7 +212,7 @@ export class DocumentRecommendationService {
             throw new Error('Some documents not found');
         }
         // In a real implementation, you'd create attachment records here
-        console.log(`Would attach ${documentIds.length} documents to communication ${communicationId}`);
+        logger.info(`Would attach ${documentIds.length} documents to communication ${communicationId}`);
     }
     /**
      * Validate document completeness

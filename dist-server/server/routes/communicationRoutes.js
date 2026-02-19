@@ -9,16 +9,28 @@ import { logger } from "../lib/logger.js";
 const communicationSchema = z.object({
     assetId: z.string(),
     type: z.string(),
-    direction: z.enum(["INBOUND", "OUTBOUND", "inbound", "outbound"]),
+    direction: z.string(),
+    occurredAt: z.string(), // Required in Sprint 1 (BE-003)
     notes: z.string().min(1),
     subject: z.string().optional(),
-    sender: z.string().optional(),
-    recipient: z.string().optional(),
-    contactChannel: z.enum(["EMAIL", "FAX", "MAIL", "PHONE", "PORTAL", "OTHER", "email", "fax", "mail", "phone", "portal", "other"]),
-    status: z.string().optional(),
+    institutionName: z.string().optional(),
+    contactName: z.string().optional(),
+    contactChannel: z.string().optional(),
     statusChange: z.string().optional(),
     followUpDueAt: z.string().optional().nullable(),
     attachments: z.array(z.string()).optional()
+});
+const communicationUpdateSchema = z.object({
+    type: z.string().optional(),
+    direction: z.string().optional(),
+    occurredAt: z.string().optional(),
+    subject: z.string().optional(),
+    notes: z.string().optional(),
+    contactName: z.string().optional(),
+    contactChannel: z.string().optional(),
+    followUpDueAt: z.string().optional().nullable(),
+    followUpCompletedAt: z.string().optional().nullable(),
+    statusChange: z.string().optional()
 });
 const sendEmailSchema = z.object({
     assetId: z.string(),
@@ -26,12 +38,6 @@ const sendEmailSchema = z.object({
     subject: z.string().min(1),
     body: z.string().min(1),
     ccPersonalEmail: z.boolean().optional()
-});
-const communicationUpdateSchema = z.object({
-    status: z.string().optional(),
-    content: z.string().optional(),
-    followUpCompletedAt: z.string().optional().nullable(),
-    followUpDueAt: z.string().optional().nullable()
 });
 const router = Router();
 // Upload attachment
@@ -58,6 +64,14 @@ router.post("/:id/attachments", fileUpload.single("file"), async (req, res) => {
 // Download attachment
 router.get("/attachments/:id", async (req, res) => {
     try {
+        // BE-006: Add ownership check
+        const dbAttachment = await prisma.communicationAttachment.findUnique({
+            where: { id: req.params.id },
+            include: { communication: true }
+        });
+        if (!dbAttachment || dbAttachment.communication.createdBy !== req.user.id) {
+            return res.status(403).json({ error: "Access denied" });
+        }
         const filePath = await FileService.downloadFile(req.params.id);
         res.download(filePath);
     }
@@ -77,8 +91,6 @@ router.post("/", async (req, res) => {
             return res.status(403).json({ error: "Asset not found or access denied" });
         const communication = await CommunicationService.create(req.user.id, {
             ...validated,
-            direction: validated.direction.toUpperCase(),
-            contactChannel: validated.contactChannel.toUpperCase(),
             estateId: asset.estateId
         });
         res.status(201).json(communication);
@@ -254,7 +266,7 @@ router.get("/asset/:assetId/document-recommendations", async (req, res) => {
         res.json(recommendations);
     }
     catch (error) {
-        console.error("Get Document Recommendations Error:", error);
+        logger.error("Get Document Recommendations Error:", error);
         res.status(500).json({ error: error.message });
     }
 });
@@ -268,7 +280,7 @@ router.get("/estate/available-documents", async (req, res) => {
         res.json(documents);
     }
     catch (error) {
-        console.error("Get Available Documents Error:", error);
+        logger.error("Get Available Documents Error:", error);
         res.status(500).json({ error: error.message });
     }
 });
@@ -286,7 +298,7 @@ router.post("/validate-completeness", async (req, res) => {
         res.json(validation);
     }
     catch (error) {
-        console.error("Validate Completeness Error:", error);
+        logger.error("Validate Completeness Error:", error);
         res.status(500).json({ error: error.message });
     }
 });

@@ -1,6 +1,6 @@
 
-export type CommunicationType = 'call' | 'email' | 'letter' | 'fax' | 'in-person';
-export type CommunicationDirection = 'inbound' | 'outbound';
+export type CommunicationType = 'CALL' | 'EMAIL' | 'FACE_TO_FACE' | 'POSTAL_MAIL' | 'FAX' | 'NOTE' | 'OTHER';
+export type CommunicationDirection = 'INBOUND' | 'OUTBOUND';
 
 export interface CommunicationAttachment {
     id: string;

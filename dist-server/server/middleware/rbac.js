@@ -1,4 +1,5 @@
 import { prisma } from "../db.js";
+import { logger } from "../lib/logger.js";
 const ROLE_HIERARCHY = {
     'OWNER': 40,
     'CO_EXECUTOR': 30,
@@ -80,7 +81,7 @@ export const requireRole = (requiredRole) => {
             next();
         }
         catch (error) {
-            console.error("RBAC Check Error:", error);
+            logger.error("RBAC Check Error:", error);
             res.status(500).json({ error: "Authorization check failed" });
         }
     };

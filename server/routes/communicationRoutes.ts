@@ -8,19 +8,34 @@ import { z } from "zod";
 import { logger } from "../lib/logger.js";
 import { requireSubscription } from "../middleware/subscription.js";
 
+import { CommunicationDirections, CommunicationTypes, CommunicationChannels } from "../lib/communicationConstants.js";
+
 const communicationSchema = z.object({
     assetId: z.string(),
     type: z.string(),
-    direction: z.enum(["INBOUND", "OUTBOUND", "inbound", "outbound"]),
+    direction: z.string(),
+    occurredAt: z.string(), // Required in Sprint 1 (BE-003)
     notes: z.string().min(1),
     subject: z.string().optional(),
-    sender: z.string().optional(),
-    recipient: z.string().optional(),
-    contactChannel: z.enum(["EMAIL", "FAX", "MAIL", "PHONE", "PORTAL", "OTHER", "email", "fax", "mail", "phone", "portal", "other"]),
-    status: z.string().optional(),
+    institutionName: z.string().optional(),
+    contactName: z.string().optional(),
+    contactChannel: z.string().optional(),
     statusChange: z.string().optional(),
     followUpDueAt: z.string().optional().nullable(),
     attachments: z.array(z.string()).optional()
+});
+
+const communicationUpdateSchema = z.object({
+    type: z.string().optional(),
+    direction: z.string().optional(),
+    occurredAt: z.string().optional(),
+    subject: z.string().optional(),
+    notes: z.string().optional(),
+    contactName: z.string().optional(),
+    contactChannel: z.string().optional(),
+    followUpDueAt: z.string().optional().nullable(),
+    followUpCompletedAt: z.string().optional().nullable(),
+    statusChange: z.string().optional()
 });
 
 const sendEmailSchema = z.object({
@@ -29,13 +44,6 @@ const sendEmailSchema = z.object({
     subject: z.string().min(1),
     body: z.string().min(1),
     ccPersonalEmail: z.boolean().optional()
-});
-
-const communicationUpdateSchema = z.object({
-    status: z.string().optional(),
-    content: z.string().optional(),
-    followUpCompletedAt: z.string().optional().nullable(),
-    followUpDueAt: z.string().optional().nullable()
 });
 
 const router = Router();
@@ -64,6 +72,16 @@ router.post("/:id/attachments", fileUpload.single("file"), async (req: any, res:
 // Download attachment
 router.get("/attachments/:id", async (req: any, res: Response) => {
     try {
+        // BE-006: Add ownership check
+        const dbAttachment = await prisma.communicationAttachment.findUnique({
+            where: { id: req.params.id },
+            include: { communication: true }
+        });
+
+        if (!dbAttachment || dbAttachment.communication.createdBy !== req.user.id) {
+            return res.status(403).json({ error: "Access denied" });
+        }
+
         const filePath = await FileService.downloadFile(req.params.id);
         res.download(filePath);
     } catch (error: any) {
@@ -83,8 +101,6 @@ router.post("/", async (req: any, res: Response) => {
 
         const communication = await CommunicationService.create(req.user.id, {
             ...validated,
-            direction: validated.direction.toUpperCase(),
-            contactChannel: validated.contactChannel.toUpperCase(),
             estateId: asset.estateId
         });
         res.status(201).json(communication);

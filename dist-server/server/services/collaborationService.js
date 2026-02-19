@@ -1,6 +1,7 @@
 import { prisma } from "../db.js";
 import { EmailService } from "./emailService.js";
 import crypto from "crypto";
+import { logger } from "../lib/logger.js";
 export const CollaborationService = {
     /**
      * Invite a user to collaborate on an estate
@@ -29,7 +30,7 @@ export const CollaborationService = {
             }
         });
         if (existingPending) {
-            console.log(`[CollaborationService] Found existing pending invite for ${normalizedEmail}. Resending...`);
+            logger.info(`[CollaborationService] Found existing pending invite for ${normalizedEmail}. Resending...`);
             // Update expiry and resend email
             const newExpiresAt = new Date();
             newExpiresAt.setDate(newExpiresAt.getDate() + 7);
@@ -50,7 +51,7 @@ export const CollaborationService = {
                 return { ...updatedInvitation, emailSent: true, reused: true };
             }
             catch (emailError) {
-                console.error("Failed to resend invitation email:", emailError);
+                logger.error("Failed to resend invitation email:", emailError);
                 return {
                     ...updatedInvitation,
                     emailSent: false,
@@ -68,7 +69,7 @@ export const CollaborationService = {
         });
         const totalCollaborators = currentGrants + pendingInvites;
         if (totalCollaborators >= 5) {
-            console.log(`[CollaborationService] Limit reached for estate ${estateId}: ${totalCollaborators}/5`);
+            logger.info(`[CollaborationService] Limit reached for estate ${estateId}: ${totalCollaborators}/5`);
             return { limitExceeded: true, currentCount: totalCollaborators };
         }
         // 4. Generate token
@@ -95,7 +96,7 @@ export const CollaborationService = {
             });
         }
         catch (emailError) {
-            console.error("Failed to send invitation email:", emailError);
+            logger.error("Failed to send invitation email:", emailError);
             return {
                 ...invitation,
                 emailSent: false,

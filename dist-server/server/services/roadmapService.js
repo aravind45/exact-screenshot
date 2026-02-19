@@ -1,6 +1,35 @@
 import { SETTLEMENT_PHASE_TASKS } from "../../src/config/settlementPhases.js";
 import { prisma as db } from "../db.js";
 import { calculateAuthorityRecommendation } from "../../src/lib/authorityEngine.js";
+import { logger } from "../lib/logger.js";
+const FOLLOW_UP_SPAWN_RULES = {
+    // ── Creditor Notices ──────────────────────────────────────────────────────
+    send_creditor_notices: { institutionName: "General Creditors", subject: "Creditor claim period — awaiting responses", responseWindowDays: 60 },
+    publish_creditor_notice: { institutionName: "Published Creditors", subject: "Published notice — creditor claim window open", responseWindowDays: 60 },
+    mail_creditor_notices: { institutionName: "Known Creditors", subject: "Mailed creditor notices — awaiting claim responses", responseWindowDays: 30 },
+    // ── Financial Institutions ────────────────────────────────────────────────
+    notify_financial_institutions: { institutionName: "Financial Institutions", subject: "Institution notification — awaiting account closure process", responseWindowDays: 30 },
+    send_letters_testamentary_bank: { institutionName: "Bank / Financial Institution", subject: "Letters Testamentary submitted — awaiting acceptance", responseWindowDays: 10 },
+    obtain_letters_testamentary: { institutionName: "Probate Court", subject: "Letters Testamentary application — awaiting issuance", responseWindowDays: 14 },
+    // ── Property ──────────────────────────────────────────────────────────────
+    request_property_appraisal: { institutionName: "Appraiser", subject: "Property appraisal requested — awaiting report", responseWindowDays: 30 },
+    order_date_of_death_appraisal: { institutionName: "Certified Appraiser", subject: "Date-of-death appraisal ordered — awaiting delivery", responseWindowDays: 21 },
+    // ── Court Filings ─────────────────────────────────────────────────────────
+    file_petition: { institutionName: "Probate Court", subject: "Petition filed — awaiting court acknowledgment & hearing", responseWindowDays: 30 },
+    file_inventory_appraisal: { institutionName: "Probate Court", subject: "Inventory & Appraisal filed — awaiting court confirmation", responseWindowDays: 14 },
+    file_final_accounting: { institutionName: "Probate Court", subject: "Final Accounting filed — awaiting court approval", responseWindowDays: 21 },
+    // ── Tax Authorities ───────────────────────────────────────────────────────
+    file_final_income_tax: { institutionName: "IRS / State Tax Authority", subject: "Final income tax return filed — awaiting processing", responseWindowDays: 45 },
+    request_tax_clearance: { institutionName: "State Tax Authority", subject: "Tax clearance requested — awaiting certificate", responseWindowDays: 30 },
+    file_estate_tax_return: { institutionName: "IRS", subject: "Estate tax return (Form 706) filed — awaiting IRS response", responseWindowDays: 60 },
+    // ── Government / Benefits ─────────────────────────────────────────────────
+    contact_social_security: { institutionName: "Social Security Administration", subject: "SSA notification sent — awaiting benefit stoppage confirmation", responseWindowDays: 21 },
+    notify_pension_plan: { institutionName: "Pension / Retirement Plan", subject: "Pension plan notified — awaiting survivor benefit processing", responseWindowDays: 30 },
+    notify_employer: { institutionName: "Employer HR", subject: "Employer notified — awaiting final pay & benefits information", responseWindowDays: 14 },
+    // ── Heirs ─────────────────────────────────────────────────────────────────
+    notify_heirs_of_appointment: { institutionName: "Heirs / Beneficiaries", subject: "Heir notification sent — awaiting signed acknowledgments", responseWindowDays: 14 },
+    send_notice_of_proposed_action: { institutionName: "Heirs / Beneficiaries", subject: "Notice of Proposed Action sent — objection window open", responseWindowDays: 15 },
+};
 /**
  * Analyze estate to determine which optional tasks should be shown
  */
@@ -156,7 +185,7 @@ async function getRoadmapFromDatabase(estateId, profile, completedTaskIds) {
         },
     });
     if (!settlementType) {
-        console.warn(`Settlement type ${settlementTypeCode} not found in database, falling back to hardcoded SETTLEMENT_PHASE_TASKS`);
+        logger.warn(`Settlement type ${settlementTypeCode} not found in database, falling back to hardcoded SETTLEMENT_PHASE_TASKS`);
         // Fallback to hardcoded tasks if type not found
         return filterTasksForEstate(SETTLEMENT_PHASE_TASKS, profile, completedTaskIds);
     }
@@ -299,6 +328,41 @@ export async function completeTask(estateId, taskId, userId, notes) {
             userId,
         },
     });
+    // ── Auto-spawn Follow-Up communication if this task has a spawn rule ──────
+    const spawnRule = FOLLOW_UP_SPAWN_RULES[taskId];
+    if (spawnRule) {
+        try {
+            const followUpDue = new Date();
+            followUpDue.setDate(followUpDue.getDate() + spawnRule.responseWindowDays);
+            await db.communication.create({
+                data: {
+                    estateId,
+                    direction: "outbound",
+                    type: "LETTER",
+                    institutionName: spawnRule.institutionName,
+                    subject: spawnRule.subject,
+                    notes: `Auto-tracked: Sent as part of roadmap task "${taskId}". Expected response within ${spawnRule.responseWindowDays} days.`,
+                    followUpDueAt: followUpDue,
+                    occurredAt: new Date(),
+                    createdBy: userId,
+                },
+            });
+            // Log the waiting state in the activity trail
+            await db.settlementActivity.create({
+                data: {
+                    estateId,
+                    userId,
+                    type: "COMMUNICATION",
+                    action: "WAITING",
+                    notes: `WAITING – ${spawnRule.institutionName} response pending (${spawnRule.subject}). Follow-up due ${followUpDue.toLocaleDateString()}.`,
+                },
+            });
+        }
+        catch (spawnErr) {
+            // Non-fatal — don't block task completion if follow-up spawn fails
+            logger.warn(`[roadmapService] Follow-up spawn failed for task ${taskId} (non-fatal): ${spawnErr?.message}`);
+        }
+    }
     return { success: true, taskId, completedAt: completion.completedAt };
 }
 /**

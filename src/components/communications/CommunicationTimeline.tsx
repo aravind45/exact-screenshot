@@ -36,12 +36,15 @@ export function CommunicationTimeline({ communications, onDelete, onEdit }: Comm
     }
 
     const getTypeIcon = (type: string) => {
-        switch (type) {
-            case 'call': return <Phone className="w-4 h-4" />;
-            case 'email': return <Mail className="w-4 h-4" />;
-            case 'letter': return <FileText className="w-4 h-4" />;
-            case 'fax': return <Printer className="w-4 h-4" />;
-            case 'in-person': return <Users className="w-4 h-4" />;
+        const t = type.toUpperCase();
+        switch (t) {
+            case 'CALL': return <Phone className="w-4 h-4" />;
+            case 'EMAIL': return <Mail className="w-4 h-4" />;
+            case 'LETTER':
+            case 'POSTAL_MAIL': return <FileText className="w-4 h-4" />;
+            case 'FAX': return <Printer className="w-4 h-4" />;
+            case 'IN-PERSON':
+            case 'IN_PERSON': return <Users className="w-4 h-4" />;
             default: return <FileText className="w-4 h-4" />;
         }
     };
@@ -65,7 +68,7 @@ export function CommunicationTimeline({ communications, onDelete, onEdit }: Comm
                         {/* Status Strip */}
                         <div className={cn(
                             "absolute top-0 left-0 w-1 h-full",
-                            comm.direction === 'outbound' ? "bg-primary" : "bg-slate-900"
+                            comm.direction.toUpperCase() === 'OUTBOUND' ? "bg-primary" : "bg-slate-900"
                         )} />
 
                         <div className="grid grid-cols-1 md:grid-cols-12 gap-4 p-5 items-start">
@@ -83,7 +86,7 @@ export function CommunicationTimeline({ communications, onDelete, onEdit }: Comm
                             <div className="md:col-span-1">
                                 <div className={cn(
                                     "w-8 h-8 rounded-lg flex items-center justify-center shadow-sm ring-1",
-                                    comm.direction === 'outbound' ? "bg-blue-50 text-blue-600 ring-blue-100" : "bg-slate-50 text-slate-600 ring-slate-200"
+                                    comm.direction.toUpperCase() === 'OUTBOUND' ? "bg-blue-50 text-blue-600 ring-blue-100" : "bg-slate-50 text-slate-600 ring-slate-200"
                                 )}>
                                     {getTypeIcon(comm.type)}
                                 </div>
@@ -95,7 +98,7 @@ export function CommunicationTimeline({ communications, onDelete, onEdit }: Comm
                                     <h4 className="font-bold text-slate-900 leading-tight tracking-tight">
                                         {comm.subject || "Undisclosed Subject"}
                                     </h4>
-                                    {comm.direction === 'outbound' ? (
+                                    {comm.direction.toUpperCase() === 'OUTBOUND' ? (
                                         <ArrowUpRight className="w-3 h-3 text-blue-500 font-black" />
                                     ) : (
                                         <ArrowDownLeft className="w-3 h-3 text-slate-400 font-black" />
