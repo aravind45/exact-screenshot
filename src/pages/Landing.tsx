@@ -340,7 +340,7 @@ export default function Landing() {
                 initial={{ opacity: 0, y: 32 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.6, duration: 0.6 }}
-                className="mt-16 max-w-3xl mx-auto rounded-2xl overflow-hidden border border-white/10 shadow-2xl shadow-indigo-950/60"
+                className="mt-16 max-w-xl mx-auto rounded-2xl overflow-hidden border border-white/10 shadow-2xl shadow-indigo-950/60"
               >
                 <img
                   src="/Your_4-Step_Executor_Roadmap_version_2.png"
@@ -399,7 +399,7 @@ export default function Landing() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5 }}
-              className="rounded-3xl overflow-hidden border border-slate-200 shadow-xl"
+              className="max-w-2xl mx-auto rounded-3xl overflow-hidden border border-slate-200 shadow-xl"
             >
               <img
                 src="/Real-Time_Progress_Tracking_version_1.png"
@@ -641,14 +641,14 @@ export default function Landing() {
 
         {/* ── Final CTA ── */}
         <section className="bg-indigo-600 py-20 px-6 text-white overflow-hidden">
-          <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-12 items-center">
+          <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-12 items-center">
             {/* Image column */}
             <motion.div
               initial={{ opacity: 0, x: -32 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
-              className="rounded-2xl overflow-hidden shadow-2xl shadow-indigo-900/50 border border-white/10"
+              className="md:col-span-1 rounded-2xl overflow-hidden shadow-2xl shadow-indigo-900/50 border border-white/10"
             >
               <img
                 src="/Finalize_with_Confidence_version_1.png"
@@ -664,7 +664,7 @@ export default function Landing() {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.1 }}
-              className="text-center md:text-left"
+              className="md:col-span-2 text-center md:text-left"
             >
               <h2 className="text-4xl md:text-5xl font-black tracking-tight mb-5 leading-tight">
                 Finalize with
