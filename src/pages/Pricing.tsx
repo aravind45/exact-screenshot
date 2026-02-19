@@ -15,7 +15,7 @@ const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || 
 import { useAuth } from "@/contexts/AuthContext";
 import { SEO } from "@/components/SEO";
 
-export default function Pricing() {
+export default function Pricing(): JSX.Element {
     const navigate = useNavigate();
     const { toast } = useToast();
     const { user, isAdmin } = useAuth(); // Get user and helper
@@ -23,6 +23,12 @@ export default function Pricing() {
     const [clientSecret, setClientSecret] = useState<string | null>(null);
 
     const fetchClientSecret = useCallback(async (skipTrial = false) => {
+        // Guard: must be logged in to start checkout
+        if (!user) {
+            sessionStorage.setItem("after_login_redirect", "/pricing");
+            navigate("/auth");
+            return;
+        }
         setLoading(true);
         try {
             const { clientSecret: secret } = await api.billing.createCheckout({ skipTrial });
@@ -36,7 +42,7 @@ export default function Pricing() {
         } finally {
             setLoading(false);
         }
-    }, [toast]);
+    }, [toast, user, navigate]);
 
     // Admin Bypass
     if (isAdmin) {
