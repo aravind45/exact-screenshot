@@ -16,7 +16,9 @@ import { HelmetProvider } from "react-helmet-async";
 import AdvisorLayout from '@/components/AdvisorLayout';
 import { EstateAgentChatWrapper } from "@/components/EstateAgentChatWrapper";
 import { LegalDisclaimer } from "@/components/LegalDisclaimer";
+import { CookieConsent } from "@/components/CookieConsent";
 // Pages
+
 const Index = lazy(() => import("./pages/Index"));
 const Auth = lazy(() => import("./pages/Auth"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
@@ -303,6 +305,7 @@ const App = () => (
                   </Suspense>
                   <EstateAgentChatWrapper />
                   <LegalDisclaimer />
+                  <CookieConsent />
                 </WorkflowProvider>
               </AuthProvider>
             </NavigationProvider>
