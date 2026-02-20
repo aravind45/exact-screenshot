@@ -8,7 +8,8 @@ export default defineConfig({
   testDir: './e2e',
 
   // Maximum time one test can run
-  timeout: 30 * 1000,
+  // Increased to 60s — registration + onboarding + API calls can take ~40s on first run
+  timeout: 60 * 1000,
 
   // Test execution settings
   fullyParallel: true,

@@ -14,17 +14,21 @@ const testUser = {
 test.describe('Email Verification Flow', () => {
 
     test('should register user and block access until email is verified', async ({ page }) => {
-        // 1. Register
+        // 1. Register — Auth.tsx uses button flow (no tabs)
         await page.goto('/auth');
 
-        const signUpTab = page.getByRole('tab', { name: /sign up/i });
-        if (await signUpTab.isVisible()) {
-            await signUpTab.click();
-        }
+        // Click "Register Now" to open type-selection screen
+        await page.click('button:has-text("Register Now")');
 
-        await page.fill('input[name="fullName"]', testUser.fullName);
-        await page.fill('input[name="email"]', testUser.email);
-        await page.fill('input[name="password"]', testUser.password);
+        // Select Executor account type
+        await page.waitForSelector('button:has-text("I am an Executor")', { timeout: 5000 });
+        await page.click('button:has-text("I am an Executor")');
+
+        // Fill form using id selectors (Auth.tsx uses id not name attributes)
+        await page.waitForSelector('#fullName', { timeout: 5000 });
+        await page.fill('#fullName', testUser.fullName);
+        await page.fill('#email', testUser.email);
+        await page.fill('#password', testUser.password);
 
         await page.screenshot({ path: 'e2e/screenshots/auth-01-register.png' });
         await page.click('button[type="submit"]');
@@ -58,11 +62,11 @@ test.describe('Email Verification Flow', () => {
 
         expect(user?.verificationToken).toBeTruthy();
 
-        // 4. Call verification endpoint
-        await page.goto(`/verify-email?token=${user?.verificationToken}`);
+        // 4. Call verification endpoint (both email AND token required by VerifyEmail page)
+        await page.goto(`/verify-email?email=${encodeURIComponent(testUser.email)}&token=${user?.verificationToken}`);
 
         // Should see a success message or be redirected
-        await page.waitForSelector('text=/success|verified/i', { timeout: 10000 });
+        await page.waitForSelector('[data-testid="verify-email-success"]', { timeout: 15000 });
         await page.screenshot({ path: 'e2e/screenshots/auth-03-verified-success.png' });
 
         // 5. Verify access is now granted

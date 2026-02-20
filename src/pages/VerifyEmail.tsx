@@ -68,7 +68,7 @@ export default function VerifyEmail() {
                                 <p className="text-slate-500 font-medium">Please wait while we secure your account...</p>
                             </div>
                         ) : status === 'success' ? (
-                            <div className="flex flex-col items-center py-4">
+                            <div data-testid="verify-email-success" className="flex flex-col items-center py-4">
                                 <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mb-6">
                                     <CheckCircle2 className="w-10 h-10" />
                                 </div>

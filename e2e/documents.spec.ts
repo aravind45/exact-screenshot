@@ -36,8 +36,8 @@ test.describe('Document Generation Unification', () => {
 
         // 3. Simulate Verification (Backend Bypass)
         const user: any = await prisma.user.findUnique({ where: { email } });
-        await page.goto(`/verify-email?token=${user?.verificationToken}`);
-        await page.waitForSelector('text=/success|verified/i');
+        await page.goto(`/verify-email?email=${encodeURIComponent(email)}&token=${user?.verificationToken}`);
+        await page.waitForSelector('[data-testid="verify-email-success"]', { timeout: 15000 });
 
         // 4. Verify Templates Listing
         await page.goto('/documents');
