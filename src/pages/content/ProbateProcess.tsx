@@ -86,7 +86,7 @@ export default function ProbateProcess() {
             <section id="costs">
                 <h2>Understanding Probate Costs</h2>
                 <p>
-                    Probate costs typically include court filing fees, appraisal costs, and professional services. Total expenses generally range between 3% and 7% of the gross estate value. For a detailed overview, see our <a href="/probate-cost">Probate Cost Breakdown</a>.
+                    Probate costs typically include court filing fees, appraisal costs, and professional service fees. Total expenses generally range between 3% and 7% of the gross estate value. These costs often stem from the <strong>intensive manual logistics</strong> required—such as courtroom filings, physical mailings, and multiple rounds of billable professional coordination—that characterize traditional estate settlement.
                 </p>
             </section>
 

@@ -120,21 +120,21 @@ const STEPS = [
 const TESTIMONIALS = [
   {
     quote:
-      "I was completely overwhelmed after my father passed. ExpectedEstate gave me a clear roadmap and I knew exactly what to do next. It kept the whole family organized and informed.",
+      "I was completely overwhelmed after my father passed. ExpectedEstate gave me a clear roadmap and I knew exactly what to do next. Settled the estate efficiently without traditional manual overhead.",
     name: "Sarah M.",
     role: "Executor, California",
     stars: 5,
   },
   {
     quote:
-      "The deadline tracker alone is worth it. California probate has so many statutory dates — I would have missed the creditor notice window without this guidance.",
+      "The deadline tracker alone is worth it. California probate has so many statutory dates — I would have missed the creditor notice window without this automation.",
     name: "James T.",
     role: "Executor, Texas",
     stars: 5,
   },
   {
     quote:
-      "Having my action plan ready before meeting with my advisor made the whole process much smoother. It helped me stay on top of the logistics while focusing on family.",
+      "My initial legal consult estimated $15,000 for full manual handling. ExpectedEstate's automation handled the logistics for a fraction of that, letting me focus on family.",
     name: "Maria L.",
     role: "Executor, Florida",
     stars: 5,
@@ -148,7 +148,7 @@ const FAQS = [
   },
   {
     q: "Do I need an attorney to be an executor in California?",
-    a: "While hiring an attorney is often recommended for complex estates, ExpectedEstate provides the logistical tools and procedural guidance to help you manage the day-to-day tasks. We help you stay organized and prepared, whether you are working independently or collaborating with legal counsel.",
+    a: "While hiring an attorney is common, the manual handling of a standard estate can cost $5,000–$15,000 in statutory fees. ExpectedEstate provides the logistical automation and procedural guidance to help you manage the process efficiently, whether you are working independently or with professional counsel.",
   },
   {
     q: "What is the deadline to file for probate in California?",
@@ -171,7 +171,7 @@ export default function Landing() {
     <>
       <SEO
         title="Free Probate & Estate Settlement Software for Executors | ExpectedEstate"
-        description="Streamline probate and estate settlement with ExpectedEstate. Get an AI-powered action plan, deadline tracker, document vault, and state-specific forms to manage your executor duties with confidence."
+        description="Stop overpaying for manual probate logistics. ExpectedEstate gives executors an AI-powered step-by-step action plan, deadline tracker, and document vault — saving $5,000–$15,000 in traditional manual fees. Free to start."
         canonical="https://www.expectedestate.com/"
         ogTitle="ExpectedEstate — Probate Software That Pays for Itself"
         ogDescription="Stop guessing. Get a personalized probate action plan in minutes. Track every statutory deadline, manage assets, and settle the estate — free to start."
@@ -259,9 +259,10 @@ export default function Landing() {
               </h1>
 
               <p className="text-lg md:text-xl text-slate-300 font-medium max-w-2xl mx-auto leading-relaxed mb-10">
-                Settle your loved one's estate with clarity and confidence. Get a
-                personalized AI action plan, track every legal deadline, and manage
-                assets, creditors, and heirs — all in one integrated platform.
+                Settle your loved one's estate in months, not years — without the{" "}
+                <strong className="text-white">$15,000 manual overhead</strong>. Get a
+                personalized AI action plan, track every legal deadline, and automate
+                your executor duties in one integrated platform.
               </p>
 
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -447,24 +448,25 @@ export default function Landing() {
             Compare your options
           </h2>
           <div className="grid md:grid-cols-2 gap-6">
-            {/* Full service option */}
+            {/* Traditional Manual Path */}
             <div className="rounded-3xl border-2 border-slate-200 p-8 text-left">
               <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">
-                Full-Service Legal Support
+                Traditional Manual Path
               </p>
-              <p className="text-xl font-black text-slate-900 mb-2">
-                Customized Counsel
+              <p className="text-5xl font-black text-slate-900 mb-2">
+                $15,000
+                <span className="text-xl text-slate-500 font-semibold"> avg fees</span>
               </p>
               <ul className="space-y-3 mt-6 text-sm text-slate-600">
                 {[
-                  "Personalized legal strategy",
-                  "Expert court representation",
-                  "Peace of mind for complex cases",
-                  "High-touch professional guidance",
+                  "Manual paperwork and physical mailing",
+                  "High hourly billable rates for logistics",
+                  "Opaque process with legacy tracking",
+                  "Reliant on slow back-and-forth syncs",
                 ].map((item) => (
                   <li key={item} className="flex items-start gap-2">
                     <div className="w-4 h-4 rounded-full bg-slate-200 flex items-center justify-center shrink-0 mt-0.5">
-                      <span className="text-slate-500 text-[9px] font-black">✓</span>
+                      <span className="text-slate-500 text-[9px] font-black">✕</span>
                     </div>
                     {item}
                   </li>
@@ -474,19 +476,20 @@ export default function Landing() {
             {/* ExpectedEstate */}
             <div className="rounded-3xl border-2 border-indigo-500 bg-indigo-50 p-8 text-left relative">
               <Badge className="absolute top-4 right-4 bg-indigo-600 text-white border-none text-[10px] font-black uppercase">
-                Digital First
+                Digital Automation
               </Badge>
               <p className="text-xs font-black text-indigo-500 uppercase tracking-widest mb-4">
                 ExpectedEstate Software
               </p>
-              <p className="text-xl font-black text-indigo-700 mb-2">
-                Logistics & Automation
+              <p className="text-5xl font-black text-indigo-700 mb-2">
+                $0
+                <span className="text-xl text-indigo-500 font-semibold"> free to start</span>
               </p>
               <ul className="space-y-3 mt-6 text-sm text-slate-700">
                 {[
                   "AI-generated action plan in minutes",
-                  "24/7 digital tracking & dashboard",
-                  "Automated deadline alerts",
+                  "Automated statutory deadline tracking",
+                  "24/7 digital transparency for heirs",
                   "Direct path to expert advice when needed",
                 ].map((item) => (
                   <li key={item} className="flex items-start gap-2">
@@ -499,7 +502,7 @@ export default function Landing() {
                 onClick={() => navigate("/register?mode=signup")}
                 className="mt-8 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black h-12 rounded-xl shadow-lg shadow-indigo-200"
               >
-                Get Started Free
+                Start Free — No Card Required
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </div>
