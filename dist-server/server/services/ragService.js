@@ -186,7 +186,17 @@ export class RAGService {
     static async draftAnswer(question, evidence) {
         if (evidence.length === 0) {
             return {
-                draft: "I couldn't find specific information in our legal guides to answer that. For complex legal matters, I strongly recommend consulting with a qualified estate attorney.",
+                draft: [
+                    "I couldn't find direct guide coverage for that exact question.",
+                    "",
+                    "## What you can do right now in ExpectedEstate",
+                    "1. Open **Forms** and search for the form code (for example, **DE-111**).",
+                    "2. Open **Probate Petition (DE-111)** to complete the required fields step-by-step.",
+                    "3. Verify estate profile fields in **Settings** (names, county, dates, petitioner details) since those fields feed form generation.",
+                    "4. Use **Documents** to upload supporting records before filing.",
+                    "",
+                    "If you want, ask: **\"Give me a field-by-field checklist for [FORM CODE]\"** and I will produce a fill-in checklist from available guidance."
+                ].join("\n"),
                 confidence: 0,
                 metadata: {
                     evidence_used: 0,
@@ -207,8 +217,13 @@ RESPONSE STANDARDS:
 1. SHARPNESS: Be extremely concise. Avoid conversational filler like "I hope this helps" or "Based on the evidence provided".
 2. STRUCTURE: Use bullet points or numbered lists for procedural steps. Use bold text for key terms and deadlines.
 3. READABILITY: Keep paragraphs short (1-2 sentences). Use clear headings if the answer is long.
-4. GROUNDING: Answer ONLY using the provided evidence. If evidence is insufficient, state: "Our current guides do not have specific information on this. I recommend consulting with a professional."
-5. TONE: Professional, supportive, and direct.
+4. GROUNDING: Legal claims and legal rules must come ONLY from provided evidence.
+5. ACTIONABILITY: Always include a section titled "## What to do now" with concrete next steps users can take immediately.
+6. If evidence is partial or missing, DO NOT stop at "consult a professional". Instead:
+   - Explicitly state what is missing.
+   - Provide a practical checklist of next actions inside ExpectedEstate (Forms, Probate Petition, Documents, Assets, Deadlines).
+   - Include what exact information/documents the user should gather next.
+7. TONE: Professional, supportive, and direct.
 
 EVIDENCE:
 ${contextContent}

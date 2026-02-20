@@ -254,7 +254,7 @@ const App = () => (
                       {/* <Route path="/feed" element={<ProtectedRoute><ProfileGuard><Feed /></ProfileGuard></ProtectedRoute>} /> */}
 
                       {/* Services */}
-                      <Route path="/estate-agent" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><ProfileGuard><SubscriptionGuard><EstateAgentChatWrapper /></SubscriptionGuard></ProfileGuard></RoleRoute></ProtectedRoute>} />
+                      <Route path="/estate-agent" element={<Navigate to="/dashboard" replace />} />
                       <Route path="/estates/:estateId/agents" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><ProfileGuard><SubscriptionGuard><EstateAgents /></SubscriptionGuard></ProfileGuard></RoleRoute></ProtectedRoute>} />
                       {/* Legacy marketplace (simple) */}
                       <Route path="/marketplace-legacy" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><AdvisorMarketplace /></RoleRoute></ProtectedRoute>} />
@@ -299,6 +299,7 @@ const App = () => (
                       <Route path="*" element={<NotFound />} />
                     </Routes>
                   </Suspense>
+                  <EstateAgentChatWrapper />
                   <LegalDisclaimer />
                 </WorkflowProvider>
               </AuthProvider>

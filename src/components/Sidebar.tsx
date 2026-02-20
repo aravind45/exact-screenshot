@@ -187,7 +187,7 @@ export function Sidebar() {
             title: "Navigation",
             items: [
                 { label: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
-            { label: "Action Plan", icon: Map, path: "/roadmap" },
+                { label: "Action Plan", icon: Map, path: "/roadmap" },
             ]
         },
         {
@@ -198,7 +198,7 @@ export function Sidebar() {
                 { label: "Accounting", icon: Calculator, path: "/accounting" },
                 { label: "Final Distribution", icon: CheckCircle2, path: "/distribution" },
                 ...(!isViewer ? [{ label: "Official Forms", icon: ScrollText, path: "/forms" }] : []),
-                ...(estate?.id && !isViewer ? [{ label: "AI Assistants", icon: Zap, path: `/estates/${estate.id}/agents` }] : []),
+                ...(estate?.id && !isViewer ? [{ label: "Legal Research", icon: Zap, path: `/estates/${estate.id}/agents` }] : []),
             ]
         },
         {

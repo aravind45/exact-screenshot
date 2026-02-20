@@ -20,13 +20,18 @@ export class OrchestratorService {
             const retrieval = await RAGService.retrieveLegalChunks(optimizedQuery, 5);
             if (retrieval.chunks.length === 0) {
                 logger.warn(`🎯 Orchestrator [${executionId}]: No evidence found, returning fallback`);
+                const draft = await RAGService.draftAnswer(question, []);
                 return this.buildResponse({
-                    answer: "I couldn't find specific information in our legal guides to answer that. For complex legal matters, I strongly recommend consulting with a qualified estate attorney.",
+                    answer: draft.draft,
                     sources: [],
                     evidence: [],
                     execution_id: executionId,
-                    agent_flow: ['retrieval'],
-                    execution_time_ms: Date.now() - startTime
+                    agent_flow: ['retrieval', 'draft'],
+                    execution_time_ms: Date.now() - startTime,
+                    metadata: {
+                        retrieval: retrieval.metadata,
+                        draft: draft.metadata
+                    }
                 });
             }
             // STEP 2: Draft Agent - Generate answer from evidence
@@ -151,81 +156,6 @@ export class OrchestratorService {
         catch (error) {
             logger.error("Failed to export audit trail:", error);
             throw error;
-        }
-    }
-    /**
-     * Form-filling orchestration - extracts data for specific form types
-     */
-    static async fillForm(estateData, formType) {
-        const startTime = Date.now();
-        const executionId = `form_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-        logger.info(`🎯 Orchestrator [${executionId}]: Form-Filling for ${formType}`);
-        try {
-            const result = await RAGService.extractFormData(estateData, formType);
-            return {
-                ...result,
-                execution_id: executionId,
-                execution_time_ms: Date.now() - startTime
-            };
-        }
-        catch (error) {
-            logger.error(`❌ Orchestrator [${executionId}]: Form-filling error`, error);
-            return {
-                success: false,
-                error: String(error),
-                execution_id: executionId,
-                execution_time_ms: Date.now() - startTime
-            };
-        }
-    }
-    /**
-     * Checklist generation orchestration
-     */
-    static async createChecklist(estateData, userContext) {
-        const startTime = Date.now();
-        const executionId = `checklist_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-        logger.info(`🎯 Orchestrator [${executionId}]: Generating checklist`);
-        try {
-            const result = await RAGService.generateChecklist(estateData, userContext);
-            return {
-                ...result,
-                execution_id: executionId,
-                execution_time_ms: Date.now() - startTime
-            };
-        }
-        catch (error) {
-            logger.error(`❌ Orchestrator [${executionId}]: Checklist error`, error);
-            return {
-                checklist: [],
-                error: String(error),
-                execution_id: executionId,
-                execution_time_ms: Date.now() - startTime
-            };
-        }
-    }
-    /**
-     * Timeline generation orchestration
-     */
-    static async createTimeline(estateData) {
-        const startTime = Date.now();
-        const executionId = `timeline_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-        logger.info(`🎯 Orchestrator [${executionId}]: Generating timeline`);
-        try {
-            const result = await RAGService.generateTimeline(estateData);
-            return {
-                ...result,
-                execution_id: executionId,
-                execution_time_ms: Date.now() - startTime
-            };
-        }
-        catch (error) {
-            logger.error(`❌ Orchestrator [${executionId}]: Timeline error`, error);
-            return {
-                timeline: [],
-                error: String(error),
-                execution_id: executionId,
-                execution_time_ms: Date.now() - startTime
-            };
         }
     }
 }

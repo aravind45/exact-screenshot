@@ -15,7 +15,7 @@ export const agentService = {
         phase?: string;
         history?: AgentMessage[];
     }) {
-        const response = await api.post("/agent/chat", params);
+        const response = await api.post("/agents/chat", params);
         return response.data;
     },
 };
