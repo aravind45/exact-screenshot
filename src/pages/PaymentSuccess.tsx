@@ -11,6 +11,23 @@ export default function PaymentSuccess() {
     const sessionId = searchParams.get("session_id");
 
     useEffect(() => {
+        // ── GA4 purchase conversion event ────────────────────────────────────
+        if (typeof window !== 'undefined' && (window as any).gtag) {
+            (window as any).gtag('event', 'purchase', {
+                transaction_id: sessionId || `txn_${Date.now()}`,
+                currency: 'USD',
+                value: 49,
+                items: [
+                    {
+                        item_id: 'premium_monthly',
+                        item_name: 'ExpectedEstate Premium',
+                        price: 49,
+                        quantity: 1,
+                    },
+                ],
+            });
+        }
+
         // Celebrate!
         const duration = 3 * 1000;
         const animationEnd = Date.now() + duration;

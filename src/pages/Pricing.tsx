@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,17 @@ export default function Pricing(): JSX.Element {
     const [loading, setLoading] = useState(false);
     const [clientSecret, setClientSecret] = useState<string | null>(null);
 
+    // ── GA4 view_pricing event on mount ────────────────────────────────────
+    useEffect(() => {
+        if (typeof window !== 'undefined' && (window as any).gtag) {
+            (window as any).gtag('event', 'view_item', {
+                currency: 'USD',
+                value: 49,
+                items: [{ item_id: 'premium_monthly', item_name: 'ExpectedEstate Premium', price: 49 }],
+            });
+        }
+    }, []);
+
     const fetchClientSecret = useCallback(async (skipTrial = false) => {
         // Guard: must be logged in to start checkout
         if (!user) {
@@ -29,6 +40,16 @@ export default function Pricing(): JSX.Element {
             navigate("/auth");
             return;
         }
+
+        // ── GA4 begin_checkout event ────────────────────────────────────────
+        if (typeof window !== 'undefined' && (window as any).gtag) {
+            (window as any).gtag('event', 'begin_checkout', {
+                currency: 'USD',
+                value: 49,
+                items: [{ item_id: 'premium_monthly', item_name: 'ExpectedEstate Premium', price: 49 }],
+            });
+        }
+
         setLoading(true);
         try {
             const { clientSecret: secret } = await api.billing.createCheckout({ skipTrial });

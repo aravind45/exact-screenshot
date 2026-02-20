@@ -215,6 +215,14 @@ export default function Auth() {
             description: 'Welcome to ExpectedEstate.',
           });
 
+          // ── GA4 sign_up conversion event ────────────────────────
+          if (typeof window !== 'undefined' && (window as any).gtag) {
+            (window as any).gtag('event', 'sign_up', {
+              method: 'email',
+              user_type: userType || 'EXECUTOR',
+            });
+          }
+
           // Get stored redirect and clear it
           const redirect = sessionStorage.getItem("after_login_redirect");
           if (redirect) {
