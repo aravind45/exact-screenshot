@@ -64,19 +64,12 @@ export function AIChat() {
                                     {msg.role === "user" ? <User className="w-4 h-4 text-white" /> : <Bot className="w-4 h-4 text-blue-600" />}
                                 </div>
                                 <div className={`space-y-2 ${msg.role === "user" ? "items-end" : "items-start"}`}>
-                                    <div className={`rounded-2xl px-4 py-3 text-sm leading-relaxed ${msg.role === "user" ? "bg-blue-600 text-white rounded-tr-none" : "bg-white text-slate-800 rounded-tl-none border border-slate-200 shadow-sm"}`}>
+                                    <div className={`rounded-2xl px-5 py-4 text-sm leading-relaxed whitespace-pre-wrap shadow-sm border ${msg.role === "user"
+                                            ? "bg-blue-600 text-white rounded-tr-none font-medium border-blue-500"
+                                            : "bg-white text-slate-800 rounded-tl-none border-slate-200 font-serif"
+                                        }`}>
                                         {msg.content}
                                     </div>
-                                    {msg.sources && msg.sources.length > 0 && (
-                                        <div className="flex flex-wrap gap-2 pt-1 font-sans">
-                                            {msg.sources.map((s, idx) => (
-                                                <span key={idx} className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-slate-50 border border-slate-200 text-[10px] text-slate-500 font-bold uppercase tracking-wider">
-                                                    <Info className="w-3 h-3 text-blue-500" />
-                                                    {s}
-                                                </span>
-                                            ))}
-                                        </div>
-                                    )}
                                 </div>
                             </div>
                         </motion.div>
