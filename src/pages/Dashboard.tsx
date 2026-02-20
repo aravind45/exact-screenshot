@@ -23,10 +23,13 @@ import {
   Search,
   Gavel,
   Activity,
-  Lock
+  Lock,
+  ChevronDown,
+  ChevronUp,
+  BarChart2,
 } from "lucide-react";
 import { SettlementHealthEngine } from "@/components/SettlementHealthEngine";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AgentInsights } from "@/components/AgentInsights";
@@ -56,6 +59,8 @@ import { TaxAlerts } from "@/components/dashboard/TaxAlerts";
 import { NextActionWidget } from "@/components/dashboard/NextActionWidget";
 import { AttorneyReviewWidget } from "@/components/dashboard/AttorneyReviewWidget";
 import { EstateJourneyBanner } from "@/components/dashboard/EstateJourneyBanner";
+import { FirstWeekChecklist } from "@/components/dashboard/FirstWeekChecklist";
+import { AssetDiscoveryWidget } from "@/components/dashboard/AssetDiscoveryWidget";
 import { generateCPAExport } from "@/lib/csvExport";
 
 const normalize = (str: string | null) => str?.toLowerCase() || '';
@@ -78,6 +83,7 @@ export default function Dashboard() {
   const { user, signOut } = useAuth();
   const { roleName, estateName, authorityType } = useTerminology();
   const [viewMode, setViewMode] = useState<'grid' | 'trail'>('grid');
+  const [advancedOpen, setAdvancedOpen] = useState(false);
   const { toast } = useToast();
 
   const { data: assetsData, isLoading, error } = useQuery({
@@ -537,7 +543,13 @@ export default function Dashboard() {
         </div>
       </div>
 
-
+      {/* ──────────────────────────────────────────────────────────────
+          FIRST WEEK CHECKLIST — Guided onboarding for new executors
+          Shown when < 5 roadmap tasks completed; self-hides when done
+      ────────────────────────────────────────────────────────────── */}
+      {(completedTaskIds?.length || 0) < 5 && (
+        <FirstWeekChecklist completedTaskIds={completedTaskIds || []} />
+      )}
 
       {/* ──────────────────────────────────────────────────────────────
           CRITICAL DATES — Prominent deadline display
@@ -722,20 +734,72 @@ export default function Dashboard() {
         {/* Sidebar (Right Column - 4/12 = 33%) */}
         <div className="lg:col-span-4 space-y-4">
 
-          {/* ⚠️ Attorney Review Nodes — GAP-09 */}
-          <AttorneyReviewWidget estate={estate} assets={assets} />
-
-          {/* Settlement Health Engine */}
-          <SettlementHealthEngine
-            scores={healthScores}
-            alerts={healthAlerts}
+          {/* Asset Discovery — prominent for new/sparse estates */}
+          <AssetDiscoveryWidget
+            assetCount={assets.length}
+            estateCreatedAt={(estate as any)?.createdAt}
           />
 
-          {/* Diligence Gaps (if any) */}
-          <SafetyNetWidget
-            assets={assets}
-            onNavigate={(id) => navigate(`/asset/${id}`)}
-          />
+          {/* ── Advanced Diagnostics (collapsible) ── */}
+          <div className="rounded-3xl border border-slate-100 bg-white shadow-sm overflow-hidden">
+            <button
+              className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-slate-50 transition-colors"
+              onClick={() => setAdvancedOpen((v) => !v)}
+            >
+              <div className="flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-xl bg-slate-100 flex items-center justify-center">
+                  <BarChart2 className="w-3.5 h-3.5 text-slate-500" />
+                </div>
+                <div className="text-left">
+                  <p className="text-xs font-black text-slate-700 tracking-tight">Advanced Diagnostics</p>
+                  <p className="text-[10px] font-medium text-slate-400 mt-0.5">
+                    Health scores, attorney flags & diligence gaps
+                  </p>
+                </div>
+              </div>
+              {advancedOpen ? (
+                <ChevronUp className="w-4 h-4 text-slate-400 flex-shrink-0" />
+              ) : (
+                <ChevronDown className="w-4 h-4 text-slate-400 flex-shrink-0" />
+              )}
+            </button>
+
+            <AnimatePresence initial={false}>
+              {advancedOpen && (
+                <motion.div
+                  key="advanced"
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.22, ease: "easeInOut" }}
+                  className="overflow-hidden"
+                >
+                  <div className="px-0 pt-0 pb-1 space-y-3 border-t border-slate-50">
+                    {/* ⚠️ Attorney Review Nodes — GAP-09 */}
+                    <div className="px-3 pt-3">
+                      <AttorneyReviewWidget estate={estate} assets={assets} />
+                    </div>
+
+                    {/* Settlement Health Engine */}
+                    <div className="px-3">
+                      <SettlementHealthEngine
+                        scores={healthScores}
+                        alerts={healthAlerts}
+                      />
+                    </div>
+
+                    {/* Diligence Gaps */}
+                    <div className="px-3 pb-3">
+                      <SafetyNetWidget
+                        assets={assets}
+                        onNavigate={(id) => navigate(`/asset/${id}`)}
+                      />
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
 
         </div>
       </div>

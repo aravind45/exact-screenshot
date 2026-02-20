@@ -164,7 +164,7 @@ router.put("/my", authenticate, async (req: any, res: Response) => {
                     updateData[key] = null;
                 }
             } else if (numericFields.includes(key)) {
-                updateData[key] = value === "" ? null : value;
+                updateData[key] = (value === "" || value === null) ? null : new Prisma.Decimal(value as number | string);
             } else if (key === 'codicilDates' && typeof value === 'string') {
                 updateData[key] = value.split(',').map((s: string) => s.trim()).filter(Boolean);
             } else if (key === 'deceasedSsn') {
