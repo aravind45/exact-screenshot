@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { prisma } from "../db.js";
+import { Prisma } from "@prisma/client";
 import { EmailService } from "../services/emailService.js";
 import { encrypt, decrypt, encryptBuffer, decryptBuffer } from "../utils/encryption.js";
 import { AuditService } from "../services/auditService.js";
@@ -7,6 +8,7 @@ import { requireEstateAccess } from "../middleware/estateAuth.js";
 import { z } from "zod";
 import { logger } from "../lib/logger.js";
 import { requireSubscription } from "../middleware/subscription.js";
+import { authenticate } from "../middleware/auth.js";
 const estateUpdateSchema = z.object({
     name: z.string().optional(),
     deceasedFirstName: z.string().optional(),
@@ -40,7 +42,17 @@ const estateUpdateSchema = z.object({
     hearingTime: z.string().optional(),
     hearingDept: z.string().optional(),
     hearingAddress: z.string().optional(),
-    deceasedSsn: z.string().optional()
+    deceasedSsn: z.string().optional(),
+    // Onboarding specific fields
+    estimatedLiabilities: z.coerce.number().optional().nullable(),
+    hasContest: z.boolean().optional(),
+    isTrustRevocable: z.boolean().optional().nullable(),
+    hasTODDeed: z.boolean().optional(),
+    isSurvivingSpouse: z.boolean().optional(),
+    hasUnknownHeirs: z.boolean().optional(),
+    isOutOfState: z.boolean().optional(),
+    hasOutOfStateProperty: z.boolean().optional(),
+    hasMinorBeneficiaries: z.boolean().optional()
 });
 const roadmapUpdateSchema = z.object({
     completedTaskIds: z.array(z.string()),
@@ -115,23 +127,23 @@ router.get("/my", async (req, res) => {
         res.status(500).json({ error: "Failed to fetch estate", message: error.message });
     }
 });
-router.put("/my", async (req, res) => {
+router.put("/my", authenticate, async (req, res) => {
     try {
-        const estate = await prisma.estate.findFirst({
+        const userId = req.user.id;
+        // Find or Create Estate (Upsert pattern for onboarding resilience)
+        let estate = await prisma.estate.findFirst({
             where: {
                 OR: [
-                    { userId: req.user.id },
-                    { grants: { some: { userId: req.user.id } } }
+                    { userId: userId },
+                    { grants: { some: { userId: userId } } }
                 ]
             }
         });
-        if (!estate)
-            return res.status(404).json({ error: "Estate not found" });
         // Whitelist allowed fields and parse dates
         const validated = estateUpdateSchema.parse(req.body);
         const updateData = {};
         const dateFields = ['deceasedDateOfDeath', 'deceasedDateOfBirth', 'authorityEffectiveDate', 'appointedDate', 'willDate', 'hearingDate'];
-        const numericFields = ['certifiedCopies', 'estimatedPersonalProperty', 'estimatedRealProperty', 'estimatedAnnualIncome', 'bondAmount'];
+        const numericFields = ['certifiedCopies', 'estimatedPersonalProperty', 'estimatedRealProperty', 'estimatedAnnualIncome', 'bondAmount', 'estimatedLiabilities'];
         for (const [key, value] of Object.entries(validated)) {
             if (value === undefined)
                 continue;
@@ -145,7 +157,7 @@ router.put("/my", async (req, res) => {
                 }
             }
             else if (numericFields.includes(key)) {
-                updateData[key] = value === "" ? null : value;
+                updateData[key] = (value === "" || value === null) ? null : new Prisma.Decimal(value);
             }
             else if (key === 'codicilDates' && typeof value === 'string') {
                 updateData[key] = value.split(',').map((s) => s.trim()).filter(Boolean);
@@ -181,36 +193,60 @@ router.put("/my", async (req, res) => {
         // For now, we trust the frontend dropdowns, but if we later capture "Country", checking here is good.
         // 3. User Citizenship (if tracked) or Mailing Address
         // (Assuming we might check specific other fields if they existed)
-        if (shouldEnableInternational) {
-            // Only update if not already set or if adding new reasons
-            const currentReasons = estate.internationalReasons || [];
-            if (!estate.isInternational || !newReasons.every(r => currentReasons.includes(r))) {
-                updateData.isInternational = true;
-                // Merge unique reasons
-                updateData.internationalReasons = [...new Set([...currentReasons, ...newReasons])];
-                // Log High-Signal Event
-                await prisma.settlementActivity.create({
-                    data: {
-                        estateId: estate.id,
-                        userId: req.user.id,
-                        type: 'CONFIGURATION',
-                        action: 'UPDATED',
-                        notes: `INTERNATIONAL MODE ENABLED – Detected: ${newReasons.join(", ")}`
-                    }
-                });
-            }
+        // UPSERT LOGIC
+        let finalEstate;
+        if (!estate) {
+            finalEstate = await prisma.estate.create({
+                data: {
+                    ...updateData,
+                    userId: userId,
+                    deceasedFirstName: updateData.deceasedFirstName || "",
+                    deceasedLastName: updateData.deceasedLastName || "Estate",
+                    deceasedState: updateData.deceasedState || "CA",
+                    status: "active",
+                    hasContest: updateData.hasContest === undefined ? false : Boolean(updateData.hasContest),
+                    ...(updateData.estimatedLiabilities !== undefined && {
+                        estimatedLiabilities: updateData.estimatedLiabilities === "" || updateData.estimatedLiabilities === null ? null : new Prisma.Decimal(updateData.estimatedLiabilities)
+                    })
+                }
+            });
+            logger.info(`✅ [ESTATE] Upsert: Created new estate for user ${userId}`);
         }
-        const updated = await prisma.estate.update({
-            where: { id: estate.id },
-            data: updateData
-        });
+        else {
+            if (shouldEnableInternational) {
+                const currentReasons = estate.internationalReasons || [];
+                if (!estate.isInternational || !newReasons.every(r => currentReasons.includes(r))) {
+                    updateData.isInternational = true;
+                    updateData.internationalReasons = [...new Set([...currentReasons, ...newReasons])];
+                    await prisma.settlementActivity.create({
+                        data: {
+                            estateId: estate.id,
+                            userId: userId,
+                            type: 'CONFIGURATION',
+                            action: 'UPDATED',
+                            notes: `INTERNATIONAL MODE ENABLED – Detected: ${newReasons.join(", ")}`
+                        }
+                    });
+                }
+            }
+            finalEstate = await prisma.estate.update({
+                where: { id: estate.id },
+                data: {
+                    ...updateData,
+                    ...(updateData.hasContest !== undefined && { hasContest: Boolean(updateData.hasContest) }),
+                    ...(updateData.estimatedLiabilities !== undefined && {
+                        estimatedLiabilities: updateData.estimatedLiabilities === "" || updateData.estimatedLiabilities === null ? null : new Prisma.Decimal(updateData.estimatedLiabilities)
+                    })
+                }
+            });
+        }
         // Decrypt SSN for response
-        if (updated.deceasedSsn) {
-            updated.deceasedSsn = decrypt(updated.deceasedSsn);
+        if (finalEstate.deceasedSsn) {
+            finalEstate.deceasedSsn = decrypt(finalEstate.deceasedSsn);
         }
         // Log Configuration Activity
         const updatedFields = Object.keys(updateData).length;
-        if (updatedFields > 0) {
+        if (updatedFields > 0 && estate) {
             await prisma.settlementActivity.create({
                 data: {
                     estateId: estate.id,
@@ -222,11 +258,11 @@ router.put("/my", async (req, res) => {
             });
         }
         // If status changed to EXECUTOR_APPOINTED, auto-sync assets
-        if (req.body.probateStatus === 'EXECUTOR_APPOINTED' && estate.probateStatus !== 'EXECUTOR_APPOINTED') {
+        if (req.body.probateStatus === 'EXECUTOR_APPOINTED' && estate?.probateStatus !== 'EXECUTOR_APPOINTED' && finalEstate.id) {
             const { AssetService } = await import("../services/assetService.js");
-            await AssetService.autoSyncAssetsForEstate(estate.id);
+            await AssetService.autoSyncAssetsForEstate(finalEstate.id);
         }
-        res.json(updated);
+        res.json(finalEstate);
     }
     catch (error) {
         if (error instanceof z.ZodError) {

@@ -21,6 +21,7 @@ import {
   CreditCard,
   Bell,
 } from "lucide-react";
+import { Header } from "@/components/layout/Header";
 
 const FEATURES = [
   {
@@ -228,39 +229,7 @@ export default function Landing() {
       />
 
       <div className="min-h-screen bg-white font-sans">
-        {/* ── Nav ── */}
-        <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-100">
-          <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-            <Link to="/" className="flex items-center gap-2.5">
-              <div className="p-1.5 rounded-lg bg-indigo-600 text-white">
-                <Landmark className="w-5 h-5" />
-              </div>
-              <span className="font-black text-lg text-slate-900 tracking-tight">ExpectedEstate</span>
-            </Link>
-            {/* Desktop nav links */}
-            <div className="hidden md:flex items-center gap-6 text-sm font-semibold text-slate-600">
-              <a href="#features" className="hover:text-indigo-600 transition-colors">Features</a>
-              <a href="#how-it-works" className="hover:text-indigo-600 transition-colors">How It Works</a>
-              <Link to="/pricing" className="hover:text-indigo-600 transition-colors">Pricing</Link>
-              <Link to="/guides/probate" className="hover:text-indigo-600 transition-colors">Guides</Link>
-            </div>
-            <div className="flex items-center gap-3">
-              <Link
-                to="/auth"
-                className="text-sm font-bold text-slate-600 hover:text-indigo-600 transition-colors"
-              >
-                Sign In
-              </Link>
-              <Button
-                onClick={() => navigate("/auth?mode=signup")}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl h-9 px-5 text-sm shadow-lg shadow-indigo-200"
-              >
-                Start Free
-                <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
-              </Button>
-            </div>
-          </div>
-        </nav>
+        <Header />
 
         {/* ── Hero ── */}
         <section className="relative overflow-hidden bg-gradient-to-b from-slate-950 to-slate-900 text-white">

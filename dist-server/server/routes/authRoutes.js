@@ -4,14 +4,15 @@ import { z } from "zod";
 import { logger } from "../lib/logger.js";
 import { authenticate } from "../middleware/auth.js";
 import { prisma } from "../db.js";
+import { calculateIsTrialing } from "../utils/trialUtils.js";
 const router = Router();
 const registerSchema = z.object({
     email: z.string().email(),
     password: z.string().min(8),
     fullName: z.string().min(2),
     state: z.string().length(2).optional(),
-    role: z.enum(["EXECUTOR", "ADVISOR"]).optional(),
-    userType: z.enum(["EXECUTOR", "ADVISOR"]).optional()
+    role: z.enum(["EXECUTOR", "ADVISOR", "HEIR"]).optional(),
+    userType: z.enum(["EXECUTOR", "ADVISOR", "HEIR"]).optional()
 });
 const loginSchema = z.object({
     email: z.string().email(),
@@ -136,6 +137,29 @@ router.post("/logout", authenticate, async (req, res) => {
         res.status(500).json({ error: "Logout failed" });
     }
 });
-// The /me route requires authentication, which is handled in index.ts for simplicity
-// or we can export a middleware.
+router.get("/me", authenticate, async (req, res) => {
+    try {
+        const user = req.user;
+        if (!user)
+            return res.status(401).json({ error: "Not authenticated" });
+        const isTrialing = calculateIsTrialing(user.trialStartedAt);
+        res.json({ ...user, isTrialing });
+    }
+    catch (error) {
+        logger.error("Get Me Error:", error.message);
+        res.status(500).json({ error: "Failed to fetch user profile" });
+    }
+});
+router.post("/resend-verification", authenticate, async (req, res) => {
+    try {
+        if (!req.user)
+            return res.status(401).json({ error: "Not authenticated" });
+        const result = await AuthService.resendVerification(req.user.id);
+        res.json(result);
+    }
+    catch (error) {
+        logger.error("Resend Verification Error:", error.message);
+        res.status(500).json({ error: "Failed to resend verification email" });
+    }
+});
 export default router;

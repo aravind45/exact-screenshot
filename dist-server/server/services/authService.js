@@ -25,6 +25,9 @@ export const AuthService = {
             else if (safeUserType === "ADVISOR") {
                 assignedRole = 'ADVISOR';
             }
+            else if (safeUserType === "HEIR") {
+                assignedRole = 'HEIR';
+            }
             else {
                 assignedRole = 'EXECUTOR';
             }
@@ -47,23 +50,46 @@ export const AuthService = {
         const appUrl = (await EmailService.getAppUrl()).replace(/\/$/, "");
         const verificationLink = `${appUrl}/verify-email?email=${encodeURIComponent(email)}&token=${user.verificationToken}`;
         await EmailService.sendVerificationEmail(email, verificationLink);
-        // Create an initial estate for the user ONLY if they are an executor
-        if (safeUserType === "EXECUTOR") {
-            await prisma.estate.create({
-                data: {
-                    userId: user.id,
-                    name: `${fullName || 'My'}'s Estate`,
-                    deceasedFirstName: "TBD",
-                    deceasedLastName: "TBD",
-                    deceasedDateOfDeath: new Date(),
-                    deceasedState: state || "CA",
-                    probateStatus: "NOT_STARTED"
-                }
-            });
+        // CREATE SKELETON ESTATE FOR EXECUTORS
+        // The OnboardingWizard expects an estate to exist for the current user.
+        if (assignedRole === 'EXECUTOR') {
+            try {
+                await prisma.estate.create({
+                    data: {
+                        userId: user.id,
+                        deceasedFirstName: "",
+                        deceasedLastName: "Estate",
+                        deceasedState: state || "CA", // Default to CA if unset
+                        status: "active"
+                    }
+                });
+                logger.debug(`✅ [AUTH] Skeleton estate created for user: ${user.id}`);
+            }
+            catch (estateError) {
+                logger.error("❌ [AUTH] Failed to create skeleton estate:", estateError.message);
+                // We proceed anyway as the wizard can sometimes handle creation, 
+                // but this initial skeleton unblocks the Step 1 lookup.
+            }
         }
         const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: "30d" });
         const isTrialing = calculateIsTrialing(user.trialStartedAt);
         return { user: { ...user, isTrialing }, token };
+    },
+    async resendVerification(userId) {
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+        if (!user)
+            throw new Error("User not found");
+        if (user.emailVerifiedAt)
+            return { message: "Email already verified" };
+        const newToken = crypto.randomBytes(32).toString('hex');
+        await prisma.user.update({
+            where: { id: userId },
+            data: { verificationToken: newToken }
+        });
+        const appUrl = (await EmailService.getAppUrl()).replace(/\/$/, "");
+        const verificationLink = `${appUrl}/verify-email?email=${encodeURIComponent(user.email)}&token=${newToken}`;
+        await EmailService.sendVerificationEmail(user.email, verificationLink);
+        return { message: "Verification email sent" };
     },
     async login(email, password, ip) {
         const user = await prisma.user.findUnique({ where: { email } });

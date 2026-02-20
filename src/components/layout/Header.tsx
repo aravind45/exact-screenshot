@@ -1,7 +1,8 @@
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Landmark } from "lucide-react";
+import { Landmark, Menu, MessageSquare, Phone } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { GuideExplorer } from "../GuideExplorer";
 
 export function Header() {
   const { user, signOut } = useAuth();
@@ -21,30 +22,22 @@ export function Header() {
             <div className="p-1.5 rounded-lg bg-primary text-primary-foreground">
               <Landmark className="w-5 h-5" />
             </div>
-            <span className="font-bold text-lg text-foreground">ExpectedEstate</span>
+            <span className="font-black text-lg text-slate-900 tracking-tight">ExpectedEstate</span>
           </Link>
 
           {/* Navigation */}
-          <nav className="hidden md:flex items-center gap-10">
+          <nav className="hidden md:flex items-center gap-8">
             <Link to="/" className="text-sm font-semibold text-foreground/70 hover:text-primary transition-colors">
               Home
             </Link>
-            <a href="/#services" className="text-sm font-semibold text-foreground/70 hover:text-primary transition-colors">
-              Services
+            <a href="/#features" className="text-sm font-semibold text-foreground/70 hover:text-primary transition-colors">
+              Features
             </a>
-            <a href="/#pricing" className="text-sm font-semibold text-foreground/70 hover:text-primary transition-colors">
+            <Link to="/pricing" className="text-sm font-semibold text-foreground/70 hover:text-primary transition-colors">
               Pricing
-            </a>
-            <a href="/#knowledge-base" className="text-sm font-semibold text-foreground/70 hover:text-primary transition-colors">
-              Knowledge Base
-            </a>
-            <a href="/#about" className="text-sm font-semibold text-foreground/70 hover:text-primary transition-colors">
-              About Us
-            </a>
-            <a href="/#contact" className="text-sm font-semibold text-foreground/70 hover:text-primary transition-colors">
-              Contact Us
-            </a>
-            <Link to="/advisor/onboarding" className="text-sm font-semibold text-foreground/70 hover:text-primary transition-colors">
+            </Link>
+            <GuideExplorer />
+            <Link to="/advisor/onboarding" className="text-sm font-semibold text-foreground/70 hover:text-primary transition-colors flex items-center gap-2">
               Become an Advisor
             </Link>
           </nav>

@@ -463,13 +463,25 @@ export default function Assets() {
                                     <p className="text-[10px] font-black uppercase tracking-widest text-indigo-600 mb-1.5">
                                         {allSuggestedActions.length} Suggested Actions
                                     </p>
-                                    <div className="flex flex-wrap gap-2">
-                                        {allSuggestedActions.slice(0, 4).map((action, idx) => (
-                                            <div key={idx} className="flex items-center gap-1.5 px-2.5 py-1 bg-white rounded-lg border border-indigo-100 shadow-sm cursor-pointer hover:border-indigo-300 transition-colors">
-                                                <div className={cn("w-1.5 h-1.5 rounded-full", action.priority === 'high' ? "bg-rose-500" : "bg-slate-400")} />
-                                                <span className="text-[10px] font-bold text-slate-700 truncate max-w-[160px]">{action.title}</span>
-                                            </div>
-                                        ))}
+                    <div className="flex flex-wrap gap-2">
+                        {allSuggestedActions.slice(0, 4).map((action, idx) => (
+                            <div
+                                key={idx}
+                                title={action.description}
+                                className="flex items-center gap-1.5 px-2.5 py-1 bg-white rounded-lg border border-indigo-100 shadow-sm cursor-pointer hover:border-indigo-300 hover:bg-indigo-50 transition-colors"
+                                onClick={() => {
+                                    if (action.id === 'wait_for_letters') {
+                                        navigate('/probate/letters');
+                                    } else if (action.relatedAssets?.[0]?.id) {
+                                        navigate(`/asset/${action.relatedAssets[0].id}`);
+                                    }
+                                }}
+                            >
+                                <div className={cn("w-1.5 h-1.5 rounded-full", action.priority === 'high' ? "bg-rose-500" : "bg-slate-400")} />
+                                <span className="text-[10px] font-bold text-slate-700 truncate max-w-[160px]">{action.title}</span>
+                                <ArrowRight className="w-3 h-3 text-indigo-400 flex-shrink-0" />
+                            </div>
+                        ))}
                                         {allSuggestedActions.length > 4 && (
                                             <div className="flex items-center gap-1 px-2.5 py-1 text-[10px] text-indigo-500 font-black">
                                                 +{allSuggestedActions.length - 4} more
