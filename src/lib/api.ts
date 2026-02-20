@@ -201,6 +201,24 @@ export interface AccountingReadiness {
     details: string[];
 }
 
+// ── Letters Dispatch ──────────────────────────────────────────────────────────
+export interface LettersDispatch {
+    id: string;
+    estateId: string;
+    institutionName: string;
+    institutionType: string;
+    needsOriginal: boolean;
+    status: "not_sent" | "sent" | "acknowledged" | "na";
+    sentAt?: string | null;
+    acknowledgedAt?: string | null;
+    followUpDueAt?: string | null;
+    certifiedCopyRef?: string | null;
+    notes?: string | null;
+    isCustom: boolean;
+    createdAt: string;
+    updatedAt: string;
+}
+
 export type FormReadiness = Record<string, {
     ready: boolean;
     reason: string;
@@ -294,7 +312,7 @@ export const api = {
         return data;
     },
 
-    register: async (data: { email: string, password: string, fullName: string, state?: string, role?: string, userType?: "EXECUTOR" | "ADVISOR" | "HEIR" }) => {
+    register: async (data: { email: string, password: string, fullName: string, state?: string, role?: string, userType?: "EXECUTOR" | "ADVISOR" }) => {
         const response = await fetch(`${API_URL}/auth/register`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -308,14 +326,6 @@ export const api = {
 
         localStorage.setItem("auth_token", result.token);
         return result;
-    },
-
-    resendVerificationEmail: async () => {
-        const response = await fetch(`${API_URL}/auth/resend-verification`, {
-            method: "POST",
-            headers: getHeaders(),
-        });
-        return parseResponse(response);
     },
 
     getMe: async () => {
@@ -1965,6 +1975,50 @@ export const api = {
                 const response = await fetch(`${API_URL}/admin/marketplace/advisors/${advisorId}/audit-log`, { headers: getHeaders() });
                 return parseResponse(response);
             },
+        },
+    },
+
+    /**
+     * Letters Dispatch — institution letter tracking (DB-backed)
+     */
+    lettersDispatch: {
+        getAll: async (): Promise<LettersDispatch[]> => {
+            const response = await fetch(`${API_URL}/letters-dispatch/my`, { headers: getHeaders() });
+            return parseResponse(response);
+        },
+        addCustom: async (data: { institutionName: string; institutionType: string; needsOriginal?: boolean; notes?: string }): Promise<LettersDispatch> => {
+            const response = await fetch(`${API_URL}/letters-dispatch/my`, {
+                method: "POST",
+                headers: getHeaders(),
+                body: JSON.stringify(data),
+            });
+            return parseResponse(response);
+        },
+        update: async (id: string, data: { status?: string; notes?: string; certifiedCopyRef?: string; needsOriginal?: boolean }): Promise<LettersDispatch> => {
+            const response = await fetch(`${API_URL}/letters-dispatch/my/${id}`, {
+                method: "PATCH",
+                headers: getHeaders(),
+                body: JSON.stringify(data),
+            });
+            return parseResponse(response);
+        },
+        remove: async (id: string): Promise<{ success: boolean }> => {
+            const response = await fetch(`${API_URL}/letters-dispatch/my/${id}`, {
+                method: "DELETE",
+                headers: getHeaders(),
+            });
+            return parseResponse(response);
+        },
+        reset: async (): Promise<LettersDispatch[]> => {
+            const response = await fetch(`${API_URL}/letters-dispatch/my/reset`, {
+                method: "POST",
+                headers: getHeaders(),
+            });
+            return parseResponse(response);
+        },
+        getPendingFollowUps: async (): Promise<LettersDispatch[]> => {
+            const response = await fetch(`${API_URL}/letters-dispatch/my/pending-followups`, { headers: getHeaders() });
+            return parseResponse(response);
         },
     },
 

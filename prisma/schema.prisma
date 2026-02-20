@@ -130,6 +130,7 @@ model Estate {
   activities                SettlementActivity[]
   taskCompletions           TaskCompletion[]
   bookings                  Booking[]
+  lettersDispatches         LettersDispatch[]
 
   @@map("estates")
 }
@@ -1035,6 +1036,32 @@ model Review {
   @@index([userId])
   @@index([rating])
   @@map("reviews")
+}
+
+// ─── Letters Dispatch Tracker ─────────────────────────────────────────────────
+// Persists the Letters Testamentary / Administration dispatch tracker to DB.
+// Replaces the previous localStorage-only implementation.
+
+model LettersDispatch {
+  id               String    @id @default(uuid())
+  estateId         String    @map("estate_id")
+  institutionName  String    @map("institution_name")
+  institutionType  String    @map("institution_type")
+  needsOriginal    Boolean   @default(false) @map("needs_original")
+  status           String    @default("not_sent")
+  sentAt           DateTime? @map("sent_at")
+  acknowledgedAt   DateTime? @map("acknowledged_at")
+  followUpDueAt    DateTime? @map("follow_up_due_at")
+  certifiedCopyRef String?   @map("certified_copy_ref")
+  notes            String?
+  isCustom         Boolean   @default(false) @map("is_custom")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+  estate           Estate    @relation(fields: [estateId], references: [id], onDelete: Cascade)
+
+  @@index([estateId, status])
+  @@index([estateId, followUpDueAt])
+  @@map("letters_dispatches")
 }
 
 model TokenBlacklist {
