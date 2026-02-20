@@ -2020,6 +2020,19 @@ export const api = {
             const response = await fetch(`${API_URL}/letters-dispatch/my/pending-followups`, { headers: getHeaders() });
             return parseResponse(response);
         },
+        generateLetter: async (id: string): Promise<void> => {
+            const response = await fetch(`${API_URL}/letters-dispatch/my/${id}/generate-letter`, {
+                method: "POST",
+                headers: getHeaders(),
+            });
+            if (!response.ok) throw new Error("Failed to generate letter");
+            const blob = await response.blob();
+            // Extract filename from Content-Disposition if available
+            const disposition = response.headers.get("Content-Disposition") || "";
+            const match = disposition.match(/filename="?([^"]+)"?/);
+            const filename = match ? match[1] : "notification-letter.pdf";
+            downloadBlob(blob, filename);
+        },
     },
 
     reviews: {

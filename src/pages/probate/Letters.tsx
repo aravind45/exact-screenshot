@@ -47,6 +47,8 @@ import {
     Send,
     Eye,
     Landmark,
+    FileDown,
+    Loader2,
 } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
@@ -140,12 +142,16 @@ function DispatchRow({
     item,
     onUpdateStatus,
     onDelete,
+    onGenerateLetter,
     isUpdating,
+    isGenerating,
 }: {
     item: LettersDispatch;
     onUpdateStatus: (id: string, status: string) => void;
     onDelete: (item: LettersDispatch) => void;
+    onGenerateLetter: (id: string) => void;
     isUpdating: boolean;
+    isGenerating: boolean;
 }) {
     const cfg = STATUS_CONFIG[item.status] || STATUS_CONFIG.not_sent;
     const Icon = cfg.icon;
@@ -275,6 +281,34 @@ function DispatchRow({
                         {isNA ? "Enable" : "N/A"}
                     </Button>
 
+                    {/* Generate Letter PDF button */}
+                    {!isNA && (
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() => onGenerateLetter(item.id)}
+                                        disabled={isGenerating}
+                                        className="h-8 px-3 text-[10px] font-black rounded-xl border-primary/30 text-primary hover:bg-primary/5 gap-1.5"
+                                    >
+                                        {isGenerating ? (
+                                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                        ) : (
+                                            <FileDown className="w-3.5 h-3.5" />
+                                        )}
+                                        {isGenerating ? "Generating…" : "Letter PDF"}
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent className="bg-slate-900 text-white border-none rounded-lg p-2 max-w-xs">
+                                    <p className="text-[10px] font-bold">Generate a pre-filled notification letter PDF</p>
+                                    <p className="text-[10px] text-slate-400 mt-0.5">Uses your estate data — print & mail to this institution.</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                    )}
+
                     {/* Delete (custom only) */}
                     {item.isCustom && (
                         <Button
@@ -372,6 +406,25 @@ export default function Letters() {
         },
         onError: () => toast({ title: "Reset failed", variant: "destructive" }),
     });
+
+    // Track which dispatch item is being generated
+    const [generatingId, setGeneratingId] = useState<string | null>(null);
+
+    const handleGenerateLetter = async (id: string) => {
+        const item = dispatches.find((d) => d.id === id);
+        setGeneratingId(id);
+        try {
+            await api.lettersDispatch.generateLetter(id);
+            toast({
+                title: "Letter Downloaded",
+                description: `Notification letter for ${item?.institutionName} ready to print and mail.`,
+            });
+        } catch {
+            toast({ title: "Failed to generate letter", variant: "destructive" });
+        } finally {
+            setGeneratingId(null);
+        }
+    };
 
     // Filter
     const filtered =
@@ -499,7 +552,9 @@ export default function Letters() {
                                         item={item}
                                         onUpdateStatus={(id, status) => updateMutation.mutate({ id, status })}
                                         onDelete={setDeleteTarget}
+                                        onGenerateLetter={handleGenerateLetter}
                                         isUpdating={updateMutation.isPending}
+                                        isGenerating={generatingId === item.id}
                                     />
                                 ))}
                             </AnimatePresence>
