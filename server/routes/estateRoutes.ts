@@ -1,5 +1,6 @@
 import { Router, Request, Response } from "express";
 import { prisma } from "../db.js";
+import { Prisma } from "@prisma/client";
 import { EmailService } from "../services/emailService.js";
 import { encrypt, decrypt, encryptBuffer, decryptBuffer } from "../utils/encryption.js";
 import { AuditService } from "../services/auditService.js";
@@ -132,7 +133,7 @@ router.get("/my", async (req: any, res: Response) => {
     }
 });
 
-router.put("/my", authenticate, async (req: any, res: Response) => {
+router.put("/my", async (req: any, res: Response) => {
     try {
         const userId = req.user.id;
 
