@@ -407,18 +407,28 @@ export default function Dashboard() {
         </div>
       </motion.div>
 
-      {/* ── Estate Journey Map — "You Are Here" stepper for new users ── */}
-      <EstateJourneyBanner estate={estate} assets={assets} />
+      {/* ──────────────────────────────────────────────────────────────
+          HERO: NEXT ACTION — Most prominent position
+          This is the FIRST thing an executor should see
+      ────────────────────────────────────────────────────────────── */}
+      <div className="bg-gradient-to-br from-indigo-50 to-white p-6 rounded-3xl border border-indigo-100 shadow-sm">
+        <div className="flex items-center gap-2 mb-4">
+          <div className="w-8 h-8 rounded-xl bg-indigo-600 flex items-center justify-center">
+            <Target className="w-4 h-4 text-white" />
+          </div>
+          <h2 className="text-lg font-black text-slate-900 tracking-tight">What To Do Today</h2>
+        </div>
+        <NextActionWidget estate={estate} assets={assets} />
+      </div>
 
       {/* First-timer tip — shown only when < 3 tasks completed */}
       {(completedTaskIds?.length || 0) < 3 && (
-        <div className="flex items-start gap-3 p-4 bg-indigo-50/60 border border-indigo-100 rounded-2xl">
+        <div className="flex items-start gap-3 p-4 bg-amber-50/60 border border-amber-100 rounded-2xl">
           <span className="text-xl leading-none flex-shrink-0">👋</span>
           <div>
-            <p className="text-xs font-black text-indigo-900 mb-0.5">New to estate settlement?</p>
-            <p className="text-[11px] text-indigo-700 leading-relaxed font-medium">
-              Estate settlement has 6 phases and typically takes 6–14 months. You don't need to understand everything at
-              once — the journey map above shows where you are, and the card below shows exactly what to do next.
+            <p className="text-xs font-black text-amber-900 mb-0.5">New to estate settlement?</p>
+            <p className="text-[11px] text-amber-700 leading-relaxed font-medium">
+              Focus on the task above. Estate settlement takes 6–14 months — you don't need to understand everything at once.
             </p>
           </div>
         </div>
@@ -530,30 +540,21 @@ export default function Dashboard() {
 
 
       {/* ──────────────────────────────────────────────────────────────
-          NEXT ACTION + CRITICAL DATES — Two-column hero strip
-          Left: single "What To Do Today" card  |  Right: deadline strip
+          CRITICAL DATES — Prominent deadline display
       ────────────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-        {/* Left: What To Do Today (5/12) */}
-        <div className="lg:col-span-5">
-          <NextActionWidget estate={estate} assets={assets} />
-        </div>
-
-        {/* Right: Critical Dates (7/12) */}
-        <div className="lg:col-span-7 space-y-3">
-          <div className="flex items-center gap-3 px-1">
-            <div className="w-8 h-8 rounded-xl bg-red-50 flex items-center justify-center">
-              <Clock className="w-4 h-4 text-red-500" />
-            </div>
-            <div>
-              <h2 className="text-base font-black text-slate-900 tracking-tight">Critical Dates</h2>
-              <p className="text-xs font-medium text-amber-700 mt-0.5">
-                Statutory Deadlines — Miss one and face personal liability
-              </p>
-            </div>
+      <div className="space-y-3">
+        <div className="flex items-center gap-3 px-1">
+          <div className="w-8 h-8 rounded-xl bg-red-50 flex items-center justify-center">
+            <Clock className="w-4 h-4 text-red-500" />
           </div>
-          <DeadlineTracker estateId={estate?.id || ""} />
+          <div>
+            <h2 className="text-base font-black text-slate-900 tracking-tight">Critical Dates</h2>
+            <p className="text-xs font-medium text-amber-700 mt-0.5">
+              Statutory Deadlines — Miss one and face personal liability
+            </p>
+          </div>
         </div>
+        <DeadlineTracker estateId={estate?.id || ""} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">

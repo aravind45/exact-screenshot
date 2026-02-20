@@ -160,24 +160,41 @@ export default function OnboardingWizard() {
     const handleNext = async () => {
         setIsLoading(true);
         try {
-            const estate = await api.getMyEstate();
-            if (!estate && currentStep > 0) throw new Error("Estate not found");
+            let estate = await api.getMyEstate();
 
+            // Step 1: Handle Estate Info
             if (currentStep === 1) {
-                // Update Estate (Created on registration)
-                const nameParts = estateData.deceasedName.trim().split(/\s+/);
-                const firstName = nameParts[0] || "";
-                const lastName = nameParts.slice(1).join(" ") || "Estate"; // Default to "Estate" if no last name given
+                // If estate doesn't exist yet, create it now (resilience fallback)
+                if (!estate) {
+                    const nameParts = estateData.deceasedName.trim().split(/\s+/);
+                    const firstName = nameParts[0] || "";
+                    const lastName = nameParts.slice(1).join(" ") || "Estate";
 
-                await api.updateMyEstate({
-                    deceasedFirstName: firstName,
-                    deceasedLastName: lastName,
-                    deceasedDateOfDeath: new Date(estateData.dateOfDeath),
-                    deceasedState: estateData.location,
-                    estimatedPersonalProperty: parseFloat(estateData.estimatedValue) || 0,
-                    estimatedLiabilities: parseFloat(estateData.estimatedDebt) || 0,
-                    hasContest: estateData.hasContest
-                });
+                    estate = await api.updateMyEstate({
+                        deceasedFirstName: firstName,
+                        deceasedLastName: lastName,
+                        deceasedDateOfDeath: new Date(estateData.dateOfDeath),
+                        deceasedState: estateData.location,
+                        estimatedPersonalProperty: parseFloat(estateData.estimatedValue) || 0,
+                        estimatedLiabilities: parseFloat(estateData.estimatedDebt) || 0,
+                        hasContest: estateData.hasContest
+                    });
+                } else {
+                    // Update existing estate
+                    const nameParts = estateData.deceasedName.trim().split(/\s+/);
+                    const firstName = nameParts[0] || "";
+                    const lastName = nameParts.slice(1).join(" ") || "Estate";
+
+                    await api.updateMyEstate({
+                        deceasedFirstName: firstName,
+                        deceasedLastName: lastName,
+                        deceasedDateOfDeath: new Date(estateData.dateOfDeath),
+                        deceasedState: estateData.location,
+                        estimatedPersonalProperty: parseFloat(estateData.estimatedValue) || 0,
+                        estimatedLiabilities: parseFloat(estateData.estimatedDebt) || 0,
+                        hasContest: estateData.hasContest
+                    });
+                }
 
                 // Track meaningful Lead event (User has committed real data)
                 trackEvent('lead', {

@@ -4,6 +4,7 @@ import { z } from "zod";
 import { logger } from "../lib/logger.js";
 import { authenticate } from "../middleware/auth.js";
 import { prisma } from "../db.js";
+import { calculateIsTrialing } from "../utils/trialUtils.js";
 
 const router = Router();
 
@@ -141,6 +142,19 @@ router.post("/logout", authenticate, async (req: Request, res: Response) => {
     } catch (error: any) {
         logger.error("Logout Error:", error.message);
         res.status(500).json({ error: "Logout failed" });
+    }
+});
+
+router.get("/me", authenticate, async (req: any, res: Response) => {
+    try {
+        const user = req.user;
+        if (!user) return res.status(401).json({ error: "Not authenticated" });
+
+        const isTrialing = calculateIsTrialing(user.trialStartedAt);
+        res.json({ ...user, isTrialing });
+    } catch (error: any) {
+        logger.error("Get Me Error:", error.message);
+        res.status(500).json({ error: "Failed to fetch user profile" });
     }
 });
 

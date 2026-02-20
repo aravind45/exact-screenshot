@@ -18,6 +18,7 @@ export const requireVerification = async (req: any, res: Response, next: NextFun
         return next();
     }
 
+    /* 
     // Legacy / early adopter: if the user has an estate, auto-verify them now
     // so they aren't locked out by the email verification requirement that was
     // added after they registered.
@@ -44,6 +45,7 @@ export const requireVerification = async (req: any, res: Response, next: NextFun
         logger.error(`[Auth] Error during legacy verification check for user ${req.user.id}:`, err);
         // Fall through to require verification normally
     }
+    */
 
     logger.warn(`[Auth] Blocked unverified user ${req.user.id} from sensitive feature: ${req.originalUrl}`);
     return res.status(403).json({

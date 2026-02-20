@@ -48,19 +48,34 @@ export const AuthService = {
                 trialStartedAt: new Date(),
                 verificationToken: crypto.randomBytes(32).toString('hex')
             } as any
-        });
+        }) as any;
 
 
         // Send Verification Email
         const appUrl = (await EmailService.getAppUrl()).replace(/\/$/, "");
-        const verificationLink = `${appUrl}/verify-email?email=${encodeURIComponent(email)}&token=${(user as any).verificationToken}`;
+        const verificationLink = `${appUrl}/verify-email?email=${encodeURIComponent(email)}&token=${user.verificationToken}`;
         await EmailService.sendVerificationEmail(email, verificationLink);
 
-        // NOTE: We intentionally do NOT create an estate here.
-        // The estate is created during the onboarding wizard when the user provides
-        // real data (deceased name, state, etc.). This keeps the DB clean and makes
-        // the "estate === null → go to onboarding" logic reliable.
-
+        // CREATE SKELETON ESTATE FOR EXECUTORS
+        // The OnboardingWizard expects an estate to exist for the current user.
+        if (assignedRole === 'EXECUTOR') {
+            try {
+                await prisma.estate.create({
+                    data: {
+                        userId: user.id,
+                        deceasedFirstName: "",
+                        deceasedLastName: "Estate",
+                        deceasedState: state || "CA", // Default to CA if unset
+                        status: "active"
+                    } as any
+                });
+                logger.debug(`✅ [AUTH] Skeleton estate created for user: ${user.id}`);
+            } catch (estateError: any) {
+                logger.error("❌ [AUTH] Failed to create skeleton estate:", estateError.message);
+                // We proceed anyway as the wizard can sometimes handle creation, 
+                // but this initial skeleton unblocks the Step 1 lookup.
+            }
+        }
 
         const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: "30d" });
         const isTrialing = calculateIsTrialing(user.trialStartedAt);
