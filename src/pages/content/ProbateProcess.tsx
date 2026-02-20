@@ -84,9 +84,9 @@ export default function ProbateProcess() {
             </section>
 
             <section id="costs">
-                <h2>The Real Cost of Probate</h2>
+                <h2>Understanding Probate Costs</h2>
                 <p>
-                    Expect to pay between 3% and 7% of the gross estate value in fees. To understand where this money goes, see our <a href="/probate-cost">Comprehensive Probate Cost Breakdown</a>.
+                    Probate costs typically include court filing fees, appraisal costs, and professional services. Total expenses generally range between 3% and 7% of the gross estate value. For a detailed overview, see our <a href="/probate-cost">Probate Cost Breakdown</a>.
                 </p>
             </section>
 
