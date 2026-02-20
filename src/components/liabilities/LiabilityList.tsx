@@ -1,7 +1,9 @@
 import { Liability } from "@/lib/api";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, Calendar, Trash2, Edit2, Check, ShieldAlert } from "lucide-react";
+import { MoreHorizontal, Calendar, Trash2, Edit2, Check, ShieldAlert, Mail } from "lucide-react";
+import { toast } from "sonner";
+
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -31,7 +33,20 @@ export function LiabilityList({ liabilities, priorityOptions }: { liabilities: L
         onSuccess: () => queryClient.invalidateQueries({ queryKey: ["liabilities"] })
     });
 
+    const mailMutation = useMutation({
+        mutationFn: (id: string) => api.mailCreditor(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["liabilities"] });
+            queryClient.invalidateQueries({ queryKey: ["mailingHistory"] });
+            toast.success("Mailing initiated successfully via Lob.com");
+        },
+        onError: (err: any) => {
+            toast.error(err.message || "Failed to initiate mailing");
+        }
+    });
+
     const updateStatusMutation = useMutation({
+
         mutationFn: ({ id, status }: { id: string, status: string }) => api.updateLiability(id, { status } as any),
         onSuccess: () => queryClient.invalidateQueries({ queryKey: ["liabilities"] }),
         onError: (err: any) => {
@@ -114,6 +129,12 @@ export function LiabilityList({ liabilities, priorityOptions }: { liabilities: L
                                         <DropdownMenuContent align="end">
                                             <DropdownMenuItem onClick={() => { setSelectedLiability(item); setShowManageDialog(true); }}>
                                                 <ShieldAlert className="w-4 h-4 mr-2 text-indigo-500" /> Manage Claim (DE-174)
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem
+                                                onClick={() => mailMutation.mutate(item.id)}
+                                                disabled={!item.address || mailMutation.isPending}
+                                            >
+                                                <Mail className="w-4 h-4 mr-2 text-blue-500" /> Mail via Lob (Physical)
                                             </DropdownMenuItem>
                                             <DropdownMenuItem onClick={() => updateStatusMutation.mutate({ id: item.id, status: 'PAID' })}>
                                                 <Check className="w-4 h-4 mr-2 text-emerald-500" /> Mark as Paid

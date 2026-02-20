@@ -107,7 +107,12 @@ export interface Liability {
     notes?: string;
     contactPhone?: string;
     contactEmail?: string;
-    priority: 'HIGH' | 'MEDIUM' | 'LOW';
+    priority?: string;
+    address?: string;
+    city?: string;
+    state?: string;
+    zip?: string;
+    country?: string;
     priorityClass: string;
     createdAt: string;
 }
@@ -974,6 +979,31 @@ export const api = {
     /**
      * Deadline Methods
      */
+    getHelpVideos: async () => {
+        const response = await fetch(`${API_URL}/help/videos`, { headers: getHeaders() });
+        return parseResponse(response);
+    },
+
+    // --- MAILING (LOB) ---
+    mailCreditor: async (id: string) => {
+        const response = await fetch(`${API_URL}/mail/creditor/${id}`, {
+            method: 'POST',
+            headers: getHeaders(),
+        });
+        return parseResponse(response);
+    },
+    mailHeir: async (id: string) => {
+        const response = await fetch(`${API_URL}/mail/heir/${id}`, {
+            method: 'POST',
+            headers: getHeaders(),
+        });
+        return parseResponse(response);
+    },
+    getMailingHistory: async () => {
+        const response = await fetch(`${API_URL}/mail/history`, { headers: getHeaders() });
+        return parseResponse(response);
+    },
+
     getDeadlines: async (estateId: string) => {
         const response = await fetch(`${API_URL}/estates/${estateId}/deadlines`, {
             headers: getHeaders(),

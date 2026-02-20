@@ -148,6 +148,51 @@ export function AddLiabilityDialog({ open, onOpenChange }: AddLiabilityDialogPro
                         </Select>
                     </div>
 
+                    <div className="space-y-4 pt-4 border-t border-slate-50">
+                        <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Creditor Address (for Physical Mailing)</Label>
+
+                        <div className="space-y-2">
+                            <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Street Address</Label>
+                            <Input
+                                placeholder="123 Main St"
+                                value={formData.address || ""}
+                                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                                className="h-10 text-xs border-slate-200"
+                            />
+                        </div>
+
+                        <div className="grid grid-cols-3 gap-3">
+                            <div className="space-y-2">
+                                <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-500">City</Label>
+                                <Input
+                                    placeholder="City"
+                                    value={formData.city || ""}
+                                    onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                                    className="h-10 text-xs border-slate-200"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-500">State</Label>
+                                <Input
+                                    placeholder="CA"
+                                    value={formData.state || ""}
+                                    onChange={(e) => setFormData({ ...formData, state: e.target.value.toUpperCase() })}
+                                    className="h-10 text-xs border-slate-200"
+                                    maxLength={2}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Zip</Label>
+                                <Input
+                                    placeholder="12345"
+                                    value={formData.zip || ""}
+                                    onChange={(e) => setFormData({ ...formData, zip: e.target.value })}
+                                    className="h-10 text-xs border-slate-200"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
                     <div className="space-y-2 pt-2">
                         <Label className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Description / Notes</Label>
                         <Textarea

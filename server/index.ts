@@ -25,6 +25,8 @@ import liabilityRoutes from "./routes/liabilityRoutes.js";
 import discoveryRoutes from "./routes/discoveryRoutes.js";
 import { heirRoutes } from "./routes/heirRoutes.js";
 import helpRoutes from "./routes/helpRoutes.js";
+import mailingRoutes from "./routes/mailingRoutes.js";
+
 import billingRoutes from "./routes/billingRoutes.js";
 import marketingRoutes from "./routes/marketingRoutes.js";
 import advisorRoutes from "./routes/advisorRoutes.js";
@@ -178,6 +180,8 @@ app.use("/api/advisor", authenticate, advisorProfileRoutes);
 app.use("/api/bookings/marketplace", authenticate, bookingMarketplaceRoutes);
 app.use("/api/admin/marketplace", authenticate, adminMarketplaceRoutes);
 app.use("/api/letters-dispatch", authenticate, lettersDispatchRoutes);
+app.use("/api/mail", authenticate, mailingRoutes);
+
 
 
 // Profile (simple, keep here or move if grows)

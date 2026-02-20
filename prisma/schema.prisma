@@ -131,6 +131,7 @@ model Estate {
   taskCompletions           TaskCompletion[]
   bookings                  Booking[]
   lettersDispatches         LettersDispatch[]
+  mailings                  Mailing[]
 
   @@map("estates")
 }
@@ -468,6 +469,11 @@ model Liability {
   notes           String?
   contactPhone    String?   @map("contact_phone")
   contactEmail    String?   @map("contact_email")
+  address         String?
+  city            String?
+  state           String?
+  zip             String?
+  country         String?   @default("US")
   priority        String    @default("MEDIUM")
   priorityClass   String    @default("GENERAL_DEBTS") @map("priority_class")
   createdAt       DateTime  @default(now()) @map("created_at")
@@ -476,6 +482,22 @@ model Liability {
 
   @@index([estateId])
   @@map("liabilities")
+}
+
+model Mailing {
+  id          String   @id @default(uuid())
+  estateId    String   @map("estate_id")
+  targetType  String   // HEIR, CREDITOR, INSTITUTION
+  targetId    String   // The ID of the recipient
+  lobId       String   @unique @map("lob_id")
+  status      String   @default("PENDING") // PENDING, SENT, DELIVERED, FAILED
+  trackingUrl String?  @map("tracking_url")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  estate      Estate   @relation(fields: [estateId], references: [id], onDelete: Cascade)
+
+  @@index([estateId])
+  @@map("mailings")
 }
 
 model DiscoveryCategory {

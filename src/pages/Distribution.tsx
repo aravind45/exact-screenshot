@@ -6,7 +6,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, DistributionReadiness } from "@/lib/api";
 import {
     Users, Scale, FileText, Download, ShieldAlert, FileSearch,
-    CheckCircle2, Circle, AlertCircle, ShieldCheck, Lock, Info, ArrowRight
+    CheckCircle2, Circle, AlertCircle, ShieldCheck, Lock, Info, ArrowRight, Mail
 } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -35,6 +35,17 @@ export default function Distribution() {
     // 2. Logging Mutation
     const logMutation = useMutation({
         mutationFn: (data: { eventType: string, notes?: string }) => api.logDistributionActivity(data)
+    });
+
+    const mailMutation = useMutation({
+        mutationFn: (id: string) => api.mailHeir(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["heirs"] });
+            toast.success("Mailing initiated successfully via Lob.com");
+        },
+        onError: (err: any) => {
+            toast.error(err.message || "Failed to initiate mailing");
+        }
     });
 
     // 3. Initial Review Log
@@ -214,16 +225,30 @@ export default function Distribution() {
                                 </CardHeader>
                                 <CardContent className="pt-6 space-y-4">
                                     {heirs.length > 0 ? heirs.map((heir: any) => (
-                                        <div key={heir.id} className="p-3 border rounded-xl bg-white flex gap-3 items-center">
+                                        <div key={heir.id} className="p-3 border rounded-xl bg-white flex gap-3 items-center group">
                                             <div className="p-2 bg-indigo-50 rounded-lg">
                                                 <Users className="w-4 h-4 text-indigo-600" />
                                             </div>
                                             <div className="flex-1">
                                                 <div className="flex justify-between items-center">
                                                     <span className="font-bold text-slate-900">{heir.name}</span>
-                                                    <Badge className="bg-indigo-600">Net Residue</Badge>
+                                                    <div className="flex items-center gap-2">
+                                                        <Button
+                                                            size="sm"
+                                                            variant="outline"
+                                                            className="h-7 text-[9px] font-black uppercase tracking-widest px-2 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-30"
+                                                            onClick={() => mailMutation.mutate(heir.id)}
+                                                            disabled={!heir.address || mailMutation.isPending}
+                                                        >
+                                                            <Mail className="w-3 h-3 mr-1.5" />
+                                                            Mail Notice
+                                                        </Button>
+                                                        <Badge className="bg-indigo-600">Net Residue</Badge>
+                                                    </div>
                                                 </div>
-                                                <p className="text-xs text-slate-500 font-medium mt-0.5">Will receive remaining assets after court-approved fees.</p>
+                                                <p className="text-xs text-slate-500 font-medium mt-0.5">
+                                                    {heir.address ? heir.address : "Add address in Settings to mail notice."}
+                                                </p>
                                             </div>
                                         </div>
                                     )) : (
@@ -311,14 +336,7 @@ export default function Distribution() {
                                         logMutation.mutate({ eventType: 'DOSSIER_GENERATED' });
                                         try {
                                             toast.info("Assembling Compliance Dossier...");
-                                            const blob = await api.downloadDossier();
-                                            const url = window.URL.createObjectURL(blob);
-                                            const a = document.createElement('a');
-                                            a.href = url;
-                                            a.download = `Compliance_Dossier_Final.txt`;
-                                            document.body.appendChild(a);
-                                            a.click();
-                                            window.URL.revokeObjectURL(url);
+                                            await api.downloadDossier();
                                             toast.success("Dossier assembled successfully");
                                         } catch (err) {
                                             toast.error("Failed to assemble dossier");

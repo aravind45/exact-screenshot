@@ -9,6 +9,8 @@ import { requireEstateAccess } from "../middleware/estateAuth.js";
 import { z } from "zod";
 import { logger } from "../lib/logger.js";
 import { requireSubscription } from "../middleware/subscription.js";
+import { authenticate } from "../middleware/auth.js";
+
 
 const estateUpdateSchema = z.object({
     name: z.string().optional(),
@@ -133,7 +135,7 @@ router.get("/my", async (req: any, res: Response) => {
     }
 });
 
-router.put("/my", async (req: any, res: Response) => {
+router.put("/my", authenticate, async (req: any, res: Response) => {
     try {
         const userId = req.user.id;
 
