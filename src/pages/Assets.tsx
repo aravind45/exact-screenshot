@@ -399,195 +399,294 @@ export default function Assets() {
                     </div>
 
                     <TabsContent value="inventory" className="space-y-4 mt-0 outline-none">
-
-                        {/* ── Compact Authority Chips Row ─────────────────────── */}
-                        <div className="flex items-center gap-2 flex-wrap">
-                            {[
-                                { label: "Court", count: authoritySummary.COURT_REQUIRED,     icon: Scale,       dot: "bg-rose-500" },
-                                { label: "Trust", count: authoritySummary.TRUSTEE_DIRECT,     icon: ShieldCheck, dot: "bg-emerald-500" },
-                                { label: "Affidavit", count: authoritySummary.AFFIDAVIT_SMALL, icon: FileText,   dot: "bg-amber-500" },
-                                { label: "Contract", count: authoritySummary.BENEFICIARY_CONTRACT, icon: Users, dot: "bg-indigo-500" },
-                                { label: "Title", count: authoritySummary.SURVIVORSHIP_TITLE,  icon: Landmark,   dot: "bg-slate-500" },
-                                { label: "Hold", count: authoritySummary.LITIGATION_HOLD,      icon: Lock,       dot: "bg-red-700" },
-                            ].map(chip => (
-                                <div key={chip.label} className={cn(
-                                    "flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border shadow-sm text-[11px] font-black transition-all",
-                                    chip.count > 0 ? "border-slate-200 text-slate-700" : "border-slate-100 text-slate-300"
-                                )}>
-                                    <div className={cn("w-1.5 h-1.5 rounded-full", chip.count > 0 ? chip.dot : "bg-slate-200")} />
-                                    <span className="uppercase tracking-wide">{chip.label}</span>
-                                    <span className={cn("font-black", chip.count > 0 ? "text-slate-900" : "text-slate-300")}>{chip.count}</span>
-                                </div>
-                            ))}
-                            <div className="ml-auto flex items-center gap-1.5 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                                <div className="w-1.5 h-1.5 rounded-full bg-slate-300" />
-                                {assets.length} total
-                            </div>
-                        </div>
-
-                        {/* ── Search + Filters ─────────────────────────────────── */}
-                        <div className="flex items-center gap-2">
-                            <div className="relative flex-1">
-                                <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
-                                <Input
-                                    placeholder="Search assets by institution, type, or status..."
-                                    className="pl-9 h-9 bg-white border-slate-200 rounded-xl text-xs"
-                                />
-                            </div>
-                            <select className="h-9 px-3 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-600 cursor-pointer">
-                                <option value="">All Authority</option>
-                                <option value="COURT_REQUIRED">Court</option>
-                                <option value="TRUSTEE_DIRECT">Trust</option>
-                                <option value="AFFIDAVIT_SMALL">Affidavit</option>
-                                <option value="BENEFICIARY_CONTRACT">Contract</option>
-                                <option value="SURVIVORSHIP_TITLE">Title</option>
-                                <option value="LITIGATION_HOLD">Hold</option>
-                            </select>
-                            <select className="h-9 px-3 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-600 cursor-pointer">
-                                <option value="">All Status</option>
-                                <option value="discovered">Discovered</option>
-                                <option value="notified">Notified</option>
-                                <option value="claimed">Claimed</option>
-                                <option value="collected">Collected</option>
-                                <option value="closed">Closed</option>
-                            </select>
-                        </div>
-
-                        {/* ── AI Actions Strip (collapsed by default) ─────────── */}
-                        {allSuggestedActions.length > 0 && (
-                            <div className="bg-indigo-50/60 border border-indigo-100 rounded-2xl p-3 flex items-start gap-3">
-                                <div className="p-1.5 rounded-lg bg-indigo-600 text-white flex-shrink-0">
-                                    <Sparkles className="w-3.5 h-3.5" />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <p className="text-[10px] font-black uppercase tracking-widest text-indigo-600 mb-1.5">
-                                        {allSuggestedActions.length} Suggested Actions
-                                    </p>
-                    <div className="flex flex-wrap gap-2">
-                        {allSuggestedActions.slice(0, 4).map((action, idx) => (
-                            <div
-                                key={idx}
-                                title={action.description}
-                                className="flex items-center gap-1.5 px-2.5 py-1 bg-white rounded-lg border border-indigo-100 shadow-sm cursor-pointer hover:border-indigo-300 hover:bg-indigo-50 transition-colors"
-                                onClick={() => {
-                                    if (action.id === 'wait_for_letters') {
-                                        navigate('/probate/letters');
-                                    } else if (action.relatedAssets?.[0]?.id) {
-                                        navigate(`/asset/${action.relatedAssets[0].id}`);
-                                    }
-                                }}
-                            >
-                                <div className={cn("w-1.5 h-1.5 rounded-full", action.priority === 'high' ? "bg-rose-500" : "bg-slate-400")} />
-                                <span className="text-[10px] font-bold text-slate-700 truncate max-w-[160px]">{action.title}</span>
-                                <ArrowRight className="w-3 h-3 text-indigo-400 flex-shrink-0" />
-                            </div>
-                        ))}
-                                        {allSuggestedActions.length > 4 && (
-                                            <div className="flex items-center gap-1 px-2.5 py-1 text-[10px] text-indigo-500 font-black">
-                                                +{allSuggestedActions.length - 4} more
-                                            </div>
-                                        )}
+                        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+                            {/* Left Column: Asset List */}
+                            <div className="lg:col-span-3 space-y-4">
+                                {/* ── Compact Authority Chips Row ─────────────────────── */}
+                                <div className="flex items-center gap-2 flex-wrap">
+                                    {[{ label: "Court", count: authoritySummary.COURT_REQUIRED, dot: "bg-rose-500" },
+                                      { label: "Trust", count: authoritySummary.TRUSTEE_DIRECT, dot: "bg-emerald-500" },
+                                      { label: "Affidavit", count: authoritySummary.AFFIDAVIT_SMALL, dot: "bg-amber-500" },
+                                      { label: "Contract", count: authoritySummary.BENEFICIARY_CONTRACT, dot: "bg-indigo-500" },
+                                      { label: "Title", count: authoritySummary.SURVIVORSHIP_TITLE, dot: "bg-slate-500" },
+                                      { label: "Hold", count: authoritySummary.LITIGATION_HOLD, dot: "bg-red-700" }].map(chip => (
+                                        <div key={chip.label} className={cn(
+                                            "flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border shadow-sm text-[11px] font-black transition-all",
+                                            chip.count > 0 ? "border-slate-200 text-slate-700" : "border-slate-100 text-slate-300"
+                                        )}>
+                                            <div className={cn("w-1.5 h-1.5 rounded-full", chip.count > 0 ? chip.dot : "bg-slate-200")} />
+                                            <span className="uppercase tracking-wide">{chip.label}</span>
+                                            <span className={cn("font-black", chip.count > 0 ? "text-slate-900" : "text-slate-300")}>{chip.count}</span>
+                                        </div>
+                                    ))}
+                                    <div className="ml-auto flex items-center gap-1.5 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-slate-300" />
+                                        {assets.length} total
                                     </div>
                                 </div>
-                                <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    className="h-7 text-[9px] font-black uppercase tracking-widest text-indigo-600 hover:bg-indigo-100 rounded-lg px-3 flex-shrink-0"
-                                    onClick={() => setActiveTab("detective")}
-                                >
-                                    Scan →
-                                </Button>
-                            </div>
-                        )}
 
-                        {/* ── Full-Width Asset List ─────────────────────────────── */}
-                        {isLoading ? (
-                            <div className="space-y-1">
-                                {[1,2,3,4,5].map(i => (
-                                    <div key={i} className="h-14 bg-white border border-slate-100 rounded-xl animate-pulse" />
-                                ))}
-                            </div>
-                        ) : assets.length === 0 ? (
-                            <div className="py-20 border border-dashed border-slate-200 rounded-2xl text-center bg-white/50">
-                                <div className="w-14 h-14 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                                    <Landmark className="w-7 h-7 text-slate-300" />
+                                {/* ── Search + Filters ─────────────────────────────────── */}
+                                <div className="flex items-center gap-2">
+                                    <div className="relative flex-1">
+                                        <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+                                        <Input
+                                            placeholder="Search assets by institution, type, or status..."
+                                            className="pl-9 h-9 bg-white border-slate-200 rounded-xl text-xs"
+                                        />
+                                    </div>
+                                    <select className="h-9 px-3 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-600 cursor-pointer">
+                                        <option value="">All Authority</option>
+                                        <option value="COURT_REQUIRED">Court</option>
+                                        <option value="TRUSTEE_DIRECT">Trust</option>
+                                        <option value="AFFIDAVIT_SMALL">Affidavit</option>
+                                        <option value="BENEFICIARY_CONTRACT">Contract</option>
+                                        <option value="SURVIVORSHIP_TITLE">Title</option>
+                                        <option value="LITIGATION_HOLD">Hold</option>
+                                    </select>
+                                    <select className="h-9 px-3 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-600 cursor-pointer">
+                                        <option value="">All Status</option>
+                                        <option value="discovered">Discovered</option>
+                                        <option value="notified">Notified</option>
+                                        <option value="claimed">Claimed</option>
+                                        <option value="collected">Collected</option>
+                                        <option value="closed">Closed</option>
+                                    </select>
                                 </div>
-                                <h3 className="text-base font-black text-slate-900 tracking-tight mb-1">No assets yet</h3>
-                                <p className="text-slate-400 text-xs mb-6 font-medium">Add your first financial account or property.</p>
-                                <div className="flex items-center justify-center gap-3">
-                                    <Button onClick={() => navigate('/add-asset')} className="rounded-xl font-black h-9 px-6 bg-indigo-600 hover:bg-indigo-700 text-white text-xs">
-                                        Add First Asset
-                                    </Button>
-                                    <Button variant="outline" onClick={() => setActiveTab("detective")} className="rounded-xl font-black h-9 px-6 border-slate-200 text-xs">
-                                        Run Detective Scan
+
+                                {/* ── AI Actions Strip ─────────────────────────────────── */}
+                                {allSuggestedActions.length > 0 && (
+                                    <div className="bg-indigo-50/60 border border-indigo-100 rounded-2xl p-3 flex items-start gap-3">
+                                        <div className="p-1.5 rounded-lg bg-indigo-600 text-white flex-shrink-0">
+                                            <Sparkles className="w-3.5 h-3.5" />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-[10px] font-black uppercase tracking-widest text-indigo-600 mb-1.5">
+                                                {allSuggestedActions.length} Suggested Actions
+                                            </p>
+                                            <div className="flex flex-wrap gap-2">
+                                                {allSuggestedActions.slice(0, 4).map((action, idx) => (
+                                                    <div
+                                                        key={idx}
+                                                        title={action.description}
+                                                        className="flex items-center gap-1.5 px-2.5 py-1 bg-white rounded-lg border border-indigo-100 shadow-sm cursor-pointer hover:border-indigo-300 hover:bg-indigo-50 transition-colors"
+                                                        onClick={() => {
+                                                            if (action.id === 'wait_for_letters') {
+                                                                navigate('/probate/letters');
+                                                            } else if (action.relatedAssets?.[0]?.id) {
+                                                                navigate(`/asset/${action.relatedAssets[0].id}`);
+                                                            }
+                                                        }}
+                                                    >
+                                                        <div className={cn("w-1.5 h-1.5 rounded-full", action.priority === 'high' ? "bg-rose-500" : "bg-slate-400")} />
+                                                        <span className="text-[10px] font-bold text-slate-700 truncate max-w-[160px]">{action.title}</span>
+                                                        <ArrowRight className="w-3 h-3 text-indigo-400 flex-shrink-0" />
+                                                    </div>
+                                                ))}
+                                                {allSuggestedActions.length > 4 && (
+                                                    <div className="flex items-center gap-1 px-2.5 py-1 text-[10px] text-indigo-500 font-black">
+                                                        +{allSuggestedActions.length - 4} more
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            className="h-7 text-[9px] font-black uppercase tracking-widest text-indigo-600 hover:bg-indigo-100 rounded-lg px-3 flex-shrink-0"
+                                            onClick={() => setActiveTab("detective")}
+                                        >
+                                            Scan →
+                                        </Button>
+                                    </div>
+                                )}
+
+                                {/* ── Asset List ───────────────────────────────────────── */}
+                                {isLoading ? (
+                                    <div className="space-y-1">
+                                        {[1,2,3,4,5].map(i => (
+                                            <div key={i} className="h-14 bg-white border border-slate-100 rounded-xl animate-pulse" />
+                                        ))}
+                                    </div>
+                                ) : assets.length === 0 ? (
+                                    <div className="py-20 border border-dashed border-slate-200 rounded-2xl text-center bg-white/50">
+                                        <div className="w-14 h-14 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                            <Landmark className="w-7 h-7 text-slate-300" />
+                                        </div>
+                                        <h3 className="text-base font-black text-slate-900 tracking-tight mb-1">No assets yet</h3>
+                                        <p className="text-slate-400 text-xs mb-6 font-medium">Add your first financial account or property.</p>
+                                        <div className="flex items-center justify-center gap-3">
+                                            <Button onClick={() => navigate('/add-asset')} className="rounded-xl font-black h-9 px-6 bg-indigo-600 hover:bg-indigo-700 text-white text-xs">
+                                                Add First Asset
+                                            </Button>
+                                            <Button variant="outline" onClick={() => setActiveTab("detective")} className="rounded-xl font-black h-9 px-6 border-slate-200 text-xs">
+                                                Run Detective Scan
+                                            </Button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-4">
+                                        {groupedAssets.PROBATE.length > 0 && (
+                                            <AssetGroup
+                                                label="Probate Estate"
+                                                sublabel="Court authority required"
+                                                assets={groupedAssets.PROBATE}
+                                                dotColor="bg-rose-500"
+                                                isSelectionMode={isSelectionMode}
+                                                selectedAssetIds={selectedAssetIds}
+                                                onAssetClick={handleAssetClick}
+                                                onSelectAsset={handleSelectAsset}
+                                                normalize={normalize}
+                                            />
+                                        )}
+                                        {groupedAssets.NON_PROBATE.length > 0 && (
+                                            <AssetGroup
+                                                label="Non-Probate Transfers"
+                                                sublabel="Direct transfer to beneficiaries or trust"
+                                                assets={groupedAssets.NON_PROBATE}
+                                                dotColor="bg-emerald-500"
+                                                isSelectionMode={isSelectionMode}
+                                                selectedAssetIds={selectedAssetIds}
+                                                onAssetClick={handleAssetClick}
+                                                onSelectAsset={handleSelectAsset}
+                                                normalize={normalize}
+                                            />
+                                        )}
+                                        {groupedAssets.UNKNOWN.length > 0 && (
+                                            <AssetGroup
+                                                label="Unclassified"
+                                                sublabel="Authority type not yet determined"
+                                                assets={groupedAssets.UNKNOWN}
+                                                dotColor="bg-slate-400"
+                                                isSelectionMode={isSelectionMode}
+                                                selectedAssetIds={selectedAssetIds}
+                                                onAssetClick={handleAssetClick}
+                                                onSelectAsset={handleSelectAsset}
+                                                normalize={normalize}
+                                            />
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Right Column: Sidebar Widgets */}
+                            <div className="lg:col-span-1 space-y-4">
+                                {/* Asset Summary Widget */}
+                                <div className="bg-white border border-slate-100 rounded-2xl p-4">
+                                    <h3 className="text-sm font-black text-slate-800 mb-3">Asset Summary</h3>
+                                    <div className="space-y-2">
+                                        <div className="flex justify-between text-xs">
+                                            <span className="text-slate-500">Total Assets</span>
+                                            <span className="font-black">{assets.length}</span>
+                                        </div>
+                                        <div className="flex justify-between text-xs">
+                                            <span className="text-slate-500">Probate Assets</span>
+                                            <span className="font-black">{groupedAssets.PROBATE.length}</span>
+                                        </div>
+                                        <div className="flex justify-between text-xs">
+                                            <span className="text-slate-500">Non-Probate</span>
+                                            <span className="font-black">{groupedAssets.NON_PROBATE.length}</span>
+                                        </div>
+                                        <div className="flex justify-between text-xs">
+                                            <span className="text-slate-500">Needs Action</span>
+                                            <span className="font-black text-amber-600">
+                                                {sortedAssets.filter(a => getAssetTaxonomyState(a) === 'action_required').length}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Quick Actions Widget */}
+                                <div className="bg-gradient-to-br from-indigo-50 to-white border border-indigo-100 rounded-2xl p-4">
+                                    <h3 className="text-sm font-black text-slate-800 mb-3">Quick Actions</h3>
+                                    <div className="space-y-2">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="w-full justify-start h-9 text-xs font-black border-slate-200"
+                                            onClick={() => navigate('/add-asset')}
+                                        >
+                                            <Plus className="w-3.5 h-3.5 mr-2" />
+                                            Add New Asset
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="w-full justify-start h-9 text-xs font-black border-slate-200"
+                                            onClick={() => setActiveTab("detective")}
+                                        >
+                                            <Sparkles className="w-3.5 h-3.5 mr-2" />
+                                            Run Asset Scan
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="w-full justify-start h-9 text-xs font-black border-slate-200"
+                                            onClick={() => navigate('/probate/letters')}
+                                        >
+                                            <Mail className="w-3.5 h-3.5 mr-2" />
+                                            Send Letters
+                                        </Button>
+                                    </div>
+                                </div>
+
+                                {/* Asset Categories Widget */}
+                                <div className="bg-white border border-slate-100 rounded-2xl p-4">
+                                    <h3 className="text-sm font-black text-slate-800 mb-3">By Category</h3>
+                                    <div className="space-y-2">
+                                        {Object.entries(
+                                            assets.reduce((acc: Record<string, number>, asset: any) => {
+                                                const category = asset.category || 'Other';
+                                                acc[category] = (acc[category] || 0) + 1;
+                                                return acc;
+                                            }, {} as Record<string, number>)
+                                        ).map(([category, count]) => (
+                                            <div key={category} className="flex justify-between text-xs">
+                                                <span className="text-slate-500 capitalize">{category}</span>
+                                                <span className="font-black">{count}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Help Widget */}
+                                <div className="bg-gradient-to-br from-slate-50 to-white border border-slate-100 rounded-2xl p-4">
+                                    <h3 className="text-sm font-black text-slate-800 mb-2">Need Help?</h3>
+                                    <p className="text-xs text-slate-500 mb-3 leading-relaxed">
+                                        Asset classification determines how each account is handled during probate.
+                                    </p>
+                                    <Button
+                                        variant="link"
+                                        size="sm"
+                                        className="h-auto p-0 text-indigo-600 font-black text-xs"
+                                        onClick={() => navigate('/guides')}
+                                    >
+                                        View Asset Guide →
                                     </Button>
                                 </div>
                             </div>
-                        ) : (
-                            <div className="space-y-4">
-                                {groupedAssets.PROBATE.length > 0 && (
-                                    <AssetGroup
-                                        label="Probate Estate"
-                                        sublabel="Court authority required"
-                                        assets={groupedAssets.PROBATE}
-                                        dotColor="bg-rose-500"
-                                        isSelectionMode={isSelectionMode}
-                                        selectedAssetIds={selectedAssetIds}
-                                        onAssetClick={handleAssetClick}
-                                        onSelectAsset={handleSelectAsset}
-                                        normalize={normalize}
-                                    />
-                                )}
-                                {groupedAssets.NON_PROBATE.length > 0 && (
-                                    <AssetGroup
-                                        label="Non-Probate Transfers"
-                                        sublabel="Direct transfer to beneficiaries or trust"
-                                        assets={groupedAssets.NON_PROBATE}
-                                        dotColor="bg-emerald-500"
-                                        isSelectionMode={isSelectionMode}
-                                        selectedAssetIds={selectedAssetIds}
-                                        onAssetClick={handleAssetClick}
-                                        onSelectAsset={handleSelectAsset}
-                                        normalize={normalize}
-                                    />
-                                )}
-                                {groupedAssets.UNKNOWN.length > 0 && (
-                                    <AssetGroup
-                                        label="Unclassified"
-                                        sublabel="Authority type not yet determined"
-                                        assets={groupedAssets.UNKNOWN}
-                                        dotColor="bg-slate-400"
-                                        isSelectionMode={isSelectionMode}
-                                        selectedAssetIds={selectedAssetIds}
-                                        onAssetClick={handleAssetClick}
-                                        onSelectAsset={handleSelectAsset}
-                                        normalize={normalize}
-                                    />
-                                )}
-                            </div>
-                        )}
+                        </div>
                     </TabsContent>
 
                     <TabsContent value="detective" className="mt-0 outline-none">
-                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                            <div className="lg:col-span-5 space-y-6">
-                                <div className="bg-white border-none rounded-[32px] p-8 shadow-sm relative overflow-hidden">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div className="space-y-6">
+                                <div className="bg-white border-none rounded-2xl p-6 shadow-sm relative overflow-hidden">
                                     {/* Background Glow */}
-                                    <div className="absolute top-[-10%] right-[-10%] w-64 h-64 bg-indigo-500/5 blur-3xl rounded-full pointer-events-none" />
+                                    <div className="absolute top-[-10%] right-[-10%] w-48 h-48 bg-indigo-500/5 blur-2xl rounded-full pointer-events-none" />
 
-                                    <div className="flex items-center gap-4 mb-8">
-                                        <div className="p-3 rounded-2xl bg-indigo-600 text-white shadow-lg shadow-indigo-100">
-                                            <FileSearch className="w-6 h-6" />
+                                    <div className="flex items-center gap-3 mb-4">
+                                        <div className="p-2 rounded-xl bg-indigo-600 text-white shadow-lg shadow-indigo-100">
+                                            <FileSearch className="w-5 h-5" />
                                         </div>
                                         <div>
                                             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400 mb-0.5">Discovery Scan</p>
-                                            <h2 className="text-2xl font-black tracking-tight text-slate-900">Forensic Scan</h2>
+                                            <h2 className="text-lg font-black tracking-tight text-slate-900">Forensic Scan</h2>
                                         </div>
                                     </div>
                                     <p className="text-slate-500 text-sm leading-relaxed mb-4">
                                         Upload bank statements, tax returns, or insurance policies. AI will scan for hidden transfers or "Summary of Holdings" that point to other accounts.
                                     </p>
-                                    <p className="text-[10px] text-slate-400 italic mb-8">
+                                    <p className="text-[10px] text-slate-400 italic mb-6">
                                         This tool assists with discovery. It does not guarantee that all assets will be identified.
                                     </p>
 
@@ -602,9 +701,9 @@ export default function Assets() {
                                         documentType="DISCOVERY_LOG"
                                     />
 
-                                    <div className="mt-8 pt-8 border-t border-slate-100">
-                                        <div className="flex items-center gap-2 text-primary mb-3">
-                                            <AlertCircle className="w-4 h-4" />
+                                    <div className="mt-6 pt-4 border-t border-slate-100">
+                                        <div className="flex items-center gap-2 text-primary mb-2">
+                                            <AlertCircle className="w-3.5 h-3.5" />
                                             <h3 className="text-xs font-black uppercase tracking-widest italic">Detective's Tip</h3>
                                         </div>
                                         <p className="text-xs text-slate-400 leading-relaxed font-medium">
@@ -612,38 +711,50 @@ export default function Assets() {
                                         </p>
                                     </div>
                                 </div>
+
+                                {/* Quick Tips Card */}
+                                <div className="bg-gradient-to-br from-slate-50 to-white border border-slate-100 rounded-2xl p-4">
+                                    <h3 className="text-sm font-black text-slate-800 mb-2">Common Hidden Assets</h3>
+                                    <ul className="text-xs text-slate-500 space-y-1">
+                                        <li>• 401(k) plans with employer names</li>
+                                        <li>• Life insurance policies</li>
+                                        <li>• Safe deposit box fees</li>
+                                        <li>• Investment account transfers</li>
+                                        <li>• Cryptocurrency exchanges</li>
+                                    </ul>
+                                </div>
                             </div>
 
-                            <div className="lg:col-span-7 space-y-6">
+                            <div className="space-y-4">
                                 <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
-                                        <div className="p-2 rounded-xl bg-primary/10 text-primary">
-                                            <TrendingUp className="w-5 h-5" />
+                                    <div className="flex items-center gap-2">
+                                        <div className="p-1.5 rounded-lg bg-primary/10 text-primary">
+                                            <TrendingUp className="w-4 h-4" />
                                         </div>
-                                        <h2 className="text-xl font-black tracking-tight">Discovery Findings</h2>
+                                        <h2 className="text-lg font-black tracking-tight">Discovery Findings</h2>
                                     </div>
-                                    <Badge variant="secondary" className="bg-slate-100 text-slate-500 border-none font-bold px-3 py-1">
+                                    <Badge variant="secondary" className="bg-slate-100 text-slate-500 border-none font-bold px-2 py-0.5 text-xs">
                                         {clues.length} Potential Leads
                                     </Badge>
                                 </div>
 
-                                <div className="space-y-4">
+                                <div className="space-y-3">
                                     <AnimatePresence mode="popLayout">
                                         {isScanning ? (
                                             <motion.div
                                                 initial={{ opacity: 0 }}
                                                 animate={{ opacity: 1 }}
-                                                className="flex flex-col items-center justify-center py-20 bg-primary/5 border-2 border-dashed border-primary/10 rounded-[32px] text-center"
+                                                className="flex flex-col items-center justify-center py-16 bg-primary/5 border-2 border-dashed border-primary/10 rounded-2xl text-center"
                                             >
-                                                <div className="relative mb-6">
-                                                    <div className="w-20 h-20 border-4 border-blue-100 border-t-primary rounded-full animate-spin" />
+                                                <div className="relative mb-4">
+                                                    <div className="w-16 h-16 border-3 border-blue-100 border-t-primary rounded-full animate-spin" />
                                                     <div className="absolute inset-0 flex items-center justify-center">
-                                                        <SearchIcon className="w-8 h-8 text-primary animate-pulse" />
+                                                        <SearchIcon className="w-6 h-6 text-primary animate-pulse" />
                                                     </div>
                                                 </div>
-                                                <h3 className="font-black text-xl text-primary-900">Detective is investigating...</h3>
-                                                <p className="text-sm text-slate-400 max-w-xs mt-3 font-bold leading-relaxed">
-                                                    Running forensic scan on your document to find hidden clues and assets.
+                                                <h3 className="font-black text-lg text-primary-900">Detective is investigating...</h3>
+                                                <p className="text-sm text-slate-400 mt-2 font-bold leading-relaxed">
+                                                    Running forensic scan on your document
                                                 </p>
                                             </motion.div>
                                         ) : clues.length === 0 ? (
@@ -651,14 +762,14 @@ export default function Assets() {
                                                 key="empty"
                                                 initial={{ opacity: 0 }}
                                                 animate={{ opacity: 1 }}
-                                                className="flex flex-col items-center justify-center py-24 bg-slate-50/50 border-2 border-dashed border-slate-200 rounded-[32px] text-center"
+                                                className="flex flex-col items-center justify-center py-16 bg-slate-50/50 border-2 border-dashed border-slate-200 rounded-2xl text-center"
                                             >
-                                                <div className="p-5 rounded-[20px] bg-slate-100 mb-6">
-                                                    <SearchIcon className="w-10 h-10 text-slate-300" />
+                                                <div className="p-3 rounded-xl bg-slate-100 mb-4">
+                                                    <SearchIcon className="w-8 h-8 text-slate-300" />
                                                 </div>
-                                                <h3 className="font-black text-xl text-slate-900">No clues discovered yet</h3>
-                                                <p className="text-sm text-slate-400 max-w-xs mt-3 font-bold">
-                                                    Upload a document on the left to start the forensic investigation.
+                                                <h3 className="font-black text-lg text-slate-900">No clues discovered yet</h3>
+                                                <p className="text-sm text-slate-400 mt-2 font-bold">
+                                                    Upload a document to start the investigation
                                                 </p>
                                             </motion.div>
                                         ) : (
@@ -670,69 +781,69 @@ export default function Assets() {
                                                     animate={{ opacity: 1, scale: 1 }}
                                                     exit={{ opacity: 0, scale: 0.95 }}
                                                     className={cn(
-                                                        "relative overflow-hidden group border border-slate-200 rounded-3xl p-6 transition-all",
+                                                        "relative border border-slate-200 rounded-xl p-4 transition-all",
                                                         clue.added ? "bg-slate-50 opacity-60" : "bg-white hover:border-primary/20 shadow-sm"
                                                     )}
                                                 >
-                                                    <div className="flex justify-between items-start gap-4">
-                                                        <div className="space-y-2 flex-1">
-                                                            <div className="flex items-center gap-3">
-                                                                <h3 className="font-black text-lg text-slate-900">{clue.institution}</h3>
-                                                                <Badge variant="secondary" className="text-[10px] py-0.5 px-2 uppercase font-black tracking-widest bg-primary/5 text-primary border-none">
+                                                    <div className="flex justify-between items-start gap-3">
+                                                        <div className="space-y-1 flex-1">
+                                                            <div className="flex items-center gap-2">
+                                                                <h3 className="font-black text-base text-slate-900">{clue.institution}</h3>
+                                                                <Badge variant="secondary" className="text-[9px] py-0.5 px-2 uppercase font-black tracking-widest bg-primary/5 text-primary border-none">
                                                                     {clue.type}
                                                                 </Badge>
                                                             </div>
                                                             <p className="text-sm font-bold text-slate-600">
                                                                 {clue.title}
                                                             </p>
-                                                            <p className="text-sm text-slate-400 mt-3 leading-relaxed font-medium italic">
+                                                            <p className="text-sm text-slate-400 mt-2 leading-relaxed font-medium italic">
                                                                 "{clue.message}"
                                                             </p>
                                                         </div>
 
                                                         {!clue.added ? (
-                                                            <div className="flex flex-col gap-2">
+                                                            <div className="flex flex-col gap-1.5">
                                                                 <Button
                                                                     size="sm"
-                                                                    className="rounded-xl font-black bg-slate-900 text-white hover:bg-slate-800 shadow-lg px-6"
+                                                                    className="rounded-lg font-black bg-slate-900 text-white hover:bg-slate-800 shadow px-3 text-xs"
                                                                     onClick={() => handleClaimAsset(clue)}
                                                                 >
-                                                                    <Plus className="w-4 h-4 mr-2" />
+                                                                    <Plus className="w-3.5 h-3.5 mr-1.5" />
                                                                     Claim
                                                                 </Button>
                                                                 <Button
                                                                     size="sm"
                                                                     variant="ghost"
-                                                                    className="rounded-xl font-bold text-slate-400 hover:text-rose-500 hover:bg-rose-50"
+                                                                    className="rounded-lg font-bold text-slate-400 hover:text-rose-500 hover:bg-rose-50 text-xs"
                                                                     onClick={() => removeClue(clue.id)}
                                                                 >
                                                                     Dismiss
                                                                 </Button>
                                                             </div>
                                                         ) : (
-                                                            <Badge variant="default" className="bg-emerald-500 hover:bg-emerald-500 gap-1.5 py-1.5 px-4 rounded-xl font-black text-[10px] uppercase">
-                                                                <CheckCircle2 className="w-4 h-4" />
-                                                                Added to Ledger
+                                                            <Badge variant="default" className="bg-emerald-500 hover:bg-emerald-500 gap-1 py-1 px-2 rounded-lg font-black text-[9px] uppercase">
+                                                                <CheckCircle2 className="w-3 h-3" />
+                                                                Added
                                                             </Badge>
                                                         )}
                                                     </div>
 
                                                     {!clue.added && (
-                                                        <div className="mt-6 pt-6 border-t border-slate-50 flex items-center justify-between">
-                                                            <div className="flex items-center gap-3">
-                                                                <div className="w-32 h-2 bg-slate-100 rounded-full overflow-hidden">
+                                                        <div className="mt-3 pt-3 border-t border-slate-50 flex items-center justify-between">
+                                                            <div className="flex items-center gap-2">
+                                                                <div className="w-24 h-1.5 bg-slate-100 rounded-full overflow-hidden">
                                                                     <motion.div
                                                                         initial={{ width: 0 }}
                                                                         animate={{ width: `${clue.confidence * 100}%` }}
-                                                                        className="h-full bg-primary shadow-[0_0_8px_rgba(37,99,235,0.5)]"
+                                                                        className="h-full bg-primary shadow-[0_0_6px_rgba(37,99,235,0.5)]"
                                                                     />
                                                                 </div>
-                                                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                                                                    {Math.round(clue.confidence * 100)}% Confidence
+                                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                                                                    {Math.round(clue.confidence * 100)}%
                                                                 </span>
                                                             </div>
                                                             <Button variant="link" size="sm" className="h-auto p-0 text-indigo-600 font-black text-xs hover:no-underline flex items-center gap-1 group/link">
-                                                                View Analysis <ChevronRight className="w-4 h-4 transition-transform group-hover/link:translate-x-0.5" />
+                                                                View <ChevronRight className="w-3 h-3 transition-transform group-hover/link:translate-x-0.5" />
                                                             </Button>
                                                         </div>
                                                     )}

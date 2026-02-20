@@ -61,31 +61,49 @@ export default function Auth() {
   const initialRole = searchParams.get('role');
 
   const [authMode, setAuthMode] = useState<'login' | 'signup' | 'forgot-password'>(signupMode ? 'signup' : 'login');
-  const [userType, setUserType] = useState<UserType | null>(initialRole === 'ADVISOR' ? 'ADVISOR' : null);
+  const [userType, setUserType] = useState<UserType | null>(null);
   const [step, setStep] = useState<'type-selection' | 'form'>('form');
 
-  // If signing up and no user type selected yet, show selection screen
+  // Initialize user type from various sources
   useEffect(() => {
-    if (authMode === 'signup' && !userType && !initialRole) {
+    // 1. Check URL parameter first
+    if (initialRole === 'ADVISOR') {
+      setUserType('ADVISOR');
+      setStep('form');
+      return;
+    }
+
+    // 2. Check invite flow hint
+    const pendingRedirect = sessionStorage.getItem("after_login_redirect");
+    const signupRole = sessionStorage.getItem("signup_role");
+    if (pendingRedirect?.includes('/invite/') || signupRole === 'HEIR') {
+      setUserType('HEIR');
+      setStep('form');
+      return;
+    }
+
+    // 3. Check discovery data
+    try {
+      const saved = sessionStorage.getItem("discovery_data");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.role === 'ADVISOR') {
+          setUserType('ADVISOR');
+          setStep('form');
+          return;
+        }
+      }
+    } catch (e) {
+      console.warn("Failed to load discovery data", e);
+    }
+
+    // 4. If signing up and no user type determined, show selection screen
+    if (authMode === 'signup' && !userType) {
       setStep('type-selection');
     } else {
       setStep('form');
     }
   }, [authMode, userType, initialRole]);
-
-  // Detect invite flow — pre-select HEIR when coming from an invitation link
-  const [isInviteFlow, setIsInviteFlow] = useState(false);
-  useEffect(() => {
-    if (signupMode) {
-      const pendingRedirect = sessionStorage.getItem("after_login_redirect");
-      const signupRole = sessionStorage.getItem("signup_role");
-      if (pendingRedirect?.includes('/invite/') || signupRole === 'HEIR') {
-        setUserType('HEIR');
-        setIsInviteFlow(true);
-        setStep('form');
-      }
-    }
-  }, [signupMode]);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -100,19 +118,6 @@ export default function Auth() {
 
   useEffect(() => {
     trackEvent('intake_started');
-
-    // Check for pre-filled data
-    try {
-      const saved = sessionStorage.getItem("discovery_data");
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed.role === 'ADVISOR') {
-          setUserType('ADVISOR');
-        }
-      }
-    } catch (e) {
-      console.warn("Failed to load discovery data", e);
-    }
   }, []);
 
   const validateForm = () => {
@@ -517,54 +522,54 @@ export default function Auth() {
               className="bg-white"
             >
               {step === 'type-selection' ? (
-                <div className="space-y-4">
+                <div className="grid grid-cols-1 gap-4">
                   <button
                     onClick={() => { setUserType('EXECUTOR'); setStep('form'); }}
-                    className="w-full p-6 rounded-2xl border-2 border-slate-100 hover:border-primary hover:bg-primary/5 transition-all text-left group"
+                    className="p-4 rounded-xl border-2 border-slate-100 hover:border-primary hover:bg-primary/5 transition-all text-left group"
                   >
-                    <div className="flex items-center gap-4 mb-2">
-                      <div className="p-3 rounded-xl bg-blue-100 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                        <User className="w-6 h-6" />
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="p-2 rounded-lg bg-blue-100 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                        <User className="w-5 h-5" />
                       </div>
-                      <h3 className="font-['Outfit'] font-bold text-lg text-slate-900">I am an Executor</h3>
+                      <h3 className="font-['Outfit'] font-bold text-base text-slate-900">I am an Executor</h3>
                     </div>
-                    <p className="text-slate-500 text-sm ml-[60px]">
+                    <p className="text-slate-500 text-xs ml-[44px] leading-relaxed">
                       I need to settle an estate, manage assets, and distribute inheritance.
                     </p>
                   </button>
 
                   <button
                     onClick={() => { setUserType('ADVISOR'); setStep('form'); }}
-                    className="w-full p-6 rounded-2xl border-2 border-slate-100 hover:border-primary hover:bg-primary/5 transition-all text-left group"
+                    className="p-4 rounded-xl border-2 border-slate-100 hover:border-primary hover:bg-primary/5 transition-all text-left group"
                   >
-                    <div className="flex items-center gap-4 mb-2">
-                      <div className="p-3 rounded-xl bg-purple-100 text-purple-600 group-hover:bg-purple-600 group-hover:text-white transition-colors">
-                        <Briefcase className="w-6 h-6" />
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="p-2 rounded-lg bg-purple-100 text-purple-600 group-hover:bg-purple-600 group-hover:text-white transition-colors">
+                        <Briefcase className="w-5 h-5" />
                       </div>
-                      <h3 className="font-['Outfit'] font-bold text-lg text-slate-900">I am an Advisor</h3>
+                      <h3 className="font-['Outfit'] font-bold text-base text-slate-900">I am an Advisor</h3>
                     </div>
-                    <p className="text-slate-500 text-sm ml-[60px]">
+                    <p className="text-slate-500 text-xs ml-[44px] leading-relaxed">
                       I'm a professional offering services to estates (Attorney, CPA, Realtor).
                     </p>
                   </button>
 
                   <button
                     onClick={() => { setUserType('HEIR'); setStep('form'); }}
-                    className="w-full p-6 rounded-2xl border-2 border-slate-100 hover:border-emerald-400 hover:bg-emerald-50 transition-all text-left group"
+                    className="p-4 rounded-xl border-2 border-slate-100 hover:border-emerald-400 hover:bg-emerald-50 transition-all text-left group"
                   >
-                    <div className="flex items-center gap-4 mb-2">
-                      <div className="p-3 rounded-xl bg-emerald-100 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
-                        <Users className="w-6 h-6" />
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="p-2 rounded-lg bg-emerald-100 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                        <Users className="w-5 h-5" />
                       </div>
-                      <h3 className="font-['Outfit'] font-bold text-lg text-slate-900">I am an Heir / Beneficiary</h3>
+                      <h3 className="font-['Outfit'] font-bold text-base text-slate-900">I am an Heir / Beneficiary</h3>
                     </div>
-                    <p className="text-slate-500 text-sm ml-[60px]">
+                    <p className="text-slate-500 text-xs ml-[44px] leading-relaxed">
                       I was invited by an executor to view my inheritance and estate progress.
                     </p>
                   </button>
 
-                  <div className="mt-6 text-center">
-                    <p className="text-sm font-medium text-slate-500">
+                  <div className="mt-4 text-center">
+                    <p className="text-xs font-medium text-slate-500">
                       Already have an account?{' '}
                       <button
                         onClick={() => {
