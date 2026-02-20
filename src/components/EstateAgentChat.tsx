@@ -36,7 +36,7 @@ export function EstateAgentChat({ estateId, phase }: EstateAgentChatProps) {
                 history,
             }),
         onSuccess: (data) => {
-            setHistory((prev) => [...prev, { role: "assistant", content: data.reply }]);
+            setHistory((prev) => [...prev, { role: "assistant", content: data.answer }]);
             // Refresh relevant data if agent performed actions
             queryClient.invalidateQueries({ queryKey: ["assets", estateId] });
             queryClient.invalidateQueries({ queryKey: ["estate", estateId] });

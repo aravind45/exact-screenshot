@@ -38,12 +38,8 @@ router.post("/chat", async (req: any, res) => {
 
         const result = await OrchestratorService.answerLegalQuestion(message, req.user.id);
 
-        return res.json({
-            reply: result.answer,
-            sources: result.sources,
-            evidence: result.evidence,
-            metadata: result.metadata
-        });
+        // Return the same structure as helpRoutes.ts for consistency
+        return res.json(result);
     } catch (error: any) {
         if (error instanceof z.ZodError) {
             return res.status(400).json({ error: "Invalid chat payload", details: error.errors });
