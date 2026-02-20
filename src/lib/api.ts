@@ -378,6 +378,23 @@ export const api = {
         return parseResponse(response);
     },
 
+    resendVerificationEmail: async () => {
+        const response = await fetch(`${API_URL}/auth/resend-verification`, {
+            method: "POST",
+            headers: getHeaders(),
+        });
+        return parseResponse(response);
+    },
+
+    verifyEmail: async (data: { email: string, token: string }) => {
+        const response = await fetch(`${API_URL}/auth/verify-email`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+        });
+        return parseResponse(response);
+    },
+
     admin: {
         getStats: async () => {
             const response = await fetch(`${API_URL}/admin/stats`, { headers: getHeaders() });

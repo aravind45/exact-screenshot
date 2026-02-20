@@ -23,6 +23,7 @@ const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const Pricing = lazy(() => import("./pages/Pricing"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const OnboardingWizard = lazy(() => import("./pages/OnboardingWizard"));
+const VerifyEmail = lazy(() => import("./pages/VerifyEmail"));
 
 // Assets & Documents
 const Assets = lazy(() => import("./pages/Assets"));
@@ -156,6 +157,7 @@ const App = () => (
                       <Route path="/signup" element={<Navigate to="/auth?mode=signup" replace />} />
                       <Route path="/reset-password" element={<ResetPassword />} />
                       <Route path="/pricing" element={<Pricing />} />
+                      <Route path="/verify-email" element={<VerifyEmail />} />
                       <Route path="/invite/:token" element={<AcceptInvite />} />
                       <Route path="/checklist" element={<ChecklistLanding />} />
                       <Route path="/start" element={<DiscoveryQuiz />} />
