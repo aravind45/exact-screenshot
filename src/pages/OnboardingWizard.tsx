@@ -329,48 +329,48 @@ export default function OnboardingWizard() {
 
                                 {/* 0. WELCOME & ROLE */}
                                 {stepId === "welcome" && (
-                                    <div className="text-center space-y-6">
-                                        <div className="w-16 h-16 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                                            <Heart className="w-8 h-8 text-rose-500 fill-rose-500" />
+                                    <div className="text-center space-y-4">
+                                        <div className="w-12 h-12 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                            <Heart className="w-6 h-6 text-rose-500 fill-rose-500" />
                                         </div>
-                                        <h1 className="text-3xl font-bold text-slate-900">We're so sorry for your loss.</h1>
+                                        <h1 className="text-2xl font-bold text-slate-900">We're so sorry for your loss.</h1>
                                         {isEstateLoading ? (
-                                            <div className="flex items-center justify-center p-8">
-                                                <Loader2 className="w-6 h-6 animate-spin text-primary mr-2" />
-                                                <span className="text-slate-500">Retrieving your progress...</span>
+                                            <div className="flex items-center justify-center p-4">
+                                                <Loader2 className="w-5 h-5 animate-spin text-primary mr-2" />
+                                                <span className="text-slate-500 text-sm">Retrieving your progress...</span>
                                             </div>
                                         ) : (
-                                            <p className="text-lg text-slate-600 leading-relaxed mb-8">
+                                            <p className="text-sm text-slate-600 leading-relaxed mb-6">
                                                 Settling an estate is a heavy burden. We're here to help you organize everything in one place.
                                             </p>
                                         )}
 
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-left">
                                             <button
                                                 onClick={() => setRole("executor")}
                                                 className={cn(
-                                                    "p-6 rounded-2xl border-2 transition-all text-left space-y-2",
+                                                    "p-4 rounded-xl border-2 transition-all text-left space-y-2",
                                                     role === "executor" ? "border-primary bg-primary/5 shadow-md" : "border-slate-100 hover:border-slate-200"
                                                 )}
                                             >
                                                 <div className="p-2 rounded-lg bg-primary/10 w-fit">
-                                                    <ShieldCheck className="w-5 h-5 text-primary" />
+                                                    <ShieldCheck className="w-4 h-4 text-primary" />
                                                 </div>
-                                                <h3 className="font-bold text-slate-900">I am the Executor</h3>
+                                                <h3 className="font-bold text-slate-900 text-base">I am the Executor</h3>
                                                 <p className="text-xs text-slate-500">I am responsible for managing and distributing the assets.</p>
                                             </button>
 
                                             <button
                                                 onClick={() => setRole("heir")}
                                                 className={cn(
-                                                    "p-6 rounded-2xl border-2 transition-all text-left space-y-2",
+                                                    "p-4 rounded-xl border-2 transition-all text-left space-y-2",
                                                     role === "heir" ? "border-primary bg-primary/5 shadow-md" : "border-slate-100 hover:border-slate-200"
                                                 )}
                                             >
                                                 <div className="p-2 rounded-lg bg-indigo-100 w-fit">
-                                                    <UserCircle className="w-5 h-5 text-indigo-600" />
+                                                    <UserCircle className="w-4 h-4 text-indigo-600" />
                                                 </div>
-                                                <h3 className="font-bold text-slate-900">I am an Heir</h3>
+                                                <h3 className="font-bold text-slate-900 text-base">I am an Heir</h3>
                                                 <p className="text-xs text-slate-500">I am a beneficiary and want to track the progress.</p>
                                             </button>
                                         </div>
@@ -381,19 +381,19 @@ export default function OnboardingWizard() {
                                                     initial={{ opacity: 0, height: 0 }}
                                                     animate={{ opacity: 1, height: "auto" }}
                                                     exit={{ opacity: 0, height: 0 }}
-                                                    className="p-6 rounded-2xl bg-indigo-50 border border-indigo-100 text-left space-y-3 mt-6"
+                                                    className="p-4 rounded-xl bg-indigo-50 border border-indigo-100 text-left space-y-2 mt-4"
                                                 >
                                                     <div className="flex items-center gap-2 text-indigo-900 font-bold">
-                                                        <Info className="w-5 h-5" />
+                                                        <Info className="w-4 h-4" />
                                                         Invitation Required
                                                     </div>
-                                                    <p className="text-sm text-indigo-800 leading-relaxed">
+                                                    <p className="text-xs text-indigo-800 leading-relaxed">
                                                         Heirs and beneficiaries join existing estates via a secure invitation link sent by the Executor.
                                                         Initiating a new estate is reserved for Executors and legal representatives.
                                                     </p>
                                                     <div className="pt-2">
-                                                        <p className="text-xs font-bold text-indigo-900 uppercase tracking-wider mb-2">What to do next:</p>
-                                                        <ul className="text-xs text-indigo-700 space-y-1.5 list-disc pl-4">
+                                                        <p className="text-[10px] font-bold text-indigo-900 uppercase tracking-wider mb-1">What to do next:</p>
+                                                        <ul className="text-[10px] text-indigo-700 space-y-1 list-disc pl-3">
                                                             <li>Check your email for an invitation from the Executor.</li>
                                                             <li>If you haven't received one, ask the Executor to invite you from their ExpectedEstate dashboard.</li>
                                                             <li>Once you receive the link, simply click it to gain viewing access.</li>
@@ -401,7 +401,7 @@ export default function OnboardingWizard() {
                                                     </div>
                                                     <Button
                                                         variant="outline"
-                                                        className="w-full mt-4 border-indigo-200 text-indigo-700 hover:bg-indigo-100 font-bold"
+                                                        className="w-full mt-3 border-indigo-200 text-indigo-700 hover:bg-indigo-100 font-bold text-xs"
                                                         onClick={() => navigate("/")}
                                                     >
                                                         Return Home
@@ -412,9 +412,9 @@ export default function OnboardingWizard() {
                                                     size="lg"
                                                     onClick={() => setCurrentStep(1)}
                                                     disabled={!role}
-                                                    className="w-full rounded-2xl h-14 text-lg font-bold mt-8 shadow-lg shadow-primary/20"
+                                                    className="w-full rounded-xl h-12 text-base font-bold mt-6 shadow-lg shadow-primary/20"
                                                 >
-                                                    Next Step <ArrowRight className="ml-2 w-5 h-5" />
+                                                    Next Step <ArrowRight className="ml-2 w-4 h-4" />
                                                 </Button>
                                             )}
                                         </AnimatePresence>
