@@ -129,7 +129,7 @@ export default function MyBookings() {
                                         You haven't booked any consultations yet. Browse our marketplace to find an advisor.
                                     </p>
                                     <Button asChild>
-                                        <a href="/advisor/marketplace">Browse Advisors</a>
+                                        <a href="/marketplace">Browse Advisors</a>
                                     </Button>
                                 </CardContent>
                             </Card>

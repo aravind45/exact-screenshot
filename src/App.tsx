@@ -260,6 +260,8 @@ const App = () => (
                       <Route path="/marketplace-legacy" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><AdvisorMarketplace /></RoleRoute></ProtectedRoute>} />
 
                       {/* New two-sided advisor marketplace */}
+                      {/* Back-compat redirect for legacy/broken deep links */}
+                      <Route path="/advisor/marketplace" element={<Navigate to="/marketplace" replace />} />
                       <Route path="/marketplace" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><AdvisorDirectory /></RoleRoute></ProtectedRoute>} />
                       <Route path="/marketplace/:advisorId" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><AdvisorProfilePage /></RoleRoute></ProtectedRoute>} />
                       <Route path="/marketplace/:advisorId/book" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><BookingCheckout /></RoleRoute></ProtectedRoute>} />
