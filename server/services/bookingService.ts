@@ -4,10 +4,10 @@ import { StripeService } from './stripeService.js';
 
 export class BookingService {
     private static PLATFORM_FEE_PERCENT = 0.20; // 20% fee
-    private static ESCROW_DAYS = 90;
+    private static ESCROW_DAYS = 7; // 7 days after session completion (was 90, reduced for advisor retention)
 
     /**
-     * Create a new booking with session details
+     * Create a new booking with session details — includes double-booking guard
      */
     static async createBooking(data: {
         userId: string;
@@ -30,6 +30,27 @@ export class BookingService {
         if (!advisor.stripeAccountId) {
             throw new Error('Advisor has not completed Stripe onboarding');
         }
+
+        // ── Double-booking guard ─────────────────────────────────────────────
+        // Calculate the session window before we check for conflicts
+        const sessionStart = data.sessionDate;
+        const sessionEnd = new Date(data.sessionDate.getTime() + data.sessionDuration * 3600 * 1000);
+
+        const conflict = await prisma.booking.findFirst({
+            where: {
+                advisorId: data.advisorId,
+                status: { in: ['REQUESTED', 'CONFIRMED'] },
+                // Overlap check: existing booking starts before our end AND ends after our start
+                startTime: { lt: sessionEnd },
+                endTime: { gt: sessionStart },
+            }
+        });
+
+        if (conflict) {
+            logger.warn(`⚠️ Double-booking conflict detected for advisor ${data.advisorId} at ${sessionStart.toISOString()}`);
+            throw new Error('This time slot is no longer available. Please choose a different time.');
+        }
+        // ────────────────────────────────────────────────────────────────────
 
         const hourlyRate = Number(advisor.hourlyRate);
         const totalAmount = hourlyRate * data.sessionDuration;
@@ -230,6 +251,44 @@ export class BookingService {
                 logger.info(`✅ Paid advisor for booking ${booking.id}`);
             } catch (error: any) {
                 logger.error(`❌ Failed to process payout for booking ${booking.id}: ${error.message}`);
+            }
+        }
+    }
+
+    /**
+     * Auto-complete sessions whose endTime has passed (Cron Job candidate)
+     * Moves CONFIRMED bookings to COMPLETED once the session end time has passed.
+     * Also sets the escrow release date from the completion time (not booking creation).
+     */
+    static async autoCompleteExpiredSessions() {
+        logger.info("⏰ Auto-completing past sessions...");
+        const now = new Date();
+
+        const expiredBookings = await prisma.booking.findMany({
+            where: {
+                status: 'CONFIRMED',
+                endTime: { lt: now }
+            }
+        });
+
+        logger.info(`Found ${expiredBookings.length} sessions to auto-complete`);
+
+        for (const booking of expiredBookings) {
+            try {
+                const escrowReleaseDate = new Date(now);
+                escrowReleaseDate.setDate(escrowReleaseDate.getDate() + this.ESCROW_DAYS);
+
+                await prisma.booking.update({
+                    where: { id: booking.id },
+                    data: {
+                        status: 'COMPLETED',
+                        escrowReleaseDate, // Reset escrow from completion time, not booking creation
+                    }
+                });
+
+                logger.info(`✅ Auto-completed booking ${booking.id}, escrow releases ${escrowReleaseDate.toISOString()}`);
+            } catch (error: any) {
+                logger.error(`❌ Failed to auto-complete booking ${booking.id}: ${error.message}`);
             }
         }
     }

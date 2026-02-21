@@ -240,12 +240,21 @@ export default function OnboardingWizard() {
                     await api.uploadEstateDocument("DEATH_CERTIFICATE", "Death Certificate.pdf", uploadedFile);
                 }
             } else if (currentStep === 5) { // Assets
+                // Map wizard asset type selections to proper assetType values for the database
+                const assetTypeMap: Record<string, string> = {
+                    'financial':  'bank_account',
+                    'retirement': 'retirement_account',
+                    'business':   'business_interest',
+                    'property':   'real_estate',
+                    'insurance':  'life_insurance',
+                    'crypto':     'digital_asset',
+                };
                 const validAssets = assets.filter(a => a.name.trim() !== "");
                 for (const asset of validAssets) {
                     await api.createAsset({
                         institution: asset.name,
-                        category: asset.type, // 'financial', 'retirement', etc.
-                        assetType: asset.type === 'real_estate' ? 'real_estate' : 'bank_account', // Basic mapping
+                        category: asset.type, // 'financial', 'retirement', etc. — used for grouping in UI
+                        assetType: assetTypeMap[asset.type] ?? 'bank_account', // Properly-typed DB value
                         status: "discovered",
                         priority: "medium"
                     });
@@ -256,11 +265,27 @@ export default function OnboardingWizard() {
                     // Ensure estate exists before inviting collaborators
                     const freshEstate = estate?.id ? estate : await api.getMyEstate();
                     if (freshEstate?.id) {
+                        const failedInvites: string[] = [];
                         for (const collab of validCollabs) {
-                            await api.inviteCollaborator({
-                                estateId: freshEstate.id,
-                                email: collab.email,
-                                role: collab.role
+                            try {
+                                await api.inviteCollaborator({
+                                    estateId: freshEstate.id,
+                                    email: collab.email,
+                                    role: collab.role
+                                });
+                            } catch (inviteErr: any) {
+                                // A single failed invite should NOT block onboarding completion.
+                                // Collect failures and surface them as a non-fatal warning.
+                                console.warn(`Failed to invite ${collab.email}:`, inviteErr?.message);
+                                failedInvites.push(collab.email);
+                            }
+                        }
+                        if (failedInvites.length > 0) {
+                            toast({
+                                title: "Some invites could not be sent",
+                                description: `Failed to invite: ${failedInvites.join(', ')}. You can retry from the dashboard.`,
+                                variant: "destructive",
+                                duration: 6000,
                             });
                         }
                     } else {
