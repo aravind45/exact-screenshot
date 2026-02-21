@@ -111,7 +111,8 @@ export function EstateJourneyBanner({ estate, assets = [] }: EstateJourneyBanner
                 recommendation.type,
                 estate.deceasedState || "CA",
                 modifiers,
-                recommendation.activeEngines
+                recommendation.activeEngines,
+                estate.hasWill
             );
         } catch {
             return [];
@@ -268,14 +269,14 @@ export function EstateJourneyBanner({ estate, assets = [] }: EstateJourneyBanner
                         <div className="flex items-center gap-2 mb-1">
                             <p className="text-xs font-black text-slate-900">{PHASE_META[expandedPhase].heading}</p>
                             <span className="text-[11px] font-semibold text-slate-500 px-2 py-0.5 bg-slate-100 rounded-md">
-                                    {PHASE_META[expandedPhase].duration}
+                                {PHASE_META[expandedPhase].duration}
+                            </span>
+                            {phaseProgress[PHASE_ORDER.indexOf(expandedPhase as any)]?.total > 0 && (
+                                <span className="text-[11px] font-medium text-slate-500">
+                                    {phaseProgress[PHASE_ORDER.indexOf(expandedPhase as any)].completed}/
+                                    {phaseProgress[PHASE_ORDER.indexOf(expandedPhase as any)].total} tasks
                                 </span>
-                                {phaseProgress[PHASE_ORDER.indexOf(expandedPhase as any)]?.total > 0 && (
-                                    <span className="text-[11px] font-medium text-slate-500">
-                                        {phaseProgress[PHASE_ORDER.indexOf(expandedPhase as any)].completed}/
-                                        {phaseProgress[PHASE_ORDER.indexOf(expandedPhase as any)].total} tasks
-                                    </span>
-                                )}
+                            )}
                         </div>
                         <p className="text-xs text-slate-600 leading-relaxed">
                             {PHASE_META[expandedPhase].summary}

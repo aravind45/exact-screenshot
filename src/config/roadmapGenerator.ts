@@ -6,7 +6,8 @@ export function generateRoadmap(
     authorityType: AuthorityType,
     state: string,
     modifiers: string[] = [],
-    activeEngines: string[] = []
+    activeEngines: string[] = [],
+    hasWill?: boolean
 ): PhaseTaskList[] {
     const masterMode = getMasterMode(authorityType);
 
@@ -19,19 +20,19 @@ export function generateRoadmap(
     const allRoadmaps: PhaseTaskList[][] = [];
 
     if (engines.includes("PROBATE") || engines.includes("AFFIDAVIT")) {
-        allRoadmaps.push(generateProbateRoadmap(authorityType, state, modifiers, engines));
+        allRoadmaps.push(generateProbateRoadmap(authorityType, state, modifiers, engines, hasWill));
     }
 
     if (engines.includes("TRUST")) {
-        allRoadmaps.push(generateFiduciaryRoadmap(authorityType, state, modifiers, engines));
+        allRoadmaps.push(generateFiduciaryRoadmap(authorityType, state, modifiers, engines, hasWill));
     }
 
     if (engines.includes("NON_PROBATE") || engines.includes("TOD_DEED") || engines.includes("POD_TOD_ACCOUNTS")) {
-        allRoadmaps.push(generateTransferOnlyRoadmap(authorityType, state, modifiers, engines));
+        allRoadmaps.push(generateTransferOnlyRoadmap(authorityType, state, modifiers, engines, hasWill));
     }
 
     if (authorityType === "DISCOVERY" || engines.includes("DISCOVERY")) {
-        allRoadmaps.push(generateDiscoveryRoadmap(authorityType, state));
+        allRoadmaps.push(generateDiscoveryRoadmap(authorityType, state, hasWill));
     }
 
     // Merge roadmaps by phase
@@ -72,7 +73,7 @@ export function generateRoadmap(
         .map(key => mergedPhases[key]);
 }
 
-function generateTransferOnlyRoadmap(type: AuthorityType, state: string, modifiers: string[] = [], activeEngines: string[] = []): PhaseTaskList[] {
+function generateTransferOnlyRoadmap(type: AuthorityType, state: string, modifiers: string[] = [], activeEngines: string[] = [], hasWill?: boolean): PhaseTaskList[] {
     const isTOD = type === "TOD_DEED";
 
     // 5-State Attorney Model for TOD
@@ -191,7 +192,7 @@ function generateTransferOnlyRoadmap(type: AuthorityType, state: string, modifie
     return roadmap;
 }
 
-function generateFiduciaryRoadmap(type: AuthorityType, state: string, modifiers: string[], activeEngines: string[] = []): PhaseTaskList[] {
+function generateFiduciaryRoadmap(type: AuthorityType, state: string, modifiers: string[], activeEngines: string[] = [], hasWill?: boolean): PhaseTaskList[] {
     // 6-state machine for Trust Admin: Authority, Notice, Marshaling, Creditors, Tax, Close
     let roadmap = TRUST_PHASE_TASKS.map(p => {
         let tasks = [...p.tasks];
@@ -283,7 +284,7 @@ function generateFiduciaryRoadmap(type: AuthorityType, state: string, modifiers:
     return roadmap;
 }
 
-function generateProbateRoadmap(type: AuthorityType, state: string, modifiers: string[], activeEngines: string[] = []): PhaseTaskList[] {
+function generateProbateRoadmap(type: AuthorityType, state: string, modifiers: string[], activeEngines: string[] = [], hasWill?: boolean): PhaseTaskList[] {
     // Full 6-phase roadmap
     let roadmap = JSON.parse(JSON.stringify(SETTLEMENT_PHASE_TASKS));
 
@@ -362,6 +363,15 @@ function generateProbateRoadmap(type: AuthorityType, state: string, modifiers: s
         // Apply strict track compatibility for Probate
         tasks = tasks.filter(t => !t.trackCompatibility || t.trackCompatibility.includes("PROBATE"));
 
+        // Will Search vs General Doc Search
+        if (hasWill !== undefined) {
+            tasks = tasks.filter(t => {
+                if (t.id === "locate_will") return hasWill;
+                if (t.id === "locate_docs_no_will") return !hasWill;
+                return true;
+            });
+        }
+
         if (modifiers.includes("INSOLVENT") && p.phase === "creditor_claims") {
             tasks.unshift({
                 id: "insolvency_freeze",
@@ -430,7 +440,7 @@ function generateProbateRoadmap(type: AuthorityType, state: string, modifiers: s
     });
 }
 
-function generateDiscoveryRoadmap(type: AuthorityType, state: string): PhaseTaskList[] {
+function generateDiscoveryRoadmap(type: AuthorityType, state: string, hasWill?: boolean): PhaseTaskList[] {
     const baseline = SETTLEMENT_PHASE_TASKS.filter(p =>
         ["immediate_actions", "asset_discovery"].includes(p.phase)
     );

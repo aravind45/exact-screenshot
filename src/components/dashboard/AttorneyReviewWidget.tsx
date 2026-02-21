@@ -61,7 +61,7 @@ export function AttorneyReviewWidget({ estate, assets = [] }: AttorneyReviewWidg
       });
       const mods = [...(rec.modifiers || [])];
       if (estate.isInternational) mods.push("INTERNATIONAL_MODE");
-      return generateRoadmap(rec.type, estate.deceasedState || "CA", mods, rec.activeEngines);
+      return generateRoadmap(rec.type, estate.deceasedState || "CA", mods, rec.activeEngines, estate.hasWill);
     } catch {
       return [];
     }

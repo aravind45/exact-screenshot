@@ -125,7 +125,8 @@ export function NextActionWidget({ estate, assets = [] }: NextActionWidgetProps)
         recommendation.type,
         estate.deceasedState || "CA",
         modifiers,
-        recommendation.activeEngines
+        recommendation.activeEngines,
+        estate.hasWill
       );
     } catch {
       return [];
@@ -286,10 +287,10 @@ export function NextActionWidget({ estate, assets = [] }: NextActionWidgetProps)
               {urgency.label === "OVERDUE"
                 ? `${urgency.days}d Overdue`
                 : urgency.label === "CRITICAL"
-                ? `${urgency.days}d — Act Now`
-                : urgency.label === "DUE SOON"
-                ? `${urgency.days}d Left`
-                : urgency.label}
+                  ? `${urgency.days}d — Act Now`
+                  : urgency.label === "DUE SOON"
+                    ? `${urgency.days}d Left`
+                    : urgency.label}
             </div>
           )}
           <Badge

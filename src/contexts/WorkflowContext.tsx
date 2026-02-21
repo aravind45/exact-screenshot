@@ -129,7 +129,7 @@ export function WorkflowProvider({ children }: { children: ReactNode }) {
     const modifiers = [...(recommendation.modifiers || [])];
     if (estate.isInternational) modifiers.push("INTERNATIONAL_MODE");
 
-    return generateRoadmap(recommendation.type, estate.deceasedState || 'CA', modifiers, recommendation.activeEngines);
+    return generateRoadmap(recommendation.type, estate.deceasedState || 'CA', modifiers, recommendation.activeEngines, estate.hasWill);
   }, [estate, assets]);
 
   // Calculate phase progress based on actual roadmap

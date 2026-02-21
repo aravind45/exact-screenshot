@@ -54,6 +54,12 @@ export const TASK_ACTIONS: Record<string, TaskAction> = {
     label: 'Upload Will',
     icon: 'Upload'
   },
+  'locate_docs_no_will': {
+    type: 'navigate',
+    target: '/documents',
+    label: 'Upload Documents',
+    icon: 'Upload'
+  },
   'open_estate_account': {
     type: 'navigate',
     target: '/documents',

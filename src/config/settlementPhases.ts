@@ -309,10 +309,24 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         title: "Locate Will and Important Documents",
         description: "Find the original Will, trust documents, insurance policies, and account statements.",
         estimatedTime: "1-2 days",
+        isOptional: true,
         alerts: [
           {
             type: "info",
             message: "Check safe deposit boxes, home safes, attorney offices, and online storage."
+          }
+        ]
+      },
+      {
+        id: "locate_docs_no_will",
+        title: "Locate Important Documents (Intestate)",
+        description: "Since there is no Will, search for insurance policies, real estate deeds, and final account statements to inventory the estate.",
+        estimatedTime: "1-2 days",
+        isOptional: true,
+        alerts: [
+          {
+            type: "info",
+            message: "Double-check for a hidden Will just in case. If one is found later, it could change everything."
           }
         ]
       },

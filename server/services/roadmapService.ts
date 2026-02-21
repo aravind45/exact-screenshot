@@ -62,6 +62,7 @@ interface EstateProfile {
   procedureType: ProcedureType;
   distributionModel: DistributionModel;
   activeEngines: string[];
+  hasWill: boolean;
 }
 
 /**
@@ -137,7 +138,8 @@ export async function analyzeEstateProfile(estateId: string): Promise<EstateProf
     authoritySource: rec.authoritySource,
     procedureType: rec.procedureType,
     distributionModel: rec.distributionModel,
-    activeEngines: rec.activeEngines
+    activeEngines: rec.activeEngines,
+    hasWill: estate.hasWill
   };
 }
 
@@ -219,6 +221,12 @@ export function filterTasksForEstate(
         case "track_special_notice_requests":
         case "serve_special_notice_parties":
           return profile.authoritySource === "COURT"; // Only for court authority
+
+        // Will Search vs General Doc Search
+        case "locate_will":
+          return profile.hasWill;
+        case "locate_docs_no_will":
+          return !profile.hasWill;
 
         // Default: show other optional tasks
         default:
