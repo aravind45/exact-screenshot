@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real Functionality Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; }
+        button { background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; margin-right: 10px; }
+        button:hover { background: #0056b3; }
+        .result { margin-top: 20px; padding: 15px; border-radius: 4px; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .test-section { margin-bottom: 30px; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        .combination-list { max-height: 200px; overflow-y: auto; border: 1px solid #eee; padding: 10px; background: #f8f9fa; }
+    </style>
+</head>
+<body>
+    <h1>Real Functionality Test</h1>
+    <p>This test verifies that the registration and onboarding functionality works with real data from the Excel file.</p>
+
+    <div class="test-section">
+        <h2>1. Test Registration</h2>
+        <form id="registrationForm">
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <div class="form-group">
+                <label for="fullName">Full Name:</label>
+                <input type="text" id="fullName" name="fullName" required>
+            </div>
+            <div class="form-group">
+                <label for="state">State (optional):</label>
+                <input type="text" id="state" name="state">
+            </div>
+            <button type="submit">Test Registration</button>
+        </form>
+        
+        <div id="registrationResult" class="result" style="display: none;"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>2. Test Path Calculation</h2>
+        <p>Test the path calculation engine with real combinations from the Excel file:</p>
+        
+        <div class="combination-list" id="combinationList">
+            <h3>Sample Combinations (from Excel):</h3>
+            <div id="combinations"></div>
+        </div>
+
+        <form id="pathTestForm">
+            <div class="form-group">
+                <label for="hasWill">Has Will:</label>
+                <select id="hasWill" name="hasWill">
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                    <option value="not_sure">Not Sure</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="hasTrust">Has Trust:</label>
+                <select id="hasTrust" name="hasTrust">
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                    <option value="not_sure">Not Sure</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="trustType">Trust Type:</label>
+                <select id="trustType" name="trustType">
+                    <option value="revocable">Revocable</option>
+                    <option value="irrevocable">Irrevocable</option>
+                    <option value="none">None</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="hasTODDeed">Has TOD Deed:</label>
+                <select id="hasTODDeed" name="hasTODDeed">
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                    <option value="not_sure">Not Sure</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="hasContest">Has Contest:</label>
+                <select id="hasContest" name="hasContest">
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                    <option value="not_sure">Not Sure</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="isOutOfState">Is Out of State:</label>
+                <select id="isOutOfState" name="isOutOfState">
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                    <option value="not_sure">Not Sure</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="isSpouse">Is Spouse:</label>
+                <select id="isSpouse" name="isSpouse">
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                    <option value="not_sure">Not Sure</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="debtStatus">Debt Status:</label>
+                <select id="debtStatus" name="debtStatus">
+                    <option value="solvent">Solvent</option>
+                    <option value="insolvent">Insolvent</option>
+                    <option value="not_sure">Not Sure</option>
+                </select>
+            </div>
+            <button type="submit">Test Path Calculation</button>
+        </form>
+        
+        <div id="pathResult" class="result" style="display: none;"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>3. Test Onboarding Flow</h2>
+        <p>Test the complete onboarding flow with a real combination:</p>
+        <button id="testOnboardingFlow">Test Complete Onboarding Flow</button>
+        <div id="onboardingResult" class="result" style="display: none;"></div>
+    </div>
+
+    <script>
+        // Sample combinations from the Excel file
+        const sampleCombinations = [
+            { hasWill: 'yes', hasTrust: 'no', hasTODDeed: 'no', hasContest: 'no', isOutOfState: 'no', isSpouse: 'no', debtStatus: 'solvent' },
+            { hasWill: 'yes', hasTrust: 'yes', trustType: 'revocable', hasTODDeed: 'no', hasContest: 'no', isOutOfState: 'no', isSpouse: 'yes', debtStatus: 'solvent' },
+            { hasWill: 'no', hasTrust: 'no', hasTODDeed: 'yes', hasContest: 'no', isOutOfState: 'yes', isSpouse: 'no', debtStatus: 'insolvent' },
+            { hasWill: 'yes', hasTrust: 'no', hasTODDeed: 'yes', hasContest: 'yes', isOutOfState: 'no', isSpouse: 'yes', debtStatus: 'solvent' }
+        ];
+
+        // Display sample combinations
+        const combinationsDiv = document.getElementById('combinations');
+        sampleCombinations.forEach((combo, index) => {
+            const div = document.createElement('div');
+            div.innerHTML = `<strong>Combination ${index + 1}:</strong> ${JSON.stringify(combo)}`;
+            combinationsDiv.appendChild(div);
+        });
+
+        // Registration test
+        document.getElementById('registrationForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const data = {
+                email: formData.get('email'),
+                password: formData.get('password'),
+                fullName: formData.get('fullName'),
+                state: formData.get('state') || undefined
+            };
+
+            const resultDiv = document.getElementById('registrationResult');
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'result';
+            
+            try {
+                const response = await fetch('http://localhost:8080/api/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className += ' success';
+                    resultDiv.innerHTML = `
+                        <h3>✅ Registration Successful!</h3>
+                        <p>User ID: ${result.user.id}</p>
+                        <p>Email: ${result.user.email}</p>
+                        <p>Token: ${result.token ? 'Generated' : 'Not generated'}</p>
+                        <p>Estate created: ${result.user.estateId ? 'Yes' : 'No'}</p>
+                    `;
+                } else {
+                    resultDiv.className += ' error';
+                    resultDiv.innerHTML = `
+                        <h3>❌ Registration Failed</h3>
+                        <p>Error: ${result.error || 'Unknown error'}</p>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.className += ' error';
+                resultDiv.innerHTML = `
+                    <h3>❌ Network Error</h3>
+                    <p>Error: ${error.message}</p>
+                `;
+            }
+        });
+
+        // Path calculation test
+        document.getElementById('pathTestForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const combination = {
+                hasWill: formData.get('hasWill'),
+                hasTrust: formData.get('hasTrust'),
+                trustType: formData.get('trustType'),
+                hasTODDeed: formData.get('hasTODDeed'),
+                hasContest: formData.get('hasContest'),
+                isOutOfState: formData.get('isOutOfState'),
+                isSpouse: formData.get('isSpouse'),
+                debtStatus: formData.get('debtStatus')
+            };
+
+            const resultDiv = document.getElementById('pathResult');
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'result';
+            
+            try {
+                const response = await fetch('http://localhost:8080/api/path/calculate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(combination)
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className += ' success';
+                    resultDiv.innerHTML = `
+                        <h3>✅ Path Calculation Successful!</h3>
+                        <p>Path ID: ${result.pathId}</p>
+                        <p>Confidence: ${result.confidence}%</p>
+                        <p>Complexity: ${result.complexity}</p>
+                        <p>Timeline: ${result.timeline}</p>
+                        <p>Full Result: <pre>${JSON.stringify(result, null, 2)}</pre></p>
+                    `;
+                } else {
+                    resultDiv.className += ' error';
+                    resultDiv.innerHTML = `
+                        <h3>❌ Path Calculation Failed</h3>
+                        <p>Error: ${result.error || 'Unknown error'}</p>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.className += ' error';
+                resultDiv.innerHTML = `
+                    <h3>❌ Network Error</h3>
+                    <p>Error: ${error.message}</p>
+                `;
+            }
+        });
+
+        // Complete onboarding flow test
+        document.getElementById('testOnboardingFlow').addEventListener('click', async () => {
+            const resultDiv = document.getElementById('onboardingResult');
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'result';
+            
+            try {
+                // Test with a sample combination
+                const combination = sampleCombinations[0];
+                
+                // 1. Test registration
+                const regData = {
+                    email: 'test@example.com',
+                    password: 'testpassword123',
+                    fullName: 'Test User'
+                };
+
+                const regResponse = await fetch('http://localhost:8080/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(regData)
+                });
+
+                if (!regResponse.ok) {
+                    throw new Error('Registration failed');
+                }
+
+                const regResult = await regResponse.json();
+                
+                // 2. Test path calculation
+                const pathResponse = await fetch('http://localhost:8080/api/path/calculate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(combination)
+                });
+
+                if (!pathResponse.ok) {
+                    throw new Error('Path calculation failed');
+                }
+
+                const pathResult = await pathResponse.json();
+
+                // 3. Test estate creation (if needed)
+                const estateResponse = await fetch('http://localhost:8080/api/estates/my', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${regResult.token}`
+                    },
+                    body: JSON.stringify({
+                        name: 'Test Estate',
+                        deceasedFirstName: 'Test',
+                        deceasedLastName: 'Estate',
+                        deceasedState: 'CA',
+                        deceasedDateOfDeath: new Date().toISOString()
+                    })
+                });
+
+                const estateResult = await estateResponse.json();
+
+                resultDiv.className += ' success';
+                resultDiv.innerHTML = `
+                    <h3>✅ Complete Onboarding Flow Successful!</h3>
+                    <p>✅ Registration: User created with ID ${regResult.user.id}</p>
+                    <p>✅ Path Calculation: Path ${pathResult.pathId} with ${pathResult.confidence}% confidence</p>
+                    <p>✅ Estate Creation: ${estateResponse.ok ? 'Success' : 'Failed'}</p>
+                    <p><strong>Test Summary:</strong></p>
+                    <ul>
+                        <li>Combination: ${JSON.stringify(combination)}</li>
+                        <li>Path ID: ${pathResult.pathId}</li>
+                        <li>Confidence: ${pathResult.confidence}%</li>
+                        <li>Complexity: ${pathResult.complexity}</li>
+                        <li>Timeline: ${pathResult.timeline}</li>
+                    </ul>
+                `;
+            } catch (error) {
+                resultDiv.className += ' error';
+                resultDiv.innerHTML = `
+                    <h3>❌ Complete Onboarding Flow Failed</h3>
+                    <p>Error: ${error.message}</p>
+                `;
+            }
+        });
+
+        // Initialize form with first sample combination
+        const firstCombo = sampleCombinations[0];
+        document.getElementById('hasWill').value = firstCombo.hasWill;
+        document.getElementById('hasTrust').value = firstCombo.hasTrust;
+        document.getElementById('hasTODDeed').value = firstCombo.hasTODDeed;
+        document.getElementById('hasContest').value = firstCombo.hasContest;
+        document.getElementById('isOutOfState').value = firstCombo.isOutOfState;
+        document.getElementById('isSpouse').value = firstCombo.isSpouse;
+        document.getElementById('debtStatus').value = firstCombo.debtStatus;
+    </script>
+</body>
+</html>
