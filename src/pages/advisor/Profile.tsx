@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import {
     User, Briefcase, MapPin, Languages, Clock, DollarSign,
     Plus, Trash2, Save, Loader2, Star, Shield, CheckCircle2,
-    Calendar, Edit3
+    Calendar, Edit3, ChevronDown, ChevronUp
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -41,6 +41,46 @@ const LANGUAGES = ['English', 'Spanish', 'French', 'Mandarin', 'Cantonese', 'Vie
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const TIMES = ['08:00','08:30','09:00','09:30','10:00','10:30','11:00','11:30','12:00','12:30',
                '13:00','13:30','14:00','14:30','15:00','15:30','16:00','16:30','17:00','17:30','18:00'];
+
+// Collapsible section component for better space utilization
+const CollapsibleSection = ({ 
+    title, 
+    icon, 
+    children, 
+    description,
+    defaultOpen = true 
+}: { 
+    title: string; 
+    icon: React.ReactNode; 
+    children: React.ReactNode; 
+    description?: string;
+    defaultOpen?: boolean;
+}) => {
+    const [isOpen, setIsOpen] = useState(defaultOpen);
+    
+    return (
+        <Card className="border-slate-200 transition-smooth hover:border-slate-300">
+            <CardHeader className="pb-2">
+                <button
+                    onClick={() => setIsOpen(!isOpen)}
+                    className="flex items-center justify-between w-full text-left group hover-lift"
+                >
+                    <div className="flex items-center gap-2">
+                        {icon}
+                        <CardTitle className="text-base text-hierarchy-1">{title}</CardTitle>
+                    </div>
+                    <ChevronDown 
+                        className={`w-4 h-4 text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''} collapsible-icon`}
+                    />
+                </button>
+                {description && isOpen && (
+                    <CardDescription className="text-xs mt-1 text-hierarchy-3">{description}</CardDescription>
+                )}
+            </CardHeader>
+            {isOpen && <CardContent className="space-y-compact">{children}</CardContent>}
+        </Card>
+    );
+};
 
 export default function AdvisorProfileSettings() {
     const queryClient = useQueryClient();
@@ -225,168 +265,156 @@ export default function AdvisorProfileSettings() {
                 </TabsList>
 
                 {/* ── PROFILE TAB ── */}
-                <TabsContent value="profile" className="space-y-5">
-                    <Card>
-                        <CardHeader className="pb-4">
-                            <CardTitle className="text-base flex items-center gap-2">
-                                <Briefcase className="w-4 h-4 text-primary" />
-                                Professional Info
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="grid md:grid-cols-2 gap-4">
-                                <div className="space-y-1.5">
-                                    <Label>Advisor Type</Label>
-                                    <Select value={advisorType} onValueChange={setAdvisorType}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select type..." />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {ADVISOR_TYPES.map(t => (
-                                                <SelectItem key={t} value={t}>
-                                                    {t.replace('_', ' ')}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div className="space-y-1.5">
-                                    <Label>License / Bar Number</Label>
-                                    <Input
-                                        value={licenseNumber}
-                                        onChange={e => setLicenseNumber(e.target.value)}
-                                        placeholder="e.g. CA-123456"
-                                    />
-                                </div>
+                <TabsContent value="profile" className="space-y-4">
+                    {/* Professional Info - Compact Layout */}
+                    <CollapsibleSection
+                        title="Professional Info"
+                        icon={<Briefcase className="w-4 h-4 text-primary" />}
+                        defaultOpen={true}
+                    >
+                        <div className="grid md:grid-cols-2 gap-3">
+                            <div className="space-y-1">
+                                <Label className="text-xs">Advisor Type</Label>
+                                <Select value={advisorType} onValueChange={setAdvisorType}>
+                                    <SelectTrigger className="h-8">
+                                        <SelectValue placeholder="Select type..." />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {ADVISOR_TYPES.map(t => (
+                                            <SelectItem key={t} value={t}>
+                                                {t.replace('_', ' ')}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                             </div>
-
-                            <div className="space-y-1.5">
-                                <Label>Bio <span className="text-slate-400 text-xs">(shown to clients)</span></Label>
-                                <Textarea
-                                    value={bio}
-                                    onChange={e => setBio(e.target.value)}
-                                    rows={4}
-                                    placeholder="Describe your experience, approach, and what makes you the right advisor for estate matters..."
-                                    className="resize-none"
+                            <div className="space-y-1">
+                                <Label className="text-xs">License / Bar Number</Label>
+                                <Input
+                                    value={licenseNumber}
+                                    onChange={e => setLicenseNumber(e.target.value)}
+                                    placeholder="e.g. CA-123456"
+                                    className="h-8"
                                 />
-                                <p className="text-xs text-slate-400">{bio.length} / 1000 characters</p>
                             </div>
+                        </div>
 
-                            <div className="space-y-1.5">
-                                <Label className="flex items-center gap-1.5">
-                                    <DollarSign className="w-3.5 h-3.5" />
-                                    Default Hourly Rate (USD)
-                                </Label>
-                                <div className="relative max-w-[180px]">
-                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">$</span>
-                                    <Input
-                                        value={hourlyRate}
-                                        onChange={e => setHourlyRate(e.target.value)}
-                                        className="pl-7"
-                                        type="number"
-                                        min={0}
-                                        placeholder="250"
-                                    />
-                                </div>
+                        <div className="space-y-2 mt-3">
+                            <div className="flex items-center justify-between">
+                                <Label className="text-xs">Bio</Label>
+                                <span className="text-xs text-slate-400">{bio.length} / 1000</span>
                             </div>
-                        </CardContent>
-                    </Card>
+                            <Textarea
+                                value={bio}
+                                onChange={e => setBio(e.target.value)}
+                                rows={3}
+                                placeholder="Describe your experience, approach, and what makes you the right advisor for estate matters..."
+                                className="resize-none text-sm"
+                            />
+                        </div>
 
-                    {/* Specialties */}
-                    <Card>
-                        <CardHeader className="pb-4">
-                            <CardTitle className="text-base flex items-center gap-2">
-                                <Star className="w-4 h-4 text-primary" />
-                                Specialties
-                            </CardTitle>
-                            <CardDescription className="text-xs">Select all areas you specialize in</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="flex flex-wrap gap-2">
-                                {SPECIALTIES.map(s => (
-                                    <button
-                                        key={s}
-                                        onClick={() => toggleChip(s, specialties, setSpecialties)}
-                                        className={cn(
-                                            'px-3 py-1.5 rounded-full text-xs font-medium border transition-all',
-                                            specialties.includes(s)
-                                                ? 'bg-primary text-white border-primary'
-                                                : 'bg-white text-slate-600 border-slate-200 hover:border-primary/50'
-                                        )}
-                                    >
-                                        {s}
-                                    </button>
-                                ))}
+                        <div className="space-y-2 mt-3">
+                            <Label className="text-xs flex items-center gap-1.5">
+                                <DollarSign className="w-3.5 h-3.5" />
+                                Default Hourly Rate (USD)
+                            </Label>
+                            <div className="relative max-w-[160px]">
+                                <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm">$</span>
+                                <Input
+                                    value={hourlyRate}
+                                    onChange={e => setHourlyRate(e.target.value)}
+                                    className="pl-6 h-8 text-sm"
+                                    type="number"
+                                    min={0}
+                                    placeholder="250"
+                                />
                             </div>
-                        </CardContent>
-                    </Card>
+                        </div>
+                    </CollapsibleSection>
 
-                    {/* States Served */}
-                    <Card>
-                        <CardHeader className="pb-4">
-                            <CardTitle className="text-base flex items-center gap-2">
-                                <MapPin className="w-4 h-4 text-primary" />
-                                States Served
-                            </CardTitle>
-                            <CardDescription className="text-xs">Select all states where you are licensed to practice</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="flex flex-wrap gap-1.5">
-                                {US_STATES.map(s => (
-                                    <button
-                                        key={s}
-                                        onClick={() => toggleChip(s, statesServed, setStatesServed)}
-                                        className={cn(
-                                            'px-2.5 py-1 rounded-md text-xs font-semibold border transition-all',
-                                            statesServed.includes(s)
-                                                ? 'bg-primary text-white border-primary'
-                                                : 'bg-white text-slate-600 border-slate-200 hover:border-primary/50'
-                                        )}
-                                    >
-                                        {s}
-                                    </button>
-                                ))}
-                            </div>
-                        </CardContent>
-                    </Card>
+                    {/* Specialties - Compact Chip Layout */}
+                    <CollapsibleSection
+                        title="Specialties"
+                        icon={<Star className="w-4 h-4 text-primary" />}
+                        description="Select all areas you specialize in"
+                        defaultOpen={true}
+                    >
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                            {SPECIALTIES.map(s => (
+                                <button
+                                    key={s}
+                                    onClick={() => toggleChip(s, specialties, setSpecialties)}
+                                    className={cn(
+                                        'px-3 py-2 rounded-lg text-sm font-medium border transition-all text-left',
+                                        specialties.includes(s)
+                                            ? 'bg-primary text-white border-primary'
+                                            : 'bg-white text-slate-600 border-slate-200 hover:border-primary/50'
+                                    )}
+                                >
+                                    {s}
+                                </button>
+                            ))}
+                        </div>
+                    </CollapsibleSection>
 
-                    {/* Languages */}
-                    <Card>
-                        <CardHeader className="pb-4">
-                            <CardTitle className="text-base flex items-center gap-2">
-                                <Languages className="w-4 h-4 text-primary" />
-                                Languages
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="flex flex-wrap gap-2">
-                                {LANGUAGES.map(l => (
-                                    <button
-                                        key={l}
-                                        onClick={() => toggleChip(l, languages, setLanguages)}
-                                        className={cn(
-                                            'px-3 py-1.5 rounded-full text-xs font-medium border transition-all',
-                                            languages.includes(l)
-                                                ? 'bg-indigo-600 text-white border-indigo-600'
-                                                : 'bg-white text-slate-600 border-slate-200 hover:border-indigo-300'
-                                        )}
-                                    >
-                                        {l}
-                                    </button>
-                                ))}
-                            </div>
-                        </CardContent>
-                    </Card>
+                    {/* States Served - Compact Layout */}
+                    <CollapsibleSection
+                        title="States Served"
+                        icon={<MapPin className="w-4 h-4 text-primary" />}
+                        description="Select all states where you are licensed to practice"
+                        defaultOpen={false}
+                    >
+                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-1.5">
+                            {US_STATES.map(s => (
+                                <button
+                                    key={s}
+                                    onClick={() => toggleChip(s, statesServed, setStatesServed)}
+                                    className={cn(
+                                        'px-2 py-1.5 rounded-md text-xs font-semibold border transition-all',
+                                        statesServed.includes(s)
+                                            ? 'bg-primary text-white border-primary'
+                                            : 'bg-white text-slate-600 border-slate-200 hover:border-primary/50'
+                                    )}
+                                >
+                                    {s}
+                                </button>
+                            ))}
+                        </div>
+                    </CollapsibleSection>
 
-                    <div className="flex justify-end">
+                    {/* Languages - Compact Layout */}
+                    <CollapsibleSection
+                        title="Languages"
+                        icon={<Languages className="w-4 h-4 text-primary" />}
+                        defaultOpen={false}
+                    >
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                            {LANGUAGES.map(l => (
+                                <button
+                                    key={l}
+                                    onClick={() => toggleChip(l, languages, setLanguages)}
+                                    className={cn(
+                                        'px-3 py-2 rounded-lg text-sm font-medium border transition-all text-left',
+                                        languages.includes(l)
+                                            ? 'bg-indigo-600 text-white border-indigo-600'
+                                            : 'bg-white text-slate-600 border-slate-200 hover:border-indigo-300'
+                                    )}
+                                >
+                                    {l}
+                                </button>
+                            ))}
+                        </div>
+                    </CollapsibleSection>
+
+                    <div className="flex justify-end pt-2">
                         <Button
                             onClick={() => saveExtendedMutation.mutate()}
                             disabled={saveExtendedMutation.isPending}
-                            className="h-9 px-5"
+                            className="h-8 px-4 text-sm"
                         >
                             {saveExtendedMutation.isPending
-                                ? <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                                : <Save className="w-4 h-4 mr-2" />
+                                ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-2" />
+                                : <Save className="w-3.5 h-3.5 mr-2" />
                             }
                             Save Profile
                         </Button>
@@ -394,41 +422,32 @@ export default function AdvisorProfileSettings() {
                 </TabsContent>
 
                 {/* ── RATES TAB ── */}
-                <TabsContent value="rates" className="space-y-5">
-                    <Card>
-                        <CardHeader className="pb-4">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <CardTitle className="text-base">Service Packages</CardTitle>
-                                    <CardDescription className="text-xs mt-0.5">
-                                        Clients choose from these when booking you. At least one plan is required.
-                                    </CardDescription>
-                                </div>
-                                <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => setShowPlanForm(v => !v)}>
-                                    <Plus className="w-3.5 h-3.5 mr-1.5" />
-                                    Add Plan
-                                </Button>
-                            </div>
-                        </CardHeader>
-                        <CardContent className="space-y-3">
+                <TabsContent value="rates" className="space-y-4">
+                    <CollapsibleSection
+                        title="Service Packages"
+                        icon={<DollarSign className="w-4 h-4 text-primary" />}
+                        description="Clients choose from these when booking you. At least one plan is required."
+                        defaultOpen={true}
+                    >
+                        <div className="space-y-3">
                             {/* Add Plan Form */}
                             {showPlanForm && (
-                                <div className="border border-primary/30 rounded-xl p-4 bg-primary/5 space-y-3">
+                                <div className="border border-primary/30 rounded-lg p-3 bg-primary/5 space-y-2">
                                     <p className="text-sm font-semibold text-slate-900">New Service Plan</p>
-                                    <div className="grid md:grid-cols-2 gap-3">
+                                    <div className="grid md:grid-cols-2 gap-2">
                                         <div className="space-y-1">
                                             <Label className="text-xs">Plan Name</Label>
                                             <Input
                                                 value={newPlanName}
                                                 onChange={e => setNewPlanName(e.target.value)}
                                                 placeholder="e.g. 30-min Consultation"
-                                                className="h-8 text-sm"
+                                                className="h-7 text-sm"
                                             />
                                         </div>
                                         <div className="space-y-1">
                                             <Label className="text-xs">Duration (minutes)</Label>
                                             <Select value={newPlanDuration} onValueChange={setNewPlanDuration}>
-                                                <SelectTrigger className="h-8 text-sm">
+                                                <SelectTrigger className="h-7 text-sm">
                                                     <SelectValue />
                                                 </SelectTrigger>
                                                 <SelectContent>
@@ -441,11 +460,11 @@ export default function AdvisorProfileSettings() {
                                         <div className="space-y-1">
                                             <Label className="text-xs">Price (USD)</Label>
                                             <div className="relative">
-                                                <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
+                                                <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
                                                 <Input
                                                     value={newPlanPrice}
                                                     onChange={e => setNewPlanPrice(e.target.value)}
-                                                    className="h-8 text-sm pl-6"
+                                                    className="h-7 text-sm pl-5"
                                                     type="number"
                                                     min={0}
                                                     placeholder="150"
@@ -457,42 +476,55 @@ export default function AdvisorProfileSettings() {
                                             <Input
                                                 value={newPlanDesc}
                                                 onChange={e => setNewPlanDesc(e.target.value)}
-                                                className="h-8 text-sm"
+                                                className="h-7 text-sm"
                                                 placeholder="What's included..."
                                             />
                                         </div>
                                     </div>
                                     <div className="flex gap-2 justify-end">
-                                        <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={() => setShowPlanForm(false)}>Cancel</Button>
+                                        <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setShowPlanForm(false)}>Cancel</Button>
                                         <Button
                                             size="sm"
-                                            className="h-8 text-xs"
+                                            className="h-7 text-xs"
                                             disabled={!newPlanName || !newPlanPrice || createPlanMutation.isPending}
                                             onClick={() => createPlanMutation.mutate()}
                                         >
-                                            {createPlanMutation.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" /> : null}
+                                            {createPlanMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : null}
                                             Create Plan
                                         </Button>
                                     </div>
                                 </div>
                             )}
 
+                            {/* Add Plan Button */}
+                            <div className="flex justify-end">
+                                <Button 
+                                    size="sm" 
+                                    variant="outline" 
+                                    className="h-7 text-xs"
+                                    onClick={() => setShowPlanForm(v => !v)}
+                                >
+                                    <Plus className="w-3 h-3 mr-1.5" />
+                                    Add Plan
+                                </Button>
+                            </div>
+
                             {/* Existing Plans */}
                             {plansLoading ? (
-                                <div className="flex items-center justify-center py-8">
-                                    <Loader2 className="w-5 h-5 animate-spin text-slate-300" />
+                                <div className="flex items-center justify-center py-6">
+                                    <Loader2 className="w-4 h-4 animate-spin text-slate-300" />
                                 </div>
                             ) : Array.isArray(ratePlans) && ratePlans.length === 0 ? (
-                                <div className="text-center py-10 text-slate-400">
-                                    <DollarSign className="w-10 h-10 mx-auto mb-2 opacity-30" />
+                                <div className="text-center py-6 text-slate-400">
+                                    <DollarSign className="w-8 h-8 mx-auto mb-2 opacity-30" />
                                     <p className="text-sm">No service plans yet. Add at least one so clients can book you.</p>
                                 </div>
                             ) : (
                                 Array.isArray(ratePlans) && ratePlans.map((plan: any) => (
-                                    <div key={plan.id} className="flex items-center justify-between p-3.5 rounded-xl border border-slate-200 bg-white hover:border-slate-300 transition-colors">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-                                                <Clock className="w-4 h-4 text-primary" />
+                                    <div key={plan.id} className="flex items-center justify-between p-2.5 rounded-lg border border-slate-200 bg-white hover:border-slate-300 transition-colors">
+                                        <div className="flex items-center gap-2.5">
+                                            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                                <Clock className="w-3 h-3 text-primary" />
                                             </div>
                                             <div>
                                                 <p className="font-semibold text-sm text-slate-900">{plan.serviceName || plan.label}</p>
@@ -502,33 +534,33 @@ export default function AdvisorProfileSettings() {
                                                 </p>
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-3">
+                                        <div className="flex items-center gap-2">
                                             <div className="text-right">
-                                                <p className="font-bold text-slate-900">
+                                                <p className="font-bold text-slate-900 text-sm">
                                                     ${((plan.priceCents || plan.amountCents || 0) / 100).toFixed(0)}
                                                 </p>
                                                 {plan.isActive === false && (
-                                                    <Badge variant="secondary" className="text-[10px] h-4">Inactive</Badge>
+                                                    <Badge variant="secondary" className="text-[10px] h-3">Inactive</Badge>
                                                 )}
                                             </div>
                                             <Button
                                                 variant="ghost"
                                                 size="sm"
-                                                className="h-7 w-7 p-0 text-slate-400 hover:text-red-500 hover:bg-red-50"
+                                                className="h-6 w-6 p-0 text-slate-400 hover:text-red-500 hover:bg-red-50"
                                                 onClick={() => deletePlanMutation.mutate(plan.id)}
                                                 disabled={deletePlanMutation.isPending}
                                             >
-                                                <Trash2 className="w-3.5 h-3.5" />
+                                                <Trash2 className="w-3 h-3" />
                                             </Button>
                                         </div>
                                     </div>
                                 ))
                             )}
-                        </CardContent>
-                    </Card>
+                        </div>
+                    </CollapsibleSection>
 
-                    <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex gap-3">
-                        <Shield className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 flex gap-2">
+                        <Shield className="w-3.5 h-3.5 text-amber-600 mt-0.5 flex-shrink-0" />
                         <div>
                             <p className="text-sm font-semibold text-amber-900">Platform fee: 20%</p>
                             <p className="text-xs text-amber-700 mt-0.5">
@@ -539,44 +571,41 @@ export default function AdvisorProfileSettings() {
                 </TabsContent>
 
                 {/* ── AVAILABILITY TAB ── */}
-                <TabsContent value="availability" className="space-y-5">
-                    <Card>
-                        <CardHeader className="pb-4">
-                            <CardTitle className="text-base flex items-center gap-2">
-                                <Calendar className="w-4 h-4 text-primary" />
-                                Weekly Schedule
-                            </CardTitle>
-                            <CardDescription className="text-xs">
-                                Set your regular working hours. Clients can only book during these windows.
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-2">
+                <TabsContent value="availability" className="space-y-4">
+                    <CollapsibleSection
+                        title="Weekly Schedule"
+                        icon={<Calendar className="w-4 h-4 text-primary" />}
+                        description="Set your regular working hours. Clients can only book during these windows."
+                        defaultOpen={true}
+                    >
+                        <div className="space-y-2">
                             {DAYS.map((day, idx) => {
                                 const rule = availRules[idx];
                                 return (
                                     <div
                                         key={day}
                                         className={cn(
-                                            'flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all',
+                                            'flex items-center gap-2.5 px-2.5 py-2 rounded-lg transition-all',
                                             rule.isActive ? 'bg-slate-50 border border-slate-200' : 'border border-dashed border-slate-200 opacity-60'
                                         )}
                                     >
                                         {/* Day toggle */}
-                                        <div className="flex items-center gap-2.5 w-[90px] flex-shrink-0">
+                                        <div className="flex items-center gap-2 w-[80px] flex-shrink-0">
                                             <Switch
                                                 checked={rule.isActive}
                                                 onCheckedChange={v => updateAvailRule(idx, 'isActive', v)}
+                                                className="scale-75"
                                             />
-                                            <span className="text-sm font-medium text-slate-700 w-8">{day}</span>
+                                            <span className="text-sm font-medium text-slate-700 w-6">{day}</span>
                                         </div>
 
                                         {rule.isActive ? (
-                                            <div className="flex items-center gap-2 flex-1">
+                                            <div className="flex items-center gap-1.5 flex-1">
                                                 <Select
                                                     value={rule.startTime}
                                                     onValueChange={v => updateAvailRule(idx, 'startTime', v)}
                                                 >
-                                                    <SelectTrigger className="h-7 text-xs w-[90px]">
+                                                    <SelectTrigger className="h-6 text-xs w-[80px]">
                                                         <SelectValue />
                                                     </SelectTrigger>
                                                     <SelectContent>
@@ -588,7 +617,7 @@ export default function AdvisorProfileSettings() {
                                                     value={rule.endTime}
                                                     onValueChange={v => updateAvailRule(idx, 'endTime', v)}
                                                 >
-                                                    <SelectTrigger className="h-7 text-xs w-[90px]">
+                                                    <SelectTrigger className="h-6 text-xs w-[80px]">
                                                         <SelectValue />
                                                     </SelectTrigger>
                                                     <SelectContent>
@@ -610,23 +639,23 @@ export default function AdvisorProfileSettings() {
                                     </div>
                                 );
                             })}
-                        </CardContent>
-                    </Card>
+                        </div>
+                    </CollapsibleSection>
 
-                    <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex gap-3 text-xs text-blue-800">
-                        <CheckCircle2 className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex gap-2 text-xs text-blue-800">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-blue-500 mt-0.5 flex-shrink-0" />
                         <p>All times are shown to clients in their local timezone. Your schedule is based on your account timezone set in <strong>Settings</strong>.</p>
                     </div>
 
-                    <div className="flex justify-end">
+                    <div className="flex justify-end pt-1">
                         <Button
                             onClick={() => saveAvailMutation.mutate()}
                             disabled={saveAvailMutation.isPending}
-                            className="h-9 px-5"
+                            className="h-8 px-4 text-sm"
                         >
                             {saveAvailMutation.isPending
-                                ? <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                                : <Save className="w-4 h-4 mr-2" />
+                                ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-2" />
+                                : <Save className="w-3.5 h-3.5 mr-2" />
                             }
                             Save Schedule
                         </Button>

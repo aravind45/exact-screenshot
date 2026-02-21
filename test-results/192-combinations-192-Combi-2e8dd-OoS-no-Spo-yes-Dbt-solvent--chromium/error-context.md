@@ -1,0 +1,67 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - region "Notifications (F8)":
+    - list
+  - region "Notifications alt+T"
+  - generic [ref=e3]:
+    - button "Cancel & Exit" [ref=e4] [cursor=pointer]
+    - generic [ref=e5]:
+      - generic [ref=e19]:
+        - generic [ref=e20]:
+          - heading "The basics." [level=2] [ref=e21]
+          - paragraph [ref=e22]: Tell us about the person who passed away.
+        - generic [ref=e23]:
+          - generic [ref=e24]:
+            - text: Full Name
+            - textbox "e.g. John Smith" [ref=e25]: Estate
+          - generic [ref=e26]:
+            - generic [ref=e27]:
+              - text: Date of Death
+              - textbox [ref=e28]: 2026-02-21
+            - generic [ref=e29]:
+              - text: Residence (State)
+              - combobox [ref=e30] [cursor=pointer]:
+                - generic: California
+                - img [ref=e31]
+          - generic [ref=e33]:
+            - generic [ref=e34]:
+              - text: Approximate Estate Value
+              - generic [ref=e35]: Banks & Real Estate
+            - generic [ref=e36]:
+              - generic [ref=e37]: $
+              - spinbutton [ref=e38]
+            - paragraph [ref=e39]: A rough estimate is fine; we use this to suggest shortcuts.
+          - generic [ref=e40]:
+            - generic [ref=e41]:
+              - text: Estimated Total Debt
+              - generic [ref=e42]: Mortgages, Loans, Credit Cards
+            - generic [ref=e43]:
+              - generic [ref=e44]: $
+              - spinbutton [ref=e45]
+            - paragraph [ref=e46]: Used to detect potential insolvency risks early.
+          - generic [ref=e47]:
+            - generic [ref=e48]:
+              - generic [ref=e49]:
+                - text: Transfer-on-Death Deed?
+                - paragraph [ref=e50]: Is there a recorded TOD deed for real property?
+              - generic [ref=e51]:
+                - button "Yes" [ref=e52] [cursor=pointer]
+                - button "No" [ref=e53] [cursor=pointer]
+                - button "Not Sure" [ref=e54] [cursor=pointer]
+            - generic [ref=e55]:
+              - generic [ref=e56]:
+                - text: Is the estate contested?
+                - paragraph [ref=e57]: Are there any active disputes or will contests?
+              - generic [ref=e58]:
+                - button "Yes" [ref=e59] [cursor=pointer]
+                - button "No" [ref=e60] [cursor=pointer]
+                - button "Not Sure" [ref=e61] [cursor=pointer]
+          - button "Continue to Quick Assessment" [ref=e62] [cursor=pointer]
+      - generic [ref=e63]:
+        - button "Back" [ref=e64] [cursor=pointer]
+        - paragraph [ref=e65]: Step 2 of 9
+  - button [ref=e68] [cursor=pointer]:
+    - img
+```

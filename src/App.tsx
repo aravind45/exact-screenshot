@@ -129,6 +129,9 @@ const ProbateCost = lazy(() => import("./pages/content/ProbateCost"));
 const EstateSettlementChecklist = lazy(() => import("./pages/content/EstateSettlementChecklist"));
 const EstatePathGuide = lazy(() => import("./pages/EstatePathGuide"));
 
+// Competitor Comparison
+const CompetitorComparison = lazy(() => import("./pages/CompetitorComparison"));
+
 
 const queryClient = new QueryClient();
 
@@ -185,6 +188,7 @@ const App = () => (
                       <Route path="/probate-cost" element={<ProbateCost />} />
                       <Route path="/estate-settlement-checklist" element={<EstateSettlementChecklist />} />
                       <Route path="/estate-path-guide" element={<EstatePathGuide />} />
+                      <Route path="/competitor-comparison" element={<CompetitorComparison />} />
 
                       {/* Legal Pages */}
                       <Route path="/terms" element={<TermsOfService />} />

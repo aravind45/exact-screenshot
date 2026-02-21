@@ -1,0 +1,41 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - region "Notifications (F8)":
+    - list
+  - region "Notifications alt+T"
+  - generic [ref=e3]:
+    - button "Cancel & Exit" [ref=e4] [cursor=pointer]
+    - generic [ref=e5]:
+      - generic [ref=e19]:
+        - generic [ref=e20]:
+          - img [ref=e22]
+          - heading "Heirs & Beneficiaries" [level=2] [ref=e26]
+          - paragraph [ref=e27]: Who are the key people involved in this estate?
+        - generic [ref=e29]:
+          - generic [ref=e30]:
+            - text: Full Name
+            - textbox "e.g. Jane Doe" [ref=e31]
+          - generic [ref=e32]:
+            - generic [ref=e33]:
+              - text: Relationship
+              - combobox [ref=e34] [cursor=pointer]:
+                - generic: Select
+                - img [ref=e35]
+            - generic [ref=e38]:
+              - checkbox "Minor Heir?" [ref=e39] [cursor=pointer]
+              - generic [ref=e40] [cursor=pointer]: Minor Heir?
+        - generic [ref=e41]:
+          - checkbox "I am not sure who all the legal heirs are." [ref=e42] [cursor=pointer]
+          - generic [ref=e43] [cursor=pointer]: I am not sure who all the legal heirs are.
+        - button "Add Another Heir" [ref=e44] [cursor=pointer]:
+          - img
+          - text: Add Another Heir
+        - button "Continue" [active] [ref=e45] [cursor=pointer]
+      - generic [ref=e46]:
+        - button "Back" [ref=e47] [cursor=pointer]
+        - paragraph [ref=e48]: Step 5 of 9
+  - button [ref=e51] [cursor=pointer]:
+    - img
+```

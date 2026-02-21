@@ -1,0 +1,75 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - region "Notifications (F8)":
+    - list
+  - region "Notifications alt+T"
+  - generic [ref=e3]:
+    - generic [ref=e5]:
+      - link "ExpectedEstate" [ref=e6] [cursor=pointer]:
+        - /url: /
+        - img [ref=e8]
+        - generic [ref=e10]: ExpectedEstate
+      - generic [ref=e11]:
+        - heading "Navigating complexity with complete confidence." [level=2] [ref=e12]
+        - generic [ref=e13]:
+          - generic [ref=e14]:
+            - img [ref=e16]
+            - generic [ref=e19]:
+              - heading "Fiduciary Security" [level=3] [ref=e20]
+              - paragraph [ref=e21]: Enterprise-grade encryption for all sensitive estate documents and records.
+          - generic [ref=e22]:
+            - img [ref=e24]
+            - generic [ref=e27]:
+              - heading "Time-Saving Roadmap" [level=3] [ref=e28]
+              - paragraph [ref=e29]: Automated deadlines and task flows to keep probate moving efficiently.
+          - generic [ref=e30]:
+            - img [ref=e32]
+            - generic [ref=e36]:
+              - heading "Compliant Evidence" [level=3] [ref=e37]
+              - paragraph [ref=e38]: Build a defensible audit trail of every fiduciary action and communication.
+    - main [ref=e41]:
+      - generic [ref=e42]:
+        - generic [ref=e43]:
+          - link "Back to home" [ref=e44] [cursor=pointer]:
+            - /url: /
+            - img [ref=e45]
+            - text: Back to home
+          - generic [ref=e47]:
+            - heading "Executor Registration" [level=1] [ref=e48]
+            - paragraph [ref=e49]: Create your executor profile to get started.
+        - generic [ref=e51]:
+          - generic [ref=e52]:
+            - generic [ref=e53]:
+              - text: Full Name
+              - textbox "Full Name" [ref=e54]:
+                - /placeholder: John Doe
+                - text: Combo Tester 146
+            - generic [ref=e55]:
+              - text: Email Address
+              - textbox "Email Address" [ref=e56]:
+                - /placeholder: you@example.com
+                - text: combo-146-1771688041521@example.com
+            - generic [ref=e57]:
+              - generic [ref=e59]: Password
+              - textbox "Password" [ref=e60]:
+                - /placeholder: ••••••••
+                - text: TestPassword123!
+          - button "Create Account" [ref=e61] [cursor=pointer]:
+            - text: Create Account
+            - img
+          - paragraph [ref=e63]:
+            - text: Already using ExpectedEstate?
+            - button "Sign in here" [ref=e64] [cursor=pointer]
+        - generic [ref=e65]:
+          - paragraph [ref=e66]: Safe & Secure Fiduciary Access
+          - paragraph [ref=e67]:
+            - text: By continuing, you acknowledge that access is restricted to authorized fiduciaries. Read our
+            - link "Terms" [ref=e68] [cursor=pointer]:
+              - /url: "#"
+            - text: and
+            - link "Privacy Policy" [ref=e69] [cursor=pointer]:
+              - /url: "#"
+            - text: .
+```

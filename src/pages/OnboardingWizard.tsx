@@ -66,6 +66,7 @@ export default function OnboardingWizard() {
         isOutOfState: false,
         hasUnknownHeirs: false,
         isTrustRevocable: true,
+        hasTrust: false,
         estimatedDebt: "",
         hasTODDeed: false,
         hasContest: false
@@ -114,6 +115,7 @@ export default function OnboardingWizard() {
                 isSpouse: estate.isSurvivingSpouse ?? prev.isSpouse,
                 isOutOfState: estate.hasOutOfStateProperty ?? prev.isOutOfState,
                 hasUnknownHeirs: estate.hasUnknownHeirs ?? prev.hasUnknownHeirs,
+                hasTrust: estate.isTrustRevocable !== undefined && estate.isTrustRevocable !== null,
                 isTrustRevocable: estate.isTrustRevocable ?? prev.isTrustRevocable
             }));
         } else {
@@ -151,7 +153,7 @@ export default function OnboardingWizard() {
             isSpouse: estateData.isSpouse,
             isOutOfState: estateData.isOutOfState,
             estimatedValue: parseFloat(estateData.estimatedValue) || 0,
-            isTrustRevocable: estateData.isTrustRevocable,
+            isTrustRevocable: estateData.hasTrust ? estateData.isTrustRevocable : undefined,
             hasTODDeed: estateData.hasTODDeed,
             hasContest: estateData.hasContest
         }
@@ -197,7 +199,7 @@ export default function OnboardingWizard() {
                     estateType: recommendation.type,
                     authorityType: recommendation.type,
                     hasUnknownHeirs: estateData.hasUnknownHeirs,
-                    isTrustRevocable: estateData.isTrustRevocable,
+                    isTrustRevocable: estateData.hasTrust ? estateData.isTrustRevocable : null,
                     hasContest: estateData.hasContest,
                     hasTODDeed: estateData.hasTODDeed,
                     isSurvivingSpouse: estateData.isSpouse,
@@ -565,13 +567,17 @@ export default function OnboardingWizard() {
                                                     </div>
                                                     <div className="flex bg-slate-100 p-1 rounded-lg">
                                                         <button
-                                                            onClick={() => setEstateData({ ...estateData, isTrustRevocable: true })}
-                                                            className={cn("px-4 py-1.5 text-xs font-bold rounded-md transition-all", estateData.isTrustRevocable ? "bg-white shadow-sm text-primary" : "text-slate-400")}
+                                                            onClick={() => setEstateData({ ...estateData, hasTrust: true, isTrustRevocable: true })}
+                                                            className={cn("px-4 py-1.5 text-xs font-bold rounded-md transition-all", estateData.hasTrust && estateData.isTrustRevocable ? "bg-white shadow-sm text-primary" : "text-slate-400")}
                                                         > Revocable </button>
                                                         <button
-                                                            onClick={() => setEstateData({ ...estateData, isTrustRevocable: false })}
-                                                            className={cn("px-4 py-1.5 text-xs font-bold rounded-md transition-all", !estateData.isTrustRevocable ? "bg-white shadow-sm text-primary" : "text-slate-400")}
+                                                            onClick={() => setEstateData({ ...estateData, hasTrust: true, isTrustRevocable: false })}
+                                                            className={cn("px-4 py-1.5 text-xs font-bold rounded-md transition-all", estateData.hasTrust && !estateData.isTrustRevocable ? "bg-white shadow-sm text-primary" : "text-slate-400")}
                                                         > Irrevocable </button>
+                                                        <button
+                                                            onClick={() => setEstateData({ ...estateData, hasTrust: false })}
+                                                            className={cn("px-4 py-1.5 text-xs font-bold rounded-md transition-all", !estateData.hasTrust ? "bg-white shadow-sm text-primary" : "text-slate-400")}
+                                                        > No </button>
                                                     </div>
                                                 </div>
 

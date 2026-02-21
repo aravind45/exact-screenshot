@@ -1,0 +1,83 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - region "Notifications (F8)":
+      - list [ref=e4]:
+        - listitem [ref=e5]:
+          - generic [ref=e6]:
+            - generic [ref=e7]: Sign up failed
+            - generic [ref=e8]: Too many requests from this IP, please try again after 15 minutes
+          - button [ref=e9] [cursor=pointer]:
+            - img [ref=e10]
+    - region "Notifications alt+T"
+    - generic [ref=e14]:
+      - generic [ref=e16]:
+        - link "ExpectedEstate" [ref=e17] [cursor=pointer]:
+          - /url: /
+          - img [ref=e19]
+          - generic [ref=e21]: ExpectedEstate
+        - generic [ref=e22]:
+          - heading "Navigating complexity with complete confidence." [level=2] [ref=e23]
+          - generic [ref=e24]:
+            - generic [ref=e25]:
+              - img [ref=e27]
+              - generic [ref=e30]:
+                - heading "Fiduciary Security" [level=3] [ref=e31]
+                - paragraph [ref=e32]: Enterprise-grade encryption for all sensitive estate documents and records.
+            - generic [ref=e33]:
+              - img [ref=e35]
+              - generic [ref=e38]:
+                - heading "Time-Saving Roadmap" [level=3] [ref=e39]
+                - paragraph [ref=e40]: Automated deadlines and task flows to keep probate moving efficiently.
+            - generic [ref=e41]:
+              - img [ref=e43]
+              - generic [ref=e47]:
+                - heading "Compliant Evidence" [level=3] [ref=e48]
+                - paragraph [ref=e49]: Build a defensible audit trail of every fiduciary action and communication.
+      - main [ref=e52]:
+        - generic [ref=e53]:
+          - generic [ref=e54]:
+            - link "Back to home" [ref=e55] [cursor=pointer]:
+              - /url: /
+              - img [ref=e56]
+              - text: Back to home
+            - generic [ref=e58]:
+              - heading "Executor Registration" [level=1] [ref=e59]
+              - paragraph [ref=e60]: Create your executor profile to get started.
+          - generic [ref=e62]:
+            - generic [ref=e63]:
+              - generic [ref=e64]:
+                - text: Full Name
+                - textbox "Full Name" [ref=e65]:
+                  - /placeholder: John Doe
+                  - text: Combo Tester 190
+              - generic [ref=e66]:
+                - text: Email Address
+                - textbox "Email Address" [ref=e67]:
+                  - /placeholder: you@example.com
+                  - text: combo-190-1771688220638@example.com
+              - generic [ref=e68]:
+                - generic [ref=e70]: Password
+                - textbox "Password" [ref=e71]:
+                  - /placeholder: ••••••••
+                  - text: TestPassword123!
+            - button "Create Account" [ref=e72] [cursor=pointer]:
+              - text: Create Account
+              - img
+            - paragraph [ref=e74]:
+              - text: Already using ExpectedEstate?
+              - button "Sign in here" [ref=e75] [cursor=pointer]
+          - generic [ref=e76]:
+            - paragraph [ref=e77]: Safe & Secure Fiduciary Access
+            - paragraph [ref=e78]:
+              - text: By continuing, you acknowledge that access is restricted to authorized fiduciaries. Read our
+              - link "Terms" [ref=e79] [cursor=pointer]:
+                - /url: "#"
+              - text: and
+              - link "Privacy Policy" [ref=e80] [cursor=pointer]:
+                - /url: "#"
+              - text: .
+  - status [ref=e81]: Notification Sign up failedToo many requests from this IP, please try again after 15 minutes
+```

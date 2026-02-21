@@ -1,0 +1,71 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - region "Notifications (F8)":
+    - list
+  - region "Notifications alt+T"
+  - generic [ref=e3]:
+    - generic [ref=e5]:
+      - link "ExpectedEstate" [ref=e6] [cursor=pointer]:
+        - /url: /
+        - img [ref=e8]
+        - generic [ref=e10]: ExpectedEstate
+      - generic [ref=e11]:
+        - heading "Navigating complexity with complete confidence." [level=2] [ref=e12]
+        - generic [ref=e13]:
+          - generic [ref=e14]:
+            - img [ref=e16]
+            - generic [ref=e19]:
+              - heading "Fiduciary Security" [level=3] [ref=e20]
+              - paragraph [ref=e21]: Enterprise-grade encryption for all sensitive estate documents and records.
+          - generic [ref=e22]:
+            - img [ref=e24]
+            - generic [ref=e27]:
+              - heading "Time-Saving Roadmap" [level=3] [ref=e28]
+              - paragraph [ref=e29]: Automated deadlines and task flows to keep probate moving efficiently.
+          - generic [ref=e30]:
+            - img [ref=e32]
+            - generic [ref=e36]:
+              - heading "Compliant Evidence" [level=3] [ref=e37]
+              - paragraph [ref=e38]: Build a defensible audit trail of every fiduciary action and communication.
+    - main [ref=e41]:
+      - generic [ref=e42]:
+        - generic [ref=e43]:
+          - link "Back to home" [ref=e44] [cursor=pointer]:
+            - /url: /
+            - img [ref=e45]
+            - text: Back to home
+          - generic [ref=e47]:
+            - heading "Choose Account Type" [level=1] [ref=e48]
+            - paragraph [ref=e49]: Select how you will be using ExpectedEstate.
+        - generic [ref=e51]:
+          - button "I am an Executor I need to settle an estate, manage assets, and distribute inheritance." [ref=e52] [cursor=pointer]:
+            - generic [ref=e53]:
+              - img [ref=e55]
+              - heading "I am an Executor" [level=3] [ref=e58]
+            - paragraph [ref=e59]: I need to settle an estate, manage assets, and distribute inheritance.
+          - button "I am an Advisor I'm a professional offering services to estates (Attorney, CPA, Realtor)." [ref=e60] [cursor=pointer]:
+            - generic [ref=e61]:
+              - img [ref=e63]
+              - heading "I am an Advisor" [level=3] [ref=e66]
+            - paragraph [ref=e67]: I'm a professional offering services to estates (Attorney, CPA, Realtor).
+          - button "I am an Heir / Beneficiary I was invited by an executor to view my inheritance and estate progress." [ref=e68] [cursor=pointer]:
+            - generic [ref=e69]:
+              - img [ref=e71]
+              - heading "I am an Heir / Beneficiary" [level=3] [ref=e76]
+            - paragraph [ref=e77]: I was invited by an executor to view my inheritance and estate progress.
+          - paragraph [ref=e79]:
+            - text: Already have an account?
+            - button "Sign in here" [ref=e80] [cursor=pointer]
+        - generic [ref=e81]:
+          - paragraph [ref=e82]: Safe & Secure Fiduciary Access
+          - paragraph [ref=e83]:
+            - text: By continuing, you acknowledge that access is restricted to authorized fiduciaries. Read our
+            - link "Terms" [ref=e84] [cursor=pointer]:
+              - /url: "#"
+            - text: and
+            - link "Privacy Policy" [ref=e85] [cursor=pointer]:
+              - /url: "#"
+            - text: .
+```
