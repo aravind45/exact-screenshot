@@ -13,8 +13,6 @@ model User {
   email                   String                    @unique
   fullName                String?                   @map("full_name")
   passwordHash            String?                   @map("password_hash")
-  role                    UserRole                  @default(EXECUTOR)
-  userType                String                    @default("EXECUTOR") @map("user_type") // Legacy: to be deprecated
   state                   String?
   personalEmail           String?                   @map("personal_email")
   resetPasswordToken      String?                   @map("reset_password_token")
@@ -32,10 +30,15 @@ model User {
   stripeSubscriptionId    String?                   @map("stripe_subscription_id")
   subscriptionStatus      String?                   @default("FREE") @map("subscription_status")
   trialStartedAt          DateTime?                 @default(now()) @map("trial_started_at")
+  userType                String                    @default("EXECUTOR") @map("user_type")
+  role                    UserRole                  @default(EXECUTOR)
   emailVerifiedAt         DateTime?                 @map("email_verified_at")
   verificationToken       String?                   @map("verification_token")
+  adminActionLogs         AdminActionLog[]
+  advisorProfile          AdvisorProfile?
   agentExecutions         AgentExecution[]
   communications          AssetCommunication[]
+  bookings                Booking[]
   uploadedAttachments     CommunicationAttachment[]
   createdCommunications   Communication[]           @relation("CommunicationCreator")
   completedCommunications Communication[]           @relation("CommunicationCompletedBy")
@@ -45,13 +48,10 @@ model User {
   invitations             Invitation[]
   estates                 Estate[]
   heirs                   Heir[]
+  marketplacePayments     MarketplacePayment[]
+  reviews                 Review[]
   settlementActivities    SettlementActivity[]
   transactions            Transaction[]
-  advisorProfile          AdvisorProfile?
-  bookings                Booking[]
-  reviews                 Review[]
-  marketplacePayments     MarketplacePayment[]
-  adminActionLogs         AdminActionLog[]
 
   @@map("profiles")
 }
@@ -117,6 +117,7 @@ model Estate {
   isTrustRevocable          Boolean?             @map("is_trust_revocable")
   assets                    Asset[]
   authorityDecisions        AuthorityDecision[]
+  bookings                  Booking[]
   communications            Communication[]
   deadlines                 Deadline[]
   discoveryCategories       DiscoveryCategory[]
@@ -126,12 +127,11 @@ model Estate {
   invitations               Invitation[]
   user                      User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
   heirs                     Heir[]
+  lettersDispatches         LettersDispatch[]
   liabilities               Liability[]
+  mailings                  Mailing[]
   activities                SettlementActivity[]
   taskCompletions           TaskCompletion[]
-  bookings                  Booking[]
-  lettersDispatches         LettersDispatch[]
-  mailings                  Mailing[]
 
   @@map("estates")
 }
@@ -186,14 +186,15 @@ model Invitation {
 model Deadline {
   id          String   @id @default(uuid())
   estateId    String   @map("estate_id")
-  warningId   String   @map("warning_id")
   title       String
-  description String   @default("")
   dueDate     DateTime @map("due_date")
+  status      String   @default("PENDING")
   isStatutory Boolean  @default(false) @map("is_statutory")
-  isCompleted Boolean  @default(false) @map("is_completed")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
+  warningId   String   @default("") @map("warning_id")
+  description String   @default("")
+  isCompleted Boolean  @default(false) @map("is_completed")
   estate      Estate   @relation(fields: [estateId], references: [id], onDelete: Cascade)
 
   @@index([estateId])
@@ -471,15 +472,15 @@ model Liability {
   notes           String?
   contactPhone    String?   @map("contact_phone")
   contactEmail    String?   @map("contact_email")
-  address         String?
-  city            String?
-  state           String?
-  zip             String?
-  country         String?   @default("US")
   priority        String    @default("MEDIUM")
   priorityClass   String    @default("GENERAL_DEBTS") @map("priority_class")
   createdAt       DateTime  @default(now()) @map("created_at")
   updatedAt       DateTime  @updatedAt @map("updated_at")
+  address         String?
+  city            String?
+  country         String?   @default("US")
+  state           String?
+  zip             String?
   estate          Estate    @relation(fields: [estateId], references: [id], onDelete: Cascade)
 
   @@index([estateId])
@@ -489,10 +490,10 @@ model Liability {
 model Mailing {
   id          String   @id @default(uuid())
   estateId    String   @map("estate_id")
-  targetType  String   // HEIR, CREDITOR, INSTITUTION
-  targetId    String   // The ID of the recipient
+  targetType  String
+  targetId    String
   lobId       String   @unique @map("lob_id")
-  status      String   @default("PENDING") // PENDING, SENT, DELIVERED, FAILED
+  status      String   @default("PENDING")
   trackingUrl String?  @map("tracking_url")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
@@ -635,30 +636,19 @@ model KnowledgeChunk {
   createdAt DateTime               @default(now()) @map("created_at")
 
   @@map("knowledge_chunks")
-  @@ignore // Deprecated: Use Document/Chunk/ChunkEmbedding
-}
-
-enum DocType {
-  STATUTE
-  POLICY
-  PLAYBOOK
-  FAQ
-  FORM
-  BLOG
-  OTHER
+  @@ignore
 }
 
 model RagDocument {
-  id            String   @id @default(uuid())
+  id            String     @id @default(uuid())
   sourceUri     String?
   title         String
-  docType       DocType  @default(OTHER)
+  docType       DocType    @default(OTHER)
   jurisdiction  String?
   effectiveDate DateTime?
   version       String?
-  ingestedAt    DateTime @default(now())
-  securityTags  String[] @default([])
-
+  ingestedAt    DateTime   @default(now())
+  securityTags  String[]   @default([])
   chunks        RagChunk[]
 
   @@index([jurisdiction])
@@ -668,47 +658,38 @@ model RagDocument {
 }
 
 model RagChunk {
-  id            String   @id @default(uuid())
-  documentId    String   @map("document_id")
-  document      RagDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  id          String              @id @default(uuid())
+  documentId  String              @map("document_id")
+  parentId    String?             @map("parent_id")
+  headingPath String?             @map("heading_path")
+  sectionId   String?             @map("section_id")
+  pageStart   Int?                @map("page_start")
+  pageEnd     Int?                @map("page_end")
+  text        String
+  tokenCount  Int?                @map("token_count")
+  contentHash String              @map("content_hash")
+  createdAt   DateTime            @default(now()) @map("created_at")
+  updatedAt   DateTime            @updatedAt @map("updated_at")
+  embeddings  RagChunkEmbedding[]
+  document    RagDocument         @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  parent      RagChunk?           @relation("ChunkParent", fields: [parentId], references: [id])
+  children    RagChunk[]          @relation("ChunkParent")
 
-  parentId      String?  @map("parent_id")
-  parent        RagChunk?   @relation("ChunkParent", fields: [parentId], references: [id])
-  children      RagChunk[]  @relation("ChunkParent")
-
-  headingPath   String?  @map("heading_path")
-  sectionId     String?  @map("section_id")
-  pageStart     Int?     @map("page_start")
-  pageEnd       Int?     @map("page_end")
-
-  text          String
-  tokenCount    Int?     @map("token_count")
-  contentHash   String   @map("content_hash")
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
-
-  // tsvector column "tsv" will be added via raw SQL migration
-  
-  embeddings    RagChunkEmbedding[]
-
+  @@unique([documentId, contentHash])
   @@index([documentId])
   @@index([parentId])
   @@index([sectionId])
-  @@unique([documentId, contentHash])
   @@map("rag_chunks")
 }
 
 model RagChunkEmbedding {
-  id          String   @id @default(uuid())
-  chunkId     String   @map("chunk_id")
-  chunk       RagChunk    @relation(fields: [chunkId], references: [id], onDelete: Cascade)
-
-  vectorType  String   @default("content") @map("vector_type")
-  modelId     String   @map("model_id")
-
-  embedding   Unsupported("vector")
-
-  createdAt   DateTime @default(now()) @map("created_at")
+  id         String                @id @default(uuid())
+  chunkId    String                @map("chunk_id")
+  vectorType String                @default("content") @map("vector_type")
+  modelId    String                @map("model_id")
+  embedding  Unsupported("vector")
+  createdAt  DateTime              @default(now()) @map("created_at")
+  chunk      RagChunk              @relation(fields: [chunkId], references: [id], onDelete: Cascade)
 
   @@index([chunkId])
   @@index([vectorType, modelId])
@@ -747,7 +728,295 @@ model MarketingEvent {
   @@map("marketing_events")
 }
 
-// ─── Advisor Marketplace Enums ───────────────────────────────────────────────
+model AdvisorProfile {
+  id                       String                   @id @default(uuid())
+  userId                   String                   @unique @map("user_id")
+  bio                      String?
+  expertise                String[]
+  hourlyRate               Decimal                  @map("hourly_rate") @db.Decimal(10, 2)
+  stripeAccountId          String?                  @map("stripe_account_id")
+  verificationStatus       String                   @default("PENDING") @map("verification_status")
+  licenseNumber            String?                  @map("license_number")
+  licenseDocument          String?                  @map("license_document")
+  isVerified               Boolean                  @default(false) @map("is_verified")
+  createdAt                DateTime                 @default(now()) @map("created_at")
+  updatedAt                DateTime                 @updatedAt @map("updated_at")
+  profileImage             String?                  @map("profile_image")
+  stripeDetailsSubmitted   Boolean                  @default(false) @map("stripe_details_submitted")
+  stripeOnboardingComplete Boolean                  @default(false) @map("stripe_onboarding_complete")
+  advisorType              String                   @default("ATTORNEY") @map("advisor_type")
+  avgRating                Float?                   @map("avg_rating")
+  bufferMinutes            Int                      @default(15) @map("buffer_minutes")
+  cancellationHours        Int                      @default(24) @map("cancellation_hours")
+  languages                String[]                 @default(["English"])
+  maxSessionsPerDay        Int                      @default(8) @map("max_sessions_per_day")
+  meetingLink              String?                  @map("meeting_link")
+  noShowPolicy             String?                  @map("no_show_policy")
+  publicNotes              String?                  @map("public_notes")
+  requiresApproval         Boolean                  @default(false) @map("requires_approval")
+  specialties              String[]                 @default([])
+  statesServed             String[]                 @default([]) @map("states_served")
+  status                   AdvisorStatus            @default(DRAFT)
+  timezone                 String                   @default("America/New_York")
+  totalReviews             Int                      @default(0) @map("total_reviews")
+  licenseDocuments         AdvisorLicenseDocument[]
+  user                     User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ratePlans                AdvisorRatePlan[]
+  availabilityExceptions   AvailabilityException[]
+  availabilityRules        AvailabilityRule[]
+  bookings                 Booking[]
+  reviews                  Review[]
+
+  @@index([status])
+  @@index([hourlyRate], map: "idx_advisor_hourly_rate")
+  @@index([avgRating(sort: Desc)], map: "idx_advisor_avg_rating")
+  @@map("advisor_profiles")
+}
+
+model AdvisorLicenseDocument {
+  id              String         @id @default(uuid())
+  advisorId       String         @map("advisor_id")
+  documentType    String         @map("document_type")
+  storageKey      String         @map("storage_key")
+  fileName        String         @map("file_name")
+  mimeType        String         @map("mime_type")
+  sizeBytes       Int            @default(0) @map("size_bytes")
+  status          DocumentStatus @default(UPLOADED)
+  licenseNumber   String?        @map("license_number")
+  issuingState    String?        @map("issuing_state")
+  expirationDate  DateTime?      @map("expiration_date")
+  rejectionReason String?        @map("rejection_reason")
+  verifiedAt      DateTime?      @map("verified_at")
+  verifiedBy      String?        @map("verified_by")
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
+  advisor         AdvisorProfile @relation(fields: [advisorId], references: [id], onDelete: Cascade)
+
+  @@index([advisorId])
+  @@index([status])
+  @@index([expirationDate], map: "idx_license_expiration")
+  @@map("advisor_license_documents")
+}
+
+model AdvisorRatePlan {
+  id              String         @id @default(uuid())
+  advisorId       String         @map("advisor_id")
+  serviceName     String         @map("service_name")
+  durationMinutes Int            @map("duration_minutes")
+  priceCents      Int            @map("price_cents")
+  currency        String         @default("USD")
+  description     String?
+  isActive        Boolean        @default(true) @map("is_active")
+  sortOrder       Int            @default(0) @map("sort_order")
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
+  advisor         AdvisorProfile @relation(fields: [advisorId], references: [id], onDelete: Cascade)
+  bookings        Booking[]
+
+  @@index([advisorId])
+  @@map("advisor_rate_plans")
+}
+
+model AvailabilityRule {
+  id        String         @id @default(uuid())
+  advisorId String         @map("advisor_id")
+  dayOfWeek Int            @map("day_of_week")
+  startTime String         @map("start_time")
+  endTime   String         @map("end_time")
+  isActive  Boolean        @default(true) @map("is_active")
+  createdAt DateTime       @default(now()) @map("created_at")
+  updatedAt DateTime       @updatedAt @map("updated_at")
+  advisor   AdvisorProfile @relation(fields: [advisorId], references: [id], onDelete: Cascade)
+
+  @@index([advisorId, dayOfWeek], map: "idx_avail_rule_advisor_day")
+  @@map("availability_rules")
+}
+
+model AvailabilityException {
+  id         String         @id @default(uuid())
+  advisorId  String         @map("advisor_id")
+  date       DateTime       @db.Date
+  isBlackout Boolean        @default(true) @map("is_blackout")
+  startTime  String?        @map("start_time")
+  endTime    String?        @map("end_time")
+  reason     String?
+  createdAt  DateTime       @default(now()) @map("created_at")
+  advisor    AdvisorProfile @relation(fields: [advisorId], references: [id], onDelete: Cascade)
+
+  @@index([advisorId, date], map: "idx_avail_exception_advisor_date")
+  @@index([advisorId, date], map: "idx_avail_exception_advisor_date_b")
+  @@map("availability_exceptions")
+}
+
+model Booking {
+  id                    String              @id @default(uuid())
+  userId                String              @map("user_id")
+  advisorId             String              @map("advisor_id")
+  estateId              String?             @map("estate_id")
+  totalAmount           Decimal             @map("total_amount") @db.Decimal(10, 2)
+  platformFee           Decimal             @map("platform_fee") @db.Decimal(10, 2)
+  advisorPayout         Decimal             @map("advisor_payout") @db.Decimal(10, 2)
+  escrowReleaseDate     DateTime?           @map("escrow_release_date")
+  stripePaymentId       String?             @map("stripe_payment_id")
+  createdAt             DateTime            @default(now()) @map("created_at")
+  updatedAt             DateTime            @updatedAt @map("updated_at")
+  cancellationReason    String?             @map("cancellation_reason")
+  payoutStatus          String              @default("UNPAID") @map("payout_status")
+  refundAmount          Decimal?            @map("refund_amount") @db.Decimal(10, 2)
+  refundedAt            DateTime?           @map("refunded_at")
+  sessionDate           DateTime?           @map("session_date")
+  advisorNotes          String?             @map("advisor_notes")
+  cancelledAt           DateTime?           @map("cancelled_at")
+  cancelledBy           String?             @map("cancelled_by")
+  currency              String              @default("USD")
+  durationMinutes       Int                 @map("duration_minutes")
+  endTime               DateTime            @map("end_time")
+  idempotencyKey        String?             @unique @map("idempotency_key")
+  intakeAnswers         Json?               @map("intake_answers")
+  meetingLink           String?             @map("meeting_link")
+  ratePlanId            String?             @map("rate_plan_id")
+  sessionDuration       Int?                @map("session_duration")
+  startTime             DateTime            @map("start_time")
+  stripePaymentIntentId String?             @unique @map("stripe_payment_intent_id")
+  timezone              String              @default("America/New_York")
+  version               Int                 @default(0)
+  status                BookingStatus       @default(REQUESTED)
+  advisor               AdvisorProfile      @relation(fields: [advisorId], references: [id])
+  estate                Estate?             @relation(fields: [estateId], references: [id])
+  ratePlan              AdvisorRatePlan?    @relation(fields: [ratePlanId], references: [id])
+  user                  User                @relation(fields: [userId], references: [id])
+  dispute               Dispute?
+  payment               MarketplacePayment?
+  review                Review?
+
+  @@index([userId], map: "idx_booking_user")
+  @@index([advisorId], map: "idx_booking_advisor")
+  @@index([status], map: "idx_booking_status")
+  @@index([advisorId, startTime, endTime], map: "idx_booking_advisor_time")
+  @@map("bookings")
+}
+
+model MarketplacePayment {
+  id                    String        @id @default(uuid())
+  bookingId             String        @unique @map("booking_id")
+  userId                String        @map("user_id")
+  stripePaymentIntentId String        @unique @map("stripe_payment_intent_id")
+  stripeChargeId        String?       @map("stripe_charge_id")
+  amount                Int
+  currency              String        @default("USD")
+  status                PaymentStatus @default(PENDING)
+  capturedAt            DateTime?     @map("captured_at")
+  refundedAmount        Int?          @map("refunded_amount")
+  refundedAt            DateTime?     @map("refunded_at")
+  stripeRefundId        String?       @map("stripe_refund_id")
+  metadata              Json?
+  createdAt             DateTime      @default(now()) @map("created_at")
+  updatedAt             DateTime      @updatedAt @map("updated_at")
+  booking               Booking       @relation(fields: [bookingId], references: [id])
+  user                  User          @relation(fields: [userId], references: [id])
+
+  @@index([bookingId])
+  @@index([userId])
+  @@map("marketplace_payments")
+}
+
+model Dispute {
+  id           String        @id @default(uuid())
+  bookingId    String        @unique @map("booking_id")
+  openedBy     String        @map("opened_by")
+  reason       String
+  description  String?
+  status       DisputeStatus @default(OPEN)
+  resolution   String?
+  resolvedBy   String?       @map("resolved_by")
+  resolvedAt   DateTime?     @map("resolved_at")
+  refundAmount Int?          @map("refund_amount")
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+  booking      Booking       @relation(fields: [bookingId], references: [id])
+
+  @@index([status])
+  @@map("disputes")
+}
+
+model AdminActionLog {
+  id         String   @id @default(uuid())
+  adminId    String   @map("admin_id")
+  action     String
+  targetType String   @map("target_type")
+  targetId   String   @map("target_id")
+  reason     String?
+  metadata   Json?
+  createdAt  DateTime @default(now()) @map("created_at")
+  admin      User     @relation(fields: [adminId], references: [id])
+
+  @@index([adminId])
+  @@index([targetType, targetId], map: "idx_audit_target")
+  @@index([createdAt(sort: Desc)], map: "idx_audit_created_at")
+  @@map("admin_action_logs")
+}
+
+model Review {
+  id        String         @id @default(uuid())
+  bookingId String         @unique @map("booking_id")
+  userId    String         @map("user_id")
+  advisorId String         @map("advisor_id")
+  rating    Int
+  comment   String?
+  createdAt DateTime       @default(now()) @map("created_at")
+  updatedAt DateTime       @updatedAt @map("updated_at")
+  advisor   AdvisorProfile @relation(fields: [advisorId], references: [id])
+  booking   Booking        @relation(fields: [bookingId], references: [id])
+  user      User           @relation(fields: [userId], references: [id])
+
+  @@index([advisorId])
+  @@index([userId])
+  @@index([rating])
+  @@map("reviews")
+}
+
+model LettersDispatch {
+  id               String    @id @default(uuid())
+  estateId         String    @map("estate_id")
+  institutionName  String    @map("institution_name")
+  institutionType  String    @map("institution_type")
+  needsOriginal    Boolean   @default(false) @map("needs_original")
+  status           String    @default("not_sent")
+  sentAt           DateTime? @map("sent_at")
+  acknowledgedAt   DateTime? @map("acknowledged_at")
+  followUpDueAt    DateTime? @map("follow_up_due_at")
+  certifiedCopyRef String?   @map("certified_copy_ref")
+  notes            String?
+  isCustom         Boolean   @default(false) @map("is_custom")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+  estate           Estate    @relation(fields: [estateId], references: [id], onDelete: Cascade)
+
+  @@index([estateId, status])
+  @@index([estateId, followUpDueAt])
+  @@map("letters_dispatches")
+}
+
+model TokenBlacklist {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([token])
+  @@index([expiresAt])
+  @@map("token_blacklist")
+}
+
+enum DocType {
+  STATUTE
+  POLICY
+  PLAYBOOK
+  FAQ
+  FORM
+  BLOG
+  OTHER
+}
 
 enum AdvisorStatus {
   DRAFT
@@ -787,316 +1056,6 @@ enum DisputeStatus {
   RESOLVED_REFUNDED
   RESOLVED_RELEASED
   CLOSED
-}
-
-// ─── Advisor Profile ─────────────────────────────────────────────────────────
-
-model AdvisorProfile {
-  id                       String        @id @default(uuid())
-  userId                   String        @unique @map("user_id")
-  bio                      String?
-  expertise                String[]      // Legacy — kept for compat
-  specialties              String[]      @default([]) // ["PROBATE","ESTATE_TAX","TRUST_ADMIN","TRUST_ADMIN_REVOCABLE","TRUST_ADMIN_IRREVOCABLE","DOCUMENT_REVIEW"]
-  statesServed             String[]      @default([]) @map("states_served")
-  languages                String[]      @default(["English"])
-  advisorType              String        @default("ATTORNEY") @map("advisor_type") // ATTORNEY, CPA, PARALEGAL, COACH
-  status                   AdvisorStatus @default(DRAFT)
-  hourlyRate               Decimal       @map("hourly_rate") @db.Decimal(10, 2)
-  requiresApproval         Boolean       @default(false) @map("requires_approval")
-  cancellationHours        Int           @default(24) @map("cancellation_hours")
-  noShowPolicy             String?       @map("no_show_policy")
-  profileImage             String?       @map("profile_image")
-  timezone                 String        @default("America/New_York")
-  maxSessionsPerDay        Int           @default(8) @map("max_sessions_per_day")
-  bufferMinutes            Int           @default(15) @map("buffer_minutes")
-  meetingLink              String?       @map("meeting_link")
-  publicNotes              String?       @map("public_notes")
-  avgRating                Float?        @map("avg_rating")
-  totalReviews             Int           @default(0) @map("total_reviews")
-  // Legacy fields — kept for migration compat
-  stripeAccountId          String?       @map("stripe_account_id")
-  stripeOnboardingComplete Boolean       @default(false) @map("stripe_onboarding_complete")
-  stripeDetailsSubmitted   Boolean       @default(false) @map("stripe_details_submitted")
-  verificationStatus       String        @default("PENDING") @map("verification_status")
-  licenseNumber            String?       @map("license_number")
-  licenseDocument          String?       @map("license_document")
-  isVerified               Boolean       @default(false) @map("is_verified")
-  createdAt                DateTime      @default(now()) @map("created_at")
-  updatedAt                DateTime      @updatedAt @map("updated_at")
-  user                     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  ratePlans                AdvisorRatePlan[]
-  licenseDocuments         AdvisorLicenseDocument[]
-  availabilityRules        AvailabilityRule[]
-  availabilityExceptions   AvailabilityException[]
-  bookings                 Booking[]
-  reviews                  Review[]
-
-  @@index([status])
-  @@index([hourlyRate], map: "idx_advisor_hourly_rate")
-  @@index([avgRating(sort: Desc)], map: "idx_advisor_avg_rating")
-  @@map("advisor_profiles")
-}
-
-// ─── Advisor License Documents ────────────────────────────────────────────────
-
-model AdvisorLicenseDocument {
-  id              String         @id @default(uuid())
-  advisorId       String         @map("advisor_id")
-  documentType    String         @map("document_type") // BAR_CARD, CPA_LICENSE, GOVERNMENT_ID, OTHER
-  storageKey      String         @map("storage_key")   // S3/GCS object key
-  fileName        String         @map("file_name")
-  mimeType        String         @map("mime_type")
-  sizeBytes       Int            @default(0) @map("size_bytes")
-  status          DocumentStatus @default(UPLOADED)
-  licenseNumber   String?        @map("license_number")
-  issuingState    String?        @map("issuing_state")
-  expirationDate  DateTime?      @map("expiration_date")
-  rejectionReason String?        @map("rejection_reason")
-  verifiedAt      DateTime?      @map("verified_at")
-  verifiedBy      String?        @map("verified_by")
-  createdAt       DateTime       @default(now()) @map("created_at")
-  updatedAt       DateTime       @updatedAt @map("updated_at")
-  advisor         AdvisorProfile @relation(fields: [advisorId], references: [id], onDelete: Cascade)
-
-  @@index([advisorId])
-  @@index([status])
-  @@index([expirationDate], map: "idx_license_expiration")
-  @@map("advisor_license_documents")
-}
-
-// ─── Rate Plans ───────────────────────────────────────────────────────────────
-
-model AdvisorRatePlan {
-  id              String         @id @default(uuid())
-  advisorId       String         @map("advisor_id")
-  serviceName     String         @map("service_name")  // "Initial Consultation"
-  durationMinutes Int            @map("duration_minutes") // 15, 30, 45, 60, 90
-  priceCents      Int            @map("price_cents")
-  currency        String         @default("USD")
-  description     String?
-  isActive        Boolean        @default(true) @map("is_active")
-  sortOrder       Int            @default(0) @map("sort_order")
-  createdAt       DateTime       @default(now()) @map("created_at")
-  updatedAt       DateTime       @updatedAt @map("updated_at")
-  advisor         AdvisorProfile @relation(fields: [advisorId], references: [id], onDelete: Cascade)
-  bookings        Booking[]
-
-  @@index([advisorId])
-  @@map("advisor_rate_plans")
-}
-
-// ─── Availability ─────────────────────────────────────────────────────────────
-
-model AvailabilityRule {
-  id          String         @id @default(uuid())
-  advisorId   String         @map("advisor_id")
-  dayOfWeek   Int            @map("day_of_week") // 0=Sunday … 6=Saturday
-  startTime   String         @map("start_time")  // "09:00" HH:mm in advisor timezone
-  endTime     String         @map("end_time")    // "17:00"
-  isActive    Boolean        @default(true) @map("is_active")
-  createdAt   DateTime       @default(now()) @map("created_at")
-  updatedAt   DateTime       @updatedAt @map("updated_at")
-  advisor     AdvisorProfile @relation(fields: [advisorId], references: [id], onDelete: Cascade)
-
-  @@index([advisorId, dayOfWeek], map: "idx_avail_rule_advisor_day")
-  @@map("availability_rules")
-}
-
-model AvailabilityException {
-  id          String         @id @default(uuid())
-  advisorId   String         @map("advisor_id")
-  date        DateTime       @db.Date  // The specific date (no time component)
-  isBlackout  Boolean        @default(true) @map("is_blackout") // true=fully unavailable
-  startTime   String?        @map("start_time") // custom override start HH:mm
-  endTime     String?        @map("end_time")   // custom override end HH:mm
-  reason      String?
-  createdAt   DateTime       @default(now()) @map("created_at")
-  advisor     AdvisorProfile @relation(fields: [advisorId], references: [id], onDelete: Cascade)
-
-  @@index([advisorId, date], map: "idx_avail_exception_advisor_date")
-  @@map("availability_exceptions")
-}
-
-// ─── Bookings ─────────────────────────────────────────────────────────────────
-
-model Booking {
-  id                    String        @id @default(uuid())
-  userId                String        @map("user_id")
-  advisorId             String        @map("advisor_id")
-  ratePlanId            String?       @map("rate_plan_id")
-  estateId              String?       @map("estate_id")
-  status                BookingStatus @default(REQUESTED)
-  // Time (authoritative UTC)
-  startTime             DateTime      @map("start_time")
-  endTime               DateTime      @map("end_time")
-  durationMinutes       Int           @map("duration_minutes")
-  timezone              String        @default("America/New_York") // Executor's timezone at booking
-  // Legacy fields — kept for migration compat
-  sessionDuration       Int?          @map("session_duration")
-  sessionDate           DateTime?     @map("session_date")
-  // Money
-  totalAmount           Decimal       @map("total_amount") @db.Decimal(10, 2)
-  platformFee           Decimal       @map("platform_fee") @db.Decimal(10, 2)
-  advisorPayout         Decimal       @map("advisor_payout") @db.Decimal(10, 2)
-  currency              String        @default("USD")
-  escrowReleaseDate     DateTime?     @map("escrow_release_date")
-  payoutStatus          String        @default("UNPAID") @map("payout_status")
-  // Intake & notes
-  intakeAnswers         Json?         @map("intake_answers")
-  advisorNotes          String?       @map("advisor_notes")
-  meetingLink           String?       @map("meeting_link")
-  // Cancellation
-  cancellationReason    String?       @map("cancellation_reason")
-  cancelledBy           String?       @map("cancelled_by")
-  cancelledAt           DateTime?     @map("cancelled_at")
-  // Refund
-  refundAmount          Decimal?      @map("refund_amount") @db.Decimal(10, 2)
-  refundedAt            DateTime?     @map("refunded_at")
-  // Stripe
-  stripePaymentId       String?       @map("stripe_payment_id")
-  stripePaymentIntentId String?       @unique @map("stripe_payment_intent_id")
-  // Concurrency control
-  idempotencyKey        String?       @unique @map("idempotency_key")
-  version               Int           @default(0)
-  createdAt             DateTime      @default(now()) @map("created_at")
-  updatedAt             DateTime      @updatedAt @map("updated_at")
-  user                  User          @relation(fields: [userId], references: [id])
-  advisor               AdvisorProfile @relation(fields: [advisorId], references: [id])
-  ratePlan              AdvisorRatePlan? @relation(fields: [ratePlanId], references: [id])
-  estate                Estate?       @relation(fields: [estateId], references: [id])
-  payment               MarketplacePayment?
-  review                Review?
-  dispute               Dispute?
-
-  @@index([userId], map: "idx_booking_user")
-  @@index([advisorId], map: "idx_booking_advisor")
-  @@index([status], map: "idx_booking_status")
-  @@index([advisorId, startTime, endTime], map: "idx_booking_advisor_time")
-  @@map("bookings")
-}
-
-// ─── Payments ─────────────────────────────────────────────────────────────────
-
-model MarketplacePayment {
-  id                    String        @id @default(uuid())
-  bookingId             String        @unique @map("booking_id")
-  userId                String        @map("user_id")
-  stripePaymentIntentId String        @unique @map("stripe_payment_intent_id")
-  stripeChargeId        String?       @map("stripe_charge_id")
-  amount                Int           // cents
-  currency              String        @default("USD")
-  status                PaymentStatus @default(PENDING)
-  capturedAt            DateTime?     @map("captured_at")
-  refundedAmount        Int?          @map("refunded_amount")
-  refundedAt            DateTime?     @map("refunded_at")
-  stripeRefundId        String?       @map("stripe_refund_id")
-  metadata              Json?
-  createdAt             DateTime      @default(now()) @map("created_at")
-  updatedAt             DateTime      @updatedAt @map("updated_at")
-  booking               Booking       @relation(fields: [bookingId], references: [id])
-  user                  User          @relation(fields: [userId], references: [id])
-
-  @@index([bookingId])
-  @@index([userId])
-  @@map("marketplace_payments")
-}
-
-// ─── Disputes ─────────────────────────────────────────────────────────────────
-
-model Dispute {
-  id           String        @id @default(uuid())
-  bookingId    String        @unique @map("booking_id")
-  openedBy     String        @map("opened_by")
-  reason       String
-  description  String?       @db.Text
-  status       DisputeStatus @default(OPEN)
-  resolution   String?
-  resolvedBy   String?       @map("resolved_by")
-  resolvedAt   DateTime?     @map("resolved_at")
-  refundAmount Int?          @map("refund_amount")
-  createdAt    DateTime      @default(now()) @map("created_at")
-  updatedAt    DateTime      @updatedAt @map("updated_at")
-  booking      Booking       @relation(fields: [bookingId], references: [id])
-
-  @@index([status])
-  @@map("disputes")
-}
-
-// ─── Admin Audit Log ──────────────────────────────────────────────────────────
-
-model AdminActionLog {
-  id         String   @id @default(uuid())
-  adminId    String   @map("admin_id")
-  action     String   // APPROVE_ADVISOR, REJECT_ADVISOR, PAUSE_ADVISOR, VERIFY_DOCUMENT, RESOLVE_DISPUTE, etc.
-  targetType String   @map("target_type") // ADVISOR, BOOKING, DOCUMENT, DISPUTE
-  targetId   String   @map("target_id")
-  reason     String?
-  metadata   Json?
-  createdAt  DateTime @default(now()) @map("created_at")
-  admin      User     @relation(fields: [adminId], references: [id])
-
-  @@index([adminId])
-  @@index([targetType, targetId], map: "idx_audit_target")
-  @@index([createdAt(sort: Desc)], map: "idx_audit_created_at")
-  @@map("admin_action_logs")
-}
-
-// ─── Reviews ─────────────────────────────────────────────────────────────────
-
-model Review {
-  id         String         @id @default(uuid())
-  bookingId  String         @unique @map("booking_id")
-  userId     String         @map("user_id")
-  advisorId  String         @map("advisor_id")
-  rating     Int            // 1-5 stars
-  comment    String?        @db.Text
-  createdAt  DateTime       @default(now()) @map("created_at")
-  updatedAt  DateTime       @updatedAt @map("updated_at")
-  user       User           @relation(fields: [userId], references: [id])
-  advisor    AdvisorProfile @relation(fields: [advisorId], references: [id])
-  booking    Booking        @relation(fields: [bookingId], references: [id])
-
-  @@index([advisorId])
-  @@index([userId])
-  @@index([rating])
-  @@map("reviews")
-}
-
-// ─── Letters Dispatch Tracker ─────────────────────────────────────────────────
-// Persists the Letters Testamentary / Administration dispatch tracker to DB.
-// Replaces the previous localStorage-only implementation.
-
-model LettersDispatch {
-  id               String    @id @default(uuid())
-  estateId         String    @map("estate_id")
-  institutionName  String    @map("institution_name")
-  institutionType  String    @map("institution_type")
-  needsOriginal    Boolean   @default(false) @map("needs_original")
-  status           String    @default("not_sent")
-  sentAt           DateTime? @map("sent_at")
-  acknowledgedAt   DateTime? @map("acknowledged_at")
-  followUpDueAt    DateTime? @map("follow_up_due_at")
-  certifiedCopyRef String?   @map("certified_copy_ref")
-  notes            String?
-  isCustom         Boolean   @default(false) @map("is_custom")
-  createdAt        DateTime  @default(now()) @map("created_at")
-  updatedAt        DateTime  @updatedAt @map("updated_at")
-  estate           Estate    @relation(fields: [estateId], references: [id], onDelete: Cascade)
-
-  @@index([estateId, status])
-  @@index([estateId, followUpDueAt])
-  @@map("letters_dispatches")
-}
-
-model TokenBlacklist {
-  id        String   @id @default(cuid())
-  token     String   @unique
-  expiresAt DateTime
-  createdAt DateTime @default(now())
-
-  @@index([token])
-  @@index([expiresAt])
-  @@map("token_blacklist")
 }
 
 enum UserRole {

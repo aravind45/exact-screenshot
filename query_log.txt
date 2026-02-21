@@ -1,0 +1,31 @@
+Testing prisma.ragChunk.create...
+prisma:query SELECT "public"."rag_documents"."id", "public"."rag_documents"."sourceUri", "public"."rag_documents"."title", "public"."rag_documents"."docType"::text, "public"."rag_documents"."jurisdiction", "public"."rag_documents"."effectiveDate", "public"."rag_documents"."version", "public"."rag_documents"."ingestedAt", "public"."rag_documents"."securityTags" FROM "public"."rag_documents" WHERE 1=1 LIMIT $1 OFFSET $2
+Creating chunk...
+prisma:query INSERT INTO "public"."rag_chunks" ("id","document_id","text","token_count","content_hash","created_at","updated_at") VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING "public"."rag_chunks"."id", "public"."rag_chunks"."document_id", "public"."rag_chunks"."parent_id", "public"."rag_chunks"."heading_path", "public"."rag_chunks"."section_id", "public"."rag_chunks"."page_start", "public"."rag_chunks"."page_end", "public"."rag_chunks"."text", "public"."rag_chunks"."token_count", "public"."rag_chunks"."content_hash", "public"."rag_chunks"."created_at", "public"."rag_chunks"."updated_at"
+prisma:error 
+Invalid `prisma.ragChunk.create()` invocation in
+C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\test_prisma.ts:21:45
+
+  18 }
+  19 
+  20 console.log("Creating chunk...");
+ΓåÆ 21 const chunk = await prisma.ragChunk.create(
+The column `new` does not exist in the current database.
+FAILED: PrismaClientKnownRequestError: 
+Invalid `prisma.ragChunk.create()` invocation in
+C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\test_prisma.ts:21:45
+
+  18 }
+  19 
+  20 console.log("Creating chunk...");
+ΓåÆ 21 const chunk = await prisma.ragChunk.create(
+The column `new` does not exist in the current database.
+    at ei.handleRequestError (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\@prisma\client\src\runtime\RequestHandler.ts:228:13)
+    at ei.handleAndLogRequestError (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\@prisma\client\src\runtime\RequestHandler.ts:174:12)
+    at ei.request (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\@prisma\client\src\runtime\RequestHandler.ts:143:12)
+    at async a (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\node_modules\@prisma\client\src\runtime\getPrismaClient.ts:833:24)
+    at async test (C:\Users\aravi\Documents\AI_LLM\projects\exact-screenshot\test_prisma.ts:21:23) {
+  code: 'P2022',
+  meta: { modelName: 'RagChunk', column: 'new' },
+  clientVersion: '6.19.2'
+}

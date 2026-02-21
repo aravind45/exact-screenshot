@@ -95,9 +95,10 @@ export const TASK_ACTIONS: Record<string, TaskAction> = {
   },
   'attend_hearing': {
     type: 'navigate',
-    target: '/roadmap',
-    label: 'View Roadmap',
-    icon: 'Layout'
+    target: '/documents',
+    label: 'Gather Hearing Docs',
+    icon: 'FileText',
+    variant: 'primary'
   },
   // These are now handled by integrated UI in CollapsiblePhaseChevron
   'receive_letters': {
@@ -394,15 +395,15 @@ export const TASK_ACTIONS: Record<string, TaskAction> = {
   },
   'file_closing_statement': {
     type: 'navigate',
-    target: '/roadmap',
+    target: '/accounting',
     label: 'Generate Statement',
     icon: 'FileText',
     variant: 'primary'
   },
   'discharge_executor': {
     type: 'navigate',
-    target: '/roadmap',
-    label: 'Closing Statement',
+    target: '/distribution',
+    label: 'Track Distribution',
     icon: 'CheckCircle'
   }
 };
