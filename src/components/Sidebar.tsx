@@ -197,6 +197,7 @@ export function Sidebar() {
                 { label: "Liabilities", icon: AlertCircle, path: "/liabilities" },
                 { label: "Accounting", icon: Calculator, path: "/accounting" },
                 { label: "Final Distribution", icon: CheckCircle2, path: "/distribution" },
+                { label: "Heirs & Beneficiaries", icon: Users, path: "/heirs" },
                 ...(!isViewer ? [{ label: "Official Forms", icon: ScrollText, path: "/forms" }] : []),
                 ...(estate?.id && !isViewer ? [{ label: "Legal Research", icon: Zap, path: `/estates/${estate.id}/agents` }] : []),
             ]

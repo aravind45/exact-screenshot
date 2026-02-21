@@ -108,7 +108,7 @@ export function NextActionWidget({ estate, assets = [] }: NextActionWidgetProps)
     try {
       const recommendation = calculateAuthorityRecommendation(
         assets,
-        estate.deceasedState || "CA",
+        estate.deceasedState || "",
         {
           hasWill: estate.hasWill,
           isSpouse: estate.isSurvivingSpouse,
@@ -123,7 +123,7 @@ export function NextActionWidget({ estate, assets = [] }: NextActionWidgetProps)
       if (estate.isInternational) modifiers.push("INTERNATIONAL_MODE");
       return generateRoadmap(
         recommendation.type,
-        estate.deceasedState || "CA",
+        estate.deceasedState || "",
         modifiers,
         recommendation.activeEngines,
         estate.hasWill

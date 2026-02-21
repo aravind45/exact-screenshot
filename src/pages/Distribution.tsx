@@ -6,7 +6,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, DistributionReadiness } from "@/lib/api";
 import {
     Users, Scale, FileText, Download, ShieldAlert, FileSearch,
-    CheckCircle2, Circle, AlertCircle, ShieldCheck, Lock, Info, ArrowRight, Mail
+    CheckCircle2, Circle, AlertCircle, ShieldCheck, Lock, Info, ArrowRight, Mail,
+    XCircle, Gavel, AlertTriangle
 } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -15,11 +16,23 @@ import { RiskBanner } from "@/components/RiskBanner";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { AuthorityBadge, AuthorityType } from "@/components/AuthorityBadge";
+import { useTerminology } from "@/hooks/use-terminology";
 
 export default function Distribution() {
     const queryClient = useQueryClient();
     const { assets } = useWorkflow();
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+    // XLSX path outcome hooks — determines if distribution is legally prohibited
+    const { distributionsBlocked, isHighRisk, pathLabel, roleName, authorityType } = useTerminology();
+
+    // Get estate for state-specific labels
+    const { data: estate } = useQuery({
+        queryKey: ["estate"],
+        queryFn: api.getMyEstate,
+        retry: false,
+    });
+    const estateState = estate?.deceasedState || '';
 
     // 1. Fetch Readiness
     const { data: readiness, isLoading: isReadinessLoading } = useQuery<DistributionReadiness>({
@@ -84,9 +97,17 @@ export default function Distribution() {
     };
 
     // Safety Status logic
-    const isSafe = readiness?.status === 'ALLOWED';
-    const isRestricted = readiness?.status === 'RESTRICTED';
+    // distributionsBlocked (INSOLVENT/CONTESTED) always overrides API readiness
+    const isSafe = !distributionsBlocked && readiness?.status === 'ALLOWED';
+    const isRestricted = distributionsBlocked || readiness?.status === 'RESTRICTED';
     const isBlocked = readiness?.status === 'BLOCKED';
+
+    // Human-readable reason for the hard blocker
+    const blockerReason = authorityType === 'INSOLVENT_ESTATE'
+        ? "This estate has been classified as Insolvent (debts exceed assets). Distributions to heirs are legally prohibited until all creditors are paid in the court-mandated priority order. Distributing now exposes you to personal liability."
+        : authorityType === 'CONTESTED_ESTATE'
+        ? "This estate is under active litigation (Contested Probate). Distributions are frozen by law until the court resolves all contests. Proceeding without a court order may result in reversal and personal liability."
+        : null;
 
     return (
         <div className="flex bg-slate-50 min-h-screen">
@@ -108,6 +129,72 @@ export default function Distribution() {
                             </Badge>
                         )}
                     </header>
+
+                    {/* ══════════════════════════════════════════════════════════
+                        HARD BLOCKER BANNER — shown only for INSOLVENT / CONTESTED
+                        This takes legal precedence over the standard readiness check.
+                       ══════════════════════════════════════════════════════════ */}
+                    {distributionsBlocked && blockerReason && (
+                        <motion.div
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="p-5 rounded-2xl border-2 border-red-400 bg-red-50 shadow-lg shadow-red-100"
+                        >
+                            <div className="flex items-start gap-4">
+                                <div className="p-2.5 bg-red-100 rounded-xl flex-shrink-0">
+                                    {authorityType === 'INSOLVENT_ESTATE'
+                                        ? <AlertTriangle className="w-6 h-6 text-red-600" />
+                                        : <Gavel className="w-6 h-6 text-red-600" />
+                                    }
+                                </div>
+                                <div className="flex-1 space-y-2">
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                        <h2 className="text-lg font-black text-red-900 tracking-tight">
+                                            {authorityType === 'INSOLVENT_ESTATE'
+                                                ? "⛔ Distribution Legally Prohibited — Insolvent Estate"
+                                                : "⛔ Distribution Frozen — Active Litigation"}
+                                        </h2>
+                                        <Badge className="bg-red-600 text-white border-none text-[10px] font-black uppercase tracking-widest">
+                                            {pathLabel}
+                                        </Badge>
+                                    </div>
+                                    <p className="text-sm font-medium text-red-800 leading-relaxed">
+                                        {blockerReason}
+                                    </p>
+                                    <div className="flex flex-wrap gap-2 pt-1">
+                                        {authorityType === 'INSOLVENT_ESTATE' && (
+                                            <>
+                                                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-red-200 rounded-xl text-[11px] font-bold text-red-700">
+                                                    <XCircle className="w-3.5 h-3.5" />
+                                                    Do NOT distribute to heirs
+                                                </div>
+                                                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-red-200 rounded-xl text-[11px] font-bold text-red-700">
+                                                    <XCircle className="w-3.5 h-3.5" />
+                                                    Pay creditors in statutory priority order
+                                                </div>
+                                                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-amber-200 rounded-xl text-[11px] font-bold text-amber-700">
+                                                    <AlertTriangle className="w-3.5 h-3.5" />
+                                                    Consult a probate attorney immediately
+                                                </div>
+                                            </>
+                                        )}
+                                        {authorityType === 'CONTESTED_ESTATE' && (
+                                            <>
+                                                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-red-200 rounded-xl text-[11px] font-bold text-red-700">
+                                                    <XCircle className="w-3.5 h-3.5" />
+                                                    Await court order before any distribution
+                                                </div>
+                                                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-amber-200 rounded-xl text-[11px] font-bold text-amber-700">
+                                                    <AlertTriangle className="w-3.5 h-3.5" />
+                                                    All actions require attorney coordination
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </motion.div>
+                    )}
 
                     {/* Safety Signalling Banner & Risk Meter */}
                     <AnimatePresence mode="wait">
@@ -176,13 +263,13 @@ export default function Distribution() {
                                     </p>
 
                                     <div className="mt-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2 bg-white/50 p-2.5 rounded-2xl">
-                                        <CheckItem label="Notice Period" done={readiness.checks.noticePeriodClosed} />
-                                        <CheckItem label="Priority Claims" done={readiness.checks.allClaimsPaid} />
+                                        <CheckItem label="Notice Period" done={!distributionsBlocked && readiness.checks.noticePeriodClosed} />
+                                        <CheckItem label="Priority Claims" done={!distributionsBlocked && readiness.checks.allClaimsPaid} />
                                         <CheckItem label="Inventory Filed" done={readiness.checks.inventoryFiled} />
                                         <CheckItem label="Assets Verified" done={readiness.checks.assetsVerified} />
                                         <CheckItem
                                             label="Inst. Notice"
-                                            done={assets.filter(a =>
+                                            done={!distributionsBlocked && assets.filter(a =>
                                                 ['COURT_REQUIRED', 'TRUSTEE_DIRECT'].includes(a.authorityType)
                                             ).every(a => ['notified', 'approved', 'distributed'].includes(a.status))}
                                         />
@@ -203,7 +290,7 @@ export default function Distribution() {
                         <SummaryCard
                             title="Executor Commission"
                             value={inventoryValue > 0 ? `$${statutoryFee.toLocaleString()}` : "Pending"}
-                            subtitle="Statutory (CA Probate Code)"
+                            subtitle={estateState ? `Statutory (${estateState} Probate Code)` : "Statutory (State Probate Code)"}
                             color="emerald"
                             onCalc={() => logMutation.mutate({ eventType: 'EXECUTOR_FEES_CALCULATED' })}
                         />
@@ -254,7 +341,7 @@ export default function Distribution() {
                                     )) : (
                                         <div className="p-8 text-center border-2 border-dashed rounded-2xl">
                                             <Users className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-                                            <p className="text-sm text-slate-400">No heirs identified yet. Please update the Roadmap.</p>
+                                            <p className="text-sm text-slate-400">No heirs identified yet. <a href="/heirs" className="text-indigo-600 hover:underline font-semibold">Add heirs →</a></p>
                                         </div>
                                     )}
 
@@ -300,22 +387,41 @@ export default function Distribution() {
 
                             <div className="space-y-3">
                                 <Button
-                                    className={`w-full h-11 text-sm font-bold rounded-xl transition-all ${isSafe ? 'bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-200' : 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                                        }`}
-                                    onClick={() => isSafe && generatePdfMutation.mutate()}
-                                    disabled={!isSafe}
+                                    className={`w-full h-11 text-sm font-bold rounded-xl transition-all ${
+                                        distributionsBlocked
+                                            ? 'bg-red-100 text-red-400 cursor-not-allowed border-2 border-red-200'
+                                            : isSafe
+                                                ? 'bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-200'
+                                                : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                                    }`}
+                                    onClick={() => isSafe && !distributionsBlocked && generatePdfMutation.mutate()}
+                                    disabled={!isSafe || distributionsBlocked}
+                                    title={distributionsBlocked ? `Blocked: ${pathLabel} — distributions are legally prohibited` : undefined}
                                 >
                                     {generatePdfMutation.isPending ? (
                                         <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
                                     ) : (
                                         <>
-                                            {isSafe ? <FileText className="w-4 h-4 mr-2" /> : <Lock className="w-4 h-4 mr-2" />}
-                                            Prepare Distribution for Review
+                                            {distributionsBlocked
+                                                ? <XCircle className="w-4 h-4 mr-2" />
+                                                : isSafe
+                                                    ? <FileText className="w-4 h-4 mr-2" />
+                                                    : <Lock className="w-4 h-4 mr-2" />
+                                            }
+                                            {distributionsBlocked
+                                                ? `Blocked — ${authorityType === 'INSOLVENT_ESTATE' ? 'Insolvent Estate' : 'Litigation Hold'}`
+                                                : "Prepare Distribution for Review"
+                                            }
                                         </>
                                     )}
                                 </Button>
-                                <p className="text-center text-xs text-slate-400 font-medium">
-                                    This creates a review-ready package. No assets will be distributed yet.
+                                <p className={`text-center text-xs font-medium ${distributionsBlocked ? 'text-red-500' : 'text-slate-400'}`}>
+                                    {distributionsBlocked
+                                        ? authorityType === 'INSOLVENT_ESTATE'
+                                            ? "⛔ Creditors must be paid before any distribution to heirs."
+                                            : "⛔ Distribution frozen pending court resolution of contested claims."
+                                        : "This creates a review-ready package. No assets will be distributed yet."
+                                    }
                                 </p>
                             </div>
 

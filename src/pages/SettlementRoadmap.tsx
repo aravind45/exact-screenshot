@@ -67,7 +67,7 @@ export default function SettlementRoadmap() {
 
   const authorityRec = useMemo(() => {
     if (!estate) return null;
-    return calculateAuthorityRecommendation(assets, estate.deceasedState || "CA", {
+    return calculateAuthorityRecommendation(assets, estate.deceasedState || "", {
       hasWill: estate.hasWill,
       isSpouse: false, // Could be derived if we had more info
     });

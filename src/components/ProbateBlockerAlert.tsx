@@ -26,7 +26,7 @@ export function ProbateBlockerAlert() {
   if (probateBlockers.length === 0) return null;
 
   const track = (estate?.estateType || 'FORMAL_PROBATE') as any;
-  const stateCode = estate?.deceasedState || 'CA';
+  const stateCode = estate?.deceasedState || '';
 
   const getBlockerConfig = () => {
     const docName = getPrimaryAuthorityDocName(stateCode, track);

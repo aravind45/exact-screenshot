@@ -50,7 +50,7 @@ export function AttorneyReviewWidget({ estate, assets = [] }: AttorneyReviewWidg
   const roadmap = useMemo(() => {
     if (!estate) return [];
     try {
-      const rec = calculateAuthorityRecommendation(assets, estate.deceasedState || "CA", {
+      const rec = calculateAuthorityRecommendation(assets, estate.deceasedState || "", {
         hasWill: estate.hasWill,
         isSpouse: estate.isSurvivingSpouse,
         isOutOfState: estate.hasOutOfStateProperty,
@@ -61,7 +61,7 @@ export function AttorneyReviewWidget({ estate, assets = [] }: AttorneyReviewWidg
       });
       const mods = [...(rec.modifiers || [])];
       if (estate.isInternational) mods.push("INTERNATIONAL_MODE");
-      return generateRoadmap(rec.type, estate.deceasedState || "CA", mods, rec.activeEngines, estate.hasWill);
+      return generateRoadmap(rec.type, estate.deceasedState || "", mods, rec.activeEngines, estate.hasWill);
     } catch {
       return [];
     }

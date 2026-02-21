@@ -101,28 +101,36 @@ export async function analyzeEstateProfile(estateId: string): Promise<EstateProf
     throw new Error(`Estate ${estateId} not found`);
   }
 
-  // Calculate recommendation using the new multi-dimensional engine
-  const rec = calculateAuthorityRecommendation(estate.assets, estate.deceasedState, {
-    hasWill: estate.hasWill,
-    isOutOfState: (estate as any).isOutOfState ?? false,
-    hasMinors: estate.hasMinorBeneficiaries || estate.heirs.some(h => !h.isAdult),
-    hasContest: estate.hasContest,
-    hasTODDeed: (estate as any).hasTODDeed ?? estate.assets.some((a: any) => a.todDeedRecorded)
-  });
-
-  // Calculate Insolvency Risk
+  // Calculate insolvency FIRST so it is passed INTO calculateAuthorityRecommendation.
+  // Previously insolvency was calculated AFTER the engine call, which meant
+  // type was never set to INSOLVENT_ESTATE and the roadmap was incorrect for
+  // estates with more debts than assets.
   const totalAssets = estate.assets.reduce((sum, a: any) => sum + (Number(a.value) || 0), 0);
   const totalDebts = estate.liabilities.reduce((sum, l: any) => sum + (Number(l.amount) || 0), 0);
   const solvencyRatio = totalDebts > 0 ? (totalAssets / totalDebts) : 100;
+  const hasInsolvencyRisk = solvencyRatio < 1.0;
 
-  if (solvencyRatio < 1.0) {
-    if (!rec.modifiers.includes("INSOLVENT")) {
-      rec.modifiers.push("INSOLVENT");
-    }
-    // If insolvent, we might want to override procedure type or add active engines
-    if (!rec.activeEngines.includes("PROBATE")) {
-      rec.activeEngines.push("PROBATE"); // Insolvency usually requires court supervision
-    }
+  // Calculate recommendation using the multi-dimensional engine.
+  // All 7 XLSX dimensions must be passed here:
+  //   hasWill, isTrustRevocable, hasTODDeed, hasContest, isSpouse, isOutOfState, hasInsolvencyRisk
+  const rec = calculateAuthorityRecommendation(estate.assets, estate.deceasedState, {
+    hasWill: estate.hasWill,
+    // isTrustRevocable: schema field (nullable Boolean). undefined = no trust / not known.
+    isTrustRevocable: (estate as any).isTrustRevocable ?? undefined,
+    isOutOfState: (estate as any).isOutOfState ?? false,
+    // isSurvivingSpouse: used for spousal petition routing
+    isSpouse: (estate as any).isSurvivingSpouse ?? false,
+    hasMinors: estate.hasMinorBeneficiaries || estate.heirs.some(h => !h.isAdult),
+    hasContest: estate.hasContest,
+    hasTODDeed: (estate as any).hasTODDeed ?? estate.assets.some((a: any) => a.todDeedRecorded),
+    // Pass pre-calculated insolvency risk so the engine sets type=INSOLVENT_ESTATE correctly
+    hasInsolvencyRisk,
+  });
+
+  // Ensure INSOLVENT modifier is present and PROBATE engine active when insolvent
+  if (hasInsolvencyRisk) {
+    if (!rec.modifiers.includes("INSOLVENT")) rec.modifiers.push("INSOLVENT");
+    if (!rec.activeEngines.includes("PROBATE")) rec.activeEngines.push("PROBATE");
   }
 
   return {

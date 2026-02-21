@@ -24,7 +24,8 @@ export interface DistributionResult {
 /**
  * Intestacy Engine
  * Calculates legal distribution percentages based on state succession laws.
- * Supported: CA, TX, FL
+ * Detailed rules for: CA, TX, FL, GA, NY
+ * Generic rules for all other states based on common intestacy patterns.
  */
 export function calculateIntestacyDistribution(
     state: string,
@@ -44,9 +45,13 @@ export function calculateIntestacyDistribution(
             return calculateTXDistribution(spouse, children, parents, siblings);
         case "FL":
             return calculateFLDistribution(spouse, children, parents, siblings);
+        case "GA":
+            return calculateGADistribution(spouse, children, parents, siblings);
+        case "NY":
+            return calculateNYDistribution(spouse, children, parents, siblings);
         default:
-            // Fallback: Equal split among children or spouse
-            return fallbackDistribution(heirs);
+            // Generic distribution based on common intestacy patterns, labeled with actual state
+            return calculateGenericDistribution(state, spouse, children, parents, siblings, heirs);
     }
 }
 
@@ -109,6 +114,95 @@ function calculateFLDistribution(spouse: any, children: any[], parents: any[], s
     } else if (!spouse && children.length > 0) {
         const share = 100 / children.length;
         children.forEach(c => results.push({ heirId: c.id, percentage: share, reason: "Descendants split 100% equally (FL Stat. §732.103)" }));
+    }
+
+    return results;
+}
+
+function calculateGADistribution(spouse: any, children: any[], parents: any[], siblings: any[]): DistributionResult[] {
+    const results: DistributionResult[] = [];
+
+    // Georgia: Spouse gets equal share with children but no less than 1/3
+    if (spouse && children.length === 0 && parents.length === 0 && siblings.length === 0) {
+        results.push({ heirId: spouse.id, percentage: 100, reason: "Surviving spouse inherits 100% (O.C.G.A. § 53-2-1)" });
+    } else if (spouse && children.length > 0) {
+        // Spouse gets equal share but not less than 1/3
+        const equalShare = 100 / (children.length + 1);
+        const spouseShare = Math.max(equalShare, 33.33);
+        const remainingForChildren = 100 - spouseShare;
+        const childShare = remainingForChildren / children.length;
+        results.push({ heirId: spouse.id, percentage: spouseShare, reason: `Spouse inherits equal share, min 1/3 (O.C.G.A. § 53-2-1)` });
+        children.forEach(c => results.push({ heirId: c.id, percentage: childShare, reason: `Children split remainder equally (O.C.G.A. § 53-2-1)` }));
+    } else if (!spouse && children.length > 0) {
+        const share = 100 / children.length;
+        children.forEach(c => results.push({ heirId: c.id, percentage: share, reason: "Children split 100% equally (O.C.G.A. § 53-2-1)" }));
+    } else if (!spouse && children.length === 0 && parents.length > 0) {
+        const share = 100 / parents.length;
+        parents.forEach(p => results.push({ heirId: p.id, percentage: share, reason: "Parents inherit equally (O.C.G.A. § 53-2-1)" }));
+    } else if (!spouse && children.length === 0 && parents.length === 0 && siblings.length > 0) {
+        const share = 100 / siblings.length;
+        siblings.forEach(s => results.push({ heirId: s.id, percentage: share, reason: "Siblings inherit equally (O.C.G.A. § 53-2-1)" }));
+    }
+
+    return results;
+}
+
+function calculateNYDistribution(spouse: any, children: any[], parents: any[], siblings: any[]): DistributionResult[] {
+    const results: DistributionResult[] = [];
+
+    if (spouse && children.length === 0) {
+        results.push({ heirId: spouse.id, percentage: 100, reason: "Surviving spouse inherits 100% (NY EPTL § 4-1.1)" });
+    } else if (spouse && children.length > 0) {
+        // Spouse gets $50k + half; children split the rest
+        results.push({ heirId: spouse.id, percentage: 50, reason: "Spouse inherits first $50k + 50% of balance (NY EPTL § 4-1.1)" });
+        const childShare = 50 / children.length;
+        children.forEach(c => results.push({ heirId: c.id, percentage: childShare, reason: "Children split remaining 50% equally (NY EPTL § 4-1.1)" }));
+    } else if (!spouse && children.length > 0) {
+        const share = 100 / children.length;
+        children.forEach(c => results.push({ heirId: c.id, percentage: share, reason: "Children split 100% equally (NY EPTL § 4-1.1)" }));
+    } else if (!spouse && children.length === 0 && parents.length > 0) {
+        const share = 100 / parents.length;
+        parents.forEach(p => results.push({ heirId: p.id, percentage: share, reason: "Parents inherit equally (NY EPTL § 4-1.1)" }));
+    }
+
+    return results;
+}
+
+function calculateGenericDistribution(
+    state: string,
+    spouse: any,
+    children: any[],
+    parents: any[],
+    siblings: any[],
+    heirs: HeirInput[]
+): DistributionResult[] {
+    const results: DistributionResult[] = [];
+    const cite = `${state} intestacy law`;
+
+    // Most states follow similar patterns: spouse + children share, children-only get all, etc.
+    if (spouse && children.length === 0 && parents.length === 0 && siblings.length === 0) {
+        results.push({ heirId: spouse.id, percentage: 100, reason: `Surviving spouse inherits 100% (${cite})` });
+    } else if (spouse && children.length > 0) {
+        // Common pattern: spouse gets 50%, children split 50%
+        results.push({ heirId: spouse.id, percentage: 50, reason: `Spouse inherits ~50% (${cite} — verify with attorney)` });
+        const childShare = 50 / children.length;
+        children.forEach(c => results.push({ heirId: c.id, percentage: childShare, reason: `Children split remainder equally (${cite})` }));
+    } else if (!spouse && children.length > 0) {
+        const share = 100 / children.length;
+        children.forEach(c => results.push({ heirId: c.id, percentage: share, reason: `Children split 100% equally (${cite})` }));
+    } else if (spouse && children.length === 0 && parents.length > 0) {
+        results.push({ heirId: spouse.id, percentage: 50, reason: `Spouse inherits ~50% (${cite} — verify with attorney)` });
+        const parentShare = 50 / parents.length;
+        parents.forEach(p => results.push({ heirId: p.id, percentage: parentShare, reason: `Parents split remainder (${cite})` }));
+    } else if (!spouse && children.length === 0 && parents.length > 0) {
+        const share = 100 / parents.length;
+        parents.forEach(p => results.push({ heirId: p.id, percentage: share, reason: `Parents inherit equally (${cite})` }));
+    } else if (!spouse && children.length === 0 && parents.length === 0 && siblings.length > 0) {
+        const share = 100 / siblings.length;
+        siblings.forEach(s => results.push({ heirId: s.id, percentage: share, reason: `Siblings inherit equally (${cite})` }));
+    } else if (heirs.length > 0) {
+        const share = 100 / heirs.length;
+        heirs.forEach(h => results.push({ heirId: h.id, percentage: share, reason: `Equal distribution among identified heirs (${cite})` }));
     }
 
     return results;

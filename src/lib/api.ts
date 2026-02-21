@@ -1509,6 +1509,20 @@ export const api = {
             });
             return parseResponse(response);
         },
+        ingestMatrixXlsx: async (file: File) => {
+            const formData = new FormData();
+            formData.append("file", file);
+
+            const token = localStorage.getItem("auth_token");
+            const response = await fetch(`${API_URL}/admin/knowledge/ingest-matrix`, {
+                method: "POST",
+                headers: {
+                    ...(token ? { "Authorization": `Bearer ${token}` } : {}),
+                },
+                body: formData,
+            });
+            return parseResponse(response);
+        },
         deleteDocument: async (id: string) => {
             const response = await fetch(`${API_URL}/admin/knowledge/documents/${id}`, {
                 method: "DELETE",

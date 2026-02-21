@@ -79,7 +79,7 @@ export default function AddAsset() {
 
     const authorityPreview = useMemo(() => {
         if (!estate) return "UNSET";
-        const rule = getStateRule((estate as any).deceasedState || "CA");
+        const rule = getStateRule((estate as any).deceasedState || "");
         return getAssetAuthorityType({
             ownershipType,
             value: assetValue

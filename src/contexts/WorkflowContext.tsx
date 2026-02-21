@@ -116,7 +116,7 @@ export function WorkflowProvider({ children }: { children: ReactNode }) {
   const roadmap = useMemo(() => {
     if (!estate) return [];
 
-    const recommendation = calculateAuthorityRecommendation(assets, estate.deceasedState || 'CA', {
+    const recommendation = calculateAuthorityRecommendation(assets, estate.deceasedState || '', {
       hasWill: estate.hasWill,
       isSpouse: estate.isSurvivingSpouse,
       isOutOfState: estate.hasOutOfStateProperty,
@@ -129,7 +129,7 @@ export function WorkflowProvider({ children }: { children: ReactNode }) {
     const modifiers = [...(recommendation.modifiers || [])];
     if (estate.isInternational) modifiers.push("INTERNATIONAL_MODE");
 
-    return generateRoadmap(recommendation.type, estate.deceasedState || 'CA', modifiers, recommendation.activeEngines, estate.hasWill);
+    return generateRoadmap(recommendation.type, estate.deceasedState || '', modifiers, recommendation.activeEngines, estate.hasWill);
   }, [estate, assets]);
 
   // Calculate phase progress based on actual roadmap

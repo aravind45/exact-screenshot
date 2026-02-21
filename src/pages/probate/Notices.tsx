@@ -87,7 +87,7 @@ export default function Notices() {
 
   if (!estate) return <div className="p-8">Loading...</div>;
 
-  const stateCode = estate.deceasedState || "CA";
+  const stateCode = estate.deceasedState || "";
   const creditorRules =
     STATE_CREDITOR_PERIODS[stateCode] || STATE_CREDITOR_PERIODS.DEFAULT;
   const hearingStatus = hearingData.hearingDate ? "scheduled" : "pending";

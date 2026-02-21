@@ -428,7 +428,7 @@ export default function ProfileSettings() {
                                                     isSpouse: estate.isSurvivingSpouse ? 'yes' : 'no',
                                                     debtStatus: (Number(estate.estimatedLiabilities || 0) > Number(estate.estimatedPersonalProperty || 0)) ? 'insolvent' : 'solvent'
                                                 };
-                                                const pathResult = determinePath(userAnswers, estate.deceasedState || "CA");
+                                                const pathResult = determinePath(userAnswers, estate.deceasedState || "");
 
                                                 return (
                                                     <div className="p-5 rounded-2xl bg-primary/5 border border-primary/10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">

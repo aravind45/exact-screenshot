@@ -128,7 +128,7 @@ export default function PetitionWizard() {
                                             </div>
                                             <div className="space-y-2">
                                                 <Label>Residence at Death (State)</Label>
-                                                <Input defaultValue={estate.deceasedState || "CA"} onBlur={(e) => updateEst.mutate({ deceasedState: e.target.value })} />
+<Input defaultValue={estate.deceasedState || ""} placeholder="e.g. GA" onBlur={(e) => updateEst.mutate({ deceasedState: e.target.value })} />
                                             </div>
                                         </div>
                                     </motion.div>

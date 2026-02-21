@@ -466,7 +466,7 @@ export default function AssetDetail() {
 
   const CategoryIcon = getCategoryIcon(uiAsset.category);
 
-  const rec = calculateAuthorityRecommendation(assets || [], estate?.deceasedState || "CA");
+  const rec = calculateAuthorityRecommendation(assets || [], estate?.deceasedState || "");
 
   const authReq = getInstitutionAuthorityRequirement(
 

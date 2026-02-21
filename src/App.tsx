@@ -71,6 +71,7 @@ const Accounting = lazy(() => import("./pages/Accounting"));
 const TaxManagement = lazy(() => import("./pages/TaxManagement"));
 const Receipts = lazy(() => import("./pages/Receipts"));
 const Distribution = lazy(() => import("./pages/Distribution"));
+const Heirs = lazy(() => import("./pages/Heirs"));
 const NonProbate = lazy(() => import("./pages/NonProbate"));
 
 // Admin
@@ -246,7 +247,7 @@ const App = () => (
 
                       <Route path="/discovery" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><ProfileGuard><SubscriptionGuard><Discovery /></SubscriptionGuard></ProfileGuard></RoleRoute></ProtectedRoute>} />
                       <Route path="/liabilities" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><ProfileGuard><SubscriptionGuard><Liabilities /></SubscriptionGuard></ProfileGuard></RoleRoute></ProtectedRoute>} />
-                      {/* <Route path="/heirs" element={<ProtectedRoute><ProfileGuard><Heirs /></ProfileGuard></ProtectedRoute>} /> */}
+                      <Route path="/heirs" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><ProfileGuard><SubscriptionGuard><Heirs /></SubscriptionGuard></ProfileGuard></RoleRoute></ProtectedRoute>} />
                       {/* <Route path="/collaboration" element={<ProtectedRoute><ProfileGuard><Collaboration /></ProfileGuard></ProtectedRoute>} /> */}
 
                       {/* Financials */}

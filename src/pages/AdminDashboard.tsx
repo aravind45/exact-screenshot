@@ -736,6 +736,20 @@ function KnowledgeManager() {
         }
     });
 
+    const ingestMatrixMutation = useMutation({
+        mutationFn: (file: File) => api.adminKnowledge.ingestMatrixXlsx(file),
+        onSuccess: () => {
+            toast({
+                title: "Matrix Ingestion Complete",
+                description: "Matrix data has been successfully imported and processed.",
+            });
+            queryClient.invalidateQueries({ queryKey: ["admin", "knowledge"] });
+        },
+        onError: (err: any) => {
+            toast({ variant: "destructive", title: "Matrix Ingestion Failed", description: err.message });
+        }
+    });
+
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -747,6 +761,21 @@ function KnowledgeManager() {
             if (!sourceName) setSourceName(file.name.replace(".txt", ""));
         };
         reader.readAsText(file);
+    };
+
+    const handleMatrixFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        toast({
+            title: "Ingesting Matrix",
+            description: "Please wait while the matrix file is processed...",
+        });
+
+        ingestMatrixMutation.mutate(file);
+
+        // Reset file input
+        e.target.value = '';
     };
 
     return (
@@ -801,12 +830,27 @@ function KnowledgeManager() {
                                 id="rag-file-upload"
                                 onChange={handleFileUpload}
                             />
-                            <Button variant="outline" size="sm" asChild>
-                                <label htmlFor="rag-file-upload" className="cursor-pointer">
-                                    <ExternalLink className="w-4 h-4 mr-2" />
-                                    Import .txt
-                                </label>
-                            </Button>
+                            <Input
+                                type="file"
+                                accept=".xlsx"
+                                className="hidden"
+                                id="matrix-file-upload"
+                                onChange={handleMatrixFileUpload}
+                            />
+                            <div className="flex gap-2">
+                                <Button variant="outline" size="sm" asChild>
+                                    <label htmlFor="rag-file-upload" className="cursor-pointer">
+                                        <ExternalLink className="w-4 h-4 mr-2" />
+                                        Import .txt
+                                    </label>
+                                </Button>
+                                <Button variant="secondary" size="sm" asChild>
+                                    <label htmlFor="matrix-file-upload" className="cursor-pointer">
+                                        <Database className="w-4 h-4 mr-2" />
+                                        Import Matrix (.xlsx)
+                                    </label>
+                                </Button>
+                            </div>
                         </div>
                     </div>
                 </CardHeader>

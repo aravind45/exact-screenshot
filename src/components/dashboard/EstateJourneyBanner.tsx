@@ -94,7 +94,7 @@ export function EstateJourneyBanner({ estate, assets = [] }: EstateJourneyBanner
         try {
             const recommendation = calculateAuthorityRecommendation(
                 assets,
-                estate.deceasedState || "CA",
+                estate.deceasedState || "",
                 {
                     hasWill: estate.hasWill,
                     isSpouse: estate.isSurvivingSpouse,
@@ -109,7 +109,7 @@ export function EstateJourneyBanner({ estate, assets = [] }: EstateJourneyBanner
             if (estate.isInternational) modifiers.push("INTERNATIONAL_MODE");
             return generateRoadmap(
                 recommendation.type,
-                estate.deceasedState || "CA",
+                estate.deceasedState || "",
                 modifiers,
                 recommendation.activeEngines,
                 estate.hasWill

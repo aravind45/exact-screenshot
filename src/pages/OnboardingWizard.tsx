@@ -145,6 +145,11 @@ export default function OnboardingWizard() {
         }
     }, [estate]);
 
+    // Insolvency risk: debts exceed assets — MUST be detected before authorityEngine call
+    const estAssets = parseFloat(estateData.estimatedValue) || 0;
+    const estDebts = parseFloat(estateData.estimatedDebt) || 0;
+    const hasInsolvencyRisk = estDebts > 0 && estAssets > 0 && estDebts >= estAssets;
+
     const recommendation = calculateAuthorityRecommendation(
         [], // No actual assets yet, just using estimates
         estateData.location,
@@ -152,10 +157,11 @@ export default function OnboardingWizard() {
             hasWill: estateData.hasWill,
             isSpouse: estateData.isSpouse,
             isOutOfState: estateData.isOutOfState,
-            estimatedValue: parseFloat(estateData.estimatedValue) || 0,
+            estimatedValue: estAssets,
             isTrustRevocable: estateData.hasTrust ? estateData.isTrustRevocable : undefined,
             hasTODDeed: estateData.hasTODDeed,
-            hasContest: estateData.hasContest
+            hasContest: estateData.hasContest,
+            hasInsolvencyRisk,  // ← CRITICAL: required for INSOLVENT_ESTATE routing
         }
     );
 
@@ -178,7 +184,13 @@ export default function OnboardingWizard() {
                     deceasedState: estateData.location,
                     estimatedPersonalProperty: parseFloat(estateData.estimatedValue) || 0,
                     estimatedLiabilities: parseFloat(estateData.estimatedDebt) || 0,
-                    hasContest: estateData.hasContest
+                    hasContest: estateData.hasContest,
+                    // XLSX dimensions captured on this step — save all 7 here
+                    hasWill: estateData.hasWill,
+                    isSurvivingSpouse: estateData.isSpouse,
+                    hasTODDeed: estateData.hasTODDeed,
+                    isOutOfState: estateData.isOutOfState,
+                    isTrustRevocable: estateData.hasTrust ? estateData.isTrustRevocable : null,
                 });
                 // Re-fetch to guarantee estate.id is populated for all subsequent steps
                 if (!estate?.id) {
@@ -199,11 +211,14 @@ export default function OnboardingWizard() {
                     estateType: recommendation.type,
                     authorityType: recommendation.type,
                     hasUnknownHeirs: estateData.hasUnknownHeirs,
+                    // All 7 XLSX dimensions confirmed/re-saved at track assignment
+                    hasWill: estateData.hasWill,
                     isTrustRevocable: estateData.hasTrust ? estateData.isTrustRevocable : null,
                     hasContest: estateData.hasContest,
                     hasTODDeed: estateData.hasTODDeed,
                     isSurvivingSpouse: estateData.isSpouse,
-                    hasOutOfStateProperty: estateData.isOutOfState
+                    hasOutOfStateProperty: estateData.isOutOfState,
+                    isOutOfState: estateData.isOutOfState,
                 });
 
                 // Auto-complete the eligibility task so it doesn't show up as a redundant task on the dashboard

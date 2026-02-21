@@ -6,8 +6,10 @@ import { KnowledgeService } from "../services/knowledgeService.js";
 import { z } from "zod";
 import { logger } from "../lib/logger.js";
 import { RoleUtils } from "../utils/userUtils.js";
+import multer from 'multer';
 
 const router = Router();
+const upload = multer({ storage: multer.memoryStorage() });
 
 const AUTHORIZED_ADMINS = ['aravind45@gmail.com'];
 
@@ -501,6 +503,20 @@ router.post("/knowledge/ingest", isAdmin, async (req, res) => {
         if (error instanceof z.ZodError) return res.status(400).json({ error: "Invalid ingestion request", details: error.errors });
         logger.error("Ingestion error:", error.message);
         res.status(500).json({ error: "Failed to ingest text" });
+    }
+});
+
+router.post("/knowledge/ingest-matrix", isAdmin, upload.single("file"), async (req: any, res: Response) => {
+    try {
+        if (!req.file || !req.file.buffer) {
+            return res.status(400).json({ error: "Missing file upload. Please provide an Excel (.xlsx) file." });
+        }
+
+        const result = await KnowledgeService.ingestMatrixXlsx(req.file.buffer);
+        res.json(result);
+    } catch (error: any) {
+        logger.error("Matrix ingestion error:", error.message);
+        res.status(500).json({ error: "Failed to ingest matrix: " + error.message });
     }
 });
 
