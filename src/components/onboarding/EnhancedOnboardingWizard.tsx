@@ -180,7 +180,8 @@ export function EnhancedOnboardingWizard({ onComplete, className }: EnhancedOnbo
                 hasContest: answers.hasContest === 'yes',
                 isOutOfState: answers.isOutOfState === 'yes',
                 isSpouse: answers.isSpouse === 'yes',
-                hasInsolvencyRisk: answers.debtStatus === 'insolvent'
+                hasInsolvencyRisk: answers.debtStatus === 'insolvent',
+                name: `${user?.fullName || 'User'}'s Estate` // Add required name field
             });
 
             // Invalidate relevant queries
