@@ -66,7 +66,8 @@ export const AuthService = {
                         deceasedFirstName: "",
                         deceasedLastName: "Estate",
                         deceasedState: state || "CA", // Default to CA if unset
-                        status: "active"
+                        status: "active",
+                        name: `${user.fullName}'s Estate` // Add required name field
                     } as any
                 });
                 logger.debug(`✅ [AUTH] Skeleton estate created for user: ${user.id}`);
