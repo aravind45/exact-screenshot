@@ -127,8 +127,24 @@ export function calculateAuthorityRecommendation(assets, state, metadata) {
     else {
         authoritySource = "BENEFICIARY_TRANSFER";
     }
-    // PROCEDURE TYPE
-    if (metadata?.isOutOfState) {
+    // PROCEDURE TYPE DETERMINATION (Definitive Hierarchy from Excel)
+    if (metadata?.hasInsolvencyRisk) {
+        procedureType = "FORMAL_PROBATE"; // Usually requires court oversight
+        type = "INSOLVENT_ESTATE";
+    }
+    else if (activeEngines.includes("TRUST")) {
+        procedureType = "TRUST_ADMINISTRATION";
+        type = metadata?.isTrustRevocable === false ? "TRUST_ADMIN_IRREVOCABLE" : "TRUST_ADMIN_REVOCABLE";
+    }
+    else if (metadata?.hasWill === false) {
+        procedureType = "FORMAL_PROBATE";
+        type = "INTESTATE";
+    }
+    else if (metadata?.hasContest) {
+        procedureType = "FORMAL_PROBATE";
+        type = "CONTESTED_ESTATE";
+    }
+    else if (metadata?.isOutOfState) {
         procedureType = "ANCILLARY_PROBATE";
         type = "ANCILLARY_PROBATE";
     }
@@ -136,7 +152,7 @@ export function calculateAuthorityRecommendation(assets, state, metadata) {
         procedureType = "SPOUSAL_PETITION";
         type = "SPOUSAL_PETITION";
     }
-    else if (probateTotal > threshold) {
+    else if (metadata?.hasWill === true || probateTotal > threshold) {
         if (rule.isUPC && metadata?.hasWill && !metadata?.hasContest) {
             procedureType = "INFORMAL_PROBATE";
             type = "INFORMAL_PROBATE";
@@ -147,10 +163,10 @@ export function calculateAuthorityRecommendation(assets, state, metadata) {
         }
         else {
             procedureType = "FORMAL_PROBATE";
-            type = metadata?.hasWill === false ? "INTESTATE" : "FORMAL_PROBATE";
+            type = "FORMAL_PROBATE";
         }
     }
-    else if (probateTotal > 0) {
+    else if (probateTotal > 0 || isEligibleForSmallEstate) {
         if (state === "FL" && probateTotal < 75000)
             procedureType = "SUMMARY_ADMINISTRATION";
         else if (state === "NY" && probateTotal < 50000)
@@ -158,10 +174,6 @@ export function calculateAuthorityRecommendation(assets, state, metadata) {
         else
             procedureType = "SMALL_ESTATE_AFFIDAVIT";
         type = "SMALL_ESTATE";
-    }
-    else if (activeEngines.includes("TRUST")) {
-        procedureType = "TRUST_ADMINISTRATION";
-        type = metadata?.isTrustRevocable === false ? "TRUST_ADMIN_IRREVOCABLE" : "TRUST_ADMIN_REVOCABLE";
     }
     else if (activeEngines.includes("TOD_DEED") || activeEngines.includes("POD_TOD_ACCOUNTS")) {
         procedureType = "DIRECT_TRANSFER";

@@ -18,13 +18,19 @@ import { ArrowLeft, Save, User, UserCircle, Briefcase, MapPin, Mail, Loader2, Sh
 import { motion } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Sidebar } from "@/components/Sidebar";
-
 import { US_STATES } from "@/lib/states";
+import { determinePath, UserAnswers } from "@/lib/pathEngine";
+import { Scale, Clock, AlertTriangle, HelpCircle, FileCheck, Landmark, Shield } from "lucide-react";
 
 export default function ProfileSettings() {
     const navigate = useNavigate();
     const { toast } = useToast();
     const queryClient = useQueryClient();
+
+    const { data: estate, isLoading: isEstateLoading } = useQuery({
+        queryKey: ["my-estate"],
+        queryFn: () => api.getMyEstate(),
+    });
     const [formData, setFormData] = useState({
         fullName: "",
         state: "",
@@ -336,6 +342,129 @@ export default function ProfileSettings() {
                                 </Card>
                             </motion.div>
 
+                            {/* Estate Case Configuration Section */}
+                            {!isEstateLoading && estate && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.05 }}
+                                >
+                                    <Card className="card-elevated border-none overflow-hidden relative">
+                                        <div className="absolute top-0 right-0 p-6 opacity-5">
+                                            <Scale className="w-24 h-24 text-primary -rotate-12" />
+                                        </div>
+                                        <CardHeader>
+                                            <CardTitle className="flex items-center gap-2">
+                                                <Shield className="w-5 h-5 text-primary" />
+                                                Estate Case Configuration
+                                            </CardTitle>
+                                            <CardDescription>
+                                                The signals below drive your unique settlement roadmap and legal requirements.
+                                            </CardDescription>
+                                        </CardHeader>
+                                        <CardContent className="space-y-6">
+                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                                <SignalCard
+                                                    icon={<FileCheck className="w-4 h-4" />}
+                                                    label="Will"
+                                                    value={estate.hasWill ? "Present" : "None Found"}
+                                                    active={estate.hasWill}
+                                                />
+                                                <SignalCard
+                                                    icon={<Landmark className="w-4 h-4" />}
+                                                    label="Trust"
+                                                    value={estate.isTrustRevocable !== null ? (estate.isTrustRevocable ? "Living Trust" : "Irrevocable") : "None"}
+                                                    active={estate.isTrustRevocable !== null}
+                                                />
+                                                <SignalCard
+                                                    icon={<UserCircle className="w-4 h-4" />}
+                                                    label="Spouse"
+                                                    value={estate.isSurvivingSpouse ? "Yes" : "No"}
+                                                    active={estate.isSurvivingSpouse}
+                                                />
+                                                <SignalCard
+                                                    icon={<MapPin className="w-4 h-4" />}
+                                                    label="Ancillary"
+                                                    value={estate.hasOutOfStateProperty ? "Multi-State" : "Single State"}
+                                                    active={estate.hasOutOfStateProperty}
+                                                />
+                                                <SignalCard
+                                                    icon={<AlertTriangle className="w-4 h-4" />}
+                                                    label="Debt Risk"
+                                                    value={(Number(estate.estimatedLiabilities || 0) > Number(estate.estimatedPersonalProperty || 0)) ? "High Risk" : "Normal"}
+                                                    variant={(Number(estate.estimatedLiabilities || 0) > Number(estate.estimatedPersonalProperty || 0)) ? "danger" : "default"}
+                                                    active={(Number(estate.estimatedLiabilities || 0) > Number(estate.estimatedPersonalProperty || 0))}
+                                                />
+                                                <SignalCard
+                                                    icon={<Scale className="w-4 h-4" />}
+                                                    label="Contest"
+                                                    value={estate.hasContest ? "Disputed" : "No Conflict"}
+                                                    variant={estate.hasContest ? "danger" : "default"}
+                                                    active={estate.hasContest}
+                                                />
+                                                <SignalCard
+                                                    icon={<FileCheck className="w-4 h-4" />}
+                                                    label="TOD Deed"
+                                                    value={estate.hasTODDeed ? "Active" : "None"}
+                                                    active={estate.hasTODDeed}
+                                                />
+                                                <SignalCard
+                                                    icon={<AlertTriangle className="w-4 h-4" />}
+                                                    label="Heirs"
+                                                    value={estate.hasUnknownHeirs ? "Unknown" : "Verified"}
+                                                    active={!estate.hasUnknownHeirs}
+                                                />
+                                            </div>
+
+                                            {(() => {
+                                                const userAnswers: UserAnswers = {
+                                                    hasWill: estate.hasWill ? 'yes' : 'no',
+                                                    hasTrust: estate.isTrustRevocable !== null ? 'yes' : 'no',
+                                                    trustType: estate.isTrustRevocable === true ? 'revocable' :
+                                                        estate.isTrustRevocable === false ? 'irrevocable' : 'none',
+                                                    hasTODDeed: estate.hasTODDeed ? 'yes' : 'no',
+                                                    hasContest: estate.hasContest ? 'yes' : 'no',
+                                                    isOutOfState: estate.hasOutOfStateProperty ? 'yes' : 'no',
+                                                    isSpouse: estate.isSurvivingSpouse ? 'yes' : 'no',
+                                                    debtStatus: (Number(estate.estimatedLiabilities || 0) > Number(estate.estimatedPersonalProperty || 0)) ? 'insolvent' : 'solvent'
+                                                };
+                                                const pathResult = determinePath(userAnswers, estate.deceasedState || "CA");
+
+                                                return (
+                                                    <div className="p-5 rounded-2xl bg-primary/5 border border-primary/10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                                                        <div className="space-y-1">
+                                                            <p className="text-[10px] font-bold uppercase tracking-widest text-primary/60">Recommended Settlement Path</p>
+                                                            <h4 className="text-lg font-bold text-primary flex items-center gap-2">
+                                                                <Scale className="w-5 h-5" />
+                                                                {pathResult.pathLabel}
+                                                            </h4>
+                                                            <div className="flex flex-wrap gap-4 mt-2">
+                                                                <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-white/50 px-2 py-1 rounded-md border">
+                                                                    <Clock className="w-3.5 h-3.5 text-amber-500" />
+                                                                    Est. {pathResult.timeline}
+                                                                </div>
+                                                                <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-white/50 px-2 py-1 rounded-md border">
+                                                                    <HelpCircle className="w-3.5 h-3.5 text-indigo-500" />
+                                                                    {pathResult.complexity} Complexity
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={() => navigate("/onboarding?step=1")}
+                                                            className="border-primary/20 text-primary hover:bg-primary/5 font-bold h-10 px-6 rounded-xl"
+                                                        >
+                                                            Refine Situation
+                                                        </Button>
+                                                    </div>
+                                                );
+                                            })()}
+                                        </CardContent>
+                                    </Card>
+                                </motion.div>
+                            )}
+
                             <motion.div
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
@@ -450,6 +579,37 @@ export default function ProfileSettings() {
                     </div>
                 </main>
             </div>
+        </div>
+    );
+}
+
+function SignalCard({ icon, label, value, active, variant = "default" }: {
+    icon: React.ReactNode,
+    label: string,
+    value: string,
+    active: boolean,
+    variant?: "default" | "danger"
+}) {
+    return (
+        <div className={cn(
+            "p-3 rounded-xl border flex flex-col gap-1 transition-all",
+            active
+                ? (variant === "danger" ? "bg-rose-50 border-rose-100 ring-4 ring-rose-50/50" : "bg-primary/5 border-primary/10 ring-4 ring-primary/5")
+                : "bg-muted/30 border-border/50 grayscale opacity-70"
+        )}>
+            <div className={cn(
+                "w-7 h-7 rounded-lg flex items-center justify-center mb-1",
+                active
+                    ? (variant === "danger" ? "bg-rose-100 text-rose-600" : "bg-primary/10 text-primary")
+                    : "bg-muted text-muted-foreground"
+            )}>
+                {icon}
+            </div>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{label}</p>
+            <p className={cn(
+                "text-xs font-bold leading-none truncate",
+                active ? (variant === "danger" ? "text-rose-700" : "text-primary") : "text-muted-foreground"
+            )}>{value}</p>
         </div>
     );
 }
