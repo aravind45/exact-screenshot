@@ -57,10 +57,12 @@ export const AuthService = {
                 await prisma.estate.create({
                     data: {
                         userId: user.id,
+                        name: `${user.fullName}'s Estate`,
                         deceasedFirstName: "",
                         deceasedLastName: "Estate",
                         deceasedState: state || "CA", // Default to CA if unset
-                        status: "active"
+                        status: "active",
+                        deceasedDateOfDeath: new Date() // Add required field
                     }
                 });
                 logger.debug(`✅ [AUTH] Skeleton estate created for user: ${user.id}`);

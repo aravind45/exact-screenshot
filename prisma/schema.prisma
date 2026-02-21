@@ -64,7 +64,7 @@ model Estate {
   deceasedLastName          String               @map("deceased_last_name")
   deceasedSsn               String?              @map("deceased_ssn")
   deceasedDateOfBirth       DateTime?            @map("deceased_date_of_birth")
-  deceasedDateOfDeath       DateTime             @map("deceased_date_of_death")
+  deceasedDateOfDeath       DateTime?            @map("deceased_date_of_death")
   deceasedState             String               @map("deceased_state")
   estateType                String?              @map("estate_type")
   authorityType             String               @default("UNSET") @map("authority_type")
