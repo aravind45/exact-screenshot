@@ -242,7 +242,7 @@ export default function AssetDetail() {
 
   // Calculate follow-up metrics
   const lastContact = communications
-    .filter(c => c.direction === 'outbound')
+    .filter(c => c.direction === 'OUTBOUND')
     .sort((a, b) => new Date(b.occurredAt).getTime() - new Date(a.occurredAt).getTime())[0];
 
   const daysSinceContact = lastContact

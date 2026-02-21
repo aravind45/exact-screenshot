@@ -5,6 +5,34 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ─── Mobile: zero out sidebar margins on small screens ─────────────────────
+   The sidebar becomes a slide-in drawer on mobile (<768px).
+   All dashboard pages use ml-64 or ml-[220px] for desktop layout.
+   These overrides ensure full-width content on mobile without touching
+   individual page files. Also adds top padding for the hamburger button.
+   ─────────────────────────────────────────────────────────────────────────── */
+@media (max-width: 767px) {
+  .ml-64,
+  .ml-\[220px\],
+  .ml-\[256px\] {
+    margin-left: 0 !important;
+  }
+
+  /* Give page content breathing room so the hamburger button doesn't overlap */
+  .ml-64 > *:first-child,
+  .ml-\[220px\] > *:first-child,
+  .flex-1.ml-64,
+  .flex-1.ml-\[220px\] {
+    padding-top: 0;
+  }
+
+  /* Mobile top safe area — prevent hamburger overlapping sticky headers */
+  header.sticky.top-0,
+  header[class*="sticky"] {
+    padding-left: 3.5rem !important; /* 56px — clears the hamburger button */
+  }
+}
+
 /* ExpectedEstate Design System
    A calm, empathetic design language for estate settlement
    Colors are intentionally soft and reassuring

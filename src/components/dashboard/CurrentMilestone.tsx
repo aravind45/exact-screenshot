@@ -73,7 +73,7 @@ export function CurrentMilestone({ currentPhase, progress, completedTaskIds = []
                             </div>
                             <h2 className="text-3xl font-black text-slate-900 tracking-tight">{phaseData.title}</h2>
                             <p className="text-slate-600 leading-relaxed font-medium">
-                                {phaseData.subtitle} • {phaseData.duration}
+                                {phaseData.subtitle} • {phaseData.milestone}
                             </p>
                         </div>
 

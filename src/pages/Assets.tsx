@@ -642,7 +642,7 @@ export default function Assets() {
                                         ).map(([category, count]) => (
                                             <div key={category} className="flex justify-between text-xs">
                                                 <span className="text-slate-500 capitalize">{category}</span>
-                                                <span className="font-black">{count}</span>
+                                                <span className="font-black">{count as number}</span>
                                             </div>
                                         ))}
                                     </div>

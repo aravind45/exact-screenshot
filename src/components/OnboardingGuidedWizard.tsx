@@ -331,28 +331,28 @@ export default function OnboardingGuidedWizard() {
     const updateField = (field: keyof GuidedFormData, value: string | boolean | null) => {
         setFormData(prev => ({
             ...prev,
-            [field]: { ...prev[field as keyof GuidedFormData], value }
+            [field]: { ...(prev[field as keyof GuidedFormData] as object), value }
         }));
     };
 
     const toggleClarification = (field: keyof GuidedFormData) => {
         setFormData(prev => ({
             ...prev,
-            [field]: { 
-                ...prev[field as keyof GuidedFormData], 
-                clarificationOpen: !prev[field as keyof GuidedFormData].clarificationOpen 
+            [field]: {
+                ...(prev[field as keyof GuidedFormData] as object),
+                clarificationOpen: !(prev[field as keyof GuidedFormData] as any).clarificationOpen
             }
         }));
     };
 
     const handleClarificationAnswer = (field: keyof GuidedFormData, answer: string) => {
-        setFormData(prev => ({
-            ...prev,
-            [field]: { 
-                ...prev[field as keyof GuidedFormData], 
-                clarificationAnswer: answer 
+        setFormData(prev => {
+            const existing = prev[field as keyof GuidedFormData];
+            if (typeof existing === 'object' && existing !== null) {
+                return { ...prev, [field]: { ...existing, clarificationAnswer: answer } };
             }
-        }));
+            return prev;
+        });
     };
 
     return (

@@ -260,7 +260,7 @@ export default function Inbox() {
                                             <div className="flex items-center gap-3">
                                                 <Badge className={cn(
                                                     "px-3 py-1 font-black uppercase text-[10px] tracking-widest border-none",
-                                                    selectedMessage.direction === 'inbound' ? "bg-emerald-500 text-white" : "bg-indigo-500 text-white"
+                                    selectedMessage.direction === 'INBOUND' ? "bg-emerald-500 text-white" : "bg-indigo-500 text-white"
                                                 )}>
                                                     {selectedMessage.direction} {selectedMessage.type}
                                                 </Badge>
@@ -271,7 +271,7 @@ export default function Inbox() {
                                                 )}
                                             </div>
                                             <h2 className="text-3xl font-black text-slate-900 tracking-tight leading-none">
-                                                {selectedMessage.subject || (selectedMessage.type === 'call' ? 'Call Summary' : 'Interaction Details')}
+                                {selectedMessage.subject || (selectedMessage.type === 'CALL' ? 'Call Summary' : 'Interaction Details')}
                                             </h2>
                                             <div className="flex items-center gap-2 text-sm text-slate-500 font-medium">
                                                 < Landmark className="w-4 h-4" />

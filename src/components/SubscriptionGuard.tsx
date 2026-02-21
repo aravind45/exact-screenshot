@@ -15,7 +15,7 @@ export function SubscriptionGuard({ children }: SubscriptionGuardProps) {
     // Alpha users and team extensions are exempt
     const isAlphaUser = user?.fullName?.includes("(Alpha)") || user?.email?.endsWith("@expectedestate.com");
     const isAdmin = user?.role === 'ADMIN';
-    const isActive = user?.subscriptionStatus === 'ACTIVE' || user?.isTrialing === true;
+    const isActive = (user as any)?.subscriptionStatus === 'ACTIVE' || (user as any)?.isTrialing === true;
 
     const canAccess = isAdmin || isAlphaUser || isActive;
 

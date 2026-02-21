@@ -1,6 +1,7 @@
 import { Check, Clock, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { SettlementPhase } from "@/config/settlementPhases";
+export type { SettlementPhase } from "@/config/settlementPhases";
 
 export interface PhaseConfig {
   id: SettlementPhase;

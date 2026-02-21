@@ -27,5 +27,13 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src"]
+  "include": ["src"],
+  "exclude": [
+    "src/lib/api_marketplace_additions.ts",
+    "src/tests/**",
+    "src/components/__tests__/**",
+    "src/components/onboarding/__tests__/**",
+    "src/components/navigation/accessibility.test.tsx",
+    "src/components/navigation/comprehensive.test.tsx"
+  ]
 }

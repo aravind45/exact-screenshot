@@ -63,14 +63,7 @@ export default function PetitionWizard() {
 
     const handleDownload = async () => {
         try {
-            const blob = await api.getPetitionPdf();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = "DE-111_Petition.pdf";
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
+            await api.getPetitionPdf("DE-111_Petition.pdf");
             toast({ title: "Downloaded", description: "Form DE-111 has been generated." });
         } catch (e) {
             toast({ variant: "destructive", title: "Download Failed", description: "Could not generate PDF." });

@@ -76,7 +76,8 @@ export default function AdvisorOnboarding() {
   const [langInput, setLangInput] = useState('');
 
   const saveMutation = useMutation({
-    mutationFn: async (payload: any) =      const res = await fetch('/api/advisor/submit-review', {
+    mutationFn: async (payload: any) => {
+      const res = await fetch('/api/advisor/submit-review', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...(api.getToken() ? { Authorization: 'Bearer ' + api.getToken() } : {}) },
         body: JSON.stringify(payload),
