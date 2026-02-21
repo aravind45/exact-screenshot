@@ -22,19 +22,22 @@ const mockApi = api as any;
 const mockNavigate = vi.fn();
 
 // Mock AuthContext
-const mockAuthContext = {
-    user: { state: 'CA' } as any,
-    loading: false,
-    isAdmin: false,
-    isAdvisor: false,
-    isAttorney: false,
-    isExecutor: false,
-    isHeir: false,
-    signIn: vi.fn(),
-    signUp: vi.fn(),
-    signOut: vi.fn(),
-    refreshUser: vi.fn()
-};
+vi.mock('@/contexts/AuthContext', () => ({
+    AuthProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+    useAuth: () => ({
+        user: { state: 'CA' } as any,
+        loading: false,
+        isAdmin: false,
+        isAdvisor: false,
+        isAttorney: false,
+        isExecutor: false,
+        isHeir: false,
+        signIn: vi.fn(),
+        signUp: vi.fn(),
+        signOut: vi.fn(),
+        refreshUser: vi.fn()
+    })
+}));
 
 const createTestComponent = (props = {}) => {
     const queryClient = new QueryClient({

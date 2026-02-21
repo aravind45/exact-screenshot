@@ -5,12 +5,13 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Loader2, AlertCircle, CheckCircle2, HelpCircle } from 'lucide-react';
+import { Loader2, AlertCircle, CheckCircle2, HelpCircle, RefreshCw } from 'lucide-react';
 import { determinePath } from '@/lib/pathEngine';
 import { api } from '@/lib/api';
 import { cn } from '@/lib/utils';
 import { GuidedQuestion } from './GuidedQuestion';
 import { PathResultCard } from './PathResultCard';
+import { OnboardingPersistence } from '@/lib/onboardingPersistence';
 
 interface EnhancedOnboardingWizardProps {
     onComplete?: () => void;
@@ -51,6 +52,25 @@ export function EnhancedOnboardingWizard({ onComplete, className }: EnhancedOnbo
 
     // Get state from location state or default
     const state = location.state?.state || user?.state || 'CA';
+
+    // Restore saved session on component mount
+    useEffect(() => {
+        const savedSession = OnboardingPersistence.getSession();
+        if (savedSession) {
+            setAnswers(savedSession.answers);
+            setCurrentStep(savedSession.currentStep);
+            setPathResult(savedSession.pathResult);
+        }
+    }, []);
+
+    // Save session whenever answers or current step change
+    useEffect(() => {
+        OnboardingPersistence.saveSession({
+            answers,
+            currentStep,
+            pathResult
+        });
+    }, [answers, currentStep, pathResult]);
 
     // Questions configuration
     const questions = [
