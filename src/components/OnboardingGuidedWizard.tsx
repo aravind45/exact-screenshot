@@ -25,7 +25,19 @@ import {
     Info,
     Users,
     Mail,
-    Loader2
+    Loader2,
+    HelpCircle,
+    ChevronDown,
+    ChevronUp,
+    AlertTriangle,
+    Clock,
+    Calendar,
+    DollarSign,
+    Building2,
+    Home,
+    Users2,
+    FileCheck,
+    Sparkles
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { InstitutionSelect } from "@/components/InstitutionSelect";
@@ -35,10 +47,33 @@ import { IntestacyDistributionPreview } from "@/components/IntestacyDistribution
 import { useTracking } from "@/hooks/useTracking";
 import { US_STATES } from "@/lib/states";
 
+// Enhanced field types with clarification support
+interface ClarificationField {
+    value: boolean | null;
+    clarificationOpen: boolean;
+    clarificationAnswer: string;
+}
+
+interface GuidedFormData {
+    deceasedName: string;
+    dateOfDeath: string;
+    location: string;
+    estimatedValue: string;
+    estimatedDebt: string;
+    hasWill: ClarificationField;
+    isSpouse: ClarificationField;
+    isOutOfState: ClarificationField;
+    hasUnknownHeirs: ClarificationField;
+    isTrustRevocable: ClarificationField;
+    hasTODDeed: ClarificationField;
+    hasContest: ClarificationField;
+}
+
 const STEPS = [
     { id: "welcome", title: "Welcome" },
     { id: "estate_info", title: "Estate Basics" },
-    { id: "track_scout", title: "Estate Track" },
+    { id: "guided_assessment", title: "Quick Assessment" },
+    { id: "track_scout", title: "Your Path" },
     { id: "heirs", title: "Heirs & Beneficiaries" },
     { id: "documents", title: "Death Certificate" },
     { id: "assets", title: "Key Assets" },
@@ -46,30 +81,32 @@ const STEPS = [
     { id: "completion", title: "All Set" }
 ];
 
-export default function OnboardingWizard() {
+export default function OnboardingGuidedWizard() {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
     const { toast } = useToast();
     const { trackEvent } = useTracking();
     const [currentStep, setCurrentStep] = useState(0);
     const [isLoading, setIsLoading] = useState(false);
+    const [confidenceScore, setConfidenceScore] = useState<number | null>(null);
 
-    // Form Data
+    // Form Data with enhanced clarification support
     const [role, setRole] = useState<"executor" | "heir" | null>(null);
-    const [estateData, setEstateData] = useState({
+    const [formData, setFormData] = useState<GuidedFormData>({
         deceasedName: "",
         dateOfDeath: "",
         location: "",
         estimatedValue: "",
-        hasWill: true,
-        isSpouse: false,
-        isOutOfState: false,
-        hasUnknownHeirs: false,
-        isTrustRevocable: true,
         estimatedDebt: "",
-        hasTODDeed: false,
-        hasContest: false
+        hasWill: { value: null, clarificationOpen: false, clarificationAnswer: "" },
+        isSpouse: { value: null, clarificationOpen: false, clarificationAnswer: "" },
+        isOutOfState: { value: null, clarificationOpen: false, clarificationAnswer: "" },
+        hasUnknownHeirs: { value: null, clarificationOpen: false, clarificationAnswer: "" },
+        isTrustRevocable: { value: null, clarificationOpen: false, clarificationAnswer: "" },
+        hasTODDeed: { value: null, clarificationOpen: false, clarificationAnswer: "" },
+        hasContest: { value: null, clarificationOpen: false, clarificationAnswer: "" }
     });
+
     const [heirs, setHeirs] = useState<Array<{ name: string; relationship: string; email: string; isMinor: boolean }>>([
         { name: "", relationship: "", email: "", isMinor: false }
     ]);
@@ -85,7 +122,7 @@ export default function OnboardingWizard() {
         retry: false,
     });
 
-    const { user } = useAuth(); // Import useAuth if needed
+    const { user } = useAuth();
 
     // Redirect Advisors out of executor onboarding
     useEffect(() => {
@@ -101,20 +138,20 @@ export default function OnboardingWizard() {
                 .filter(Boolean)
                 .join(" ");
 
-            setEstateData(prev => ({
+            setFormData(prev => ({
                 ...prev,
                 deceasedName: deceasedName || prev.deceasedName,
                 dateOfDeath: estate.deceasedDateOfDeath ? new Date(estate.deceasedDateOfDeath).toISOString().split('T')[0] : prev.dateOfDeath,
                 location: estate.deceasedState || prev.location,
                 estimatedValue: estate.estimatedPersonalProperty?.toString() || prev.estimatedValue,
                 estimatedDebt: estate.estimatedLiabilities?.toString() || prev.estimatedDebt,
-                hasContest: estate.hasContest ?? prev.hasContest,
-                hasTODDeed: estate.hasTODDeed ?? prev.hasTODDeed,
-                hasWill: estate.hasWill ?? prev.hasWill,
-                isSpouse: estate.isSurvivingSpouse ?? prev.isSpouse,
-                isOutOfState: estate.hasOutOfStateProperty ?? prev.isOutOfState,
-                hasUnknownHeirs: estate.hasUnknownHeirs ?? prev.hasUnknownHeirs,
-                isTrustRevocable: estate.isTrustRevocable ?? prev.isTrustRevocable
+                hasContest: { ...prev.hasContest, value: estate.hasContest ?? null },
+                hasTODDeed: { ...prev.hasTODDeed, value: estate.hasTODDeed ?? null },
+                hasWill: { ...prev.hasWill, value: estate.hasWill ?? null },
+                isSpouse: { ...prev.isSpouse, value: estate.isSurvivingSpouse ?? null },
+                isOutOfState: { ...prev.isOutOfState, value: estate.hasOutOfStateProperty ?? null },
+                hasUnknownHeirs: { ...prev.hasUnknownHeirs, value: estate.hasUnknownHeirs ?? null },
+                isTrustRevocable: { ...prev.isTrustRevocable, value: estate.isTrustRevocable ?? null }
             }));
         } else {
             // Check for discovery data if no estate data exists yet (fresh registration)
@@ -123,19 +160,18 @@ export default function OnboardingWizard() {
                 if (saved) {
                     const parsed = JSON.parse(saved);
                     setRole(parsed.role || "executor");
-                    setEstateData(prev => ({
+                    setFormData(prev => ({
                         ...prev,
                         deceasedName: parsed.deceasedName || prev.deceasedName,
                         location: parsed.state || prev.location,
                         estimatedValue: parsed.estimatedValue || prev.estimatedValue,
-                        hasWill: parsed.hasWill ?? prev.hasWill,
-                        isSpouse: parsed.role === "executor" // Assumed for discovery results
+                        hasWill: { ...prev.hasWill, value: parsed.hasWill ?? null },
+                        isSpouse: { ...prev.isSpouse, value: parsed.role === "executor" }
                     }));
                     // Move to step 1 (Estate Basics) if we have data, skipping intro
                     if (parsed.deceasedName || parsed.state) {
                         setCurrentStep(1);
                     }
-                    // We'll clear it after the first update completes or when they move forward
                 }
             } catch (e) {
                 console.warn("Failed to parse discovery data", e);
@@ -143,19 +179,30 @@ export default function OnboardingWizard() {
         }
     }, [estate]);
 
+    // Calculate recommendation based on current form state
     const recommendation = calculateAuthorityRecommendation(
         [], // No actual assets yet, just using estimates
-        estateData.location,
+        formData.location,
         {
-            hasWill: estateData.hasWill,
-            isSpouse: estateData.isSpouse,
-            isOutOfState: estateData.isOutOfState,
-            estimatedValue: parseFloat(estateData.estimatedValue) || 0,
-            isTrustRevocable: estateData.isTrustRevocable,
-            hasTODDeed: estateData.hasTODDeed,
-            hasContest: estateData.hasContest
+            hasWill: formData.hasWill.value === true,
+            isSpouse: formData.isSpouse.value === true,
+            isOutOfState: formData.isOutOfState.value === true,
+            estimatedValue: parseFloat(formData.estimatedValue) || 0,
+            isTrustRevocable: formData.isTrustRevocable.value === true,
+            hasTODDeed: formData.hasTODDeed.value === true,
+            hasContest: formData.hasContest.value === true
         }
     );
+
+    // Calculate confidence score
+    useEffect(() => {
+        const filledFields = Object.values(formData).filter(field => 
+            typeof field === 'object' && field !== null && field.value !== null
+        ).length;
+        const totalFields = 7; // hasWill, isSpouse, isOutOfState, hasUnknownHeirs, isTrustRevocable, hasTODDeed, hasContest
+        const score = Math.round((filledFields / totalFields) * 100);
+        setConfidenceScore(score);
+    }, [formData]);
 
     const handleNext = async () => {
         setIsLoading(true);
@@ -164,65 +211,57 @@ export default function OnboardingWizard() {
 
             // Step 1: Handle Estate Info
             if (currentStep === 1) {
-                const nameParts = estateData.deceasedName.trim().split(/\s+/);
+                const nameParts = formData.deceasedName.trim().split(/\s+/);
                 const firstName = nameParts[0] || "";
                 const lastName = nameParts.slice(1).join(" ") || "Estate";
 
-                // updateMyEstate uses PUT /estates/my which upserts (creates or updates)
                 estate = await api.updateMyEstate({
                     deceasedFirstName: firstName,
                     deceasedLastName: lastName,
-                    deceasedDateOfDeath: new Date(estateData.dateOfDeath),
-                    deceasedState: estateData.location,
-                    estimatedPersonalProperty: parseFloat(estateData.estimatedValue) || 0,
-                    estimatedLiabilities: parseFloat(estateData.estimatedDebt) || 0,
-                    hasContest: estateData.hasContest
+                    deceasedDateOfDeath: new Date(formData.dateOfDeath),
+                    deceasedState: formData.location,
+                    estimatedPersonalProperty: parseFloat(formData.estimatedValue) || 0,
+                    estimatedLiabilities: parseFloat(formData.estimatedDebt) || 0,
+                    hasContest: formData.hasContest.value === true
                 });
-                // Re-fetch to guarantee estate.id is populated for all subsequent steps
+
                 if (!estate?.id) {
                     estate = await api.getMyEstate();
                 }
 
-                // Track meaningful Lead event (User has committed real data)
                 trackEvent('lead', {
                     step: 'estate_info_saved',
-                    state: estateData.location,
-                    value: estateData.estimatedValue
+                    state: formData.location,
+                    value: formData.estimatedValue
                 });
 
-                // Clear discovery data since it's now persisted to the backend
                 sessionStorage.removeItem("discovery_data");
-            } else if (currentStep === 2) { // Track Scout
+            } else if (currentStep === 3) { // Track Scout (after guided assessment)
                 await api.updateMyEstate({
                     estateType: recommendation.type,
                     authorityType: recommendation.type,
-                    hasUnknownHeirs: estateData.hasUnknownHeirs,
-                    isTrustRevocable: estateData.isTrustRevocable,
-                    hasContest: estateData.hasContest,
-                    hasTODDeed: estateData.hasTODDeed,
-                    isSurvivingSpouse: estateData.isSpouse,
-                    hasOutOfStateProperty: estateData.isOutOfState
+                    hasUnknownHeirs: formData.hasUnknownHeirs.value === true,
+                    isTrustRevocable: formData.isTrustRevocable.value === true,
+                    hasContest: formData.hasContest.value === true,
+                    hasTODDeed: formData.hasTODDeed.value === true,
+                    isSurvivingSpouse: formData.isSpouse.value === true,
+                    hasOutOfStateProperty: formData.isOutOfState.value === true
                 });
 
-                // Auto-complete the eligibility task so it doesn't show up as a redundant task on the dashboard
                 if (estate?.id) {
                     try {
-                        // Mark 'Check Small Estate Eligibility' as complete if we already did it in the wizard
                         await api.completeTask(estate.id, "check_small_estate", "Auto-completed via onboarding questionnaire");
-                        console.log("Auto-completed eligibility task");
                     } catch (e) {
-                        console.warn("Failed to auto-complete task, likely not in roadmap", e);
+                        console.warn("Failed to auto-complete task", e);
                     }
                 }
 
-                // Invalidate queries to ensure dashboard is fresh
                 await queryClient.invalidateQueries({ queryKey: ["tasks"] });
                 await queryClient.invalidateQueries({ queryKey: ["estate"] });
-            } else if (currentStep === 3) { // Heirs
+            } else if (currentStep === 4) { // Heirs
                 const validHeirs = heirs.filter(h => h.name.trim() !== "");
                 const hasMinors = validHeirs.some(h => h.isMinor);
 
-                // Persist the explicit flag too
                 await api.updateMyEstate({
                     hasMinorBeneficiaries: hasMinors
                 });
@@ -233,25 +272,24 @@ export default function OnboardingWizard() {
                         isAdult: !heir.isMinor
                     });
                 }
-            } else if (currentStep === 4) { // Documents
+            } else if (currentStep === 5) { // Documents
                 if (uploadedFile) {
                     await api.uploadEstateDocument("DEATH_CERTIFICATE", "Death Certificate.pdf", uploadedFile);
                 }
-            } else if (currentStep === 5) { // Assets
+            } else if (currentStep === 6) { // Assets
                 const validAssets = assets.filter(a => a.name.trim() !== "");
                 for (const asset of validAssets) {
                     await api.createAsset({
                         institution: asset.name,
-                        category: asset.type, // 'financial', 'retirement', etc.
-                        assetType: asset.type === 'real_estate' ? 'real_estate' : 'bank_account', // Basic mapping
+                        category: asset.type,
+                        assetType: asset.type === 'real_estate' ? 'real_estate' : 'bank_account',
                         status: "discovered",
                         priority: "medium"
                     });
                 }
-            } else if (currentStep === 6) { // Team
+            } else if (currentStep === 7) { // Team
                 const validCollabs = collaborators.filter(c => c.email.trim() !== "");
                 if (validCollabs.length > 0) {
-                    // Ensure estate exists before inviting collaborators
                     const freshEstate = estate?.id ? estate : await api.getMyEstate();
                     if (freshEstate?.id) {
                         for (const collab of validCollabs) {
@@ -261,8 +299,6 @@ export default function OnboardingWizard() {
                                 role: collab.role
                             });
                         }
-                    } else {
-                        console.warn("Cannot invite collaborators: no estate found");
                     }
                 }
             }
@@ -290,6 +326,34 @@ export default function OnboardingWizard() {
     };
 
     const stepId = STEPS[currentStep].id;
+
+    // Helper functions for field updates
+    const updateField = (field: keyof GuidedFormData, value: string | boolean | null) => {
+        setFormData(prev => ({
+            ...prev,
+            [field]: { ...prev[field as keyof GuidedFormData], value }
+        }));
+    };
+
+    const toggleClarification = (field: keyof GuidedFormData) => {
+        setFormData(prev => ({
+            ...prev,
+            [field]: { 
+                ...prev[field as keyof GuidedFormData], 
+                clarificationOpen: !prev[field as keyof GuidedFormData].clarificationOpen 
+            }
+        }));
+    };
+
+    const handleClarificationAnswer = (field: keyof GuidedFormData, answer: string) => {
+        setFormData(prev => ({
+            ...prev,
+            [field]: { 
+                ...prev[field as keyof GuidedFormData], 
+                clarificationAnswer: answer 
+            }
+        }));
+    };
 
     return (
         <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4 relative">
@@ -429,8 +493,8 @@ export default function OnboardingWizard() {
                                                 <Label>Full Name</Label>
                                                 <Input
                                                     placeholder="e.g. John Smith"
-                                                    value={estateData.deceasedName}
-                                                    onChange={e => setEstateData({ ...estateData, deceasedName: e.target.value })}
+                                                    value={formData.deceasedName}
+                                                    onChange={e => setFormData({ ...formData, deceasedName: e.target.value })}
                                                     className="h-12 bg-slate-50 border-slate-200"
                                                 />
                                             </div>
@@ -439,16 +503,16 @@ export default function OnboardingWizard() {
                                                     <Label>Date of Death</Label>
                                                     <Input
                                                         type="date"
-                                                        value={estateData.dateOfDeath}
-                                                        onChange={e => setEstateData({ ...estateData, dateOfDeath: e.target.value })}
+                                                        value={formData.dateOfDeath}
+                                                        onChange={e => setFormData({ ...formData, dateOfDeath: e.target.value })}
                                                         className="h-12 bg-slate-50 border-slate-200"
                                                     />
                                                 </div>
                                                 <div className="space-y-2">
                                                     <Label>Residence (State)</Label>
                                                     <Select
-                                                        value={estateData.location}
-                                                        onValueChange={val => setEstateData({ ...estateData, location: val })}
+                                                        value={formData.location}
+                                                        onValueChange={val => setFormData({ ...formData, location: val })}
                                                     >
                                                         <SelectTrigger className="h-12 bg-slate-50 border-slate-200">
                                                             <SelectValue placeholder="Select" />
@@ -473,8 +537,8 @@ export default function OnboardingWizard() {
                                                     <Input
                                                         type="number"
                                                         placeholder="e.g. 250000"
-                                                        value={estateData.estimatedValue}
-                                                        onChange={e => setEstateData({ ...estateData, estimatedValue: e.target.value })}
+                                                        value={formData.estimatedValue}
+                                                        onChange={e => setFormData({ ...formData, estimatedValue: e.target.value })}
                                                         className="h-12 pl-8 bg-slate-50 border-slate-200"
                                                     />
                                                 </div>
@@ -491,8 +555,8 @@ export default function OnboardingWizard() {
                                                     <Input
                                                         type="number"
                                                         placeholder="e.g. 50000"
-                                                        value={estateData.estimatedDebt}
-                                                        onChange={e => setEstateData({ ...estateData, estimatedDebt: e.target.value })}
+                                                        value={formData.estimatedDebt}
+                                                        onChange={e => setFormData({ ...formData, estimatedDebt: e.target.value })}
                                                         className="h-12 pl-8 bg-slate-50 border-slate-200"
                                                     />
                                                 </div>
@@ -505,10 +569,20 @@ export default function OnboardingWizard() {
                                                         <Label className="text-sm font-bold">Transfer-on-Death Deed?</Label>
                                                         <p className="text-[10px] text-slate-500">Is there a recorded TOD deed for real property?</p>
                                                     </div>
-                                                    <Checkbox
-                                                        checked={estateData.hasTODDeed}
-                                                        onCheckedChange={(val) => setEstateData({ ...estateData, hasTODDeed: val === true })}
-                                                    />
+                                                    <div className="flex bg-slate-100 p-1 rounded-lg">
+                                                        <button
+                                                            onClick={() => updateField("hasTODDeed", true)}
+                                                            className={cn("px-4 py-1.5 text-xs font-bold rounded-md transition-all", formData.hasTODDeed.value === true ? "bg-white shadow-sm text-primary" : "text-slate-400")}
+                                                        > Yes </button>
+                                                        <button
+                                                            onClick={() => updateField("hasTODDeed", false)}
+                                                            className={cn("px-4 py-1.5 text-xs font-bold rounded-md transition-all", formData.hasTODDeed.value === false ? "bg-white shadow-sm text-primary" : "text-slate-400")}
+                                                        > No </button>
+                                                        <button
+                                                            onClick={() => updateField("hasTODDeed", null)}
+                                                            className={cn("px-4 py-1.5 text-xs font-bold rounded-md transition-all", formData.hasTODDeed.value === null ? "bg-white shadow-sm text-primary" : "text-slate-400")}
+                                                        > Not Sure </button>
+                                                    </div>
                                                 </div>
 
                                                 <div className="flex items-center justify-between">
@@ -516,104 +590,378 @@ export default function OnboardingWizard() {
                                                         <Label className="text-sm font-bold">Is the estate contested?</Label>
                                                         <p className="text-[10px] text-slate-500">Are there any active disputes or will contests?</p>
                                                     </div>
-                                                    <Checkbox
-                                                        checked={estateData.hasContest}
-                                                        onCheckedChange={(val) => setEstateData({ ...estateData, hasContest: val === true })}
-                                                    />
+                                                    <div className="flex bg-slate-100 p-1 rounded-lg">
+                                                        <button
+                                                            onClick={() => updateField("hasContest", true)}
+                                                            className={cn("px-4 py-1.5 text-xs font-bold rounded-md transition-all", formData.hasContest.value === true ? "bg-white shadow-sm text-primary" : "text-slate-400")}
+                                                        > Yes </button>
+                                                        <button
+                                                            onClick={() => updateField("hasContest", false)}
+                                                            className={cn("px-4 py-1.5 text-xs font-bold rounded-md transition-all", formData.hasContest.value === false ? "bg-white shadow-sm text-primary" : "text-slate-400")}
+                                                        > No </button>
+                                                        <button
+                                                            onClick={() => updateField("hasContest", null)}
+                                                            className={cn("px-4 py-1.5 text-xs font-bold rounded-md transition-all", formData.hasContest.value === null ? "bg-white shadow-sm text-primary" : "text-slate-400")}
+                                                        > Not Sure </button>
+                                                    </div>
                                                 </div>
                                             </div>
 
-                                            <div className="pt-4 space-y-4 border-t border-slate-100">
-                                                <div className="flex items-center justify-between">
-                                                    <div className="space-y-0.5">
-                                                        <Label className="text-sm font-bold">Was there a Will?</Label>
-                                                        <p className="text-[10px] text-slate-500">Determines if it's Intestate or Probate.</p>
+                                            <Button
+                                                size="lg"
+                                                onClick={() => setCurrentStep(2)}
+                                                disabled={!formData.deceasedName || !formData.dateOfDeath || !formData.location || isLoading}
+                                                className="w-full rounded-2xl h-12 font-bold mt-4"
+                                            >
+                                                Continue to Quick Assessment
+                                            </Button>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* 2. GUIDED ASSESSMENT */}
+                                {stepId === "guided_assessment" && (
+                                    <div className="space-y-6">
+                                        <div className="text-center mb-8">
+                                            <div className="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                                <Sparkles className="w-6 h-6 text-indigo-600" />
+                                            </div>
+                                            <h2 className="text-2xl font-bold text-slate-900">Quick Assessment</h2>
+                                            <p className="text-slate-500">Answer 5 simple questions to determine your path.</p>
+                                            {confidenceScore !== null && (
+                                                <div className="mt-4 p-3 rounded-xl bg-slate-50 border border-slate-100">
+                                                    <div className="flex items-center justify-between text-sm">
+                                                        <span className="text-slate-600">Confidence Score</span>
+                                                        <span className={`font-bold ${confidenceScore >= 80 ? 'text-emerald-600' : confidenceScore >= 60 ? 'text-amber-600' : 'text-rose-600'}`}>
+                                                            {confidenceScore}%
+                                                        </span>
                                                     </div>
-                                                    <div className="flex bg-slate-100 p-1 rounded-lg">
-                                                        <button
-                                                            onClick={() => setEstateData({ ...estateData, hasWill: true })}
-                                                            className={cn("px-4 py-1.5 text-xs font-bold rounded-md transition-all", estateData.hasWill ? "bg-white shadow-sm text-primary" : "text-slate-400")}
-                                                        > Yes </button>
-                                                        <button
-                                                            onClick={() => setEstateData({ ...estateData, hasWill: false })}
-                                                            className={cn("px-4 py-1.5 text-xs font-bold rounded-md transition-all", !estateData.hasWill ? "bg-white shadow-sm text-primary" : "text-slate-400")}
-                                                        > No </button>
+                                                    <div className="w-full bg-slate-200 rounded-full h-2 mt-2">
+                                                        <div 
+                                                            className={`h-2 rounded-full transition-all ${confidenceScore >= 80 ? 'bg-emerald-500' : confidenceScore >= 60 ? 'bg-amber-500' : 'bg-rose-500'}`}
+                                                            style={{ width: `${confidenceScore}%` }}
+                                                        />
                                                     </div>
                                                 </div>
+                                            )}
+                                        </div>
 
-                                                <div className="flex items-center justify-between">
-                                                    <div className="space-y-0.5">
-                                                        <Label className="text-sm font-bold">Are you the surviving spouse?</Label>
-                                                        <p className="text-[10px] text-slate-500">May qualify for Spousal Property Petition.</p>
+                                        <div className="space-y-6">
+                                            {/* Question 1: Will */}
+                                            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                                                <div className="flex items-start justify-between">
+                                                    <div className="space-y-2 flex-1">
+                                                        <div className="flex items-center gap-2">
+                                                            <FileCheck className="w-4 h-4 text-slate-500" />
+                                                            <h3 className="font-bold text-slate-900">Was there a Will?</h3>
+                                                            <button
+                                                                onClick={() => toggleClarification("hasWill")}
+                                                                className="ml-2 p-1 text-slate-400 hover:text-slate-600"
+                                                            >
+                                                                <HelpCircle className="w-3 h-3" />
+                                                            </button>
+                                                        </div>
+                                                        <p className="text-xs text-slate-500">Determines if it's Intestate or Probate.</p>
+                                                        {formData.hasWill.clarificationOpen && (
+                                                            <div className="p-3 rounded-lg bg-white border border-slate-200 space-y-2">
+                                                                <p className="text-xs text-slate-600">
+                                                                    <strong>What is a will?</strong> A legal document that specifies how a person's assets should be distributed after death.
+                                                                </p>
+                                                                <p className="text-xs text-slate-500">
+                                                                    <strong>Common signs:</strong> You have a document titled "Last Will and Testament" or similar.
+                                                                </p>
+                                                                <div className="flex gap-2">
+                                                                    <Input
+                                                                        placeholder="Describe what you found or what you're looking for..."
+                                                                        value={formData.hasWill.clarificationAnswer}
+                                                                        onChange={(e) => handleClarificationAnswer("hasWill", e.target.value)}
+                                                                        className="text-xs"
+                                                                    />
+                                                                    <Button
+                                                                        size="sm"
+                                                                        variant="outline"
+                                                                        onClick={() => {
+                                                                            // Auto-detect based on answer
+                                                                            const answer = formData.hasWill.clarificationAnswer.toLowerCase();
+                                                                            if (answer.includes("will") || answer.includes("testament")) {
+                                                                                updateField("hasWill", true);
+                                                                            } else if (answer.includes("no") || answer.includes("don't")) {
+                                                                                updateField("hasWill", false);
+                                                                            }
+                                                                            toggleClarification("hasWill");
+                                                                        }}
+                                                                    >
+                                                                        Analyze
+                                                                    </Button>
+                                                                </div>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                     <div className="flex bg-slate-100 p-1 rounded-lg">
                                                         <button
-                                                            onClick={() => setEstateData({ ...estateData, isSpouse: true })}
-                                                            className={cn("px-4 py-1.5 text-xs font-bold rounded-md transition-all", estateData.isSpouse ? "bg-white shadow-sm text-primary" : "text-slate-400")}
+                                                            onClick={() => updateField("hasWill", true)}
+                                                            className={cn("px-3 py-1.5 text-xs font-bold rounded-md transition-all", formData.hasWill.value === true ? "bg-white shadow-sm text-primary" : "text-slate-400")}
                                                         > Yes </button>
                                                         <button
-                                                            onClick={() => setEstateData({ ...estateData, isSpouse: false })}
-                                                            className={cn("px-4 py-1.5 text-xs font-bold rounded-md transition-all", !estateData.isSpouse ? "bg-white shadow-sm text-primary" : "text-slate-400")}
+                                                            onClick={() => updateField("hasWill", false)}
+                                                            className={cn("px-3 py-1.5 text-xs font-bold rounded-md transition-all", formData.hasWill.value === false ? "bg-white shadow-sm text-primary" : "text-slate-400")}
                                                         > No </button>
+                                                        <button
+                                                            onClick={() => updateField("hasWill", null)}
+                                                            className={cn("px-3 py-1.5 text-xs font-bold rounded-md transition-all", formData.hasWill.value === null ? "bg-white shadow-sm text-primary" : "text-slate-400")}
+                                                        > Not Sure </button>
                                                     </div>
                                                 </div>
+                                            </div>
 
-                                                <div className="flex items-center justify-between">
-                                                    <div className="space-y-0.5">
-                                                        <Label className="text-sm font-bold">Was there a Trust?</Label>
-                                                        <p className="text-[10px] text-slate-500">Revocable or Irrevocable living trust.</p>
+                                            {/* Question 2: Trust */}
+                                            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                                                <div className="flex items-start justify-between">
+                                                    <div className="space-y-2 flex-1">
+                                                        <div className="flex items-center gap-2">
+                                                            <Building2 className="w-4 h-4 text-slate-500" />
+                                                            <h3 className="font-bold text-slate-900">Did the deceased place assets into a living trust before death?</h3>
+                                                            <button
+                                                                onClick={() => toggleClarification("isTrustRevocable")}
+                                                                className="ml-2 p-1 text-slate-400 hover:text-slate-600"
+                                                            >
+                                                                <HelpCircle className="w-3 h-3" />
+                                                            </button>
+                                                        </div>
+                                                        <p className="text-xs text-slate-500">Revocable or Irrevocable living trust.</p>
+                                                        {formData.isTrustRevocable.clarificationOpen && (
+                                                            <div className="p-3 rounded-lg bg-white border border-slate-200 space-y-2">
+                                                                <p className="text-xs text-slate-600">
+                                                                    <strong>What is a trust?</strong> A legal arrangement where a trustee holds and manages assets for beneficiaries.
+                                                                </p>
+                                                                <p className="text-xs text-slate-500">
+                                                                    <strong>Common signs:</strong> You have a document titled "Living Trust" or "Revocable Trust".
+                                                                </p>
+                                                                <div className="flex gap-2">
+                                                                    <Input
+                                                                        placeholder="Describe what you found..."
+                                                                        value={formData.isTrustRevocable.clarificationAnswer}
+                                                                        onChange={(e) => handleClarificationAnswer("isTrustRevocable", e.target.value)}
+                                                                        className="text-xs"
+                                                                    />
+                                                                    <Button
+                                                                        size="sm"
+                                                                        variant="outline"
+                                                                        onClick={() => {
+                                                                            const answer = formData.isTrustRevocable.clarificationAnswer.toLowerCase();
+                                                                            if (answer.includes("trust") || answer.includes("revocable")) {
+                                                                                updateField("isTrustRevocable", true);
+                                                                            } else if (answer.includes("irrevocable")) {
+                                                                                updateField("isTrustRevocable", false);
+                                                                            } else if (answer.includes("no") || answer.includes("don't")) {
+                                                                                updateField("isTrustRevocable", false);
+                                                                            }
+                                                                            toggleClarification("isTrustRevocable");
+                                                                        }}
+                                                                    >
+                                                                        Analyze
+                                                                    </Button>
+                                                                </div>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                     <div className="flex bg-slate-100 p-1 rounded-lg">
                                                         <button
-                                                            onClick={() => setEstateData({ ...estateData, isTrustRevocable: true })}
-                                                            className={cn("px-4 py-1.5 text-xs font-bold rounded-md transition-all", estateData.isTrustRevocable ? "bg-white shadow-sm text-primary" : "text-slate-400")}
+                                                            onClick={() => updateField("isTrustRevocable", true)}
+                                                            className={cn("px-3 py-1.5 text-xs font-bold rounded-md transition-all", formData.isTrustRevocable.value === true ? "bg-white shadow-sm text-primary" : "text-slate-400")}
                                                         > Revocable </button>
                                                         <button
-                                                            onClick={() => setEstateData({ ...estateData, isTrustRevocable: false })}
-                                                            className={cn("px-4 py-1.5 text-xs font-bold rounded-md transition-all", !estateData.isTrustRevocable ? "bg-white shadow-sm text-primary" : "text-slate-400")}
+                                                            onClick={() => updateField("isTrustRevocable", false)}
+                                                            className={cn("px-3 py-1.5 text-xs font-bold rounded-md transition-all", formData.isTrustRevocable.value === false ? "bg-white shadow-sm text-primary" : "text-slate-400")}
                                                         > Irrevocable </button>
+                                                        <button
+                                                            onClick={() => updateField("isTrustRevocable", null)}
+                                                            className={cn("px-3 py-1.5 text-xs font-bold rounded-md transition-all", formData.isTrustRevocable.value === null ? "bg-white shadow-sm text-primary" : "text-slate-400")}
+                                                        > Not Sure </button>
                                                     </div>
                                                 </div>
+                                            </div>
 
-                                                <div className="flex items-center justify-between">
-                                                    <div className="space-y-0.5">
-                                                        <Label className="text-sm font-bold">Any out-of-state property?</Label>
-                                                        <p className="text-[10px] text-slate-500">Real estate outside of {estateData.location || 'home state'}.</p>
+                                            {/* Question 3: Spouse */}
+                                            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                                                <div className="flex items-start justify-between">
+                                                    <div className="space-y-2 flex-1">
+                                                        <div className="flex items-center gap-2">
+                                                            <Users2 className="w-4 h-4 text-slate-500" />
+                                                            <h3 className="font-bold text-slate-900">Are you the surviving spouse?</h3>
+                                                            <button
+                                                                onClick={() => toggleClarification("isSpouse")}
+                                                                className="ml-2 p-1 text-slate-400 hover:text-slate-600"
+                                                            >
+                                                                <HelpCircle className="w-3 h-3" />
+                                                            </button>
+                                                        </div>
+                                                        <p className="text-xs text-slate-500">May qualify for Spousal Property Petition.</p>
+                                                        {formData.isSpouse.clarificationOpen && (
+                                                            <div className="p-3 rounded-lg bg-white border border-slate-200 space-y-2">
+                                                                <p className="text-xs text-slate-600">
+                                                                    <strong>What does this mean?</strong> If you were legally married to the deceased at the time of death.
+                                                                </p>
+                                                                <p className="text-xs text-slate-500">
+                                                                    <strong>Example:</strong> You have a marriage certificate and were living together.
+                                                                </p>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                     <div className="flex bg-slate-100 p-1 rounded-lg">
                                                         <button
-                                                            onClick={() => setEstateData({ ...estateData, isOutOfState: true })}
-                                                            className={cn("px-4 py-1.5 text-xs font-bold rounded-md transition-all", estateData.isOutOfState ? "bg-white shadow-sm text-primary" : "text-slate-400")}
+                                                            onClick={() => updateField("isSpouse", true)}
+                                                            className={cn("px-3 py-1.5 text-xs font-bold rounded-md transition-all", formData.isSpouse.value === true ? "bg-white shadow-sm text-primary" : "text-slate-400")}
                                                         > Yes </button>
                                                         <button
-                                                            onClick={() => setEstateData({ ...estateData, isOutOfState: false })}
-                                                            className={cn("px-4 py-1.5 text-xs font-bold rounded-md transition-all", !estateData.isOutOfState ? "bg-white shadow-sm text-primary" : "text-slate-400")}
+                                                            onClick={() => updateField("isSpouse", false)}
+                                                            className={cn("px-3 py-1.5 text-xs font-bold rounded-md transition-all", formData.isSpouse.value === false ? "bg-white shadow-sm text-primary" : "text-slate-400")}
                                                         > No </button>
+                                                        <button
+                                                            onClick={() => updateField("isSpouse", null)}
+                                                            className={cn("px-3 py-1.5 text-xs font-bold rounded-md transition-all", formData.isSpouse.value === null ? "bg-white shadow-sm text-primary" : "text-slate-400")}
+                                                        > Not Sure </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Question 4: Out of State Property */}
+                                            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                                                <div className="flex items-start justify-between">
+                                                    <div className="space-y-2 flex-1">
+                                                        <div className="flex items-center gap-2">
+                                                            <Home className="w-4 h-4 text-slate-500" />
+                                                            <h3 className="font-bold text-slate-900">Any out-of-state property?</h3>
+                                                            <button
+                                                                onClick={() => toggleClarification("isOutOfState")}
+                                                                className="ml-2 p-1 text-slate-400 hover:text-slate-600"
+                                                            >
+                                                                <HelpCircle className="w-3 h-3" />
+                                                            </button>
+                                                        </div>
+                                                        <p className="text-xs text-slate-500">Real estate outside of {formData.location || 'home state'}.</p>
+                                                        {formData.isOutOfState.clarificationOpen && (
+                                                            <div className="p-3 rounded-lg bg-white border border-slate-200 space-y-2">
+                                                                <p className="text-xs text-slate-600">
+                                                                    <strong>What does this mean?</strong> Property ownership in a different state from where the deceased lived.
+                                                                </p>
+                                                                <p className="text-xs text-slate-500">
+                                                                    <strong>Example:</strong> Primary residence in California, vacation home in Nevada.
+                                                                </p>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <div className="flex bg-slate-100 p-1 rounded-lg">
+                                                        <button
+                                                            onClick={() => updateField("isOutOfState", true)}
+                                                            className={cn("px-3 py-1.5 text-xs font-bold rounded-md transition-all", formData.isOutOfState.value === true ? "bg-white shadow-sm text-primary" : "text-slate-400")}
+                                                        > Yes </button>
+                                                        <button
+                                                            onClick={() => updateField("isOutOfState", false)}
+                                                            className={cn("px-3 py-1.5 text-xs font-bold rounded-md transition-all", formData.isOutOfState.value === false ? "bg-white shadow-sm text-primary" : "text-slate-400")}
+                                                        > No </button>
+                                                        <button
+                                                            onClick={() => updateField("isOutOfState", null)}
+                                                            className={cn("px-3 py-1.5 text-xs font-bold rounded-md transition-all", formData.isOutOfState.value === null ? "bg-white shadow-sm text-primary" : "text-slate-400")}
+                                                        > Not Sure </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Question 5: Unknown Heirs */}
+                                            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                                                <div className="flex items-start justify-between">
+                                                    <div className="space-y-2 flex-1">
+                                                        <div className="flex items-center gap-2">
+                                                            <AlertTriangle className="w-4 h-4 text-slate-500" />
+                                                            <h3 className="font-bold text-slate-900">I am not sure who all the legal heirs are.</h3>
+                                                            <button
+                                                                onClick={() => toggleClarification("hasUnknownHeirs")}
+                                                                className="ml-2 p-1 text-slate-400 hover:text-slate-600"
+                                                            >
+                                                                <HelpCircle className="w-3 h-3" />
+                                                            </button>
+                                                        </div>
+                                                        <p className="text-xs text-slate-500">May require heir search or legal determination.</p>
+                                                        {formData.hasUnknownHeirs.clarificationOpen && (
+                                                            <div className="p-3 rounded-lg bg-white border border-slate-200 space-y-2">
+                                                                <p className="text-xs text-slate-600">
+                                                                    <strong>What does this mean?</strong> You're unsure about all potential beneficiaries or legal heirs.
+                                                                </p>
+                                                                <p className="text-xs text-slate-500">
+                                                                    <strong>Common scenarios:</strong> Estranged family members, unknown children, unclear family tree.
+                                                                </p>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <div className="flex bg-slate-100 p-1 rounded-lg">
+                                                        <button
+                                                            onClick={() => updateField("hasUnknownHeirs", true)}
+                                                            className={cn("px-3 py-1.5 text-xs font-bold rounded-md transition-all", formData.hasUnknownHeirs.value === true ? "bg-white shadow-sm text-primary" : "text-slate-400")}
+                                                        > Yes </button>
+                                                        <button
+                                                            onClick={() => updateField("hasUnknownHeirs", false)}
+                                                            className={cn("px-3 py-1.5 text-xs font-bold rounded-md transition-all", formData.hasUnknownHeirs.value === false ? "bg-white shadow-sm text-primary" : "text-slate-400")}
+                                                        > No </button>
+                                                        <button
+                                                            onClick={() => updateField("hasUnknownHeirs", null)}
+                                                            className={cn("px-3 py-1.5 text-xs font-bold rounded-md transition-all", formData.hasUnknownHeirs.value === null ? "bg-white shadow-sm text-primary" : "text-slate-400")}
+                                                        > Not Sure </button>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <Button
-                                            size="lg"
-                                            onClick={handleNext}
-                                            disabled={!estateData.deceasedName || !estateData.dateOfDeath || !estateData.location || isLoading}
-                                            className="w-full rounded-2xl h-12 font-bold mt-4"
-                                        >
-                                            {isLoading ? "Saving..." : "Calculate My Track"}
-                                        </Button>
+                                        <div className="flex flex-col gap-3">
+                                            <Button
+                                                size="lg"
+                                                onClick={() => setCurrentStep(3)}
+                                                disabled={isLoading}
+                                                className="w-full rounded-2xl h-12 font-bold"
+                                            >
+                                                Calculate My Path
+                                            </Button>
+                                            <Button 
+                                                variant="outline" 
+                                                onClick={() => setCurrentStep(1)}
+                                                className="text-slate-400 text-xs"
+                                            >
+                                                Go Back to Basics
+                                            </Button>
+                                        </div>
                                     </div>
                                 )}
 
-                                {/* 2. TRACK SCOUT */}
+                                {/* 3. TRACK SCOUT */}
                                 {stepId === "track_scout" && (
                                     <div className="space-y-6">
                                         <div className="text-center mb-8">
                                             <div className="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
                                                 <Zap className="w-6 h-6 text-indigo-600 fill-indigo-600" />
                                             </div>
-                                            <h2 className="text-2xl font-bold text-slate-900">Track Identified!</h2>
-                                            <p className="text-slate-500">Based on the value in {estateData.location}, here is your path.</p>
+                                            <h2 className="text-2xl font-bold text-slate-900">Your Path</h2>
+                                            <p className="text-slate-500">Based on your answers, here is your recommended path.</p>
+                                            {confidenceScore !== null && (
+                                                <div className="mt-4 p-3 rounded-xl bg-slate-50 border border-slate-100">
+                                                    <div className="flex items-center justify-between text-sm">
+                                                        <span className="text-slate-600">Confidence Score</span>
+                                                        <span className={`font-bold ${confidenceScore >= 80 ? 'text-emerald-600' : confidenceScore >= 60 ? 'text-amber-600' : 'text-rose-600'}`}>
+                                                            {confidenceScore}%
+                                                        </span>
+                                                    </div>
+                                                    <div className="w-full bg-slate-200 rounded-full h-2 mt-2">
+                                                        <div 
+                                                            className={`h-2 rounded-full transition-all ${confidenceScore >= 80 ? 'bg-emerald-500' : confidenceScore >= 60 ? 'bg-amber-500' : 'bg-rose-500'}`}
+                                                            style={{ width: `${confidenceScore}%` }}
+                                                        />
+                                                    </div>
+                                                    <p className="text-xs text-slate-500 mt-2">
+                                                        {confidenceScore >= 80 ? "High confidence - your path is clear!" : 
+                                                         confidenceScore >= 60 ? "Medium confidence - we may need more details as we go." : 
+                                                         "Low confidence - we'll help clarify as we proceed."}
+                                                    </p>
+                                                </div>
+                                            )}
                                         </div>
 
                                         <div className="p-6 rounded-2xl bg-indigo-50 border-2 border-indigo-100 space-y-4">
@@ -634,14 +982,14 @@ export default function OnboardingWizard() {
                                                 </div>
                                                 <p className="text-xs text-indigo-700">
                                                     {recommendation.type === 'SMALL_ESTATE'
-                                                        ? (estateData.location === 'CA' ? 'Wait 40 days, then prepare and notarize the 13100 Affidavit (DE-310).' :
-                                                            estateData.location === 'TX' ? 'Prepare and file the Small Estate Affidavit (SEA) with the court.' :
-                                                                estateData.location === 'FL' ? 'Prepare the Petition for Summary Administration.' :
+                                                        ? (formData.location === 'CA' ? 'Wait 40 days, then prepare and notarize the 13100 Affidavit (DE-310).' :
+                                                            formData.location === 'TX' ? 'Prepare and file the Small Estate Affidavit (SEA) with the court.' :
+                                                                formData.location === 'FL' ? 'Prepare the Petition for Summary Administration.' :
                                                                     'Prepare and notarize a Small Estate Affidavit.')
                                                         : recommendation.type === 'SPOUSAL_PETITION'
-                                                            ? (estateData.location === 'CA' ? 'Prepare the DE-221 petition and file it with the local court.' : 'File a Spousal Property Petition.')
-                                                            : (estateData.location === 'FL' ? 'Lodge the original Will within 10 days of the death.' :
-                                                                estateData.location === 'TX' ? 'File the Application for Probate with the county clerk.' :
+                                                            ? (formData.location === 'CA' ? 'Prepare the DE-221 petition and file it with the local court.' : 'File a Spousal Property Petition.')
+                                                            : (formData.location === 'FL' ? 'Lodge the original Will within 10 days of the death.' :
+                                                                formData.location === 'TX' ? 'File the Application for Probate with the county clerk.' :
                                                                     'Gather the Death Certificate and Original Will to prepare your court filing.')}
                                                 </p>
                                             </div>
@@ -657,7 +1005,7 @@ export default function OnboardingWizard() {
                                     </div>
                                 )}
 
-                                {/* 3. HEIRS */}
+                                {/* 4. HEIRS */}
                                 {stepId === "heirs" && (
                                     <div className="space-y-6">
                                         <div className="text-center mb-6">
@@ -702,9 +1050,8 @@ export default function OnboardingWizard() {
                                                                     newHeirs[idx].relationship = val;
                                                                     setHeirs(newHeirs);
 
-                                                                    // Spousal Sync (PTH-20)
                                                                     if (val === "SPOUSE") {
-                                                                        setEstateData(prev => ({ ...prev, isSpouse: true }));
+                                                                        updateField("isSpouse", true);
                                                                     }
                                                                 }}
                                                             >
@@ -742,21 +1089,21 @@ export default function OnboardingWizard() {
                                         <div className="flex items-center gap-2 p-3 rounded-xl bg-slate-50 border border-slate-100 mb-4">
                                             <Checkbox
                                                 id="unknown_heirs"
-                                                checked={estateData.hasUnknownHeirs}
-                                                onCheckedChange={(val) => setEstateData({ ...estateData, hasUnknownHeirs: val === true })}
+                                                checked={formData.hasUnknownHeirs.value === true}
+                                                onCheckedChange={(val) => updateField("hasUnknownHeirs", val === true ? true : null)}
                                             />
                                             <Label htmlFor="unknown_heirs" className="text-xs font-bold text-slate-600 cursor-pointer">
                                                 I am not sure who all the legal heirs are.
                                             </Label>
                                         </div>
 
-                                        {!estateData.hasWill && heirs.some(h => h.name && h.relationship) && (
+                                        {!formData.hasWill.value && heirs.some(h => h.name && h.relationship) && (
                                             <motion.div
                                                 initial={{ opacity: 0, y: 10 }}
                                                 animate={{ opacity: 1, y: 0 }}
                                             >
                                                 <IntestacyDistributionPreview
-                                                    state={estateData.location}
+                                                    state={formData.location}
                                                     heirs={heirs.map((h, i) => ({ id: `h-${i}`, name: h.name, relationship: h.relationship }))}
                                                 />
                                             </motion.div>
@@ -780,7 +1127,7 @@ export default function OnboardingWizard() {
                                     </div>
                                 )}
 
-                                {/* 4. DEATH CERTIFICATE */}
+                                {/* 5. DEATH CERTIFICATE */}
                                 {stepId === "documents" && (
                                     <div className="space-y-6">
                                         <div className="text-center mb-8">
@@ -843,7 +1190,7 @@ export default function OnboardingWizard() {
                                     </div>
                                 )}
 
-                                {/* 5. ASSETS (RE-DESIGNED) */}
+                                {/* 6. ASSETS */}
                                 {stepId === "assets" && (
                                     <div className="space-y-6">
                                         <div className="text-center mb-6">
@@ -931,7 +1278,7 @@ export default function OnboardingWizard() {
                                     </div>
                                 )}
 
-                                {/* 6. THE TEAM (NEW) */}
+                                {/* 7. THE TEAM */}
                                 {stepId === "team" && (
                                     <div className="space-y-6">
                                         <div className="text-center mb-6">
@@ -1015,7 +1362,7 @@ export default function OnboardingWizard() {
                                     </div>
                                 )}
 
-                                {/* 7. COMPLETION */}
+                                {/* 8. COMPLETION */}
                                 {stepId === "completion" && (
                                     <div className="text-center space-y-8 py-4">
                                         <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto animate-bounce">
@@ -1028,6 +1375,19 @@ export default function OnboardingWizard() {
                                                 <br />
                                                 Welcome to ExpectedEstate.
                                             </p>
+                                            {confidenceScore !== null && (
+                                                <div className="mt-4 p-4 rounded-xl bg-slate-50 border border-slate-100">
+                                                    <div className="flex items-center gap-2 text-slate-600 font-bold text-sm">
+                                                        <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                                                        Path Confidence: {confidenceScore}%
+                                                    </div>
+                                                    <p className="text-xs text-slate-500 mt-1">
+                                                        {confidenceScore >= 80 ? "Your path is clear and well-defined." : 
+                                                         confidenceScore >= 60 ? "Your path is mostly clear with minor clarifications needed." : 
+                                                         "We'll help clarify your path as we proceed together."}
+                                                    </p>
+                                                </div>
+                                            )}
                                         </div>
                                         <Button size="lg" onClick={handleNext} className="w-full rounded-2xl h-14 text-lg font-bold shadow-xl shadow-primary/20">
                                             Go to My Dashboard

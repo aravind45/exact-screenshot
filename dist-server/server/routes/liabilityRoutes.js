@@ -35,7 +35,7 @@ router.get("/", async (req, res) => {
     try {
         const estateId = await getEstateId(req.user.id);
         if (!estateId)
-            return res.status(404).json({ error: "Estate not found" });
+            return res.json([]); // New users with no estate yet get an empty list
         const liabilities = await prisma.liability.findMany({
             where: { estateId },
             orderBy: { createdAt: "desc" }
@@ -55,14 +55,10 @@ router.get("/", async (req, res) => {
 router.get("/priority-options", async (req, res) => {
     try {
         const estateId = await getEstateId(req.user.id);
-        if (!estateId)
-            return res.status(404).json({ error: "Estate not found" });
-        const estate = await prisma.estate.findUnique({
-            where: { id: estateId },
-            select: { deceasedState: true }
-        });
-        // Default to CA if state is missing
-        const state = estate?.deceasedState || "CA";
+        // Default to CA if no estate exists yet (new users in onboarding)
+        const state = estateId
+            ? (await prisma.estate.findUnique({ where: { id: estateId }, select: { deceasedState: true } }))?.deceasedState || "CA"
+            : "CA";
         const system = PriorityService.getPrioritySystem(state);
         const options = PriorityService.getPriorityOptions(state);
         res.json({

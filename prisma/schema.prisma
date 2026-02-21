@@ -186,10 +186,12 @@ model Invitation {
 model Deadline {
   id          String   @id @default(uuid())
   estateId    String   @map("estate_id")
+  warningId   String   @map("warning_id")
   title       String
+  description String   @default("")
   dueDate     DateTime @map("due_date")
-  status      String   @default("PENDING")
   isStatutory Boolean  @default(false) @map("is_statutory")
+  isCompleted Boolean  @default(false) @map("is_completed")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
   estate      Estate   @relation(fields: [estateId], references: [id], onDelete: Cascade)

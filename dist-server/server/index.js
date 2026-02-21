@@ -33,6 +33,7 @@ import advisorProfileRoutes from "./routes/advisorProfileRoutes.js";
 import bookingMarketplaceRoutes from "./routes/bookingMarketplaceRoutes.js";
 import adminMarketplaceRoutes from "./routes/adminMarketplaceRoutes.js";
 import lettersDispatchRoutes from "./routes/lettersDispatchRoutes.js";
+import deadlineRoutes from "./routes/deadlineRoutes.js";
 const isServerless = process.env.VERCEL === '1' || process.env.NETLIFY === 'true' || !!process.env.AWS_EXECUTION_ENV || !!process.env.FUNCTION_NAME;
 const app = express();
 const port = Number(process.env.PORT) || 3000;
@@ -163,6 +164,7 @@ app.use("/api/bookings/marketplace", authenticate, bookingMarketplaceRoutes);
 app.use("/api/admin/marketplace", authenticate, adminMarketplaceRoutes);
 app.use("/api/letters-dispatch", authenticate, lettersDispatchRoutes);
 app.use("/api/mail", authenticate, mailingRoutes);
+app.use("/api/deadlines", authenticate, deadlineRoutes);
 // Profile (simple, keep here or move if grows)
 app.get("/api/auth/me", authenticate, (req, res) => {
     const user = req.user;

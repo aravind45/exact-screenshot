@@ -32,12 +32,8 @@ router.post("/chat", async (req, res) => {
             }
         }
         const result = await OrchestratorService.answerLegalQuestion(message, req.user.id);
-        return res.json({
-            reply: result.answer,
-            sources: result.sources,
-            evidence: result.evidence,
-            metadata: result.metadata
-        });
+        // Return the same structure as helpRoutes.ts for consistency
+        return res.json(result);
     }
     catch (error) {
         if (error instanceof z.ZodError) {

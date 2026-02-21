@@ -24,7 +24,7 @@ const Auth = lazy(() => import("./pages/Auth"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const Pricing = lazy(() => import("./pages/Pricing"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
-const OnboardingWizard = lazy(() => import("./pages/OnboardingWizard"));
+const OnboardingGuidedWizard = lazy(() => import("./components/OnboardingGuidedWizard"));
 const VerifyEmail = lazy(() => import("./pages/VerifyEmail"));
 
 // Assets & Documents
@@ -127,6 +127,8 @@ const LifeInsuranceClaim = lazy(() => import("./pages/content/LifeInsuranceClaim
 const IntestateWithoutWill = lazy(() => import("./pages/content/IntestateWithoutWill"));
 const ProbateCost = lazy(() => import("./pages/content/ProbateCost"));
 const EstateSettlementChecklist = lazy(() => import("./pages/content/EstateSettlementChecklist"));
+const EstatePathGuide = lazy(() => import("./pages/EstatePathGuide"));
+
 
 const queryClient = new QueryClient();
 
@@ -182,6 +184,7 @@ const App = () => (
                       <Route path="/intestate-without-will" element={<IntestateWithoutWill />} />
                       <Route path="/probate-cost" element={<ProbateCost />} />
                       <Route path="/estate-settlement-checklist" element={<EstateSettlementChecklist />} />
+                      <Route path="/estate-path-guide" element={<EstatePathGuide />} />
 
                       {/* Legal Pages */}
                       <Route path="/terms" element={<TermsOfService />} />
@@ -192,7 +195,7 @@ const App = () => (
                         path="/onboarding"
                         element={
                           <RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}>
-                            <OnboardingWizard />
+                            <OnboardingGuidedWizard />
                           </RoleRoute>
                         }
                       />

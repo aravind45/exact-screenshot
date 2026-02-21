@@ -710,89 +710,8 @@ router.get("/:estateId/documents", requireEstateAccess, async (req: any, res: Re
     }
 });
 
-// Deadline Management
-router.get("/:estateId/deadlines", requireEstateAccess, async (req: any, res: Response) => {
-    try {
-        const { DeadlineService } = await import("../services/deadlineService.js");
-        const deadlines = await DeadlineService.getDeadlines(req.params.estateId);
-        res.json(deadlines);
-    } catch (error: any) {
-        logger.error("Deadline Fetch Error:", error.message);
-        res.status(500).json({ error: "Failed to fetch deadlines" });
-    }
-});
 
-router.post("/:estateId/deadlines", requireEstateAccess, async (req: any, res: Response) => {
-    try {
-        const validated = deadlineSchema.parse(req.body);
-        const { DeadlineService } = await import("../services/deadlineService.js");
-        const deadline = await DeadlineService.createDeadline(req.params.estateId, {
-            title: validated.title,
-            dueDate: new Date(validated.dueDate)
-        });
-        res.json(deadline);
-    } catch (error: any) {
-        if (error instanceof z.ZodError) return res.status(400).json({ error: "Invalid input", details: error.errors });
-        logger.error("Deadline Create Error:", error.message);
-        res.status(500).json({ error: "Failed to create deadline" });
-    }
-});
 
-router.put("/:estateId/deadlines/:id", requireEstateAccess, async (req: any, res: Response) => {
-    try {
-        const validated = deadlineSchema.partial().parse(req.body);
-        const { DeadlineService } = await import("../services/deadlineService.js");
-
-        const updateData: any = { ...validated };
-        if (validated.dueDate) {
-            updateData.dueDate = new Date(validated.dueDate);
-        }
-
-        const deadline = await DeadlineService.updateDeadline(
-            req.params.id,
-            req.params.estateId,
-            updateData
-        );
-        res.json(deadline);
-    } catch (error: any) {
-        if (error instanceof z.ZodError) return res.status(400).json({ error: "Invalid input", details: error.errors });
-        logger.error("Deadline Update Error:", error.message);
-        res.status(500).json({ error: "Failed to update deadline" });
-    }
-});
-
-router.delete("/:estateId/deadlines/:id", requireEstateAccess, async (req: any, res: Response) => {
-    try {
-        const { DeadlineService } = await import("../services/deadlineService.js");
-        await DeadlineService.deleteDeadline(req.params.id, req.params.estateId);
-        res.json({ success: true });
-    } catch (error) {
-        res.status(500).json({ error: "Failed to delete deadline" });
-    }
-});
-
-router.post("/:estateId/deadlines/generate", requireEstateAccess, async (req: any, res: Response) => {
-    try {
-        const { DeadlineService } = await import("../services/deadlineService.js");
-        const result = await DeadlineService.generateStatutoryDeadlines(req.params.estateId);
-        res.json(result);
-    } catch (error: any) {
-        logger.error("Deadline Generate Error:", error.message);
-        res.status(500).json({ error: "Failed to generate deadlines" });
-    }
-});
-
-// Recompute pending (missing-anchor) deadlines after executor provides anchor dates
-router.post("/:estateId/deadlines/recompute", requireEstateAccess, async (req: any, res: Response) => {
-    try {
-        const { DeadlineService } = await import("../services/deadlineService.js");
-        const result = await DeadlineService.recomputeDeadlines(req.params.estateId);
-        res.json(result);
-    } catch (error: any) {
-        logger.error("Deadline Recompute Error:", error.message);
-        res.status(500).json({ error: "Failed to recompute deadlines" });
-    }
-});
 
 import { DossierService } from "../services/dossierService.js";
 
