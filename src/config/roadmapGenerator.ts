@@ -1,6 +1,5 @@
 import { AuthorityType, MasterMode, getMasterMode } from "@/lib/authorityEngine";
-import { PhaseTaskList, SETTLEMENT_PHASE_TASKS, TRUST_PHASE_TASKS, PROBATE_ESCALATION_PHASE } from "./settlementPhases";
-import { SettlementPhase } from "@/components/SettlementPhaseChevron";
+import { SettlementPhase, PhaseTaskList, SETTLEMENT_PHASE_TASKS, TRUST_PHASE_TASKS, MODIFIER_PHASE_TASKS, PROBATE_ESCALATION_PHASE } from "./settlementPhases";
 
 export function generateRoadmap(
     authorityType: AuthorityType,
@@ -52,21 +51,19 @@ export function generateRoadmap(
         }
     });
 
-    // Order phases properly based on SETTLEMENT_PHASE_TASKS or TRUST_PHASE_TASKS order
-    const isTrustTrack = engines.includes("TRUST");
-    const baselinePhases = isTrustTrack ? TRUST_PHASE_TASKS : SETTLEMENT_PHASE_TASKS;
-    const orderedPhaseKeys = baselinePhases.map(p => p.phase);
-
-    // Add probate_escalation to the ordered keys if it's the trust track
-    if (isTrustTrack && !orderedPhaseKeys.includes("probate_escalation")) {
-        // Find asset_discovery index and insert after it
-        const discoveryIdx = orderedPhaseKeys.indexOf("asset_discovery");
-        if (discoveryIdx !== -1) {
-            orderedPhaseKeys.splice(discoveryIdx + 1, 0, "probate_escalation");
-        } else {
-            orderedPhaseKeys.push("probate_escalation");
-        }
-    }
+    // Order phases properly based on canonical sequence
+    const orderedPhaseKeys = [
+        "immediate_actions",
+        "court_filing",
+        "ancillary_phase",
+        "litigation_phase",
+        "insolvency_phase",
+        "asset_discovery",
+        "probate_escalation",
+        "creditor_claims",
+        "asset_liquidation",
+        "final_distribution"
+    ];
 
     return orderedPhaseKeys
         .filter(key => mergedPhases[key])
@@ -276,6 +273,20 @@ function generateFiduciaryRoadmap(type: AuthorityType, state: string, modifiers:
         return { ...p, tasks };
     });
 
+    // Add modifier phases if applicable
+    if (modifiers.includes("ANCILLARY")) {
+        const ancillary = MODIFIER_PHASE_TASKS.find(p => p.phase === "ancillary_phase");
+        if (ancillary) roadmap.push(JSON.parse(JSON.stringify(ancillary)));
+    }
+    if (modifiers.includes("CONTESTED")) {
+        const litigation = MODIFIER_PHASE_TASKS.find(p => p.phase === "litigation_phase");
+        if (litigation) roadmap.push(JSON.parse(JSON.stringify(litigation)));
+    }
+    if (modifiers.includes("INSOLVENT")) {
+        const insolvency = MODIFIER_PHASE_TASKS.find(p => p.phase === "insolvency_phase");
+        if (insolvency) roadmap.push(JSON.parse(JSON.stringify(insolvency)));
+    }
+
     // Add Probate Escalation if triggered
     if (modifiers.includes("PROBATE_ESCALATION")) {
         roadmap.push({ ...PROBATE_ESCALATION_PHASE });
@@ -352,7 +363,7 @@ function generateProbateRoadmap(type: AuthorityType, state: string, modifiers: s
     }
 
     // Inject Overlays for Probate
-    return roadmap.map((p: PhaseTaskList) => {
+    roadmap = roadmap.map((p: PhaseTaskList) => {
         let tasks = [...p.tasks];
 
         // Filter out international tasks if modifier is not present
@@ -438,6 +449,22 @@ function generateProbateRoadmap(type: AuthorityType, state: string, modifiers: s
 
         return { ...p, tasks };
     });
+
+    // Add modifier phases if applicable
+    if (modifiers.includes("ANCILLARY") || type === "ANCILLARY_PROBATE") {
+        const ancillary = MODIFIER_PHASE_TASKS.find(p => p.phase === "ancillary_phase");
+        if (ancillary) roadmap.push(JSON.parse(JSON.stringify(ancillary)));
+    }
+    if (modifiers.includes("CONTESTED") || type === "CONTESTED_ESTATE") {
+        const litigation = MODIFIER_PHASE_TASKS.find(p => p.phase === "litigation_phase");
+        if (litigation) roadmap.push(JSON.parse(JSON.stringify(litigation)));
+    }
+    if (modifiers.includes("INSOLVENT") || type === "INSOLVENT_ESTATE") {
+        const insolvency = MODIFIER_PHASE_TASKS.find(p => p.phase === "insolvency_phase");
+        if (insolvency) roadmap.push(JSON.parse(JSON.stringify(insolvency)));
+    }
+
+    return roadmap;
 }
 
 function generateDiscoveryRoadmap(type: AuthorityType, state: string, hasWill?: boolean): PhaseTaskList[] {

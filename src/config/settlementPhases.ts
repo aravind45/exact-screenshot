@@ -1408,6 +1408,115 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
  * - No DE-111 petition, no DE-150 Letters required
  * - Probate is only an escalation when trust funding fails
  */
+export const MODIFIER_PHASE_TASKS: PhaseTaskList[] = [
+  {
+    phase: "ancillary_phase",
+    title: "Ancillary / Multi-State",
+    subtitle: "Out-of-State Property",
+    milestone: "After Primary Filing",
+    description: "Coordinate with other jurisdictions where the decedent owned real estate or titled assets.",
+    isEscalationPath: true,
+    tasks: [
+      {
+        id: "identify_out_of_state_assets",
+        title: "Identify Out-of-State Assets",
+        description: "Verify all real property and titled assets located outside of the primary probate state.",
+        estimatedTime: "2-4 hours",
+        alerts: [{ type: "info", message: "Real estate in other states usually requires a separate 'Ancillary' court proceeding." }]
+      },
+      {
+        id: "confirm_ancillary_requirements",
+        title: "Confirm Ancillary Requirements",
+        description: "Consult with a local attorney in the secondary state to determine if formal ancillary probate or a simplified affidavit is required.",
+        estimatedTime: "1-2 weeks",
+        isAttorneyReviewNode: true
+      },
+      {
+        id: "open_ancillary_proceeding",
+        title: "Open Ancillary Proceeding",
+        description: "File certified copies of the primary Letters and Will in the secondary jurisdiction to obtain local authority.",
+        estimatedTime: "2-4 weeks",
+        requiredDocs: ["Certified Letters", "Authenticated Will", "DE-111 (Ancillary)"]
+      }
+    ]
+  },
+  {
+    phase: "litigation_phase",
+    title: "Dispute / Litigation",
+    subtitle: "Conflict Resolution",
+    milestone: "Ongoing",
+    description: "Manage legal challenges, will contests, or beneficiary disputes that arise during administration.",
+    isEscalationPath: true,
+    tasks: [
+      {
+        id: "preserve_litigation_evidence",
+        title: "Preserve Evidence",
+        description: "Secure original copies of the Will/Trust, key communications (emails, letters), and relevant financial records.",
+        estimatedTime: "2-4 hours",
+        tags: ["risk-guardrail"]
+      },
+      {
+        id: "engage_litigation_counsel",
+        title: "Engage Probate Litigation Counsel",
+        description: "Hire specialized litigation counsel to represent the estate's interests in the dispute.",
+        estimatedTime: "1-2 weeks",
+        isAttorneyReviewNode: true
+      },
+      {
+        id: "mediation_strategy",
+        title: "Consider Mediation/Settlement Strategy",
+        description: "Evaluate the costs and risks of litigation versus the benefits of a settlement agreement.",
+        estimatedTime: "2-4 weeks",
+        isAttorneyReviewNode: true
+      },
+      {
+        id: "freeze_distributions_litigation",
+        title: "Freeze Distributions until Resolution",
+        description: "Mandatory: Do not distribute any contested portions of the estate until a final court order or written settlement is reached.",
+        alerts: [{ type: "caution", message: "Fiduciary Risk: Premature distribution during litigation can lead to personal liability and surcharge." }]
+      }
+    ]
+  },
+  {
+    phase: "insolvency_phase",
+    title: "Insolvency Handling",
+    subtitle: "Debt Prioritization",
+    milestone: "Immediate Risk Action",
+    description: "Manage estates where liabilities exceed available assets, requiring strict statutory priority for payments.",
+    isEscalationPath: true,
+    tasks: [
+      {
+        id: "stop_insolvent_distributions",
+        title: "Stop All Distributions",
+        description: "Cease all payments to beneficiaries until a final insolvency plan is approved by the court.",
+        estimatedTime: "Immediate",
+        tags: ["risk-guardrail"]
+      },
+      {
+        id: "prioritize_claims_statutory",
+        title: "Prioritize Claims per Statutory Order",
+        description: "Rank all known debts according to their legal priority (e.g., admin costs, funeral, taxes, then general creditors).",
+        estimatedTime: "1-2 weeks",
+        isAttorneyReviewNode: true
+      },
+      {
+        id: "negotiate_insolvency_settlements",
+        title: "Negotiate Structured Payoffs",
+        description: "Contact creditors to negotiate pro-rata payments or settlements based on available estate funds.",
+        estimatedTime: "4-8 weeks",
+        isAttorneyReviewNode: true
+      },
+      {
+        id: "close_insolvent_accounting",
+        title: "Close with Insolvency Accounting",
+        description: "Submit a final accounting to the court that explicitly documents the estate's insolvency and the pro-rata distribution to creditors.",
+        estimatedTime: "2-4 weeks",
+        requiredDocs: ["Final Accounting (Insolvency)"]
+      }
+    ]
+  }
+];
+
 export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
   // STATE 1: Trustee Authority (not court-issued)
   {

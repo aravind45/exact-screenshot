@@ -1,0 +1,86 @@
+[
+  {
+    "index": 51,
+    "inputs": {
+      "TOD Deed": "Yes",
+      "Contested": "No",
+      "Will": "Yes",
+      "Surviving Spouse": "Yes",
+      "Trust Type": "None",
+      "Out of State Property": "No",
+      "Debt Status": "Solvent",
+      "Primary Path Outcome": "General Probate Administration",
+      "Result": "General Probate Administration",
+      "Complexity": "Medium",
+      "Approx Time": "6–12 months",
+      "Roadmap Phases": "Stabilize & Secure → Probate Petition & Authority → Asset + Debt Inventory → Notices & Claims → Tax/Accounting → Distribution & Close",
+      "Roadmap Steps (Condensed)": "1. Secure property & valuables; prevent loss (locks, insurance, utilities check)\r\n2. Obtain 8–12 certified death certificates\r\n3. Locate key documents (will/trust, deeds, statements, insurance, tax returns)\r\n4. Notify SSA/employer/pension; stop improper payments; identify survivor benefits\r\n5. Forward/monitor mail; cancel subscriptions; freeze/monitor credit if needed\r\n6. Build asset & debt inventory (banks, brokerage, real estate, vehicles, loans, cards)\r\n7. File petition; request appointment (executor/administrator)\r\n8. Obtain Letters + EIN; open estate bank account\r\n9. Serve/publish required notices to heirs/beneficiaries and creditors\r\n10. Inventory assets; obtain appraisals/valuations as required\r\n11. Review/pay approved claims and expenses; keep court-compliant accounting\r\n12. Petition for final distribution; distribute assets; close estate"
+    },
+    "errors": [
+      "Outcome Mismatch: Expected General Probate Administration (FORMAL_PROBATE), got TOD_DEED"
+    ]
+  },
+  {
+    "index": 63,
+    "inputs": {
+      "TOD Deed": "Yes",
+      "Contested": "No",
+      "Will": "Yes",
+      "Surviving Spouse": "No",
+      "Trust Type": "None",
+      "Out of State Property": "No",
+      "Debt Status": "Solvent",
+      "Primary Path Outcome": "General Probate Administration",
+      "Result": "General Probate Administration",
+      "Complexity": "Medium",
+      "Approx Time": "6–12 months",
+      "Roadmap Phases": "Stabilize & Secure → Probate Petition & Authority → Asset + Debt Inventory → Notices & Claims → Tax/Accounting → Distribution & Close",
+      "Roadmap Steps (Condensed)": "1. Secure property & valuables; prevent loss (locks, insurance, utilities check)\r\n2. Obtain 8–12 certified death certificates\r\n3. Locate key documents (will/trust, deeds, statements, insurance, tax returns)\r\n4. Notify SSA/employer/pension; stop improper payments; identify survivor benefits\r\n5. Forward/monitor mail; cancel subscriptions; freeze/monitor credit if needed\r\n6. Build asset & debt inventory (banks, brokerage, real estate, vehicles, loans, cards)\r\n7. File petition; request appointment (executor/administrator)\r\n8. Obtain Letters + EIN; open estate bank account\r\n9. Serve/publish required notices to heirs/beneficiaries and creditors\r\n10. Inventory assets; obtain appraisals/valuations as required\r\n11. Review/pay approved claims and expenses; keep court-compliant accounting\r\n12. Petition for final distribution; distribute assets; close estate"
+    },
+    "errors": [
+      "Outcome Mismatch: Expected General Probate Administration (FORMAL_PROBATE), got TOD_DEED"
+    ]
+  },
+  {
+    "index": 147,
+    "inputs": {
+      "TOD Deed": "No",
+      "Contested": "No",
+      "Will": "Yes",
+      "Surviving Spouse": "Yes",
+      "Trust Type": "None",
+      "Out of State Property": "No",
+      "Debt Status": "Solvent",
+      "Primary Path Outcome": "General Probate Administration",
+      "Result": "General Probate Administration",
+      "Complexity": "Medium",
+      "Approx Time": "6–12 months",
+      "Roadmap Phases": "Stabilize & Secure → Probate Petition & Authority → Asset + Debt Inventory → Notices & Claims → Tax/Accounting → Distribution & Close",
+      "Roadmap Steps (Condensed)": "1. Secure property & valuables; prevent loss (locks, insurance, utilities check)\r\n2. Obtain 8–12 certified death certificates\r\n3. Locate key documents (will/trust, deeds, statements, insurance, tax returns)\r\n4. Notify SSA/employer/pension; stop improper payments; identify survivor benefits\r\n5. Forward/monitor mail; cancel subscriptions; freeze/monitor credit if needed\r\n6. Build asset & debt inventory (banks, brokerage, real estate, vehicles, loans, cards)\r\n7. File petition; request appointment (executor/administrator)\r\n8. Obtain Letters + EIN; open estate bank account\r\n9. Serve/publish required notices to heirs/beneficiaries and creditors\r\n10. Inventory assets; obtain appraisals/valuations as required\r\n11. Review/pay approved claims and expenses; keep court-compliant accounting\r\n12. Petition for final distribution; distribute assets; close estate"
+    },
+    "errors": [
+      "Outcome Mismatch: Expected General Probate Administration (FORMAL_PROBATE), got UNSET"
+    ]
+  },
+  {
+    "index": 159,
+    "inputs": {
+      "TOD Deed": "No",
+      "Contested": "No",
+      "Will": "Yes",
+      "Surviving Spouse": "No",
+      "Trust Type": "None",
+      "Out of State Property": "No",
+      "Debt Status": "Solvent",
+      "Primary Path Outcome": "General Probate Administration",
+      "Result": "General Probate Administration",
+      "Complexity": "Medium",
+      "Approx Time": "6–12 months",
+      "Roadmap Phases": "Stabilize & Secure → Probate Petition & Authority → Asset + Debt Inventory → Notices & Claims → Tax/Accounting → Distribution & Close",
+      "Roadmap Steps (Condensed)": "1. Secure property & valuables; prevent loss (locks, insurance, utilities check)\r\n2. Obtain 8–12 certified death certificates\r\n3. Locate key documents (will/trust, deeds, statements, insurance, tax returns)\r\n4. Notify SSA/employer/pension; stop improper payments; identify survivor benefits\r\n5. Forward/monitor mail; cancel subscriptions; freeze/monitor credit if needed\r\n6. Build asset & debt inventory (banks, brokerage, real estate, vehicles, loans, cards)\r\n7. File petition; request appointment (executor/administrator)\r\n8. Obtain Letters + EIN; open estate bank account\r\n9. Serve/publish required notices to heirs/beneficiaries and creditors\r\n10. Inventory assets; obtain appraisals/valuations as required\r\n11. Review/pay approved claims and expenses; keep court-compliant accounting\r\n12. Petition for final distribution; distribute assets; close estate"
+    },
+    "errors": [
+      "Outcome Mismatch: Expected General Probate Administration (FORMAL_PROBATE), got DISCOVERY"
+    ]
+  }
+]
