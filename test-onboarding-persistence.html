@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Onboarding Persistence Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .test-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .test-result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success { background-color: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+        .error { background-color: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+        .info { background-color: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460; }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background-color: #0056b3; }
+        pre {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Onboarding Persistence Test</h1>
+    
+    <div class="container">
+        <h2>Test Results</h2>
+        <div id="test-results"></div>
+    </div>
+
+    <div class="container">
+        <h2>Manual Tests</h2>
+        <div class="test-section">
+            <h3>1. Save Session Test</h3>
+            <button onclick="testSaveSession()">Save Test Session</button>
+            <div id="save-result" class="test-result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>2. Restore Session Test</h3>
+            <button onclick="testRestoreSession()">Restore Session</button>
+            <div id="restore-result" class="test-result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>3. Clear Session Test</h3>
+            <button onclick="testClearSession()">Clear Session</button>
+            <div id="clear-result" class="test-result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>4. Auto-Cleanup Test</h3>
+            <button onclick="testAutoCleanup()">Test Auto-Cleanup</button>
+            <div id="cleanup-result" class="test-result"></div>
+        </div>
+    </div>
+
+    <script>
+        // Simulate the OnboardingPersistence utility
+        const OnboardingPersistence = {
+            STORAGE_KEY: 'onboarding_session',
+            SESSION_TIMEOUT: 7 * 24 * 60 * 60 * 1000, // 7 days
+
+            saveSession(session) {
+                try {
+                    const sessionData = {
+                        ...session,
+                        timestamp: Date.now()
+                    };
+                    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(sessionData));
+                    return true;
+                } catch (error) {
+                    console.error('Failed to save session:', error);
+                    return false;
+                }
+            },
+
+            getSession() {
+                try {
+                    const stored = localStorage.getItem(this.STORAGE_KEY);
+                    if (!stored) return null;
+
+                    const sessionData = JSON.parse(stored);
+                    
+                    // Check if session is expired
+                    if (Date.now() - sessionData.timestamp > this.SESSION_TIMEOUT) {
+                        this.clearSession();
+                        return null;
+                    }
+
+                    return {
+                        answers: sessionData.answers,
+                        currentStep: sessionData.currentStep,
+                        pathResult: sessionData.pathResult
+                    };
+                } catch (error) {
+                    console.error('Failed to restore session:', error);
+                    return null;
+                }
+            },
+
+            clearSession() {
+                try {
+                    localStorage.removeItem(this.STORAGE_KEY);
+                    return true;
+                } catch (error) {
+                    console.error('Failed to clear session:', error);
+                    return false;
+                }
+            },
+
+            isSessionExpired() {
+                try {
+                    const stored = localStorage.getItem(this.STORAGE_KEY);
+                    if (!stored) return true;
+
+                    const sessionData = JSON.parse(stored);
+                    return Date.now() - sessionData.timestamp > this.SESSION_TIMEOUT;
+                } catch (error) {
+                    return true;
+                }
+            }
+        };
+
+        // Test functions
+        function testSaveSession() {
+            const testSession = {
+                answers: {
+                    hasWill: 'yes',
+                    hasTrust: 'no',
+                    trustType: 'not_sure',
+                    hasTODDeed: 'not_sure',
+                    hasContest: 'not_sure',
+                    isOutOfState: 'not_sure',
+                    isSpouse: 'not_sure',
+                    debtStatus: 'not_sure'
+                },
+                currentStep: 2,
+                pathResult: {
+                    pathId: 'INFORMAL_PROBATE',
+                    pathLabel: 'Informal Probate',
+                    complexity: 'Medium',
+                    timeline: '3-6 months',
+                    confidence: 85
+                }
+            };
+
+            const success = OnboardingPersistence.saveSession(testSession);
+            const resultDiv = document.getElementById('save-result');
+            
+            if (success) {
+                resultDiv.className = 'test-result success';
+                resultDiv.innerHTML = '<strong>✓ Success:</strong> Session saved to localStorage';
+            } else {
+                resultDiv.className = 'test-result error';
+                resultDiv.innerHTML = '<strong>✗ Error:</strong> Failed to save session';
+            }
+        }
+
+        function testRestoreSession() {
+            const session = OnboardingPersistence.getSession();
+            const resultDiv = document.getElementById('restore-result');
+            
+            if (session) {
+                resultDiv.className = 'test-result success';
+                resultDiv.innerHTML = `
+                    <strong>✓ Success:</strong> Session restored from localStorage
+                    <pre>Answers: ${JSON.stringify(session.answers, null, 2)}
+Current Step: ${session.currentStep}
+Path Result: ${JSON.stringify(session.pathResult, null, 2)}</pre>
+                `;
+            } else {
+                resultDiv.className = 'test-result info';
+                resultDiv.innerHTML = '<strong>ℹ Info:</strong> No session found in localStorage';
+            }
+        }
+
+        function testClearSession() {
+            const success = OnboardingPersistence.clearSession();
+            const resultDiv = document.getElementById('clear-result');
+            
+            if (success) {
+                resultDiv.className = 'test-result success';
+                resultDiv.innerHTML = '<strong>✓ Success:</strong> Session cleared from localStorage';
+            } else {
+                resultDiv.className = 'test-result error';
+                resultDiv.innerHTML = '<strong>✗ Error:</strong> Failed to clear session';
+            }
+        }
+
+        function testAutoCleanup() {
+            // Test with expired session
+            const expiredSession = {
+                answers: { hasWill: 'yes' },
+                currentStep: 1,
+                pathResult: null,
+                timestamp: Date.now() - (8 * 24 * 60 * 60 * 1000) // 8 days ago
+            };
+
+            localStorage.setItem('onboarding_session', JSON.stringify(expiredSession));
+            
+            const isExpired = OnboardingPersistence.isSessionExpired();
+            const resultDiv = document.getElementById('cleanup-result');
+            
+            if (isExpired) {
+                resultDiv.className = 'test-result success';
+                resultDiv.innerHTML = '<strong>✓ Success:</strong> Auto-cleanup working - expired session detected';
+            } else {
+                resultDiv.className = 'test-result error';
+                resultDiv.innerHTML = '<strong>✗ Error:</strong> Auto-cleanup not working - expired session not detected';
+            }
+        }
+
+        // Run automatic tests on page load
+        window.onload = function() {
+            const resultsDiv = document.getElementById('test-results');
+            let results = '<h3>Automatic Tests:</h3>';
+
+            // Test 1: Save session
+            const testSession = {
+                answers: { hasWill: 'yes', hasTrust: 'no' },
+                currentStep: 1,
+                pathResult: { pathId: 'TEST' }
+            };
+            const saveSuccess = OnboardingPersistence.saveSession(testSession);
+            results += `<div class="test-result ${saveSuccess ? 'success' : 'error'}">
+                <strong>Save Session:</strong> ${saveSuccess ? '✓ PASSED' : '✗ FAILED'}
+            </div>`;
+
+            // Test 2: Restore session
+            const restoredSession = OnboardingPersistence.getSession();
+            const restoreSuccess = restoredSession !== null;
+            results += `<div class="test-result ${restoreSuccess ? 'success' : 'error'}">
+                <strong>Restore Session:</strong> ${restoreSuccess ? '✓ PASSED' : '✗ FAILED'}
+            </div>`;
+
+            // Test 3: Clear session
+            const clearSuccess = OnboardingPersistence.clearSession();
+            results += `<div class="test-result ${clearSuccess ? 'success' : 'error'}">
+                <strong>Clear Session:</strong> ${clearSuccess ? '✓ PASSED' : '✗ FAILED'}
+            </div>`;
+
+            // Test 4: Error handling
+            // Simulate localStorage being unavailable
+            const originalSetItem = localStorage.setItem;
+            localStorage.setItem = function() { throw new Error('localStorage unavailable'); };
+            const errorHandlingSuccess = !OnboardingPersistence.saveSession(testSession);
+            localStorage.setItem = originalSetItem;
+            
+            results += `<div class="test-result ${errorHandlingSuccess ? 'success' : 'error'}">
+                <strong>Error Handling:</strong> ${errorHandlingSuccess ? '✓ PASSED' : '✗ FAILED'}
+            </div>`;
+
+            resultsDiv.innerHTML = results;
+        };
+    </script>
+</body>
+</html>
