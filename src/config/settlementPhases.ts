@@ -1366,7 +1366,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         dependencies: ["publish_notice"],
         stateOverrides: {
           NY: {
-            title: "Wait for 7-Month Creditor Period (SCPA §1802)",
+            title: "Monitor 7-Month Creditor Exposure Period (from issuance of Letters)",
             description: "In New York, creditors have 7 months from the date Letters are issued to file claims (SCPA §1802).",
             estimatedTime: "7 months"
           }

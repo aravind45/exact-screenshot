@@ -95,18 +95,21 @@ function normalizeTextForState(text: string | undefined, state: string): string 
 }
 
 function normalizeTaskForState(task: PhaseTask, state: string): PhaseTask {
+  const override = task.stateOverrides?.[state];
+  const mergedTask = override ? { ...task, ...override } : task;
+
   return {
-    ...task,
-    title: normalizeTextForState(task.title, state) || task.title,
-    description: normalizeTextForState(task.description, state) || task.description,
-    utility: normalizeTextForState(task.utility, state),
-    rationale: normalizeTextForState(task.rationale, state),
-    requiredDocs: task.requiredDocs?.map(doc => normalizeTextForState(doc, state) || doc),
-    alerts: task.alerts?.map(alert => ({
+    ...mergedTask,
+    title: normalizeTextForState(mergedTask.title, state) || mergedTask.title,
+    description: normalizeTextForState(mergedTask.description, state) || mergedTask.description,
+    utility: normalizeTextForState(mergedTask.utility, state),
+    rationale: normalizeTextForState(mergedTask.rationale, state),
+    requiredDocs: mergedTask.requiredDocs?.map(doc => normalizeTextForState(doc, state) || doc),
+    alerts: mergedTask.alerts?.map(alert => ({
       ...alert,
       message: normalizeTextForState(alert.message, state) || alert.message
     })),
-    links: task.links?.map(link => ({
+    links: mergedTask.links?.map(link => ({
       ...link,
       label: normalizeTextForState(link.label, state) || link.label
     }))
@@ -276,10 +279,15 @@ export function filterTasksForEstate(
         if (!hasMatchingVariant) return false;
       }
 
-      // 5. Handle Predicates (AND/OR/NOT)
+      // 5. Handle Predicates (AND/OR/NOT) and State Applicability
       if (task.applicability) {
-        const { predicatesAll, predicatesAny, excludePredicates } = task.applicability;
+        const { predicatesAll, predicatesAny, excludePredicates, states } = task.applicability;
         const profileMap = profile as any;
+
+        if (states && states.length > 0) {
+          if (!states.includes(profile.state)) return false;
+        }
+
 
         if (predicatesAll && predicatesAll.length > 0) {
           const allTrue = predicatesAll.every(p => !!profileMap[p]);

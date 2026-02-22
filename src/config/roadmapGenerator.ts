@@ -30,21 +30,24 @@ function normalizeTextForState(text: string | undefined, state: string): string 
 }
 
 function normalizeTaskForState(task: any, state: string) {
+    const override = task.stateOverrides?.[state];
+    const mergedTask = override ? { ...task, ...override } : task;
+
     return {
-        ...task,
-        title: normalizeTextForState(task.title, state),
-        description: normalizeTextForState(task.description, state),
-        utility: normalizeTextForState(task.utility, state),
-        rationale: normalizeTextForState(task.rationale, state),
-        requiredDocs: task.requiredDocs?.map((doc: string) => normalizeTextForState(doc, state)) ?? task.requiredDocs,
-        alerts: task.alerts?.map((alert: any) => ({
+        ...mergedTask,
+        title: normalizeTextForState(mergedTask.title, state),
+        description: normalizeTextForState(mergedTask.description, state),
+        utility: normalizeTextForState(mergedTask.utility, state),
+        rationale: normalizeTextForState(mergedTask.rationale, state),
+        requiredDocs: mergedTask.requiredDocs?.map((doc: string) => normalizeTextForState(doc, state)) ?? mergedTask.requiredDocs,
+        alerts: mergedTask.alerts?.map((alert: any) => ({
             ...alert,
             message: normalizeTextForState(alert.message, state)
-        })) ?? task.alerts,
-        links: task.links?.map((link: any) => ({
+        })) ?? mergedTask.alerts,
+        links: mergedTask.links?.map((link: any) => ({
             ...link,
             label: normalizeTextForState(link.label, state)
-        })) ?? task.links
+        })) ?? mergedTask.links
     };
 }
 

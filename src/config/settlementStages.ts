@@ -892,6 +892,7 @@ export const STATE_ROADMAP_OVERRIDES: Record<string, Partial<Record<SettlementTr
                 id: "creditors", title: "Creditor Claims", description: "7-month period for generic claims.",
                 tasks: [
                     { id: "publish_notice", title: "Publish Creditor Notice" },
+                    { id: "mail_notice", title: "Mail Notice to Known Creditors" },
                     { id: "wait_claim_period", title: "Wait 7 Months for Creditors" },
                     { id: "pay_debts", title: "Pay SCPA 1811 Priorities" }
                 ]
@@ -940,6 +941,7 @@ export const STATE_ROADMAP_OVERRIDES: Record<string, Partial<Record<SettlementTr
                 id: "creditors", title: "Creditor Claims", description: "7-month period for generic claims.",
                 tasks: [
                     { id: "publish_notice", title: "Publish Creditor Notice" },
+                    { id: "mail_notice", title: "Mail Notice to Known Creditors" },
                     { id: "wait_claim_period", title: "Wait 7 Months for Creditors" },
                     { id: "pay_debts", title: "Pay SCPA 1811 Priorities" }
                 ]
