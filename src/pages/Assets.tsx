@@ -405,11 +405,11 @@ export default function Assets() {
                                 {/* ── Compact Authority Chips Row ─────────────────────── */}
                                 <div className="flex items-center gap-2 flex-wrap">
                                     {[{ label: "Court", count: authoritySummary.COURT_REQUIRED, dot: "bg-rose-500" },
-                                      { label: "Trust", count: authoritySummary.TRUSTEE_DIRECT, dot: "bg-emerald-500" },
-                                      { label: "Affidavit", count: authoritySummary.AFFIDAVIT_SMALL, dot: "bg-amber-500" },
-                                      { label: "Contract", count: authoritySummary.BENEFICIARY_CONTRACT, dot: "bg-indigo-500" },
-                                      { label: "Title", count: authoritySummary.SURVIVORSHIP_TITLE, dot: "bg-slate-500" },
-                                      { label: "Hold", count: authoritySummary.LITIGATION_HOLD, dot: "bg-red-700" }].map(chip => (
+                                    { label: "Trust", count: authoritySummary.TRUSTEE_DIRECT, dot: "bg-emerald-500" },
+                                    { label: "Affidavit", count: authoritySummary.AFFIDAVIT_SMALL, dot: "bg-amber-500" },
+                                    { label: "Contract", count: authoritySummary.BENEFICIARY_CONTRACT, dot: "bg-indigo-500" },
+                                    { label: "Title", count: authoritySummary.SURVIVORSHIP_TITLE, dot: "bg-slate-500" },
+                                    { label: "Hold", count: authoritySummary.LITIGATION_HOLD, dot: "bg-red-700" }].map(chip => (
                                         <div key={chip.label} className={cn(
                                             "flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border shadow-sm text-[11px] font-black transition-all",
                                             chip.count > 0 ? "border-slate-200 text-slate-700" : "border-slate-100 text-slate-300"
@@ -503,7 +503,7 @@ export default function Assets() {
                                 {/* ── Asset List ───────────────────────────────────────── */}
                                 {isLoading ? (
                                     <div className="space-y-1">
-                                        {[1,2,3,4,5].map(i => (
+                                        {[1, 2, 3, 4, 5].map(i => (
                                             <div key={i} className="h-14 bg-white border border-slate-100 rounded-xl animate-pulse" />
                                         ))}
                                     </div>
@@ -658,9 +658,9 @@ export default function Assets() {
                                         variant="link"
                                         size="sm"
                                         className="h-auto p-0 text-indigo-600 font-black text-xs"
-                                        onClick={() => navigate('/guides')}
+                                        onClick={() => navigate('/help')}
                                     >
-                                        View Asset Guide →
+                                        Visit Help Center →
                                     </Button>
                                 </div>
                             </div>

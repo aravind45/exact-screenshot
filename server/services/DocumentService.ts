@@ -4,6 +4,7 @@ import path from 'path';
 
 import { prisma } from '../db.js';
 import { FeeService } from './feeService.js';
+import { PriorityService } from './priorityService.js';
 import { logger } from '../lib/logger.js';
 
 export interface OverlayCoordinate {
@@ -1762,9 +1763,201 @@ export const DocumentService = {
         y -= 15;
         page.drawText(`Signature of ${applicantName}, Affiant`, { x: 50, y, size: 10 });
 
+    },
+
+    /**
+     * Generates a Creditor Claim Priority Worksheet for insolvent estates
+     */
+    async generateCreditorClaimPriorityWorksheet(estateId: string) {
+        const estate = await prisma.estate.findUnique({
+            where: { id: estateId },
+            include: { liabilities: true, user: true }
+        });
+
+        if (!estate) throw new Error("Estate not found");
+
+        const doc = await PDFDocument.create();
+        let page = doc.addPage();
+        const { height } = page.getSize();
+        let y = height - 50;
+        const fontBold = await doc.embedStandardFont(StandardFonts.HelveticaBold);
+        const fontNormal = await doc.embedStandardFont(StandardFonts.Helvetica);
+
+        page.drawText('CREDITOR CLAIM PRIORITY WORKSHEET', { x: 50, y, size: 14, font: fontBold });
+        y -= 15;
+        page.drawText('(FOR INSOLVENT ESTATES)', { x: 50, y, size: 12, font: fontBold });
+        y -= 30;
+
+        page.drawText(`Estate of: ${String(estate.deceasedFirstName || '')} ${String(estate.deceasedLastName || '')}`, { x: 50, y, size: 11 });
+        page.drawText(`State: ${String(estate.deceasedState || 'CA')}`, { x: 400, y, size: 11 });
+        y -= 25;
+
+        // Get priority rules for state
+        const stateRules = PriorityService.getPriorityOptions(estate.deceasedState || 'CA');
+
+        // Group liabilities
+        const liabilitiesByClass: Record<string, any[]> = {};
+        for (const rule of stateRules) {
+            liabilitiesByClass[rule.classId] = estate.liabilities.filter(l => l.priorityClass === rule.classId);
+        }
+
+        const estAssets = Number(estate.estimatedPersonalProperty || 0) + Number(estate.estimatedRealProperty || 0);
+        let remainingFunds = estAssets;
+
+        page.drawText(`Estimated Total Assets: $${estAssets.toFixed(2)}`, { x: 50, y, size: 11, font: fontBold });
+        y -= 30;
+
+        for (const rule of stateRules) {
+            const claims = liabilitiesByClass[rule.classId];
+            if (!claims || claims.length === 0) continue;
+
+            if (y < 100) {
+                page = doc.addPage();
+                y = height - 50;
+            }
+
+            page.drawText(`Priority ${rule.rank}: ${rule.label}`, { x: 50, y, size: 11, font: fontBold });
+            y -= 15;
+
+            let classTotal = 0;
+            for (const claim of claims) {
+                const amt = Number(claim.amount);
+                classTotal += amt;
+                page.drawText(`  - ${claim.name}: $${amt.toFixed(2)} [${claim.status}]`, { x: 50, y, size: 10, font: fontNormal });
+                y -= 15;
+            }
+
+            page.drawText(`  Class Total: $${classTotal.toFixed(2)}`, { x: 50, y, size: 10, font: fontBold });
+            y -= 15;
+
+            // Simple pro-rata logic for display
+            if (remainingFunds >= classTotal) {
+                page.drawText(`  Payment Authorized: 100%`, { x: 50, y, size: 10, font: fontNormal, color: rgb(0, 0.5, 0) });
+                remainingFunds -= classTotal;
+            } else if (remainingFunds > 0) {
+                const ratio = (remainingFunds / classTotal) * 100;
+                page.drawText(`  Payment Authorized: ${ratio.toFixed(2)}% (Pro-Rata)`, { x: 50, y, size: 10, font: fontNormal, color: rgb(0.8, 0.5, 0) });
+                remainingFunds = 0;
+            } else {
+                page.drawText(`  Payment Authorized: 0% (Funds Exhausted)`, { x: 50, y, size: 10, font: fontNormal, color: rgb(0.8, 0, 0) });
+            }
+            y -= 25;
+        }
+
+        page.drawText(`Remaining Funds for Heirs: $${Math.max(0, remainingFunds).toFixed(2)}`, { x: 50, y, size: 12, font: fontBold });
+        y -= 40;
+
+        page.drawText('WARNING: This worksheet is for planning purposes only.', { x: 50, y, size: 10, font: fontBold });
+        y -= 15;
+        page.drawText('Do not make payments to lower-priority creditors until all higher-priority claims', { x: 50, y, size: 10, font: fontNormal });
+        y -= 15;
+        page.drawText('and tax clearances are fully satisfied and the court authorizes distribution.', { x: 50, y, size: 10, font: fontNormal });
+
         return await doc.save();
     },
 
+    /**
+     * Generates a W-8BEN form placeholder for foreign beneficiaries
+     */
+    async generateW8BEN(estate: any) {
+        const doc = await PDFDocument.create();
+        let page = doc.addPage();
+        const { height } = page.getSize();
+        let y = height - 50;
+        const fontBold = await doc.embedStandardFont(StandardFonts.HelveticaBold);
+
+        page.drawText('Form W-8BEN', { x: 50, y, size: 16, font: fontBold });
+        y -= 25;
+        page.drawText('Certificate of Foreign Status of Beneficial Owner for United States Tax Withholding and Reporting', { x: 50, y, size: 11 });
+        y -= 40;
+
+        page.drawText(`1. Name of individual who is the beneficial owner:`, { x: 50, y, size: 11 });
+        y -= 15;
+        page.drawText(`   [Beneficiary Name]`, { x: 50, y, size: 11, font: fontBold });
+        y -= 25;
+
+        page.drawText(`2. Country of citizenship:`, { x: 50, y, size: 11 });
+        y -= 15;
+        const reasons = estate.internationalReasons || [];
+        const isForeign = reasons.includes('FOREIGN_HEIRS') || reasons.includes('FOREIGN_NON_RESIDENT_DECEDENT');
+        page.drawText(`   ${isForeign ? '[Foreign Country]' : '_______________________'}`, { x: 50, y, size: 11, font: fontBold });
+        y -= 25;
+
+        page.drawText(`3. Permanent residence address:`, { x: 50, y, size: 11 });
+        y -= 15;
+        page.drawText(`   [Foreign Address]`, { x: 50, y, size: 11, font: fontBold });
+        y -= 40;
+
+        page.drawText('Part II: Claim of Tax Treaty Benefits', { x: 50, y, size: 12, font: fontBold });
+        y -= 25;
+        page.drawText(`9. I certify that the beneficial owner is a resident of _________________`, { x: 50, y, size: 11 });
+        y -= 15;
+        page.drawText(`   within the meaning of the income tax treaty between the United States and that country.`, { x: 50, y, size: 11 });
+        y -= 40;
+
+        page.drawText('Part III: Certification', { x: 50, y, size: 12, font: fontBold });
+        y -= 25;
+        page.drawText(`Under penalties of perjury, I declare that I have examined the information on this form and to the`, { x: 50, y, size: 10 });
+        y -= 15;
+        page.drawText(`best of my knowledge and belief it is true, correct, and complete.`, { x: 50, y, size: 10 });
+        y -= 40;
+
+        page.drawText('___________________________________________________', { x: 50, y });
+        y -= 15;
+        page.drawText(`Signature of beneficial owner (or individual authorized to sign)`, { x: 50, y, size: 10 });
+
+        return await doc.save();
+    },
+
+    /**
+     * Generates a W-8CE form placeholder for expatriated decedents
+     */
+    async generateW8CE(estate: any) {
+        const doc = await PDFDocument.create();
+        let page = doc.addPage();
+        const { height } = page.getSize();
+        let y = height - 50;
+        const fontBold = await doc.embedStandardFont(StandardFonts.HelveticaBold);
+
+        page.drawText('Form W-8CE', { x: 50, y, size: 16, font: fontBold });
+        y -= 25;
+        page.drawText('Notice of Expatriation and Waiver of Treaty Benefits', { x: 50, y, size: 11 });
+        y -= 40;
+
+        page.drawText(`1. Name of covered expatriate:`, { x: 50, y, size: 11 });
+        y -= 15;
+        page.drawText(`   ${String(estate.deceasedFirstName || '')} ${String(estate.deceasedLastName || '')}`, { x: 50, y, size: 11, font: fontBold });
+        y -= 25;
+
+        page.drawText(`2. U.S. taxpayer identification number (if any):`, { x: 50, y, size: 11 });
+        y -= 15;
+        page.drawText(`   ${String(estate.deceasedSsn || '[SSN/ITIN]')}`, { x: 50, y, size: 11, font: fontBold });
+        y -= 25;
+
+        page.drawText(`3. Date of expatriation:`, { x: 50, y, size: 11 });
+        y -= 15;
+        page.drawText(`   [Date prior to death]`, { x: 50, y, size: 11, font: fontBold });
+        y -= 40;
+
+        page.drawText('Part I: Waiver of Treaty Benefits', { x: 50, y, size: 12, font: fontBold });
+        y -= 25;
+        page.drawText(`I irrevocably waive any right to claim any reduction in withholding on the eligible deferred`, { x: 50, y, size: 11 });
+        y -= 15;
+        page.drawText(`compensation item under any income tax treaty with the United States.`, { x: 50, y, size: 11 });
+        y -= 40;
+
+        page.drawText('Part IV: Certification', { x: 50, y, size: 12, font: fontBold });
+        y -= 25;
+        const applicantName = String(estate.user?.fullName || 'Executor');
+        page.drawText(`Under penalties of perjury, I declare that I am the executor of the estate of the covered expatriate.`, { x: 50, y, size: 10 });
+        y -= 40;
+
+        page.drawText('___________________________________________________', { x: 50, y });
+        y -= 15;
+        page.drawText(`Signature of ${applicantName}, Executor`, { x: 50, y, size: 10 });
+
+        return await doc.save();
+    }
 };
 
 function safeSetText(form: any, name: string, value: string | undefined) {

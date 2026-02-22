@@ -447,7 +447,58 @@ router.get("/my/activities/download", requireSubscription, async (req: any, res:
 
 // [REMOVED DUPLICATE HEIR ROUTES - HANDLED IN heirRoutes.ts]
 
-import { DocumentService } from "../services/DocumentService.js";
+import { DocumentService } from "../services/documentService.js";
+
+router.get("/my/petition/creditor-priority-worksheet/pdf", requireSubscription, async (req: any, res: Response) => {
+    try {
+        const estate = await prisma.estate.findFirst({
+            where: { userId: req.user.id },
+            include: { user: true, liabilities: true }
+        });
+
+        if (!estate) return res.status(404).json({ error: "Estate not found" });
+
+        const pdfBytes = await DocumentService.generateCreditorClaimPriorityWorksheet(estate.id);
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', 'attachment; filename=Creditor_Priority_Worksheet.pdf');
+        return res.send(Buffer.from(pdfBytes));
+    } catch (error: any) {
+        logger.error("Creditor Worksheet Generation Error:", error.message);
+        res.status(500).json({ error: "Failed to generate Creditor Worksheet PDF" });
+    }
+});
+
+router.get("/my/petition/:formCode/pdf", requireSubscription, async (req: any, res: Response) => {
+    try {
+        const estate = await prisma.estate.findFirst({
+            where: { userId: req.user.id },
+            include: { user: true, heirs: true, assets: true, liabilities: true }
+        });
+
+        if (!estate) return res.status(404).json({ error: "Estate not found" });
+
+        const { formCode } = req.params;
+        let pdfBytes: Uint8Array;
+
+        if (formCode === 'W-8BEN') {
+            pdfBytes = await DocumentService.generateW8BEN(estate);
+            res.setHeader('Content-Type', 'application/pdf');
+            res.setHeader('Content-Disposition', 'attachment; filename=W-8BEN.pdf');
+            return res.send(Buffer.from(pdfBytes));
+        } else if (formCode === 'W-8CE') {
+            pdfBytes = await DocumentService.generateW8CE(estate);
+            res.setHeader('Content-Type', 'application/pdf');
+            res.setHeader('Content-Disposition', 'attachment; filename=W-8CE.pdf');
+            return res.send(Buffer.from(pdfBytes));
+        }
+
+        // If it's not a specific formCode we handle here, fall through or return 404
+        return res.status(404).json({ error: "Form template not found for code: " + formCode });
+    } catch (error: any) {
+        logger.error("Specific Form PDF Generation Error:", error.message);
+        res.status(500).json({ error: "Failed to generate specific form PDF" });
+    }
+});
 
 router.get("/my/petition/pdf", requireSubscription, async (req: any, res: Response) => {
     try {

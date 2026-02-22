@@ -282,7 +282,7 @@ export default function CaliforniaProbateDeadlines() {
           <p className="text-xs text-slate-400 font-semibold">
             <Link to="/" className="hover:text-indigo-600 transition-colors">Home</Link>
             {" / "}
-            <Link to="/guides" className="hover:text-indigo-600 transition-colors">Guides</Link>
+            <Link to="/guides/probate" className="hover:text-indigo-600 transition-colors">Probate Guides</Link>
             {" / "}
             <span className="text-slate-600">California Probate Deadlines</span>
           </p>

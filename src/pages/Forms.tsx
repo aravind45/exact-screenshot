@@ -15,57 +15,57 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { AuthorityBadge, AuthorityType } from "@/components/AuthorityBadge";
 
 const STATES = [
-    { id: "AL", name: "Alabama", icon: "🏛️", supported: true },
-    { id: "AK", name: "Alaska", icon: "🏔️", supported: true },
-    { id: "AZ", name: "Arizona", icon: "🌵", supported: true },
-    { id: "AR", name: "Arkansas", icon: "💎", supported: true },
+    { id: "AL", name: "Alabama", icon: "🏛️", supported: false },
+    { id: "AK", name: "Alaska", icon: "🏔️", supported: false },
+    { id: "AZ", name: "Arizona", icon: "🌵", supported: false },
+    { id: "AR", name: "Arkansas", icon: "💎", supported: false },
     { id: "CA", name: "California", icon: "🌴", supported: true },
-    { id: "CO", name: "Colorado", icon: "⛰️", supported: true },
-    { id: "CT", name: "Connecticut", icon: "⚓", supported: true },
-    { id: "DE", name: "Delaware", icon: "🦅", supported: true },
-    { id: "DC", name: "District of Columbia", icon: "🏛️", supported: true },
+    { id: "CO", name: "Colorado", icon: "⛰️", supported: false },
+    { id: "CT", name: "Connecticut", icon: "⚓", supported: false },
+    { id: "DE", name: "Delaware", icon: "🦅", supported: false },
+    { id: "DC", name: "District of Columbia", icon: "🏛️", supported: false },
     { id: "FL", name: "Florida", icon: "☀️", supported: true },
-    { id: "GA", name: "Georgia", icon: "🍑", supported: true },
-    { id: "HI", name: "Hawaii", icon: "🌺", supported: true },
-    { id: "ID", name: "Idaho", icon: "🥔", supported: true },
-    { id: "IL", name: "Illinois", icon: "🌆", supported: true },
-    { id: "IN", name: "Indiana", icon: "🏁", supported: true },
-    { id: "IA", name: "Iowa", icon: "🌽", supported: true },
-    { id: "KS", name: "Kansas", icon: "🌻", supported: true },
-    { id: "KY", name: "Kentucky", icon: "🐴", supported: true },
-    { id: "LA", name: "Louisiana", icon: "🎺", supported: true },
-    { id: "ME", name: "Maine", icon: "🦞", supported: true },
-    { id: "MD", name: "Maryland", icon: "🦀", supported: true },
-    { id: "MA", name: "Massachusetts", icon: "⛵", supported: true },
-    { id: "MI", name: "Michigan", icon: "🚗", supported: true },
-    { id: "MN", name: "Minnesota", icon: "❄️", supported: true },
-    { id: "MS", name: "Mississippi", icon: "🎸", supported: true },
-    { id: "MO", name: "Missouri", icon: "🎭", supported: true },
-    { id: "MT", name: "Montana", icon: "🦬", supported: true },
-    { id: "NE", name: "Nebraska", icon: "🌾", supported: true },
-    { id: "NV", name: "Nevada", icon: "🎰", supported: true },
-    { id: "NH", name: "New Hampshire", icon: "🍁", supported: true },
-    { id: "NJ", name: "New Jersey", icon: "🏖️", supported: true },
-    { id: "NM", name: "New Mexico", icon: "🌶️", supported: true },
+    { id: "GA", name: "Georgia", icon: "🍑", supported: false },
+    { id: "HI", name: "Hawaii", icon: "🌺", supported: false },
+    { id: "ID", name: "Idaho", icon: "🥔", supported: false },
+    { id: "IL", name: "Illinois", icon: "🌆", supported: false },
+    { id: "IN", name: "Indiana", icon: "🏁", supported: false },
+    { id: "IA", name: "Iowa", icon: "🌽", supported: false },
+    { id: "KS", name: "Kansas", icon: "🌻", supported: false },
+    { id: "KY", name: "Kentucky", icon: "🐴", supported: false },
+    { id: "LA", name: "Louisiana", icon: "🎺", supported: false },
+    { id: "ME", name: "Maine", icon: "🦞", supported: false },
+    { id: "MD", name: "Maryland", icon: "🦀", supported: false },
+    { id: "MA", name: "Massachusetts", icon: "⛵", supported: false },
+    { id: "MI", name: "Michigan", icon: "🚗", supported: false },
+    { id: "MN", name: "Minnesota", icon: "❄️", supported: false },
+    { id: "MS", name: "Mississippi", icon: "🎸", supported: false },
+    { id: "MO", name: "Missouri", icon: "🎭", supported: false },
+    { id: "MT", name: "Montana", icon: "🦬", supported: false },
+    { id: "NE", name: "Nebraska", icon: "🌾", supported: false },
+    { id: "NV", name: "Nevada", icon: "🎰", supported: false },
+    { id: "NH", name: "New Hampshire", icon: "🍁", supported: false },
+    { id: "NJ", name: "New Jersey", icon: "🏖️", supported: false },
+    { id: "NM", name: "New Mexico", icon: "🌶️", supported: false },
     { id: "NY", name: "New York", icon: "🗽", supported: true },
-    { id: "NC", name: "North Carolina", icon: "🏔️", supported: true },
-    { id: "ND", name: "North Dakota", icon: "🦬", supported: true },
-    { id: "OH", name: "Ohio", icon: "🌰", supported: true },
-    { id: "OK", name: "Oklahoma", icon: "🤠", supported: true },
-    { id: "OR", name: "Oregon", icon: "🌲", supported: true },
-    { id: "PA", name: "Pennsylvania", icon: "🔔", supported: true },
-    { id: "RI", name: "Rhode Island", icon: "⚓", supported: true },
-    { id: "SC", name: "South Carolina", icon: "🌴", supported: true },
-    { id: "SD", name: "South Dakota", icon: "🗿", supported: true },
-    { id: "TN", name: "Tennessee", icon: "🎵", supported: true },
+    { id: "NC", name: "North Carolina", icon: "🏔️", supported: false },
+    { id: "ND", name: "North Dakota", icon: "🦬", supported: false },
+    { id: "OH", name: "Ohio", icon: "🌰", supported: false },
+    { id: "OK", name: "Oklahoma", icon: "🤠", supported: false },
+    { id: "OR", name: "Oregon", icon: "🌲", supported: false },
+    { id: "PA", name: "Pennsylvania", icon: "🔔", supported: false },
+    { id: "RI", name: "Rhode Island", icon: "⚓", supported: false },
+    { id: "SC", name: "South Carolina", icon: "🌴", supported: false },
+    { id: "SD", name: "South Dakota", icon: "🗿", supported: false },
+    { id: "TN", name: "Tennessee", icon: "🎵", supported: false },
     { id: "TX", name: "Texas", icon: "🤠", supported: true },
-    { id: "UT", name: "Utah", icon: "🏜️", supported: true },
-    { id: "VT", name: "Vermont", icon: "🍁", supported: true },
-    { id: "VA", name: "Virginia", icon: "🏛️", supported: true },
-    { id: "WA", name: "Washington", icon: "🌲", supported: true },
-    { id: "WV", name: "West Virginia", icon: "⛰️", supported: true },
-    { id: "WI", name: "Wisconsin", icon: "🧀", supported: true },
-    { id: "WY", name: "Wyoming", icon: "🦌", supported: true },
+    { id: "UT", name: "Utah", icon: "🏜️", supported: false },
+    { id: "VT", name: "Vermont", icon: "🍁", supported: false },
+    { id: "VA", name: "Virginia", icon: "🏛️", supported: false },
+    { id: "WA", name: "Washington", icon: "🌲", supported: false },
+    { id: "WV", name: "West Virginia", icon: "⛰️", supported: false },
+    { id: "WI", name: "Wisconsin", icon: "🧀", supported: false },
+    { id: "WY", name: "Wyoming", icon: "🦌", supported: false },
 ];
 
 const FORM_CONTEXTS: Record<string, string> = {
@@ -99,9 +99,21 @@ const FORM_TO_PROCESS: Record<string, string> = {
 };
 
 // Helper function to get process for a form
-const getFormProcess = (formName: string): string => {
-    // Extract form ID (e.g., "DE-111" from "Petition for Probate (DE-111)")
-    const match = formName.match(/DE-\d+/);
+const getFormProcess = (form: any): string => {
+    // 1. Try to use category directly from backend (preferred)
+    if (form.category) {
+        const cat = form.category.toLowerCase().replace(/ /g, '_');
+        if (cat.includes('probate') || cat.includes('administration') || cat.includes('will')) return 'probate_initialization';
+        if (cat.includes('notice')) return 'notices';
+        if (cat.includes('asset') || cat.includes('inventory')) return 'inventory';
+        if (cat.includes('creditor')) return 'creditor_claims';
+        if (cat.includes('distribution') || cat.includes('accounting') || cat.includes('closing')) return 'closing';
+        return cat;
+    }
+
+    // 2. Fallback to DE-* matching for legacy support
+    const name = form.name || form.title || '';
+    const match = name.match(/DE-\d+/);
     if (match) {
         return FORM_TO_PROCESS[match[0]] || '';
     }
@@ -170,9 +182,13 @@ const Forms = () => {
             const matchesSearch = (f.title || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
                 (f.name || "").toLowerCase().includes(searchQuery.toLowerCase());
 
-            // Get process from form name/ID
-            const formProcess = getFormProcess(f.name || f.title || '');
-            const matchesProcess = !processFilter || formProcess === processFilter;
+            // Get process from form object
+            const formProcess = getFormProcess(f);
+
+            // Soft match on process filters
+            const matchesProcess = !processFilter ||
+                formProcess === processFilter ||
+                (processFilter === 'closing' && formProcess === 'distribution');
 
             // Authority Tier filter
             const matchesAuthority = !authorityFilter || f.authorityTier === authorityFilter;
