@@ -27,6 +27,9 @@ export const SETTLEMENT_PHASE_TASKS = [
                 trackCompatibility: ["PROBATE", "AFFIDAVIT"],
                 isOptional: true,
                 helpArticleId: "small-estate-ca",
+                primaryActionLabel: "Prepare Affidavit",
+                primaryActionUrl: "/affidavit",
+                formNames: ["Small Estate Affidavit"],
                 alerts: [{
                         type: "info",
                         message: "Small estate limits vary by state (e.g., $184,500 in CA as of 2023)."
@@ -352,14 +355,20 @@ export const SETTLEMENT_PHASE_TASKS = [
             },
             {
                 id: "check_apostille",
-                title: "Check Apostille Requirements",
-                description: "Determine if your country is part of the Hague Apostille Convention for notarizing documents.",
+                title: "Verify Notarization Rules (Apostille)",
+                description: "Check if your current country of residence is a member of the Hague Apostille Convention. This determines how documents signed abroad must be authenticated for U.S. court acceptance.",
                 estimatedTime: "1 hour",
                 isInternationalOnly: true,
+                links: [
+                    {
+                        label: "Check HCCH Member States",
+                        url: "https://www.hcch.net/en/instruments/conventions/status-table/?cid=41"
+                    }
+                ],
                 alerts: [
                     {
                         type: "warning",
-                        message: "Foreign notarization without apostille is frequently rejected by U.S. banks."
+                        message: "Foreign notarization without an Apostille is frequently rejected by U.S. banks and courts."
                     }
                 ]
             }
@@ -382,6 +391,9 @@ export const SETTLEMENT_PHASE_TASKS = [
                 trackCompatibility: ["PROBATE"],
                 exclusiveGroup: "filing_path",
                 helpArticleId: "probate-steps",
+                primaryActionLabel: "Generate DE-111",
+                primaryActionUrl: "/probate",
+                formNames: ["DE-111", "DE-121"],
                 requiredDocs: [
                     "Original Will",
                     "Death Certificate",
@@ -665,9 +677,9 @@ export const SETTLEMENT_PHASE_TASKS = [
                     }]
             },
             {
-                id: "request_bond_waiver",
-                title: "Request Bond Waiver from Heirs (DE-142)",
-                description: "Ask all heirs to sign waivers of bond requirement. Bond costs 0.5-1% of estate value annually.",
+                id: "handle_bond_waivers",
+                title: "Avoid Bond Cost (DE-142)",
+                description: "Obtain signatures from all heirs to waive the bond requirement, then file the completed DE-142 with the court.",
                 utility: "Cost Savings: Eliminate bond premium (typically $500-$5,000/year).",
                 estimatedTime: "1-2 weeks",
                 category: "probate",
@@ -680,23 +692,8 @@ export const SETTLEMENT_PHASE_TASKS = [
                         url: "https://www.courts.ca.gov/documents/de142.pdf"
                     }],
                 alerts: [{
-                        type: "info",
-                        message: "ALL heirs must sign. If even one refuses, bond is required."
-                    }]
-            },
-            {
-                id: "file_bond_waiver",
-                title: "File Waiver of Bond (DE-142)",
-                description: "Submit signed waivers to court and request order waiving bond requirement.",
-                estimatedTime: "1 day",
-                category: "probate",
-                isConditional: true,
-                conditionalRequirementLabel: "Mandatory if heirs signed bond waivers",
-                requiredDocs: ["DE-142"],
-                dependencies: ["request_bond_waiver"],
-                alerts: [{
                         type: "important",
-                        message: "File before probate hearing to avoid bond requirement in initial order."
+                        message: "Action Required: ALL heirs must sign. File the completed waivers before the hearing."
                     }]
             },
             {
@@ -707,7 +704,7 @@ export const SETTLEMENT_PHASE_TASKS = [
                 category: "court-issued",
                 isOptional: true,
                 requiredDocs: ["DE-143", "DE-140"],
-                dependencies: ["file_bond_waiver"],
+                dependencies: ["handle_bond_waivers"],
                 alerts: [{
                         type: "info",
                         message: "The bond waiver is officially granted within the Order for Probate (DE-140) or a specific Bond Order (DE-143)."

@@ -83,9 +83,9 @@ router.get("/attachments/:id", async (req, res) => {
 router.post("/", async (req, res) => {
     try {
         const validated = communicationSchema.parse(req.body);
-        // Validation: Verify asset belongs to user
+        // Validation: Verify asset belongs to user (via estate ownership)
         const asset = await prisma.asset.findFirst({
-            where: { id: validated.assetId, userId: req.user.id }
+            where: { id: validated.assetId, estate: { userId: req.user.id } }
         });
         if (!asset)
             return res.status(403).json({ error: "Asset not found or access denied" });
@@ -106,7 +106,7 @@ router.post("/", async (req, res) => {
 router.get("/asset/:assetId", async (req, res) => {
     try {
         const asset = await prisma.asset.findFirst({
-            where: { id: req.params.assetId, userId: req.user.id }
+            where: { id: req.params.assetId, estate: { userId: req.user.id } }
         });
         if (!asset)
             return res.status(403).json({ error: "Access denied" });
@@ -211,9 +211,9 @@ router.post("/send-email", async (req, res) => {
     try {
         const validated = sendEmailSchema.parse(req.body);
         const { assetId, to, subject, body, ccPersonalEmail } = validated;
-        // Security check
+        // Security check (via estate ownership)
         const asset = await prisma.asset.findFirst({
-            where: { id: assetId, userId: req.user.id }
+            where: { id: assetId, estate: { userId: req.user.id } }
         });
         if (!asset)
             return res.status(403).json({ error: "Access denied or asset not found" });
@@ -251,9 +251,9 @@ router.get("/asset/:assetId/document-recommendations", async (req, res) => {
     try {
         const { assetId } = req.params;
         const { workflowStep, communicationType, institution } = req.query;
-        // Verify asset belongs to user
+        // Verify asset belongs to user (via estate ownership)
         const asset = await prisma.asset.findFirst({
-            where: { id: assetId, userId: req.user.id }
+            where: { id: assetId, estate: { userId: req.user.id } }
         });
         if (!asset)
             return res.status(403).json({ error: "Access denied" });
@@ -288,9 +288,9 @@ router.get("/estate/available-documents", async (req, res) => {
 router.post("/validate-completeness", async (req, res) => {
     try {
         const { assetId, attachedDocumentIds } = req.body;
-        // Verify asset belongs to user
+        // Verify asset belongs to user (via estate ownership)
         const asset = await prisma.asset.findFirst({
-            where: { id: assetId, userId: req.user.id }
+            where: { id: assetId, estate: { userId: req.user.id } }
         });
         if (!asset)
             return res.status(403).json({ error: "Access denied" });

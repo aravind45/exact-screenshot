@@ -415,17 +415,93 @@ router.get("/my/activities/download", requireSubscription, async (req, res) => {
 });
 // [REMOVED DUPLICATE HEIR ROUTES - HANDLED IN heirRoutes.ts]
 import { DocumentService } from "../services/DocumentService.js";
+router.get("/my/petition/creditor-priority-worksheet/pdf", requireSubscription, async (req, res) => {
+    try {
+        const estate = await prisma.estate.findFirst({
+            where: { userId: req.user.id },
+            include: { user: true, liabilities: true }
+        });
+        if (!estate)
+            return res.status(404).json({ error: "Estate not found" });
+        const pdfBytes = await DocumentService.generateCreditorClaimPriorityWorksheet(estate.id);
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', 'attachment; filename=Creditor_Priority_Worksheet.pdf');
+        return res.send(Buffer.from(pdfBytes));
+    }
+    catch (error) {
+        logger.error("Creditor Worksheet Generation Error:", error.message);
+        res.status(500).json({ error: "Failed to generate Creditor Worksheet PDF" });
+    }
+});
+router.get("/my/petition/:formCode/pdf", requireSubscription, async (req, res) => {
+    try {
+        const estate = await prisma.estate.findFirst({
+            where: { userId: req.user.id },
+            include: { user: true, heirs: true, assets: true, liabilities: true }
+        });
+        if (!estate)
+            return res.status(404).json({ error: "Estate not found" });
+        const { formCode } = req.params;
+        let pdfBytes;
+        if (formCode === 'W-8BEN') {
+            pdfBytes = await DocumentService.generateW8BEN(estate);
+            res.setHeader('Content-Type', 'application/pdf');
+            res.setHeader('Content-Disposition', 'attachment; filename=W-8BEN.pdf');
+            return res.send(Buffer.from(pdfBytes));
+        }
+        else if (formCode === 'W-8CE') {
+            pdfBytes = await DocumentService.generateW8CE(estate);
+            res.setHeader('Content-Type', 'application/pdf');
+            res.setHeader('Content-Disposition', 'attachment; filename=W-8CE.pdf');
+            return res.send(Buffer.from(pdfBytes));
+        }
+        // If it's not a specific formCode we handle here, fall through or return 404
+        return res.status(404).json({ error: "Form template not found for code: " + formCode });
+    }
+    catch (error) {
+        logger.error("Specific Form PDF Generation Error:", error.message);
+        res.status(500).json({ error: "Failed to generate specific form PDF" });
+    }
+});
 router.get("/my/petition/pdf", requireSubscription, async (req, res) => {
     try {
         const estate = await prisma.estate.findFirst({
             where: { userId: req.user.id },
-            include: { user: true, heirs: true }
+            include: { user: true, heirs: true, assets: true, liabilities: true }
         });
         if (!estate)
             return res.status(404).json({ error: "Estate not found" });
-        const pdfBytes = await DocumentService.generateDE111(estate);
-        res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', 'attachment; filename=Petition_DE111.pdf');
+        let pdfBytes;
+        const state = estate.deceasedState;
+        // 1. Trust Path
+        if (estate.authorityType === 'TRUST' || estate.isTrustRevocable !== null) {
+            pdfBytes = await DocumentService.generateCertificationOfTrust(estate);
+            res.setHeader('Content-Type', 'application/pdf');
+            res.setHeader('Content-Disposition', 'attachment; filename=Certification_of_Trust.pdf');
+            return res.send(Buffer.from(pdfBytes));
+        }
+        // 2. State-Specific Paths
+        if (state === 'TX') {
+            pdfBytes = await DocumentService.generateTXMunimentOfTitle(estate);
+            res.setHeader('Content-Type', 'application/pdf');
+            res.setHeader('Content-Disposition', 'attachment; filename=TX_Muniment_of_Title.pdf');
+        }
+        else if (state === 'FL') {
+            pdfBytes = await DocumentService.generateFLSummaryAdministration(estate);
+            res.setHeader('Content-Type', 'application/pdf');
+            res.setHeader('Content-Disposition', 'attachment; filename=FL_Summary_Administration.pdf');
+        }
+        else if (state === 'NY') {
+            pdfBytes = await DocumentService.generateNYVoluntaryAdministration(estate);
+            res.setHeader('Content-Type', 'application/pdf');
+            res.setHeader('Content-Disposition', 'attachment; filename=NY_Voluntary_Administration.pdf');
+        }
+        else {
+            // Default to California / Standard Formal Probate form
+            pdfBytes = await DocumentService.generateDE111(estate);
+            res.setHeader('Content-Type', 'application/pdf');
+            res.setHeader('Content-Disposition', 'attachment; filename=Petition_DE111.pdf');
+        }
         res.send(Buffer.from(pdfBytes));
     }
     catch (error) {

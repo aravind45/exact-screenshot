@@ -41,9 +41,12 @@ export function getMasterMode(type) {
         case "TRUST_ADMIN_REVOCABLE":
         case "TRUST_ADMIN_IRREVOCABLE":
         case "POUR_OVER_WILL":
-        case "INSOLVENT_ESTATE":
         case "BUSINESS_ESTATE":
             return "FIDUCIARY_ADMINISTERED";
+        // INSOLVENT_ESTATE requires court supervision for creditor priority ordering —
+        // NOT fiduciary-only. Moving here ensures correct task filtering in roadmap.
+        case "INSOLVENT_ESTATE":
+            return "COURT_SUPERVISED";
         case "SMALL_ESTATE": // Often affidavit-only
         case "JOINT_TRANSFER":
         case "POD_TOD_TRANSFER":
@@ -104,10 +107,14 @@ export function calculateAuthorityRecommendation(assets, state, metadata) {
     if (trustAssets.length > 0 || metadata?.isTrustRevocable !== undefined) {
         activeEngines.push("TRUST");
     }
-    if (probateTotal > 0 || metadata?.isOutOfState || metadata?.isSpouse) {
+    if (probateTotal > 0 || metadata?.isOutOfState) {
         activeEngines.push("PROBATE");
         if (isEligibleForSmallEstate)
             activeEngines.push("AFFIDAVIT");
+    }
+    else if (metadata?.isSpouse && !activeEngines.includes("TRUST") && !activeEngines.includes("TOD_DEED")) {
+        // Spousal petition as a fallback for probate assets only if no trust/TOD simplifies the path
+        activeEngines.push("PROBATE");
     }
     if (activeEngines.length === 0) {
         activeEngines.push("DISCOVERY");
@@ -127,26 +134,41 @@ export function calculateAuthorityRecommendation(assets, state, metadata) {
     else {
         authoritySource = "BENEFICIARY_TRANSFER";
     }
-    // PROCEDURE TYPE DETERMINATION (Definitive Hierarchy from Excel)
+    // PROCEDURE TYPE DETERMINATION
+    // Hierarchy follows Estate_Path_Combinations_All_50_States.xlsx priority:
+    //   1. Insolvency (debt wins — overrides everything except trust in some states)
+    //   2. Trust type (bypasses probate regardless of will/out-of-state)
+    //   3. Contested (litigation overrides ancillary)
+    //   4. Ancillary Probate (out-of-state BEFORE will=no check — intestate + out-of-state = ancillary)
+    //   5. Intestate (will=no, not contested, not out-of-state)
+    //   6. Spousal petition
+    //   7. General probate (will=yes or large estate)
     if (metadata?.hasInsolvencyRisk) {
-        procedureType = "FORMAL_PROBATE"; // Usually requires court oversight
+        // Insolvent estate requires court-supervised creditor priority process
+        procedureType = "FORMAL_PROBATE";
         type = "INSOLVENT_ESTATE";
     }
     else if (activeEngines.includes("TRUST")) {
         procedureType = "TRUST_ADMINISTRATION";
+        // undefined isTrustRevocable → conservative default = revocable (simpler process)
         type = metadata?.isTrustRevocable === false ? "TRUST_ADMIN_IRREVOCABLE" : "TRUST_ADMIN_REVOCABLE";
     }
-    else if (metadata?.hasWill === false) {
-        procedureType = "FORMAL_PROBATE";
-        type = "INTESTATE";
-    }
     else if (metadata?.hasContest) {
+        // Contested estates require formal probate regardless of out-of-state or will status
         procedureType = "FORMAL_PROBATE";
         type = "CONTESTED_ESTATE";
     }
     else if (metadata?.isOutOfState) {
+        // CRITICAL FIX: Ancillary probate must be checked BEFORE hasWill===false.
+        // When Will=No + OutOfState=Yes → ANCILLARY_PROBATE, not INTESTATE.
+        // The out-of-state jurisdiction requires its own proceeding regardless of will status.
         procedureType = "ANCILLARY_PROBATE";
         type = "ANCILLARY_PROBATE";
+    }
+    else if (metadata?.hasWill === false) {
+        // Intestate only when: no trust, not contested, not out-of-state, not insolvent
+        procedureType = "FORMAL_PROBATE";
+        type = "INTESTATE";
     }
     else if (metadata?.isSpouse && probateTotal > 0) {
         procedureType = "SPOUSAL_PETITION";

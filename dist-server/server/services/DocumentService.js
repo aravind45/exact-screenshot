@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { prisma } from '../db.js';
 import { FeeService } from './feeService.js';
+import { PriorityService } from './priorityService.js';
 import { logger } from '../lib/logger.js';
 export const DocumentService = {
     TEMPLATES_DIR: path.join(process.cwd(), 'server', 'templates'),
@@ -1271,6 +1272,389 @@ export const DocumentService = {
         });
         return await pdfDoc.save();
     },
+    /**
+     * Generates a formal Certification of Trust (For TRUST_ADMIN path)
+     */
+    async generateCertificationOfTrust(estate) {
+        const doc = await PDFDocument.create();
+        let page = doc.addPage();
+        const { height } = page.getSize();
+        let y = height - 50;
+        const fontBold = await doc.embedStandardFont(StandardFonts.HelveticaBold);
+        const fontItalic = await doc.embedStandardFont(StandardFonts.HelveticaOblique);
+        page.drawText('CERTIFICATION OF TRUST', { x: 50, y, size: 16, font: fontBold });
+        y -= 30;
+        const trustDate = estate.willDate ? new Date(estate.willDate).toLocaleDateString() : '[Trust Date]';
+        const decedentName = `${String(estate.deceasedFirstName || '')} ${String(estate.deceasedLastName || '')}`;
+        const trusteeName = String(estate.user?.fullName || '[Trustee Name]');
+        page.drawText('1. Declaration of Trust Existence', { x: 50, y, size: 12, font: fontBold });
+        y -= 20;
+        page.drawText(`   The undersigned Trustee(s) declares that a trust exists and is currently`, { x: 50, y, size: 11 });
+        y -= 15;
+        page.drawText(`   in full force and effect. The trust was executed on ${trustDate}.`, { x: 50, y, size: 11 });
+        y -= 30;
+        page.drawText('2. Trustee Information', { x: 50, y, size: 12, font: fontBold });
+        y -= 20;
+        page.drawText(`   The current acting Trustee of the Trust is: ${trusteeName}`, { x: 50, y, size: 11 });
+        y -= 15;
+        page.drawText(`   Address: __________________________________________________`, { x: 50, y, size: 11 });
+        y -= 30;
+        page.drawText('3. Settlor / Grantor', { x: 50, y, size: 12, font: fontBold });
+        y -= 20;
+        page.drawText(`   The Settlor / Grantor of the Trust was: ${decedentName}`, { x: 50, y, size: 11 });
+        y -= 30;
+        page.drawText('4. Revocability', { x: 50, y, size: 12, font: fontBold });
+        y -= 20;
+        const isRevocable = estate.isTrustRevocable !== false;
+        page.drawText(`   The Trust is currently: ${isRevocable ? 'Revocable' : 'Irrevocable'}`, { x: 50, y, size: 11 });
+        if (isRevocable) {
+            y -= 15;
+            page.drawText(`   (Note: Trust may have become irrevocable upon the death of the Settlor)`, { x: 50, y, size: 10, font: fontItalic });
+        }
+        y -= 30;
+        page.drawText('5. Trustee Powers', { x: 50, y, size: 12, font: fontBold });
+        y -= 20;
+        page.drawText(`   The Trustee has power and authority to manage trust property, including`, { x: 50, y, size: 11 });
+        y -= 15;
+        page.drawText(`   the power to buy, sell, convey, encumber, and manage real and personal`, { x: 50, y, size: 11 });
+        y -= 15;
+        page.drawText(`   property on behalf of the Trust.`, { x: 50, y, size: 11 });
+        y -= 40;
+        page.drawText('6. Reliance on this Certification', { x: 50, y, size: 12, font: fontBold });
+        y -= 20;
+        page.drawText(`   Any person dealing with the Trustee may rely upon this Certification of`, { x: 50, y, size: 11 });
+        y -= 15;
+        page.drawText(`   Trust as proof of the Trustee's authority.`, { x: 50, y, size: 11 });
+        y -= 50;
+        // Signature Area
+        page.drawText('I declare under penalty of perjury under the laws of the State of', { x: 50, y, size: 11 });
+        y -= 15;
+        page.drawText(`${String(estate.user?.state || '___________')} that the foregoing is true and correct.`, { x: 50, y, size: 11 });
+        y -= 40;
+        page.drawText(`Date: ${new Date().toLocaleDateString()}`, { x: 50, y });
+        y -= 30;
+        page.drawText('___________________________________________________', { x: 50, y });
+        y -= 15;
+        page.drawText(`Signature of ${trusteeName}, Trustee`, { x: 50, y, size: 10 });
+        y -= 50;
+        // Notary (Placeholder)
+        page.drawText('NOTARY ACKNOWLEDGMENT', { x: 50, y, size: 12, font: fontBold });
+        y -= 25;
+        page.drawText('State of _________________', { x: 50, y, size: 11 });
+        y -= 15;
+        page.drawText('County of ________________', { x: 50, y, size: 11 });
+        y -= 25;
+        page.drawText('Subscribed and sworn to before me on _______________, by _______________', { x: 50, y, size: 11 });
+        y -= 30;
+        page.drawText('_______________________________', { x: 50, y });
+        y -= 15;
+        page.drawText('Signature of Notary Public', { x: 50, y, size: 10 });
+        return await doc.save();
+    },
+    /**
+     * Generates a TX Muniment of Title application placeholder (For Texas estates)
+     */
+    async generateTXMunimentOfTitle(estate) {
+        const doc = await PDFDocument.create();
+        let page = doc.addPage();
+        const { height } = page.getSize();
+        let y = height - 50;
+        const fontBold = await doc.embedStandardFont(StandardFonts.HelveticaBold);
+        page.drawText('APPLICATION FOR PROBATE OF WILL AS', { x: 50, y, size: 14, font: fontBold });
+        y -= 15;
+        page.drawText('MUNIMENT OF TITLE (TEXAS)', { x: 50, y, size: 14, font: fontBold });
+        y -= 40;
+        page.drawText(`Estate of: ${String(estate.deceasedFirstName || '')} ${String(estate.deceasedLastName || '')}`, { x: 50, y, size: 12 });
+        page.drawText(`County: ${String(estate.probateCounty || '[County]')}`, { x: 400, y, size: 12 });
+        y -= 40;
+        page.drawText('TO THE HONORABLE JUDGE OF SAID COURT:', { x: 50, y, size: 11, font: fontBold });
+        y -= 30;
+        const applicantName = String(estate.user?.fullName || 'Applicant');
+        page.drawText(`1. Applicant's Name: ${applicantName}`, { x: 50, y, size: 11 });
+        y -= 25;
+        page.drawText(`2. Decedent Information:`, { x: 50, y, size: 11 });
+        y -= 15;
+        page.drawText(`   Name: ${String(estate.deceasedFirstName || '')} ${String(estate.deceasedLastName || '')}`, { x: 50, y, size: 11 });
+        y -= 15;
+        const deathDate = estate.deceasedDateOfDeath ? new Date(estate.deceasedDateOfDeath).toLocaleDateString() : '[Date]';
+        page.drawText(`   Date of Death: ${deathDate}`, { x: 50, y, size: 11 });
+        y -= 15;
+        page.drawText(`   State of Residence: Texas`, { x: 50, y, size: 11 });
+        y -= 25;
+        page.drawText(`3. Will Application:`, { x: 50, y, size: 11 });
+        y -= 15;
+        page.drawText(`   Applicant requests that the Decedent's Will, dated ${estate.willDate ? new Date(estate.willDate).toLocaleDateString() : '[Date]'},`, { x: 50, y, size: 11 });
+        y -= 15;
+        page.drawText(`   be admitted to probate as a Muniment of Title.`, { x: 50, y, size: 11 });
+        y -= 25;
+        page.drawText(`4. Estate Solvency (Requirement for Muniment of Title):`, { x: 50, y, size: 11 });
+        y -= 15;
+        page.drawText(`   There are no unpaid debts owing by the Estate of the Testator,`, { x: 50, y, size: 11 });
+        y -= 15;
+        page.drawText(`   excluding debts secured by liens on real estate.`, { x: 50, y, size: 11 });
+        y -= 25;
+        page.drawText(`5. Necessity of Administration:`, { x: 50, y, size: 11 });
+        y -= 15;
+        page.drawText(`   There is no necessity for administration of this estate.`, { x: 50, y, size: 11 });
+        y -= 40;
+        page.drawText('Respectfully submitted,', { x: 50, y, size: 11 });
+        y -= 40;
+        page.drawText('___________________________________________________', { x: 50, y });
+        y -= 15;
+        page.drawText(`Signature of ${applicantName}`, { x: 50, y, size: 10 });
+        return await doc.save();
+    },
+    /**
+     * Generates a FL Summary Administration application placeholder (For Florida estates)
+     */
+    async generateFLSummaryAdministration(estate) {
+        const doc = await PDFDocument.create();
+        let page = doc.addPage();
+        const { height } = page.getSize();
+        let y = height - 50;
+        const fontBold = await doc.embedStandardFont(StandardFonts.HelveticaBold);
+        page.drawText('PETITION FOR SUMMARY ADMINISTRATION (FLORIDA)', { x: 50, y, size: 14, font: fontBold });
+        y -= 40;
+        page.drawText(`Estate of: ${String(estate.deceasedFirstName || '')} ${String(estate.deceasedLastName || '')}`, { x: 50, y, size: 12 });
+        page.drawText(`County: ${String(estate.probateCounty || '[County]')}`, { x: 400, y, size: 12 });
+        y -= 40;
+        const applicantName = String(estate.user?.fullName || 'Petitioner');
+        page.drawText(`1. Petitioner Information:`, { x: 50, y, size: 11, font: fontBold });
+        y -= 20;
+        page.drawText(`   Name: ${applicantName}`, { x: 50, y, size: 11 });
+        y -= 25;
+        page.drawText(`2. Decedent Information:`, { x: 50, y, size: 11, font: fontBold });
+        y -= 20;
+        page.drawText(`   Name: ${String(estate.deceasedFirstName || '')} ${String(estate.deceasedLastName || '')}`, { x: 50, y, size: 11 });
+        y -= 15;
+        const deathDate = estate.deceasedDateOfDeath ? new Date(estate.deceasedDateOfDeath).toLocaleDateString() : '[Date]';
+        page.drawText(`   Date of Death: ${deathDate}`, { x: 50, y, size: 11 });
+        y -= 25;
+        page.drawText(`3. Estate Value (Eligibility):`, { x: 50, y, size: 11, font: fontBold });
+        y -= 20;
+        page.drawText(`   The value of the entire estate subject to administration in this state,`, { x: 50, y, size: 11 });
+        y -= 15;
+        page.drawText(`   less the value of property exempt from the claims of creditors,`, { x: 50, y, size: 11 });
+        y -= 15;
+        page.drawText(`   does not exceed $75,000.`, { x: 50, y, size: 11 });
+        y -= 25;
+        page.drawText(`4. Creditors:`, { x: 50, y, size: 11, font: fontBold });
+        y -= 20;
+        page.drawText(`   [ ] All creditors' claims have been paid or provision for payment`, { x: 50, y, size: 11 });
+        y -= 15;
+        page.drawText(`       has been made.`, { x: 50, y, size: 11 });
+        y -= 40;
+        page.drawText('Under penalties of perjury, I declare that I have read the', { x: 50, y, size: 11 });
+        y -= 15;
+        page.drawText('foregoing Petition for Summary Administration and that the', { x: 50, y, size: 11 });
+        y -= 15;
+        page.drawText('facts stated are true.', { x: 50, y, size: 11 });
+        y -= 40;
+        page.drawText(`Date: ${new Date().toLocaleDateString()}`, { x: 50, y });
+        y -= 30;
+        page.drawText('___________________________________________________', { x: 50, y });
+        y -= 15;
+        page.drawText(`Signature of ${applicantName}`, { x: 50, y, size: 10 });
+        return await doc.save();
+    },
+    /**
+     * Generates a NY Voluntary Administration application placeholder (For New York estates)
+     */
+    async generateNYVoluntaryAdministration(estate) {
+        const doc = await PDFDocument.create();
+        let page = doc.addPage();
+        const { height } = page.getSize();
+        let y = height - 50;
+        const fontBold = await doc.embedStandardFont(StandardFonts.HelveticaBold);
+        page.drawText('AFFIDAVIT IN RELATION TO SETTLEMENT OF ESTATE', { x: 50, y, size: 14, font: fontBold });
+        y -= 15;
+        page.drawText('UNDER ARTICLE 13 (VOLUNTARY ADMINISTRATION - NEW YORK)', { x: 50, y, size: 14, font: fontBold });
+        y -= 40;
+        page.drawText(`Estate of: ${String(estate.deceasedFirstName || '')} ${String(estate.deceasedLastName || '')}`, { x: 50, y, size: 12 });
+        page.drawText(`County: ${String(estate.probateCounty || '[County]')}`, { x: 400, y, size: 12 });
+        y -= 40;
+        const applicantName = String(estate.user?.fullName || 'Affiant');
+        page.drawText(`I, ${applicantName}, being duly sworn, depose and say:`, { x: 50, y, size: 11 });
+        y -= 30;
+        page.drawText(`1. My address is: _____________________________________________`, { x: 50, y, size: 11 });
+        y -= 25;
+        page.drawText(`2. The decedent died on ${estate.deceasedDateOfDeath ? new Date(estate.deceasedDateOfDeath).toLocaleDateString() : '[Date]'}, a resident of New York.`, { x: 50, y, size: 11 });
+        y -= 25;
+        page.drawText(`3. I am a distributee or person entitled to act as voluntary administrator.`, { x: 50, y, size: 11 });
+        y -= 25;
+        page.drawText(`4. The value of all personal property belonging to the decedent`, { x: 50, y, size: 11 });
+        y -= 15;
+        page.drawText(`   does not exceed $50,000 (excluding exempt property).`, { x: 50, y, size: 11 });
+        y -= 25;
+        page.drawText(`5. The decedent did not own any real property individually in New York.`, { x: 50, y, size: 11 });
+        y -= 40;
+        page.drawText('___________________________________________________', { x: 50, y });
+        y -= 15;
+        page.drawText(`Signature of ${applicantName}, Affiant`, { x: 50, y, size: 10 });
+        return await doc.save();
+    },
+    /**
+     * Generates a Creditor Claim Priority Worksheet for insolvent estates
+     */
+    async generateCreditorClaimPriorityWorksheet(estateId) {
+        const estate = await prisma.estate.findUnique({
+            where: { id: estateId },
+            include: { liabilities: true, user: true }
+        });
+        if (!estate)
+            throw new Error("Estate not found");
+        const doc = await PDFDocument.create();
+        let page = doc.addPage();
+        const { height } = page.getSize();
+        let y = height - 50;
+        const fontBold = await doc.embedStandardFont(StandardFonts.HelveticaBold);
+        const fontNormal = await doc.embedStandardFont(StandardFonts.Helvetica);
+        page.drawText('CREDITOR CLAIM PRIORITY WORKSHEET', { x: 50, y, size: 14, font: fontBold });
+        y -= 15;
+        page.drawText('(FOR INSOLVENT ESTATES)', { x: 50, y, size: 12, font: fontBold });
+        y -= 30;
+        page.drawText(`Estate of: ${String(estate.deceasedFirstName || '')} ${String(estate.deceasedLastName || '')}`, { x: 50, y, size: 11 });
+        page.drawText(`State: ${String(estate.deceasedState || 'CA')}`, { x: 400, y, size: 11 });
+        y -= 25;
+        // Get priority rules for state
+        const stateRules = PriorityService.getPriorityOptions(estate.deceasedState || 'CA');
+        // Group liabilities
+        const liabilitiesByClass = {};
+        for (const rule of stateRules) {
+            liabilitiesByClass[rule.classId] = estate.liabilities.filter(l => l.priorityClass === rule.classId);
+        }
+        const estAssets = Number(estate.estimatedPersonalProperty || 0) + Number(estate.estimatedRealProperty || 0);
+        let remainingFunds = estAssets;
+        page.drawText(`Estimated Total Assets: $${estAssets.toFixed(2)}`, { x: 50, y, size: 11, font: fontBold });
+        y -= 30;
+        for (const rule of stateRules) {
+            const claims = liabilitiesByClass[rule.classId];
+            if (!claims || claims.length === 0)
+                continue;
+            if (y < 100) {
+                page = doc.addPage();
+                y = height - 50;
+            }
+            page.drawText(`Priority ${rule.rank}: ${rule.label}`, { x: 50, y, size: 11, font: fontBold });
+            y -= 15;
+            let classTotal = 0;
+            for (const claim of claims) {
+                const amt = Number(claim.amount);
+                classTotal += amt;
+                page.drawText(`  - ${claim.name}: $${amt.toFixed(2)} [${claim.status}]`, { x: 50, y, size: 10, font: fontNormal });
+                y -= 15;
+            }
+            page.drawText(`  Class Total: $${classTotal.toFixed(2)}`, { x: 50, y, size: 10, font: fontBold });
+            y -= 15;
+            // Simple pro-rata logic for display
+            if (remainingFunds >= classTotal) {
+                page.drawText(`  Payment Authorized: 100%`, { x: 50, y, size: 10, font: fontNormal, color: rgb(0, 0.5, 0) });
+                remainingFunds -= classTotal;
+            }
+            else if (remainingFunds > 0) {
+                const ratio = (remainingFunds / classTotal) * 100;
+                page.drawText(`  Payment Authorized: ${ratio.toFixed(2)}% (Pro-Rata)`, { x: 50, y, size: 10, font: fontNormal, color: rgb(0.8, 0.5, 0) });
+                remainingFunds = 0;
+            }
+            else {
+                page.drawText(`  Payment Authorized: 0% (Funds Exhausted)`, { x: 50, y, size: 10, font: fontNormal, color: rgb(0.8, 0, 0) });
+            }
+            y -= 25;
+        }
+        page.drawText(`Remaining Funds for Heirs: $${Math.max(0, remainingFunds).toFixed(2)}`, { x: 50, y, size: 12, font: fontBold });
+        y -= 40;
+        page.drawText('WARNING: This worksheet is for planning purposes only.', { x: 50, y, size: 10, font: fontBold });
+        y -= 15;
+        page.drawText('Do not make payments to lower-priority creditors until all higher-priority claims', { x: 50, y, size: 10, font: fontNormal });
+        y -= 15;
+        page.drawText('and tax clearances are fully satisfied and the court authorizes distribution.', { x: 50, y, size: 10, font: fontNormal });
+        return await doc.save();
+    },
+    /**
+     * Generates a W-8BEN form placeholder for foreign beneficiaries
+     */
+    async generateW8BEN(estate) {
+        const doc = await PDFDocument.create();
+        let page = doc.addPage();
+        const { height } = page.getSize();
+        let y = height - 50;
+        const fontBold = await doc.embedStandardFont(StandardFonts.HelveticaBold);
+        page.drawText('Form W-8BEN', { x: 50, y, size: 16, font: fontBold });
+        y -= 25;
+        page.drawText('Certificate of Foreign Status of Beneficial Owner for United States Tax Withholding and Reporting', { x: 50, y, size: 11 });
+        y -= 40;
+        page.drawText(`1. Name of individual who is the beneficial owner:`, { x: 50, y, size: 11 });
+        y -= 15;
+        page.drawText(`   [Beneficiary Name]`, { x: 50, y, size: 11, font: fontBold });
+        y -= 25;
+        page.drawText(`2. Country of citizenship:`, { x: 50, y, size: 11 });
+        y -= 15;
+        const reasons = estate.internationalReasons || [];
+        const isForeign = reasons.includes('FOREIGN_HEIRS') || reasons.includes('FOREIGN_NON_RESIDENT_DECEDENT');
+        page.drawText(`   ${isForeign ? '[Foreign Country]' : '_______________________'}`, { x: 50, y, size: 11, font: fontBold });
+        y -= 25;
+        page.drawText(`3. Permanent residence address:`, { x: 50, y, size: 11 });
+        y -= 15;
+        page.drawText(`   [Foreign Address]`, { x: 50, y, size: 11, font: fontBold });
+        y -= 40;
+        page.drawText('Part II: Claim of Tax Treaty Benefits', { x: 50, y, size: 12, font: fontBold });
+        y -= 25;
+        page.drawText(`9. I certify that the beneficial owner is a resident of _________________`, { x: 50, y, size: 11 });
+        y -= 15;
+        page.drawText(`   within the meaning of the income tax treaty between the United States and that country.`, { x: 50, y, size: 11 });
+        y -= 40;
+        page.drawText('Part III: Certification', { x: 50, y, size: 12, font: fontBold });
+        y -= 25;
+        page.drawText(`Under penalties of perjury, I declare that I have examined the information on this form and to the`, { x: 50, y, size: 10 });
+        y -= 15;
+        page.drawText(`best of my knowledge and belief it is true, correct, and complete.`, { x: 50, y, size: 10 });
+        y -= 40;
+        page.drawText('___________________________________________________', { x: 50, y });
+        y -= 15;
+        page.drawText(`Signature of beneficial owner (or individual authorized to sign)`, { x: 50, y, size: 10 });
+        return await doc.save();
+    },
+    /**
+     * Generates a W-8CE form placeholder for expatriated decedents
+     */
+    async generateW8CE(estate) {
+        const doc = await PDFDocument.create();
+        let page = doc.addPage();
+        const { height } = page.getSize();
+        let y = height - 50;
+        const fontBold = await doc.embedStandardFont(StandardFonts.HelveticaBold);
+        page.drawText('Form W-8CE', { x: 50, y, size: 16, font: fontBold });
+        y -= 25;
+        page.drawText('Notice of Expatriation and Waiver of Treaty Benefits', { x: 50, y, size: 11 });
+        y -= 40;
+        page.drawText(`1. Name of covered expatriate:`, { x: 50, y, size: 11 });
+        y -= 15;
+        page.drawText(`   ${String(estate.deceasedFirstName || '')} ${String(estate.deceasedLastName || '')}`, { x: 50, y, size: 11, font: fontBold });
+        y -= 25;
+        page.drawText(`2. U.S. taxpayer identification number (if any):`, { x: 50, y, size: 11 });
+        y -= 15;
+        page.drawText(`   ${String(estate.deceasedSsn || '[SSN/ITIN]')}`, { x: 50, y, size: 11, font: fontBold });
+        y -= 25;
+        page.drawText(`3. Date of expatriation:`, { x: 50, y, size: 11 });
+        y -= 15;
+        page.drawText(`   [Date prior to death]`, { x: 50, y, size: 11, font: fontBold });
+        y -= 40;
+        page.drawText('Part I: Waiver of Treaty Benefits', { x: 50, y, size: 12, font: fontBold });
+        y -= 25;
+        page.drawText(`I irrevocably waive any right to claim any reduction in withholding on the eligible deferred`, { x: 50, y, size: 11 });
+        y -= 15;
+        page.drawText(`compensation item under any income tax treaty with the United States.`, { x: 50, y, size: 11 });
+        y -= 40;
+        page.drawText('Part IV: Certification', { x: 50, y, size: 12, font: fontBold });
+        y -= 25;
+        const applicantName = String(estate.user?.fullName || 'Executor');
+        page.drawText(`Under penalties of perjury, I declare that I am the executor of the estate of the covered expatriate.`, { x: 50, y, size: 10 });
+        y -= 40;
+        page.drawText('___________________________________________________', { x: 50, y });
+        y -= 15;
+        page.drawText(`Signature of ${applicantName}, Executor`, { x: 50, y, size: 10 });
+        return await doc.save();
+    }
 };
 function safeSetText(form, name, value) {
     try {

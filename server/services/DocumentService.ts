@@ -1763,6 +1763,8 @@ export const DocumentService = {
         y -= 15;
         page.drawText(`Signature of ${applicantName}, Affiant`, { x: 50, y, size: 10 });
 
+        return await doc.save();
+
     },
 
     /**

@@ -46,26 +46,36 @@ export async function analyzeEstateProfile(estateId) {
     if (!estate) {
         throw new Error(`Estate ${estateId} not found`);
     }
-    // Calculate recommendation using the new multi-dimensional engine
-    const rec = calculateAuthorityRecommendation(estate.assets, estate.deceasedState, {
-        hasWill: estate.hasWill,
-        isOutOfState: estate.isOutOfState ?? false,
-        hasMinors: estate.hasMinorBeneficiaries || estate.heirs.some(h => !h.isAdult),
-        hasContest: estate.hasContest,
-        hasTODDeed: estate.hasTODDeed ?? estate.assets.some((a) => a.todDeedRecorded)
-    });
-    // Calculate Insolvency Risk
+    // Calculate insolvency FIRST so it is passed INTO calculateAuthorityRecommendation.
+    // Previously insolvency was calculated AFTER the engine call, which meant
+    // type was never set to INSOLVENT_ESTATE and the roadmap was incorrect for
+    // estates with more debts than assets.
     const totalAssets = estate.assets.reduce((sum, a) => sum + (Number(a.value) || 0), 0);
     const totalDebts = estate.liabilities.reduce((sum, l) => sum + (Number(l.amount) || 0), 0);
     const solvencyRatio = totalDebts > 0 ? (totalAssets / totalDebts) : 100;
-    if (solvencyRatio < 1.0) {
-        if (!rec.modifiers.includes("INSOLVENT")) {
+    const hasInsolvencyRisk = solvencyRatio < 1.0;
+    // Calculate recommendation using the multi-dimensional engine.
+    // All 7 XLSX dimensions must be passed here:
+    //   hasWill, isTrustRevocable, hasTODDeed, hasContest, isSpouse, isOutOfState, hasInsolvencyRisk
+    const rec = calculateAuthorityRecommendation(estate.assets, estate.deceasedState, {
+        hasWill: estate.hasWill,
+        // isTrustRevocable: schema field (nullable Boolean). undefined = no trust / not known.
+        isTrustRevocable: estate.isTrustRevocable ?? undefined,
+        isOutOfState: estate.isOutOfState ?? false,
+        // isSurvivingSpouse: used for spousal petition routing
+        isSpouse: estate.isSurvivingSpouse ?? false,
+        hasMinors: estate.hasMinorBeneficiaries || estate.heirs.some(h => !h.isAdult),
+        hasContest: estate.hasContest,
+        hasTODDeed: estate.hasTODDeed ?? estate.assets.some((a) => a.todDeedRecorded),
+        // Pass pre-calculated insolvency risk so the engine sets type=INSOLVENT_ESTATE correctly
+        hasInsolvencyRisk,
+    });
+    // Ensure INSOLVENT modifier is present and PROBATE engine active when insolvent
+    if (hasInsolvencyRisk) {
+        if (!rec.modifiers.includes("INSOLVENT"))
             rec.modifiers.push("INSOLVENT");
-        }
-        // If insolvent, we might want to override procedure type or add active engines
-        if (!rec.activeEngines.includes("PROBATE")) {
-            rec.activeEngines.push("PROBATE"); // Insolvency usually requires court supervision
-        }
+        if (!rec.activeEngines.includes("PROBATE"))
+            rec.activeEngines.push("PROBATE");
     }
     return {
         id: estate.id,
@@ -207,7 +217,7 @@ async function getRoadmapFromDatabase(estateId, profile, completedTaskIds) {
             id: task.taskCode,
             title: task.title,
             description: task.description || task.title,
-            estimatedTime: task.estimatedTime,
+            estimatedTime: task.estimatedTime || undefined,
             category: task.category,
             isOptional: task.isOptional,
             requiresAuthority: task.requiresAuthority,
@@ -216,20 +226,22 @@ async function getRoadmapFromDatabase(estateId, profile, completedTaskIds) {
             exclusiveGroup: task.exclusiveGroup || undefined,
             trackCompatibility: task.trackCompatibility,
             tags: task.tags,
-            alerts: undefined,
-            utility: undefined,
-            isLongHorizon: undefined,
-            links: undefined,
-            deadlineWarningId: undefined,
-            helpArticleId: undefined,
-            applicability: undefined,
-            isInternationalOnly: undefined,
-            isAttorneyReviewNode: undefined,
-            attorneyReviewReason: undefined,
-            isConditional: undefined,
-            conditionalRequirementLabel: undefined,
-            requiresNotary: undefined,
-            requiresPhysicalMail: undefined,
+            alerts: task.alerts || undefined,
+            links: task.links || undefined,
+            rationale: task.rationale || undefined,
+            isAttorneyReviewNode: task.isAttorneyReviewNode,
+            attorneyReviewReason: task.attorneyReviewReason || undefined,
+            isConditional: task.isConditional,
+            conditionalRequirementLabel: task.conditionalRequirementLabel || undefined,
+            utility: task.utility || undefined,
+            requiresNotary: task.requiresNotary,
+            requiresPhysicalMail: task.requiresPhysicalMail,
+            deadlineWarningId: task.deadlineWarningId || undefined,
+            isInternationalOnly: task.isInternationalOnly,
+            primaryActionLabel: task.primaryActionLabel || undefined,
+            primaryActionUrl: task.primaryActionUrl || undefined,
+            formNames: task.formNames,
+            isLongHorizon: undefined, // Add mapping if needed in future schema
         })),
     }));
     // Apply existing filtering logic

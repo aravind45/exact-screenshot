@@ -447,7 +447,7 @@ router.get("/my/activities/download", requireSubscription, async (req: any, res:
 
 // [REMOVED DUPLICATE HEIR ROUTES - HANDLED IN heirRoutes.ts]
 
-import { DocumentService } from "../services/documentService.js";
+import { DocumentService } from "../services/DocumentService.js";
 
 router.get("/my/petition/creditor-priority-worksheet/pdf", requireSubscription, async (req: any, res: Response) => {
     try {

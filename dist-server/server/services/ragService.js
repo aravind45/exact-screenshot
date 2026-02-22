@@ -47,10 +47,13 @@ export class RAGService {
             // 1. Run BM25 and vector searches independently — failure in one must not kill the other
             let lexicalRows = [];
             let denseRows = [];
+            let stateFilterSql = '';
+            if (filters?.jurisdiction) {
+                // simple sanitize to prevent SQL injection
+                const state = filters.jurisdiction.replace(/[^A-Za-z0-9_ -]/g, '');
+                stateFilterSql = `AND d.jurisdiction = '${state}'`;
+            }
             // ── Lexical Search (BM25 via tsvector) ──────────────────────────────
-            // FIX: expand websearch_to_tsquery() inline instead of using
-            // "FROM table, function() alias JOIN table" which PostgreSQL parses
-            // incorrectly (JOIN binds tighter than comma, causing a syntax error).
             try {
                 lexicalRows = await prisma.$queryRawUnsafe(`
                     SELECT
@@ -62,6 +65,7 @@ export class RAGService {
                     FROM "rag_chunks"   c
                     JOIN "rag_documents" d ON d.id = c.document_id
                     WHERE c.tsv @@ websearch_to_tsquery('english', $1)
+                    ${stateFilterSql}
                     ORDER BY score DESC
                     LIMIT $2
                 `, query, limit);
@@ -85,6 +89,7 @@ export class RAGService {
                         JOIN "rag_chunks"   c ON c.id  = ce.chunk_id
                         JOIN "rag_documents" d ON d.id = c.document_id
                         WHERE ce.vector_type = 'content'
+                        ${stateFilterSql}
                         ORDER BY score DESC
                         LIMIT $2
                     `, vectorSql, limit);
@@ -107,6 +112,7 @@ export class RAGService {
                         FROM "rag_chunks"   c
                         JOIN "rag_documents" d ON d.id = c.document_id
                         WHERE c.text ILIKE $1
+                        ${stateFilterSql}
                         ORDER BY c."created_at" DESC
                         LIMIT $2
                     `, `%${query.split(' ').slice(0, 3).join('%')}%`, limit);
