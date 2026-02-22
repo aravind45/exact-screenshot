@@ -36,9 +36,10 @@ function validateDebtAmount(amount: number): { valid: boolean; error?: string } 
 // Determine debt priority
 function getDebtPriority(debt: Debt): number {
     // Priority order for estate settlement
+    const description = debt.description.toLowerCase();
     if (debt.type === 'secured' && debt.hasLien) return 1; // Secured debts first
-    if (debt.description.includes('funeral')) return 2; // Funeral expenses
-    if (debt.description.includes('tax')) return 3; // Tax debts
+    if (description.includes('funeral')) return 2; // Funeral expenses
+    if (description.includes('tax')) return 3; // Tax debts
     if (debt.type === 'unsecured') return 4; // Unsecured debts last
     return 5;
 }

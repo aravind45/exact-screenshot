@@ -86,7 +86,7 @@ describe("Roadmap Filtering Logic", () => {
     it("should always show bond waiver tasks as they offer cost savings", () => {
         const filtered = filterTasksForEstate(SETTLEMENT_PHASE_TASKS, mockProfile);
         const tasks = filtered.flatMap(p => p.tasks);
-        expect(tasks.filter(t => t.id === "request_bond_waiver")).toHaveLength(1);
+        expect(tasks.filter(t => t.id === "handle_bond_waivers")).toHaveLength(1);
         expect(tasks.filter(t => t.id === "obtain_bond_waiver_order")).toHaveLength(1);
     });
 

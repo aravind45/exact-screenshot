@@ -47,7 +47,7 @@ export interface PhaseTask {
     states?: string[];
   };
   isInternationalOnly?: boolean; // New flag for International Mode
-  requiresAuthority?: boolean;  // Blocks until Letters Testamentary (DE-150)
+  requiresAuthority?: boolean;  // Blocks until Letters of Authority/Testamentary are issued
   isAttorneyReviewNode?: boolean; // Highlight mandatory/recommended checkpoints
   attorneyReviewReason?: string; // Specific reason for attorney review (e.g. "Litigation Risk")
   milestone?: string;           // Human-readable milestone label (e.g. "After Authority Issued")
@@ -63,6 +63,7 @@ export interface PhaseTask {
     [stateCode: string]: {
       title?: string;
       description?: string;
+      estimatedTime?: string;
       formNames?: string[];
       primaryActionLabel?: string;
       primaryActionUrl?: string;
@@ -128,7 +129,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         formNames: ["Small Estate Affidavit"],
         alerts: [{
           type: "info",
-          message: "Small estate limits vary by state (e.g., $184,500 in CA as of 2023)."
+          message: "Small estate limits vary by state (e.g., $50,000 in NY, $184,500 in CA)."
         }]
       },
       {
@@ -172,7 +173,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       {
         id: "check_primary_residence_succession",
         title: "Evaluate Primary Residence Succession",
-        description: "If the estate consists primarily of a primary residence valued under $100,000, you may qualify for the simplified Succession process (DE-310/315).",
+        description: "If the estate consists primarily of a primary residence valued under the state's simplified threshold, you may qualify for a simplified succession process.",
         utility: "Shortcut: Simplified path for qualifying primary residences.",
         estimatedTime: "1 hour",
         exclusiveGroup: "filing_path",
@@ -242,7 +243,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         description: "Instead of 'Letters Testamentary', the TOD beneficiary uses a 'Transfer Packet' to claim title.",
         estimatedTime: "2-4 hours",
         trackCompatibility: ["NON_PROBATE"],
-        requiredDocs: ["Certified Death Certificate", "Recorded TOD Deed copy", "Affidavit of Death of Transferor", "PCOR Form"],
+        requiredDocs: ["Certified Death Certificate", "Recorded TOD Deed copy", "Affidavit of Death of Transferor"],
         alerts: [{
           type: "info",
           message: "This packet replaces court-issued authority and is presented to the county recorder or title company."
@@ -288,8 +289,8 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         requiredDocs: ["Death Certificate", "Affidavit of Death", "Recorded TOD Deed"],
         trackCompatibility: ["NON_PROBATE"],
         links: [{
-          label: "About TOD Affidavits",
-          url: "https://www.courts.ca.gov/documents/de165.pdf"
+          label: "About TOD Transfer Requirements",
+          url: "#"
         }]
       },
       {
@@ -298,7 +299,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         description: "Submit Change in Ownership Statement to the county to update tax records and prevent penalties.",
         estimatedTime: "1 hour",
         trackCompatibility: ["NON_PROBATE"],
-        requiredDocs: ["BOE-502-A"],
+        requiredDocs: ["Change in Ownership Statement"],
         alerts: [{
           type: "warning",
           message: "Missing the property tax reassessment deadline can lead to significant penalties."
@@ -312,7 +313,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         alerts: [
           {
             type: "warning",
-            message: "Fiduciary Caution: While recurring charges should stop, avoid paying off large unsecured credit card balances from estate funds until the 4-month creditor period has expired and solvency is confirmed."
+            message: "Fiduciary Caution: While recurring charges should stop, avoid paying off large unsecured credit card balances from estate funds until the statutory creditor claim period has expired and solvency is confirmed."
           }
         ]
       },
@@ -377,7 +378,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         description: "Open a separate fiduciary account for estate income and expenses once legal authority is obtained.",
         estimatedTime: "1 hour",
         requiresAuthority: true,
-        requiredDocs: ["Death Certificate", "Letters (DE-150)", "EIN"],
+        requiredDocs: ["Death Certificate", "Letters of Authority", "EIN"],
         alerts: [
           {
             type: "important",
@@ -393,7 +394,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         alerts: [
           {
             type: "warning",
-            message: "Fiduciary Caution: While recurring charges should stop, avoid paying off large unsecured credit card balances from estate funds until the 4-month creditor period has expired and solvency is confirmed."
+            message: "Fiduciary Caution: While recurring charges should stop, avoid paying off large unsecured credit card balances from estate funds until the statutory creditor claim period has expired and solvency is confirmed."
           },
           {
             type: "warning",
@@ -424,7 +425,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         description: "Formally notify the IRS that you have taken on the role of Executor/Administrator. This ensures that all tax correspondence regarding the decedent is sent to you.",
         estimatedTime: "1 hour",
         tags: ["tax", "fiduciary"],
-        requiredDocs: ["IRS Form 56", "Certified Letters (DE-150)"],
+        requiredDocs: ["IRS Form 56", "Certified Letters of Authority"],
         trackCompatibility: ["PROBATE"],
         alerts: [{
           type: "info",
@@ -531,8 +532,9 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         }],
         stateOverrides: {
           NY: {
-            title: "Validate Distributees & Interested Parties",
-            description: "Identify all 'distributees' (heirs-at-law) and beneficiaries. NY requires a family tree affidavit if there is only one distributee or if they are more remote than first cousins."
+            title: "Validate Distributees & Interested Parties (SCPA §1003/§1403)",
+            description: "Identify all 'distributees' (heirs-at-law) per EPTL §4-1.1 and beneficiaries. NY requires a family tree affidavit if there is only one distributee or if they are more remote than first cousins.",
+            links: [{ label: "About Family Tree Requirements", url: "#" }]
           }
         }
       },
@@ -579,10 +581,17 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         estimatedTime: "1-3 weeks",
         category: "probate",
         outputs: ["Notice Plan Checklist", "Compiled Waivers"],
-        alerts: [{
-          type: "info",
-          message: "Securing Waivers and Consents from all parties can drastically accelerate the timeline by skipping the citation return date."
-        }]
+        stateOverrides: {
+          NY: {
+            title: "Prepare Waivers & Consents (SCPA §401)",
+            description: "Gather signed 'Waiver and Consent' forms from all distributees to bypass the issuance of a formal Citation and a court appearance date.",
+            formNames: ["Waiver & Consent (A-2 or P-3)"],
+            alerts: [{
+              type: "important",
+              message: "Each waiver must be notarized. The court will not accept photocopies of signatures."
+            }]
+          }
+        }
       },
       {
         id: "request_temporary_authority",
@@ -609,8 +618,8 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         }],
         stateOverrides: {
           NY: {
-            title: "Evaluate NY Surrogate Fee Schedule",
-            description: "NY filing fees scale from $45 to $1,250 based on the value of the probate estate assets.",
+            title: "Evaluate NY Surrogate Fee Schedule (SCPA §2402)",
+            description: "NY filing fees scale from $45 to $1,250 based on the value of the probate estate assets per SCPA §2402.",
             sourceUrl: "https://ww2.nycourts.gov/courts/11jd/surrogates/fees.shtml"
           }
         }
@@ -628,12 +637,13 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         }],
         stateOverrides: {
           NY: {
-            title: "Assemble NY Probate/Admin Packet (Form P-1)",
-            description: "Combine the Petition, Original Will, Death Certificate, and Waivers into the Surrogate's Court packet.",
+            title: "Assemble NY Probate/Admin Packet",
+            description: "Combine the Petition (P-1 or A-1), Original Will (if any), Death Certificate, and Waivers into the Surrogate's Court packet.",
             officialForms: [
-              { name: "Petition for Probate (P-1)", url: "https://www.nycourts.gov/LegacyPDFS/FORMS/surrogates/pdfs/Probate_Petition.pdf" }
+              { name: "Probate Petition (P-1)", url: "https://www.nycourts.gov/LegacyPDFS/FORMS/surrogates/pdfs/Probate_Petition.pdf" },
+              { name: "Administration Petition (A-1)", url: "https://www.nycourts.gov/LegacyPDFS/FORMS/surrogates/pdfs/Admin_Petition.pdf" }
             ],
-            primaryActionLabel: "Download P-1 Packet"
+            primaryActionLabel: "Download Forms Packet"
           }
         }
       }
@@ -647,18 +657,19 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
     description: "Submitting the probate petition to the court to obtain official fiduciary authority (Letters).",
     tasks: [
       {
-        id: "file_petition",
+        id: "file_probate_petition",
         title: "File Petition for Probate",
-        description: "Submit the probate petition to the appropriate court to open the estate case and request fiduciary appointment.",
+        description: "Submit the probate petition and original Will to the court to open the estate case and request appointment as Executor.",
         utility: "Required to obtain legal authority to access accounts.",
         estimatedTime: "2-4 hours",
         category: "probate",
         trackCompatibility: ["PROBATE"],
         exclusiveGroup: "filing_path",
+        applicability: { variants: ["TESTATE"] },
         helpArticleId: "probate-steps",
         primaryActionLabel: "Generate Petition",
         primaryActionUrl: "/probate",
-        formNames: ["Petition"],
+        formNames: ["Petition for Probate"],
         requiredDocs: [
           "Original Will",
           "Death Certificate",
@@ -673,21 +684,46 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         stateOverrides: {
           "NY": {
             title: "File Petition for Probate (Form P-1)",
-            description: "Submit the P-1 petition to the Surrogate's Court. This initiates the formal probate proceeding in New York.",
+            description: "Submit the P-1 petition to the Surrogate's Court. This initiates the formal probate proceeding for a person who died WITH a Will.",
             formNames: ["P-1", "Notice of Probate"],
             officialForms: [
               { name: "Probate Petition (P-1)", url: "https://www.nycourts.gov/LegacyPDFS/FORMS/surrogates/pdfs/Probate_Petition.pdf" }
             ]
-          },
-          "FL": {
-            title: "File Petition for Administration",
-            description: "Submit the petition to the local circuit court.",
-            formNames: ["Petition for Administration"]
-          },
-          "TX": {
-            title: "File Application for Probate",
-            description: "Submit the application to the probate court.",
-            formNames: ["Application for Probate"]
+          }
+        }
+      },
+      {
+        id: "file_administration_petition",
+        title: "File Petition for Administration",
+        description: "Submit the administration petition to the court to open the estate case and request appointment as Administrator (since there is no Will).",
+        utility: "Required to obtain legal authority to access accounts.",
+        estimatedTime: "2-4 hours",
+        category: "probate",
+        trackCompatibility: ["PROBATE"],
+        exclusiveGroup: "filing_path",
+        applicability: { variants: ["INTESTATE"] },
+        helpArticleId: "administration-steps",
+        primaryActionLabel: "Generate Petition",
+        primaryActionUrl: "/probate",
+        formNames: ["Petition for Administration"],
+        requiredDocs: [
+          "Death Certificate",
+          "Petition Form"
+        ],
+        alerts: [
+          {
+            type: "info",
+            message: "Check your local court for the current filing fee. Since there is no Will, the court may require a bond."
+          }
+        ],
+        stateOverrides: {
+          "NY": {
+            title: "File Petition for Administration (Form A-1)",
+            description: "Submit the A-1 petition to the Surrogate's Court. This initiates the formal administration proceeding for a person who died WITHOUT a Will.",
+            formNames: ["A-1", "Citation", "Waiver & Consent"],
+            officialForms: [
+              { name: "Administration Petition (A-1)", url: "https://www.nycourts.gov/LegacyPDFS/FORMS/surrogates/pdfs/Admin_Petition.pdf" }
+            ]
           }
         }
       },
@@ -700,7 +736,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         requiredDocs: ["Court Case Number", "Proposed Notice"],
         category: "probate",
         deadlineWarningId: "CREDITOR_NOTICE_DEADLINE", // New deadline link
-        dependencies: ["file_petition"], // New dependency
+        dependencies: ["file_probate_petition", "file_administration_petition"],
         helpArticleId: "creditor-notice",
         alerts: [
           {
@@ -726,7 +762,13 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         estimatedTime: "2-3 hours",
         requiredDocs: ["Notice Form"],
         category: "probate",
-        dependencies: ["file_petition"],
+        dependencies: ["file_probate_petition", "file_administration_petition"],
+        stateOverrides: {
+          NY: {
+            title: "Mail Notice to Creditors (SCPA §1803)",
+            description: "Send formal notice to creditors. In NY, a claim must be in writing and state the facts upon which it is based (SCPA §1803)."
+          }
+        },
         alerts: [
           {
             type: "warning",
@@ -735,12 +777,13 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         ]
       },
       {
-        id: "attend_hearing",
+        id: "attend_probate_hearing",
         title: "Attend Probate Hearing",
-        description: "Appear in court for the probate hearing (usually 60-90 days after filing).",
+        description: "Appear in court for the probate hearing (typically 30-60 days after filing) to confirm the Will and your appointment.",
         estimatedTime: "2-3 hours",
         requiredDocs: ["Valid ID", "Proof of Notice"],
-        dependencies: ["file_petition"],
+        applicability: { variants: ["TESTATE"] },
+        dependencies: ["file_probate_petition"],
         alerts: [
           {
             type: "info",
@@ -749,18 +792,34 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         ]
       },
       {
-        id: "receive_letters",
-        title: "Establish Fiduciary Authority (Letters)",
-        description: "Obtain certified copies of the Letters—this document is your legal evidence of authority to manage estate assets.",
+        id: "attend_administration_hearing",
+        title: "Attend Administration Hearing",
+        description: "Appear in court for the administration hearing. Since there is no Will, the court will confirm heirs and appointing you as Administrator.",
+        estimatedTime: "2-3 hours",
+        requiredDocs: ["Valid ID", "Proof of Notice"],
+        applicability: { variants: ["INTESTATE"] },
+        dependencies: ["file_administration_petition"],
+        alerts: [
+          {
+            type: "info",
+            message: "Dress professionally. The judge will confirm that all distributees have been properly notified."
+          }
+        ]
+      },
+      {
+        id: "receive_letters_testamentary",
+        title: "Obtain Letters Testamentary",
+        description: "Once the Will is admitted to probate, obtain certified copies of your Letters Testamentary.",
         requiresAuthority: true,
         estimatedTime: "1-2 weeks after hearing",
         category: "court-issued",
-        requiredDocs: ["Letters Testamentary / Administration"],
-        dependencies: ["attend_hearing"],
+        requiredDocs: ["Letters Testamentary"],
+        applicability: { variants: ["TESTATE"] },
+        dependencies: ["attend_probate_hearing"],
         stateOverrides: {
           NY: {
-            title: "Obtain Letters Testamentary / Administration",
-            description: "The Surrogate's Court issues 'Letters' (not a single form, but a court decree) authorizing you to act.",
+            title: "Obtain Letters Testamentary",
+            description: "The Surrogate's Court issues the Decree and Letters Testamentary (Form P-1).",
             officialForms: [
               { name: "Notice of Probate", url: "https://www.nycourts.gov/LegacyPDFS/FORMS/surrogates/pdfs/Notice_of_Probate.pdf" }
             ]
@@ -769,7 +828,33 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         alerts: [
           {
             type: "important",
-            message: "Order 10-15 certified copies ($15 each). You'll need them for every institution."
+            message: "Order 10-15 certified copies. You'll need them for every institution."
+          }
+        ]
+      },
+      {
+        id: "receive_letters_administration",
+        title: "Obtain Letters of Administration",
+        description: "Once the court approves the petition, obtain certified copies of your Letters of Administration.",
+        requiresAuthority: true,
+        estimatedTime: "1-2 weeks after hearing",
+        category: "court-issued",
+        requiredDocs: ["Letters of Administration"],
+        applicability: { variants: ["INTESTATE"] },
+        dependencies: ["attend_administration_hearing"],
+        stateOverrides: {
+          NY: {
+            title: "Obtain Letters of Administration",
+            description: "The Surrogate's Court issues the Decree and Letters of Administration.",
+            officialForms: [
+              { name: "Notice of Administration", url: "#" }
+            ]
+          }
+        },
+        alerts: [
+          {
+            type: "important",
+            message: "Order 10-15 certified copies. You'll need them for every institution."
           }
         ]
       },
@@ -857,10 +942,10 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         isOptional: true, // Controlled by filtering logic based on profile
         conditionalRequirementLabel: "Required if minors have interests",
         requiredDocs: ["Petition Form", "Death Certificate"],
-        dependencies: ["file_petition"],
+        dependencies: ["file_probate_petition", "file_administration_petition"],
         links: [{
-          label: "Download Official Form",
-          url: "https://www.courts.ca.gov/documents/de350.pdf"
+          label: "About Guardian Ad Litem Representation",
+          url: "#"
         }],
         alerts: [{
           type: "important",
@@ -877,8 +962,8 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         requiredDocs: ["Court Order"],
         dependencies: ["petition_guardian_ad_litem"],
         links: [{
-          label: "Download Official Form",
-          url: "https://www.courts.ca.gov/documents/de351.pdf"
+          label: "About Guardian Appointment Orders",
+          url: "#"
         }],
         alerts: [{
           type: "info",
@@ -895,8 +980,8 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         isOptional: true,
         requiredDocs: ["Petition Form", "Death Certificate", "Property Deed"],
         links: [{
-          label: "Download Official Form",
-          url: "https://www.courts.ca.gov/documents/de310.pdf"
+          label: "About Succession Petitions",
+          url: "#"
         }],
         alerts: [{
           type: "info",
@@ -905,7 +990,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "give_succession_notice",
-        title: "Give Notice of Hearing (DE-120)",
+        title: "Give Notice of Hearing",
         description: "Notify all interested parties of the hearing date for the succession petition.",
         estimatedTime: "2 hours",
         category: "probate",
@@ -914,8 +999,8 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         dependencies: ["file_succession_petition"],
         requiredDocs: ["Notice of Hearing Form"],
         links: [{
-          label: "Download Official Form",
-          url: "https://www.courts.ca.gov/documents/de120.pdf"
+          label: "About Notice of Hearing Forms",
+          url: "#"
         }],
         alerts: [{
           type: "important",
@@ -933,8 +1018,8 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         requiredDocs: ["Court Order"],
         dependencies: ["file_succession_petition", "give_succession_notice"],
         links: [{
-          label: "Download Official Form",
-          url: "https://www.courts.ca.gov/documents/de315.pdf"
+          label: "About Succession Orders",
+          url: "#"
         }],
         alerts: [{
           type: "important",
@@ -949,11 +1034,11 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         isLongHorizon: true,
         category: "probate",
         isOptional: true,
-        dependencies: ["file_petition"],
+        dependencies: ["file_probate_petition", "file_administration_petition"],
         requiredDocs: ["Request for Notice Form", "Notice Form"],
         links: [{
-          label: "Download Official Form",
-          url: "https://www.courts.ca.gov/documents/de154.pdf"
+          label: "About Special Notice Requests",
+          url: "#"
         }],
         alerts: [{
           type: "warning",
@@ -983,10 +1068,10 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         isConditional: true,
         conditionalRequirementLabel: "Recommended to save on bond premiums if all heirs agree to waive",
         requiredDocs: ["Bond Waiver Form"],
-        dependencies: ["file_petition"],
+        dependencies: ["file_probate_petition", "file_administration_petition"],
         links: [{
-          label: "Download Official Form",
-          url: "https://www.courts.ca.gov/documents/de142.pdf"
+          label: "About Bond Waivers",
+          url: "#"
         }],
         alerts: [{
           type: "important",
@@ -1000,25 +1085,25 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         estimatedTime: "At hearing",
         category: "court-issued",
         isOptional: true,
-        requiredDocs: ["DE-143", "DE-140"],
+        requiredDocs: ["Bond Order", "Order for Probate"],
         dependencies: ["handle_bond_waivers"],
         alerts: [{
           type: "info",
-          message: "The bond waiver is officially granted within the Order for Probate (DE-140) or a specific Bond Order (DE-143)."
+          message: "The bond waiver is officially granted within the Order for Probate or a specific Bond Order."
         }]
       },
       {
         id: "respond_to_objections",
-        title: "Respond to Objections (DE-115/116)",
+        title: "Respond to Objections",
         description: "If someone files an objection to the petition or will, you must respond formally and prepare for contest hearing.",
         estimatedTime: "2-4 weeks",
         category: "probate",
         isOptional: true, // Controlled by profile.isContested
-        requiredDocs: ["DE-115", "DE-116"],
-        dependencies: ["file_petition"],
+        requiredDocs: ["Objection Response Form"],
+        dependencies: ["file_probate_petition", "file_administration_petition"],
         links: [{
-          label: "Download DE-115",
-          url: "https://www.courts.ca.gov/documents/de115.pdf"
+          label: "About Responding to Objections",
+          url: "#"
         }],
         alerts: [{
           type: "warning",
@@ -1065,7 +1150,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         description: "Check state databases for dormant accounts, uncashed checks, or forgotten insurance policies.",
         estimatedTime: "1 hour",
         helpArticleId: "asset-discovery",
-        links: [{ label: "Search CA Unclaimed Property", url: "https://www.sco.ca.gov/up.html" }]
+        links: [{ label: "Search State Unclaimed Property", url: "#" }]
       },
       {
         id: "business_valuation",
@@ -1080,7 +1165,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         description: "Provide notice of your fiduciary authority to banks, brokerages, and insurance companies to secure accounts.",
         estimatedTime: "2-4 weeks",
         requiresAuthority: true,
-        requiredDocs: ["Death Certificate", "Letters (DE-150)"],
+        requiredDocs: ["Death Certificate", "Letters of Authority"],
         alerts: [
           {
             type: "important",
@@ -1093,7 +1178,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         title: "Obtain Date-of-Death Values",
         description: "Request official DOD statements from every financial institution.",
         estimatedTime: "2-4 weeks",
-        requiredDocs: ["Letters (DE-150)"],
+        requiredDocs: ["Letters of Authority"],
         alerts: [
           {
             type: "info",
@@ -1117,7 +1202,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "complete_inventory",
-        title: "Complete Inventory & Appraisal (DE-160)",
+        title: "Complete Inventory & Appraisal",
         description: "List ALL assets with DOD values and attach appraisal reports.",
         estimatedTime: "1-2 weeks",
         requiredDocs: ["All DOD Statements", "Appraisal Reports"],
@@ -1131,7 +1216,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
           },
           {
             type: "warning",
-            message: "Due within 4 months of Letters issuance. Delays in filing can impede the overall settlement timeline."
+            message: "Due within the statutory window (typically 3-4 months) of Letters issuance. Delays in filing can impede the overall settlement timeline."
           }
         ],
         isAttorneyReviewNode: true
@@ -1140,7 +1225,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       {
         id: "file_inventory",
         title: "File Inventory with Court",
-        description: "Submit DE-160 to court and serve copies on all heirs.",
+        description: "Submit the Inventory Form to court and serve copies on all heirs.",
         estimatedTime: "1 day",
         category: "probate",
         dependencies: ["complete_inventory"],
@@ -1233,12 +1318,19 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "wait_claim_period",
-        title: "Wait for 4-Month Claim Period",
-        description: "Creditors have 4 months from notice publication to file claims.",
+        title: "Wait for Statutory Claim Period",
+        description: "Creditors have a statutory period (typically 4 months) from notice publication to file claims.",
         utility: "Mandatory waiting period to protect you from future debt liability.",
         isLongHorizon: true,
-        estimatedTime: "4 months",
+        estimatedTime: "Statutory duration (e.g. 4-7 months)",
         dependencies: ["publish_notice"],
+        stateOverrides: {
+          NY: {
+            title: "Wait for 7-Month Creditor Period (SCPA §1802)",
+            description: "In New York, creditors have 7 months from the date Letters are issued to file claims (SCPA §1802).",
+            estimatedTime: "7 months"
+          }
+        },
         alerts: [
           {
             type: "info",
@@ -1260,7 +1352,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
           },
           {
             type: "caution",
-            message: "California law provides specific timeframes for approving or rejecting claims. Verify compliance with statutory deadlines."
+            message: "State law provides specific timeframes for approving or rejecting claims. Verify compliance with statutory deadlines."
           }
         ]
       },
@@ -1288,11 +1380,11 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         title: "Document Claim Evaluation & Decision",
         description: "Formally evaluate each timely creditor claim. Document whether the claim is allowed in full, partially allowed, or rejected.",
         isAttorneyReviewNode: true,
-        attorneyReviewReason: "Litigation Risk: Formal claim rejection (DE-174) triggers a strict 90-day litigation window for the creditor. Legal defense strategy is critical here.",
+        attorneyReviewReason: "Litigation Risk: Formal claim rejection triggers a strict statutory litigation window for the creditor. Legal defense strategy is critical here.",
         trackCompatibility: ["PROBATE", "TRUST"],
         alerts: [{
           type: "caution",
-          message: "Legal Decision Guardrail: Formal claim rejection (DE-174) triggers a strict 90-day litigation window for the creditor. Consult with an attorney before issuing a formal rejection."
+          message: "Legal Decision Guardrail: Formal claim rejection triggers a strict statutory litigation window for the creditor. Consult with an attorney before issuing a formal rejection."
         }]
       },
       {
@@ -1302,7 +1394,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         estimatedTime: "1 week",
         isConditional: true,
         conditionalRequirementLabel: "Required if creditor claims are invalid or disputed",
-        requiredDocs: ["DE-174 Allowance or Rejection"],
+        requiredDocs: ["Notice of Allowance or Rejection"],
         alerts: [
           {
             type: "warning",
@@ -1364,9 +1456,9 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       {
         id: "present_letters",
         title: "Present Letters to All Institutions",
-        description: "Submit certified Letters (DE-150) to every bank, brokerage, and insurance company.",
+        description: "Submit certified Letters of Authority to every bank, brokerage, and insurance company.",
         estimatedTime: "2-4 weeks",
-        requiredDocs: ["Letters (DE-150)", "Death Certificate"],
+        requiredDocs: ["Letters of Authority", "Death Certificate"],
         alerts: [
           {
             type: "info",
@@ -1389,16 +1481,16 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "prepare_notice_proposed_action",
-        title: "Prepare Notice of Proposed Action (DE-165)",
-        description: "If you have Independent Administration of Estates Act (IAEA) authority, you must notify heirs of your intent to sell real property.",
+        title: "Prepare Notice of Proposed Action",
+        description: "If you have independent administration authority, you must notify heirs of your intent to sell real property.",
         estimatedTime: "1 week",
         category: "probate",
         isConditional: true,
         conditionalRequirementLabel: "Required if estate owns real property and intention is to sell",
-        requiredDocs: ["DE-165"],
+        requiredDocs: ["Notice of Proposed Action Form"],
         links: [{
-          label: "Download DE-165",
-          url: "https://www.courts.ca.gov/documents/de165.pdf"
+          label: "About Notices of Proposed Action",
+          url: "#"
         }],
         alerts: [{
           type: "info",
@@ -1417,18 +1509,18 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "petition_confirm_sale",
-        title: "File Petition to Confirm Sale (DE-260)",
-        description: "If you do NOT have IAEA authority, or if someone objects, you must petition the court to confirm the sale of real property.",
+        title: "File Petition to Confirm Sale",
+        description: "If you do NOT have independent administration authority, or if someone objects, you must petition the court to confirm the sale of real property.",
         estimatedTime: "2-4 hours",
         category: "probate",
         isConditional: true,
         conditionalRequirementLabel: "Required if IAEA authority is limited or restricted",
         isAttorneyReviewNode: true,
-        attorneyReviewReason: "Real Estate Sale: Sales without full IAEA authority require complex court confirmation and overbid procedures.",
-        requiredDocs: ["DE-260"],
+        attorneyReviewReason: "Real Estate Sale: Sales without full independent administration authority require complex court confirmation and overbid procedures.",
+        requiredDocs: ["Petition to Confirm Sale Form"],
         links: [{
-          label: "Download DE-260",
-          url: "https://www.courts.ca.gov/documents/de260.pdf"
+          label: "About Sales Confirmation",
+          url: "#"
         }],
         alerts: [{
           type: "warning",
@@ -1437,16 +1529,16 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "obtain_sale_confirmation_order",
-        title: "Obtain Sale Confirmation Order (DE-265)",
+        title: "Obtain Sale Confirmation Order",
         description: "Receive signed court order confirming the real estate sale and allowing the close of escrow.",
         estimatedTime: "1-2 weeks after hearing",
         category: "court-issued",
         isConditional: true,
         conditionalRequirementLabel: "Required if court-confirmed sale was necessary",
         isAttorneyReviewNode: true,
-        attorneyReviewReason: "Real Estate Sale: The court order (DE-265) is a title-clearing document. Errors here can break's the buyer's title and lead to litigation.",
+        attorneyReviewReason: "Real Estate Sale: The court order is a title-clearing document. Errors here can break the buyer's title and lead to litigation.",
         dependencies: ["petition_confirm_sale"],
-        requiredDocs: ["DE-265"]
+        requiredDocs: ["Order Confirming Sale Form"]
       },
       {
         id: "sell_property",
@@ -1553,6 +1645,13 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         id: "file_final_petition",
         title: "File Petition for Final Distribution",
         description: "Request court approval to distribute remaining assets to heirs.",
+        stateOverrides: {
+          NY: {
+            title: "File Petition for Final Settlement & Distribution",
+            description: "Request the Surrogate's Court to settle the account and issue a Decree of Distribution.",
+            formNames: ["Petition for Final Settlement", "Decree of Distribution"]
+          }
+        },
         estimatedTime: "2-4 hours",
         requiredDocs: ["Final Accounting", "Proposed Distribution Plan"],
         dependencies: ["prepare_accounting"],

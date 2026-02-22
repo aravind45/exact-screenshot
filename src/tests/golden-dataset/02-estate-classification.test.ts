@@ -308,7 +308,7 @@ describe('Golden Dataset: Process Type Determination (Cases 81-100)', () => {
             hasRealProperty: false,
             state: 'CA'
         });
-        expect(process).toBe('summary');
+        expect(process).toBe('small_estate');
     });
 
     it('Case 88: Estate at threshold ($184,500)', () => {

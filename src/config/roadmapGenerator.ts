@@ -11,6 +11,7 @@ function normalizeTextForState(text: string | undefined, state: string): string 
 
     out = out.replace(/\bCertified Letters\s*\(DE-\d+\)/gi, `Certified ${lettersTerm}`);
     out = out.replace(/\bLetters Testamentary\s*\(DE-\d+\)/gi, lettersTerm);
+    out = out.replace(/\bLetters of Authority\s*\(DE-\d+\)/gi, lettersTerm);
     out = out.replace(/\bLetters\s*\(DE-\d+\)/gi, lettersTerm);
 
     out = out.replace(/\s*\(DE-\d+\)/gi, "");
@@ -21,8 +22,8 @@ function normalizeTextForState(text: string | undefined, state: string): string 
     out = out.replace(/\bCalifornia Probate Code\b/gi, "State probate code");
     out = out.replace(/\bCA Prob\. Code\b/gi, "State probate code");
     out = out.replace(/\bCalifornia law\b/gi, "State law");
-    out = out.replace(/\bCalifornia\b/gi, "your state");
-    out = out.replace(/\bCA\b/g, "your state");
+    out = out.replace(/\bCalifornia\b/gi, "state");
+    out = out.replace(/\bCA\b/g, "state");
 
     out = out.replace(/\s{2,}/g, " ").trim();
     return out;

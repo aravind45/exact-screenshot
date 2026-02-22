@@ -28,6 +28,8 @@ const FOLLOW_UP_SPAWN_RULES: Record<string, FollowUpSpawnRule> = {
   order_date_of_death_appraisal: { institutionName: "Certified Appraiser", subject: "Date-of-death appraisal ordered — awaiting delivery", responseWindowDays: 21 },
   // ── Court Filings ─────────────────────────────────────────────────────────
   file_petition: { institutionName: "Probate Court", subject: "Petition filed — awaiting court acknowledgment & hearing", responseWindowDays: 30 },
+  file_probate_petition: { institutionName: "Surrogate's Court", subject: "Probate Petition filed — awaiting Decree & Letters", responseWindowDays: 30 },
+  file_administration_petition: { institutionName: "Surrogate's Court", subject: "Administration Petition filed — awaiting Decree & Letters", responseWindowDays: 30 },
   file_inventory_appraisal: { institutionName: "Probate Court", subject: "Inventory & Appraisal filed — awaiting court confirmation", responseWindowDays: 14 },
   file_final_accounting: { institutionName: "Probate Court", subject: "Final Accounting filed — awaiting court approval", responseWindowDays: 21 },
   // ── Tax Authorities ───────────────────────────────────────────────────────
@@ -75,6 +77,7 @@ function normalizeTextForState(text: string | undefined, state: string): string 
 
   out = out.replace(/\bCertified Letters\s*\(DE-\d+\)/gi, `Certified ${lettersTerm}`);
   out = out.replace(/\bLetters Testamentary\s*\(DE-\d+\)/gi, lettersTerm);
+  out = out.replace(/\bLetters of Authority\s*\(DE-\d+\)/gi, lettersTerm);
   out = out.replace(/\bLetters\s*\(DE-\d+\)/gi, lettersTerm);
 
   out = out.replace(/\s*\(DE-\d+\)/gi, "");
@@ -85,8 +88,8 @@ function normalizeTextForState(text: string | undefined, state: string): string 
   out = out.replace(/\bCalifornia Probate Code\b/gi, "State probate code");
   out = out.replace(/\bCA Prob\. Code\b/gi, "State probate code");
   out = out.replace(/\bCalifornia law\b/gi, "State law");
-  out = out.replace(/\bCalifornia\b/gi, "your state");
-  out = out.replace(/\bCA\b/g, "your state");
+  out = out.replace(/\bCalifornia\b/gi, "state");
+  out = out.replace(/\bCA\b/g, "state");
 
   out = out.replace(/\s{2,}/g, " ").trim();
   return out;
