@@ -53,7 +53,7 @@ async function main() {
             });
             for (let j = 0; j < phaseData.tasks.length; j++) {
                 const t = phaseData.tasks[j];
-                await prisma.roadmapTask.upsert({
+                const task = await prisma.roadmapTask.upsert({
                     where: {
                         phaseId_taskCode: {
                             phaseId: phase.id,
@@ -88,6 +88,12 @@ async function main() {
                         primaryActionLabel: t.primaryActionLabel || null,
                         primaryActionUrl: t.primaryActionUrl || null,
                         formNames: t.formNames || [],
+                        applicableVariants: t.applicability?.variants || [],
+                        predicatesAll: t.applicability?.predicatesAll || [],
+                        predicatesAny: t.applicability?.predicatesAny || [],
+                        excludePredicates: t.applicability?.excludePredicates || [],
+                        requiredProfileFields: t.requiredProfileFields || [],
+                        outputs: t.outputs || [],
                     },
                     create: {
                         phaseId: phase.id,
@@ -119,14 +125,67 @@ async function main() {
                         primaryActionLabel: t.primaryActionLabel || null,
                         primaryActionUrl: t.primaryActionUrl || null,
                         formNames: t.formNames || [],
+                        applicableVariants: t.applicability?.variants || [],
+                        predicatesAll: t.applicability?.predicatesAll || [],
+                        predicatesAny: t.applicability?.predicatesAny || [],
+                        excludePredicates: t.applicability?.excludePredicates || [],
+                        requiredProfileFields: t.requiredProfileFields || [],
+                        outputs: t.outputs || [],
                     },
                 });
+                if (t.stateOverrides) {
+                    const overrides = t.stateOverrides;
+                    for (const [stateCode, override] of Object.entries(overrides)) {
+                        await prisma.roadmapTaskStateOverride.upsert({
+                            where: {
+                                stateCode_taskKey: {
+                                    stateCode: stateCode,
+                                    taskKey: t.id,
+                                }
+                            },
+                            update: {
+                                title: override.title !== undefined ? override.title : null,
+                                description: override.description !== undefined ? override.description : null,
+                                formNames: override.formNames || [],
+                                primaryActionLabel: override.primaryActionLabel !== undefined ? override.primaryActionLabel : null,
+                                primaryActionUrl: override.primaryActionUrl !== undefined ? override.primaryActionUrl : null,
+                                links: override.links || null,
+                                sourceUrl: override.sourceUrl || null,
+                                lastVerifiedAt: override.lastVerifiedAt ? new Date(override.lastVerifiedAt) : null,
+                                reviewedBy: override.reviewedBy || null,
+                                changeLog: override.changeLog || null,
+                                confidence: override.confidence || "draft",
+                                officialForms: override.officialForms || null,
+                            },
+                            create: {
+                                taskKey: t.id,
+                                stateCode: stateCode,
+                                title: override.title !== undefined ? override.title : null,
+                                description: override.description !== undefined ? override.description : null,
+                                formNames: override.formNames || [],
+                                primaryActionLabel: override.primaryActionLabel !== undefined ? override.primaryActionLabel : null,
+                                primaryActionUrl: override.primaryActionUrl !== undefined ? override.primaryActionUrl : null,
+                                links: override.links || null,
+                                sourceUrl: override.sourceUrl || null,
+                                lastVerifiedAt: override.lastVerifiedAt ? new Date(override.lastVerifiedAt) : null,
+                                reviewedBy: override.reviewedBy || null,
+                                changeLog: override.changeLog || null,
+                                confidence: override.confidence || "draft",
+                                officialForms: override.officialForms || null,
+                            },
+                        });
+                    }
+                }
             }
         }
     };
     // Seed PROBATE
     console.log('Seeding FORMAL_PROBATE...');
     await seedTrack('FORMAL_PROBATE', SETTLEMENT_PHASE_TASKS);
+    console.log('Seeding INTESTATE...');
+    await seedTrack('INTESTATE', SETTLEMENT_PHASE_TASKS);
+    console.log('Seeding SMALL_ESTATE...');
+    await seedTrack('SMALL_ESTATE', SETTLEMENT_PHASE_TASKS);
     // Seed TRUST
     console.log('Seeding TRUST_ADMINISTRATION...');
     await seedTrack('TRUST_ADMINISTRATION', TRUST_PHASE_TASKS);

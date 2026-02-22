@@ -63,6 +63,7 @@ interface EstateProfile {
   distributionModel: DistributionModel;
   activeEngines: string[];
   hasWill: boolean;
+  hasUnknownHeirs: boolean;
 }
 
 /**
@@ -300,7 +301,7 @@ async function getRoadmapFromDatabase(
     : (estate.settlementPath || estate.estateType || 'FORMAL_PROBATE');
 
   // Fetch roadmap from database
-  const settlementType = await db.settlementType.findUnique({
+  const settlementType = await (db.settlementType as any).findUnique({
     where: { code: settlementTypeCode },
     include: {
       phases: {
@@ -308,9 +309,9 @@ async function getRoadmapFromDatabase(
         include: {
           tasks: {
             orderBy: { orderIndex: 'asc' },
-            include: {
+            /* include: {
               stateOverrides: true,
-            }
+            } */
           },
         },
       },
@@ -323,8 +324,15 @@ async function getRoadmapFromDatabase(
     return filterTasksForEstate(SETTLEMENT_PHASE_TASKS, profile, completedTaskIds);
   }
 
+  // Fetch all state overrides for this state once to avoid N+1 or broken relations
+  const allOverrides = await db.roadmapTaskStateOverride.findMany({
+    where: { stateCode: profile.state }
+  });
+  const overrideMap = new Map(allOverrides.map(o => [o.taskKey, o]));
+
+
   // Convert database format to PhaseTaskList format
-  const phases: PhaseTaskList[] = settlementType.phases.map(phase => ({
+  const phases: PhaseTaskList[] = (settlementType as any).phases.map((phase: any) => ({
     phase: phase.phaseCode as any,
     title: phase.title,
     subtitle: phase.subtitle || '',
@@ -333,9 +341,8 @@ async function getRoadmapFromDatabase(
     isEscalationPath: phase.isEscalationPath,
     tasks: phase.tasks.map((task: any) => {
       // Find state override if it exists for this estate's state
-      const stateOverride = task.stateOverrides?.find(
-        (override: any) => override.stateCode === profile.state
-      );
+      const stateOverride = overrideMap.get(task.taskCode);
+
 
       return {
         id: task.taskCode,

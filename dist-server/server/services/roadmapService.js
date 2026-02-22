@@ -91,7 +91,8 @@ export async function analyzeEstateProfile(estateId) {
         procedureType: rec.procedureType,
         distributionModel: rec.distributionModel,
         activeEngines: rec.activeEngines,
-        hasWill: estate.hasWill
+        hasWill: estate.hasWill,
+        hasUnknownHeirs: estate.hasUnknownHeirs
     };
 }
 /**
@@ -124,7 +125,40 @@ export function filterTasksForEstate(allTasks, profile, completedTaskIds = []) {
                 if (!isCompatible)
                     return false;
             }
-            // Always show non-optional tasks
+            // 4. Handle Procedure Variants (e.g., TESTATE vs INTESTATE)
+            if (task.applicability?.variants && task.applicability.variants.length > 0) {
+                const hasMatchingVariant = task.applicability.variants.some(variant => {
+                    if (variant === "TESTATE")
+                        return profile.hasWill;
+                    if (variant === "INTESTATE")
+                        return !profile.hasWill;
+                    // Expand with more dynamic states here as needed (e.g. UPC_UNSUPERVISED)
+                    return false;
+                });
+                if (!hasMatchingVariant)
+                    return false;
+            }
+            // 5. Handle Predicates (AND/OR/NOT)
+            if (task.applicability) {
+                const { predicatesAll, predicatesAny, excludePredicates } = task.applicability;
+                const profileMap = profile;
+                if (predicatesAll && predicatesAll.length > 0) {
+                    const allTrue = predicatesAll.every(p => !!profileMap[p]);
+                    if (!allTrue)
+                        return false;
+                }
+                if (predicatesAny && predicatesAny.length > 0) {
+                    const anyTrue = predicatesAny.some(p => !!profileMap[p]);
+                    if (!anyTrue)
+                        return false;
+                }
+                if (excludePredicates && excludePredicates.length > 0) {
+                    const anyExcl = excludePredicates.some(p => !!profileMap[p]);
+                    if (anyExcl)
+                        return false;
+                }
+            }
+            // Always show non-optional tasks (if they survived compatibility, variant, & predicate checks)
             if (!task.isOptional)
                 return true;
             // Filter based on task ID and estate profile
@@ -195,6 +229,9 @@ async function getRoadmapFromDatabase(estateId, profile, completedTaskIds) {
                 include: {
                     tasks: {
                         orderBy: { orderIndex: 'asc' },
+                        /* include: {
+                          stateOverrides: true,
+                        } */
                     },
                 },
             },
@@ -205,44 +242,68 @@ async function getRoadmapFromDatabase(estateId, profile, completedTaskIds) {
         // Fallback to hardcoded tasks if type not found
         return filterTasksForEstate(SETTLEMENT_PHASE_TASKS, profile, completedTaskIds);
     }
+    // Fetch all state overrides for this state once to avoid N+1 or broken relations
+    const allOverrides = await db.roadmapTaskStateOverride.findMany({
+        where: { stateCode: profile.state }
+    });
+    const overrideMap = new Map(allOverrides.map(o => [o.taskKey, o]));
     // Convert database format to PhaseTaskList format
-    const phases = settlementType.phases.map(phase => ({
+    const phases = settlementType.phases.map((phase) => ({
         phase: phase.phaseCode,
         title: phase.title,
         subtitle: phase.subtitle || '',
         milestone: phase.milestone || '',
         description: phase.description || '',
         isEscalationPath: phase.isEscalationPath,
-        tasks: phase.tasks.map(task => ({
-            id: task.taskCode,
-            title: task.title,
-            description: task.description || task.title,
-            estimatedTime: task.estimatedTime || undefined,
-            category: task.category,
-            isOptional: task.isOptional,
-            requiresAuthority: task.requiresAuthority,
-            requiredDocs: task.requiredDocs,
-            dependencies: task.dependencies,
-            exclusiveGroup: task.exclusiveGroup || undefined,
-            trackCompatibility: task.trackCompatibility,
-            tags: task.tags,
-            alerts: task.alerts || undefined,
-            links: task.links || undefined,
-            rationale: task.rationale || undefined,
-            isAttorneyReviewNode: task.isAttorneyReviewNode,
-            attorneyReviewReason: task.attorneyReviewReason || undefined,
-            isConditional: task.isConditional,
-            conditionalRequirementLabel: task.conditionalRequirementLabel || undefined,
-            utility: task.utility || undefined,
-            requiresNotary: task.requiresNotary,
-            requiresPhysicalMail: task.requiresPhysicalMail,
-            deadlineWarningId: task.deadlineWarningId || undefined,
-            isInternationalOnly: task.isInternationalOnly,
-            primaryActionLabel: task.primaryActionLabel || undefined,
-            primaryActionUrl: task.primaryActionUrl || undefined,
-            formNames: task.formNames,
-            isLongHorizon: undefined, // Add mapping if needed in future schema
-        })),
+        tasks: phase.tasks.map((task) => {
+            // Find state override if it exists for this estate's state
+            const stateOverride = overrideMap.get(task.taskCode);
+            return {
+                id: task.taskCode,
+                title: stateOverride?.title || task.title,
+                description: stateOverride?.description || task.description || task.title,
+                estimatedTime: task.estimatedTime || undefined,
+                category: task.category,
+                isOptional: task.isOptional,
+                requiresAuthority: task.requiresAuthority,
+                requiredDocs: task.requiredDocs,
+                dependencies: task.dependencies,
+                exclusiveGroup: task.exclusiveGroup || undefined,
+                trackCompatibility: task.trackCompatibility,
+                tags: task.tags,
+                alerts: task.alerts || undefined,
+                links: stateOverride?.links || task.links || undefined,
+                rationale: task.rationale || undefined,
+                isAttorneyReviewNode: task.isAttorneyReviewNode,
+                attorneyReviewReason: task.attorneyReviewReason || undefined,
+                isConditional: task.isConditional,
+                conditionalRequirementLabel: task.conditionalRequirementLabel || undefined,
+                utility: task.utility || undefined,
+                requiresNotary: task.requiresNotary,
+                requiresPhysicalMail: task.requiresPhysicalMail,
+                deadlineWarningId: task.deadlineWarningId || undefined,
+                isInternationalOnly: task.isInternationalOnly,
+                primaryActionLabel: stateOverride?.primaryActionLabel || task.primaryActionLabel || undefined,
+                primaryActionUrl: stateOverride?.primaryActionUrl || task.primaryActionUrl || undefined,
+                formNames: (stateOverride?.formNames && stateOverride.formNames.length > 0) ? stateOverride.formNames : task.formNames,
+                officialForms: stateOverride?.officialForms || undefined,
+                changeLog: stateOverride?.changeLog || undefined,
+                isLongHorizon: undefined, // Add mapping if needed in future schema
+                applicability: (task.applicableVariants && task.applicableVariants.length > 0) ||
+                    (task.predicatesAll && task.predicatesAll.length > 0) ||
+                    (task.predicatesAny && task.predicatesAny.length > 0) ||
+                    (task.excludePredicates && task.excludePredicates.length > 0)
+                    ? {
+                        variants: task.applicableVariants && task.applicableVariants.length > 0 ? task.applicableVariants : undefined,
+                        predicatesAll: task.predicatesAll && task.predicatesAll.length > 0 ? task.predicatesAll : undefined,
+                        predicatesAny: task.predicatesAny && task.predicatesAny.length > 0 ? task.predicatesAny : undefined,
+                        excludePredicates: task.excludePredicates && task.excludePredicates.length > 0 ? task.excludePredicates : undefined,
+                    }
+                    : undefined,
+                requiredProfileFields: task.requiredProfileFields && task.requiredProfileFields.length > 0 ? task.requiredProfileFields : undefined,
+                outputs: task.outputs && task.outputs.length > 0 ? task.outputs : undefined,
+            };
+        }),
     }));
     // Apply existing filtering logic
     return filterTasksForEstate(phases, profile, completedTaskIds);
