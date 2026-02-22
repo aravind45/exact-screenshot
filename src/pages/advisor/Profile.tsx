@@ -4,10 +4,9 @@ import { api } from '@/lib/api';
 import { toast } from 'sonner';
 import {
     User, Briefcase, MapPin, Languages, Clock, DollarSign,
-    Plus, Trash2, Save, Loader2, Star, Shield, CheckCircle2,
-    Calendar, Edit3, ChevronDown, ChevronUp
+    Plus, Trash2, Save, Loader2, Star, Shield, CheckCircle2, Calendar
 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -15,77 +14,18 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 
 const ADVISOR_TYPES = ['ATTORNEY', 'CPA', 'FINANCIAL_ADVISOR', 'REAL_ESTATE_AGENT', 'PARALEGAL', 'OTHER'];
-const SPECIALTIES = [
-    'Probate Administration', 'Estate Planning', 'Trust Administration',
-    'Real Estate Transfers', 'Tax Filing', 'Asset Discovery',
-    'Creditor Claims', 'Court Filings', 'Small Estate Affidavit',
-    'Spousal Petitions', 'Guardianship'
-];
-const US_STATES = [
-    'AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA',
-    'KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ',
-    'NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT',
-    'VA','WA','WV','WI','WY','DC'
-];
+const SPECIALTIES = ['Probate Administration', 'Estate Planning', 'Trust Administration', 'Real Estate Transfers', 'Tax Filing', 'Asset Discovery', 'Creditor Claims', 'Court Filings', 'Small Estate Affidavit', 'Spousal Petitions', 'Guardianship'];
+const US_STATES = ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY','DC'];
 const LANGUAGES = ['English', 'Spanish', 'French', 'Mandarin', 'Cantonese', 'Vietnamese', 'Korean', 'Arabic', 'Portuguese'];
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-const TIMES = ['08:00','08:30','09:00','09:30','10:00','10:30','11:00','11:30','12:00','12:30',
-               '13:00','13:30','14:00','14:30','15:00','15:30','16:00','16:30','17:00','17:30','18:00'];
-
-// Collapsible section component for better space utilization
-const CollapsibleSection = ({ 
-    title, 
-    icon, 
-    children, 
-    description,
-    defaultOpen = true 
-}: { 
-    title: string; 
-    icon: React.ReactNode; 
-    children: React.ReactNode; 
-    description?: string;
-    defaultOpen?: boolean;
-}) => {
-    const [isOpen, setIsOpen] = useState(defaultOpen);
-    
-    return (
-        <Card className="border-slate-200 transition-smooth hover:border-slate-300">
-            <CardHeader className="pb-2">
-                <button
-                    onClick={() => setIsOpen(!isOpen)}
-                    className="flex items-center justify-between w-full text-left group hover-lift"
-                >
-                    <div className="flex items-center gap-2">
-                        {icon}
-                        <CardTitle className="text-base text-hierarchy-1">{title}</CardTitle>
-                    </div>
-                    <ChevronDown 
-                        className={`w-4 h-4 text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''} collapsible-icon`}
-                    />
-                </button>
-                {description && isOpen && (
-                    <CardDescription className="text-xs mt-1 text-hierarchy-3">{description}</CardDescription>
-                )}
-            </CardHeader>
-            {isOpen && <CardContent className="space-y-compact">{children}</CardContent>}
-        </Card>
-    );
-};
+const TIMES = ['08:00','08:30','09:00','09:30','10:00','10:30','11:00','11:30','12:00','12:30','13:00','13:30','14:00','14:30','15:00','15:30','16:00','16:30','17:00','17:30','18:00'];
 
 export default function AdvisorProfileSettings() {
     const queryClient = useQueryClient();
-
-    // ── Profile state ──────────────────────────────────────────────────────────
     const [bio, setBio] = useState('');
     const [advisorType, setAdvisorType] = useState('');
     const [specialties, setSpecialties] = useState<string[]>([]);
@@ -94,22 +34,13 @@ export default function AdvisorProfileSettings() {
     const [hourlyRate, setHourlyRate] = useState('');
     const [licenseNumber, setLicenseNumber] = useState('');
     const [profileLoaded, setProfileLoaded] = useState(false);
-
-    // ── Rate plan state ────────────────────────────────────────────────────────
     const [newPlanName, setNewPlanName] = useState('');
     const [newPlanDuration, setNewPlanDuration] = useState('60');
     const [newPlanPrice, setNewPlanPrice] = useState('');
     const [newPlanDesc, setNewPlanDesc] = useState('');
     const [showPlanForm, setShowPlanForm] = useState(false);
+    const [availRules, setAvailRules] = useState<Array<{dayOfWeek: number; startTime: string; endTime: string; isActive: boolean;}>>(DAYS.map((_, i) => ({ dayOfWeek: i, startTime: '09:00', endTime: '17:00', isActive: i >= 1 && i <= 5 })));
 
-    // ── Availability state ─────────────────────────────────────────────────────
-    const [availRules, setAvailRules] = useState<Array<{
-        dayOfWeek: number; startTime: string; endTime: string; isActive: boolean;
-    }>>(
-        DAYS.map((_, i) => ({ dayOfWeek: i, startTime: '09:00', endTime: '17:00', isActive: i >= 1 && i <= 5 }))
-    );
-
-    // ── Queries ────────────────────────────────────────────────────────────────
     const { isLoading: profileLoading } = useQuery({
         queryKey: ['advisor-profile-me'],
         queryFn: () => api.advisors.getMe(),
@@ -137,527 +68,206 @@ export default function AdvisorProfileSettings() {
         queryFn: () => api.marketplace.getAvailabilityRules(),
         onSuccess: (data: any) => {
             if (Array.isArray(data) && data.length > 0) {
-                setAvailRules(
-                    DAYS.map((_, i) => {
-                        const existing = data.find((r: any) => r.dayOfWeek === i);
-                        return existing
-                            ? { dayOfWeek: i, startTime: existing.startTime, endTime: existing.endTime, isActive: existing.isActive !== false }
-                            : { dayOfWeek: i, startTime: '09:00', endTime: '17:00', isActive: i >= 1 && i <= 5 };
-                    })
-                );
+                setAvailRules(DAYS.map((_, i) => {
+                    const existing = data.find((r: any) => r.dayOfWeek === i);
+                    return existing ? { dayOfWeek: i, startTime: existing.startTime, endTime: existing.endTime, isActive: existing.isActive !== false } : { dayOfWeek: i, startTime: '09:00', endTime: '17:00', isActive: i >= 1 && i <= 5 };
+                }));
             }
         }
     } as any);
 
-    // ── Mutations ──────────────────────────────────────────────────────────────
-    const saveBioMutation = useMutation({
-        mutationFn: () => api.advisors.updateProfile({
-            bio,
-            expertise: specialties,
-            hourlyRate: hourlyRate ? parseFloat(hourlyRate) : undefined,
-            licenseNumber,
-        }),
-        onSuccess: () => {
-            toast.success('Profile saved');
-            queryClient.invalidateQueries({ queryKey: ['advisor-profile-me'] });
-        },
-        onError: (e: any) => toast.error(e.message || 'Failed to save profile'),
-    });
-
     const saveExtendedMutation = useMutation({
         mutationFn: () => {
-            const body: any = {
-                bio, advisorType,
-                specialties, statesServed, languages,
-                hourlyRate: hourlyRate ? parseFloat(hourlyRate) : undefined,
-                licenseNumber,
-            };
-            return fetch('/api/advisor/profile', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${api.getToken()}`,
-                },
-                body: JSON.stringify(body),
-            }).then(r => r.json());
+            const body: any = { bio, advisorType, specialties, statesServed, languages, hourlyRate: hourlyRate ? parseFloat(hourlyRate) : undefined, licenseNumber };
+            return fetch('/api/advisor/profile', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${api.getToken()}` }, body: JSON.stringify(body) }).then(r => r.json());
         },
-        onSuccess: () => {
-            toast.success('Profile saved successfully');
-            queryClient.invalidateQueries({ queryKey: ['advisor-profile-me'] });
-        },
+        onSuccess: () => { toast.success('Profile saved successfully'); queryClient.invalidateQueries({ queryKey: ['advisor-profile-me'] }); },
         onError: (e: any) => toast.error(e.message || 'Failed to save profile'),
     });
 
     const createPlanMutation = useMutation({
-        mutationFn: () => api.marketplace.createRatePlan({
-            label: newPlanName,
-            durationMinutes: parseInt(newPlanDuration),
-            amountCents: Math.round(parseFloat(newPlanPrice) * 100),
-            description: newPlanDesc,
-        }),
-        onSuccess: () => {
-            toast.success('Rate plan created');
-            setNewPlanName(''); setNewPlanDuration('60'); setNewPlanPrice(''); setNewPlanDesc('');
-            setShowPlanForm(false);
-            queryClient.invalidateQueries({ queryKey: ['advisor-rate-plans'] });
-        },
+        mutationFn: () => api.marketplace.createRatePlan({ label: newPlanName, durationMinutes: parseInt(newPlanDuration), amountCents: Math.round(parseFloat(newPlanPrice) * 100), description: newPlanDesc }),
+        onSuccess: () => { toast.success('Rate plan created'); setNewPlanName(''); setNewPlanDuration('60'); setNewPlanPrice(''); setNewPlanDesc(''); setShowPlanForm(false); queryClient.invalidateQueries({ queryKey: ['advisor-rate-plans'] }); },
         onError: (e: any) => toast.error(e.message || 'Failed to create rate plan'),
     });
 
     const deletePlanMutation = useMutation({
         mutationFn: (id: string) => api.marketplace.deleteRatePlan(id),
-        onSuccess: () => {
-            toast.success('Rate plan removed');
-            queryClient.invalidateQueries({ queryKey: ['advisor-rate-plans'] });
-        },
+        onSuccess: () => { toast.success('Rate plan removed'); queryClient.invalidateQueries({ queryKey: ['advisor-rate-plans'] }); },
         onError: (e: any) => toast.error(e.message || 'Failed to delete rate plan'),
     });
 
     const saveAvailMutation = useMutation({
-        mutationFn: () => api.marketplace.setAvailabilityRules(
-            availRules.filter(r => r.isActive).map(r => ({
-                dayOfWeek: r.dayOfWeek, startTime: r.startTime, endTime: r.endTime
-            }))
-        ),
-        onSuccess: () => {
-            toast.success('Availability schedule saved');
-            queryClient.invalidateQueries({ queryKey: ['advisor-avail-rules'] });
-        },
+        mutationFn: () => api.marketplace.setAvailabilityRules(availRules.filter(r => r.isActive).map(r => ({ dayOfWeek: r.dayOfWeek, startTime: r.startTime, endTime: r.endTime }))),
+        onSuccess: () => { toast.success('Availability schedule saved'); queryClient.invalidateQueries({ queryKey: ['advisor-avail-rules'] }); },
         onError: (e: any) => toast.error(e.message || 'Failed to save availability'),
     });
 
-    // ── Helpers ────────────────────────────────────────────────────────────────
-    const toggleChip = (val: string, list: string[], setter: (v: string[]) => void) => {
-        setter(list.includes(val) ? list.filter(x => x !== val) : [...list, val]);
-    };
+    const toggleChip = (val: string, list: string[], setter: (v: string[]) => void) => { setter(list.includes(val) ? list.filter(x => x !== val) : [...list, val]); };
+    const updateAvailRule = (day: number, field: 'startTime' | 'endTime' | 'isActive', value: any) => { setAvailRules(rules => rules.map(r => r.dayOfWeek === day ? { ...r, [field]: value } : r)); };
 
-    const updateAvailRule = (day: number, field: 'startTime' | 'endTime' | 'isActive', value: any) => {
-        setAvailRules(rules => rules.map(r => r.dayOfWeek === day ? { ...r, [field]: value } : r));
-    };
-
-    if (profileLoading || rulesLoading) {
-        return (
-            <div className="flex items-center justify-center h-48">
-                <Loader2 className="w-6 h-6 animate-spin text-primary" />
-            </div>
-        );
-    }
+    if (profileLoading || rulesLoading) return <div className="flex items-center justify-center h-48"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>;
 
     return (
-        <div className="space-y-6 max-w-4xl">
-            {/* Header */}
-            <div>
-                <h1 className="text-2xl font-['Outfit'] font-bold text-slate-900">Profile Settings</h1>
-                <p className="text-slate-500 text-sm mt-1">Manage your public advisor profile, rates, and availability.</p>
+        <div className="space-y-3 max-w-4xl">
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-lg font-semibold text-slate-800">Profile Settings</h1>
+                    <p className="text-xs text-slate-500">Manage your public advisor profile, rates, and availability.</p>
+                </div>
+                <Button onClick={() => saveExtendedMutation.mutate()} disabled={saveExtendedMutation.isPending} className="h-7 px-3 text-xs">
+                    {saveExtendedMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin mr-1.5" /> : <Save className="w-3 h-3 mr-1.5" />}Save
+                </Button>
             </div>
 
             <Tabs defaultValue="profile">
-                <TabsList className="mb-6">
-                    <TabsTrigger value="profile" className="flex items-center gap-1.5">
-                        <User className="w-3.5 h-3.5" />Profile
-                    </TabsTrigger>
-                    <TabsTrigger value="rates" className="flex items-center gap-1.5">
-                        <DollarSign className="w-3.5 h-3.5" />Service Rates
-                    </TabsTrigger>
-                    <TabsTrigger value="availability" className="flex items-center gap-1.5">
-                        <Calendar className="w-3.5 h-3.5" />Availability
-                    </TabsTrigger>
+                <TabsList className="mb-3 h-8">
+                    <TabsTrigger value="profile" className="text-xs px-3 h-7"><User className="w-3 h-3 mr-1" />Profile</TabsTrigger>
+                    <TabsTrigger value="rates" className="text-xs px-3 h-7"><DollarSign className="w-3 h-3 mr-1" />Rates</TabsTrigger>
+                    <TabsTrigger value="availability" className="text-xs px-3 h-7"><Calendar className="w-3 h-3 mr-1" />Availability</TabsTrigger>
                 </TabsList>
 
-                {/* ── PROFILE TAB ── */}
-                <TabsContent value="profile" className="space-y-4">
-                    {/* Professional Info - Compact Layout */}
-                    <CollapsibleSection
-                        title="Professional Info"
-                        icon={<Briefcase className="w-4 h-4 text-primary" />}
-                        defaultOpen={true}
-                    >
-                        <div className="grid md:grid-cols-2 gap-3">
-                            <div className="space-y-1">
-                                <Label className="text-xs">Advisor Type</Label>
-                                <Select value={advisorType} onValueChange={setAdvisorType}>
-                                    <SelectTrigger className="h-8">
-                                        <SelectValue placeholder="Select type..." />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {ADVISOR_TYPES.map(t => (
-                                            <SelectItem key={t} value={t}>
-                                                {t.replace('_', ' ')}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                <TabsContent value="profile" className="space-y-2 mt-0">
+                    {/* Professional Info */}
+                    <Card className="border-slate-200">
+                        <CardHeader className="py-2 px-3"><CardTitle className="text-sm flex items-center gap-1.5"><Briefcase className="w-3.5 h-3.5 text-primary" />Professional Info</CardTitle></CardHeader>
+                        <CardContent className="py-2 px-3 space-y-2">
+                            <div className="grid md:grid-cols-3 gap-2">
+                                <div className="space-y-1">
+                                    <Label className="text-[10px] uppercase tracking-wide text-slate-500">Advisor Type</Label>
+                                    <Select value={advisorType} onValueChange={setAdvisorType}>
+                                        <SelectTrigger className="h-7 text-xs"><SelectValue placeholder="Select..." /></SelectTrigger>
+                                        <SelectContent>{ADVISOR_TYPES.map(t => <SelectItem key={t} value={t} className="text-xs">{t.replace('_', ' ')}</SelectItem>)}</SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="space-y-1">
+                                    <Label className="text-[10px] uppercase tracking-wide text-slate-500">License #</Label>
+                                    <Input value={licenseNumber} onChange={e => setLicenseNumber(e.target.value)} placeholder="CA-123456" className="h-7 text-xs" />
+                                </div>
+                                <div className="space-y-1">
+                                    <Label className="text-[10px] uppercase tracking-wide text-slate-500">Hourly Rate</Label>
+                                    <div className="relative"><span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 text-xs">$</span><Input value={hourlyRate} onChange={e => setHourlyRate(e.target.value)} className="pl-5 h-7 text-xs" type="number" placeholder="250" /></div>
+                                </div>
                             </div>
                             <div className="space-y-1">
-                                <Label className="text-xs">License / Bar Number</Label>
-                                <Input
-                                    value={licenseNumber}
-                                    onChange={e => setLicenseNumber(e.target.value)}
-                                    placeholder="e.g. CA-123456"
-                                    className="h-8"
-                                />
+                                <Label className="text-[10px] uppercase tracking-wide text-slate-500">Bio ({bio.length}/1000)</Label>
+                                <Textarea value={bio} onChange={e => setBio(e.target.value)} rows={2} placeholder="Describe your experience..." className="text-xs resize-none" />
                             </div>
-                        </div>
+                        </CardContent>
+                    </Card>
 
-                        <div className="space-y-2 mt-3">
-                            <div className="flex items-center justify-between">
-                                <Label className="text-xs">Bio</Label>
-                                <span className="text-xs text-slate-400">{bio.length} / 1000</span>
+                    {/* States Served - ALWAYS VISIBLE */}
+                    <Card className="border-slate-200 border-primary/30 bg-primary/5">
+                        <CardHeader className="py-2 px-3"><CardTitle className="text-sm flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 text-primary" />States Served <Badge variant="secondary" className="ml-2 text-[10px] h-4">{statesServed.length} selected</Badge></CardTitle></CardHeader>
+                        <CardContent className="py-2 px-3">
+                            <p className="text-[10px] text-slate-500 mb-2">Select all states where you are licensed to practice</p>
+                            <div className="grid grid-cols-5 md:grid-cols-10 gap-1">
+                                {US_STATES.map(s => (
+                                    <button key={s} onClick={() => toggleChip(s, statesServed, setStatesServed)} className={cn('px-1.5 py-1 rounded text-[10px] font-semibold border transition-all', statesServed.includes(s) ? 'bg-primary text-white border-primary' : 'bg-white text-slate-600 border-slate-200 hover:border-primary/50')}>{s}</button>
+                                ))}
                             </div>
-                            <Textarea
-                                value={bio}
-                                onChange={e => setBio(e.target.value)}
-                                rows={3}
-                                placeholder="Describe your experience, approach, and what makes you the right advisor for estate matters..."
-                                className="resize-none text-sm"
-                            />
-                        </div>
+                        </CardContent>
+                    </Card>
 
-                        <div className="space-y-2 mt-3">
-                            <Label className="text-xs flex items-center gap-1.5">
-                                <DollarSign className="w-3.5 h-3.5" />
-                                Default Hourly Rate (USD)
-                            </Label>
-                            <div className="relative max-w-[160px]">
-                                <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm">$</span>
-                                <Input
-                                    value={hourlyRate}
-                                    onChange={e => setHourlyRate(e.target.value)}
-                                    className="pl-6 h-8 text-sm"
-                                    type="number"
-                                    min={0}
-                                    placeholder="250"
-                                />
+                    {/* Specialties */}
+                    <Card className="border-slate-200">
+                        <CardHeader className="py-2 px-3"><CardTitle className="text-sm flex items-center gap-1.5"><Star className="w-3.5 h-3.5 text-primary" />Specialties</CardTitle></CardHeader>
+                        <CardContent className="py-2 px-3">
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-1">
+                                {SPECIALTIES.map(s => (
+                                    <button key={s} onClick={() => toggleChip(s, specialties, setSpecialties)} className={cn('px-2 py-1 rounded text-xs font-medium border transition-all text-left', specialties.includes(s) ? 'bg-primary text-white border-primary' : 'bg-white text-slate-600 border-slate-200 hover:border-primary/50')}>{s}</button>
+                                ))}
                             </div>
-                        </div>
-                    </CollapsibleSection>
+                        </CardContent>
+                    </Card>
 
-                    {/* Specialties - Compact Chip Layout */}
-                    <CollapsibleSection
-                        title="Specialties"
-                        icon={<Star className="w-4 h-4 text-primary" />}
-                        description="Select all areas you specialize in"
-                        defaultOpen={true}
-                    >
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                            {SPECIALTIES.map(s => (
-                                <button
-                                    key={s}
-                                    onClick={() => toggleChip(s, specialties, setSpecialties)}
-                                    className={cn(
-                                        'px-3 py-2 rounded-lg text-sm font-medium border transition-all text-left',
-                                        specialties.includes(s)
-                                            ? 'bg-primary text-white border-primary'
-                                            : 'bg-white text-slate-600 border-slate-200 hover:border-primary/50'
-                                    )}
-                                >
-                                    {s}
-                                </button>
-                            ))}
-                        </div>
-                    </CollapsibleSection>
-
-                    {/* States Served - Compact Layout */}
-                    <CollapsibleSection
-                        title="States Served"
-                        icon={<MapPin className="w-4 h-4 text-primary" />}
-                        description="Select all states where you are licensed to practice"
-                        defaultOpen={false}
-                    >
-                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-1.5">
-                            {US_STATES.map(s => (
-                                <button
-                                    key={s}
-                                    onClick={() => toggleChip(s, statesServed, setStatesServed)}
-                                    className={cn(
-                                        'px-2 py-1.5 rounded-md text-xs font-semibold border transition-all',
-                                        statesServed.includes(s)
-                                            ? 'bg-primary text-white border-primary'
-                                            : 'bg-white text-slate-600 border-slate-200 hover:border-primary/50'
-                                    )}
-                                >
-                                    {s}
-                                </button>
-                            ))}
-                        </div>
-                    </CollapsibleSection>
-
-                    {/* Languages - Compact Layout */}
-                    <CollapsibleSection
-                        title="Languages"
-                        icon={<Languages className="w-4 h-4 text-primary" />}
-                        defaultOpen={false}
-                    >
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                            {LANGUAGES.map(l => (
-                                <button
-                                    key={l}
-                                    onClick={() => toggleChip(l, languages, setLanguages)}
-                                    className={cn(
-                                        'px-3 py-2 rounded-lg text-sm font-medium border transition-all text-left',
-                                        languages.includes(l)
-                                            ? 'bg-indigo-600 text-white border-indigo-600'
-                                            : 'bg-white text-slate-600 border-slate-200 hover:border-indigo-300'
-                                    )}
-                                >
-                                    {l}
-                                </button>
-                            ))}
-                        </div>
-                    </CollapsibleSection>
-
-                    <div className="flex justify-end pt-2">
-                        <Button
-                            onClick={() => saveExtendedMutation.mutate()}
-                            disabled={saveExtendedMutation.isPending}
-                            className="h-8 px-4 text-sm"
-                        >
-                            {saveExtendedMutation.isPending
-                                ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-2" />
-                                : <Save className="w-3.5 h-3.5 mr-2" />
-                            }
-                            Save Profile
-                        </Button>
-                    </div>
+                    {/* Languages */}
+                    <Card className="border-slate-200">
+                        <CardHeader className="py-2 px-3"><CardTitle className="text-sm flex items-center gap-1.5"><Languages className="w-3.5 h-3.5 text-primary" />Languages</CardTitle></CardHeader>
+                        <CardContent className="py-2 px-3">
+                            <div className="grid grid-cols-3 md:grid-cols-5 gap-1">
+                                {LANGUAGES.map(l => (
+                                    <button key={l} onClick={() => toggleChip(l, languages, setLanguages)} className={cn('px-2 py-1 rounded text-xs font-medium border transition-all', languages.includes(l) ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-slate-600 border-slate-200 hover:border-indigo-300')}>{l}</button>
+                                ))}
+                            </div>
+                        </CardContent>
+                    </Card>
                 </TabsContent>
 
-                {/* ── RATES TAB ── */}
-                <TabsContent value="rates" className="space-y-4">
-                    <CollapsibleSection
-                        title="Service Packages"
-                        icon={<DollarSign className="w-4 h-4 text-primary" />}
-                        description="Clients choose from these when booking you. At least one plan is required."
-                        defaultOpen={true}
-                    >
-                        <div className="space-y-3">
-                            {/* Add Plan Form */}
+                <TabsContent value="rates" className="space-y-2 mt-0">
+                    <Card className="border-slate-200">
+                        <CardHeader className="py-2 px-3"><CardTitle className="text-sm flex items-center gap-1.5"><DollarSign className="w-3.5 h-3.5 text-primary" />Service Packages</CardTitle></CardHeader>
+                        <CardContent className="py-2 px-3 space-y-2">
                             {showPlanForm && (
-                                <div className="border border-primary/30 rounded-lg p-3 bg-primary/5 space-y-2">
-                                    <p className="text-sm font-semibold text-slate-900">New Service Plan</p>
-                                    <div className="grid md:grid-cols-2 gap-2">
-                                        <div className="space-y-1">
-                                            <Label className="text-xs">Plan Name</Label>
-                                            <Input
-                                                value={newPlanName}
-                                                onChange={e => setNewPlanName(e.target.value)}
-                                                placeholder="e.g. 30-min Consultation"
-                                                className="h-7 text-sm"
-                                            />
-                                        </div>
-                                        <div className="space-y-1">
-                                            <Label className="text-xs">Duration (minutes)</Label>
-                                            <Select value={newPlanDuration} onValueChange={setNewPlanDuration}>
-                                                <SelectTrigger className="h-7 text-sm">
-                                                    <SelectValue />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {[30,45,60,90,120,180].map(d => (
-                                                        <SelectItem key={d} value={String(d)}>{d} min</SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                        <div className="space-y-1">
-                                            <Label className="text-xs">Price (USD)</Label>
-                                            <div className="relative">
-                                                <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
-                                                <Input
-                                                    value={newPlanPrice}
-                                                    onChange={e => setNewPlanPrice(e.target.value)}
-                                                    className="h-7 text-sm pl-5"
-                                                    type="number"
-                                                    min={0}
-                                                    placeholder="150"
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="space-y-1">
-                                            <Label className="text-xs">Description (optional)</Label>
-                                            <Input
-                                                value={newPlanDesc}
-                                                onChange={e => setNewPlanDesc(e.target.value)}
-                                                className="h-7 text-sm"
-                                                placeholder="What's included..."
-                                            />
-                                        </div>
+                                <div className="border border-primary/30 rounded-lg p-2 bg-primary/5 space-y-2">
+                                    <div className="grid md:grid-cols-4 gap-2">
+                                        <Input value={newPlanName} onChange={e => setNewPlanName(e.target.value)} placeholder="Plan name" className="h-7 text-xs" />
+                                        <Select value={newPlanDuration} onValueChange={setNewPlanDuration}>
+                                            <SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
+                                            <SelectContent>{[30,45,60,90,120].map(d => <SelectItem key={d} value={String(d)} className="text-xs">{d} min</SelectItem>)}</SelectContent>
+                                        </Select>
+                                        <div className="relative"><span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 text-xs">$</span><Input value={newPlanPrice} onChange={e => setNewPlanPrice(e.target.value)} className="pl-5 h-7 text-xs" type="number" placeholder="Price" /></div>
+                                        <Input value={newPlanDesc} onChange={e => setNewPlanDesc(e.target.value)} placeholder="Description" className="h-7 text-xs" />
                                     </div>
                                     <div className="flex gap-2 justify-end">
-                                        <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setShowPlanForm(false)}>Cancel</Button>
-                                        <Button
-                                            size="sm"
-                                            className="h-7 text-xs"
-                                            disabled={!newPlanName || !newPlanPrice || createPlanMutation.isPending}
-                                            onClick={() => createPlanMutation.mutate()}
-                                        >
-                                            {createPlanMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : null}
-                                            Create Plan
-                                        </Button>
+                                        <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={() => setShowPlanForm(false)}>Cancel</Button>
+                                        <Button size="sm" className="h-6 text-xs" disabled={!newPlanName || !newPlanPrice} onClick={() => createPlanMutation.mutate()}>Create</Button>
                                     </div>
                                 </div>
                             )}
-
-                            {/* Add Plan Button */}
-                            <div className="flex justify-end">
-                                <Button 
-                                    size="sm" 
-                                    variant="outline" 
-                                    className="h-7 text-xs"
-                                    onClick={() => setShowPlanForm(v => !v)}
-                                >
-                                    <Plus className="w-3 h-3 mr-1.5" />
-                                    Add Plan
-                                </Button>
-                            </div>
-
-                            {/* Existing Plans */}
-                            {plansLoading ? (
-                                <div className="flex items-center justify-center py-6">
-                                    <Loader2 className="w-4 h-4 animate-spin text-slate-300" />
-                                </div>
-                            ) : Array.isArray(ratePlans) && ratePlans.length === 0 ? (
-                                <div className="text-center py-6 text-slate-400">
-                                    <DollarSign className="w-8 h-8 mx-auto mb-2 opacity-30" />
-                                    <p className="text-sm">No service plans yet. Add at least one so clients can book you.</p>
-                                </div>
-                            ) : (
-                                Array.isArray(ratePlans) && ratePlans.map((plan: any) => (
-                                    <div key={plan.id} className="flex items-center justify-between p-2.5 rounded-lg border border-slate-200 bg-white hover:border-slate-300 transition-colors">
-                                        <div className="flex items-center gap-2.5">
-                                            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                            <Button size="sm" variant="outline" className="h-6 text-xs" onClick={() => setShowPlanForm(v => !v)}><Plus className="w-3 h-3 mr-1" />Add Plan</Button>
+                            {plansLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : Array.isArray(ratePlans) && ratePlans.length === 0 ? <p className="text-xs text-slate-400 text-center py-4">No service plans yet. Add one so clients can book you.</p> : (
+                                <div className="space-y-1">
+                                    {Array.isArray(ratePlans) && ratePlans.map((plan: any) => (
+                                        <div key={plan.id} className="flex items-center justify-between p-2 rounded border border-slate-200 bg-white">
+                                            <div className="flex items-center gap-2">
                                                 <Clock className="w-3 h-3 text-primary" />
+                                                <span className="text-xs font-medium">{plan.serviceName || plan.label}</span>
+                                                <span className="text-[10px] text-slate-400">{plan.durationMinutes}m</span>
                                             </div>
-                                            <div>
-                                                <p className="font-semibold text-sm text-slate-900">{plan.serviceName || plan.label}</p>
-                                                <p className="text-xs text-slate-500">
-                                                    {plan.durationMinutes} min
-                                                    {plan.description && ` · ${plan.description}`}
-                                                </p>
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-xs font-bold">${((plan.priceCents || plan.amountCents || 0) / 100).toFixed(0)}</span>
+                                                <Button variant="ghost" size="sm" className="h-5 w-5 p-0 text-slate-400 hover:text-red-500" onClick={() => deletePlanMutation.mutate(plan.id)}><Trash2 className="w-3 h-3" /></Button>
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-2">
-                                            <div className="text-right">
-                                                <p className="font-bold text-slate-900 text-sm">
-                                                    ${((plan.priceCents || plan.amountCents || 0) / 100).toFixed(0)}
-                                                </p>
-                                                {plan.isActive === false && (
-                                                    <Badge variant="secondary" className="text-[10px] h-3">Inactive</Badge>
-                                                )}
-                                            </div>
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className="h-6 w-6 p-0 text-slate-400 hover:text-red-500 hover:bg-red-50"
-                                                onClick={() => deletePlanMutation.mutate(plan.id)}
-                                                disabled={deletePlanMutation.isPending}
-                                            >
-                                                <Trash2 className="w-3 h-3" />
-                                            </Button>
-                                        </div>
-                                    </div>
-                                ))
+                                    ))}
+                                </div>
                             )}
-                        </div>
-                    </CollapsibleSection>
-
-                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 flex gap-2">
-                        <Shield className="w-3.5 h-3.5 text-amber-600 mt-0.5 flex-shrink-0" />
-                        <div>
-                            <p className="text-sm font-semibold text-amber-900">Platform fee: 20%</p>
-                            <p className="text-xs text-amber-700 mt-0.5">
-                                ExpectedEstate retains 20% of each booking. Your earnings are released after a 90-day escrow period once the session is confirmed complete.
-                            </p>
-                        </div>
+                        </CardContent>
+                    </Card>
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-2 flex gap-2">
+                        <Shield className="w-3 h-3 text-amber-600 mt-0.5" />
+                        <p className="text-[10px] text-amber-700"><strong>20% platform fee.</strong> Your earnings are released after a 90-day escrow period.</p>
                     </div>
                 </TabsContent>
 
-                {/* ── AVAILABILITY TAB ── */}
-                <TabsContent value="availability" className="space-y-4">
-                    <CollapsibleSection
-                        title="Weekly Schedule"
-                        icon={<Calendar className="w-4 h-4 text-primary" />}
-                        description="Set your regular working hours. Clients can only book during these windows."
-                        defaultOpen={true}
-                    >
-                        <div className="space-y-2">
+                <TabsContent value="availability" className="space-y-2 mt-0">
+                    <Card className="border-slate-200">
+                        <CardHeader className="py-2 px-3"><CardTitle className="text-sm flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5 text-primary" />Weekly Schedule</CardTitle></CardHeader>
+                        <CardContent className="py-2 px-3 space-y-1">
                             {DAYS.map((day, idx) => {
                                 const rule = availRules[idx];
                                 return (
-                                    <div
-                                        key={day}
-                                        className={cn(
-                                            'flex items-center gap-2.5 px-2.5 py-2 rounded-lg transition-all',
-                                            rule.isActive ? 'bg-slate-50 border border-slate-200' : 'border border-dashed border-slate-200 opacity-60'
-                                        )}
-                                    >
-                                        {/* Day toggle */}
-                                        <div className="flex items-center gap-2 w-[80px] flex-shrink-0">
-                                            <Switch
-                                                checked={rule.isActive}
-                                                onCheckedChange={v => updateAvailRule(idx, 'isActive', v)}
-                                                className="scale-75"
-                                            />
-                                            <span className="text-sm font-medium text-slate-700 w-6">{day}</span>
+                                    <div key={day} className={cn('flex items-center gap-2 px-2 py-1 rounded transition-all', rule.isActive ? 'bg-slate-50 border border-slate-200' : 'border border-dashed border-slate-200 opacity-50')}>
+                                        <div className="flex items-center gap-1.5 w-16">
+                                            <Switch checked={rule.isActive} onCheckedChange={v => updateAvailRule(idx, 'isActive', v)} className="scale-75" />
+                                            <span className="text-xs font-medium w-6">{day}</span>
                                         </div>
-
                                         {rule.isActive ? (
-                                            <div className="flex items-center gap-1.5 flex-1">
-                                                <Select
-                                                    value={rule.startTime}
-                                                    onValueChange={v => updateAvailRule(idx, 'startTime', v)}
-                                                >
-                                                    <SelectTrigger className="h-6 text-xs w-[80px]">
-                                                        <SelectValue />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        {TIMES.map(t => <SelectItem key={t} value={t} className="text-xs">{t}</SelectItem>)}
-                                                    </SelectContent>
-                                                </Select>
-                                                <span className="text-xs text-slate-400">to</span>
-                                                <Select
-                                                    value={rule.endTime}
-                                                    onValueChange={v => updateAvailRule(idx, 'endTime', v)}
-                                                >
-                                                    <SelectTrigger className="h-6 text-xs w-[80px]">
-                                                        <SelectValue />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        {TIMES.map(t => <SelectItem key={t} value={t} className="text-xs">{t}</SelectItem>)}
-                                                    </SelectContent>
-                                                </Select>
-                                                <span className="text-xs text-slate-400 ml-1">
-                                                    {(() => {
-                                                        const [sh, sm] = rule.startTime.split(':').map(Number);
-                                                        const [eh, em] = rule.endTime.split(':').map(Number);
-                                                        const mins = (eh * 60 + em) - (sh * 60 + sm);
-                                                        return mins > 0 ? `${Math.floor(mins / 60)}h ${mins % 60 > 0 ? `${mins % 60}m` : ''}` : '';
-                                                    })()}
-                                                </span>
+                                            <div className="flex items-center gap-1 flex-1">
+                                                <Select value={rule.startTime} onValueChange={v => updateAvailRule(idx, 'startTime', v)}><SelectTrigger className="h-6 text-xs w-16"><SelectValue /></SelectTrigger><SelectContent>{TIMES.map(t => <SelectItem key={t} value={t} className="text-xs">{t}</SelectItem>)}</SelectContent></Select>
+                                                <span className="text-[10px] text-slate-400">–</span>
+                                                <Select value={rule.endTime} onValueChange={v => updateAvailRule(idx, 'endTime', v)}><SelectTrigger className="h-6 text-xs w-16"><SelectValue /></SelectTrigger><SelectContent>{TIMES.map(t => <SelectItem key={t} value={t} className="text-xs">{t}</SelectItem>)}</SelectContent></Select>
                                             </div>
-                                        ) : (
-                                            <span className="text-xs text-slate-400 italic">Unavailable</span>
-                                        )}
+                                        ) : <span className="text-[10px] text-slate-400 italic">Unavailable</span>}
                                     </div>
                                 );
                             })}
-                        </div>
-                    </CollapsibleSection>
-
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex gap-2 text-xs text-blue-800">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-blue-500 mt-0.5 flex-shrink-0" />
-                        <p>All times are shown to clients in their local timezone. Your schedule is based on your account timezone set in <strong>Settings</strong>.</p>
-                    </div>
-
-                    <div className="flex justify-end pt-1">
-                        <Button
-                            onClick={() => saveAvailMutation.mutate()}
-                            disabled={saveAvailMutation.isPending}
-                            className="h-8 px-4 text-sm"
-                        >
-                            {saveAvailMutation.isPending
-                                ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-2" />
-                                : <Save className="w-3.5 h-3.5 mr-2" />
-                            }
-                            Save Schedule
+                        </CardContent>
+                    </Card>
+                    <div className="flex justify-end">
+                        <Button onClick={() => saveAvailMutation.mutate()} disabled={saveAvailMutation.isPending} className="h-7 px-3 text-xs">
+                            {saveAvailMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <Save className="w-3 h-3 mr-1" />}Save Schedule
                         </Button>
                     </div>
                 </TabsContent>
