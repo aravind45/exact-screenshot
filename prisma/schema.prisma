@@ -614,6 +614,7 @@ model RoadmapTask {
   primaryActionLabel  String?      @map("primary_action_label")
   primaryActionUrl    String?      @map("primary_action_url")
   formNames           String[]     @map("form_names")
+  applicableStates    String[]     @map("applicable_states")
   applicableVariants  String[]     @map("applicable_variants")
   predicatesAll       String[]     @map("predicates_all")
   predicatesAny       String[]     @map("predicates_any")

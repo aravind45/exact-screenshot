@@ -460,10 +460,12 @@ async function getRoadmapFromDatabase(
         changeLog: stateOverride?.changeLog || undefined,
         isLongHorizon: undefined, // Add mapping if needed in future schema
         applicability: (task.applicableVariants && task.applicableVariants.length > 0) ||
+          (task.applicableStates && task.applicableStates.length > 0) ||
           (task.predicatesAll && task.predicatesAll.length > 0) ||
           (task.predicatesAny && task.predicatesAny.length > 0) ||
           (task.excludePredicates && task.excludePredicates.length > 0)
           ? {
+            states: task.applicableStates && task.applicableStates.length > 0 ? task.applicableStates : undefined,
             variants: task.applicableVariants && task.applicableVariants.length > 0 ? task.applicableVariants : undefined,
             predicatesAll: task.predicatesAll && task.predicatesAll.length > 0 ? task.predicatesAll : undefined,
             predicatesAny: task.predicatesAny && task.predicatesAny.length > 0 ? task.predicatesAny : undefined,

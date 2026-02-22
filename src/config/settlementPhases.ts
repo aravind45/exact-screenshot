@@ -1261,7 +1261,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
     phase: "creditor_claims",
     title: "Creditor Claims",
     subtitle: "Notice & Priority",
-    milestone: "After Notice Published",
+    milestone: "After Letters Issued",
     description: "Managing the statutory creditor period and determining the legal priority of submitted claims.",
     tasks: [
       {
@@ -1294,6 +1294,8 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         ],
         stateOverrides: {
           NY: {
+            title: "Publish Creditor Notice (Optional Risk Mitigation)",
+            description: "In New York, publication is not strictly mandatory for intestate administration but highly recommended to cut off unknown claims.",
             alerts: [
               {
                 type: "important",
