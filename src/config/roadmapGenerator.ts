@@ -1,5 +1,51 @@
 import { AuthorityType, MasterMode, getMasterMode } from "@/lib/authorityEngine";
+import { getLettersTerm } from "@/lib/stateRules";
 import { SettlementPhase, PhaseTaskList, SETTLEMENT_PHASE_TASKS, TRUST_PHASE_TASKS, MODIFIER_PHASE_TASKS, PROBATE_ESCALATION_PHASE } from "./settlementPhases";
+
+function normalizeTextForState(text: string | undefined, state: string): string | undefined {
+    if (!text) return text;
+    if (state === "CA") return text;
+
+    const lettersTerm = getLettersTerm(state);
+    let out = text;
+
+    out = out.replace(/\bCertified Letters\s*\(DE-\d+\)/gi, `Certified ${lettersTerm}`);
+    out = out.replace(/\bLetters Testamentary\s*\(DE-\d+\)/gi, lettersTerm);
+    out = out.replace(/\bLetters\s*\(DE-\d+\)/gi, lettersTerm);
+
+    out = out.replace(/\s*\(DE-\d+\)/gi, "");
+    out = out.replace(/\bDE-\d+\b/gi, "");
+
+    out = out.replace(/\bMedi-Cal\b/gi, "Medicaid");
+    out = out.replace(/\bDHCS\b/gi, "Medicaid");
+    out = out.replace(/\bCalifornia Probate Code\b/gi, "State probate code");
+    out = out.replace(/\bCA Prob\. Code\b/gi, "State probate code");
+    out = out.replace(/\bCalifornia law\b/gi, "State law");
+    out = out.replace(/\bCalifornia\b/gi, "your state");
+    out = out.replace(/\bCA\b/g, "your state");
+
+    out = out.replace(/\s{2,}/g, " ").trim();
+    return out;
+}
+
+function normalizeTaskForState(task: any, state: string) {
+    return {
+        ...task,
+        title: normalizeTextForState(task.title, state),
+        description: normalizeTextForState(task.description, state),
+        utility: normalizeTextForState(task.utility, state),
+        rationale: normalizeTextForState(task.rationale, state),
+        requiredDocs: task.requiredDocs?.map((doc: string) => normalizeTextForState(doc, state)) ?? task.requiredDocs,
+        alerts: task.alerts?.map((alert: any) => ({
+            ...alert,
+            message: normalizeTextForState(alert.message, state)
+        })) ?? task.alerts,
+        links: task.links?.map((link: any) => ({
+            ...link,
+            label: normalizeTextForState(link.label, state)
+        })) ?? task.links
+    };
+}
 
 export function generateRoadmap(
     authorityType: AuthorityType,
@@ -19,17 +65,29 @@ export function generateRoadmap(
     const allRoadmaps: PhaseTaskList[][] = [];
 
     // Order of pushing determines "Identity Winning" priority.
-    // We prioritize TRUST and NON_PROBATE over PROBATE defaults.
-    if (engines.includes("TRUST")) {
-        allRoadmaps.push(generateFiduciaryRoadmap(authorityType, state, modifiers, engines, hasWill));
-    }
+    // If court-supervised, Probate should be primary to avoid trust-first bias.
+    const probateFirst = masterMode === "COURT_SUPERVISED";
 
-    if (engines.includes("NON_PROBATE") || engines.includes("TOD_DEED") || engines.includes("POD_TOD_ACCOUNTS")) {
-        allRoadmaps.push(generateTransferOnlyRoadmap(authorityType, state, modifiers, engines, hasWill));
-    }
-
-    if (engines.includes("PROBATE") || engines.includes("AFFIDAVIT")) {
-        allRoadmaps.push(generateProbateRoadmap(authorityType, state, modifiers, engines, hasWill));
+    if (probateFirst) {
+        if (engines.includes("PROBATE") || engines.includes("AFFIDAVIT")) {
+            allRoadmaps.push(generateProbateRoadmap(authorityType, state, modifiers, engines, hasWill));
+        }
+        if (engines.includes("TRUST")) {
+            allRoadmaps.push(generateFiduciaryRoadmap(authorityType, state, modifiers, engines, hasWill));
+        }
+        if (engines.includes("NON_PROBATE") || engines.includes("TOD_DEED") || engines.includes("POD_TOD_ACCOUNTS")) {
+            allRoadmaps.push(generateTransferOnlyRoadmap(authorityType, state, modifiers, engines, hasWill));
+        }
+    } else {
+        if (engines.includes("TRUST")) {
+            allRoadmaps.push(generateFiduciaryRoadmap(authorityType, state, modifiers, engines, hasWill));
+        }
+        if (engines.includes("NON_PROBATE") || engines.includes("TOD_DEED") || engines.includes("POD_TOD_ACCOUNTS")) {
+            allRoadmaps.push(generateTransferOnlyRoadmap(authorityType, state, modifiers, engines, hasWill));
+        }
+        if (engines.includes("PROBATE") || engines.includes("AFFIDAVIT")) {
+            allRoadmaps.push(generateProbateRoadmap(authorityType, state, modifiers, engines, hasWill));
+        }
     }
 
     if (authorityType === "DISCOVERY" || engines.includes("DISCOVERY")) {
@@ -69,6 +127,7 @@ export function generateRoadmap(
     // Order phases properly based on canonical sequence
     const orderedPhaseKeys = [
         "immediate_actions",
+        "pre_filing_compliance",
         "court_filing",
         "ancillary_phase",
         "litigation_phase",
@@ -82,7 +141,10 @@ export function generateRoadmap(
 
     return orderedPhaseKeys
         .filter(key => mergedPhases[key])
-        .map(key => mergedPhases[key]);
+        .map(key => ({
+            ...mergedPhases[key],
+            tasks: mergedPhases[key].tasks.map(task => normalizeTaskForState(task, state))
+        }));
 }
 
 function generateTransferOnlyRoadmap(type: AuthorityType, state: string, modifiers: string[] = [], activeEngines: string[] = [], hasWill?: boolean): PhaseTaskList[] {

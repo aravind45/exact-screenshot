@@ -148,6 +148,11 @@ export function calculateAuthorityRecommendation(
     if (probateTotal === 0 && metadata?.estimatedValue && !metadata?.hasTODDeed && !metadata?.isTrustRevocable) {
         probateTotal = metadata.estimatedValue;
     }
+    // Guardrail: if probate-eligible assets exist but values are missing/zero,
+    // treat as probate-present to avoid trust-first bias.
+    if (probateTotal === 0 && probateAssets.length > 0) {
+        probateTotal = 1;
+    }
 
     const trustAssets = assets.filter(a => a.ownershipType === "TRUST" || a.inTrust);
     const beneficiaryAssets = assets.filter(a =>

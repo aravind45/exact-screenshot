@@ -1,7 +1,7 @@
 import { SETTLEMENT_PHASE_TASKS, PhaseTaskList, PhaseTask } from "../../src/config/settlementPhases.js";
 import { prisma as db } from "../db.js";
 import { calculateAuthorityRecommendation } from "../../src/lib/authorityEngine.js";
-import { AuthoritySource, ProcedureType, DistributionModel } from "../../src/lib/stateRules.js";
+import { AuthoritySource, ProcedureType, DistributionModel, getLettersTerm } from "../../src/lib/stateRules.js";
 import { logger } from "../lib/logger.js";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -64,6 +64,78 @@ interface EstateProfile {
   activeEngines: string[];
   hasWill: boolean;
   hasUnknownHeirs: boolean;
+}
+
+function normalizeTextForState(text: string | undefined, state: string): string | undefined {
+  if (!text) return text;
+  if (state === "CA") return text;
+
+  const lettersTerm = getLettersTerm(state);
+  let out = text;
+
+  out = out.replace(/\bCertified Letters\s*\(DE-\d+\)/gi, `Certified ${lettersTerm}`);
+  out = out.replace(/\bLetters Testamentary\s*\(DE-\d+\)/gi, lettersTerm);
+  out = out.replace(/\bLetters\s*\(DE-\d+\)/gi, lettersTerm);
+
+  out = out.replace(/\s*\(DE-\d+\)/gi, "");
+  out = out.replace(/\bDE-\d+\b/gi, "");
+
+  out = out.replace(/\bMedi-Cal\b/gi, "Medicaid");
+  out = out.replace(/\bDHCS\b/gi, "Medicaid");
+  out = out.replace(/\bCalifornia Probate Code\b/gi, "State probate code");
+  out = out.replace(/\bCA Prob\. Code\b/gi, "State probate code");
+  out = out.replace(/\bCalifornia law\b/gi, "State law");
+  out = out.replace(/\bCalifornia\b/gi, "your state");
+  out = out.replace(/\bCA\b/g, "your state");
+
+  out = out.replace(/\s{2,}/g, " ").trim();
+  return out;
+}
+
+function normalizeTaskForState(task: PhaseTask, state: string): PhaseTask {
+  return {
+    ...task,
+    title: normalizeTextForState(task.title, state) || task.title,
+    description: normalizeTextForState(task.description, state) || task.description,
+    utility: normalizeTextForState(task.utility, state),
+    rationale: normalizeTextForState(task.rationale, state),
+    requiredDocs: task.requiredDocs?.map(doc => normalizeTextForState(doc, state) || doc),
+    alerts: task.alerts?.map(alert => ({
+      ...alert,
+      message: normalizeTextForState(alert.message, state) || alert.message
+    })),
+    links: task.links?.map(link => ({
+      ...link,
+      label: normalizeTextForState(link.label, state) || link.label
+    }))
+  };
+}
+
+function normalizePhasesForState(phases: PhaseTaskList[], state: string): PhaseTaskList[] {
+  return phases.map(phase => ({
+    ...phase,
+    tasks: phase.tasks.map(task => normalizeTaskForState(task, state))
+  }));
+}
+
+function isProbateMode(profile: EstateProfile) {
+  return profile.activeEngines.includes("PROBATE") || profile.activeEngines.includes("AFFIDAVIT");
+}
+
+function ensurePreFilingCompliance(phases: PhaseTaskList[], profile: EstateProfile): PhaseTaskList[] {
+  if (profile.state !== "NY" || !isProbateMode(profile)) return phases;
+
+  const alreadyPresent = phases.some(p => p.phase === "pre_filing_compliance");
+  if (alreadyPresent) return phases;
+
+  const preFiling = SETTLEMENT_PHASE_TASKS.find(p => p.phase === "pre_filing_compliance");
+  if (!preFiling) return phases;
+
+  const immediateIndex = phases.findIndex(p => p.phase === "immediate_actions");
+  const insertIndex = immediateIndex >= 0 ? immediateIndex + 1 : 0;
+  const next = [...phases];
+  next.splice(insertIndex, 0, JSON.parse(JSON.stringify(preFiling)));
+  return next;
 }
 
 /**
@@ -321,7 +393,9 @@ async function getRoadmapFromDatabase(
   if (!settlementType) {
     logger.warn(`Settlement type ${settlementTypeCode} not found in database, falling back to hardcoded SETTLEMENT_PHASE_TASKS`);
     // Fallback to hardcoded tasks if type not found
-    return filterTasksForEstate(SETTLEMENT_PHASE_TASKS, profile, completedTaskIds);
+    const injected = ensurePreFilingCompliance(SETTLEMENT_PHASE_TASKS, profile);
+    const filtered = filterTasksForEstate(injected, profile, completedTaskIds);
+    return normalizePhasesForState(filtered, profile.state);
   }
 
   // Fetch all state overrides for this state once to avoid N+1 or broken relations
@@ -392,8 +466,9 @@ async function getRoadmapFromDatabase(
     }),
   }));
 
-  // Apply existing filtering logic
-  return filterTasksForEstate(phases, profile, completedTaskIds);
+  const injected = ensurePreFilingCompliance(phases, profile);
+  const filtered = filterTasksForEstate(injected, profile, completedTaskIds);
+  return normalizePhasesForState(filtered, profile.state);
 }
 
 /**
