@@ -23,20 +23,20 @@ import { motion, AnimatePresence } from "framer-motion";
 const STATE_CREDITOR_PERIODS: Record<string, { days: number; method: string; note: string }> = {
   CA: { days: 120, method: "Mail + Publish in local newspaper", note: "Must publish for 3 consecutive weeks in a newspaper of general circulation in the county." },
   TX: { days: 180, method: "Publish in local newspaper", note: "Must publish once a week for 4 consecutive weeks." },
-  FL: { days: 90,  method: "Mail + Publish in local newspaper", note: "3-month creditor period after first publication." },
-  NY: { days: 180, method: "Publish in local newspaper", note: "Must publish in two newspapers for 4 consecutive weeks." },
+  FL: { days: 90, method: "Mail + Publish in local newspaper", note: "3-month creditor period after first publication." },
+  NY: { days: 210, method: "Publish in local newspaper", note: "Must publish in two newspapers for 4 consecutive weeks. Creditors have 7 months to file." },
   DEFAULT: { days: 120, method: "Mail + Publish in local newspaper", note: "State-specific requirements apply. Consult local court rules." },
 };
 
 // Creditor claim priority waterfall
 const CLAIM_PRIORITY = [
-  { rank: 1, label: "Court costs & administration fees",  color: "bg-indigo-100 text-indigo-700", desc: "Attorney fees, executor fees, court filing costs — paid first." },
-  { rank: 2, label: "Funeral & burial expenses",          color: "bg-slate-100 text-slate-700",   desc: "Reasonable funeral costs are a priority claim." },
-  { rank: 3, label: "Debts / taxes owed to government",   color: "bg-red-100 text-red-700",       desc: "Federal and state tax liens, government debts." },
-  { rank: 4, label: "Family allowances (if applicable)",  color: "bg-amber-100 text-amber-700",   desc: "Surviving spouse/minor children may have a statutory allowance." },
-  { rank: 5, label: "Secured creditors",                  color: "bg-orange-100 text-orange-700", desc: "Mortgage, auto loans, liens on specific assets." },
-  { rank: 6, label: "Unsecured general creditors",        color: "bg-blue-100 text-blue-700",     desc: "Credit cards, medical bills, personal loans — paid pro-rata if insufficient funds." },
-  { rank: 7, label: "Distributions to beneficiaries",     color: "bg-emerald-100 text-emerald-700", desc: "Heirs receive only after all valid claims are paid." },
+  { rank: 1, label: "Court costs & administration fees", color: "bg-indigo-100 text-indigo-700", desc: "Attorney fees, executor fees, court filing costs — paid first." },
+  { rank: 2, label: "Funeral & burial expenses", color: "bg-slate-100 text-slate-700", desc: "Reasonable funeral costs are a priority claim." },
+  { rank: 3, label: "Debts / taxes owed to government", color: "bg-red-100 text-red-700", desc: "Federal and state tax liens, government debts." },
+  { rank: 4, label: "Family allowances (if applicable)", color: "bg-amber-100 text-amber-700", desc: "Surviving spouse/minor children may have a statutory allowance." },
+  { rank: 5, label: "Secured creditors", color: "bg-orange-100 text-orange-700", desc: "Mortgage, auto loans, liens on specific assets." },
+  { rank: 6, label: "Unsecured general creditors", color: "bg-blue-100 text-blue-700", desc: "Credit cards, medical bills, personal loans — paid pro-rata if insufficient funds." },
+  { rank: 7, label: "Distributions to beneficiaries", color: "bg-emerald-100 text-emerald-700", desc: "Heirs receive only after all valid claims are paid." },
 ];
 
 export default function Notices() {
@@ -81,7 +81,7 @@ export default function Notices() {
 
   const previewMutation = useMutation({
     mutationFn: () =>
-      api.previewPetition({ ...estate, ...hearingData, formType: "DE-121" }),
+      api.previewPetition({ ...estate, ...hearingData, formType: "NOTICE_OF_HEARING" }),
     onError: (err: any) => toast.error("Preview failed: " + err.message),
   });
 
@@ -96,9 +96,9 @@ export default function Notices() {
   const appointedDate = (estate as any).appointedDate;
   const creditorDeadline = appointedDate
     ? new Date(
-        new Date(appointedDate).getTime() +
-          creditorRules.days * 24 * 60 * 60 * 1000
-      ).toLocaleDateString()
+      new Date(appointedDate).getTime() +
+      creditorRules.days * 24 * 60 * 60 * 1000
+    ).toLocaleDateString()
     : null;
 
   // Calculate current phase
@@ -152,7 +152,7 @@ Published in: ${pubNewspaper || "[NEWSPAPER NAME]"}`;
                 </p>
               </div>
             </div>
-            
+
             {/* Progress Indicator */}
             <div className="flex items-center gap-4 mt-3">
               <div className="flex items-center gap-2">
@@ -209,7 +209,7 @@ Published in: ${pubNewspaper || "[NEWSPAPER NAME]"}`;
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <PhaseCard
             phase="hearing"
-            title="Court Hearing (DE-121)"
+            title="Court Hearing Notice"
             description="Schedule your probate hearing and notify all interested parties"
             status={hearingData.hearingDate ? "completed" : "current"}
             icon={<Building className="w-5 h-5" />}
@@ -237,7 +237,7 @@ Published in: ${pubNewspaper || "[NEWSPAPER NAME]"}`;
       {/* Phase 1: Court Hearing */}
       <PhaseSection
         id="hearing"
-        title="Phase 1: Court Hearing (DE-121)"
+        title="Phase 1: Court Hearing Notice"
         icon={<Target className="w-5 h-5" />}
         isExpanded={expandedSections.hearing}
         onToggle={() => toggleSection("hearing")}
@@ -299,10 +299,10 @@ Published in: ${pubNewspaper || "[NEWSPAPER NAME]"}`;
               </div>
               <div className="space-y-2">
                 <p className="text-xs text-slate-500 leading-relaxed">
-                  <strong>Why this matters:</strong> Without a confirmed hearing date, you cannot file the DE-121 notice. This notice must be mailed to all heirs and creditors at least 15 days before the hearing.
+                  <strong>Why this matters:</strong> Without a confirmed hearing date, you cannot file the required notice of hearing. This notice must be mailed to all heirs and creditors according to the statutory timeline.
                 </p>
                 <p className="text-xs text-slate-400">
-                  <strong>Next step:</strong> Once you have the hearing date, generate and mail the DE-121 form to all interested parties.
+                  <strong>Next step:</strong> Once you have the hearing date, generate and mail the notice form to all interested parties.
                 </p>
               </div>
               <Button
@@ -320,7 +320,7 @@ Published in: ${pubNewspaper || "[NEWSPAPER NAME]"}`;
             <CardHeader className="pb-3">
               <CardTitle className="text-base font-black flex items-center gap-2 text-slate-100">
                 <FileCheck className="w-4 h-4 text-amber-400" />
-                DE-121 Notice of Petition
+                Notice of Petition / Hearing
               </CardTitle>
               <CardDescription className="text-slate-300 text-sm">
                 Mail to all heirs and creditors at least 15 days before the hearing.
@@ -335,9 +335,9 @@ Published in: ${pubNewspaper || "[NEWSPAPER NAME]"}`;
                   </Badge>
                 </div>
                 <p className="text-xs text-slate-400 leading-relaxed">
-                  {hearingData.hearingDate 
-                    ? "You have all the information needed to generate the DE-121 form."
-                    : "You need a confirmed hearing date from the court before generating DE-121."
+                  {hearingData.hearingDate
+                    ? "You have all the information needed to generate the notice form."
+                    : "You need a confirmed hearing date from the court before generating the notice."
                   }
                 </p>
               </div>
@@ -355,7 +355,7 @@ Published in: ${pubNewspaper || "[NEWSPAPER NAME]"}`;
                 disabled={!hearingData.hearingDate}
               >
                 <Eye className="w-4 h-4 mr-2" />
-                Preview & Generate DE-121 Form
+                Preview & Generate Notice Form
               </Button>
             </CardContent>
           </Card>
@@ -371,7 +371,7 @@ Published in: ${pubNewspaper || "[NEWSPAPER NAME]"}`;
               <iframe
                 src={`data:application/pdf;base64,${(previewMutation.data as any)?.pdfBase64}`}
                 className="w-full h-full rounded-xl border"
-                title="DE-121 Preview"
+                title="Notice Form Preview"
               />
             </CardContent>
           </Card>
@@ -516,7 +516,7 @@ Published in: ${pubNewspaper || "[NEWSPAPER NAME]"}`;
                       Creditor claim window closes:{" "}
                       {new Date(
                         new Date(pubDate).getTime() +
-                          creditorRules.days * 24 * 60 * 60 * 1000
+                        creditorRules.days * 24 * 60 * 60 * 1000
                       ).toLocaleDateString()}
                     </div>
                   )}
@@ -647,9 +647,9 @@ Published in: ${pubNewspaper || "[NEWSPAPER NAME]"}`;
 
             <div className="grid gap-3">
               {[
-                { action: "Allow",   color: "bg-emerald-100 text-emerald-800", when: "Claim is valid, within period, properly documented. Pay per priority waterfall." },
-                { action: "Dispute", color: "bg-amber-100 text-amber-800",   when: "Claim is incorrect in amount, lacks documentation, or may be barred by statute of limitations." },
-                { action: "Reject",  color: "bg-red-100 text-red-800",       when: "Claim is filed after the deadline, already paid, or fraudulent. File Notice of Rejection with court." },
+                { action: "Allow", color: "bg-emerald-100 text-emerald-800", when: "Claim is valid, within period, properly documented. Pay per priority waterfall." },
+                { action: "Dispute", color: "bg-amber-100 text-amber-800", when: "Claim is incorrect in amount, lacks documentation, or may be barred by statute of limitations." },
+                { action: "Reject", color: "bg-red-100 text-red-800", when: "Claim is filed after the deadline, already paid, or fraudulent. File Notice of Rejection with court." },
               ].map((row) => (
                 <div key={row.action} className="flex gap-4 items-start p-4 bg-white border border-slate-100 rounded-xl">
                   <Badge className={cn("flex-shrink-0 border-none font-black text-sm", row.color)}>{row.action}</Badge>
@@ -691,7 +691,7 @@ function PhaseCard({ phase, title, description, status, icon, onClick }: PhaseCa
   const config = statusConfig[status];
 
   return (
-    <Card 
+    <Card
       className={cn("border rounded-2xl shadow-sm cursor-pointer hover:shadow-md transition-all", config.border, config.bg)}
       onClick={onClick}
     >
@@ -706,10 +706,10 @@ function PhaseCard({ phase, title, description, status, icon, onClick }: PhaseCa
               <p className={cn("text-sm", config.text)}>{description}</p>
             </div>
           </div>
-          <Badge className={cn("text-xs font-black border-none px-2 py-1", 
+          <Badge className={cn("text-xs font-black border-none px-2 py-1",
             status === "completed" ? "bg-emerald-100 text-emerald-700" :
-            status === "current" ? "bg-indigo-100 text-indigo-700" :
-            "bg-slate-100 text-slate-500"
+              status === "current" ? "bg-indigo-100 text-indigo-700" :
+                "bg-slate-100 text-slate-500"
           )}>
             {status === "completed" ? "Done" : status === "current" ? "In Progress" : "Up Next"}
           </Badge>
@@ -750,8 +750,8 @@ function PhaseSection({ id, title, icon, isExpanded, onToggle, status, children 
               <CardTitle className="text-base font-black text-slate-900">{title}</CardTitle>
               <CardDescription className={config.text}>
                 {status === "completed" ? "Phase completed successfully" :
-                 status === "current" ? "Currently working on this phase" :
-                 "Complete previous phases to unlock"}
+                  status === "current" ? "Currently working on this phase" :
+                    "Complete previous phases to unlock"}
               </CardDescription>
             </div>
           </div>

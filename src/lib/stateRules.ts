@@ -81,9 +81,9 @@ export const STATE_RULES: Record<string, StateRule> = {
         probateTerm: "Formal Probate",
         probateCitation: ["CA Prob. Code §7000"],
         isUPC: false,
-        lettersTerm: "Letters Testamentary (DE-150)",
+        lettersTerm: "Letters of Authority",
         spousalSetAside: {
-            term: "DE-221 Spousal Property Petition",
+            term: "Spousal Property Order",
             citation: ["CA Prob. Code §13500"]
         },
         notes: "Updated 2025/2026 threshold is $208,850."
@@ -143,7 +143,7 @@ export const STATE_RULES: Record<string, StateRule> = {
         probateTerm: "Formal Administration",
         probateCitation: ["NY SCPA Article 14"],
         isUPC: false,
-        lettersTerm: "Letters of Authority (Surrogate's Decree)"
+        lettersTerm: "Letters of Authority"
     },
     "NC": { threshold: 20000, smallEstateTerm: "Small Estate Affidavit", smallEstateCitation: ["N.C.G.S. § 28A-25-1"], probateTerm: "Formal Probate", probateCitation: ["N.C.G.S. § 28A"], isUPC: false, lettersTerm: "Letters Testamentary", notes: "$30k if surviving spouse is sole heir." },
     "ND": { threshold: 50000, smallEstateTerm: "Small Estate Affidavit", smallEstateCitation: ["N.D. Cent. Code § 30.1-23-01"], probateTerm: "Informal Probate", probateCitation: ["N.D. Cent. Code § 30.1-14-01"], isUPC: true, lettersTerm: "Letters Testamentary" },
@@ -190,7 +190,7 @@ export const DEFAULT_STATE_RULE: StateRule = {
     probateTerm: "Formal Probate",
     probateCitation: ["State Probate Code"],
     isUPC: false,
-    lettersTerm: "Letters Testamentary"
+    lettersTerm: "Letters of Authority"
 };
 
 // UPC States Mapping
@@ -217,7 +217,12 @@ export function getStateRule(state: string): StateRule {
     return STATE_RULES[state] || DEFAULT_STATE_RULE;
 }
 
-export function getLettersTerm(stateCode?: string): string {
-    if (!stateCode || !STATE_RULES[stateCode]) return "Letters Testamentary";
-    return STATE_RULES[stateCode].lettersTerm;
+export function getLettersTerm(stateCode?: string, hasWill?: boolean): string {
+    if (!stateCode || !STATE_RULES[stateCode]) {
+        return hasWill === false ? "Letters of Administration" : "Letters Testamentary";
+    }
+    const rule = STATE_RULES[stateCode];
+    if (hasWill === false) return "Letters of Administration";
+    if (hasWill === true) return "Letters Testamentary";
+    return rule.lettersTerm;
 }

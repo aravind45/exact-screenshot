@@ -6,6 +6,7 @@
  */
 
 import type { SettlementPhase } from '@/components/SettlementPhaseChevron';
+import { getLettersTerm } from './stateRules';
 
 export interface PhaseLockStatus {
   isLocked: boolean;
@@ -33,16 +34,16 @@ export function getPhaseLocksStatus(
 
     switch (track) {
       case 'SMALL_ESTATE':
-        return docTypes.includes('DE-310') || docTypes.includes('SMALL_ESTATE_AFFIDAVIT');
+        return docTypes.includes('SMALL_ESTATE_AFFIDAVIT');
       case 'SPOUSAL_PETITION':
-        return docTypes.includes('DE-226'); // Spousal Order
+        return docTypes.includes('SPOUSAL_ORDER') || docTypes.includes('COURT_ORDER'); // Spousal Order
       case 'TRUST_ADMIN':
         return docTypes.includes('TRUST_CERT') || docTypes.includes('TRUSTEE_ACC') || docTypes.includes('TRUST_CERTIFICATION');
       case 'JOINT_TRANSFER':
       case 'POD_TOD_TRANSFER':
         return true; // Usually no court authority needed
       default:
-        return docTypes.includes('DE-150') || docTypes.includes('LETTERS_TESTAMENTARY') || docTypes.includes('LETTERS_OF_ADMIN');
+        return docTypes.includes('LETTERS_TESTAMENTARY') || docTypes.includes('LETTERS_OF_ADMIN') || docTypes.includes('LETTERS_OF_AUTHORITY');
     }
   };
 
@@ -55,9 +56,12 @@ export function getPhaseLocksStatus(
 
     case 'asset_discovery':
       if (!authorityGranted) {
-        let docLabel = 'Letters Testamentary (DE-150)';
-        if (track === 'SMALL_ESTATE') docLabel = 'Small Estate Affidavit (DE-310)';
-        else if (track === 'SPOUSAL_PETITION') docLabel = 'Spousal Order (DE-226)';
+        const state = estate?.deceasedState;
+        const hasWill = estate?.hasWill;
+        let docLabel = getLettersTerm(state, hasWill);
+
+        if (track === 'SMALL_ESTATE') docLabel = 'Small Estate Affidavit';
+        else if (track === 'SPOUSAL_PETITION') docLabel = 'Spousal Property Order';
         else if (track === 'TRUST_ADMIN') docLabel = 'Trust Certification';
 
         return {

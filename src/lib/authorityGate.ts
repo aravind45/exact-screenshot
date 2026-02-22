@@ -5,7 +5,7 @@
  * financial actions before proper court authority is established.
  * 
  * LEGAL CONTEXT:
- * Until Letters Testamentary (DE-150) or equivalent are issued by the court,
+ * Until Certified Letters of Authority are issued by the court,
  * the executor has NO legal authority to:
  * - Access or freeze bank accounts
  * - Pay debts or bills
@@ -16,6 +16,7 @@
  */
 
 import type { SettlementTrack } from '@/config/settlementStages';
+import { getLettersTerm } from './stateRules';
 
 // Authority states in order of progression
 export type AuthorityState =
@@ -63,7 +64,7 @@ export const ACTION_AUTHORITY_REQUIREMENTS: Record<string, {
     'notify_banks': {
         category: 'FINANCIAL',
         minAuthority: 'GRANTED',
-        warning: 'Banks will require certified Letters Testamentary before providing access.'
+        warning: 'Banks will require certified Letters of Authority before providing access.'
     },
     'freeze_accounts': {
         category: 'FINANCIAL',
@@ -73,7 +74,7 @@ export const ACTION_AUTHORITY_REQUIREMENTS: Record<string, {
     'open_estate_account': {
         category: 'FINANCIAL',
         minAuthority: 'GRANTED',
-        warning: 'Banks require Letters Testamentary to open estate accounts.'
+        warning: 'Banks require Letters of Authority to open estate accounts.'
     },
     'pay_debts': {
         category: 'FINANCIAL',
@@ -116,7 +117,7 @@ export const TRACK_AUTHORITY_MODEL: Record<SettlementTrack, {
 }> = {
     FORMAL_PROBATE: {
         requiresCourtAuthority: true,
-        authorityDocument: 'Letters Testamentary (DE-150)',
+        authorityDocument: 'Letters of Authority',
         authorityMilestone: 'letters'
     },
     INFORMAL_PROBATE: {
@@ -151,7 +152,7 @@ export const TRACK_AUTHORITY_MODEL: Record<SettlementTrack, {
     },
     SPOUSAL_PETITION: {
         requiresCourtAuthority: true,
-        authorityDocument: 'Court Order (DE-226)',
+        authorityDocument: 'Court Order',
         authorityMilestone: 'court_order'
     },
     ANCILLARY_PROBATE: {
@@ -184,6 +185,7 @@ export interface AuthorityStatus {
     authorityGrantedAt?: Date;
     lettersExpirationDate?: Date;
     requiresCourtAuthority: boolean;
+    stateCode?: string; // New field to allow dynamic lookup
 }
 
 export interface ActionGateResult {
@@ -246,7 +248,8 @@ export function getAuthorityStatus(
         authorityDocument: trackModel?.authorityDocument || 'Unknown',
         authorityMilestone: trackModel?.authorityMilestone || 'unknown',
         authorityGrantedAt,
-        requiresCourtAuthority: trackModel?.requiresCourtAuthority ?? true
+        requiresCourtAuthority: trackModel?.requiresCourtAuthority ?? true,
+        stateCode: undefined // Will be set by caller if available
     };
 }
 
@@ -317,7 +320,8 @@ function getBlockedReason(
     }
 
     if (current === 'FILED' && (required === 'GRANTED' || required === 'ACTIVE')) {
-        return `This action requires ${trackModel?.authorityDocument || 'Letters Testamentary'}. ` +
+        const lettersTitle = trackModel?.authorityDocument || 'Letters of Authority';
+        return `This action requires ${lettersTitle}. ` +
             `Complete "${trackModel?.authorityMilestone || 'Obtain Certified Letters'}" first.`;
     }
 

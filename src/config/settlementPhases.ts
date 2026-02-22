@@ -730,7 +730,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       {
         id: "publish_notice",
         title: "Publish Creditor Notice",
-        description: "Publish notice in a local newspaper for 3 consecutive weeks to notify creditors.",
+        description: "Publish notice in a local newspaper for the statutory required duration to notify creditors.",
         estimatedTime: "1 week",
         trackCompatibility: ["PROBATE"],
         requiredDocs: ["Court Case Number", "Proposed Notice"],
@@ -1319,7 +1319,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       {
         id: "wait_claim_period",
         title: "Wait for Statutory Claim Period",
-        description: "Creditors have a statutory period (typically 4 months) from notice publication to file claims.",
+        description: "Creditors have a statutory period (e.g., 4 months) from notice publication to file claims.",
         utility: "Mandatory waiting period to protect you from future debt liability.",
         isLongHorizon: true,
         estimatedTime: "Statutory duration (e.g. 4-7 months)",
@@ -1485,6 +1485,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         description: "If you have independent administration authority, you must notify heirs of your intent to sell real property.",
         estimatedTime: "1 week",
         category: "probate",
+        applicability: { states: ["CA"] },
         isConditional: true,
         conditionalRequirementLabel: "Required if estate owns real property and intention is to sell",
         requiredDocs: ["Notice of Proposed Action Form"],
@@ -1504,6 +1505,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         estimatedTime: "15 days",
         isLongHorizon: true,
         isConditional: true,
+        applicability: { states: ["CA"] },
         conditionalRequirementLabel: "Mandatory waiting period for heirs to object to proposed sale",
         dependencies: ["prepare_notice_proposed_action"]
       },
@@ -1513,6 +1515,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         description: "If you do NOT have independent administration authority, or if someone objects, you must petition the court to confirm the sale of real property.",
         estimatedTime: "2-4 hours",
         category: "probate",
+        applicability: { states: ["CA"] },
         isConditional: true,
         conditionalRequirementLabel: "Required if IAEA authority is limited or restricted",
         isAttorneyReviewNode: true,
@@ -1533,6 +1536,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         description: "Receive signed court order confirming the real estate sale and allowing the close of escrow.",
         estimatedTime: "1-2 weeks after hearing",
         category: "court-issued",
+        applicability: { states: ["CA"] },
         isConditional: true,
         conditionalRequirementLabel: "Required if court-confirmed sale was necessary",
         isAttorneyReviewNode: true,
@@ -1740,7 +1744,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
  * 
  * Trust admin is fundamentally different from probate:
  * - Authority comes from trust instrument + death certificate, NOT court
- * - No DE-111 petition, no DE-150 Letters required
+ * - No formal petition or Letters required
  * - Probate is only an escalation when trust funding fails
  */
 export const MODIFIER_PHASE_TASKS: PhaseTaskList[] = [

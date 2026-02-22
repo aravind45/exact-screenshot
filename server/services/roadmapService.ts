@@ -42,7 +42,6 @@ const FOLLOW_UP_SPAWN_RULES: Record<string, FollowUpSpawnRule> = {
   notify_employer: { institutionName: "Employer HR", subject: "Employer notified — awaiting final pay & benefits information", responseWindowDays: 14 },
   // ── Heirs ─────────────────────────────────────────────────────────────────
   notify_heirs_of_appointment: { institutionName: "Heirs / Beneficiaries", subject: "Heir notification sent — awaiting signed acknowledgments", responseWindowDays: 14 },
-  send_notice_of_proposed_action: { institutionName: "Heirs / Beneficiaries", subject: "Notice of Proposed Action sent — objection window open", responseWindowDays: 15 },
 };
 
 /**

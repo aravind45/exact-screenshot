@@ -70,10 +70,10 @@ export const TRACK_STAGES: Record<SettlementTrack, ProcessStage[]> = {
             triggerLabel: 'After preliminary inventory',
             milestone: 'Post-Filing',
             tasks: [
-                { id: "file_petition", title: "File Petition (DE-111)" },
+                { id: "file_petition", title: "File Probate Petition" },
                 { id: "lodge_will", title: "Lodge Original Will" },
                 { id: "publish_notice", title: "Publish Notice in Newspaper" },
-                { id: "mail_notice", title: "Mail Notice to Heirs" }
+                { id: "mail_notice", title: "Mail Notice to Heirs/Beneficiaries" }
             ]
         },
         {
@@ -84,9 +84,9 @@ export const TRACK_STAGES: Record<SettlementTrack, ProcessStage[]> = {
             triggerLabel: 'After petition filed',
             milestone: 'Post-Filing',
             tasks: [
-                { id: "attend_hearing", title: "Attend Probate Hearing" },
+                { id: "attend_hearing", title: "Attend Court Hearing" },
                 { id: "bond", title: "File Bond (if required)" },
-                { id: "letters", title: "Obtain Certified Letters (DE-150)" },
+                { id: "letters", title: "Obtain Certified Letters", requiresAuthority: true },
                 { id: "ein", title: "Obtain EIN for Estate", requiresAuthority: true }
             ]
         },
@@ -100,8 +100,8 @@ export const TRACK_STAGES: Record<SettlementTrack, ProcessStage[]> = {
             tasks: [
                 { id: "notify_banks", title: "Notify Financial Institutions", requiresAuthority: true },
                 { id: "inventory_assets", title: "Inventory All Assets" },
-                { id: "appraisal", title: "Get Referee Appraisal" },
-                { id: "file_inventory", title: "File Inventory & Appraisal (DE-160)" }
+                { id: "appraisal", title: "Get Professional Appraisal" },
+                { id: "file_inventory", title: "File Inventory & Appraisal" }
             ]
         },
         {
@@ -113,7 +113,7 @@ export const TRACK_STAGES: Record<SettlementTrack, ProcessStage[]> = {
             milestone: 'Creditor Notice Period',
             tasks: [
                 { id: "notify_creditors", title: "Send Notice to Known Creditors", requiresAuthority: true },
-                { id: "wait_claim_period", title: "Wait 4-Month Claim Period" },
+                { id: "wait_claim_period", title: "Wait for Statutory Claim Period" },
                 { id: "categorize_claims", title: "Categorize Claims (Secured/Unsecured)" },
                 { id: "apply_priority", title: "Apply Statutory Priority Hierarchy" },
                 { id: "review_claims", title: "Review & Approve/Reject Claims" },
@@ -126,7 +126,7 @@ export const TRACK_STAGES: Record<SettlementTrack, ProcessStage[]> = {
             title: "Final Distribution",
             description: "Final court oversight and distribution to beneficiaries.",
             trigger: 'AFTER_CLAIM_PERIOD',
-            triggerLabel: 'After 4-month creditor period closes',
+            triggerLabel: 'After statutory creditor period closes',
             milestone: 'Closing Estate',
             tasks: [
                 { id: "final_petition", title: "File Final Petition", requiresAuthority: true },
@@ -146,9 +146,9 @@ export const TRACK_STAGES: Record<SettlementTrack, ProcessStage[]> = {
             ]
         },
         {
-            id: "affidavit", title: "Affidavit", description: "Wait required period (e.g. 40 days) and sign Affidavit.",
+            id: "affidavit", title: "Affidavit", description: "Wait required period (e.g. 30-40 days) and sign Affidavit.",
             tasks: [
-                { id: "prepare_affidavit", title: "Prepare 13100 Affidavit" },
+                { id: "prepare_affidavit", title: "Prepare Small Estate Affidavit" },
                 { id: "notarize", title: "Sign & Notarize" },
                 { id: "attach_docs", title: "Attach Death Certificate" }
             ]
@@ -192,7 +192,7 @@ export const TRACK_STAGES: Record<SettlementTrack, ProcessStage[]> = {
             id: "notification", title: "Notice", description: "Send mandatory notices to all Trust beneficiaries.",
             tasks: [
                 { id: "identify_beneficiaries", title: "Identify All Beneficiaries" },
-                { id: "prepare_notice", title: "Prepare Notice (Probate Code §16061.7)" },
+                { id: "prepare_notice", title: "Prepare Fiduciary Notice" },
                 { id: "send_certified", title: "Send via Certified Mail" },
                 { id: "wait_120_days", title: "Wait 120-Day Contest Period" }
             ]
@@ -279,7 +279,7 @@ export const TRACK_STAGES: Record<SettlementTrack, ProcessStage[]> = {
             title: "Administrator Petition",
             description: "File petition for Letters of Administration.",
             tasks: [
-                { id: "prepare_de111", title: "Prepare Petition (DE-111)" },
+                { id: "prepare_de111", title: "Prepare Administration Petition" },
                 { id: "admin_not_executor", title: "Request Administrator appointment" },
                 { id: "list_heirs", title: "List all heirs with addresses" },
                 { id: "bond_amount", title: "Determine bond requirement" },
@@ -527,9 +527,9 @@ export const TRACK_STAGES: Record<SettlementTrack, ProcessStage[]> = {
             ]
         },
         {
-            id: "petition", title: "Petition", description: "File Spousal Property Petition (DE-221).",
+            id: "petition", title: "Petition", description: "File Spousal Property Petition.",
             tasks: [
-                { id: "prepare_de221", title: "Prepare DE-221" },
+                { id: "prepare_de221", title: "Prepare Spousal Petition" },
                 { id: "notarize", title: "Notarize Signature" },
                 { id: "file_court", title: "File with Probate Court" },
                 { id: "pay_fees", title: "Pay Filing Fees (~$435)" }
@@ -544,16 +544,16 @@ export const TRACK_STAGES: Record<SettlementTrack, ProcessStage[]> = {
             ]
         },
         {
-            id: "order", title: "Order", description: "Obtain Spousal Property Order (DE-226).",
+            id: "order", title: "Order", description: "Obtain Spousal Property Order.",
             tasks: [
-                { id: "obtain_de226", title: "Obtain Certified DE-226 Order" },
+                { id: "obtain_de226", title: "Obtain Certified Spousal Order" },
                 { id: "get_copies", title: "Get Multiple Certified Copies" }
             ]
         },
         {
             id: "transfer", title: "Transfer", description: "Transfer title to surviving spouse.",
             tasks: [
-                { id: "present_order", title: "Present DE-226 to Institutions" },
+                { id: "present_order", title: "Present Spousal Order to Institutions" },
                 { id: "record_deed", title: "Record with County Recorder (real estate)" },
                 { id: "transfer_accounts", title: "Transfer Bank/Brokerage Accounts" },
                 { id: "dmv_transfer", title: "Transfer Vehicle Titles at DMV" }
@@ -889,7 +889,7 @@ export const STATE_ROADMAP_OVERRIDES: Record<string, Partial<Record<SettlementTr
     }
 };
 
-export const getPrimaryAuthorityDocName = (stateCode: string, track: SettlementTrack): string => {
+export const getPrimaryAuthorityDocName = (stateCode: string, track: SettlementTrack, hasWill?: boolean): string => {
     switch (track) {
         case 'SMALL_ESTATE':
             const rule = getStateRule(stateCode || "CA");
@@ -902,7 +902,7 @@ export const getPrimaryAuthorityDocName = (stateCode: string, track: SettlementT
         case 'DISCOVERY':
             return 'Preliminary Asset Log';
         default:
-            return getLettersTerm(stateCode);
+            return getLettersTerm(stateCode, hasWill);
     }
 };
 

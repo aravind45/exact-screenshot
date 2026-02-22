@@ -29,7 +29,7 @@ const authorityConfig: Record<AuthorityType, AuthorityConfig> = {
         label: "Court Authority Required",
         icon: Gavel,
         className: "bg-amber-500/10 text-amber-600 border-amber-200",
-        description: "Requires Letters Testamentary or Letters of Administration"
+        description: "Requires Court-Issued Letters of Authority / Testamentary"
     },
     TRUSTEE_DIRECT: {
         label: "Trustee Direct",

@@ -29,7 +29,7 @@ export function ProbateBlockerAlert() {
   const stateCode = estate?.deceasedState || '';
 
   const getBlockerConfig = () => {
-    const docName = getPrimaryAuthorityDocName(stateCode, track);
+    const docName = getPrimaryAuthorityDocName(stateCode, track, estate?.hasWill);
 
     switch (track) {
       case 'SMALL_ESTATE':
