@@ -453,15 +453,42 @@ router.get("/my/petition/pdf", requireSubscription, async (req: any, res: Respon
     try {
         const estate = await prisma.estate.findFirst({
             where: { userId: req.user.id },
-            include: { user: true, heirs: true }
+            include: { user: true, heirs: true, assets: true, liabilities: true }
         });
 
         if (!estate) return res.status(404).json({ error: "Estate not found" });
 
-        const pdfBytes = await DocumentService.generateDE111(estate);
+        let pdfBytes: Uint8Array;
+        const state = estate.deceasedState;
 
-        res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', 'attachment; filename=Petition_DE111.pdf');
+        // 1. Trust Path
+        if (estate.authorityType === 'TRUST' || estate.isTrustRevocable !== null) {
+            pdfBytes = await DocumentService.generateCertificationOfTrust(estate);
+            res.setHeader('Content-Type', 'application/pdf');
+            res.setHeader('Content-Disposition', 'attachment; filename=Certification_of_Trust.pdf');
+            return res.send(Buffer.from(pdfBytes));
+        }
+
+        // 2. State-Specific Paths
+        if (state === 'TX') {
+            pdfBytes = await DocumentService.generateTXMunimentOfTitle(estate);
+            res.setHeader('Content-Type', 'application/pdf');
+            res.setHeader('Content-Disposition', 'attachment; filename=TX_Muniment_of_Title.pdf');
+        } else if (state === 'FL') {
+            pdfBytes = await DocumentService.generateFLSummaryAdministration(estate);
+            res.setHeader('Content-Type', 'application/pdf');
+            res.setHeader('Content-Disposition', 'attachment; filename=FL_Summary_Administration.pdf');
+        } else if (state === 'NY') {
+            pdfBytes = await DocumentService.generateNYVoluntaryAdministration(estate);
+            res.setHeader('Content-Type', 'application/pdf');
+            res.setHeader('Content-Disposition', 'attachment; filename=NY_Voluntary_Administration.pdf');
+        } else {
+            // Default to California / Standard Formal Probate form
+            pdfBytes = await DocumentService.generateDE111(estate);
+            res.setHeader('Content-Type', 'application/pdf');
+            res.setHeader('Content-Disposition', 'attachment; filename=Petition_DE111.pdf');
+        }
+
         res.send(Buffer.from(pdfBytes));
     } catch (error: any) {
         logger.error("PDF Generation Error:", error.message);
