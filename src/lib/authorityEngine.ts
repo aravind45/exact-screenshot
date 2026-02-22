@@ -187,9 +187,12 @@ export function calculateAuthorityRecommendation(
     if (trustAssets.length > 0 || metadata?.isTrustRevocable !== undefined) {
         activeEngines.push("TRUST");
     }
-    if (probateTotal > 0 || metadata?.isOutOfState || metadata?.isSpouse) {
+    if (probateTotal > 0 || metadata?.isOutOfState) {
         activeEngines.push("PROBATE");
         if (isEligibleForSmallEstate) activeEngines.push("AFFIDAVIT");
+    } else if (metadata?.isSpouse && !activeEngines.includes("TRUST") && !activeEngines.includes("TOD_DEED")) {
+        // Spousal petition as a fallback for probate assets only if no trust/TOD simplifies the path
+        activeEngines.push("PROBATE");
     }
     if (activeEngines.length === 0) {
         activeEngines.push("DISCOVERY");

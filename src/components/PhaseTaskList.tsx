@@ -329,6 +329,7 @@ interface TaskItemProps {
 
 function TaskItem({ task, isCompleted, onToggle, getAlertIcon, getAlertColor, documents, onUpload, onDelete, isUploading, navigate, estate }: TaskItemProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [showRationale, setShowRationale] = useState(false);
 
   const handleHelpClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -397,6 +398,34 @@ function TaskItem({ task, isCompleted, onToggle, getAlertIcon, getAlertColor, do
                     )}
                   </div>
                 )}
+                {/* Tag Badges */}
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {task.tags?.map((tag) => (
+                    <Badge
+                      key={tag}
+                      variant="outline"
+                      className={cn(
+                        "text-[8px] font-black uppercase tracking-tight py-0 h-4 px-1.5",
+                        tag === 'risk-guardrail' ? "bg-red-50 text-red-700 border-red-200" :
+                          tag === 'fiduciary' ? "bg-indigo-50 text-indigo-700 border-indigo-200" :
+                            tag === 'statutory' ? "bg-slate-50 text-slate-700 border-slate-200" :
+                              "bg-slate-50 text-slate-500 border-slate-200"
+                      )}
+                    >
+                      {tag.replace('-', ' ')}
+                    </Badge>
+                  ))}
+                  {task.requiresNotary && (
+                    <Badge variant="outline" className="text-[8px] font-black uppercase tracking-tight py-0 h-4 px-1.5 bg-purple-50 text-purple-700 border-purple-200">
+                      Requires Notary
+                    </Badge>
+                  )}
+                  {task.requiresPhysicalMail && (
+                    <Badge variant="outline" className="text-[8px] font-black uppercase tracking-tight py-0 h-4 px-1.5 bg-orange-50 text-orange-700 border-orange-200">
+                      Physical Mail
+                    </Badge>
+                  )}
+                </div>
               </div>
               <p className={cn(
                 "text-xs mt-1",
@@ -409,6 +438,25 @@ function TaskItem({ task, isCompleted, onToggle, getAlertIcon, getAlertColor, do
                   <Info className="w-3 h-3" />
                   {task.utility}
                 </p>
+              )}
+              {task.rationale && !isCompleted && (
+                <div className="mt-2">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowRationale(!showRationale);
+                    }}
+                    className="text-[10px] font-bold text-slate-500 flex items-center gap-1 hover:text-indigo-600 transition-colors"
+                  >
+                    <HelpCircle className="w-3 h-3" />
+                    {showRationale ? "Hide rationale" : "Why this matters?"}
+                  </button>
+                  {showRationale && (
+                    <div className="mt-1 p-2 bg-slate-50 rounded-md border border-slate-100 animate-in fade-in slide-in-from-top-1 duration-200">
+                      <p className="text-[10px] text-slate-600 leading-relaxed italic">{task.rationale}</p>
+                    </div>
+                  )}
+                </div>
               )}
               {task.exclusiveGroup && (
                 <div className="mt-2">
@@ -477,17 +525,29 @@ function TaskItem({ task, isCompleted, onToggle, getAlertIcon, getAlertColor, do
                 );
               })}
 
-              {task.id === 'file_petition' && (
+              {task.primaryActionLabel && task.primaryActionUrl && (
                 <Button
                   variant="outline"
                   size="sm"
                   className="h-7 px-3 text-[10px] bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100 font-black uppercase tracking-wider gap-1.5"
-                  onClick={() => window.location.href = '/probate'}
+                  onClick={() => {
+                    if (task.primaryActionUrl?.startsWith('http')) {
+                      window.open(task.primaryActionUrl, '_blank');
+                    } else {
+                      window.location.href = task.primaryActionUrl || '#';
+                    }
+                  }}
                 >
                   <FileText className="w-3 h-3" />
-                  Generate DE-111
+                  {task.primaryActionLabel}
                 </Button>
               )}
+
+              {task.formNames && task.formNames.map((form, idx) => (
+                <Badge key={idx} variant="outline" className="text-[9px] font-bold bg-slate-50 border-slate-200 text-slate-500 py-0.5 h-6">
+                  {form}
+                </Badge>
+              ))}
 
               {task.links && task.links.map((link, idx) => (
                 <Button

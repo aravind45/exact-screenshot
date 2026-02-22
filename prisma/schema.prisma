@@ -598,11 +598,22 @@ model RoadmapTask {
   exclusiveGroup      String?      @map("exclusive_group")
   trackCompatibility  String[]     @map("track_compatibility")
   riskWarning         String?      @map("risk_warning")
+  rationale           String?      @map("rationale")
+  isAttorneyReviewNode Boolean     @default(false) @map("is_attorney_review_node")
+  attorneyReviewReason String?     @map("attorney_review_reason")
+  isConditional       Boolean      @default(false) @map("is_conditional")
+  conditionalRequirementLabel String? @map("conditional_requirement_label")
+  utility             String?      @map("utility")
+  requiresNotary      Boolean      @default(false) @map("requires_notary")
+  requiresPhysicalMail Boolean     @default(false) @map("requires_physical_mail")
   deadlineWarningId   String?      @map("deadline_warning_id")
   isInternationalOnly Boolean      @default(false) @map("is_international_only")
   alerts              Json?
   links               Json?
   tags                String[]
+  primaryActionLabel  String?      @map("primary_action_label")
+  primaryActionUrl    String?      @map("primary_action_url")
+  formNames           String[]     @map("form_names")
   createdAt           DateTime     @default(now()) @map("created_at")
   updatedAt           DateTime     @updatedAt @map("updated_at")
   phase               RoadmapPhase @relation(fields: [phaseId], references: [id], onDelete: Cascade)
@@ -670,6 +681,7 @@ model RagChunk {
   contentHash String              @map("content_hash")
   createdAt   DateTime            @default(now()) @map("created_at")
   updatedAt   DateTime            @updatedAt @map("updated_at")
+  tsv         Unsupported("tsvector")?
   embeddings  RagChunkEmbedding[]
   document    RagDocument         @relation(fields: [documentId], references: [id], onDelete: Cascade)
   parent      RagChunk?           @relation("ChunkParent", fields: [parentId], references: [id])

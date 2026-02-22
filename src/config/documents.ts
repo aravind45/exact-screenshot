@@ -39,14 +39,21 @@ export const DOCUMENT_REGISTRY: DocumentEntry[] = [
     {
         code: "DE-150",
         name: "Letters Testamentary",
-        aliases: ["Letters", "DE150", "Letters of Administration", "Letters of Guardianship"],
+        aliases: ["Letters", "DE150", "Letters of Administration", "Letters of Guardianship", "LETTERS_TESTAMENTARY"],
         roadmapTaskId: "receive_letters",
         category: "court-issued"
     },
     {
+        code: "EIN_LETTER",
+        name: "EIN Verification Letter (IRS)",
+        aliases: ["EIN", "Tax ID", "Form SS-4", "SS-4", "IRS Form SS-4", "EIN Letter (IRS)"],
+        roadmapTaskId: "obtain_ein_probate",
+        category: "prep"
+    },
+    {
         code: "DE-310",
         name: "Petition to Determine Succession to Real Property",
-        aliases: ["Succession Petition", "DE310", "Petition to Determine Succession"],
+        aliases: ["Succession Petition", "DE310", "Petition to Determine Succession", "SMALL_ESTATE_AFFIDAVIT"],
         roadmapTaskId: "file_succession_petition",
         category: "prep"
     },
@@ -60,7 +67,7 @@ export const DOCUMENT_REGISTRY: DocumentEntry[] = [
     {
         code: "TRUST_CERT",
         name: "Certification of Trust",
-        aliases: ["Trust Certification", "Trust Docs", "Trust Cert", "Certificate of Trust"],
+        aliases: ["Trust Certification", "Trust Docs", "Trust Cert", "Certificate of Trust", "TRUST_CERTIFICATION"],
         roadmapTaskId: "issue_cert_trust",
         category: "prep"
     },
@@ -76,7 +83,7 @@ export const DOCUMENT_REGISTRY: DocumentEntry[] = [
     {
         code: "Death Certificate",
         name: "Certified Death Certificate",
-        aliases: ["Death Cert", "DC", "Copy of Death Certificate"],
+        aliases: ["Death Cert", "DC", "Copy of Death Certificate", "DEATH_CERTIFICATE"],
         roadmapTaskId: "notify_ssa",
         category: "prep"
     },
@@ -133,7 +140,7 @@ export const DOCUMENT_REGISTRY: DocumentEntry[] = [
         code: "DE-142",
         name: "Waiver of Bond by Heir or Beneficiary",
         aliases: ["Bond Waiver", "DE142"],
-        roadmapTaskId: "request_bond_waiver",
+        roadmapTaskId: "handle_bond_waivers",
         category: "prep"
     },
     {
@@ -155,13 +162,6 @@ export const DOCUMENT_REGISTRY: DocumentEntry[] = [
         name: "Petition for Determination of Will Validity",
         aliases: ["Will Validity", "DE116", "Contest Petition"],
         roadmapTaskId: "respond_to_objections",
-        category: "prep"
-    },
-    {
-        code: "DE-130",
-        name: "Proof of Publication (Probate)",
-        aliases: ["Proof of Publication", "DE130", "Publication Receipt"],
-        roadmapTaskId: "publish_notice",
         category: "prep"
     },
     {

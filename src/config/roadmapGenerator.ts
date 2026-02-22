@@ -18,10 +18,8 @@ export function generateRoadmap(
 
     const allRoadmaps: PhaseTaskList[][] = [];
 
-    if (engines.includes("PROBATE") || engines.includes("AFFIDAVIT")) {
-        allRoadmaps.push(generateProbateRoadmap(authorityType, state, modifiers, engines, hasWill));
-    }
-
+    // Order of pushing determines "Identity Winning" priority.
+    // We prioritize TRUST and NON_PROBATE over PROBATE defaults.
     if (engines.includes("TRUST")) {
         allRoadmaps.push(generateFiduciaryRoadmap(authorityType, state, modifiers, engines, hasWill));
     }
@@ -30,25 +28,42 @@ export function generateRoadmap(
         allRoadmaps.push(generateTransferOnlyRoadmap(authorityType, state, modifiers, engines, hasWill));
     }
 
+    if (engines.includes("PROBATE") || engines.includes("AFFIDAVIT")) {
+        allRoadmaps.push(generateProbateRoadmap(authorityType, state, modifiers, engines, hasWill));
+    }
+
     if (authorityType === "DISCOVERY" || engines.includes("DISCOVERY")) {
         allRoadmaps.push(generateDiscoveryRoadmap(authorityType, state, hasWill));
     }
 
-    // Merge roadmaps by phase
+    // Merge roadmaps by phase with identity winning (The primary track's metadata wins)
     const mergedPhases: Record<string, PhaseTaskList> = {};
 
-    allRoadmaps.flat().forEach(phaseList => {
-        if (!mergedPhases[phaseList.phase]) {
-            mergedPhases[phaseList.phase] = { ...phaseList, tasks: [...phaseList.tasks] };
-        } else {
-            // Merge tasks, avoiding duplicates
-            const existingIds = new Set(mergedPhases[phaseList.phase].tasks.map(t => t.id));
-            phaseList.tasks.forEach(task => {
-                if (!existingIds.has(task.id)) {
-                    mergedPhases[phaseList.phase].tasks.push(task);
+    allRoadmaps.forEach((roadmap, roadmapIndex) => {
+        // We assume the first engine in activeEngines is the "Primary" one
+        // and its roadmap was pushed first or second.
+        // Actually, let's use a simpler heuristic: engines added LATER in allRoadmaps 
+        // will attempt to merge tasks, but we want the FIRST engine's metadata to stick.
+        roadmap.forEach(phaseList => {
+            if (!mergedPhases[phaseList.phase]) {
+                mergedPhases[phaseList.phase] = { ...phaseList, tasks: [...phaseList.tasks] };
+            } else {
+                // Merge tasks, avoiding duplicates
+                const existingIds = new Set(mergedPhases[phaseList.phase].tasks.map(t => t.id));
+                phaseList.tasks.forEach(task => {
+                    if (!existingIds.has(task.id)) {
+                        mergedPhases[phaseList.phase].tasks.push(task);
+                    }
+                });
+
+                // IDENTITY WINNING: Allow "Fiduciary" tracks to override basic probate titles
+                // if they are merged into the same phase key.
+                if (masterMode === "FIDUCIARY_ADMINISTERED" && roadmapIndex === 0) {
+                    // This is already handled by the "if (!mergedPhases[phaseList.phase])" block
+                    // being the first one to set the metadata.
                 }
-            });
-        }
+            }
+        });
     });
 
     // Order phases properly based on canonical sequence

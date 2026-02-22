@@ -37,7 +37,7 @@ export const TASK_ACTIONS: Record<string, TaskAction> = {
   },
   'notify_ssa': {
     type: 'navigate',
-    target: '/documents',
+    target: 'none', // Handled by integrated requiredDocs
     label: 'Upload Death Certificate',
     icon: 'Upload',
     variant: 'primary'
@@ -62,7 +62,7 @@ export const TASK_ACTIONS: Record<string, TaskAction> = {
   },
   'open_estate_account': {
     type: 'navigate',
-    target: '/documents',
+    target: 'none', // Handled by integrated requiredDocs: Death Cert, Letters, EIN
     label: 'Upload Proof',
     icon: 'Upload'
   },
@@ -83,19 +83,19 @@ export const TASK_ACTIONS: Record<string, TaskAction> = {
   },
   'publish_notice': {
     type: 'navigate',
-    target: '/documents',
+    target: 'none', // Handled by integrated requiredDocs
     label: 'Upload Notice',
     icon: 'Upload'
   },
   'mail_notice': {
     type: 'navigate',
-    target: '/liabilities',
+    target: 'none', // Handled by integrated requiredDocs
     label: 'Notify Creditors',
     icon: 'Send'
   },
   'attend_hearing': {
     type: 'navigate',
-    target: '/documents',
+    target: 'none', // Handled by integrated requiredDocs
     label: 'Gather Hearing Docs',
     icon: 'FileText',
     variant: 'primary'
@@ -166,23 +166,17 @@ export const TASK_ACTIONS: Record<string, TaskAction> = {
     label: 'Open Workbook',
     icon: 'Users'
   },
-  'request_bond_waiver': {
+  'handle_bond_waivers': {
     type: 'navigate',
     target: '/probate/bond-waiver',
     label: 'Avoid Bond Cost',
     icon: 'ShieldCheck',
     variant: 'primary'
   },
-  'file_bond_waiver': {
-    type: 'navigate',
-    target: '/probate/bond-waiver',
-    label: 'Open Workbook',
-    icon: 'Upload'
-  },
   'obtain_bond_waiver_order': {
     type: 'navigate',
-    target: '/probate/bond-waiver',
-    label: 'Open Workbook',
+    target: 'none', // Handled by integrated requiredDocs: DE-143, DE-140
+    label: 'Get Final Order',
     icon: 'Gavel'
   },
   'track_special_notice_requests': {

@@ -16,7 +16,8 @@ import {
   Circle,
   Lock,
   AlertCircle,
-  ArrowRight
+  ArrowRight,
+  ExternalLink
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -451,145 +452,125 @@ export function CollapsiblePhaseChevron({ onTaskToggle, isViewer }: CollapsibleP
                             </div>
                             <p className="text-xs text-slate-500 leading-relaxed mb-3">{task.description}</p>
 
-                            {/* Integrated Document Controls */}
-                            {!isTaskCompleted && (
-                              <div className="mt-2 flex flex-wrap gap-2">
-                                {task.requiredDocs && task.requiredDocs.map((doc, idx) => {
-                                  const canon = findCanonicalDoc(doc);
-                                  const uploaded = documents.find(d => {
-                                    if (d.documentType === doc) return true;
-                                    if (canon) {
-                                      const uploadedCanon = findCanonicalDoc(d.documentType) || findCanonicalDoc(d.name);
-                                      return uploadedCanon?.code === canon.code;
-                                    }
-                                    return false;
-                                  });
+                            {/* Task Action / Status Area */}
+                            <div className={cn("flex flex-wrap gap-2", isTaskCompleted ? "mt-1" : "mt-3")}>
+                              {/* Document Status Badges (Always visible if uploaded) */}
+                              {task.requiredDocs && task.requiredDocs.map((doc, idx) => {
+                                const canon = findCanonicalDoc(doc);
+                                const uploaded = documents.find(d => {
+                                  if (d.documentType === doc) return true;
+                                  if (canon) {
+                                    const uploadedCanon = findCanonicalDoc(d.documentType) || findCanonicalDoc(d.name);
+                                    return uploadedCanon?.code === canon.code;
+                                  }
+                                  return false;
+                                });
 
-                                  if (uploaded) return (
-                                    <div key={idx} className="flex items-center gap-2">
-                                      <Badge variant="secondary" className="bg-green-50 text-green-700 border-green-100 text-[9px] font-bold py-0 h-7 px-2">
-                                        <CheckCircle2 className="w-3 h-3 mr-1" />
-                                        {doc} Obtained
-                                      </Badge>
-                                      <div className="flex items-center gap-1">
-                                        <Button
-                                          variant="ghost"
-                                          size="sm"
-                                          className="h-7 w-7 p-0 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50"
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            api.viewEstateDocument(uploaded.documentType);
-                                          }}
-                                        >
-                                          <Eye className="w-3.5 h-3.5" />
-                                        </Button>
-                                        {!isViewer && (
-                                          <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            className="h-7 w-7 p-0 text-slate-400 hover:text-red-600 hover:bg-red-50"
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                              deleteMutation.mutate(uploaded.id);
-                                            }}
-                                          >
-                                            <Trash2 className="w-3.5 h-3.5" />
-                                          </Button>
-                                        )}
-                                      </div>
-                                    </div>
-                                  );
-
-                                  if (isViewer) return null;
-
-                                  return (
-                                    <div key={idx} className="relative">
+                                if (uploaded) return (
+                                  <div key={idx} className="flex items-center gap-2">
+                                    <Badge variant="secondary" className="bg-green-50 text-green-700 border-green-100 text-[9px] font-bold py-0 h-7 px-2">
+                                      <CheckCircle2 className="w-3 h-3 mr-1" />
+                                      {doc} Obtained
+                                    </Badge>
+                                    <div className="flex items-center gap-1">
                                       <Button
-                                        variant="outline"
+                                        variant="ghost"
                                         size="sm"
-                                        className="h-8 px-3 text-xs bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-900 font-medium tracking-tight gap-2 shadow-sm"
-                                      >
-                                        <FileUp className="w-3.5 h-3.5 text-slate-500" />
-                                        Upload {doc}
-                                      </Button>
-                                      <input
-                                        type="file"
-                                        className="absolute inset-0 opacity-0 cursor-pointer"
-                                        onChange={(e) => {
-                                          const file = e.target.files?.[0];
-                                          if (file) handleDocumentUpload(doc, doc, file);
+                                        className="h-7 w-7 p-0 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          api.viewEstateDocument(uploaded.documentType);
                                         }}
-                                        disabled={uploadMutation.isPending}
-                                      />
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            )}
-
-                            {isTaskCompleted && task.requiredDocs && task.requiredDocs.length > 0 && (
-                              <div className="mt-1 flex gap-2">
-                                {task.requiredDocs.map((doc, idx) => {
-                                  const canon = findCanonicalDoc(doc);
-                                  const uploaded = documents.find(d => {
-                                    if (d.documentType === doc) return true;
-                                    if (canon) {
-                                      const uploadedCanon = findCanonicalDoc(d.documentType) || findCanonicalDoc(d.name);
-                                      return uploadedCanon?.code === canon.code;
-                                    }
-                                    return false;
-                                  });
-
-                                  if (!uploaded) return null;
-                                  return (
-                                    <div key={idx} className="flex items-center gap-2">
-                                      <Badge variant="secondary" className="bg-green-50 text-green-700 border-green-100 text-[9px] font-bold py-0 h-5 px-2">
-                                        <CheckCircle2 className="w-3 h-3 mr-1" />
-                                        {doc} Obtained
-                                      </Badge>
-                                      <div className="flex items-center gap-1">
+                                      >
+                                        <Eye className="w-3.5 h-3.5" />
+                                      </Button>
+                                      {!isViewer && (
                                         <Button
                                           variant="ghost"
                                           size="sm"
-                                          className="h-5 w-5 p-0 text-slate-400 hover:text-indigo-600"
+                                          className="h-7 w-7 p-0 text-slate-400 hover:text-red-600 hover:bg-red-50"
                                           onClick={(e) => {
                                             e.stopPropagation();
-                                            api.viewEstateDocument(uploaded.documentType);
+                                            deleteMutation.mutate(uploaded.id);
                                           }}
                                         >
-                                          <Eye className="w-3 h-3" />
+                                          <Trash2 className="w-3.5 h-3.5" />
                                         </Button>
-                                        {!isViewer && (
-                                          <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            className="h-5 w-5 p-0 text-slate-400 hover:text-red-600"
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                              deleteMutation.mutate(uploaded.id);
-                                            }}
-                                          >
-                                            <Trash2 className="w-3 h-3" />
-                                          </Button>
-                                        )}
-                                      </div>
+                                      )}
                                     </div>
-                                  );
-                                })}
-                              </div>
-                            )}
+                                  </div>
+                                );
+                                return null;
+                              })}
 
-                            {/* Action Button (Legacy/Secondary) */}
-                            {action && !isTaskCompleted && action.target !== 'none' && (
-                              <Button
-                                size="sm"
-                                variant={action.variant === 'primary' ? 'default' : 'outline'}
-                                onClick={() => handleTaskAction(task.id)}
-                                className={cn("h-8 text-xs font-bold mt-2", isNext && "shadow-sm shadow-primary/20")}
-                              >
-                                {action.label}
-                              </Button>
-                            )}
+                              {/* Active Actions (Only if NOT completed AND NOT locked) */}
+                              {!isTaskCompleted && !isLockedByDependency && (
+                                <>
+                                  {/* Upload Buttons */}
+                                  {task.requiredDocs && task.requiredDocs.map((doc, idx) => {
+                                    const canon = findCanonicalDoc(doc);
+                                    const uploaded = documents.find(d => {
+                                      if (d.documentType === doc) return true;
+                                      if (canon) {
+                                        const uploadedCanon = findCanonicalDoc(d.documentType) || findCanonicalDoc(d.name);
+                                        return uploadedCanon?.code === canon.code;
+                                      }
+                                      return false;
+                                    });
+
+                                    if (uploaded || isViewer) return null;
+
+                                    return (
+                                      <div key={idx} className="relative">
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          className="h-8 px-3 text-xs bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-900 font-medium tracking-tight gap-2 shadow-sm"
+                                        >
+                                          <FileUp className="w-3.5 h-3.5 text-slate-500" />
+                                          Upload {doc}
+                                        </Button>
+                                        <input
+                                          type="file"
+                                          className="absolute inset-0 opacity-0 cursor-pointer"
+                                          onChange={(e) => {
+                                            const file = e.target.files?.[0];
+                                            if (file) handleDocumentUpload(doc, doc, file);
+                                          }}
+                                          disabled={uploadMutation.isPending}
+                                        />
+                                      </div>
+                                    );
+                                  })}
+
+                                  {/* External Links */}
+                                  {task.links && task.links.map((link, idx) => (
+                                    <Button
+                                      key={idx}
+                                      variant="outline"
+                                      size="sm"
+                                      className="h-8 text-xs font-medium border-slate-200 hover:bg-slate-50 gap-2 shadow-sm"
+                                      onClick={() => window.open(link.url, '_blank')}
+                                    >
+                                      <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
+                                      {link.label}
+                                    </Button>
+                                  ))}
+
+                                  {/* Specialized Action Button */}
+                                  {action && action.target !== 'none' && (
+                                    <Button
+                                      size="sm"
+                                      variant={action.variant === 'primary' ? 'default' : 'outline'}
+                                      onClick={() => handleTaskAction(task.id)}
+                                      className={cn("h-8 text-xs font-bold", isNext && "shadow-sm shadow-primary/20")}
+                                    >
+                                      {action.label}
+                                    </Button>
+                                  )}
+                                </>
+                              )}
+                            </div>
                           </div>
                         </div>
                       );
