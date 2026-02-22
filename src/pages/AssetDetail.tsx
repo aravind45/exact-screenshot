@@ -53,6 +53,7 @@ import { TRACK_STAGES, SettlementTrack } from "@/config/settlementStages";
 import { calculateAuthorityRecommendation, getInstitutionAuthorityRequirement } from "@/lib/authorityEngine";
 import { cn } from "@/lib/utils";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { getLettersTerm, getStateRule } from "@/lib/stateRules";
 import { api } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { CommunicationLog } from "@/components/communications/CommunicationLog";
@@ -476,13 +477,14 @@ export default function AssetDetail() {
     uiAsset.ownershipType
   );
 
+  const rule = getStateRule(estate?.deceasedState || "CA");
   const requirementsMap: Record<string, string[]> = {
     "BENEFICIARY_ONLY": ["Death Certificate (certified)"],
-    "AFFIDAVIT_ACCEPTED": ["Death Certificate (certified)", "Small Estate Affidavit (DE-310)"],
+    "AFFIDAVIT_ACCEPTED": ["Death Certificate (certified)", rule.smallEstateTerm],
     "SUMMARY_ADMINISTRATION": ["Death Certificate (certified)", "Summary Administration Order"],
     "VOLUNTARY_ADMINISTRATION": ["Death Certificate (certified)", "Affidavit of Voluntary Administration"],
-    "LETTERS_REQUIRED": ["Death Certificate (certified)", "DE-150 Letters", "DE-111 Petition"],
-    "LETTERS_PREFERRED": ["Death Certificate (certified)", "DE-150 Letters"],
+    "LETTERS_REQUIRED": ["Death Certificate (certified)", getLettersTerm(estate?.deceasedState)],
+    "LETTERS_PREFERRED": ["Death Certificate (certified)", getLettersTerm(estate?.deceasedState)],
     "VARIES": ["Death Certificate (certified)"]
   };
 
@@ -544,6 +546,7 @@ export default function AssetDetail() {
               <AssetAuthorityBlocker
                 institutionName={uiAsset.institution}
                 authorityType={uiAsset.authorityType}
+                stateCode={estate?.deceasedState}
               />
             </div>
           )}

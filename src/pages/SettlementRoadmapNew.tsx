@@ -10,6 +10,7 @@ import { type SettlementPhase } from "@/config/settlementPhases";
 import { SEO } from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { getLettersTerm } from "@/lib/stateRules";
 
 export default function SettlementRoadmapNew() {
   const queryClient = useQueryClient();
@@ -123,7 +124,7 @@ export default function SettlementRoadmapNew() {
               <div className="flex-1">
                 <h3 className="text-lg font-bold text-slate-900 tracking-tight">Authority Support Required</h3>
                 <p className="text-sm text-slate-600 mt-1 leading-relaxed max-w-2xl">
-                  <strong className="text-slate-900 font-semibold">{probateBlockers.length} assets are</strong> awaiting your Letters Testamentary (DE-150) to finalize ownership.
+                  <strong className="text-slate-900 font-semibold">{probateBlockers.length} assets are</strong> awaiting your {getLettersTerm(estate?.deceasedState)} to finalize ownership.
                   These assets require probate authority to complete the transfer process.
                 </p>
                 <div className="mt-4 flex items-center gap-4">

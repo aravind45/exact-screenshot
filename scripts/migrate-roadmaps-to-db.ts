@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { TRACK_STAGES } from '../src/config/settlementStages.js';
+import { TRACK_STAGES } from '../src/config/settlementStages';
 
 const prisma = new PrismaClient();
 

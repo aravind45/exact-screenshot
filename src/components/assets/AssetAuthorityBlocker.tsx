@@ -3,15 +3,17 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Gavel, Scale, FileText, AlertCircle, Zap, ShieldCheck } from "lucide-react";
 import { motion } from "framer-motion";
 import { SettlementTrack } from "@/config/settlementStages";
+import { getLettersTerm, getStateRule } from "@/lib/stateRules";
 
 interface AssetAuthorityBlockerProps {
     institutionName: string;
     hasLetters?: boolean;
     track?: SettlementTrack;
     authorityType?: string;
+    stateCode?: string;
 }
 
-export function AssetAuthorityBlocker({ institutionName, hasLetters, track, authorityType }: AssetAuthorityBlockerProps) {
+export function AssetAuthorityBlocker({ institutionName, hasLetters, track, authorityType, stateCode }: AssetAuthorityBlockerProps) {
     if (hasLetters) return null;
 
     const getTrackConfig = () => {
@@ -19,10 +21,11 @@ export function AssetAuthorityBlocker({ institutionName, hasLetters, track, auth
         if (authorityType) {
             switch (authorityType) {
                 case 'AFFIDAVIT_SMALL':
+                    const rule = getStateRule(stateCode || "CA");
                     return {
                         title: "Affidavit Required",
-                        description: `Owned Individually. ${institutionName} requires a notarized Small Estate Affidavit to release funds.`,
-                        docs: ["DE-310 Affidavit", "Death Certificate"],
+                        description: `Owned Individually. ${institutionName} requires a notarized ${rule.smallEstateTerm} to release funds.`,
+                        docs: [rule.smallEstateTerm, "Death Certificate"],
                         link: "/vault",
                         linkText: "Prepare Affidavit",
                         icon: Zap,
@@ -62,8 +65,8 @@ export function AssetAuthorityBlocker({ institutionName, hasLetters, track, auth
                 case 'COURT_REQUIRED':
                     return {
                         title: "Court Authority Required",
-                        description: `Owned Individually. ${institutionName} requires Letters Testamentary (DE-150) to grant access.`,
-                        docs: ["DE-150 Letters", "DE-111 Petition"],
+                        description: `Owned Individually. ${institutionName} requires ${getLettersTerm(stateCode)} to grant access.`,
+                        docs: [getLettersTerm(stateCode), "Death Certificate"],
                         link: "/probate",
                         linkText: "Resolve in Probate Hub",
                         icon: Gavel,
@@ -85,10 +88,11 @@ export function AssetAuthorityBlocker({ institutionName, hasLetters, track, auth
                     color: "emerald"
                 };
             case "SPOUSAL_PETITION":
+                const sRule = getStateRule(stateCode || "CA");
                 return {
                     title: "Spousal Order Required",
-                    description: `${institutionName} needs a court-confirmed Spousal Property Order to transfer title.`,
-                    docs: ["DE-221 Petition", "Court Order"],
+                    description: `${institutionName} needs a court-confirmed ${sRule.spousalSetAside?.term || 'Spousal Order'} to transfer title.`,
+                    docs: [sRule.spousalSetAside?.term || "Spousal Petition", "Court Order"],
                     link: "/probate",
                     linkText: "Check Petition Status",
                     icon: Scale,
@@ -118,8 +122,8 @@ export function AssetAuthorityBlocker({ institutionName, hasLetters, track, auth
             default:
                 return {
                     title: "Court Authority Required",
-                    description: `Owned Individually. ${institutionName} requires Letters Testamentary (DE-150) to grant access.`,
-                    docs: ["DE-150 Letters", "DE-111 Petition"],
+                    description: `Owned Individually. ${institutionName} requires ${getLettersTerm(stateCode)} to grant access.`,
+                    docs: [getLettersTerm(stateCode), "Death Certificate"],
                     link: "/probate",
                     linkText: "Resolve in Probate Hub",
                     icon: Gavel,

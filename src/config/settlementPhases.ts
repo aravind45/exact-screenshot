@@ -697,7 +697,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         description: "Publish notice in a local newspaper for 3 consecutive weeks to notify creditors.",
         estimatedTime: "1 week",
         trackCompatibility: ["PROBATE"],
-        requiredDocs: ["Court Case Number", "DE-130"],
+        requiredDocs: ["Court Case Number", "Proposed Notice"],
         category: "probate",
         deadlineWarningId: "CREDITOR_NOTICE_DEADLINE", // New deadline link
         dependencies: ["file_petition"], // New dependency
@@ -724,7 +724,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         title: "Mail Notice to Known Creditors",
         description: "Send formal notice to all known creditors (banks, credit cards, medical providers).",
         estimatedTime: "2-3 hours",
-        requiredDocs: ["DE-157"],
+        requiredDocs: ["Notice Form"],
         category: "probate",
         dependencies: ["file_petition"],
         alerts: [
@@ -739,7 +739,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         title: "Attend Probate Hearing",
         description: "Appear in court for the probate hearing (usually 60-90 days after filing).",
         estimatedTime: "2-3 hours",
-        requiredDocs: ["Valid ID", "DE-130"],
+        requiredDocs: ["Valid ID", "Proof of Notice"],
         dependencies: ["file_petition"],
         alerts: [
           {
@@ -784,28 +784,28 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         isConditional: true,
         conditionalRequirementLabel: "Available if estate value is below state small estate threshold",
         helpArticleId: "small-estate-affidavit",
-        requiredDocs: ["DE-310", "Death Certificate"]
+        requiredDocs: ["Affidavit Form", "Death Certificate"]
       },
       {
         id: "file_spousal_petition",
-        title: "File Spousal Property Petition (DE-221)",
+        title: "File Spousal Property Petition",
         description: "Request court order to transfer property to surviving spouse without full probate.",
         estimatedTime: "4-6 weeks",
         category: "probate",
         isConditional: true,
         conditionalRequirementLabel: "Required if property is being transferred to a surviving spouse or domestic partner",
         helpArticleId: "spousal-property",
-        requiredDocs: ["DE-221", "Death Certificate"]
+        requiredDocs: ["Petition Form", "Death Certificate"]
       },
       {
         id: "give_spousal_notice",
-        title: "Give Notice of Hearing (DE-120)",
-        description: "Notify all interested parties about the court hearing date for the Spousal Property Petition.",
+        title: "Give Notice of Hearing",
+        description: "Notify all interested parties about the court hearing date for the petition.",
         estimatedTime: "2 hours",
         category: "probate",
         isOptional: true,
         dependencies: ["file_spousal_petition"],
-        requiredDocs: ["DE-120"],
+        requiredDocs: ["Notice of Hearing Form"],
         alerts: [{
           type: "important",
           message: "Notice must be served at least 15 days before the hearing date."
@@ -813,13 +813,13 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "obtain_spousal_order",
-        title: "Obtain Spousal Property Order (DE-226)",
+        title: "Obtain Spousal Property Order",
         description: "Receive signed court order confirming property ownership transfer to spouse. Record with county recorder if real estate is involved.",
         estimatedTime: "1-2 weeks after hearing",
         category: "court-issued",
         isOptional: true,
         dependencies: ["give_spousal_notice"],
-        requiredDocs: ["DE-226"],
+        requiredDocs: ["Court Order"],
         alerts: [{
           type: "important",
           message: "A certified copy of this order serves as the new deed for real property."
@@ -849,17 +849,17 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "petition_guardian_ad_litem",
-        title: "File Petition for Guardian Ad Litem (DE-350)",
+        title: "File Petition for Guardian Ad Litem",
         description: "Request court appointment of a guardian ad litem to represent minor beneficiaries' interests throughout probate.",
         estimatedTime: "2-4 hours",
         category: "probate",
         isConditional: true,
         isOptional: true, // Controlled by filtering logic based on profile
         conditionalRequirementLabel: "Required if minors have interests",
-        requiredDocs: ["DE-350", "Death Certificate"],
+        requiredDocs: ["Petition Form", "Death Certificate"],
         dependencies: ["file_petition"],
         links: [{
-          label: "Download DE-350",
+          label: "Download Official Form",
           url: "https://www.courts.ca.gov/documents/de350.pdf"
         }],
         alerts: [{
@@ -869,15 +869,15 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "obtain_guardian_order",
-        title: "Obtain Guardian Ad Litem Order (DE-351)",
+        title: "Obtain Guardian Ad Litem Order",
         description: "Receive court order appointing guardian ad litem. Provide guardian with all estate information.",
         estimatedTime: "2-3 weeks",
         category: "court-issued",
         isOptional: true,
-        requiredDocs: ["DE-351"],
+        requiredDocs: ["Court Order"],
         dependencies: ["petition_guardian_ad_litem"],
         links: [{
-          label: "Download DE-351",
+          label: "Download Official Form",
           url: "https://www.courts.ca.gov/documents/de351.pdf"
         }],
         alerts: [{
@@ -887,15 +887,15 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "file_succession_petition",
-        title: "File Petition to Determine Succession (DE-310)",
+        title: "File Petition to Determine Succession",
         description: "File petition with court to determine who inherits the primary residence without full probate.",
         estimatedTime: "2-4 hours",
         category: "probate",
         exclusiveGroup: "filing_path",
         isOptional: true,
-        requiredDocs: ["DE-310", "Death Certificate", "Property Deed"],
+        requiredDocs: ["Petition Form", "Death Certificate", "Property Deed"],
         links: [{
-          label: "Download DE-310",
+          label: "Download Official Form",
           url: "https://www.courts.ca.gov/documents/de310.pdf"
         }],
         alerts: [{
@@ -912,9 +912,9 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         exclusiveGroup: "filing_path",
         isOptional: true,
         dependencies: ["file_succession_petition"],
-        requiredDocs: ["DE-120"],
+        requiredDocs: ["Notice of Hearing Form"],
         links: [{
-          label: "Download DE-120",
+          label: "Download Official Form",
           url: "https://www.courts.ca.gov/documents/de120.pdf"
         }],
         alerts: [{
@@ -924,16 +924,16 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "obtain_succession_order",
-        title: "Obtain Order Determining Succession (DE-315)",
+        title: "Obtain Order Determining Succession",
         description: "Receive court order determining property succession. Record order with county recorder.",
         estimatedTime: "1-2 weeks after hearing",
         category: "court-issued",
         exclusiveGroup: "filing_path",
         isOptional: true,
-        requiredDocs: ["DE-315"],
+        requiredDocs: ["Court Order"],
         dependencies: ["file_succession_petition", "give_succession_notice"],
         links: [{
-          label: "Download DE-315",
+          label: "Download Official Form",
           url: "https://www.courts.ca.gov/documents/de315.pdf"
         }],
         alerts: [{
@@ -943,16 +943,16 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "track_special_notice_requests",
-        title: "Track Special Notice Requests (DE-154)",
+        title: "Track Special Notice Requests",
         description: "Maintain list of all parties who have requested special notice. You must serve them copies of ALL court filings.",
         estimatedTime: "Ongoing",
         isLongHorizon: true,
         category: "probate",
         isOptional: true,
         dependencies: ["file_petition"],
-        requiredDocs: ["DE-154", "DE-130"],
+        requiredDocs: ["Request for Notice Form", "Notice Form"],
         links: [{
-          label: "Download DE-154",
+          label: "Download Official Form",
           url: "https://www.courts.ca.gov/documents/de154.pdf"
         }],
         alerts: [{
@@ -975,17 +975,17 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "handle_bond_waivers",
-        title: "Avoid Bond Cost (DE-142)",
-        description: "Obtain signatures from all heirs to waive the bond requirement, then file the completed DE-142 with the court.",
+        title: "Avoid Bond Cost",
+        description: "Obtain signatures from all heirs to waive the bond requirement, then file the completed waiver with the court.",
         utility: "Cost Savings: Eliminate bond premium (typically $500-$5,000/year).",
         estimatedTime: "1-2 weeks",
         category: "probate",
         isConditional: true,
         conditionalRequirementLabel: "Recommended to save on bond premiums if all heirs agree to waive",
-        requiredDocs: ["DE-142"],
+        requiredDocs: ["Bond Waiver Form"],
         dependencies: ["file_petition"],
         links: [{
-          label: "Download DE-142",
+          label: "Download Official Form",
           url: "https://www.courts.ca.gov/documents/de142.pdf"
         }],
         alerts: [{
@@ -995,8 +995,8 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "obtain_bond_waiver_order",
-        title: "Obtain Order Waiving Bond (DE-143)",
-        description: "Verify that the court has officially waived the bond requirement, typically reflected in a separate Order (DE-143) or the Order for Probate.",
+        title: "Obtain Order Waiving Bond",
+        description: "Verify that the court has officially waived the bond requirement, typically reflected in a separate Order or the Order for Probate.",
         estimatedTime: "At hearing",
         category: "court-issued",
         isOptional: true,
@@ -1946,7 +1946,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
         requiredDocs: ["Trust Asset Inventory", "Date-of-Death Statements"],
         alerts: [{
           type: "info",
-          message: "Unlike probate, you do NOT file DE-160 with the court. This inventory is for accounting purposes."
+          message: "Unlike probate, you do NOT normally file an inventory with the court. This record is for accounting purposes."
         }]
       },
       {

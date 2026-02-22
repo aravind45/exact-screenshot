@@ -1,3 +1,5 @@
+import { getLettersTerm, getStateRule } from "@/lib/stateRules";
+
 export type SettlementTrack =
     | "FORMAL_PROBATE"
     | "INFORMAL_PROBATE"
@@ -890,22 +892,17 @@ export const STATE_ROADMAP_OVERRIDES: Record<string, Partial<Record<SettlementTr
 export const getPrimaryAuthorityDocName = (stateCode: string, track: SettlementTrack): string => {
     switch (track) {
         case 'SMALL_ESTATE':
-            if (stateCode === 'CA') return 'Affidavit (DE-310)';
-            if (stateCode === 'TX') return 'Small Estate Affidavit';
-            return 'Small Estate Affidavit';
+            const rule = getStateRule(stateCode || "CA");
+            return rule.smallEstateTerm;
         case 'TRUST_ADMIN':
             return 'Certification of Trust';
         case 'SPOUSAL_PETITION':
-            if (stateCode === 'CA') return 'Spousal Property Order (DE-226)';
-            return 'Spousal Property Order';
+            const sRule = getStateRule(stateCode || "CA");
+            return sRule.spousalSetAside?.term || 'Spousal Property Order';
         case 'DISCOVERY':
             return 'Preliminary Asset Log';
         default:
-            if (stateCode === 'FL') return 'Letters of Administration';
-            if (stateCode === 'TX') return 'Letters Testamentary';
-            if (stateCode === 'NY') return 'Letters Testamentary';
-            if (stateCode === 'CA') return 'Letters Testamentary (DE-150)';
-            return 'Letters Testamentary';
+            return getLettersTerm(stateCode);
     }
 };
 
