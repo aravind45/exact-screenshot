@@ -147,7 +147,8 @@ export async function analyzeEstateProfile(estateId: string): Promise<EstateProf
     procedureType: rec.procedureType,
     distributionModel: rec.distributionModel,
     activeEngines: rec.activeEngines,
-    hasWill: estate.hasWill
+    hasWill: estate.hasWill,
+    hasUnknownHeirs: estate.hasUnknownHeirs
   };
 }
 
@@ -189,7 +190,39 @@ export function filterTasksForEstate(
         if (!isCompatible) return false;
       }
 
-      // Always show non-optional tasks
+      // 4. Handle Procedure Variants (e.g., TESTATE vs INTESTATE)
+      if (task.applicability?.variants && task.applicability.variants.length > 0) {
+        const hasMatchingVariant = task.applicability.variants.some(variant => {
+          if (variant === "TESTATE") return profile.hasWill;
+          if (variant === "INTESTATE") return !profile.hasWill;
+          // Expand with more dynamic states here as needed (e.g. UPC_UNSUPERVISED)
+          return false;
+        });
+        if (!hasMatchingVariant) return false;
+      }
+
+      // 5. Handle Predicates (AND/OR/NOT)
+      if (task.applicability) {
+        const { predicatesAll, predicatesAny, excludePredicates } = task.applicability;
+        const profileMap = profile as any;
+
+        if (predicatesAll && predicatesAll.length > 0) {
+          const allTrue = predicatesAll.every(p => !!profileMap[p]);
+          if (!allTrue) return false;
+        }
+
+        if (predicatesAny && predicatesAny.length > 0) {
+          const anyTrue = predicatesAny.some(p => !!profileMap[p]);
+          if (!anyTrue) return false;
+        }
+
+        if (excludePredicates && excludePredicates.length > 0) {
+          const anyExcl = excludePredicates.some(p => !!profileMap[p]);
+          if (anyExcl) return false;
+        }
+      }
+
+      // Always show non-optional tasks (if they survived compatibility, variant, & predicate checks)
       if (!task.isOptional) return true;
 
       // Filter based on task ID and estate profile
@@ -332,7 +365,22 @@ async function getRoadmapFromDatabase(
         primaryActionLabel: stateOverride?.primaryActionLabel || task.primaryActionLabel || undefined,
         primaryActionUrl: stateOverride?.primaryActionUrl || task.primaryActionUrl || undefined,
         formNames: (stateOverride?.formNames && stateOverride.formNames.length > 0) ? stateOverride.formNames : task.formNames,
+        officialForms: stateOverride?.officialForms || undefined,
+        changeLog: stateOverride?.changeLog || undefined,
         isLongHorizon: undefined, // Add mapping if needed in future schema
+        applicability: (task.applicableVariants && task.applicableVariants.length > 0) ||
+          (task.predicatesAll && task.predicatesAll.length > 0) ||
+          (task.predicatesAny && task.predicatesAny.length > 0) ||
+          (task.excludePredicates && task.excludePredicates.length > 0)
+          ? {
+            variants: task.applicableVariants && task.applicableVariants.length > 0 ? task.applicableVariants : undefined,
+            predicatesAll: task.predicatesAll && task.predicatesAll.length > 0 ? task.predicatesAll : undefined,
+            predicatesAny: task.predicatesAny && task.predicatesAny.length > 0 ? task.predicatesAny : undefined,
+            excludePredicates: task.excludePredicates && task.excludePredicates.length > 0 ? task.excludePredicates : undefined,
+          }
+          : undefined,
+        requiredProfileFields: task.requiredProfileFields && task.requiredProfileFields.length > 0 ? task.requiredProfileFields : undefined,
+        outputs: task.outputs && task.outputs.length > 0 ? task.outputs : undefined,
       };
     }),
   }));

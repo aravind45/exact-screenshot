@@ -3,6 +3,13 @@ export type SettlementPhase = string;
 
 import { AuthorityType, MasterMode } from "../lib/authorityEngine.js";
 
+export interface OfficialForm {
+  name: string;
+  url: string;
+  formId?: string;
+  notes?: string;
+}
+
 export interface PhaseTask {
   id: string;
   title: string;
@@ -32,6 +39,10 @@ export interface PhaseTask {
   tags?: ("statutory" | "fiduciary" | "communication" | "tax" | "court-order" | "risk-guardrail")[];
   applicability?: {
     masterModes?: MasterMode[];
+    variants?: string[];
+    predicatesAll?: string[];
+    predicatesAny?: string[];
+    excludePredicates?: string[];
     authorityTypes?: AuthorityType[];
     states?: string[];
   };
@@ -56,8 +67,16 @@ export interface PhaseTask {
       primaryActionLabel?: string;
       primaryActionUrl?: string;
       links?: { label: string; url: string; }[];
+      sourceUrl?: string;
+      lastVerifiedAt?: string;
+      reviewedBy?: string;
+      confidence?: string;
+      changeLog?: { at: string; by: string; change: string; sourceUrl?: string; }[];
+      officialForms?: OfficialForm[];
     }
   };
+  requiredProfileFields?: string[];
+  outputs?: string[];
 }
 
 export interface PhaseTaskList {
@@ -443,6 +462,133 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
             message: "Foreign notarization without an Apostille is frequently rejected by U.S. banks and courts."
           }
         ]
+      }
+    ]
+  },
+  {
+    phase: "pre_filing_compliance",
+    title: "Court Compliance & Eligibility",
+    subtitle: "Procedural Checks",
+    milestone: "Before Petition Filing",
+    description: "Ensure all jurisdictional, statutory, and documentation requirements are met prior to formal court submission. This universal layer adapts to state-specific rules.",
+    tasks: [
+      {
+        id: "validate_venue_jurisdiction",
+        title: "Validate Venue and Jurisdiction",
+        description: "Confirm the decedent's legal domicile and county residency to ensure the petition is filed in the legally appropriate court.",
+        utility: "Prevents immediate case dismissal due to improper venue.",
+        estimatedTime: "30 minutes",
+        category: "probate",
+        requiredProfileFields: ["decedent_domicile", "county", "death_date", "property_location"],
+        outputs: ["Verified Court of Jurisdiction"],
+        alerts: [{
+          type: "important",
+          message: "Jurisdictional Error Risk: Filing in the wrong county or state can invalidate all subsequent legal actions."
+        }]
+      },
+      {
+        id: "screen_fiduciary_eligibility",
+        title: "Screen Fiduciary Eligibility",
+        description: "Verify that the proposed executor or administrator meets all state-specific legal requirements to serve.",
+        estimatedTime: "30 minutes",
+        category: "probate",
+        requiredProfileFields: ["fiduciary_residency", "fiduciary_citizenship", "felony_status", "fiduciary_age"],
+        outputs: ["Fiduciary Eligibility Certification", "Counsel Recommendation Flag"],
+        alerts: [{
+          type: "caution",
+          message: "Statutory Disqualification: Many states explicitly prohibit non-citizens, out-of-state residents, or individuals with certain criminal histories from serving."
+        }]
+      },
+      {
+        id: "validate_interested_parties",
+        title: "Validate Interested Parties",
+        description: "Identify all individuals legally entitled to notice or inheritance, including heirs-at-law, beneficiaries, and devisees.",
+        estimatedTime: "2 hours",
+        category: "probate",
+        requiredProfileFields: ["family_tree", "marital_status", "children", "prior_marriages", "adoptions"],
+        outputs: ["Court-Ready Party List", "Required Notice Matrix"],
+        alerts: [{
+          type: "warning",
+          message: "Failure to name and notify every legally interested party, even estranged ones, can stall the proceedings or invite later litigation."
+        }]
+      },
+      {
+        id: "compile_will_and_proof",
+        title: "Compile Will and Testamentary Proofs",
+        description: "Gather the original valid will, codicils, and secure witness affidavits or self-proving attestations.",
+        estimatedTime: "1-2 weeks",
+        category: "probate",
+        applicability: {
+          variants: ["TESTATE"]
+        },
+        outputs: ["Original Will", "Witness Affidavits/Proofs"],
+        alerts: [{
+          type: "info",
+          message: "If witnesses are deceased or unlocatable, specialized 'dispense with testimony' procedures will be required."
+        }]
+      },
+      {
+        id: "identify_protected_persons_and_representation",
+        title: "Identify Protected Persons representation",
+        description: "Screen the interested party list for minors, incapacitated adults, or unknown heirs that require a court-appointed Guardian ad Litem (GAL).",
+        estimatedTime: "1 hour",
+        category: "probate",
+        applicability: {
+          predicatesAny: ["hasMinorBeneficiaries", "hasUnknownHeirs"]
+        },
+        outputs: ["GAL Requirement Assessment"],
+        alerts: [{
+          type: "important",
+          message: "Courts strictly require GAL representation to protect the interests of those who cannot represent themselves."
+        }]
+      },
+      {
+        id: "prepare_required_notices_and_waivers",
+        title: "Prepare Required Notices and Waivers",
+        description: "Generate the formal notice plan to serve interested parties, or gather Signed Waivers and Consents to expedite the process.",
+        estimatedTime: "1-3 weeks",
+        category: "probate",
+        outputs: ["Notice Plan Checklist", "Compiled Waivers"],
+        alerts: [{
+          type: "info",
+          message: "Securing Waivers and Consents from all parties can drastically accelerate the timeline by skipping the citation return date."
+        }]
+      },
+      {
+        id: "request_temporary_authority",
+        title: "Evaluate Need for Temporary Authority",
+        description: "Determine if preliminary letters or special administration is necessary to protect assets or run a business while formal probate is pending.",
+        estimatedTime: "1 hour",
+        category: "probate",
+        outputs: ["Temporary Authority Assessment"],
+        alerts: [{
+          type: "info",
+          message: "Temporary authority is rarely granted for mere convenience; it is strictly intended for asset protection during delays."
+        }]
+      },
+      {
+        id: "calculate_filing_fees",
+        title: "Calculate Court Filing Fees",
+        description: "Determine the exact statutory filing fee based on the estimated gross value of the probate estate.",
+        estimatedTime: "15 minutes",
+        category: "probate",
+        outputs: ["Filing Fee Estimate"],
+        alerts: [{
+          type: "info",
+          message: "State courts charge tiered filing fees. Accuracy in the preliminary asset scan is important here."
+        }]
+      },
+      {
+        id: "compile_required_form_pack",
+        title: "Compile Required Court Form Packet",
+        description: "Synthesize the official local forms and procedural filing notes required by your specific court into a ready-to-file package.",
+        estimatedTime: "1-2 hours",
+        category: "probate",
+        outputs: ["Required Form Pack List", "Filing Procedure Notes"],
+        alerts: [{
+          type: "info",
+          message: "Court clerks will reject filings if mandatory local forms are missing. Double check the official packet."
+        }]
       }
     ]
   },

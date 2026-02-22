@@ -95,6 +95,12 @@ async function main() {
                         primaryActionLabel: t.primaryActionLabel || null,
                         primaryActionUrl: t.primaryActionUrl || null,
                         formNames: t.formNames || [],
+                        applicableVariants: t.applicability?.variants || [],
+                        predicatesAll: t.applicability?.predicatesAll || [],
+                        predicatesAny: t.applicability?.predicatesAny || [],
+                        excludePredicates: t.applicability?.excludePredicates || [],
+                        requiredProfileFields: t.requiredProfileFields || [],
+                        outputs: t.outputs || [],
                     },
                     create: {
                         phaseId: phase.id,
@@ -126,6 +132,12 @@ async function main() {
                         primaryActionLabel: t.primaryActionLabel || null,
                         primaryActionUrl: t.primaryActionUrl || null,
                         formNames: t.formNames || [],
+                        applicableVariants: t.applicability?.variants || [],
+                        predicatesAll: t.applicability?.predicatesAll || [],
+                        predicatesAny: t.applicability?.predicatesAny || [],
+                        excludePredicates: t.applicability?.excludePredicates || [],
+                        requiredProfileFields: t.requiredProfileFields || [],
+                        outputs: t.outputs || [],
                     },
                 });
 
@@ -134,9 +146,9 @@ async function main() {
                     for (const [stateCode, override] of Object.entries(overrides)) {
                         await prisma.roadmapTaskStateOverride.upsert({
                             where: {
-                                taskId_stateCode: {
-                                    taskId: task.id,
+                                stateCode_taskKey: {
                                     stateCode: stateCode,
+                                    taskKey: t.id,
                                 }
                             },
                             update: {
@@ -146,9 +158,15 @@ async function main() {
                                 primaryActionLabel: override.primaryActionLabel !== undefined ? override.primaryActionLabel : null,
                                 primaryActionUrl: override.primaryActionUrl !== undefined ? override.primaryActionUrl : null,
                                 links: override.links || null,
+                                sourceUrl: override.sourceUrl || null,
+                                lastVerifiedAt: override.lastVerifiedAt ? new Date(override.lastVerifiedAt) : null,
+                                reviewedBy: override.reviewedBy || null,
+                                changeLog: override.changeLog || null,
+                                confidence: override.confidence || "draft",
+                                officialForms: override.officialForms || null,
                             },
                             create: {
-                                taskId: task.id,
+                                taskKey: t.id,
                                 stateCode: stateCode,
                                 title: override.title !== undefined ? override.title : null,
                                 description: override.description !== undefined ? override.description : null,
@@ -156,6 +174,12 @@ async function main() {
                                 primaryActionLabel: override.primaryActionLabel !== undefined ? override.primaryActionLabel : null,
                                 primaryActionUrl: override.primaryActionUrl !== undefined ? override.primaryActionUrl : null,
                                 links: override.links || null,
+                                sourceUrl: override.sourceUrl || null,
+                                lastVerifiedAt: override.lastVerifiedAt ? new Date(override.lastVerifiedAt) : null,
+                                reviewedBy: override.reviewedBy || null,
+                                changeLog: override.changeLog || null,
+                                confidence: override.confidence || "draft",
+                                officialForms: override.officialForms || null,
                             },
                         });
                     }
@@ -167,6 +191,12 @@ async function main() {
     // Seed PROBATE
     console.log('Seeding FORMAL_PROBATE...');
     await seedTrack('FORMAL_PROBATE', SETTLEMENT_PHASE_TASKS);
+
+    console.log('Seeding INTESTATE...');
+    await seedTrack('INTESTATE', SETTLEMENT_PHASE_TASKS);
+
+    console.log('Seeding SMALL_ESTATE...');
+    await seedTrack('SMALL_ESTATE', SETTLEMENT_PHASE_TASKS);
 
     // Seed TRUST
     console.log('Seeding TRUST_ADMINISTRATION...');
