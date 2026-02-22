@@ -614,12 +614,32 @@ model RoadmapTask {
   primaryActionLabel  String?      @map("primary_action_label")
   primaryActionUrl    String?      @map("primary_action_url")
   formNames           String[]     @map("form_names")
+  stateOverrides      RoadmapTaskStateOverride[]
   createdAt           DateTime     @default(now()) @map("created_at")
   updatedAt           DateTime     @updatedAt @map("updated_at")
   phase               RoadmapPhase @relation(fields: [phaseId], references: [id], onDelete: Cascade)
 
   @@unique([phaseId, taskCode])
   @@map("roadmap_tasks")
+}
+
+model RoadmapTaskStateOverride {
+  id                  String       @id @default(uuid())
+  taskId              String       @map("task_id")
+  stateCode           String       @map("state_code")
+  title               String?      
+  description         String?      
+  formNames           String[]     @map("form_names") 
+  primaryActionLabel  String?      @map("primary_action_label")
+  primaryActionUrl    String?      @map("primary_action_url")
+  links               Json?        
+  createdAt           DateTime     @default(now()) @map("created_at")
+  updatedAt           DateTime     @updatedAt @map("updated_at")
+
+  task                RoadmapTask  @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@unique([taskId, stateCode])
+  @@map("roadmap_task_state_overrides")
 }
 
 model Transaction {

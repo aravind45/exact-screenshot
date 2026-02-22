@@ -275,6 +275,9 @@ async function getRoadmapFromDatabase(
         include: {
           tasks: {
             orderBy: { orderIndex: 'asc' },
+            include: {
+              stateOverrides: true,
+            }
           },
         },
       },
@@ -295,36 +298,43 @@ async function getRoadmapFromDatabase(
     milestone: phase.milestone || '',
     description: phase.description || '',
     isEscalationPath: phase.isEscalationPath,
-    tasks: phase.tasks.map(task => ({
-      id: task.taskCode,
-      title: task.title,
-      description: task.description || task.title,
-      estimatedTime: task.estimatedTime || undefined,
-      category: task.category as any,
-      isOptional: task.isOptional,
-      requiresAuthority: task.requiresAuthority,
-      requiredDocs: task.requiredDocs,
-      dependencies: task.dependencies,
-      exclusiveGroup: task.exclusiveGroup || undefined,
-      trackCompatibility: task.trackCompatibility as any,
-      tags: task.tags as any,
-      alerts: (task.alerts as any[]) || undefined,
-      links: (task.links as any[]) || undefined,
-      rationale: task.rationale || undefined,
-      isAttorneyReviewNode: task.isAttorneyReviewNode,
-      attorneyReviewReason: task.attorneyReviewReason || undefined,
-      isConditional: task.isConditional,
-      conditionalRequirementLabel: task.conditionalRequirementLabel || undefined,
-      utility: task.utility || undefined,
-      requiresNotary: task.requiresNotary,
-      requiresPhysicalMail: task.requiresPhysicalMail,
-      deadlineWarningId: task.deadlineWarningId || undefined,
-      isInternationalOnly: task.isInternationalOnly,
-      primaryActionLabel: task.primaryActionLabel || undefined,
-      primaryActionUrl: task.primaryActionUrl || undefined,
-      formNames: task.formNames,
-      isLongHorizon: undefined, // Add mapping if needed in future schema
-    })),
+    tasks: phase.tasks.map((task: any) => {
+      // Find state override if it exists for this estate's state
+      const stateOverride = task.stateOverrides?.find(
+        (override: any) => override.stateCode === profile.state
+      );
+
+      return {
+        id: task.taskCode,
+        title: stateOverride?.title || task.title,
+        description: stateOverride?.description || task.description || task.title,
+        estimatedTime: task.estimatedTime || undefined,
+        category: task.category as any,
+        isOptional: task.isOptional,
+        requiresAuthority: task.requiresAuthority,
+        requiredDocs: task.requiredDocs,
+        dependencies: task.dependencies,
+        exclusiveGroup: task.exclusiveGroup || undefined,
+        trackCompatibility: task.trackCompatibility as any,
+        tags: task.tags as any,
+        alerts: (task.alerts as any[]) || undefined,
+        links: (stateOverride?.links as any[]) || (task.links as any[]) || undefined,
+        rationale: task.rationale || undefined,
+        isAttorneyReviewNode: task.isAttorneyReviewNode,
+        attorneyReviewReason: task.attorneyReviewReason || undefined,
+        isConditional: task.isConditional,
+        conditionalRequirementLabel: task.conditionalRequirementLabel || undefined,
+        utility: task.utility || undefined,
+        requiresNotary: task.requiresNotary,
+        requiresPhysicalMail: task.requiresPhysicalMail,
+        deadlineWarningId: task.deadlineWarningId || undefined,
+        isInternationalOnly: task.isInternationalOnly,
+        primaryActionLabel: stateOverride?.primaryActionLabel || task.primaryActionLabel || undefined,
+        primaryActionUrl: stateOverride?.primaryActionUrl || task.primaryActionUrl || undefined,
+        formNames: (stateOverride?.formNames && stateOverride.formNames.length > 0) ? stateOverride.formNames : task.formNames,
+        isLongHorizon: undefined, // Add mapping if needed in future schema
+      };
+    }),
   }));
 
   // Apply existing filtering logic

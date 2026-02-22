@@ -60,7 +60,7 @@ async function main() {
 
             for (let j = 0; j < phaseData.tasks.length; j++) {
                 const t = phaseData.tasks[j];
-                await prisma.roadmapTask.upsert({
+                const task = await prisma.roadmapTask.upsert({
                     where: {
                         phaseId_taskCode: {
                             phaseId: phase.id,
@@ -128,6 +128,38 @@ async function main() {
                         formNames: t.formNames || [],
                     },
                 });
+
+                if (t.stateOverrides) {
+                    const overrides = t.stateOverrides as Record<string, any>;
+                    for (const [stateCode, override] of Object.entries(overrides)) {
+                        await prisma.roadmapTaskStateOverride.upsert({
+                            where: {
+                                taskId_stateCode: {
+                                    taskId: task.id,
+                                    stateCode: stateCode,
+                                }
+                            },
+                            update: {
+                                title: override.title !== undefined ? override.title : null,
+                                description: override.description !== undefined ? override.description : null,
+                                formNames: override.formNames || [],
+                                primaryActionLabel: override.primaryActionLabel !== undefined ? override.primaryActionLabel : null,
+                                primaryActionUrl: override.primaryActionUrl !== undefined ? override.primaryActionUrl : null,
+                                links: override.links || null,
+                            },
+                            create: {
+                                taskId: task.id,
+                                stateCode: stateCode,
+                                title: override.title !== undefined ? override.title : null,
+                                description: override.description !== undefined ? override.description : null,
+                                formNames: override.formNames || [],
+                                primaryActionLabel: override.primaryActionLabel !== undefined ? override.primaryActionLabel : null,
+                                primaryActionUrl: override.primaryActionUrl !== undefined ? override.primaryActionUrl : null,
+                                links: override.links || null,
+                            },
+                        });
+                    }
+                }
             }
         }
     };

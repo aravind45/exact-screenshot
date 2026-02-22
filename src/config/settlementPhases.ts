@@ -48,6 +48,16 @@ export interface PhaseTask {
   primaryActionLabel?: string;  // Label for the primary action button
   primaryActionUrl?: string;    // URL or route for the primary action button
   formNames?: string[];         // List of form names related to this task
+  stateOverrides?: {
+    [stateCode: string]: {
+      title?: string;
+      description?: string;
+      formNames?: string[];
+      primaryActionLabel?: string;
+      primaryActionUrl?: string;
+      links?: { label: string; url: string; }[];
+    }
+  };
 }
 
 export interface PhaseTaskList {
@@ -473,7 +483,24 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
             label: "Download DE-111",
             url: "https://www.courts.ca.gov/documents/de111.pdf"
           }
-        ]
+        ],
+        stateOverrides: {
+          "NY": {
+            title: "File Petition for Probate (ET-1)",
+            description: "Submit the ET-1 petition to the Surrogate's Court.",
+            formNames: ["ET-1"]
+          },
+          "FL": {
+            title: "File Petition for Administration (FL-1)",
+            description: "Submit the FL-1 petition to the local circuit court.",
+            formNames: ["FL-1"]
+          },
+          "TX": {
+            title: "File Application for Probate (TX-1)",
+            description: "Submit the TX-1 application to the probate court.",
+            formNames: ["TX-1"]
+          }
+        }
       },
       {
         id: "publish_notice",

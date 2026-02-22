@@ -37,6 +37,7 @@ import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sidebar } from "@/components/Sidebar";
 import { BillingManager } from "@/components/BillingManager";
+import { StateRulebook } from "@/components/admin/StateRulebook";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -241,6 +242,7 @@ export default function AdminDashboard() {
                             <TabsTrigger value="communications">Communications</TabsTrigger>
                             <TabsTrigger value="marketing">Marketing & Leads</TabsTrigger>
                             <TabsTrigger value="advisors">Advisors</TabsTrigger>
+                            <TabsTrigger value="rulebook">State Rules</TabsTrigger>
                         </TabsList>
 
                         <TabsContent value="overview" className="mt-0 space-y-4">
@@ -440,6 +442,10 @@ export default function AdminDashboard() {
 
                         <TabsContent value="advisors" className="mt-0">
                             <AdvisorManager />
+                        </TabsContent>
+
+                        <TabsContent value="rulebook" className="mt-0">
+                            <StateRulebook />
                         </TabsContent>
                     </Tabs>
                 </main>
