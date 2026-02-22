@@ -45,7 +45,7 @@ const DEFAULT_PHASES: PhaseConfig[] = [
     id: "asset_liquidation",
     title: "Asset Liquidation",
     subtitle: "Managed Transfer",
-    milestone: "After Inventory Approved",
+    milestone: "After Inventory Filed",
     color: "bg-indigo-500"
   },
   {

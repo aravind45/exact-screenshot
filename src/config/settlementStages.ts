@@ -862,27 +862,98 @@ export const STATE_ROADMAP_OVERRIDES: Record<string, Partial<Record<SettlementTr
         ]
     },
     NY: {
+        INTESTATE: [
+            {
+                id: "petition", title: "Administration Petition", description: "File Petition for Letters of Administration.",
+                tasks: [
+                    { id: "file_administration_petition", title: "File Petition for Administration" },
+                    { id: "pay_filing_fee", title: "Pay SCPA Filing Fee" },
+                    { id: "submit_oath_designation", title: "Submit Oath & Designation" },
+                    { id: "obtain_citation", title: "Obtain Citation from Surrogate" },
+                    { id: "serve_citation", title: "Serve Citation" }
+                ]
+            },
+            {
+                id: "authority", title: "Letters", description: "Attend hearing and receive Letters of Administration.",
+                tasks: [
+                    { id: "attend_hearing", title: "Attend Hearing" },
+                    { id: "letters", title: "Receive Letters of Administration", requiresAuthority: true }
+                ]
+            },
+            {
+                id: "discovery", title: "Asset Discovery", description: "Identify and inventory all probate assets.",
+                tasks: [
+                    { id: "notify_banks", title: "Notify Financial Institutions", requiresAuthority: true },
+                    { id: "inventory_assets", title: "Inventory All Assets" },
+                    { id: "file_inventory", title: "File Inventory" }
+                ]
+            },
+            {
+                id: "creditors", title: "Creditor Claims", description: "7-month period for generic claims.",
+                tasks: [
+                    { id: "publish_notice", title: "Publish Creditor Notice" },
+                    { id: "wait_claim_period", title: "Wait 7 Months for Creditors" },
+                    { id: "pay_debts", title: "Pay SCPA 1811 Priorities" }
+                ]
+            },
+            {
+                id: "distribution", title: "Final Distribution", description: "Final court oversight and distribution.",
+                trigger: 'AFTER_CLAIM_PERIOD',
+                triggerLabel: 'After 7-month creditor period closes',
+                milestone: 'Closing Estate',
+                tasks: [
+                    { id: "final_petition", title: "File Final Petition", requiresAuthority: true },
+                    { id: "accounting", title: "Prepare Final Accounting" },
+                    { id: "distribute_assets", title: "Distribute Assets" },
+                    { id: "close_estate", title: "Close Estate" }
+                ]
+            }
+        ],
         FORMAL_PROBATE: [
             {
                 id: "petition", title: "Probate Petition", description: "File Petition and original Will (SCPA).",
                 tasks: [
                     { id: "file_petition", title: "File Petition for Probate" },
                     { id: "lodge_will", title: "Lodge Original Will" },
-                    { id: "citations", title: "Issue Citations to Heirs" }
+                    { id: "pay_filing_fee", title: "Pay SCPA Filing Fee" },
+                    { id: "submit_oath_designation", title: "Submit Oath & Designation" },
+                    { id: "obtain_citation", title: "Obtain Citation from Surrogate" },
+                    { id: "serve_citation", title: "Serve Citation" }
                 ]
             },
             {
                 id: "authority", title: "Letters", description: "Surrogate court issues Letters Testamentary.",
                 tasks: [
-                    { id: "oath", title: "Oath & Designation" },
-                    { id: "letters", title: "Letters Testamentary" }
+                    { id: "attend_hearing", title: "Attend Hearing" },
+                    { id: "letters", title: "Letters Testamentary", requiresAuthority: true }
                 ]
             },
             {
-                id: "creditors", title: "Claims", description: "7-month period for generic claims.",
+                id: "discovery", title: "Asset Discovery", description: "Identify and inventory all probate assets.",
                 tasks: [
-                    { id: "7_month_window", title: "Wait 7 Months for Creditors" },
+                    { id: "notify_banks", title: "Notify Financial Institutions", requiresAuthority: true },
+                    { id: "inventory_assets", title: "Inventory All Assets" },
+                    { id: "file_inventory", title: "File Inventory" }
+                ]
+            },
+            {
+                id: "creditors", title: "Creditor Claims", description: "7-month period for generic claims.",
+                tasks: [
+                    { id: "publish_notice", title: "Publish Creditor Notice" },
+                    { id: "wait_claim_period", title: "Wait 7 Months for Creditors" },
                     { id: "pay_debts", title: "Pay SCPA 1811 Priorities" }
+                ]
+            },
+            {
+                id: "distribution", title: "Final Distribution", description: "Final court oversight and distribution.",
+                trigger: 'AFTER_CLAIM_PERIOD',
+                triggerLabel: 'After 7-month creditor period closes',
+                milestone: 'Closing Estate',
+                tasks: [
+                    { id: "final_petition", title: "File Final Petition", requiresAuthority: true },
+                    { id: "accounting", title: "Prepare Final Accounting" },
+                    { id: "distribute_assets", title: "Distribute Assets" },
+                    { id: "close_estate", title: "Close Estate" }
                 ]
             }
         ]

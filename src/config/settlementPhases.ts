@@ -728,6 +728,46 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         }
       },
       {
+        id: "pay_filing_fee",
+        title: "Pay Court Filing Fee",
+        description: "Pay the required court filing fee to process the petition. Fees vary by estate value.",
+        estimatedTime: "1 day",
+        category: "probate",
+        trackCompatibility: ["PROBATE"],
+        dependencies: ["file_probate_petition", "file_administration_petition"]
+      },
+      {
+        id: "submit_oath_designation",
+        title: "Submit Oath and Designation",
+        description: "Sign and submit the Oath and Designation form, officially agreeing to serve as the fiduciary.",
+        estimatedTime: "1-2 days",
+        category: "probate",
+        trackCompatibility: ["PROBATE"],
+        dependencies: ["file_probate_petition", "file_administration_petition"]
+      },
+      {
+        id: "obtain_citation",
+        title: "Obtain Citation from Court",
+        description: "Receive the issued Citation from the court, which sets the hearing date and commands interested parties to appear.",
+        estimatedTime: "1-3 weeks",
+        category: "probate",
+        trackCompatibility: ["PROBATE"],
+        dependencies: ["file_probate_petition", "file_administration_petition"]
+      },
+      {
+        id: "serve_citation",
+        title: "Serve Citation on Interested Parties",
+        description: "Serve the Citation to all required heirs and interested parties according to strict statutory rules.",
+        estimatedTime: "1-3 weeks",
+        category: "probate",
+        trackCompatibility: ["PROBATE"],
+        dependencies: ["obtain_citation"],
+        alerts: [{
+          type: "warning",
+          message: "Service must be completed within strict deadlines before the hearing date. Proper affidavits of service are required."
+        }]
+      },
+      {
         id: "publish_notice",
         title: "Publish Creditor Notice",
         description: "Publish notice in a local newspaper for the statutory required duration to notify creditors.",
