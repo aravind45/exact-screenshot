@@ -73,6 +73,11 @@ export interface PhaseTask {
       confidence?: string;
       changeLog?: { at: string; by: string; change: string; sourceUrl?: string; }[];
       officialForms?: OfficialForm[];
+      utility?: string;
+      alerts?: {
+        type: "info" | "warning" | "important" | "caution";
+        message: string;
+      }[];
     }
   };
   requiredProfileFields?: string[];
@@ -484,7 +489,14 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         alerts: [{
           type: "important",
           message: "Jurisdictional Error Risk: Filing in the wrong county or state can invalidate all subsequent legal actions."
-        }]
+        }],
+        stateOverrides: {
+          NY: {
+            title: "Validate Surrogate's Court Venue (SCPA §205)",
+            description: "Verify the decedent's domicile in NY to ensure the petition is filed in the correct Surrogate's Court (SCPA §205).",
+            utility: "Prevents case dismissal based on lack of subject matter jurisdiction."
+          }
+        }
       },
       {
         id: "screen_fiduciary_eligibility",
@@ -497,7 +509,13 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         alerts: [{
           type: "caution",
           message: "Statutory Disqualification: Many states explicitly prohibit non-citizens, out-of-state residents, or individuals with certain criminal histories from serving."
-        }]
+        }],
+        stateOverrides: {
+          NY: {
+            title: "Screen Fiduciary Eligibility (SCPA §707)",
+            description: "NY law disqualifies certain individuals (felons, non-domiciliary aliens who aren't co-fiduciaries with a NY resident) from serving per SCPA §707."
+          }
+        }
       },
       {
         id: "validate_interested_parties",
@@ -510,7 +528,13 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         alerts: [{
           type: "warning",
           message: "Failure to name and notify every legally interested party, even estranged ones, can stall the proceedings or invite later litigation."
-        }]
+        }],
+        stateOverrides: {
+          NY: {
+            title: "Validate Distributees & Interested Parties",
+            description: "Identify all 'distributees' (heirs-at-law) and beneficiaries. NY requires a family tree affidavit if there is only one distributee or if they are more remote than first cousins."
+          }
+        }
       },
       {
         id: "compile_will_and_proof",
@@ -525,7 +549,13 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         alerts: [{
           type: "info",
           message: "If witnesses are deceased or unlocatable, specialized 'dispense with testimony' procedures will be required."
-        }]
+        }],
+        stateOverrides: {
+          NY: {
+            title: "Compile Will & Probate Proofs (SCPA §1404)",
+            description: "Gather the original Will. Secure 'Affidavits of Attesting Witnesses' (Form P-3) to avoid mandatory 1404 hearings."
+          }
+        }
       },
       {
         id: "identify_protected_persons_and_representation",
@@ -576,7 +606,14 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         alerts: [{
           type: "info",
           message: "State courts charge tiered filing fees. Accuracy in the preliminary asset scan is important here."
-        }]
+        }],
+        stateOverrides: {
+          NY: {
+            title: "Evaluate NY Surrogate Fee Schedule",
+            description: "NY filing fees scale from $45 to $1,250 based on the value of the probate estate assets.",
+            sourceUrl: "https://ww2.nycourts.gov/courts/11jd/surrogates/fees.shtml"
+          }
+        }
       },
       {
         id: "compile_required_form_pack",
@@ -588,7 +625,17 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         alerts: [{
           type: "info",
           message: "Court clerks will reject filings if mandatory local forms are missing. Double check the official packet."
-        }]
+        }],
+        stateOverrides: {
+          NY: {
+            title: "Assemble NY Probate/Admin Packet (Form P-1)",
+            description: "Combine the Petition, Original Will, Death Certificate, and Waivers into the Surrogate's Court packet.",
+            officialForms: [
+              { name: "Petition for Probate (P-1)", url: "https://www.nycourts.gov/LegacyPDFS/FORMS/surrogates/pdfs/Probate_Petition.pdf" }
+            ],
+            primaryActionLabel: "Download P-1 Packet"
+          }
+        }
       }
     ]
   },
@@ -601,22 +648,21 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
     tasks: [
       {
         id: "file_petition",
-        title: "File Petition for Probate (DE-111)",
-        description: "Submit the probate petition to the Superior Court to open the estate case.",
+        title: "File Petition for Probate",
+        description: "Submit the probate petition to the appropriate court to open the estate case and request fiduciary appointment.",
         utility: "Required to obtain legal authority to access accounts.",
         estimatedTime: "2-4 hours",
         category: "probate",
         trackCompatibility: ["PROBATE"],
         exclusiveGroup: "filing_path",
         helpArticleId: "probate-steps",
-        primaryActionLabel: "Generate DE-111",
+        primaryActionLabel: "Generate Petition",
         primaryActionUrl: "/probate",
-        formNames: ["DE-111", "DE-121"],
+        formNames: ["Petition"],
         requiredDocs: [
           "Original Will",
           "Death Certificate",
-          "DE-111",
-          "DE-121"
+          "Petition Form"
         ],
         alerts: [
           {
@@ -624,27 +670,24 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
             message: "Check your local court for the current filing fee. File within the state's recommended timeframe."
           }
         ],
-        links: [
-          {
-            label: "Download DE-111",
-            url: "https://www.courts.ca.gov/documents/de111.pdf"
-          }
-        ],
         stateOverrides: {
           "NY": {
-            title: "File Petition for Probate (ET-1)",
-            description: "Submit the ET-1 petition to the Surrogate's Court.",
-            formNames: ["ET-1"]
+            title: "File Petition for Probate (Form P-1)",
+            description: "Submit the P-1 petition to the Surrogate's Court. This initiates the formal probate proceeding in New York.",
+            formNames: ["P-1", "Notice of Probate"],
+            officialForms: [
+              { name: "Probate Petition (P-1)", url: "https://www.nycourts.gov/LegacyPDFS/FORMS/surrogates/pdfs/Probate_Petition.pdf" }
+            ]
           },
           "FL": {
-            title: "File Petition for Administration (FL-1)",
-            description: "Submit the FL-1 petition to the local circuit court.",
-            formNames: ["FL-1"]
+            title: "File Petition for Administration",
+            description: "Submit the petition to the local circuit court.",
+            formNames: ["Petition for Administration"]
           },
           "TX": {
-            title: "File Application for Probate (TX-1)",
-            description: "Submit the TX-1 application to the probate court.",
-            formNames: ["TX-1"]
+            title: "File Application for Probate",
+            description: "Submit the application to the probate court.",
+            formNames: ["Application for Probate"]
           }
         }
       },
@@ -662,9 +705,19 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         alerts: [
           {
             type: "important",
-            message: "This starts the 4-month creditor claim period. Must be done within 4 months of Letters."
+            message: "Registration of notice starts the statutory creditor claim period."
           }
-        ]
+        ],
+        stateOverrides: {
+          NY: {
+            alerts: [
+              {
+                type: "important",
+                message: "Seven-Month Rule (SCPA §1802): Creditors have 7 months from the date of Letters to file claims. Distributing before this period carries personal liability risk."
+              }
+            ]
+          }
+        }
       },
       {
         id: "mail_notice",
@@ -697,13 +750,22 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "receive_letters",
-        title: "Establish Fiduciary Authority (DE-150)",
+        title: "Establish Fiduciary Authority (Letters)",
         description: "Obtain certified copies of the Letters—this document is your legal evidence of authority to manage estate assets.",
         requiresAuthority: true,
         estimatedTime: "1-2 weeks after hearing",
         category: "court-issued",
-        requiredDocs: ["DE-150"],
+        requiredDocs: ["Letters Testamentary / Administration"],
         dependencies: ["attend_hearing"],
+        stateOverrides: {
+          NY: {
+            title: "Obtain Letters Testamentary / Administration",
+            description: "The Surrogate's Court issues 'Letters' (not a single form, but a court decree) authorizing you to act.",
+            officialForms: [
+              { name: "Notice of Probate", url: "https://www.nycourts.gov/LegacyPDFS/FORMS/surrogates/pdfs/Notice_of_Probate.pdf" }
+            ]
+          }
+        },
         alerts: [
           {
             type: "important",
@@ -1561,7 +1623,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         title: "Close Estate",
         description: "File final discharge and close estate bank account.",
         estimatedTime: "1-2 weeks",
-        requiredDocs: ["DE-295 Petition for Final Discharge"],
+        requiredDocs: ["Petition for Final Discharge"],
         dependencies: ["file_final_accounting"],
         alerts: [
           {
@@ -1610,7 +1672,7 @@ export const MODIFIER_PHASE_TASKS: PhaseTaskList[] = [
         title: "Open Ancillary Proceeding",
         description: "File certified copies of the primary Letters and Will in the secondary jurisdiction to obtain local authority.",
         estimatedTime: "2-4 weeks",
-        requiredDocs: ["Certified Letters", "Authenticated Will", "DE-111 (Ancillary)"]
+        requiredDocs: ["Certified Letters", "Authenticated Will", "Ancillary Petition"]
       }
     ]
   },
@@ -1807,30 +1869,30 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
       {
         id: "send_statutory_notice",
         title: "Send Statutory Notice to Beneficiaries",
-        description: "California Probate Code §16061.7 requires notice to beneficiaries within 60 days. Other states have similar requirements.",
+        description: "State law typically requires formal notice to beneficiaries and heirs within a specific timeframe (e.g., 30–90 days).",
         estimatedTime: "2-4 hours",
         isAttorneyReviewNode: true,
-        attorneyReviewReason: "Statutory Deadline: Missing this 60-day window can result in removal of the trustee and personal liability.",
+        attorneyReviewReason: "Statutory Deadline: Missing the mandatory notice window can result in removal of the trustee and personal liability.",
         tags: ["statutory", "risk-guardrail"],
         requiredDocs: ["Notice Letters", "Certified Mail Receipts"],
         requiresPhysicalMail: true,
         alerts: [
           {
             type: "important",
-            message: "This notice starts the 120-day contest period. Keep all certified mail receipts as proof."
+            message: "This notice starts the statutory contest period. Keep all certified mail receipts as proof."
           }
         ]
       },
       {
-        id: "notify_state_agencies_dhcs",
-        title: "Notify State Agencies (Medi-Cal/DHCS)",
-        description: "In CA and other states, the trustee must notify the Department of Health Care Services of the muerte to allow for estate recovery claims.",
+        id: "notify_state_agencies_health",
+        title: "Notify State Health Agencies",
+        description: "The trustee must notify the state Department of Health or Medicaid recovery agency to allow for potential recovery claims.",
         estimatedTime: "1 hour",
         tags: ["statutory"],
         requiresPhysicalMail: true,
         alerts: [{
           type: "caution",
-          message: "Mandatory Notice: Distributing trust assets before checking for Medi-Cal recovery claims can make the trustee personally liable for the debt."
+          message: "Mandatory Notice: Distributing trust assets before checking for state Medicaid recovery claims can make the trustee personally liable for the debt."
         }]
       },
       {
@@ -1857,8 +1919,8 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "wait_contest_period",
-        title: "Monitor 120-Day Contest Period",
-        description: "Wait 120 days from the date notice was sent before making final distributions. Document any contests or concerns raised.",
+        title: "Monitor Statutory Contest Period",
+        description: "Wait for the statutory contest period to expire before making final distributions. Document any contests or concerns raised.",
         estimatedTime: "120 days",
         isLongHorizon: true,
         alerts: [{
@@ -2200,11 +2262,11 @@ export const PROBATE_ESCALATION_PHASE: PhaseTaskList = {
     },
     {
       id: "escalation_file_petition",
-      title: "File Probate Petition (DE-111)",
-      description: "If formal probate is required for out-of-trust assets, file petition with Superior Court.",
+      title: "File Probate Petition",
+      description: "If formal probate is required for out-of-trust assets, file petition with the appropriate Probate Court.",
       category: "probate",
       estimatedTime: "2-4 hours",
-      requiredDocs: ["DE-111", "Death Certificate", "Original Will (if exists)"],
+      requiredDocs: ["Petition Form", "Death Certificate", "Original Will (if exists)"],
       alerts: [{
         type: "info",
         message: "You may serve as both Trustee and Executor, but the roles have different authority sources."
@@ -2212,11 +2274,11 @@ export const PROBATE_ESCALATION_PHASE: PhaseTaskList = {
     },
     {
       id: "escalation_obtain_letters",
-      title: "Obtain Letters Testamentary (DE-150)",
+      title: "Obtain Letters Testamentary",
       description: "Attend hearing and obtain court-issued authority for probate assets only.",
       category: "court-issued",
       estimatedTime: "60-90 days",
-      requiredDocs: ["Letters (DE-150)"],
+      requiredDocs: ["Letters Testamentary / Administration"],
       alerts: [{
         type: "important",
         message: "Letters are for probate assets ONLY. Trust assets do not require Letters."

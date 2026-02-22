@@ -224,34 +224,46 @@ export function calculateAuthorityRecommendation(
         // Insolvent estate requires court-supervised creditor priority process
         procedureType = "FORMAL_PROBATE";
         type = "INSOLVENT_ESTATE";
-    } else if (activeEngines.includes("TRUST")) {
-        procedureType = "TRUST_ADMINISTRATION";
-        // undefined isTrustRevocable → conservative default = revocable (simpler process)
-        type = metadata?.isTrustRevocable === false ? "TRUST_ADMIN_IRREVOCABLE" : "TRUST_ADMIN_REVOCABLE";
     } else if (metadata?.hasContest) {
         // Contested estates require formal probate regardless of out-of-state or will status
         procedureType = "FORMAL_PROBATE";
         type = "CONTESTED_ESTATE";
     } else if (metadata?.isOutOfState) {
-        // CRITICAL FIX: Ancillary probate must be checked BEFORE hasWill===false.
-        // When Will=No + OutOfState=Yes → ANCILLARY_PROBATE, not INTESTATE.
-        // The out-of-state jurisdiction requires its own proceeding regardless of will status.
+        // Ancillary probate must be checked BEFORE trust if the primary out-of-state asset is probate
+        // (Trust assets alone wouldn't trigger ancillary if titles are held by trust).
         procedureType = "ANCILLARY_PROBATE";
         type = "ANCILLARY_PROBATE";
-    } else if (metadata?.hasWill === false) {
-        // Intestate only when: no trust, not contested, not out-of-state, not insolvent
-        procedureType = "FORMAL_PROBATE";
-        type = "INTESTATE";
-    } else if (metadata?.isSpouse && probateTotal > 0) {
-        procedureType = "SPOUSAL_PETITION";
-        type = "SPOUSAL_PETITION";
-    } else if (metadata?.hasWill === true || probateTotal > threshold) {
+    } else if (probateTotal > threshold) {
+        // CRITICAL FIX: Prioritize Probate over Trust in hybrid cases.
+        // If probate assets exceed the threshold, the Primary Roadmap track MUST be the Court track
+        // to ensure Phase 0/1 compliance is visible. Trust tasks will still show via activeEngines.
         if (rule.isUPC && metadata?.hasWill && !metadata?.hasContest) {
             procedureType = "INFORMAL_PROBATE";
             type = "INFORMAL_PROBATE";
         } else if (state === "TX" && metadata?.hasWill && !metadata?.hasInsolvencyRisk) {
             procedureType = "MUNIMENT_OF_TITLE";
             type = "MUNIMENT_OF_TITLE";
+        } else {
+            procedureType = "FORMAL_PROBATE";
+            type = "FORMAL_PROBATE";
+        }
+    } else if (activeEngines.includes("TRUST")) {
+        procedureType = "TRUST_ADMINISTRATION";
+        // undefined isTrustRevocable → conservative default = revocable (simpler process)
+        type = metadata?.isTrustRevocable === false ? "TRUST_ADMIN_IRREVOCABLE" : "TRUST_ADMIN_REVOCABLE";
+    } else if (metadata?.hasWill === false) {
+        // Intestate only when: no trust, not contested, not out-of-state, not insolvent, and under threshold
+        procedureType = "FORMAL_PROBATE";
+        type = "INTESTATE";
+    } else if (metadata?.isSpouse && probateTotal > 0) {
+        procedureType = "SPOUSAL_PETITION";
+        type = "SPOUSAL_PETITION";
+    } else if (metadata?.hasWill === true) {
+        // Covered under probateTotal > threshold, but for clarity/completeness
+        // (This block would only be hit if threshold is very high or probateTotal is exactly 0 but hasWill is true)
+        if (rule.isUPC && !metadata?.hasContest) {
+            procedureType = "INFORMAL_PROBATE";
+            type = "INFORMAL_PROBATE";
         } else {
             procedureType = "FORMAL_PROBATE";
             type = "FORMAL_PROBATE";
