@@ -245,6 +245,11 @@ const Forms = () => {
                             onChange={(e) => setProcessFilter(e.target.value)}
                             className="px-4 py-2 h-10 bg-white border border-gray-200 rounded-lg text-gray-900 font-medium text-sm focus:outline-none focus:border-primary/50 transition-all cursor-pointer"
                         >
+                            <option value="">All Processes</option>
+                            <option value="probate_initialization">Probate Init</option>
+                            <option value="notices">Notices</option>
+                            <option value="inventory">Inventory</option>
+                            <option value="creditor_claims">Creditor Claims</option>
                             <option value="distribution">Distribution</option>
                             <option value="closing">Closing</option>
                         </select>

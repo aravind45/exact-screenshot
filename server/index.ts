@@ -37,6 +37,7 @@ import bookingMarketplaceRoutes from "./routes/bookingMarketplaceRoutes.js";
 import adminMarketplaceRoutes from "./routes/adminMarketplaceRoutes.js";
 import lettersDispatchRoutes from "./routes/lettersDispatchRoutes.js";
 import deadlineRoutes from "./routes/deadlineRoutes.js";
+import formRoutes from "./routes/formRoutes.js";
 
 const isServerless = process.env.VERCEL === '1' || process.env.NETLIFY === 'true' || !!process.env.AWS_EXECUTION_ENV || !!process.env.FUNCTION_NAME;
 const app = express();
@@ -183,6 +184,7 @@ app.use("/api/admin/marketplace", authenticate, adminMarketplaceRoutes);
 app.use("/api/letters-dispatch", authenticate, lettersDispatchRoutes);
 app.use("/api/mail", authenticate, mailingRoutes);
 app.use("/api/deadlines", authenticate, deadlineRoutes);
+app.use("/api/forms", authenticate, formRoutes);
 
 
 
