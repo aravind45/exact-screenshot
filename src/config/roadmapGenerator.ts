@@ -178,7 +178,8 @@ function generateTransferOnlyRoadmap(type: AuthorityType, state: string, modifie
         const trackTag = isTOD ? "NON_PROBATE" : "AFFIDAVIT";
         tasks = tasks.filter(t =>
             t.category !== "probate" &&
-            (!t.trackCompatibility || t.trackCompatibility.includes(trackTag as any))
+            (!t.trackCompatibility || t.trackCompatibility.includes(trackTag as any)) &&
+            (!t.applicability?.states || t.applicability.states.includes(state))
         );
 
         // STRIP AUTHORITY REQUIREMENT: In TOD/Transfer tracks, court-issued Letters are NOT the default.
@@ -279,6 +280,9 @@ function generateFiduciaryRoadmap(type: AuthorityType, state: string, modifiers:
         if (!modifiers.includes("INTERNATIONAL_MODE")) {
             tasks = tasks.filter(t => !t.isInternationalOnly);
         }
+
+        // Apply strict state compatibility
+        tasks = tasks.filter(t => !t.applicability?.states || t.applicability.states.includes(state));
 
         // Phase-specific additions and overrides
         if (p.phase === "immediate_actions") {
@@ -454,6 +458,9 @@ function generateProbateRoadmap(type: AuthorityType, state: string, modifiers: s
 
         // Apply strict track compatibility for Probate
         tasks = tasks.filter(t => !t.trackCompatibility || t.trackCompatibility.includes("PROBATE"));
+
+        // Apply strict state compatibility
+        tasks = tasks.filter(t => !t.applicability?.states || t.applicability.states.includes(state));
 
         // Will Search vs General Doc Search
         if (hasWill !== undefined) {

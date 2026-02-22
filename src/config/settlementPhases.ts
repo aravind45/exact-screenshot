@@ -767,55 +767,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
           message: "Service must be completed within strict deadlines before the hearing date. Proper affidavits of service are required."
         }]
       },
-      {
-        id: "publish_notice",
-        title: "Publish Creditor Notice",
-        description: "Publish notice in a local newspaper for the statutory required duration to notify creditors.",
-        estimatedTime: "1 week",
-        trackCompatibility: ["PROBATE"],
-        requiredDocs: ["Court Case Number", "Proposed Notice"],
-        category: "probate",
-        deadlineWarningId: "CREDITOR_NOTICE_DEADLINE", // New deadline link
-        dependencies: ["file_probate_petition", "file_administration_petition"],
-        helpArticleId: "creditor-notice",
-        alerts: [
-          {
-            type: "important",
-            message: "Registration of notice starts the statutory creditor claim period."
-          }
-        ],
-        stateOverrides: {
-          NY: {
-            alerts: [
-              {
-                type: "important",
-                message: "Seven-Month Rule (SCPA §1802): Creditors have 7 months from the date of Letters to file claims. Distributing before this period carries personal liability risk."
-              }
-            ]
-          }
-        }
-      },
-      {
-        id: "mail_notice",
-        title: "Mail Notice to Known Creditors",
-        description: "Send formal notice to all known creditors (banks, credit cards, medical providers).",
-        estimatedTime: "2-3 hours",
-        requiredDocs: ["Notice Form"],
-        category: "probate",
-        dependencies: ["file_probate_petition", "file_administration_petition"],
-        stateOverrides: {
-          NY: {
-            title: "Mail Notice to Creditors (SCPA §1803)",
-            description: "Send formal notice to creditors. In NY, a claim must be in writing and state the facts upon which it is based (SCPA §1803)."
-          }
-        },
-        alerts: [
-          {
-            type: "warning",
-            message: "Keep proof of mailing. This protects you from late claims."
-          }
-        ]
-      },
+
       {
         id: "attend_probate_hearing",
         title: "Attend Probate Hearing",
@@ -1322,6 +1274,55 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
           type: "caution",
           message: "Liability Alert: Do NOT pay any debts until the statutory notice period has expired and priority is confirmed."
         }]
+      },
+      {
+        id: "publish_notice",
+        title: "Publish Creditor Notice",
+        description: "Publish notice in a local newspaper for the statutory required duration to notify creditors.",
+        estimatedTime: "1 week",
+        trackCompatibility: ["PROBATE"],
+        requiredDocs: ["Court Case Number", "Proposed Notice"],
+        category: "probate",
+        deadlineWarningId: "CREDITOR_NOTICE_DEADLINE", // New deadline link
+        dependencies: ["file_probate_petition", "file_administration_petition"],
+        helpArticleId: "creditor-notice",
+        alerts: [
+          {
+            type: "important",
+            message: "Registration of notice starts the statutory creditor claim period."
+          }
+        ],
+        stateOverrides: {
+          NY: {
+            alerts: [
+              {
+                type: "important",
+                message: "Seven-Month Rule (SCPA §1802): Creditors have 7 months from the date of Letters to file claims. Distributing before this period carries personal liability risk."
+              }
+            ]
+          }
+        }
+      },
+      {
+        id: "mail_notice",
+        title: "Mail Notice to Known Creditors",
+        description: "Send formal notice to all known creditors (banks, credit cards, medical providers).",
+        estimatedTime: "2-3 hours",
+        requiredDocs: ["Notice Form"],
+        category: "probate",
+        dependencies: ["file_probate_petition", "file_administration_petition"],
+        stateOverrides: {
+          NY: {
+            title: "Mail Notice to Creditors (SCPA §1803)",
+            description: "Send formal notice to creditors. In NY, a claim must be in writing and state the facts upon which it is based (SCPA §1803)."
+          }
+        },
+        alerts: [
+          {
+            type: "warning",
+            message: "Keep proof of mailing. This protects you from late claims."
+          }
+        ]
       },
       {
         id: "intl_w8_assessment",
