@@ -2,6 +2,66 @@ import { AuthorityType, MasterMode, getMasterMode } from "@/lib/authorityEngine"
 import { getLettersTerm } from "@/lib/stateRules";
 import { SettlementPhase, PhaseTaskList, SETTLEMENT_PHASE_TASKS, TRUST_PHASE_TASKS, MODIFIER_PHASE_TASKS, PROBATE_ESCALATION_PHASE } from "./settlementPhases";
 
+// ─────────────────────────────────────────────────────────────────────────────
+// CA-only task IDs that must NEVER appear for non-CA states.
+// Synced with server/services/roadmapService.ts CA_ONLY_TASK_IDS.
+// ─────────────────────────────────────────────────────────────────────────────
+const CA_ONLY_TASK_IDS = new Set([
+    "prepare_notice_proposed_action",
+    "wait_proposed_action_period",
+    "petition_confirm_sale",
+    "obtain_sale_confirmation_order",
+]);
+
+const CA_ONLY_TITLE_PATTERNS = [
+    /\bNotice of Proposed Action\b/i,
+    /\b15-Day Objection Period\b/i,
+    /\bPetition to Confirm Sale\b/i,
+    /\bSale Confirmation Order\b/i,
+    /\bIAEA\b/,
+    /\bIndependent Administration\b/i,
+];
+
+// ─────────────────────────────────────────────────────────────────────────────
+// State-specific phase milestone overrides (client-side mirror of server config)
+// ─────────────────────────────────────────────────────────────────────────────
+const STATE_PHASE_OVERRIDES: Record<string, Record<string, { milestone?: string; subtitle?: string }>> = {
+    NY: {
+        creditor_claims: { milestone: "After Letters Issued", subtitle: "7-Month Exposure Period" },
+        asset_liquidation: { milestone: "Month 6–12", subtitle: "Transfer & Sell" },
+        final_distribution: { milestone: "After Accounting Approved", subtitle: "Court Settlement & Close" },
+    },
+    CA: {
+        creditor_claims: { milestone: "After Notice Published", subtitle: "4-Month Claim Window" },
+        asset_liquidation: { milestone: "After Inventory Filed", subtitle: "IAEA / Court-Confirmed Sales" },
+        final_distribution: { milestone: "After Claim Period", subtitle: "Estate In Closing" },
+    },
+    TX: {
+        creditor_claims: { milestone: "After Letters Issued", subtitle: "Secured & Unsecured Claims (4 Months)" },
+        final_distribution: { milestone: "After Debts Settled", subtitle: "Estate In Closing" },
+    },
+    FL: {
+        creditor_claims: { milestone: "After Letters Issued", subtitle: "3-Month Creditor Window" },
+        final_distribution: { milestone: "After Creditor Period Ends", subtitle: "Estate In Closing" },
+    },
+    PA: { creditor_claims: { milestone: "After Letters Issued", subtitle: "1-Year Claim Period" } },
+    OH: { creditor_claims: { milestone: "After Appointment", subtitle: "6-Month Claim Period" } },
+    IL: { creditor_claims: { milestone: "After Letters Issued", subtitle: "6-Month Claim Period" } },
+    GA: { creditor_claims: { milestone: "After Publication", subtitle: "3-Month Claim Period" } },
+    NJ: { creditor_claims: { milestone: "After Letters Issued", subtitle: "6-Month Claim Period" } },
+    MA: { creditor_claims: { milestone: "After Date of Death", subtitle: "1-Year Claim Period" } },
+};
+
+const NEUTRAL_PHASE_MILESTONES: Record<string, { milestone: string; subtitle: string }> = {
+    immediate_actions: { milestone: "Death to Filing", subtitle: "Secure & Notify" },
+    pre_filing_compliance: { milestone: "Before Petition Filing", subtitle: "Procedural Checks" },
+    court_filing: { milestone: "After Petition Filed", subtitle: "Obtaining Powers" },
+    asset_discovery: { milestone: "After Letters Issued", subtitle: "Inventory & Appraisal" },
+    creditor_claims: { milestone: "After Letters Issued", subtitle: "Notice & Priority" },
+    asset_liquidation: { milestone: "Month 6–12", subtitle: "Transfer & Sell" },
+    final_distribution: { milestone: "Month 6–12", subtitle: "Estate In Closing" },
+};
+
 function normalizeTextForState(text: string | undefined, state: string): string | undefined {
     if (!text) return text;
     if (state === "CA") return text;
@@ -33,6 +93,13 @@ function normalizeTaskForState(task: any, state: string) {
     const override = task.stateOverrides?.[state];
     const mergedTask = override ? { ...task, ...override } : task;
 
+    // Clean CA-only dependencies for non-CA states
+    if (state !== "CA" && mergedTask.dependencies) {
+        mergedTask.dependencies = mergedTask.dependencies.filter(
+            (dep: string) => !CA_ONLY_TASK_IDS.has(dep)
+        );
+    }
+
     return {
         ...mergedTask,
         title: normalizeTextForState(mergedTask.title, state),
@@ -49,6 +116,39 @@ function normalizeTaskForState(task: any, state: string) {
             label: normalizeTextForState(link.label, state)
         })) ?? mergedTask.links
     };
+}
+
+/**
+ * Hard guard: remove CA-only tasks for non-CA states (client-side version).
+ * Uses task-ID, applicability.states, AND title-pattern matching.
+ */
+function removeCAOnlyTasks(phases: PhaseTaskList[], state: string): PhaseTaskList[] {
+    if (state === "CA") return phases;
+    return phases.map(phase => ({
+        ...phase,
+        tasks: phase.tasks.filter(task => {
+            if (CA_ONLY_TASK_IDS.has(task.id)) return false;
+            if (task.applicability?.states?.length && !task.applicability.states.includes(state)) return false;
+            if (CA_ONLY_TITLE_PATTERNS.some(p => p.test(task.title))) return false;
+            return true;
+        }),
+    }));
+}
+
+/**
+ * Normalize phase-level metadata for the estate's state (client-side version).
+ */
+function normalizePhasesForState(phases: PhaseTaskList[], state: string): PhaseTaskList[] {
+    const stateOverrides = STATE_PHASE_OVERRIDES[state] || {};
+    return phases.map(phase => {
+        const phaseOverride = stateOverrides[phase.phase];
+        const neutralDefault = NEUTRAL_PHASE_MILESTONES[phase.phase];
+        return {
+            ...phase,
+            milestone: phaseOverride?.milestone || neutralDefault?.milestone || phase.milestone,
+            subtitle: phaseOverride?.subtitle || neutralDefault?.subtitle || phase.subtitle,
+        };
+    });
 }
 
 export function generateRoadmap(
@@ -143,12 +243,19 @@ export function generateRoadmap(
         "final_distribution"
     ];
 
-    return orderedPhaseKeys
+    // Build final phase list with per-task normalization
+    let finalPhases = orderedPhaseKeys
         .filter(key => mergedPhases[key])
         .map(key => ({
             ...mergedPhases[key],
             tasks: mergedPhases[key].tasks.map(task => normalizeTaskForState(task, state))
         }));
+
+    // Apply CA-only task removal and phase milestone normalization
+    finalPhases = removeCAOnlyTasks(finalPhases, state);
+    finalPhases = normalizePhasesForState(finalPhases, state);
+
+    return finalPhases;
 }
 
 function generateTransferOnlyRoadmap(type: AuthorityType, state: string, modifiers: string[] = [], activeEngines: string[] = [], hasWill?: boolean): PhaseTaskList[] {
@@ -433,6 +540,9 @@ function generateProbateRoadmap(type: AuthorityType, state: string, modifiers: s
         // Instead, we add a high-priority task to verify the 'Spousal Set-Aside' requirements.
         const creditorPhase = roadmap.find((p: any) => p.phase === "creditor_claims");
         if (creditorPhase) {
+            // State-neutral text; normalizeTextForState handles CA→state substitution,
+            // but we avoid hardcoding CA references in the first place for non-CA states.
+            const isCA = state === "CA";
             creditorPhase.tasks.unshift({
                 id: "verify_spousal_creditor_exemption",
                 title: "Verify Creditor Notice Exemption",
@@ -440,9 +550,11 @@ function generateProbateRoadmap(type: AuthorityType, state: string, modifiers: s
                 tags: ["risk-guardrail", "statutory"],
                 alerts: [{
                     type: "warning",
-                    message: "Assuming liability is high-risk. While it skips the 4-month waiting period, you become personally responsible for the debts out of your own pocket."
+                    message: "Assuming liability is high-risk. While it skips the creditor claim waiting period, you become personally responsible for the debts out of your own pocket."
                 }],
-                links: [{ label: "CA Prob. Code §13550", url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?sectionNum=13550.&lawCode=PROB" }]
+                links: isCA
+                    ? [{ label: "CA Prob. Code §13550", url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?sectionNum=13550.&lawCode=PROB" }]
+                    : [{ label: "State spousal exemption statute", url: "#" }]
             });
         }
     }

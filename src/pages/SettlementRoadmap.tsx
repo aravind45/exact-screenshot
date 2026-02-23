@@ -2,8 +2,9 @@ import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { SettlementPhaseChevron } from "@/components/SettlementPhaseChevron";
-import { PhaseTaskList } from "@/components/PhaseTaskList";
-import { SETTLEMENT_PHASE_TASKS, type SettlementPhase } from "@/config/settlementPhases";
+import { PhaseTaskList as PhaseTaskListComponent } from "@/components/PhaseTaskList";
+import { SETTLEMENT_PHASE_TASKS, type SettlementPhase, type PhaseTaskList } from "@/config/settlementPhases";
+import { generateRoadmap } from "@/config/roadmapGenerator";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -29,8 +30,6 @@ import { cn } from "@/lib/utils";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { calculateAuthorityRecommendation } from "@/lib/authorityEngine";
-import { generateRoadmap } from "@/config/roadmapGenerator";
-import { getMasterMode } from "@/lib/authorityEngine";
 
 export default function SettlementRoadmap() {
   const navigate = useNavigate();
@@ -83,9 +82,28 @@ export default function SettlementRoadmap() {
     enabled: !!estate?.id,
   });
 
-  const dynamicRoadmap = useMemo(() => {
-    return roadmapData?.phases || SETTLEMENT_PHASE_TASKS;
-  }, [roadmapData]);
+  // State-aware fallback: if API data isn't available yet, apply client-side
+  // filtering to prevent CA-specific content from showing for non-CA states.
+  const dynamicRoadmap = useMemo<PhaseTaskList[]>(() => {
+    if (roadmapData?.phases) return roadmapData.phases;
+
+    // Fallback: use client-side generator with state-aware filtering
+    // instead of raw SETTLEMENT_PHASE_TASKS (which contain CA-only tasks)
+    if (estate?.deceasedState && authorityRec) {
+      try {
+        return generateRoadmap(
+          authorityRec.authoritySource as any,
+          estate.deceasedState,
+          authorityRec.modifiers || [],
+          authorityRec.activeEngines || [],
+          estate.hasWill
+        );
+      } catch {
+        // Fall through to raw fallback
+      }
+    }
+    return SETTLEMENT_PHASE_TASKS;
+  }, [roadmapData, estate, authorityRec]);
 
   const [completedPhases, setCompletedPhases] = useState<SettlementPhase[]>([]);
   const [completedTaskIds, setCompletedTaskIds] = useState<string[]>([]);
@@ -536,7 +554,7 @@ export default function SettlementRoadmap() {
                 </Button>
               </div>
 
-              <PhaseTaskList
+              <PhaseTaskListComponent
                 phase={currentPhase}
                 phaseData={phaseData}
                 completedTaskIds={completedTaskIds}
