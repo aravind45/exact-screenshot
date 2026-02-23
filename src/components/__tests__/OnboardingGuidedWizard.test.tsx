@@ -115,7 +115,7 @@ describe('OnboardingGuidedWizard', () => {
         const dateInput = screen.getByLabelText("Date of Death");
         fireEvent.change(dateInput, { target: { value: "2024-01-01" } });
         
-        const stateSelect = screen.getByLabelText("Residence (State)");
+        const stateSelect = screen.getByLabelText("Deceased's State of Residence");
         fireEvent.change(stateSelect, { target: { value: "CA" } });
         
         // Click continue
@@ -141,7 +141,7 @@ describe('OnboardingGuidedWizard', () => {
         const dateInput = screen.getByLabelText("Date of Death");
         fireEvent.change(dateInput, { target: { value: "2024-01-01" } });
         
-        const stateSelect = screen.getByLabelText("Residence (State)");
+        const stateSelect = screen.getByLabelText("Deceased's State of Residence");
         fireEvent.change(stateSelect, { target: { value: "CA" } });
         
         const continueButton = screen.getByText("Continue to Quick Assessment");
@@ -174,7 +174,7 @@ describe('OnboardingGuidedWizard', () => {
         const dateInput = screen.getByLabelText("Date of Death");
         fireEvent.change(dateInput, { target: { value: "2024-01-01" } });
         
-        const stateSelect = screen.getByLabelText("Residence (State)");
+        const stateSelect = screen.getByLabelText("Deceased's State of Residence");
         fireEvent.change(stateSelect, { target: { value: "CA" } });
         
         const continueButton = screen.getByText("Continue to Quick Assessment");
@@ -206,7 +206,7 @@ describe('OnboardingGuidedWizard', () => {
         const dateInput = screen.getByLabelText("Date of Death");
         fireEvent.change(dateInput, { target: { value: "2024-01-01" } });
         
-        const stateSelect = screen.getByLabelText("Residence (State)");
+        const stateSelect = screen.getByLabelText("Deceased's State of Residence");
         fireEvent.change(stateSelect, { target: { value: "CA" } });
         
         const continueButton = screen.getByText("Continue to Quick Assessment");
@@ -241,7 +241,7 @@ describe('OnboardingGuidedWizard', () => {
         const dateInput = screen.getByLabelText("Date of Death");
         fireEvent.change(dateInput, { target: { value: "2024-01-01" } });
         
-        const stateSelect = screen.getByLabelText("Residence (State)");
+        const stateSelect = screen.getByLabelText("Deceased's State of Residence");
         fireEvent.change(stateSelect, { target: { value: "CA" } });
         
         const continueButton = screen.getByText("Continue to Quick Assessment");
@@ -282,7 +282,7 @@ describe('OnboardingGuidedWizard', () => {
         const dateInput = screen.getByLabelText("Date of Death");
         fireEvent.change(dateInput, { target: { value: "2024-01-01" } });
         
-        const stateSelect = screen.getByLabelText("Residence (State)");
+        const stateSelect = screen.getByLabelText("Deceased's State of Residence");
         fireEvent.change(stateSelect, { target: { value: "CA" } });
         
         const continueButton = screen.getByText("Continue to Quick Assessment");

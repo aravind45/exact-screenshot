@@ -509,7 +509,7 @@ export default function OnboardingGuidedWizard() {
                                                     />
                                                 </div>
                                                 <div className="space-y-2">
-                                                    <Label>Residence (State)</Label>
+                                                    <Label>Deceased's State of Residence</Label>
                                                     <Select
                                                         value={formData.location}
                                                         onValueChange={val => setFormData({ ...formData, location: val })}

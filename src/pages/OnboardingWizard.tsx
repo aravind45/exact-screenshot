@@ -487,7 +487,7 @@ export default function OnboardingWizard() {
                                                     />
                                                 </div>
                                                 <div className="space-y-2">
-                                                    <Label>Residence (State)</Label>
+                                                    <Label>Deceased's State of Residence</Label>
                                                     <Select
                                                         value={estateData.location}
                                                         onValueChange={val => setEstateData({ ...estateData, location: val })}
