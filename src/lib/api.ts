@@ -317,16 +317,7 @@ export const api = {
         return data;
     },
 
-    register: async (data: {
-        email: string,
-        password: string,
-        fullName: string,
-        state?: string,
-        role?: string,
-        userType?: "EXECUTOR" | "ADVISOR",
-        deceasedName?: string,
-        estimatedValue?: string
-    }) => {
+    register: async (data: { email: string, password: string, fullName: string, state?: string, role?: string, userType?: "EXECUTOR" | "ADVISOR" }) => {
         const response = await fetch(`${API_URL}/auth/register`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -2164,5 +2155,210 @@ export const api = {
             });
             return parseResponse(response);
         }
+    },
+
+    /**
+     * SSOT Probate Engine — Admin API
+     */
+    ssot: {
+        // Stats & Gap Detection
+        getStats: async () => {
+            const r = await fetch(`${API_URL}/ssot/stats`, { headers: getHeaders() });
+            return parseResponse(r);
+        },
+        getGaps: async () => {
+            const r = await fetch(`${API_URL}/ssot/gaps`, { headers: getHeaders() });
+            return parseResponse(r);
+        },
+        getStateCompleteness: async () => {
+            const r = await fetch(`${API_URL}/ssot/state-completeness`, { headers: getHeaders() });
+            return parseResponse(r);
+        },
+
+        // Jurisdictions
+        getJurisdictions: async () => {
+            const r = await fetch(`${API_URL}/ssot/jurisdictions`, { headers: getHeaders() });
+            return parseResponse(r);
+        },
+        getJurisdiction: async (id: string) => {
+            const r = await fetch(`${API_URL}/ssot/jurisdictions/${id}`, { headers: getHeaders() });
+            return parseResponse(r);
+        },
+        createJurisdiction: async (data: any) => {
+            const r = await fetch(`${API_URL}/ssot/jurisdictions`, { method: "POST", headers: getHeaders(), body: JSON.stringify(data) });
+            return parseResponse(r);
+        },
+        updateJurisdiction: async (id: string, data: any) => {
+            const r = await fetch(`${API_URL}/ssot/jurisdictions/${id}`, { method: "PUT", headers: getHeaders(), body: JSON.stringify(data) });
+            return parseResponse(r);
+        },
+        publishJurisdiction: async (id: string) => {
+            const r = await fetch(`${API_URL}/ssot/jurisdictions/${id}/publish`, { method: "POST", headers: getHeaders() });
+            return parseResponse(r);
+        },
+
+        // Probate Types
+        getProbateTypes: async () => {
+            const r = await fetch(`${API_URL}/ssot/probate-types`, { headers: getHeaders() });
+            return parseResponse(r);
+        },
+        createProbateType: async (data: any) => {
+            const r = await fetch(`${API_URL}/ssot/probate-types`, { method: "POST", headers: getHeaders(), body: JSON.stringify(data) });
+            return parseResponse(r);
+        },
+        updateProbateType: async (id: string, data: any) => {
+            const r = await fetch(`${API_URL}/ssot/probate-types/${id}`, { method: "PUT", headers: getHeaders(), body: JSON.stringify(data) });
+            return parseResponse(r);
+        },
+
+        // Roadmaps
+        getRoadmaps: async (jurisdictionId?: string) => {
+            const qs = jurisdictionId ? `?jurisdictionId=${jurisdictionId}` : "";
+            const r = await fetch(`${API_URL}/ssot/roadmaps${qs}`, { headers: getHeaders() });
+            return parseResponse(r);
+        },
+        getRoadmapFull: async (id: string) => {
+            const r = await fetch(`${API_URL}/ssot/roadmaps/${id}/full`, { headers: getHeaders() });
+            return parseResponse(r);
+        },
+        createRoadmap: async (data: any) => {
+            const r = await fetch(`${API_URL}/ssot/roadmaps`, { method: "POST", headers: getHeaders(), body: JSON.stringify(data) });
+            return parseResponse(r);
+        },
+        updateRoadmapMeta: async (id: string, data: any) => {
+            const r = await fetch(`${API_URL}/ssot/roadmaps/${id}`, { method: "PUT", headers: getHeaders(), body: JSON.stringify(data) });
+            return parseResponse(r);
+        },
+        publishRoadmap: async (id: string) => {
+            const r = await fetch(`${API_URL}/ssot/roadmaps/${id}/publish`, { method: "POST", headers: getHeaders() });
+            return parseResponse(r);
+        },
+
+        // Phases
+        createPhase: async (data: any) => {
+            const r = await fetch(`${API_URL}/ssot/phases`, { method: "POST", headers: getHeaders(), body: JSON.stringify(data) });
+            return parseResponse(r);
+        },
+        updatePhase: async (id: string, data: any) => {
+            const r = await fetch(`${API_URL}/ssot/phases/${id}`, { method: "PUT", headers: getHeaders(), body: JSON.stringify(data) });
+            return parseResponse(r);
+        },
+        deletePhase: async (id: string) => {
+            const r = await fetch(`${API_URL}/ssot/phases/${id}`, { method: "DELETE", headers: getHeaders() });
+            return parseResponse(r);
+        },
+
+        // Steps
+        createStep: async (data: any) => {
+            const r = await fetch(`${API_URL}/ssot/steps`, { method: "POST", headers: getHeaders(), body: JSON.stringify(data) });
+            return parseResponse(r);
+        },
+        updateStep: async (id: string, data: any) => {
+            const r = await fetch(`${API_URL}/ssot/steps/${id}`, { method: "PUT", headers: getHeaders(), body: JSON.stringify(data) });
+            return parseResponse(r);
+        },
+        deleteStep: async (id: string) => {
+            const r = await fetch(`${API_URL}/ssot/steps/${id}`, { method: "DELETE", headers: getHeaders() });
+            return parseResponse(r);
+        },
+
+        // Actions
+        createAction: async (data: any) => {
+            const r = await fetch(`${API_URL}/ssot/actions`, { method: "POST", headers: getHeaders(), body: JSON.stringify(data) });
+            return parseResponse(r);
+        },
+        updateAction: async (id: string, data: any) => {
+            const r = await fetch(`${API_URL}/ssot/actions/${id}`, { method: "PUT", headers: getHeaders(), body: JSON.stringify(data) });
+            return parseResponse(r);
+        },
+        deleteAction: async (id: string) => {
+            const r = await fetch(`${API_URL}/ssot/actions/${id}`, { method: "DELETE", headers: getHeaders() });
+            return parseResponse(r);
+        },
+
+        // Forms
+        getForms: async (jurisdictionId?: string) => {
+            const qs = jurisdictionId ? `?jurisdictionId=${jurisdictionId}` : "";
+            const r = await fetch(`${API_URL}/ssot/forms${qs}`, { headers: getHeaders() });
+            return parseResponse(r);
+        },
+        createForm: async (data: any) => {
+            const r = await fetch(`${API_URL}/ssot/forms`, { method: "POST", headers: getHeaders(), body: JSON.stringify(data) });
+            return parseResponse(r);
+        },
+        updateForm: async (id: string, data: any) => {
+            const r = await fetch(`${API_URL}/ssot/forms/${id}`, { method: "PUT", headers: getHeaders(), body: JSON.stringify(data) });
+            return parseResponse(r);
+        },
+
+        // Asset Types
+        getAssetTypes: async () => {
+            const r = await fetch(`${API_URL}/ssot/asset-types`, { headers: getHeaders() });
+            return parseResponse(r);
+        },
+        createAssetType: async (data: any) => {
+            const r = await fetch(`${API_URL}/ssot/asset-types`, { method: "POST", headers: getHeaders(), body: JSON.stringify(data) });
+            return parseResponse(r);
+        },
+
+        // Liability Types
+        getLiabilityTypes: async () => {
+            const r = await fetch(`${API_URL}/ssot/liability-types`, { headers: getHeaders() });
+            return parseResponse(r);
+        },
+        createLiabilityType: async (data: any) => {
+            const r = await fetch(`${API_URL}/ssot/liability-types`, { method: "POST", headers: getHeaders(), body: JSON.stringify(data) });
+            return parseResponse(r);
+        },
+
+        // Accounting / Tax / Distribution Rules
+        getAccountingRules: async (jurisdictionId?: string) => {
+            const qs = jurisdictionId ? `?jurisdictionId=${jurisdictionId}` : "";
+            const r = await fetch(`${API_URL}/ssot/accounting-rules${qs}`, { headers: getHeaders() });
+            return parseResponse(r);
+        },
+        createAccountingRule: async (data: any) => {
+            const r = await fetch(`${API_URL}/ssot/accounting-rules`, { method: "POST", headers: getHeaders(), body: JSON.stringify(data) });
+            return parseResponse(r);
+        },
+        getTaxObligations: async (jurisdictionId?: string) => {
+            const qs = jurisdictionId ? `?jurisdictionId=${jurisdictionId}` : "";
+            const r = await fetch(`${API_URL}/ssot/tax-obligations${qs}`, { headers: getHeaders() });
+            return parseResponse(r);
+        },
+        createTaxObligation: async (data: any) => {
+            const r = await fetch(`${API_URL}/ssot/tax-obligations`, { method: "POST", headers: getHeaders(), body: JSON.stringify(data) });
+            return parseResponse(r);
+        },
+        getDistributionRules: async (jurisdictionId?: string) => {
+            const qs = jurisdictionId ? `?jurisdictionId=${jurisdictionId}` : "";
+            const r = await fetch(`${API_URL}/ssot/distribution-rules${qs}`, { headers: getHeaders() });
+            return parseResponse(r);
+        },
+        createDistributionRule: async (data: any) => {
+            const r = await fetch(`${API_URL}/ssot/distribution-rules`, { method: "POST", headers: getHeaders(), body: JSON.stringify(data) });
+            return parseResponse(r);
+        },
+
+        // Statute References
+        getStatuteRefs: async (entityType: string, entityId: string) => {
+            const r = await fetch(`${API_URL}/ssot/statute-references?entityType=${encodeURIComponent(entityType)}&entityId=${encodeURIComponent(entityId)}`, { headers: getHeaders() });
+            return parseResponse(r);
+        },
+        createStatuteRef: async (data: any) => {
+            const r = await fetch(`${API_URL}/ssot/statute-references`, { method: "POST", headers: getHeaders(), body: JSON.stringify(data) });
+            return parseResponse(r);
+        },
+
+        // Change Logs
+        getChangeLogs: async (params?: { entityType?: string; entityId?: string; limit?: number }) => {
+            const q = new URLSearchParams();
+            if (params?.entityType) q.set("entityType", params.entityType);
+            if (params?.entityId) q.set("entityId", params.entityId);
+            if (params?.limit) q.set("limit", params.limit.toString());
+            const qs = q.toString() ? `?${q.toString()}` : "";
+            const r = await fetch(`${API_URL}/ssot/change-logs${qs}`, { headers: getHeaders() });
+            return parseResponse(r);
+        },
     },
 };

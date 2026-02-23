@@ -72,7 +72,7 @@ export const AssetService = {
         }
 
         const { getAssetAuthorityType, getStateRule } = await import("../../src/lib/authorityEngine.js");
-        const rule = getStateRule(estate.deceasedState || "CA");
+        const rule = getStateRule(estate.deceasedState);
         const authType = getAssetAuthorityType({
             ownershipType: ownershipType || "INDIVIDUAL",
             value: value ? parseFloat(value) : 0
@@ -119,7 +119,7 @@ export const AssetService = {
             const { AuthorityService } = await import("./authorityService.js");
             const allAssets = await this.getAll(userId); // Get all to re-calculate
             const { calculateAuthorityRecommendation } = await import("../../src/lib/authorityEngine.js");
-            const newRec = calculateAuthorityRecommendation(allAssets, estate.deceasedState || "CA", {
+            const newRec = calculateAuthorityRecommendation(allAssets, estate.deceasedState, {
                 hasWill: estate.hasWill,
                 isSpouse: estate.isSurvivingSpouse
             });
@@ -164,7 +164,7 @@ export const AssetService = {
             where: { id: existing.estateId },
             select: { deceasedState: true }
         });
-        const rule = getStateRule(estateRecordForAuth?.deceasedState || "CA");
+        const rule = getStateRule(estateRecordForAuth?.deceasedState);
         const authType = getAssetAuthorityType({
             ownershipType: ownershipType || existing.ownershipType,
             value: value !== undefined ? parseFloat(value) : (existing.value || 0)
@@ -222,7 +222,7 @@ export const AssetService = {
             const allAssets = await this.getAll(userId);
             const { calculateAuthorityRecommendation } = await import("../../src/lib/authorityEngine.js");
             if (estate) {
-                const newRec = calculateAuthorityRecommendation(allAssets, estate.deceasedState || "CA", {
+                const newRec = calculateAuthorityRecommendation(allAssets, estate.deceasedState, {
                     hasWill: estate.hasWill,
                     isSpouse: estate.isSurvivingSpouse
                 });

@@ -1,5 +1,6 @@
 import { prisma } from "../db.js";
 import { PriorityFactory } from "./priority/priorityFactory.js";
+import { getStateRule } from "../../src/lib/authorityEngine.js";
 
 export class PriorityService {
 
@@ -34,7 +35,7 @@ export class PriorityService {
         });
 
         // 4. Get Rules Engine
-        const system = PriorityFactory.getSystem(estate.deceasedState || "CA");
+        const system = PriorityFactory.getSystem(estate.deceasedState);
 
         // 5. Notice Period Check
         // In most states, payments to regular creditors are restricted until the notice period expires.

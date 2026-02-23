@@ -78,6 +78,7 @@ const NonProbate = lazy(() => import("./pages/NonProbate"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const AdminInstitutions = lazy(() => import("./pages/admin/AdminInstitutions"));
 const AdminAdvisorQueue = lazy(() => import("./pages/admin/AdminAdvisorQueue"));
+const SSOTProbateEngine = lazy(() => import("./pages/admin/SSOTProbateEngine"));
 
 // Advisor
 const AdvisorDashboard = lazy(() => import("./pages/advisor/Dashboard"));
@@ -307,6 +308,7 @@ const App = () => (
                       <Route path="/admin" element={<ProtectedRoute><RoleRoute allowedRoles={['ADMIN']}><AdminDashboard /></RoleRoute></ProtectedRoute>} />
                       <Route path="/admin/institutions" element={<ProtectedRoute><RoleRoute allowedRoles={['ADMIN']}><AdminInstitutions /></RoleRoute></ProtectedRoute>} />
                       <Route path="/admin/advisors" element={<ProtectedRoute><RoleRoute allowedRoles={['ADMIN']}><AdminAdvisorQueue /></RoleRoute></ProtectedRoute>} />
+                      <Route path="/admin/probate-engine" element={<ProtectedRoute><RoleRoute allowedRoles={['ADMIN']}><SSOTProbateEngine /></RoleRoute></ProtectedRoute>} />
 
                       <Route path="*" element={<NotFound />} />
                     </Routes>

@@ -60,8 +60,8 @@ def scan_file(filepath):
                 line_content = content.split('\n')[line_no - 1].strip()
                 
                 # Exceptions: check if it's in a stateOverride for NY or logic that handles other states
-                # For roadmapService.ts, we allow them in the normalizeTextForState function as it's scrubbing them
-                if 'roadmapService.ts' in filepath and 'replace' in line_content:
+                # For roadmapService.ts, we allow them in the normalizeTextForState function and the guard lists
+                if 'roadmapService.ts' in filepath and any(x in line_content for x in ['replace', 'CA_ONLY_TEXT_TOKENS', 'CA_ONLY_TITLE_PATTERNS', 'CA_TOKENS']):
                     continue
                 if 'stateRules.ts' in filepath and '"CA"' in line_content:
                     continue

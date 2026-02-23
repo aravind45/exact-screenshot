@@ -27,6 +27,8 @@ import {
   ChevronDown,
   ChevronUp,
   BarChart2,
+  MapPin,
+  Calendar,
 } from "lucide-react";
 import { SettlementHealthEngine } from "@/components/SettlementHealthEngine";
 import { useState, useEffect, useRef } from "react";
@@ -84,6 +86,7 @@ export default function Dashboard() {
   const { roleName, estateName, authorityType } = useTerminology();
   const [viewMode, setViewMode] = useState<'grid' | 'trail'>('grid');
   const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [estateDetailsOpen, setEstateDetailsOpen] = useState(false);
   const { toast } = useToast();
 
   const { data: assetsData, isLoading, error } = useQuery({
@@ -794,6 +797,97 @@ export default function Dashboard() {
                         assets={assets}
                         onNavigate={(id) => navigate(`/asset/${id}`)}
                       />
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* ── Estate Details (collapsible) ── */}
+          <div className="rounded-3xl border border-slate-100 bg-white shadow-sm overflow-hidden">
+            <button
+              className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-slate-50 transition-colors"
+              onClick={() => setEstateDetailsOpen((v) => !v)}
+            >
+              <div className="flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-xl bg-indigo-50 flex items-center justify-center">
+                  <User className="w-3.5 h-3.5 text-indigo-500" />
+                </div>
+                <div className="text-left">
+                  <p className="text-xs font-black text-slate-700 tracking-tight">Estate Details</p>
+                  <p className="text-[10px] font-medium text-slate-400 mt-0.5">
+                    Verify registration & setup data
+                  </p>
+                </div>
+              </div>
+              {estateDetailsOpen ? (
+                <ChevronUp className="w-4 h-4 text-slate-400 flex-shrink-0" />
+              ) : (
+                <ChevronDown className="w-4 h-4 text-slate-400 flex-shrink-0" />
+              )}
+            </button>
+
+            <AnimatePresence initial={false}>
+              {estateDetailsOpen && (
+                <motion.div
+                  key="estate-details"
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.22, ease: "easeInOut" }}
+                  className="overflow-hidden"
+                >
+                  <div className="px-4 pt-2 pb-4 space-y-3 border-t border-slate-50 bg-slate-50/30">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Jurisdiction</p>
+                        <div className="flex items-center gap-1.5 text-xs font-black text-slate-700">
+                          <MapPin className="w-3 h-3 text-slate-400" />
+                          {estate?.deceasedState || 'Not Set'}
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Will Present</p>
+                        <div className="flex items-center gap-1.5 text-xs font-black text-slate-700">
+                          <FileCheck className="w-3 h-3 text-slate-400" />
+                          {estate?.hasWill ? 'Yes' : 'No'}
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Date of Death</p>
+                        <div className="flex items-center gap-1.5 text-xs font-black text-slate-700">
+                          <Calendar className="w-3 h-3 text-slate-400" />
+                          {estate?.deceasedDateOfDeath ? new Date(estate.deceasedDateOfDeath).toLocaleDateString() : 'N/A'}
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Est. Value</p>
+                        <div className="flex items-center gap-1.5 text-xs font-black text-slate-700">
+                          <DollarSign className="w-3 h-3 text-slate-400" />
+                          {Number(estate?.estimatedPersonalProperty) > 0 ? `$${Number(estate.estimatedPersonalProperty).toLocaleString()}` : '$0'}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="pt-2 border-t border-slate-100">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Trust Info</p>
+                      <div className="flex items-center gap-1.5 text-xs font-black text-slate-700">
+                        <ShieldAlert className="w-3 h-3 text-slate-400" />
+                        {estate?.isTrustRevocable === true ? 'Revocable Trust' :
+                          estate?.isTrustRevocable === false ? 'Irrevocable Trust' : 'No Trust / Not Disclosed'}
+                      </div>
+                    </div>
+
+                    <div className="pt-2">
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        className="w-full h-8 text-[10px] font-black uppercase tracking-widest"
+                        onClick={() => navigate('/profile')}
+                      >
+                        Edit Profile Details
+                      </Button>
                     </div>
                   </div>
                 </motion.div>
