@@ -27,45 +27,22 @@ const CA_ONLY_TITLE_PATTERNS = [
 // ─────────────────────────────────────────────────────────────────────────────
 const STATE_PHASE_OVERRIDES: Record<string, Record<string, { milestone?: string; subtitle?: string }>> = {
     NY: {
-        creditor_claims: { milestone: "After Letters Issued", subtitle: "7-Month Exposure Management" },
-        asset_liquidation: { milestone: "Month 6–12", subtitle: "Transfer & Sell" },
-        final_distribution: { milestone: "After Accounting & Approvals", subtitle: "Settle & Close" },
+        creditor_claims: { milestone: "After Letters Issued", subtitle: "7-Month Exposure Management" }
     },
     CA: {
         creditor_claims: { milestone: "After Notice Published", subtitle: "4-Month Claim Window" },
-        asset_liquidation: { milestone: "After Inventory Filed", subtitle: "IAEA / Court-Confirmed Sales" },
-        final_distribution: { milestone: "After Claim Period", subtitle: "Estate Closing" },
-    },
-    TX: {
-        creditor_claims: { milestone: "After Letters Issued", subtitle: "Secured & Unsecured Claims (4 Months)" },
-        final_distribution: { milestone: "After Debts Settled", subtitle: "Estate In Closing" },
-    },
-    FL: {
-        creditor_claims: { milestone: "After Letters Issued", subtitle: "3-Month Creditor Window" },
-        final_distribution: { milestone: "After Creditor Period Ends", subtitle: "Estate In Closing" },
-    },
-    PA: { creditor_claims: { milestone: "After Letters Issued", subtitle: "1-Year Claim Period" } },
-    OH: { creditor_claims: { milestone: "After Appointment", subtitle: "6-Month Claim Period" } },
-    IL: { creditor_claims: { milestone: "After Letters Issued", subtitle: "6-Month Claim Period" } },
-    GA: { creditor_claims: { milestone: "After Publication", subtitle: "3-Month Claim Period" } },
-    NJ: { creditor_claims: { milestone: "After Letters Issued", subtitle: "6-Month Claim Period" } },
-    MA: { creditor_claims: { milestone: "After Date of Death", subtitle: "1-Year Claim Period" } },
-    // DEFAULT fallback — used when a state has no explicit override, so CA tokens never leak
-    DEFAULT: {
-        creditor_claims: { milestone: "After Letters Issued", subtitle: "State-Specific Timing" },
-        asset_liquidation: { milestone: "Post-Inventory", subtitle: "State-Specific Process" },
-        final_distribution: { milestone: "After Claims & Accounting", subtitle: "Distribution & Closeout" },
-    },
+        asset_liquidation: { milestone: "After Inventory Prepared", subtitle: "IAEA / Court-Confirmed Sales" }
+    }
 };
 
 const NEUTRAL_PHASE_MILESTONES: Record<string, { milestone: string; subtitle: string }> = {
-    immediate_actions: { milestone: "Death to Filing", subtitle: "Secure & Notify" },
-    pre_filing_compliance: { milestone: "Before Petition Filing", subtitle: "Procedural Checks" },
-    court_filing: { milestone: "After Petition Filed", subtitle: "Obtaining Authority" },
-    asset_discovery: { milestone: "After Letters Issued", subtitle: "Inventory & Valuation" },
-    creditor_claims: { milestone: "After Letters Issued", subtitle: "State-Specific Claim Handling" },
-    asset_liquidation: { milestone: "Post-Inventory", subtitle: "Transfer & Sale (If Required)" },
-    final_distribution: { milestone: "After Claims & Accounting", subtitle: "Distribution & Closeout" },
+    immediate_actions: { milestone: "Immediately After Death", subtitle: "Secure, Notify, Preserve" },
+    pre_filing_compliance: { milestone: "Before Court Filing", subtitle: "Eligibility, Venue, Parties" },
+    court_filing: { milestone: "Court Filing → Authority", subtitle: "Petition, Notices, Letters" },
+    asset_discovery: { milestone: "After Authority Issued", subtitle: "Inventory & Valuation" },
+    creditor_claims: { milestone: "After Authority Issued", subtitle: "Claims & Exposure Management" },
+    asset_liquidation: { milestone: "After Inventory Prepared", subtitle: "Transfers & Sales (If Needed)" },
+    final_distribution: { milestone: "After Claims & Taxes Addressed", subtitle: "Accounting, Distribution, Close" },
 };
 
 function normalizeTextForState(text: string | undefined, state: string): string | undefined {

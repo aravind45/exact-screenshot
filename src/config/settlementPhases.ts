@@ -103,8 +103,8 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
   {
     phase: "immediate_actions",
     title: "Strategic Assessment",
-    subtitle: "Secure & Notify",
-    milestone: "Death to Filing",
+    subtitle: "Secure, Notify, Preserve",
+    milestone: "Immediately After Death",
     description: "Evaluate the estate's characteristics before taking irrevocable actions.",
     tasks: [
       {
@@ -492,8 +492,8 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
   {
     phase: "pre_filing_compliance",
     title: "Court Compliance & Eligibility",
-    subtitle: "Procedural Checks",
-    milestone: "Before Petition Filing",
+    subtitle: "Eligibility, Venue, Parties",
+    milestone: "Before Court Filing",
     description: "Ensure all jurisdictional, statutory, and documentation requirements are met prior to formal court submission. This universal layer adapts to state-specific rules.",
     tasks: [
       {
@@ -670,8 +670,8 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
   {
     phase: "court_filing",
     title: "Petition & Authority",
-    subtitle: "Obtaining Authority",
-    milestone: "After Petition Filed",
+    subtitle: "Petition, Notices, Letters",
+    milestone: "Court Filing → Authority",
     description: "Submitting the probate petition to the court to obtain official fiduciary authority (Letters).",
     tasks: [
       {
@@ -1148,7 +1148,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
     phase: "asset_discovery",
     title: "Asset Discovery",
     subtitle: "Inventory & Valuation",
-    milestone: "After Letters Issued",
+    milestone: "After Authority Issued",
     description: "Identify all assets within the estate's jurisdiction and obtain formal Date-of-Death valuations.",
     tasks: [
       {
@@ -1275,8 +1275,8 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
   {
     phase: "creditor_claims",
     title: "Creditor Claims",
-    subtitle: "State-Specific Claim Handling",
-    milestone: "After Letters Issued",
+    subtitle: "Claims & Exposure Management",
+    milestone: "After Authority Issued",
     description: "Identify creditors, document notices, track state-specific exposure timelines, and pay approved claims in priority order.",
     tasks: [
       {
@@ -1606,8 +1606,8 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
   {
     phase: "asset_liquidation",
     title: "Asset Liquidation",
-    subtitle: "Transfer & Sale (If Required)",
-    milestone: "Post-Inventory",
+    subtitle: "Transfers & Sales (If Needed)",
+    milestone: "After Inventory Prepared",
     description: "Present Letters to institutions, transfer or sell assets, and pay final bills.",
     tasks: [
       {
@@ -1816,8 +1816,8 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
   {
     phase: "final_distribution",
     title: "Final Distribution",
-    subtitle: "Distribution & Closeout",
-    milestone: "After Claims & Accounting",
+    subtitle: "Accounting, Distribution, Close",
+    milestone: "After Claims & Taxes Addressed",
     description: "File petition for final distribution, distribute assets to heirs, and close estate.",
     tasks: [
       {
