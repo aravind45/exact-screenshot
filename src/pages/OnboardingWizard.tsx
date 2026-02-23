@@ -28,10 +28,10 @@ import {
     Loader2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { InstitutionSelect } from "@/components/InstitutionSelect";
+
 import { calculateAuthorityRecommendation } from "@/lib/authorityEngine";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { IntestacyDistributionPreview } from "@/components/IntestacyDistributionPreview";
+
 import { useTracking } from "@/hooks/useTracking";
 import { US_STATES } from "@/lib/states";
 
@@ -39,9 +39,7 @@ const STEPS = [
     { id: "welcome", title: "Welcome" },
     { id: "estate_info", title: "Estate Basics" },
     { id: "track_scout", title: "Estate Track" },
-    { id: "heirs", title: "Heirs & Beneficiaries" },
     { id: "documents", title: "Death Certificate" },
-    { id: "assets", title: "Key Assets" },
     { id: "team", title: "The Team" },
     { id: "completion", title: "All Set" }
 ];
@@ -169,9 +167,10 @@ export default function OnboardingWizard() {
         setIsLoading(true);
         try {
             let estate = await api.getMyEstate();
+            const currentStepId = STEPS[currentStep].id;
 
             // Step 1: Handle Estate Info
-            if (currentStep === 1) {
+            if (currentStepId === "estate_info") {
                 const nameParts = estateData.deceasedName.trim().split(/\s+/);
                 const firstName = nameParts[0] || "";
                 const lastName = nameParts.slice(1).join(" ") || "Estate";
@@ -206,7 +205,7 @@ export default function OnboardingWizard() {
 
                 // Clear discovery data since it's now persisted to the backend
                 sessionStorage.removeItem("discovery_data");
-            } else if (currentStep === 2) { // Track Scout
+            } else if (currentStepId === "track_scout") { // Track Scout
                 await api.updateMyEstate({
                     estateType: recommendation.type,
                     authorityType: recommendation.type,
@@ -235,46 +234,11 @@ export default function OnboardingWizard() {
                 // Invalidate queries to ensure dashboard is fresh
                 await queryClient.invalidateQueries({ queryKey: ["tasks"] });
                 await queryClient.invalidateQueries({ queryKey: ["estate"] });
-            } else if (currentStep === 3) { // Heirs
-                const validHeirs = heirs.filter(h => h.name.trim() !== "");
-                const hasMinors = validHeirs.some(h => h.isMinor);
-
-                // Persist the explicit flag too
-                await api.updateMyEstate({
-                    hasMinorBeneficiaries: hasMinors
-                });
-
-                for (const heir of validHeirs) {
-                    await api.createHeir({
-                        ...heir,
-                        isAdult: !heir.isMinor
-                    });
-                }
-            } else if (currentStep === 4) { // Documents
+            } else if (currentStepId === "documents") { // Documents
                 if (uploadedFile) {
                     await api.uploadEstateDocument("DEATH_CERTIFICATE", "Death Certificate.pdf", uploadedFile);
                 }
-            } else if (currentStep === 5) { // Assets
-                // Map wizard asset type selections to proper assetType values for the database
-                const assetTypeMap: Record<string, string> = {
-                    'financial':  'bank_account',
-                    'retirement': 'retirement_account',
-                    'business':   'business_interest',
-                    'property':   'real_estate',
-                    'insurance':  'life_insurance',
-                    'crypto':     'digital_asset',
-                };
-                const validAssets = assets.filter(a => a.name.trim() !== "");
-                for (const asset of validAssets) {
-                    await api.createAsset({
-                        institution: asset.name,
-                        category: asset.type, // 'financial', 'retirement', etc. — used for grouping in UI
-                        assetType: assetTypeMap[asset.type] ?? 'bank_account', // Properly-typed DB value
-                        status: "discovered",
-                        priority: "medium"
-                    });
-                }
-            } else if (currentStep === 6) { // Team
+            } else if (currentStepId === "team") { // Team
                 const validCollabs = collaborators.filter(c => c.email.trim() !== "");
                 if (validCollabs.length > 0) {
                     // Ensure estate exists before inviting collaborators
@@ -703,128 +667,6 @@ export default function OnboardingWizard() {
                                     </div>
                                 )}
 
-                                {/* 3. HEIRS */}
-                                {stepId === "heirs" && (
-                                    <div className="space-y-6">
-                                        <div className="text-center mb-6">
-                                            <div className="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                                <UserCircle className="w-6 h-6 text-indigo-600" />
-                                            </div>
-                                            <h2 className="text-2xl font-bold text-slate-900">Heirs & Beneficiaries</h2>
-                                            <p className="text-slate-500">Who are the key people involved in this estate?</p>
-                                        </div>
-
-                                        <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
-                                            {heirs.map((heir, idx) => (
-                                                <div key={idx} className="p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-3 relative group">
-                                                    {heirs.length > 1 && (
-                                                        <button
-                                                            onClick={() => setHeirs(heirs.filter((_, i) => i !== idx))}
-                                                            className="absolute top-2 right-2 p-1 text-slate-300 hover:text-rose-500 transition-colors"
-                                                        >
-                                                            <Plus className="w-4 h-4 rotate-45" />
-                                                        </button>
-                                                    )}
-                                                    <div className="space-y-2">
-                                                        <Label className="text-[10px] uppercase font-bold text-slate-400">Full Name</Label>
-                                                        <Input
-                                                            placeholder="e.g. Jane Doe"
-                                                            value={heir.name}
-                                                            onChange={e => {
-                                                                const newHeirs = [...heirs];
-                                                                newHeirs[idx].name = e.target.value;
-                                                                setHeirs(newHeirs);
-                                                            }}
-                                                            className="h-10 bg-white"
-                                                        />
-                                                    </div>
-                                                    <div className="grid grid-cols-2 gap-3">
-                                                        <div className="space-y-2">
-                                                            <Label className="text-[10px] uppercase font-bold text-slate-400">Relationship</Label>
-                                                            <Select
-                                                                value={heir.relationship}
-                                                                onValueChange={val => {
-                                                                    const newHeirs = [...heirs];
-                                                                    newHeirs[idx].relationship = val;
-                                                                    setHeirs(newHeirs);
-
-                                                                    // Spousal Sync (PTH-20)
-                                                                    if (val === "SPOUSE") {
-                                                                        setEstateData(prev => ({ ...prev, isSpouse: true }));
-                                                                    }
-                                                                }}
-                                                            >
-                                                                <SelectTrigger className="h-10 bg-white">
-                                                                    <SelectValue placeholder="Select" />
-                                                                </SelectTrigger>
-                                                                <SelectContent>
-                                                                    <SelectItem value="SPOUSE">Spouse</SelectItem>
-                                                                    <SelectItem value="CHILD">Child</SelectItem>
-                                                                    <SelectItem value="PARENT">Parent</SelectItem>
-                                                                    <SelectItem value="SIBLING">Sibling</SelectItem>
-                                                                    <SelectItem value="OTHER">Other</SelectItem>
-                                                                </SelectContent>
-                                                            </Select>
-                                                        </div>
-                                                        <div className="space-y-2">
-                                                            <div className="flex items-center gap-2 mt-6">
-                                                                <Checkbox
-                                                                    id={`minor-${idx}`}
-                                                                    checked={heir.isMinor}
-                                                                    onCheckedChange={(val) => {
-                                                                        const newHeirs = [...heirs];
-                                                                        newHeirs[idx].isMinor = val === true;
-                                                                        setHeirs(newHeirs);
-                                                                    }}
-                                                                />
-                                                                <Label htmlFor={`minor-${idx}`} className="text-[10px] uppercase font-bold text-slate-400 cursor-pointer">Minor Heir?</Label>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-
-                                        <div className="flex items-center gap-2 p-3 rounded-xl bg-slate-50 border border-slate-100 mb-4">
-                                            <Checkbox
-                                                id="unknown_heirs"
-                                                checked={estateData.hasUnknownHeirs}
-                                                onCheckedChange={(val) => setEstateData({ ...estateData, hasUnknownHeirs: val === true })}
-                                            />
-                                            <Label htmlFor="unknown_heirs" className="text-xs font-bold text-slate-600 cursor-pointer">
-                                                I am not sure who all the legal heirs are.
-                                            </Label>
-                                        </div>
-
-                                        {!estateData.hasWill && heirs.some(h => h.name && h.relationship) && (
-                                            <motion.div
-                                                initial={{ opacity: 0, y: 10 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                            >
-                                                <IntestacyDistributionPreview
-                                                    state={estateData.location}
-                                                    heirs={heirs.map((h, i) => ({ id: `h-${i}`, name: h.name, relationship: h.relationship }))}
-                                                />
-                                            </motion.div>
-                                        )}
-
-                                        <Button
-                                            variant="outline"
-                                            onClick={() => setHeirs([...heirs, { name: "", relationship: "", email: "", isMinor: false }])}
-                                            className="w-full border-dashed border-slate-300 text-slate-500 rounded-xl"
-                                        >
-                                            <Plus className="w-4 h-4 mr-2" /> Add Another Heir
-                                        </Button>
-
-                                        <Button
-                                            size="lg"
-                                            onClick={handleNext}
-                                            className="w-full rounded-2xl h-12 font-bold mt-4"
-                                        >
-                                            {isLoading ? "Saving Heirs..." : "Continue"}
-                                        </Button>
-                                    </div>
-                                )}
 
                                 {/* 4. DEATH CERTIFICATE */}
                                 {stepId === "documents" && (
@@ -889,93 +731,7 @@ export default function OnboardingWizard() {
                                     </div>
                                 )}
 
-                                {/* 5. ASSETS (RE-DESIGNED) */}
-                                {stepId === "assets" && (
-                                    <div className="space-y-6">
-                                        <div className="text-center mb-6">
-                                            <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                                <Landmark className="w-6 h-6 text-emerald-600" />
-                                            </div>
-                                            <h2 className="text-2xl font-bold text-slate-900">Key Assets</h2>
-                                            <p className="text-slate-500">Search for the primary banks or institutions involved.</p>
-                                        </div>
 
-                                        <div className="space-y-4">
-                                            {assets.map((asset, idx) => (
-                                                <div key={idx} className="space-y-3 p-4 rounded-2xl bg-slate-50 border border-slate-100 relative group">
-                                                    {assets.length > 1 && (
-                                                        <button
-                                                            onClick={() => setAssets(assets.filter((_, i) => i !== idx))}
-                                                            className="absolute -top-2 -right-2 w-6 h-6 bg-white border border-slate-100 rounded-full flex items-center justify-center text-slate-400 hover:text-rose-500 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity z-20"
-                                                        >
-                                                            <Plus className="w-3 h-3 rotate-45" />
-                                                        </button>
-                                                    )}
-                                                    <div className="flex gap-2">
-                                                        <div className="flex-1">
-                                                            <Label className="text-[10px] uppercase font-bold text-slate-400 ml-1 mb-1 block">Institution</Label>
-                                                            <InstitutionSelect
-                                                                value={asset.name}
-                                                                onSelect={(inst) => {
-                                                                    const newAssets = [...assets];
-                                                                    newAssets[idx].name = inst.name;
-                                                                    newAssets[idx].institutionId = inst.id;
-                                                                    setAssets(newAssets);
-                                                                }}
-                                                                onChange={(val) => {
-                                                                    const newAssets = [...assets];
-                                                                    newAssets[idx].name = val;
-                                                                    setAssets(newAssets);
-                                                                }}
-                                                            />
-                                                        </div>
-                                                        <div className="w-[140px]">
-                                                            <Label className="text-[10px] uppercase font-bold text-slate-400 ml-1 mb-1 block">Type</Label>
-                                                            <Select
-                                                                value={asset.type}
-                                                                onValueChange={val => {
-                                                                    const newAssets = [...assets];
-                                                                    newAssets[idx].type = val;
-                                                                    setAssets(newAssets);
-                                                                }}
-                                                            >
-                                                                <SelectTrigger className="h-11 bg-white rounded-xl">
-                                                                    <SelectValue />
-                                                                </SelectTrigger>
-                                                                <SelectContent>
-                                                                    <SelectItem value="financial">Bank Account</SelectItem>
-                                                                    <SelectItem value="retirement">Retirement/401k</SelectItem>
-                                                                    <SelectItem value="business">Business / LLC</SelectItem>
-                                                                    <SelectItem value="property">Real Estate</SelectItem>
-                                                                    <SelectItem value="insurance">Life Insurance</SelectItem>
-                                                                    <SelectItem value="crypto">Crypto/Digital</SelectItem>
-                                                                </SelectContent>
-                                                            </Select>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                            {assets.length < 5 && (
-                                                <Button
-                                                    variant="outline"
-                                                    onClick={() => setAssets([...assets, { name: "", type: "financial" }])}
-                                                    className="w-full border-dashed border-slate-300 text-slate-500 rounded-2xl h-12"
-                                                >
-                                                    <Plus className="w-4 h-4 mr-2" /> Add Another Asset
-                                                </Button>
-                                            )}
-                                        </div>
-
-                                        <Button
-                                            size="lg"
-                                            onClick={handleNext}
-                                            disabled={assets.every(a => !a.name) || isLoading}
-                                            className="w-full rounded-2xl h-12 font-bold mt-4"
-                                        >
-                                            {isLoading ? "Saving..." : "Continue to Team"}
-                                        </Button>
-                                    </div>
-                                )}
 
                                 {/* 6. THE TEAM (NEW) */}
                                 {stepId === "team" && (

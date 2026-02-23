@@ -52,7 +52,7 @@ export function SettlementPhaseChevron({
                 {/* Main Chevron Body */}
                 <div
                   className={cn(
-                    "relative h-20 w-52 flex items-center justify-center transition-all duration-300",
+                    "relative h-24 w-56 flex items-center justify-center transition-all duration-300",
                     "clip-chevron",
                     isCompleted && "bg-white border-2 border-indigo-100",
                     isCurrent && "bg-indigo-600 shadow-lg shadow-indigo-200",
@@ -65,11 +65,11 @@ export function SettlementPhaseChevron({
                       : "polygon(24px 0, calc(100% - 24px) 0, 100% 50%, calc(100% - 24px) 100%, 24px 100%, 0 50%)"
                   }}
                 >
-                  <div className="flex flex-col items-center px-4 w-full">
+                  <div className="flex flex-col items-center px-5 w-full">
                     {/* Phase Info */}
-                    <div className="flex flex-col items-center text-center min-w-0">
+                    <div className="flex flex-col items-center text-center min-w-0 w-full">
                       <span className={cn(
-                        "text-sm font-bold tracking-tight leading-tight",
+                        "text-[15px] font-semibold tracking-tight leading-[1.1] whitespace-normal break-words",
                         isCurrent && "text-white",
                         isCompleted && "text-indigo-900",
                         isUpcoming && "text-slate-400"
@@ -77,20 +77,12 @@ export function SettlementPhaseChevron({
                         {phase.title}
                       </span>
                       <span className={cn(
-                        "text-xs font-normal leading-tight mt-0.5 uppercase tracking-wide",
+                        "text-[11px] font-medium leading-[1.15] mt-1 tracking-tight whitespace-normal break-words",
                         isCurrent && "text-indigo-100",
                         isCompleted && "text-indigo-600/70",
                         isUpcoming && "text-slate-400/70"
                       )}>
                         {phase.subtitle}
-                      </span>
-                      <span className={cn(
-                        "text-[8px] font-medium leading-tight mt-1 uppercase tracking-wide",
-                        isCurrent && "text-indigo-200",
-                        isCompleted && "text-indigo-400",
-                        isUpcoming && "text-slate-300"
-                      )}>
-                        {phase.milestone}
                       </span>
                     </div>
                   </div>
