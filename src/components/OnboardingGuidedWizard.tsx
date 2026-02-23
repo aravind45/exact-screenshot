@@ -627,11 +627,11 @@ export default function OnboardingGuidedWizard() {
 
                                             <Button
                                                 size="lg"
-                                                onClick={() => setCurrentStep(2)}
+                                                onClick={handleNext}
                                                 disabled={!formData.deceasedName || !formData.dateOfDeath || !formData.location || isLoading}
                                                 className="w-full rounded-2xl h-12 font-bold mt-4"
                                             >
-                                                Continue to Quick Assessment
+                                                {isLoading ? "Saving..." : "Continue to Quick Assessment"}
                                             </Button>
                                         </div>
                                     </div>
