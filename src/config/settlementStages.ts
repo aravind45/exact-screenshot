@@ -965,12 +965,12 @@ export const STATE_ROADMAP_OVERRIDES: Record<string, Partial<Record<SettlementTr
 export const getPrimaryAuthorityDocName = (stateCode: string, track: SettlementTrack, hasWill?: boolean): string => {
     switch (track) {
         case 'SMALL_ESTATE':
-            const rule = getStateRule(stateCode || "CA");
+            const rule = getStateRule(stateCode || "");
             return rule.smallEstateTerm;
         case 'TRUST_ADMIN':
             return 'Certification of Trust';
         case 'SPOUSAL_PETITION':
-            const sRule = getStateRule(stateCode || "CA");
+            const sRule = getStateRule(stateCode || "");
             return sRule.spousalSetAside?.term || 'Spousal Property Order';
         case 'DISCOVERY':
             return 'Preliminary Asset Log';

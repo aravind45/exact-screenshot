@@ -34,7 +34,7 @@ export class DistributionService {
         const assets = await prisma.asset.findMany({ where: { estateId } });
 
         // 1. Notice Period Check
-        const system = PriorityFactory.getSystem(estate.deceasedState || "CA");
+        const system = PriorityFactory.getSystem(estate.deceasedState || "");
         let noticePeriodClosed = false;
         let daysRemaining = system.creditorNoticePeriodDays;
 

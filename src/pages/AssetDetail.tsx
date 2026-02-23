@@ -477,7 +477,7 @@ export default function AssetDetail() {
     uiAsset.ownershipType
   );
 
-  const rule = getStateRule(estate?.deceasedState || "CA");
+  const rule = getStateRule(estate?.deceasedState || "");
   const requirementsMap: Record<string, string[]> = {
     "BENEFICIARY_ONLY": ["Death Certificate (certified)"],
     "AFFIDAVIT_ACCEPTED": ["Death Certificate (certified)", rule.smallEstateTerm],

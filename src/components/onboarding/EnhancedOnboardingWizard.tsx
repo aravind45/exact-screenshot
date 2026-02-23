@@ -279,6 +279,8 @@ export function EnhancedOnboardingWizard({ onComplete, className }: EnhancedOnbo
                 isSurvivingSpouse: answers.isSpouse === 'yes',
                 // Insolvency risk stored on estate
                 hasInsolvencyRisk: answers.debtStatus === 'insolvent',
+                // CRITICAL: Save the jurisdiction state so roadmap, forms, and deadlines use the correct state
+                deceasedState: state,
                 name: `${user?.fullName || 'User'}'s Estate`,
                 deceasedDateOfDeath: new Date().toISOString(),
             });

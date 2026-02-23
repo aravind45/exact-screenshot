@@ -4,7 +4,7 @@ import { ProbateBlockerAlert } from "@/components/ProbateBlockerAlert";
 import { useWorkflow } from "@/contexts/WorkflowContext";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import { CheckCircle, AlertCircle, ArrowRight, FileText } from "lucide-react";
+import { CheckCircle, AlertCircle, ArrowRight, FileText, MapPin } from "lucide-react";
 import { SettlementPhaseChevron } from "@/components/SettlementPhaseChevron";
 import { type SettlementPhase } from "@/config/settlementPhases";
 import { SEO } from "@/components/SEO";
@@ -15,7 +15,7 @@ import { getLettersTerm } from "@/lib/stateRules";
 export default function SettlementRoadmapNew() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const { phaseProgress, probateBlockers, currentPhase, completedPhases, assets } = useWorkflow();
+  const { phaseProgress, probateBlockers, currentPhase, completedPhases, assets, isStateMissing } = useWorkflow();
 
   const { data: estate } = useQuery({
     queryKey: ['estate'],
@@ -114,8 +114,44 @@ export default function SettlementRoadmapNew() {
         {/* Main Content */}
         <main className="max-w-[1280px] w-full mx-auto px-10 py-10 space-y-8">
 
+          {/* ── STATE MISSING BANNER ── */}
+          {isStateMissing && (
+            <div className="bg-amber-50 rounded-2xl p-8 shadow-sm border-2 border-amber-200 flex items-start gap-5 relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-1.5 h-full bg-amber-500" />
+              <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
+                <MapPin className="w-6 h-6 text-amber-600" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-xl font-black text-amber-900 tracking-tight">State / Jurisdiction Required</h3>
+                <p className="text-sm text-amber-800 mt-2 leading-relaxed max-w-2xl">
+                  We cannot generate your personalized roadmap without knowing which state the deceased resided in.
+                  Every state has different probate rules, deadlines, forms, and procedures — showing generic steps would be <strong className="font-black">misleading and potentially harmful</strong> to your case.
+                </p>
+                <p className="text-xs text-amber-700 mt-3 font-semibold">
+                  Please update your estate's state in Profile Settings so we can build an accurate, state-specific action plan.
+                </p>
+                <div className="mt-5 flex items-center gap-4">
+                  <Button
+                    className="bg-amber-600 hover:bg-amber-700 text-white font-black text-xs px-6 h-10 rounded-lg shadow-md shadow-amber-200 transition-all active:scale-95"
+                    onClick={() => navigate('/profile')}
+                  >
+                    <MapPin className="w-4 h-4 mr-2" />
+                    SET STATE NOW
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="text-amber-700 hover:text-amber-900 font-bold text-xs gap-1"
+                    onClick={() => navigate('/onboarding')}
+                  >
+                    Re-run Setup Wizard <ArrowRight className="w-3.5 h-3.5" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Authority Support Banner */}
-          {showAuthorityBanner && !isViewer && (
+          {!isStateMissing && showAuthorityBanner && !isViewer && (
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex items-start gap-5 relative overflow-hidden group">
               <div className="absolute top-0 left-0 w-1.5 h-full bg-indigo-500" />
               <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center flex-shrink-0">
@@ -148,19 +184,23 @@ export default function SettlementRoadmapNew() {
           )}
 
 
-          {/* Horizontal Phase Progress */}
-          <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-            <SettlementPhaseChevron
-              currentPhase={currentPhase as SettlementPhase}
-              completedPhases={completedPhases as SettlementPhase[]}
-            />
-          </div>
+          {/* Horizontal Phase Progress — hidden when state is missing */}
+          {!isStateMissing && (
+            <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+              <SettlementPhaseChevron
+                currentPhase={currentPhase as SettlementPhase}
+                completedPhases={completedPhases as SettlementPhase[]}
+              />
+            </div>
+          )}
 
-          {/* Collapsible Chevron (Task List) */}
-          <CollapsiblePhaseChevron
-            onTaskToggle={handleTaskToggle}
-            isViewer={isViewer}
-          />
+          {/* Collapsible Chevron (Task List) — hidden when state is missing */}
+          {!isStateMissing && (
+            <CollapsiblePhaseChevron
+              onTaskToggle={handleTaskToggle}
+              isViewer={isViewer}
+            />
+          )}
         </main>
       </div>
     </div>

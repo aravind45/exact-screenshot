@@ -21,7 +21,7 @@ export function AssetAuthorityBlocker({ institutionName, hasLetters, track, auth
         if (authorityType) {
             switch (authorityType) {
                 case 'AFFIDAVIT_SMALL':
-                    const rule = getStateRule(stateCode || "CA");
+                    const rule = getStateRule(stateCode || "");
                     return {
                         title: "Affidavit Required",
                         description: `Owned Individually. ${institutionName} requires a notarized ${rule.smallEstateTerm} to release funds.`,
@@ -88,7 +88,7 @@ export function AssetAuthorityBlocker({ institutionName, hasLetters, track, auth
                     color: "emerald"
                 };
             case "SPOUSAL_PETITION":
-                const sRule = getStateRule(stateCode || "CA");
+                const sRule = getStateRule(stateCode || "");
                 return {
                     title: "Spousal Order Required",
                     description: `${institutionName} needs a court-confirmed ${sRule.spousalSetAside?.term || 'Spousal Order'} to transfer title.`,

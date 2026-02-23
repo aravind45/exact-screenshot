@@ -1791,11 +1791,11 @@ export const DocumentService = {
         y -= 30;
 
         page.drawText(`Estate of: ${String(estate.deceasedFirstName || '')} ${String(estate.deceasedLastName || '')}`, { x: 50, y, size: 11 });
-        page.drawText(`State: ${String(estate.deceasedState || 'CA')}`, { x: 400, y, size: 11 });
+        page.drawText(`State: ${String(estate.deceasedState || 'N/A')}`, { x: 400, y, size: 11 });
         y -= 25;
 
         // Get priority rules for state
-        const stateRules = PriorityService.getPriorityOptions(estate.deceasedState || 'CA');
+        const stateRules = PriorityService.getPriorityOptions(estate.deceasedState || '');
 
         // Group liabilities
         const liabilitiesByClass: Record<string, any[]> = {};

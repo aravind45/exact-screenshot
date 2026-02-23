@@ -22,7 +22,7 @@ import { calculateAuthorityRecommendation } from "@/lib/authorityEngine";
 import { generateRoadmap } from "@/config/roadmapGenerator";
 import { useToast } from "@/hooks/use-toast";
 
-export function ProbateChecklistWidget({ estateType, deceasedState = "CA" }: ProbateChecklistWidgetProps) {
+export function ProbateChecklistWidget({ estateType, deceasedState = "" }: ProbateChecklistWidgetProps) {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
     const { toast } = useToast();

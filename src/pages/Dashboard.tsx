@@ -249,7 +249,7 @@ export default function Dashboard() {
   const isActivitiesLocked = (activitiesQueryData as any)?.isLocked;
   const activitiesData = isActivitiesLocked ? [] : (Array.isArray(activitiesQueryData) ? activitiesQueryData : []);
 
-  const { probateBlockers, completedTaskIds, completedPhases, totalTaskCount } = useWorkflow();
+  const { probateBlockers, completedTaskIds, completedPhases, totalTaskCount, isStateMissing } = useWorkflow();
 
   // 1. Authority Score: % of assets needing authority that HAVE authority 
   const needsAuthority = assets.filter((a: any) =>
@@ -429,6 +429,31 @@ export default function Dashboard() {
         </div>
         <NextActionWidget estate={estate} assets={assets} />
       </div>
+
+      {/* ── STATE MISSING ALERT ── */}
+      {isStateMissing && (
+        <div className="flex items-start gap-4 p-5 bg-amber-50 border-2 border-amber-200 rounded-2xl relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-1 h-full bg-amber-500" />
+          <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
+            <MapPin className="w-5 h-5 text-amber-600" />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-black text-amber-900">Missing: State / Jurisdiction</p>
+            <p className="text-xs text-amber-800 mt-1 leading-relaxed">
+              Your estate record does not have a state set. Without it, we cannot generate an accurate roadmap, deadlines, forms, or priority rules.
+              <strong className="font-black"> We refuse to show generic data that could mislead you.</strong>
+            </p>
+            <Button
+              size="sm"
+              className="mt-3 h-8 bg-amber-600 hover:bg-amber-700 text-white font-black text-[10px] uppercase tracking-widest rounded-lg px-4"
+              onClick={() => navigate('/profile')}
+            >
+              <MapPin className="w-3.5 h-3.5 mr-1.5" />
+              Set State Now
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* First-timer tip — shown only when < 3 tasks completed */}
       {(completedTaskIds?.length || 0) < 3 && (

@@ -127,7 +127,7 @@ export class DeadlineService {
             throw new Error('Estate not found');
         }
 
-        const state = (estate.deceasedState || 'CA').toUpperCase();
+        const state = (estate.deceasedState || '').toUpperCase();
         const deadlineData = this.computeDeadlines(estate, state);
 
         // Replace existing deadlines for this estate

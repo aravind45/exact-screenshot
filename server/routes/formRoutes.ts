@@ -60,7 +60,7 @@ router.get("/readiness", async (req: any, res: Response) => {
         const hasDecedentInfo = !!(estate?.deceasedFirstName && estate?.deceasedLastName);
         const isAppointed = estate?.status === 'APPOINTED' || estate?.status === 'SETTLEMENT';
         const hasInventory = accountingReadiness.checks.inventoryObtained || estate?.status === 'SETTLEMENT';
-        const estateState = (estate as any)?.state || 'CA';
+        const estateState = (estate as any)?.deceasedState || '';
 
         // --- Helper to build a standard readiness entry ---
         const entry = (ready: boolean, reason: string, statusYes: string, statusNo: string, tier = "COURT_REQUIRED") => ({

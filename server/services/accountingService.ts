@@ -35,7 +35,7 @@ export class AccountingService {
         const assetsVerified = assets.length > 0 && assets.every(a => a.status !== 'DISCOVERED');
 
         // 3. Notice Period Check
-        const system = PriorityFactory.getSystem(estate.deceasedState || "CA");
+        const system = PriorityFactory.getSystem(estate.deceasedState || "");
         let noticePeriodClosed = false;
         if (estate.appointedDate) {
             const appointed = new Date(estate.appointedDate);

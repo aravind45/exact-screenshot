@@ -45,6 +45,7 @@ interface WorkflowContextValue {
   assets: any[];
   liabilities: any[];
   totalTaskCount: number;
+  isStateMissing: boolean;
 }
 
 const WorkflowContext = createContext<WorkflowContextValue | null>(null);
@@ -112,9 +113,14 @@ export function WorkflowProvider({ children }: { children: ReactNode }) {
   const completedTaskIds = estate?.roadmapProgress?.completedTaskIds || [];
   const completedPhases = estate?.roadmapProgress?.completedPhases || [];
 
+  // Detect missing state — don't generate misleading generic roadmap
+  const isStateMissing = !!estate && !estate.deceasedState;
+
   // Calculate dynamic roadmap
   const roadmap = useMemo(() => {
     if (!estate) return [];
+    // Guard: If state is missing, return empty — don't generate generic UPC roadmap
+    if (!estate.deceasedState) return [];
 
     const recommendation = calculateAuthorityRecommendation(assets, estate.deceasedState || '', {
       hasWill: estate.hasWill,
@@ -249,7 +255,8 @@ export function WorkflowProvider({ children }: { children: ReactNode }) {
       legalRisks,
       assets,
       liabilities,
-      totalTaskCount
+      totalTaskCount,
+      isStateMissing
     }}>
       {children}
     </WorkflowContext.Provider>
