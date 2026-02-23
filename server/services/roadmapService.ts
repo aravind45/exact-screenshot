@@ -141,6 +141,7 @@ export function resolveTaskForState(
       requiredDocs: merged.requiredDocs ?? base.requiredDocs,
       links: override.links ?? base.links,
       outputs: merged.outputs ?? base.outputs,
+      dependencies: merged.dependencies ?? base.dependencies,
     };
   }
 
@@ -505,18 +506,26 @@ export function filterTasksForEstate(
     });
   });
 
-  return allTasks.map((phaseList) => ({
+  const filteredPhases: PhaseTaskList[] = allTasks.map((phaseList) => ({
     ...phaseList,
     tasks: phaseList.tasks.filter((task) => {
+      // (normalizeTaskForState is called upstream or we should call it here if needed)
+      // Actually, SETTLEMENT_PHASE_TASKS contains PhaseTasks which need normalization.
+
+      // Resolve state override merge (state-neutral first pattern)
+      const mergedTask = resolveTaskForState(task, profile.state);
+      if (mergedTask === null) return false; // Task excluded for this state
+
+      // Note: we are filtering, but we ALSO need to map the tasks to their normalized versions.
+      // The current filterTasksForEstate logic in this project seems to only filter, 
+      // but the normalizeTaskForState call should probably happen here.
+
       // 2. Handle Exclusivity: If a group is "set", only show the completed task in that group
       if (task.exclusiveGroup && completedGroups.has(task.exclusiveGroup)) {
         return completedTaskIds.includes(task.id);
       }
 
       // 3. Handle Track Compatibility (Multi-Dimensional)
-      // We check if the task is compatible with ANY of the active engines.
-      // E.g., if "PROBATE" is an active engine, show probate tasks.
-      // If trackCompatibility is empty or null, show the task (no restrictions)
       if (task.trackCompatibility && task.trackCompatibility.length > 0) {
         const isCompatible = task.trackCompatibility.some(track =>
           profile.activeEngines.includes(track) ||
@@ -530,7 +539,6 @@ export function filterTasksForEstate(
         const hasMatchingVariant = task.applicability.variants.some(variant => {
           if (variant === "TESTATE") return profile.hasWill;
           if (variant === "INTESTATE") return !profile.hasWill;
-          // Expand with more dynamic states here as needed (e.g. UPC_UNSUPERVISED)
           return false;
         });
         if (!hasMatchingVariant) return false;
@@ -544,7 +552,6 @@ export function filterTasksForEstate(
         if (states && states.length > 0) {
           if (!states.includes(profile.state)) return false;
         }
-
 
         if (predicatesAll && predicatesAll.length > 0) {
           const allTrue = predicatesAll.every(p => !!profileMap[p]);
@@ -563,11 +570,11 @@ export function filterTasksForEstate(
       }
 
       // Always show non-optional tasks (if they survived compatibility, variant, & predicate checks)
-      if (!task.isOptional) return true;
+      const isMandatory = (mergedTask as any).isOptional === false;
+      if (isMandatory) return true;
 
       // Filter based on task ID and estate profile
       switch (task.id) {
-        // Guardian Ad Litem Tasks (for minors)
         case "identify_minor_beneficiaries":
         case "petition_guardian_ad_litem":
         case "obtain_guardian_order":
@@ -575,7 +582,6 @@ export function filterTasksForEstate(
         case "guardian_distribution_approval":
           return profile.hasMinorBeneficiaries;
 
-        // Primary Residence Succession (small estates in CA)
         case "check_primary_residence_succession":
         case "file_succession_petition":
         case "give_succession_notice":
@@ -586,41 +592,49 @@ export function filterTasksForEstate(
             profile.state === "CA"
           );
 
-        // Contested Probate Tasks
         case "respond_to_objections":
         case "attend_contest_hearing":
         case "resolve_contest":
           return profile.isContested;
 
-        // Bond Waiver (always show as optional - saves money)
         case "request_bond_waiver":
         case "file_bond_waiver":
         case "obtain_bond_waiver_order":
-          return profile.authoritySource === "COURT"; // Only for court authority
+          return profile.authoritySource === "COURT";
 
-        // Special Notice (always show - used in 90% of estates)
         case "track_special_notice_requests":
         case "serve_special_notice_parties":
-          return profile.authoritySource === "COURT"; // Only for court authority
+          return profile.authoritySource === "COURT";
 
-        // Will Search vs General Doc Search
         case "locate_will":
           return profile.hasWill;
         case "locate_docs_no_will":
           return !profile.hasWill;
 
-        // Default: show other optional tasks
         default:
           return true;
       }
     }),
+  })).map(phaseList => ({
+    ...phaseList,
+    tasks: phaseList.tasks.map(t => normalizeTaskForState(t, profile.state)!)
+  }));
+
+  // 6. Scrub Dependencies: Filter out any dependencies that are not present in the current roadmap
+  const allVisibleTaskIds = new Set(filteredPhases.flatMap(p => p.tasks.map(t => t.id)));
+  return filteredPhases.map(phase => ({
+    ...phase,
+    tasks: phase.tasks.map(task => ({
+      ...task,
+      dependencies: task.dependencies?.filter(depId => allVisibleTaskIds.has(depId)) || []
+    }))
   }));
 }
 
 /**
  * Get roadmap from database based on estate's settlement type
  */
-async function getRoadmapFromDatabase(
+export async function getRoadmapFromDatabase(
   estateId: string,
   profile: EstateProfile,
   completedTaskIds: string[]
@@ -695,7 +709,7 @@ async function getRoadmapFromDatabase(
         isOptional: (stateOverride as any)?.isOptional !== undefined ? (stateOverride as any).isOptional : task.isOptional,
         requiresAuthority: task.requiresAuthority,
         requiredDocs: task.requiredDocs,
-        dependencies: task.dependencies,
+        dependencies: (stateOverride as any)?.dependencies?.length > 0 ? (stateOverride as any).dependencies : task.dependencies,
         exclusiveGroup: task.exclusiveGroup || undefined,
         trackCompatibility: task.trackCompatibility as any,
         tags: task.tags as any,

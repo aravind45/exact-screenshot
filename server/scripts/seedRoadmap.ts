@@ -172,6 +172,7 @@ async function main() {
                                 confidence: override.confidence || "draft",
                                 officialForms: override.officialForms || null,
                                 isOptional: override.isOptional !== undefined ? override.isOptional : null,
+                                dependencies: override.dependencies || [],
                             },
                             create: {
                                 taskKey: t.id,
@@ -189,6 +190,7 @@ async function main() {
                                 confidence: override.confidence || "draft",
                                 officialForms: override.officialForms || null,
                                 isOptional: override.isOptional !== undefined ? override.isOptional : null,
+                                dependencies: override.dependencies || [],
                             },
                         });
                     }

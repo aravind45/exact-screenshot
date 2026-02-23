@@ -1299,6 +1299,17 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
                 message: "Mandatory Requirement: Publication is required by 755 ILCS 5/18-3 and must be completed promptly after Letters are issued."
               }
             ]
+          },
+          OH: {
+            title: "Publish Notice to Creditors",
+            description: "Publication is required under ORC §2117.07. It does not shorten the 6-month claims bar but is part of statutory notice compliance.",
+            isOptional: false,
+            alerts: [
+              {
+                type: "important",
+                message: "Mandatory Requirement (ORC §2117.07): Publication must be completed, though it does not accelerate the 6-month claim window."
+              }
+            ]
           }
         }
       },
@@ -1414,7 +1425,8 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
           OH: {
             title: "Monitor 6-Month Creditor Claim Period",
             description: "In Ohio, creditors have 6 months from the date of the fiduciary's appointment to present claims (ORC §2117.06).",
-            estimatedTime: "6 months"
+            estimatedTime: "6 months",
+            dependencies: ["receive_letters_testamentary", "receive_letters_administration"],
           },
           IL: {
             title: "Monitor 6-Month Creditor Claim Period",
