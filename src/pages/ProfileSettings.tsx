@@ -70,6 +70,11 @@ export default function ProfileSettings() {
         onSuccess: () => {
             toast({ title: "Profile Updated", description: "Your settings have been saved." });
             queryClient.invalidateQueries({ queryKey: ["profile"] });
+            // STATE SYNC: Backend now syncs estate.deceasedState when profile state changes.
+            // Invalidate all estate-related caches so dashboard, roadmap, and forms refresh.
+            queryClient.invalidateQueries({ queryKey: ["estate"] });
+            queryClient.invalidateQueries({ queryKey: ["my-estate"] });
+            queryClient.invalidateQueries({ queryKey: ["roadmap"] });
         },
         onError: (err: any) => {
             toast({ variant: "destructive", title: "Update Failed", description: err.message });
