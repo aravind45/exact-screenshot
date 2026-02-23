@@ -125,23 +125,48 @@ router.post("/verify-email", async (req: Request, res: Response) => {
     }
 });
 
-router.post("/logout", authenticate, async (req: Request, res: Response) => {
+// Logout does NOT require authenticate middleware — allows expired tokens to be blacklisted too
+router.post("/logout", async (req: Request, res: Response) => {
     try {
         const token = req.headers.authorization?.split(" ")[1];
-        if (token) {
-            // Add token to blacklist - expires in 30 days (same as JWT expiry)
+        if (token && token !== 'null' && token !== 'undefined') {
+            // Add token to blacklist — expires in 8 hours (matches JWT expiry)
             await prisma.tokenBlacklist.create({
                 data: {
                     token,
-                    expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+                    expiresAt: new Date(Date.now() + 8 * 60 * 60 * 1000)
                 }
             });
-            logger.debug(`✅ [AUTH] Token blacklisted for user: ${(req as any).user?.id}`);
+            logger.debug(`✅ [AUTH] Token blacklisted on logout`);
         }
         res.json({ message: "Logged out successfully" });
     } catch (error: any) {
         logger.error("Logout Error:", error.message);
-        res.status(500).json({ error: "Logout failed" });
+        // Still return success — client should clear token regardless
+        res.json({ message: "Logged out successfully" });
+    }
+});
+
+// Token refresh — sliding session: active users get a fresh 8h token
+router.post("/refresh", authenticate, async (req: any, res: Response) => {
+    try {
+        const oldToken = req.headers.authorization?.split(" ")[1];
+        const result = await AuthService.refreshToken(req.user.id);
+
+        // Blacklist the old token so it can't be reused
+        if (oldToken) {
+            await prisma.tokenBlacklist.create({
+                data: {
+                    token: oldToken,
+                    expiresAt: new Date(Date.now() + 8 * 60 * 60 * 1000)
+                }
+            }).catch(() => {}); // Ignore if already blacklisted
+        }
+
+        res.json(result);
+    } catch (error: any) {
+        logger.error("Refresh Token Error:", error.message);
+        res.status(401).json({ error: "Failed to refresh token" });
     }
 });
 

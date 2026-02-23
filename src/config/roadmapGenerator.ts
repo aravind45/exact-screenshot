@@ -29,12 +29,12 @@ const STATE_PHASE_OVERRIDES: Record<string, Record<string, { milestone?: string;
     NY: {
         creditor_claims: { milestone: "After Letters Issued", subtitle: "7-Month Exposure Period" },
         asset_liquidation: { milestone: "Month 6–12", subtitle: "Transfer & Sell" },
-        final_distribution: { milestone: "After Accounting Approved", subtitle: "Court Settlement & Close" },
+        final_distribution: { milestone: "After Accounting & Approvals", subtitle: "Settle & Close" },
     },
     CA: {
         creditor_claims: { milestone: "After Notice Published", subtitle: "4-Month Claim Window" },
         asset_liquidation: { milestone: "After Inventory Filed", subtitle: "IAEA / Court-Confirmed Sales" },
-        final_distribution: { milestone: "After Claim Period", subtitle: "Estate In Closing" },
+        final_distribution: { milestone: "After Claim Period", subtitle: "Estate Closing" },
     },
     TX: {
         creditor_claims: { milestone: "After Letters Issued", subtitle: "Secured & Unsecured Claims (4 Months)" },
@@ -50,6 +50,12 @@ const STATE_PHASE_OVERRIDES: Record<string, Record<string, { milestone?: string;
     GA: { creditor_claims: { milestone: "After Publication", subtitle: "3-Month Claim Period" } },
     NJ: { creditor_claims: { milestone: "After Letters Issued", subtitle: "6-Month Claim Period" } },
     MA: { creditor_claims: { milestone: "After Date of Death", subtitle: "1-Year Claim Period" } },
+    // DEFAULT fallback — used when a state has no explicit override, so CA tokens never leak
+    DEFAULT: {
+        creditor_claims: { milestone: "After Letters Issued", subtitle: "State-Specific Timing" },
+        asset_liquidation: { milestone: "Month 6–12", subtitle: "State-Specific Process" },
+        final_distribution: { milestone: "After Accounting & Approvals", subtitle: "Closeout" },
+    },
 };
 
 const NEUTRAL_PHASE_MILESTONES: Record<string, { milestone: string; subtitle: string }> = {
@@ -137,18 +143,61 @@ function removeCAOnlyTasks(phases: PhaseTaskList[], state: string): PhaseTaskLis
 
 /**
  * Normalize phase-level metadata for the estate's state (client-side version).
+ * Resolution order: stateOverrides[state] → DEFAULT → NEUTRAL_PHASE_MILESTONES → original
  */
 function normalizePhasesForState(phases: PhaseTaskList[], state: string): PhaseTaskList[] {
     const stateOverrides = STATE_PHASE_OVERRIDES[state] || {};
+    const defaultOverrides = STATE_PHASE_OVERRIDES["DEFAULT"] || {};
     return phases.map(phase => {
         const phaseOverride = stateOverrides[phase.phase];
+        const defaultPhaseOverride = defaultOverrides[phase.phase];
         const neutralDefault = NEUTRAL_PHASE_MILESTONES[phase.phase];
         return {
             ...phase,
-            milestone: phaseOverride?.milestone || neutralDefault?.milestone || phase.milestone,
-            subtitle: phaseOverride?.subtitle || neutralDefault?.subtitle || phase.subtitle,
+            milestone: phaseOverride?.milestone || defaultPhaseOverride?.milestone || neutralDefault?.milestone || phase.milestone,
+            subtitle: phaseOverride?.subtitle || defaultPhaseOverride?.subtitle || neutralDefault?.subtitle || phase.subtitle,
         };
     });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// State contamination validator: flags CA-specific tokens in non-CA roadmaps.
+// Called at the end of generateRoadmap() in development to catch any leaks.
+// ─────────────────────────────────────────────────────────────────────────────
+const CA_CONTAMINATION_TOKENS = [
+    "Notice of Proposed Action",
+    "15-Day Objection",
+    "Petition to Confirm Sale",
+    "Sale Confirmation Order",
+    "4-Month Claim Period",
+    "IAEA",
+];
+
+function validateNoStateContamination(phases: PhaseTaskList[], state: string): void {
+    if (state === "CA") return;
+    const warnings: string[] = [];
+    for (const phase of phases) {
+        // Check phase-level metadata
+        for (const token of CA_CONTAMINATION_TOKENS) {
+            if (phase.milestone?.includes(token) || phase.subtitle?.includes(token)) {
+                warnings.push(`[PHASE "${phase.phase}"] CA token "${token}" found in milestone/subtitle`);
+            }
+        }
+        // Check task-level content
+        for (const task of phase.tasks) {
+            for (const token of CA_CONTAMINATION_TOKENS) {
+                const fields = [task.title, task.description, task.utility, task.rationale];
+                for (const field of fields) {
+                    if (field?.includes(token)) {
+                        warnings.push(`[TASK "${task.id}"] CA token "${token}" found in field content`);
+                    }
+                }
+            }
+        }
+    }
+    if (warnings.length > 0) {
+        console.warn(`⚠️ STATE CONTAMINATION DETECTED for state=${state}:\n${warnings.join("\n")}`);
+    }
 }
 
 export function generateRoadmap(
@@ -254,6 +303,11 @@ export function generateRoadmap(
     // Apply CA-only task removal and phase milestone normalization
     finalPhases = removeCAOnlyTasks(finalPhases, state);
     finalPhases = normalizePhasesForState(finalPhases, state);
+
+    // Development-time contamination check
+    if (typeof process !== "undefined" && process.env?.NODE_ENV !== "production") {
+        validateNoStateContamination(finalPhases, state);
+    }
 
     return finalPhases;
 }

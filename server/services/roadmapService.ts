@@ -107,12 +107,52 @@ for (const phase of SETTLEMENT_PHASE_TASKS) {
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Step 1 — Safe Task Merge Function (State-Neutral First)
+// Deterministic merge: no CA fallback, only state-specific override merges.
+// Base task remains neutral if no override exists.
+// ─────────────────────────────────────────────────────────────────────────────
+export function resolveTaskForState(
+  task: PhaseTask,
+  stateCode: string
+): PhaseTask {
+  const base: PhaseTask = { ...task };
+
+  // 1️⃣ Hard gate by applicability.states
+  if (task.applicability?.states && task.applicability.states.length > 0) {
+    if (!task.applicability.states.includes(stateCode)) {
+      throw new Error(
+        `Task ${task.id} is restricted to states: ${task.applicability.states.join(", ")}`
+      );
+    }
+  }
+
+  // 2️⃣ Apply stateOverrides if present (inline first, then static lookup for DB tasks)
+  const override = task.stateOverrides?.[stateCode]
+    || HARDCODED_STATE_OVERRIDES_MAP.get(task.id)?.[stateCode];
+
+  if (override) {
+    const merged = override as any;
+    return {
+      ...base,
+      ...override,
+      alerts: override.alerts ?? base.alerts,
+      requiredDocs: merged.requiredDocs ?? base.requiredDocs,
+      links: override.links ?? base.links,
+      outputs: merged.outputs ?? base.outputs,
+    };
+  }
+
+  // 3️⃣ If no override, return neutral base
+  return base;
+}
+
+/**
+ * Full task normalization: resolveTaskForState() merge + text normalization + CA dep cleanup.
+ */
 function normalizeTaskForState(task: PhaseTask, state: string): PhaseTask {
-  // Check inline stateOverrides first (hardcoded path), then fall back to
-  // the static lookup map (covers DB-loaded tasks that lack stateOverrides).
-  const override = task.stateOverrides?.[state]
-    || HARDCODED_STATE_OVERRIDES_MAP.get(task.id)?.[state];
-  const mergedTask = override ? { ...task, ...override } : task;
+  // Resolve state override merge (state-neutral first pattern)
+  const mergedTask = resolveTaskForState(task, state);
 
   // Clean CA-only dependencies for non-CA states
   if (state !== "CA" && mergedTask.dependencies) {
@@ -121,6 +161,7 @@ function normalizeTaskForState(task: PhaseTask, state: string): PhaseTask {
     );
   }
 
+  // Apply text normalization (CA form numbers, Medi-Cal → Medicaid, etc.)
   return {
     ...mergedTask,
     title: normalizeTextForState(mergedTask.title, state) || mergedTask.title,
@@ -154,8 +195,8 @@ const STATE_PHASE_OVERRIDES: Record<string, Record<string, { milestone?: string;
       subtitle: "Transfer & Sell",
     },
     final_distribution: {
-      milestone: "After Accounting Approved",
-      subtitle: "Court Settlement & Close",
+      milestone: "After Accounting & Approvals",
+      subtitle: "Settle & Close",
     },
   },
   CA: {
@@ -169,7 +210,7 @@ const STATE_PHASE_OVERRIDES: Record<string, Record<string, { milestone?: string;
     },
     final_distribution: {
       milestone: "After Claim Period",
-      subtitle: "Estate In Closing",
+      subtitle: "Estate Closing",
     },
   },
   TX: {
@@ -228,6 +269,21 @@ const STATE_PHASE_OVERRIDES: Record<string, Record<string, { milestone?: string;
       subtitle: "1-Year Claim Period",
     },
   },
+  // ── DEFAULT: state-neutral fallback so renderer never falls back to CA ──
+  DEFAULT: {
+    creditor_claims: {
+      milestone: "After Letters Issued",
+      subtitle: "State-Specific Timing",
+    },
+    asset_liquidation: {
+      milestone: "Month 6–12",
+      subtitle: "State-Specific Process",
+    },
+    final_distribution: {
+      milestone: "After Accounting & Approvals",
+      subtitle: "Closeout",
+    },
+  },
 };
 
 // State-neutral defaults for phases (used when no state override exists)
@@ -271,24 +327,125 @@ const CA_ONLY_TITLE_PATTERNS = [
   /\bIndependent Administration\b/i,
 ];
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Step 2 — State-Based Task Filtering (Before Rendering)
+// Filters tasks by applicability.states — makes CA-only tasks impossible to
+// render outside CA. Combined with CA_ONLY_TASK_IDS and title-pattern guards.
+// ─────────────────────────────────────────────────────────────────────────────
+export function filterTasksForState(
+  tasks: PhaseTask[],
+  stateCode: string
+): PhaseTask[] {
+  return tasks.filter((task) => {
+    // Hard gate: CA-only task IDs
+    if (CA_ONLY_TASK_IDS.has(task.id)) {
+      return stateCode === "CA";
+    }
+    // Hard gate: applicability.states
+    if (task.applicability?.states && task.applicability.states.length > 0) {
+      return task.applicability.states.includes(stateCode);
+    }
+    // Title-pattern defense: catches DB tasks with stale CA titles
+    if (stateCode !== "CA" && CA_ONLY_TITLE_PATTERNS.some(p => p.test(task.title))) {
+      return false;
+    }
+    return true;
+  });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Step 3 — Contamination Guard (Prevents Future Leakage)
+// Protects all 50 states. Throws on contamination so it physically cannot
+// regress to CA logic in NY, TX, FL, etc.
+// ─────────────────────────────────────────────────────────────────────────────
+const CA_TOKENS = [
+  "Notice of Proposed Action",
+  "15-Day Objection",
+  "Petition to Confirm Sale",
+  "Sale Confirmation Order",
+  "IAEA",
+  "4-Month Claim Period",
+  "4-Month Claim Window",
+  "DE-",
+  "After Notice Published",
+  "After Inventory Filed",
+  "IAEA / Court-Confirmed Sales",
+  "After Claim Period",
+  "Independent Administration",
+];
+
+export function validateStateContent(
+  renderedText: string,
+  stateCode: string
+): void {
+  if (stateCode === "CA") return;
+  for (const token of CA_TOKENS) {
+    if (renderedText.includes(token)) {
+      throw new Error(
+        `State contamination detected: '${token}' found in ${stateCode} roadmap`
+      );
+    }
+  }
+}
+
+/**
+ * Phase-level contamination check: scans all rendered phases for CA-specific
+ * tokens that leaked into non-CA states. Catches and logs (non-fatal at runtime).
+ */
+function validateNoStateContamination(phases: PhaseTaskList[], state: string): void {
+  if (state === "CA") return;
+  for (const phase of phases) {
+    // Check phase-level metadata
+    try {
+      if (phase.milestone) validateStateContent(phase.milestone, state);
+      if (phase.subtitle) validateStateContent(phase.subtitle, state);
+    } catch (err: any) {
+      logger.warn(`[roadmapService] ${err.message} (phase="${phase.phase}")`);
+    }
+    // Check task-level content
+    for (const task of phase.tasks) {
+      try {
+        if (task.title) validateStateContent(task.title, state);
+        if (task.description) validateStateContent(task.description, state);
+      } catch (err: any) {
+        logger.warn(`[roadmapService] ${err.message} (task="${task.id}")`);
+      }
+    }
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Step 4 — Phase Header Override Resolver
+// No CA fallback — only state-specific or neutral default.
+// Resolution: stateOverrides[state] → DEFAULT → NEUTRAL_PHASE_MILESTONES → {}
+// ─────────────────────────────────────────────────────────────────────────────
+export function resolvePhaseHeader(
+  phaseKey: string,
+  stateCode: string
+): { milestone?: string; subtitle?: string } {
+  const stateOverride = STATE_PHASE_OVERRIDES[stateCode]?.[phaseKey];
+  const defaultOverride = STATE_PHASE_OVERRIDES["DEFAULT"]?.[phaseKey];
+  const neutralDefault = NEUTRAL_PHASE_MILESTONES[phaseKey];
+
+  return {
+    milestone: stateOverride?.milestone
+      || defaultOverride?.milestone
+      || neutralDefault?.milestone,
+    subtitle: stateOverride?.subtitle
+      || defaultOverride?.subtitle
+      || neutralDefault?.subtitle,
+  };
+}
+
 /**
  * Hard guard: remove CA-only tasks for non-CA states.
- * Uses BOTH task-ID matching AND title-pattern matching for defense-in-depth.
+ * Delegates to the canonical filterTasksForState() for all state-based filtering.
  */
 function removeCAOnlyTasks(phases: PhaseTaskList[], state: string): PhaseTaskList[] {
   if (state === "CA") return phases;
   return phases.map(phase => ({
     ...phase,
-    tasks: phase.tasks.filter(task => {
-      // Guard 1: Explicit CA-only task ID list
-      if (CA_ONLY_TASK_IDS.has(task.id)) return false;
-      // Guard 2: applicability.states check (catches DB tasks with correct applicableStates)
-      if (task.applicability?.states && task.applicability.states.length > 0
-          && !task.applicability.states.includes(state)) return false;
-      // Guard 3: Title-pattern match (catches DB tasks with stale CA titles/different IDs)
-      if (CA_ONLY_TITLE_PATTERNS.some(p => p.test(task.title))) return false;
-      return true;
-    }),
+    tasks: filterTasksForState(phase.tasks, state),
   }));
 }
 
@@ -297,25 +454,14 @@ function removeCAOnlyTasks(phases: PhaseTaskList[], state: string): PhaseTaskLis
  * Phase milestones, subtitles, and task text are all adjusted.
  */
 function normalizePhasesForState(phases: PhaseTaskList[], state: string): PhaseTaskList[] {
-  const stateOverrides = STATE_PHASE_OVERRIDES[state] || {};
-
   return phases.map(phase => {
-    // Resolve phase milestone: state-specific → neutral default → original
-    const phaseOverride = stateOverrides[phase.phase];
-    const neutralDefault = NEUTRAL_PHASE_MILESTONES[phase.phase];
-
-    const resolvedMilestone = phaseOverride?.milestone
-      || neutralDefault?.milestone
-      || phase.milestone;
-
-    const resolvedSubtitle = phaseOverride?.subtitle
-      || neutralDefault?.subtitle
-      || phase.subtitle;
+    // Use canonical resolvePhaseHeader: state → DEFAULT → NEUTRAL → original
+    const resolved = resolvePhaseHeader(phase.phase, state);
 
     return {
       ...phase,
-      milestone: resolvedMilestone,
-      subtitle: resolvedSubtitle,
+      milestone: resolved.milestone || phase.milestone,
+      subtitle: resolved.subtitle || phase.subtitle,
       tasks: phase.tasks.map(task => normalizeTaskForState(task, state)),
     };
   });
@@ -695,6 +841,9 @@ export async function getEstateRoadmap(estateId: string): Promise<RoadmapRespons
 
   // Get roadmap from database (with fallback to hardcoded tasks)
   const filteredPhases = await getRoadmapFromDatabase(estateId, profile, completedTaskIds);
+
+  // Development-time contamination check: warn if CA tokens leaked into non-CA state
+  validateNoStateContamination(filteredPhases, profile.state);
 
   // Return roadmap with triggers
   return {

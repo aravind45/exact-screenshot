@@ -344,7 +344,7 @@ export const api = {
         const token = localStorage.getItem("auth_token");
         if (token) {
             try {
-                // Call server to blacklist token
+                // Call server to blacklist token (works even with expired tokens)
                 await fetch(`${API_URL}/auth/logout`, {
                     method: "POST",
                     headers: {
@@ -358,6 +358,29 @@ export const api = {
             }
         }
         localStorage.removeItem("auth_token");
+        localStorage.removeItem("auth_last_activity");
+    },
+
+    refreshToken: async (): Promise<{ token: string } | null> => {
+        const token = getToken();
+        if (!token) return null;
+        try {
+            const response = await fetch(`${API_URL}/auth/refresh`, {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "application/json"
+                }
+            });
+            if (!response.ok) return null;
+            const data = await response.json();
+            if (data.token) {
+                localStorage.setItem("auth_token", data.token);
+            }
+            return data;
+        } catch {
+            return null;
+        }
     },
 
     forgotPassword: async (email: string) => {

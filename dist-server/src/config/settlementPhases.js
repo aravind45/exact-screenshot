@@ -713,10 +713,7 @@ export const SETTLEMENT_PHASE_TASKS = [
                 stateOverrides: {
                     NY: {
                         title: "Obtain Letters Testamentary",
-                        description: "The Surrogate's Court issues the Decree and Letters Testamentary (Form P-1).",
-                        officialForms: [
-                            { name: "Notice of Probate", url: "https://www.nycourts.gov/LegacyPDFS/FORMS/surrogates/pdfs/Notice_of_Probate.pdf" }
-                        ]
+                        description: "After the Surrogate's Court approves the petition, it issues Letters Testamentary granting the executor authority to act on behalf of the estate."
                     }
                 },
                 alerts: [
@@ -1196,7 +1193,7 @@ export const SETTLEMENT_PHASE_TASKS = [
                 stateOverrides: {
                     NY: {
                         title: "Publish Creditor Notice (Optional Risk Mitigation)",
-                        description: "In New York, publication is not strictly mandatory for intestate administration but highly recommended to cut off unknown claims.",
+                        description: "In New York, creditor publication is generally optional and may be used as a risk-mitigation step to document notice efforts and reduce unknown-creditor risk. It does not create a guaranteed claim bar. Confirm local Surrogate's Court practice or consult counsel.",
                         isOptional: true,
                         alerts: [
                             {
@@ -1218,7 +1215,17 @@ export const SETTLEMENT_PHASE_TASKS = [
                 stateOverrides: {
                     NY: {
                         title: "Mail Notice to Creditors (SCPA §1803)",
-                        description: "Send formal notice to creditors. In NY, a claim must be in writing and state the facts upon which it is based (SCPA §1803)."
+                        description: "Send formal notice to creditors. In NY, a claim must be in writing and state the facts upon which it is based (SCPA §1803).",
+                        alerts: [
+                            {
+                                type: "warning",
+                                message: "Keep proof of mailing. This protects you from late claims."
+                            },
+                            {
+                                type: "info",
+                                message: "Disclaimer: This is procedural guidance only and does not constitute legal advice. Consult a licensed NY attorney for case-specific questions."
+                            }
+                        ]
                     }
                 },
                 alerts: [
@@ -1277,7 +1284,7 @@ export const SETTLEMENT_PHASE_TASKS = [
                     },
                     NY: {
                         title: "Monitor 7-Month Creditor Exposure Period (from issuance of Letters)",
-                        description: "In New York, creditors have 7 months from the date Letters are issued to file claims (SCPA §1802). Publication is optional but recommended.",
+                        description: "In New York, creditors have 7 months from the date Letters are issued to file claims (SCPA §1802). Publication may be used as optional risk mitigation but does not create a guaranteed claim bar.",
                         estimatedTime: "7 months"
                     },
                     TX: {
@@ -1553,8 +1560,22 @@ export const SETTLEMENT_PHASE_TASKS = [
                     },
                     NY: {
                         title: "Complete Property Sale & Transfer",
-                        description: "Finalize the sale of real estate. If court authorization was required, ensure Surrogate's Court approval is obtained before closing.",
+                        description: "Finalize the sale of real estate. If court authorization was required, ensure Surrogate's Court approval is obtained before closing. NY does not use the CA Independent Administration of Estates Act (IAEA) process.",
                         dependencies: [],
+                        alerts: [
+                            {
+                                type: "info",
+                                message: "Determine if a court order is required for the sale based on the Will terms and fiduciary authority granted."
+                            },
+                            {
+                                type: "info",
+                                message: "Record the deed with the County Clerk upon closing."
+                            },
+                            {
+                                type: "caution",
+                                message: "CA-specific procedures (Notice of Proposed Action, IAEA, Petition to Confirm Sale) do NOT apply in New York."
+                            }
+                        ]
                     },
                 },
             },

@@ -79,7 +79,7 @@ export const AuthService = {
             }
         }
 
-        const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: "30d" });
+        const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: "8h" });
         const isTrialing = calculateIsTrialing(user.trialStartedAt);
         return { user: { ...user, isTrialing }, token };
     },
@@ -119,9 +119,17 @@ export const AuthService = {
             }
         });
 
-        const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: "30d" });
+        const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: "8h" });
         const isTrialing = calculateIsTrialing(user.trialStartedAt);
         return { user: { ...user, isTrialing }, token };
+    },
+
+    /** Issue a fresh token for an already-authenticated user (sliding session). */
+    async refreshToken(userId: string) {
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+        if (!user) throw new Error("User not found");
+        const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: "8h" });
+        return { token };
     },
 
     async verifyToken(token: string) {
