@@ -378,10 +378,11 @@ function isProbateMode(profile: EstateProfile) {
 }
 
 function ensurePreFilingCompliance(phases: PhaseTaskList[], profile: EstateProfile): PhaseTaskList[] {
-  if (profile.state !== "NY" || !isProbateMode(profile)) return phases;
-
   const alreadyPresent = phases.some(p => p.phase === "pre_filing_compliance");
   if (alreadyPresent) return phases;
+
+  // If not present, only auto-inject for NY probate (traditional behavior)
+  if (profile.state !== "NY" || !isProbateMode(profile)) return phases;
 
   const preFiling = SETTLEMENT_PHASE_TASKS.find(p => p.phase === "pre_filing_compliance");
   if (!preFiling) return phases;
@@ -691,7 +692,7 @@ async function getRoadmapFromDatabase(
         description: stateOverride?.description || task.description || task.title,
         estimatedTime: task.estimatedTime || undefined,
         category: task.category as any,
-        isOptional: task.isOptional,
+        isOptional: (stateOverride as any)?.isOptional !== undefined ? (stateOverride as any).isOptional : task.isOptional,
         requiresAuthority: task.requiresAuthority,
         requiredDocs: task.requiredDocs,
         dependencies: task.dependencies,

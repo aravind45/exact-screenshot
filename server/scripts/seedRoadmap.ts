@@ -29,6 +29,11 @@ async function main() {
         const settlementType = await prisma.settlementType.findUnique({ where: { code: typeCode } });
         if (!settlementType) return;
 
+        console.log(`Clearing existing phases for ${typeCode}...`);
+        await prisma.roadmapPhase.deleteMany({
+            where: { settlementTypeId: settlementType.id }
+        });
+
         for (let i = 0; i < phases.length; i++) {
             const phaseData = phases[i];
             const phase = await prisma.roadmapPhase.upsert({
@@ -166,6 +171,7 @@ async function main() {
                                 changeLog: override.changeLog || null,
                                 confidence: override.confidence || "draft",
                                 officialForms: override.officialForms || null,
+                                isOptional: override.isOptional !== undefined ? override.isOptional : null,
                             },
                             create: {
                                 taskKey: t.id,
@@ -182,6 +188,7 @@ async function main() {
                                 changeLog: override.changeLog || null,
                                 confidence: override.confidence || "draft",
                                 officialForms: override.officialForms || null,
+                                isOptional: override.isOptional !== undefined ? override.isOptional : null,
                             },
                         });
                     }

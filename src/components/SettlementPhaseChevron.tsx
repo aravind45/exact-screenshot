@@ -36,73 +36,85 @@ export function SettlementPhaseChevron({
     return "upcoming";
   };
 
+  const getStatusIcon = (status: "completed" | "current" | "upcoming") => {
+    if (status === "completed") return Check;
+    if (status === "current") return Clock;
+    return Lock;
+  };
+
   return (
     <div className={cn("w-full overflow-x-auto pb-4", className)}>
-      <div className="flex items-center min-w-max">
+      <div className="hidden md:flex items-stretch min-w-max gap-2 px-1">
         {phases.map((phase, index) => {
           const status = getPhaseStatus(phase, index);
           const isCompleted = status === "completed";
           const isCurrent = status === "current";
           const isUpcoming = status === "upcoming";
+          const StatusIcon = getStatusIcon(status);
 
           return (
             <div key={phase.id} className="flex items-center">
-              {/* Chevron Shape */}
-              <div className="relative">
-                {/* Main Chevron Body */}
-                <div
-                  className={cn(
-                    "relative h-24 w-56 flex items-center justify-center transition-all duration-300",
-                    "clip-chevron",
-                    isCompleted && "bg-white border-2 border-indigo-100",
-                    isCurrent && "bg-indigo-600 shadow-lg shadow-indigo-200",
-                    isUpcoming && "bg-white border border-slate-100",
-                    isCurrent && "scale-[1.03] z-20"
-                  )}
-                  style={{
-                    clipPath: index === 0
-                      ? "polygon(0 0, calc(100% - 24px) 0, 100% 50%, calc(100% - 24px) 100%, 0 100%)"
-                      : "polygon(24px 0, calc(100% - 24px) 0, 100% 50%, calc(100% - 24px) 100%, 24px 100%, 0 50%)"
-                  }}
-                >
-                  <div className="flex flex-col items-center px-5 w-full">
-                    {/* Phase Info */}
-                    <div className="flex flex-col items-center text-center min-w-0 w-full">
-                      <span className={cn(
-                        "text-[15px] font-semibold tracking-tight leading-[1.1] whitespace-normal break-words",
-                        isCurrent && "text-white",
-                        isCompleted && "text-indigo-900",
-                        isUpcoming && "text-slate-400"
-                      )}>
-                        {phase.title}
-                      </span>
-                      <span className={cn(
-                        "text-[11px] font-medium leading-[1.15] mt-1 tracking-tight whitespace-normal break-words",
-                        isCurrent && "text-indigo-100",
-                        isCompleted && "text-indigo-600/70",
-                        isUpcoming && "text-slate-400/70"
-                      )}>
-                        {phase.subtitle}
-                      </span>
-                    </div>
-                  </div>
+              <div
+                className={cn(
+                  "w-52 min-h-[122px] rounded-xl border p-3 transition-all duration-200",
+                  isCompleted && "bg-emerald-50 border-emerald-200",
+                  isCurrent && "bg-indigo-600 border-indigo-500 shadow-lg shadow-indigo-200",
+                  isUpcoming && "bg-white border-slate-200"
+                )}
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <span className={cn(
+                    "text-[11px] font-semibold uppercase tracking-wide",
+                    isCompleted && "text-emerald-700",
+                    isCurrent && "text-indigo-100",
+                    isUpcoming && "text-slate-500"
+                  )}>
+                    Step {index + 1}
+                  </span>
+
+                  <span className={cn(
+                    "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium",
+                    isCompleted && "bg-emerald-100 text-emerald-700",
+                    isCurrent && "bg-indigo-500/40 text-indigo-100",
+                    isUpcoming && "bg-slate-100 text-slate-500"
+                  )}>
+                    <StatusIcon className="h-3 w-3" />
+                    {isCompleted ? "Done" : isCurrent ? "Active" : "Upcoming"}
+                  </span>
                 </div>
 
-                {/* Hover Effect */}
-                {!isUpcoming && (
-                  <div className="absolute inset-0 bg-white/0 hover:bg-white/10 transition-colors duration-200 pointer-events-none"
-                    style={{
-                      clipPath: index === 0
-                        ? "polygon(0 0, calc(100% - 20px) 0, 100% 50%, calc(100% - 20px) 100%, 0 100%)"
-                        : "polygon(20px 0, calc(100% - 20px) 0, 100% 50%, calc(100% - 20px) 100%, 20px 100%, 0 50%)"
-                    }}
-                  />
-                )}
+                <div
+                  className={cn(
+                    "mt-2 text-[15px] font-semibold leading-[1.15]",
+                    isCompleted && "text-emerald-900",
+                    isCurrent && "text-white",
+                    isUpcoming && "text-slate-700"
+                  )}
+                >
+                  {phase.title}
+                </div>
+
+                <div className={cn(
+                  "mt-1 text-[11px] leading-tight",
+                  isCompleted && "text-emerald-700",
+                  isCurrent && "text-indigo-100",
+                  isUpcoming && "text-slate-500"
+                )}>
+                  {phase.subtitle}
+                </div>
+
+                <div className={cn(
+                  "mt-2 text-[10px] uppercase tracking-wide",
+                  isCompleted && "text-emerald-600",
+                  isCurrent && "text-indigo-200",
+                  isUpcoming && "text-slate-400"
+                )}>
+                  {phase.milestone}
+                </div>
               </div>
 
-              {/* Connector (hidden for last item) */}
               {index < phases.length - 1 && (
-                <div className="w-0 h-0" /> // Overlap handled by clip-path
+                <div className="mx-1 text-slate-300">→</div>
               )}
             </div>
           );

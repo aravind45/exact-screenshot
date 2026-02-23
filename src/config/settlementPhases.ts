@@ -119,52 +119,6 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         }]
       },
       {
-        id: "publish_notice",
-        title: "Publish Notice to Creditors (If Required)",
-        description: "If required or strategically beneficial in your jurisdiction, publish a notice to creditors using the court-approved or locally accepted format. Publication rules, timing, and whether it affects creditor deadlines vary by state and county.",
-        estimatedTime: "State-specific (often 1–2 weeks)",
-        trackCompatibility: ["PROBATE"],
-        requiredDocs: ["Draft notice text (as applicable)", "Case/filing details (if applicable)"],
-        category: "probate",
-        // deadlineWarningId intentionally omitted from base — only CA links publication to a deadline
-        dependencies: [],
-        isOptional: true,
-        helpArticleId: "creditor-notice",
-        alerts: [
-          {
-            type: "important",
-            message: "Publication is not required in every state. Confirm local court practice before treating this as mandatory."
-          }
-        ],
-        stateOverrides: {
-          CA: {
-            title: "Publish Notice to Creditors (CA — Starts Claims Timing)",
-            description: "In California, publication of the required notice is a standard step and commonly drives creditor claims timing. Use the court-accepted notice format and follow local publication and proof requirements for your county.",
-            isOptional: false,
-            dependencies: ["file_probate_petition", "file_administration_petition"],
-            deadlineWarningId: "CREDITOR_NOTICE_DEADLINE",
-            requiredDocs: ["Court case number", "Proposed notice", "Publication proof (when issued)"],
-            alerts: [
-              {
-                type: "important",
-                message: "For California cases, publication is used to establish creditor notice and timing. Confirm local proof-of-publication requirements.",
-              },
-            ],
-          },
-          NY: {
-            title: "Publish Creditor Notice (Optional Risk Mitigation)",
-            description: "In New York, creditor publication is generally optional and may be used as a risk-mitigation step to document notice efforts and reduce unknown-creditor risk. It does not create a guaranteed claim bar. Confirm local Surrogate's Court practice or consult counsel.",
-            isOptional: true,
-            alerts: [
-              {
-                type: "important",
-                message: "Seven-Month Rule (SCPA A1802): Creditors have 7 months from the date of Letters to file claims. Distributing before this period carries personal liability risk."
-              }
-            ]
-          }
-        }
-      },
-      {
         id: "secure_property",
         title: "Secure the Property",
         description: "Change locks, forward mail, and ensure the home is protected from theft or damage.",
@@ -664,6 +618,44 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
             primaryActionLabel: "Download Forms Packet"
           }
         }
+      },
+      {
+        id: "petition_guardian_ad_litem",
+        title: "File Petition for Guardian Ad Litem",
+        description: "Request court appointment of a guardian ad litem to represent minor beneficiaries' interests throughout probate.",
+        estimatedTime: "2-4 hours",
+        category: "probate",
+        isConditional: true,
+        isOptional: true, // Controlled by filtering logic based on profile
+        conditionalRequirementLabel: "Required if minors have interests",
+        requiredDocs: ["Petition Form", "Death Certificate"],
+        dependencies: ["file_probate_petition", "file_administration_petition"],
+        links: [{
+          label: "About Guardian Ad Litem Representation",
+          url: "#"
+        }],
+        alerts: [{
+          type: "important",
+          message: "Guardian ad litem must approve all actions affecting minors' inheritance."
+        }]
+      },
+      {
+        id: "obtain_guardian_order",
+        title: "Obtain Guardian Ad Litem Order",
+        description: "Receive court order appointing guardian ad litem. Provide guardian with all estate information.",
+        estimatedTime: "2-3 weeks",
+        category: "court-issued",
+        isOptional: true,
+        requiredDocs: ["Court Order"],
+        dependencies: ["petition_guardian_ad_litem"],
+        links: [{
+          label: "About Guardian Appointment Orders",
+          url: "#"
+        }],
+        alerts: [{
+          type: "info",
+          message: "Guardian ad litem fees are paid by the estate, typically $150-300/hour."
+        }]
       }
     ]
   },
@@ -938,44 +930,6 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         isAttorneyReviewNode: true,
         attorneyReviewReason: "Complex Asset: Continuing business operations involves significant fiduciary risk and employment law compliance.",
         alerts: [{ type: "important", message: "Do not let business operations lapse; it can severely devalue the estate." }]
-      },
-      {
-        id: "petition_guardian_ad_litem",
-        title: "File Petition for Guardian Ad Litem",
-        description: "Request court appointment of a guardian ad litem to represent minor beneficiaries' interests throughout probate.",
-        estimatedTime: "2-4 hours",
-        category: "probate",
-        isConditional: true,
-        isOptional: true, // Controlled by filtering logic based on profile
-        conditionalRequirementLabel: "Required if minors have interests",
-        requiredDocs: ["Petition Form", "Death Certificate"],
-        dependencies: ["file_probate_petition", "file_administration_petition"],
-        links: [{
-          label: "About Guardian Ad Litem Representation",
-          url: "#"
-        }],
-        alerts: [{
-          type: "important",
-          message: "Guardian ad litem must approve all actions affecting minors' inheritance."
-        }]
-      },
-      {
-        id: "obtain_guardian_order",
-        title: "Obtain Guardian Ad Litem Order",
-        description: "Receive court order appointing guardian ad litem. Provide guardian with all estate information.",
-        estimatedTime: "2-3 weeks",
-        category: "court-issued",
-        isOptional: true,
-        requiredDocs: ["Court Order"],
-        dependencies: ["petition_guardian_ad_litem"],
-        links: [{
-          label: "About Guardian Appointment Orders",
-          url: "#"
-        }],
-        alerts: [{
-          type: "info",
-          message: "Guardian ad litem fees are paid by the estate, typically $150-300/hour."
-        }]
       },
       {
         id: "file_succession_petition",
@@ -1332,6 +1286,17 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
               {
                 type: "important",
                 message: "Seven-Month Rule (SCPA §1802): Creditors have 7 months from the date of Letters to file claims. Distributing before this period carries personal liability risk."
+              }
+            ]
+          },
+          IL: {
+            title: "Publish Notice to Creditors (755 ILCS 5/18-3)",
+            description: "Illinois law requires the representative to publish a notice in a newspaper of general circulation in the county where the estate is being administered. This starts the 6-month claim period for unknown creditors.",
+            isOptional: false,
+            alerts: [
+              {
+                type: "important",
+                message: "Mandatory Requirement: Publication is required by 755 ILCS 5/18-3 and must be completed promptly after Letters are issued."
               }
             ]
           }

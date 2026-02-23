@@ -10,7 +10,7 @@
 
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Gavel, AlertTriangle, ChevronRight, ExternalLink } from "lucide-react";
+import { Gavel, ChevronRight, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
@@ -21,8 +21,19 @@ import { calculateAuthorityRecommendation } from "@/lib/authorityEngine";
 import { PHASE_ORDER } from "@/config/roadmapMetadata";
 
 interface AttorneyReviewWidgetProps {
-  estate: any;
-  assets?: any[];
+  estate: {
+    status?: string | null;
+    deceasedState?: string | null;
+    hasWill?: boolean;
+    isSurvivingSpouse?: boolean;
+    hasOutOfStateProperty?: boolean;
+    estimatedPersonalProperty?: number;
+    isTrustRevocable?: boolean | null;
+    hasTODDeed?: boolean;
+    hasContest?: boolean;
+    isInternational?: boolean;
+  } | null | undefined;
+  assets?: Array<Record<string, unknown>>;
 }
 
 
@@ -39,6 +50,10 @@ const PHASE_LABELS: Record<string, string> = {
 export function AttorneyReviewWidget({ estate, assets = [] }: AttorneyReviewWidgetProps) {
   const navigate = useNavigate();
   const { completedTaskIds } = useWorkflow();
+  const phaseOrder: readonly string[] = PHASE_ORDER as readonly string[];
+
+  const currentPhase = (estate?.status?.toLowerCase?.() || "immediate_actions") as string;
+  const currentPhaseIndex = Math.max(0, phaseOrder.indexOf(currentPhase));
 
   // Compute roadmap deterministically
   const roadmap = useMemo(() => {
@@ -70,9 +85,10 @@ export function AttorneyReviewWidget({ estate, assets = [] }: AttorneyReviewWidg
       phase: string;
       phaseLabel: string;
       isUpNext: boolean; // next task with all deps satisfied
+      missingDependencyCount: number;
     }> = [];
 
-    for (const phaseKey of PHASE_ORDER) {
+    for (const phaseKey of phaseOrder) {
       const phase = roadmap.find((p) => p.phase === phaseKey);
       if (!phase) continue;
 
@@ -80,9 +96,10 @@ export function AttorneyReviewWidget({ estate, assets = [] }: AttorneyReviewWidg
         if (!task.isAttorneyReviewNode) continue;
         if (completedTaskIds.includes(task.id)) continue;
 
-        const depsOk =
-          !task.dependencies?.length ||
-          task.dependencies.every((d: string) => completedTaskIds.includes(d));
+        const missingDependencyCount = (task.dependencies || []).filter(
+          (d: string) => !completedTaskIds.includes(d)
+        ).length;
+        const depsOk = missingDependencyCount === 0;
 
         results.push({
           taskId: task.id,
@@ -91,21 +108,37 @@ export function AttorneyReviewWidget({ estate, assets = [] }: AttorneyReviewWidg
           phase: phaseKey,
           phaseLabel: PHASE_LABELS[phaseKey] || phaseKey,
           isUpNext: depsOk,
+          missingDependencyCount,
         });
       }
     }
 
-    // Show up-next tasks first, limit to 4
+    // Prioritize by readiness, then proximity to current phase, then lower dependency count.
     return results
-      .sort((a, b) => (b.isUpNext ? 1 : 0) - (a.isUpNext ? 1 : 0))
+      .sort((a, b) => {
+        if (a.isUpNext !== b.isUpNext) return a.isUpNext ? -1 : 1;
+
+        const aIndex = phaseOrder.indexOf(a.phase);
+        const bIndex = phaseOrder.indexOf(b.phase);
+        const aDistance = Math.abs((aIndex < 0 ? 0 : aIndex) - currentPhaseIndex);
+        const bDistance = Math.abs((bIndex < 0 ? 0 : bIndex) - currentPhaseIndex);
+        if (aDistance !== bDistance) return aDistance - bDistance;
+
+        if (a.missingDependencyCount !== b.missingDependencyCount) {
+          return a.missingDependencyCount - b.missingDependencyCount;
+        }
+
+        return a.title.localeCompare(b.title);
+      })
       .slice(0, 4);
-  }, [roadmap, completedTaskIds]);
+  }, [roadmap, completedTaskIds, currentPhaseIndex, phaseOrder]);
 
   if (!reviewNodes.length) {
     return null; // Nothing to warn about
   }
 
   const urgentCount = reviewNodes.filter((n) => n.isUpNext).length;
+  const blockedCount = reviewNodes.length - urgentCount;
 
   return (
     <motion.div
@@ -125,6 +158,11 @@ export function AttorneyReviewWidget({ estate, assets = [] }: AttorneyReviewWidg
             </p>
             <p className="text-sm font-black text-amber-900 leading-none">
               Attorney Review Required
+            </p>
+            <p className="text-[10px] font-semibold text-amber-700 mt-1 leading-none">
+              {urgentCount > 0
+                ? `${urgentCount} ready now • ${blockedCount} upcoming`
+                : "No immediate attorney stop points; upcoming review nodes identified"}
             </p>
           </div>
         </div>
@@ -167,6 +205,11 @@ export function AttorneyReviewWidget({ estate, assets = [] }: AttorneyReviewWidg
               </div>
               <p className="text-[10px] text-amber-700 leading-snug line-clamp-2">
                 {node.reason}
+              </p>
+              <p className="text-[10px] text-amber-600 leading-snug mt-0.5">
+                {node.isUpNext
+                  ? "Ready now — complete this with counsel before proceeding."
+                  : `Blocked by ${node.missingDependencyCount} prerequisite ${node.missingDependencyCount === 1 ? 'task' : 'tasks'}.`}
               </p>
               <p className="text-[9px] font-black uppercase tracking-widest text-amber-500 mt-1">
                 {node.phaseLabel}

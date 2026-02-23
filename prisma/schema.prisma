@@ -645,6 +645,7 @@ model RoadmapTaskStateOverride {
   changeLog           Json?        @map("change_log")
   confidence          String?      @default("draft")
   officialForms       Json?        @map("official_forms")
+  isOptional          Boolean?      @map("is_optional")
   createdAt           DateTime     @default(now()) @map("created_at")
   updatedAt           DateTime     @updatedAt @map("updated_at")
 
