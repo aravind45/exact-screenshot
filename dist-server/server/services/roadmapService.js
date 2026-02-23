@@ -73,6 +73,10 @@ function normalizeTaskForState(task, state) {
     const override = task.stateOverrides?.[state]
         || HARDCODED_STATE_OVERRIDES_MAP.get(task.id)?.[state];
     const mergedTask = override ? { ...task, ...override } : task;
+    // Clean CA-only dependencies for non-CA states
+    if (state !== "CA" && mergedTask.dependencies) {
+        mergedTask.dependencies = mergedTask.dependencies.filter((dep) => !CA_ONLY_TASK_IDS.has(dep));
+    }
     return {
         ...mergedTask,
         title: normalizeTextForState(mergedTask.title, state) || mergedTask.title,
@@ -208,15 +212,37 @@ const CA_ONLY_TEXT_TOKENS = [
     "IAEA",
     "Independent Administration",
 ];
+// Additional CA-only title patterns for text-based defense (catches DB tasks with stale titles)
+const CA_ONLY_TITLE_PATTERNS = [
+    /\bNotice of Proposed Action\b/i,
+    /\b15-Day Objection Period\b/i,
+    /\bPetition to Confirm Sale\b/i,
+    /\bSale Confirmation Order\b/i,
+    /\bIAEA\b/,
+    /\bIndependent Administration\b/i,
+];
 /**
- * Hard guard: remove CA-only tasks for non-CA states
+ * Hard guard: remove CA-only tasks for non-CA states.
+ * Uses BOTH task-ID matching AND title-pattern matching for defense-in-depth.
  */
 function removeCAOnlyTasks(phases, state) {
     if (state === "CA")
         return phases;
     return phases.map(phase => ({
         ...phase,
-        tasks: phase.tasks.filter(task => !CA_ONLY_TASK_IDS.has(task.id)),
+        tasks: phase.tasks.filter(task => {
+            // Guard 1: Explicit CA-only task ID list
+            if (CA_ONLY_TASK_IDS.has(task.id))
+                return false;
+            // Guard 2: applicability.states check (catches DB tasks with correct applicableStates)
+            if (task.applicability?.states && task.applicability.states.length > 0
+                && !task.applicability.states.includes(state))
+                return false;
+            // Guard 3: Title-pattern match (catches DB tasks with stale CA titles/different IDs)
+            if (CA_ONLY_TITLE_PATTERNS.some(p => p.test(task.title)))
+                return false;
+            return true;
+        }),
     }));
 }
 /**

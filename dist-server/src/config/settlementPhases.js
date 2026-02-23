@@ -1197,6 +1197,7 @@ export const SETTLEMENT_PHASE_TASKS = [
                     NY: {
                         title: "Publish Creditor Notice (Optional Risk Mitigation)",
                         description: "In New York, publication is not strictly mandatory for intestate administration but highly recommended to cut off unknown claims.",
+                        isOptional: true,
                         alerts: [
                             {
                                 type: "important",
@@ -1535,15 +1536,27 @@ export const SETTLEMENT_PHASE_TASKS = [
             },
             {
                 id: "sell_property",
-                title: "Complete Property Sale & Close Escrow",
-                description: "Finalize the sale of real estate, sign closing documents, and receive sale proceeds into the estate account.",
+                title: "Complete Property Sale & Transfer",
+                description: "Finalize the sale of real estate, sign closing documents, and receive sale proceeds into the estate account. Court authorization requirements vary by state.",
                 estimatedTime: "4-8 weeks",
                 isConditional: true,
                 conditionalRequirementLabel: "Required if estate owns real property",
                 isAttorneyReviewNode: true,
                 attorneyReviewReason: "Fiduciary Risk: Property sales are often the largest transactions in an estate. Mismatched closing statements or tax withholding errors create high liability.",
-                dependencies: ["obtain_sale_confirmation_order", "wait_proposed_action_period"],
-                requiredDocs: ["Final Hud-1/Closing Statement"]
+                dependencies: [],
+                requiredDocs: ["Final Hud-1/Closing Statement"],
+                stateOverrides: {
+                    CA: {
+                        title: "Complete Property Sale & Close Escrow",
+                        description: "Finalize the sale of real estate through IAEA or court-confirmed process, sign closing documents, and receive sale proceeds into the estate account.",
+                        dependencies: ["obtain_sale_confirmation_order", "wait_proposed_action_period"],
+                    },
+                    NY: {
+                        title: "Complete Property Sale & Transfer",
+                        description: "Finalize the sale of real estate. If court authorization was required, ensure Surrogate's Court approval is obtained before closing.",
+                        dependencies: [],
+                    },
+                },
             },
             {
                 id: "file_form_1041",

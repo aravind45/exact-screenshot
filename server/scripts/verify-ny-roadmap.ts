@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { generateRoadmap } from '../../src/config/roadmapGenerator.js';
-import { getRoadmap } from '../services/roadmapService.js';
+import { getEstateRoadmap } from '../services/roadmapService.js';
 
 const prisma = new PrismaClient();
 
@@ -20,7 +20,7 @@ async function verifyNYRoadmap() {
     try {
         // 1. Check Frontend Generator Logic
         console.log("\n[1] Testing Frontend Generator (roadmapGenerator.ts)");
-        const frontendRoadmap = generateRoadmap("FORMAL_PROBATE", mockProfile.state, false, false, false);
+        const frontendRoadmap = generateRoadmap("FORMAL_PROBATE", mockProfile.state, [], [], false);
 
         let foundCAInFrontend = false;
         for (const phase of frontendRoadmap) {
@@ -54,13 +54,16 @@ async function verifyNYRoadmap() {
             data: {
                 userId: dummyUser.id,
                 name: "Test NY Estate 123",
+                deceasedFirstName: "Test",
+                deceasedLastName: "Doe",
                 state: "NY",
                 hasWill: false,
                 settlementPath: "INTESTATE"
             }
         });
 
-        const backendRoadmap = await getRoadmap(estate.id);
+        const backendResult = await getEstateRoadmap(estate.id);
+        const backendRoadmap = backendResult.phases || [];
 
         let foundCAInBackend = false;
         let creditorMilestone = "";
