@@ -27,7 +27,7 @@ const CA_ONLY_TITLE_PATTERNS = [
 // ─────────────────────────────────────────────────────────────────────────────
 const STATE_PHASE_OVERRIDES: Record<string, Record<string, { milestone?: string; subtitle?: string }>> = {
     NY: {
-        creditor_claims: { milestone: "After Letters Issued", subtitle: "7-Month Exposure Period" },
+        creditor_claims: { milestone: "After Letters Issued", subtitle: "7-Month Exposure Management" },
         asset_liquidation: { milestone: "Month 6–12", subtitle: "Transfer & Sell" },
         final_distribution: { milestone: "After Accounting & Approvals", subtitle: "Settle & Close" },
     },
@@ -53,19 +53,19 @@ const STATE_PHASE_OVERRIDES: Record<string, Record<string, { milestone?: string;
     // DEFAULT fallback — used when a state has no explicit override, so CA tokens never leak
     DEFAULT: {
         creditor_claims: { milestone: "After Letters Issued", subtitle: "State-Specific Timing" },
-        asset_liquidation: { milestone: "Month 6–12", subtitle: "State-Specific Process" },
-        final_distribution: { milestone: "After Accounting & Approvals", subtitle: "Closeout" },
+        asset_liquidation: { milestone: "Post-Inventory", subtitle: "State-Specific Process" },
+        final_distribution: { milestone: "After Claims & Accounting", subtitle: "Distribution & Closeout" },
     },
 };
 
 const NEUTRAL_PHASE_MILESTONES: Record<string, { milestone: string; subtitle: string }> = {
     immediate_actions: { milestone: "Death to Filing", subtitle: "Secure & Notify" },
     pre_filing_compliance: { milestone: "Before Petition Filing", subtitle: "Procedural Checks" },
-    court_filing: { milestone: "After Petition Filed", subtitle: "Obtaining Powers" },
-    asset_discovery: { milestone: "After Letters Issued", subtitle: "Inventory & Appraisal" },
-    creditor_claims: { milestone: "After Letters Issued", subtitle: "Notice & Priority" },
-    asset_liquidation: { milestone: "Month 6–12", subtitle: "Transfer & Sell" },
-    final_distribution: { milestone: "Month 6–12", subtitle: "Estate In Closing" },
+    court_filing: { milestone: "After Petition Filed", subtitle: "Obtaining Authority" },
+    asset_discovery: { milestone: "After Letters Issued", subtitle: "Inventory & Valuation" },
+    creditor_claims: { milestone: "After Letters Issued", subtitle: "State-Specific Claim Handling" },
+    asset_liquidation: { milestone: "Post-Inventory", subtitle: "Transfer & Sale (If Required)" },
+    final_distribution: { milestone: "After Claims & Accounting", subtitle: "Distribution & Closeout" },
 };
 
 function normalizeTextForState(text: string | undefined, state: string): string | undefined {

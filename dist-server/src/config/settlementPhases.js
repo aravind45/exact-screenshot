@@ -569,7 +569,7 @@ export const SETTLEMENT_PHASE_TASKS = [
     {
         phase: "court_filing",
         title: "Petition & Authority",
-        subtitle: "Obtaining Powers",
+        subtitle: "Obtaining Authority",
         milestone: "After Petition Filed",
         description: "Submitting the probate petition to the court to obtain official fiduciary authority (Letters).",
         tasks: [
@@ -1045,7 +1045,7 @@ export const SETTLEMENT_PHASE_TASKS = [
     {
         phase: "asset_discovery",
         title: "Asset Discovery",
-        subtitle: "Inventory & Appraisal",
+        subtitle: "Inventory & Valuation",
         milestone: "After Letters Issued",
         description: "Identify all assets within the estate's jurisdiction and obtain formal Date-of-Death valuations.",
         tasks: [
@@ -1172,20 +1172,21 @@ export const SETTLEMENT_PHASE_TASKS = [
     {
         phase: "creditor_claims",
         title: "Creditor Claims",
-        subtitle: "Notice & Priority",
+        subtitle: "State-Specific Claim Handling",
         milestone: "After Letters Issued",
-        description: "Managing the state-specific creditor exposure period and determining the legal priority of submitted claims.",
+        description: "Identify creditors, document notices, track state-specific exposure timelines, and pay approved claims in priority order.",
         tasks: [
             {
                 id: "debt_priority_risk",
                 title: "FIDUCIARY RISK: Statutory Debt Priority",
-                description: "Evaluate claims according to legal priority (e.g., administration costs, taxes, then general debts).",
+                description: "Assess creditor claims and potential debts under the statutory priority rules applicable in your jurisdiction (often including administration expenses and taxes before unsecured debts).",
                 isAttorneyReviewNode: true,
                 trackCompatibility: ["PROBATE", "TRUST", "NON_PROBATE"],
                 alerts: [{
                         type: "caution",
-                        message: "Liability Alert: Do NOT pay any debts until the statutory notice period has expired and priority is confirmed."
-                    }]
+                        message: "Liability Alert: Do not pay claims out of order. Maintain reserves and verify your state's priority rules and any notice/claims procedures before making non-essential payments."
+                    }],
+                outputs: ["Debt priority worksheet", "Proposed payment order / reserve plan"],
             },
             {
                 id: "publish_notice",
@@ -1292,11 +1293,15 @@ export const SETTLEMENT_PHASE_TASKS = [
             {
                 id: "evaluate_solvency",
                 title: "Evaluate Estate Solvency",
-                description: "Compare total assets to total liabilities and funeral/admin expenses.",
-                estimatedTime: "2-3 hours",
+                description: "Compare total estate assets to total liabilities, taxes, and administration/funeral expenses to determine whether the estate appears solvent or insolvent.",
+                estimatedTime: "2–3 hours",
                 isAttorneyReviewNode: true,
-                attorneyReviewReason: "Fiduciary Risk: If the estate is insolvent, the legal priority of payments changes. Paying the wrong creditor first is a major source of personal liability.",
-                alerts: [{ type: "caution", message: "If liabilities exceed assets, the estate is insolvent. Different rules apply." }]
+                attorneyReviewReason: "Fiduciary Risk: If the estate is insolvent, payment priority and distribution rules change materially. Paying the wrong creditor first is a major source of personal liability.",
+                alerts: [{
+                        type: "caution",
+                        message: "If liabilities exceed assets, treat the estate as potentially insolvent and follow your jurisdiction's insolvency/payment priority rules before paying claims or making distributions."
+                    }],
+                outputs: ["Solvency worksheet (assets vs liabilities)", "Preliminary insolvency flag"],
             },
             {
                 id: "wait_claim_period",
@@ -1387,51 +1392,54 @@ export const SETTLEMENT_PHASE_TASKS = [
             },
             {
                 id: "tod_creditor_review",
-                title: "⚠️ Creditor Exposure Assessment",
-                description: "Silent Legal Check: Evaluate potential beneficiary liability for decedent's debts. This is NOT a formal probate claim process, but a risk assessment of statutory 'clawback' provisions.",
-                estimatedTime: "1-2 weeks",
+                title: "⚠️ Non-Probate Creditor Exposure Assessment",
+                description: "Risk assessment: Evaluate whether creditors may pursue non-probate transfers (e.g., TOD/POD beneficiaries) when the probate estate is insufficient. This is not the standard probate claims workflow; it assesses potential statutory recovery mechanisms that vary by state.",
+                estimatedTime: "State-specific (often 1–2 weeks)",
                 trackCompatibility: ["NON_PROBATE"],
                 isAttorneyReviewNode: true,
-                attorneyReviewReason: "Insolvency Risk: If the probate estate is empty, creditors may sue TOD beneficiaries directly. This review determines your personal exposure.",
+                attorneyReviewReason: "Insolvency Risk: If the probate estate is insufficient, creditors may attempt recovery against certain non-probate transfers depending on state law. This review assesses potential exposure and mitigation options.",
                 alerts: [
                     {
                         type: "caution",
-                        message: "Clawback Risk: In many states, creditors have 1 year to pursue TOD assets if the estate cannot pay debts."
+                        message: "Non-probate 'clawback' / recovery rules vary by state, asset type, and timing. Verify your state's statutes before assuming a fixed deadline or exposure window.",
                     },
                     {
                         type: "important",
-                        message: "This is a 'Silent' review. Do NOT publish notice to creditors unless you escalate to formal probate."
-                    }
+                        message: "This is a risk review. Avoid taking steps that may create unnecessary procedural obligations. Escalate to formal probate only if needed for authority, insolvency handling, or dispute resolution.",
+                    },
                 ]
             },
             {
                 id: "evaluate_and_document_claims",
                 title: "Document Claim Evaluation & Decision",
-                description: "Formally evaluate each timely creditor claim. Document whether the claim is allowed in full, partially allowed, or rejected.",
+                description: "Evaluate each creditor claim and document your decision (allowed, partially allowed, disputed/rejected) with supporting rationale and evidence. Claims handling procedures vary by state and case type.",
                 isAttorneyReviewNode: true,
-                attorneyReviewReason: "Litigation Risk: Formal claim rejection triggers a strict statutory litigation window for the creditor. Legal defense strategy is critical here.",
+                attorneyReviewReason: "Litigation Risk: Disputing or rejecting claims can trigger formal dispute processes and deadlines that vary by jurisdiction. Counsel guidance reduces risk.",
                 trackCompatibility: ["PROBATE", "TRUST"],
-                alerts: [{
+                alerts: [
+                    {
                         type: "caution",
-                        message: "Legal Decision Guardrail: Formal claim rejection triggers a strict statutory litigation window for the creditor. Consult with an attorney before issuing a formal rejection."
-                    }]
+                        message: "State law may impose specific notice language, delivery methods, or response deadlines when disputing a claim. Confirm local requirements before issuing a formal dispute/rejection notice.",
+                    },
+                ]
             },
             {
                 id: "reject_invalid",
                 title: "Dispute or Reject Claims (If Applicable)",
-                description: "If a creditor claim is incorrect, unsupported, or disputed, follow your state's procedure to dispute, reject, or negotiate the claim. Keep written documentation of the reasons and supporting evidence.",
+                description: "If a claim is incorrect, unsupported, or disputed, follow your state's procedure to dispute, reject, or negotiate the claim. Keep written documentation of the basis and supporting evidence.",
                 estimatedTime: "State-specific (often 1–2 weeks)",
                 isConditional: true,
                 conditionalRequirementLabel: "Required if creditor claims are invalid or disputed",
                 requiredDocs: ["Claim documentation", "Written dispute/rejection notice (if used)", "Supporting evidence"],
+                dependencies: ["review_claims"],
                 alerts: [
                     {
                         type: "warning",
-                        message: "Disputed or rejected creditors may pursue litigation. Consult counsel before sending a rejection/dispute notice and document your reasoning carefully.",
+                        message: "Disputed or rejected creditors may pursue litigation. Consult counsel and document your reasoning carefully before sending a dispute/rejection notice.",
                     },
                     {
                         type: "caution",
-                        message: "State law may require specific notice language, delivery method, or timing when disputing a claim. Verify local requirements before acting.",
+                        message: "Notice requirements and deadlines vary by state. Verify local procedure before acting.",
                     },
                 ],
                 stateOverrides: {
@@ -1495,8 +1503,8 @@ export const SETTLEMENT_PHASE_TASKS = [
     {
         phase: "asset_liquidation",
         title: "Asset Liquidation",
-        subtitle: "Transfer & Sell",
-        milestone: "Month 6-12",
+        subtitle: "Transfer & Sale (If Required)",
+        milestone: "Post-Inventory",
         description: "Present Letters to institutions, transfer or sell assets, and pay final bills.",
         tasks: [
             {
@@ -1705,8 +1713,8 @@ export const SETTLEMENT_PHASE_TASKS = [
     {
         phase: "final_distribution",
         title: "Final Distribution",
-        subtitle: "Close Estate",
-        milestone: "Month 6-12",
+        subtitle: "Distribution & Closeout",
+        milestone: "After Claims & Accounting",
         description: "File petition for final distribution, distribute assets to heirs, and close estate.",
         tasks: [
             {
