@@ -58,7 +58,8 @@ export class DossierService {
                 totalAssets,
                 totalDebt,
                 netValue: totalAssets - totalDebt,
-                status: (progress?.completedPhases?.length === 6) ? "CLOSED" : "IN_PROGRESS"
+                // Uses includes('final_distribution') instead of length === 6 to support dynamically skipped phases
+                status: (progress?.completedPhases?.includes("final_distribution")) ? "CLOSED" : "IN_PROGRESS"
             }
         };
     }

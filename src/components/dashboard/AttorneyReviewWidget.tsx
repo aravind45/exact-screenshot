@@ -18,20 +18,14 @@ import { cn } from "@/lib/utils";
 import { useWorkflow } from "@/contexts/WorkflowContext";
 import { generateRoadmap } from "@/config/roadmapGenerator";
 import { calculateAuthorityRecommendation } from "@/lib/authorityEngine";
+import { PHASE_ORDER } from "@/config/roadmapMetadata";
 
 interface AttorneyReviewWidgetProps {
   estate: any;
   assets?: any[];
 }
 
-const PHASE_ORDER = [
-  "immediate_actions",
-  "court_filing",
-  "asset_discovery",
-  "creditor_claims",
-  "asset_liquidation",
-  "final_distribution",
-] as const;
+
 
 const PHASE_LABELS: Record<string, string> = {
   immediate_actions: "Immediate",

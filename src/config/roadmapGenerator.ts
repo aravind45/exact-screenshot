@@ -1,6 +1,7 @@
 import { AuthorityType, MasterMode, getMasterMode } from "@/lib/authorityEngine";
 import { getLettersTerm } from "@/lib/stateRules";
-import { SettlementPhase, PhaseTaskList, SETTLEMENT_PHASE_TASKS, TRUST_PHASE_TASKS, MODIFIER_PHASE_TASKS, PROBATE_ESCALATION_PHASE } from "./settlementPhases";
+import { PhaseTaskList, SETTLEMENT_PHASE_TASKS, TRUST_PHASE_TASKS, MODIFIER_PHASE_TASKS, PROBATE_ESCALATION_PHASE } from "./settlementPhases";
+import { SettlementPhase, PHASE_ORDER, STATE_PHASE_OVERRIDES, NEUTRAL_PHASE_MILESTONES } from "./roadmapMetadata";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // CA-only task IDs that must NEVER appear for non-CA states.
@@ -23,27 +24,8 @@ const CA_ONLY_TITLE_PATTERNS = [
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
-// State-specific phase milestone overrides (client-side mirror of server config)
+// (Overrides and Neutral milestones now imported from roadmapMetadata)
 // ─────────────────────────────────────────────────────────────────────────────
-const STATE_PHASE_OVERRIDES: Record<string, Record<string, { milestone?: string; subtitle?: string }>> = {
-    NY: {
-        creditor_claims: { milestone: "After Letters Issued", subtitle: "7-Month Exposure Management" }
-    },
-    CA: {
-        creditor_claims: { milestone: "After Notice Published", subtitle: "4-Month Claim Window" },
-        asset_liquidation: { milestone: "After Inventory Prepared", subtitle: "IAEA / Court-Confirmed Sales" }
-    }
-};
-
-const NEUTRAL_PHASE_MILESTONES: Record<string, { milestone: string; subtitle: string }> = {
-    immediate_actions: { milestone: "Immediately After Death", subtitle: "Secure, Notify, Preserve" },
-    pre_filing_compliance: { milestone: "Before Court Filing", subtitle: "Eligibility, Venue, Parties" },
-    court_filing: { milestone: "Court Filing → Authority", subtitle: "Petition, Notices, Letters" },
-    asset_discovery: { milestone: "After Authority Issued", subtitle: "Inventory & Valuation" },
-    creditor_claims: { milestone: "After Authority Issued", subtitle: "Claims & Exposure Management" },
-    asset_liquidation: { milestone: "After Inventory Prepared", subtitle: "Transfers & Sales (If Needed)" },
-    final_distribution: { milestone: "After Claims & Taxes Addressed", subtitle: "Accounting, Distribution, Close" },
-};
 
 function normalizeTextForState(text: string | undefined, state: string): string | undefined {
     if (!text) return text;
@@ -124,15 +106,13 @@ function removeCAOnlyTasks(phases: PhaseTaskList[], state: string): PhaseTaskLis
  */
 function normalizePhasesForState(phases: PhaseTaskList[], state: string): PhaseTaskList[] {
     const stateOverrides = STATE_PHASE_OVERRIDES[state] || {};
-    const defaultOverrides = STATE_PHASE_OVERRIDES["DEFAULT"] || {};
     return phases.map(phase => {
         const phaseOverride = stateOverrides[phase.phase];
-        const defaultPhaseOverride = defaultOverrides[phase.phase];
         const neutralDefault = NEUTRAL_PHASE_MILESTONES[phase.phase];
         return {
             ...phase,
-            milestone: phaseOverride?.milestone || defaultPhaseOverride?.milestone || neutralDefault?.milestone || phase.milestone,
-            subtitle: phaseOverride?.subtitle || defaultPhaseOverride?.subtitle || neutralDefault?.subtitle || phase.subtitle,
+            milestone: phaseOverride?.milestone || neutralDefault?.milestone || phase.milestone,
+            subtitle: phaseOverride?.subtitle || neutralDefault?.subtitle || phase.subtitle,
         };
     });
 }
@@ -255,19 +235,7 @@ export function generateRoadmap(
     });
 
     // Order phases properly based on canonical sequence
-    const orderedPhaseKeys = [
-        "immediate_actions",
-        "pre_filing_compliance",
-        "court_filing",
-        "ancillary_phase",
-        "litigation_phase",
-        "insolvency_phase",
-        "asset_discovery",
-        "probate_escalation",
-        "creditor_claims",
-        "asset_liquidation",
-        "final_distribution"
-    ];
+    const orderedPhaseKeys: SettlementPhase[] = PHASE_ORDER;
 
     // Build final phase list with per-task normalization
     let finalPhases = orderedPhaseKeys

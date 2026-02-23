@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import { useWorkflow } from "@/contexts/WorkflowContext";
 import { generateRoadmap } from "@/config/roadmapGenerator";
 import { calculateAuthorityRecommendation } from "@/lib/authorityEngine";
+import { PHASE_ORDER } from "@/config/roadmapMetadata";
 
 // Plain-English phase metadata — maps from phase id to user-friendly content
 const PHASE_META: Record<string, {
@@ -32,6 +33,13 @@ const PHASE_META: Record<string, {
         duration: "Days 1–14",
         icon: "🔒",
     },
+    pre_filing_compliance: {
+        label: "Pre-Filing",
+        heading: "Pre-Filing Requirements",
+        summary: "Ensure legal eligibility and compliance before filing.",
+        duration: "Days 14–30",
+        icon: "📝",
+    },
     court_filing: {
         label: "Authority",
         heading: "Get Court Authority",
@@ -39,12 +47,40 @@ const PHASE_META: Record<string, {
         duration: "Weeks 2–8",
         icon: "⚖️",
     },
+    ancillary_phase: {
+        label: "Out of State",
+        heading: "Out-of-State Property",
+        summary: "File additional court paperwork in states where real estate is located.",
+        duration: "Variable",
+        icon: "🗺️",
+    },
+    litigation_phase: {
+        label: "Dispute",
+        heading: "Will Contests & Disputes",
+        summary: "Handle legal challenges to the estate or trust.",
+        duration: "Variable",
+        icon: "⚖️",
+    },
+    insolvency_phase: {
+        label: "Insolvency",
+        heading: "Insolvent Estate Claims",
+        summary: "Manage debts when they exceed the value of the estate's assets.",
+        duration: "Month 2–6",
+        icon: "🛡️",
+    },
     asset_discovery: {
         label: "Inventory",
         heading: "Find & Value All Assets",
         summary: "Track down every bank account, property, and investment. Get official valuations for the court.",
         duration: "Month 1–3",
         icon: "🔍",
+    },
+    probate_escalation: {
+        label: "Court Review",
+        heading: "Probate Escalation",
+        summary: "Handle complex issues requiring formal court intervention.",
+        duration: "Variable",
+        icon: "🏛️",
     },
     creditor_claims: {
         label: "Debts",
@@ -68,15 +104,6 @@ const PHASE_META: Record<string, {
         icon: "✅",
     },
 };
-
-const PHASE_ORDER = [
-    "immediate_actions",
-    "court_filing",
-    "asset_discovery",
-    "creditor_claims",
-    "asset_liquidation",
-    "final_distribution",
-] as const;
 
 interface EstateJourneyBannerProps {
     estate: any;
@@ -119,9 +146,14 @@ export function EstateJourneyBanner({ estate, assets = [] }: EstateJourneyBanner
         }
     }, [estate, assets]);
 
+    // Determine which phases from the global order are actually active for this estate
+    const activeRoadmapPhases = useMemo(() => {
+        return PHASE_ORDER.filter(phaseKey => roadmap.some(p => p.phase === phaseKey));
+    }, [roadmap]);
+
     // Compute per-phase progress from real completedTaskIds
     const phaseProgress = useMemo(() => {
-        return PHASE_ORDER.map((phaseKey) => {
+        return activeRoadmapPhases.map((phaseKey) => {
             const phase = roadmap.find((p) => p.phase === phaseKey);
             if (!phase) return { phaseKey, total: 0, completed: 0, pct: 0 };
 
@@ -131,17 +163,17 @@ export function EstateJourneyBanner({ estate, assets = [] }: EstateJourneyBanner
 
             return { phaseKey, total, completed, pct };
         });
-    }, [roadmap, completedTaskIds]);
+    }, [roadmap, completedTaskIds, activeRoadmapPhases]);
 
     // Determine current active phase (first phase with incomplete tasks)
     const activePhaseKey = useMemo(() => {
         for (const { phaseKey, total, completed } of phaseProgress) {
             if (total > 0 && completed < total) return phaseKey;
         }
-        return PHASE_ORDER[PHASE_ORDER.length - 1]; // All done
-    }, [phaseProgress]);
+        return activeRoadmapPhases[activeRoadmapPhases.length - 1]; // All done
+    }, [phaseProgress, activeRoadmapPhases]);
 
-    const activePhaseIndex = PHASE_ORDER.indexOf(activePhaseKey as any);
+    const activePhaseIndex = activeRoadmapPhases.indexOf(activePhaseKey as any);
 
     return (
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
@@ -156,9 +188,9 @@ export function EstateJourneyBanner({ estate, assets = [] }: EstateJourneyBanner
                             Your Settlement Journey
                         </p>
                         <p className="text-lg font-black text-slate-900 leading-tight">
-                            {activePhaseIndex === PHASE_ORDER.length - 1 && phaseProgress[activePhaseIndex]?.pct === 100
+                            {activePhaseIndex === activeRoadmapPhases.length - 1 && phaseProgress[activePhaseIndex]?.pct === 100
                                 ? "Estate Fully Settled 🎉"
-                                : `Phase ${activePhaseIndex + 1} of ${PHASE_ORDER.length} · ${PHASE_META[activePhaseKey]?.heading}`}
+                                : `Phase ${activePhaseIndex + 1} of ${activeRoadmapPhases.length} · ${PHASE_META[activePhaseKey]?.heading}`}
                         </p>
                     </div>
                 </div>
@@ -173,7 +205,7 @@ export function EstateJourneyBanner({ estate, assets = [] }: EstateJourneyBanner
             {/* Phase Stepper */}
             <div className="px-4 py-3 overflow-x-auto">
                 <div className="flex items-start gap-0 min-w-max">
-                    {PHASE_ORDER.map((phaseKey, idx) => {
+                    {activeRoadmapPhases.map((phaseKey, idx) => {
                         const meta = PHASE_META[phaseKey];
                         const prog = phaseProgress[idx];
                         const isActive = phaseKey === activePhaseKey;
@@ -243,7 +275,7 @@ export function EstateJourneyBanner({ estate, assets = [] }: EstateJourneyBanner
                                 </button>
 
                                 {/* Connector line between phases */}
-                                {idx < PHASE_ORDER.length - 1 && (
+                                {idx < activeRoadmapPhases.length - 1 && (
                                     <div className="flex items-center mt-5 mx-0.5 flex-shrink-0">
                                         <div className={cn(
                                             "h-0.5 w-6 rounded-full transition-colors",
@@ -271,10 +303,10 @@ export function EstateJourneyBanner({ estate, assets = [] }: EstateJourneyBanner
                             <span className="text-[11px] font-semibold text-slate-500 px-2 py-0.5 bg-slate-100 rounded-md">
                                 {PHASE_META[expandedPhase].duration}
                             </span>
-                            {phaseProgress[PHASE_ORDER.indexOf(expandedPhase as any)]?.total > 0 && (
+                            {phaseProgress[activeRoadmapPhases.indexOf(expandedPhase as any)]?.total > 0 && (
                                 <span className="text-[11px] font-medium text-slate-500">
-                                    {phaseProgress[PHASE_ORDER.indexOf(expandedPhase as any)].completed}/
-                                    {phaseProgress[PHASE_ORDER.indexOf(expandedPhase as any)].total} tasks
+                                    {phaseProgress[activeRoadmapPhases.indexOf(expandedPhase as any)].completed}/
+                                    {phaseProgress[activeRoadmapPhases.indexOf(expandedPhase as any)].total} tasks
                                 </span>
                             )}
                         </div>

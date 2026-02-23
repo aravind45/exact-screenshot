@@ -11,6 +11,7 @@ import { api } from '@/lib/api';
 import { calculateAssetPhase, getAssetsByPhase, type AssetPhaseStatus } from '@/lib/assetPhase';
 import { getPhaseLocksStatus, type PhaseLockStatus } from '@/lib/phaseLock';
 import { type SettlementPhase } from '@/config/settlementPhases';
+import { PHASE_ORDER } from '@/config/roadmapMetadata';
 import { useAuth } from '@/contexts/AuthContext';
 import { calculateAuthorityRecommendation } from '@/lib/authorityEngine';
 import { generateRoadmap } from '@/config/roadmapGenerator';
@@ -143,10 +144,7 @@ export function WorkflowProvider({ children }: { children: ReactNode }) {
     const progress: Record<string, PhaseProgress> = {};
 
     // Initialize all possible phases with 0/0
-    const allPhases: SettlementPhase[] = [
-      'immediate_actions', 'court_filing', 'asset_discovery',
-      'creditor_claims', 'asset_liquidation', 'final_distribution'
-    ];
+    const allPhases: SettlementPhase[] = PHASE_ORDER;
     allPhases.forEach(p => {
       progress[p] = { completed: 0, total: 0, percentage: 0 };
     });
@@ -271,20 +269,4 @@ export function useWorkflow() {
   return context;
 }
 
-// Helper function to calculate progress for a phase (keeping for legacy if needed, but discouraged)
-function calculateProgress(phase: SettlementPhase, completedTaskIds: string[]): PhaseProgress {
-  const taskCounts: Record<SettlementPhase, number> = {
-    immediate_actions: 6,
-    court_filing: 5,
-    asset_discovery: 5,
-    creditor_claims: 5,
-    asset_liquidation: 5,
-    final_distribution: 5
-  };
 
-  const total = taskCounts[phase] || 0;
-  const completed = completedTaskIds.filter(id => id.startsWith(phase)).length;
-  const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
-
-  return { completed, total, percentage };
-}

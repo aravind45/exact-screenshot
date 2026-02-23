@@ -1,5 +1,5 @@
-// Type definition (moved here to avoid importing from React component in server code)
-export type SettlementPhase = string;
+import { SettlementPhase } from "./roadmapMetadata.js";
+export type { SettlementPhase };
 
 import { AuthorityType, MasterMode } from "../lib/authorityEngine.js";
 

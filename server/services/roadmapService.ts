@@ -1,4 +1,5 @@
 import { SETTLEMENT_PHASE_TASKS, PhaseTaskList, PhaseTask } from "../../src/config/settlementPhases.js";
+import { STATE_PHASE_OVERRIDES, NEUTRAL_PHASE_MILESTONES } from "../../src/config/roadmapMetadata.js";
 import { prisma as db } from "../db.js";
 import { calculateAuthorityRecommendation } from "../../src/lib/authorityEngine.js";
 import { AuthoritySource, ProcedureType, DistributionModel, getLettersTerm } from "../../src/lib/stateRules.js";
@@ -200,38 +201,8 @@ function normalizeTaskForState(task: PhaseTask, state: string): PhaseTask | null
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// State-specific phase milestone overrides
-// Base milestones are state-neutral; each state injects its own procedural triggers.
+// (Overrides and Neutral milestones now imported from roadmapMetadata)
 // ─────────────────────────────────────────────────────────────────────────────
-const STATE_PHASE_OVERRIDES: Record<string, Record<string, { milestone?: string; subtitle?: string }>> = {
-  NY: {
-    creditor_claims: {
-      milestone: "After Letters Issued",
-      subtitle: "7-Month Exposure Management",
-    },
-  },
-  CA: {
-    creditor_claims: {
-      milestone: "After Notice Published",
-      subtitle: "4-Month Claim Window",
-    },
-    asset_liquidation: {
-      milestone: "After Inventory Prepared",
-      subtitle: "IAEA / Court-Confirmed Sales",
-    },
-  },
-};
-
-// State-neutral defaults for phases (used when no state override exists)
-const NEUTRAL_PHASE_MILESTONES: Record<string, { milestone: string; subtitle: string }> = {
-  immediate_actions: { milestone: "Immediately After Death", subtitle: "Secure, Notify, Preserve" },
-  pre_filing_compliance: { milestone: "Before Court Filing", subtitle: "Eligibility, Venue, Parties" },
-  court_filing: { milestone: "Court Filing → Authority", subtitle: "Petition, Notices, Letters" },
-  asset_discovery: { milestone: "After Authority Issued", subtitle: "Inventory & Valuation" },
-  creditor_claims: { milestone: "After Authority Issued", subtitle: "Claims & Exposure Management" },
-  asset_liquidation: { milestone: "After Inventory Prepared", subtitle: "Transfers & Sales (If Needed)" },
-  final_distribution: { milestone: "After Claims & Taxes Addressed", subtitle: "Accounting, Distribution, Close" },
-};
 
 // ─────────────────────────────────────────────────────────────────────────────
 // CA-only tokens that must NEVER appear for non-CA states
@@ -355,23 +326,18 @@ function validateNoStateContamination(phases: PhaseTaskList[], state: string): v
 // ─────────────────────────────────────────────────────────────────────────────
 // Step 4 — Phase Header Override Resolver
 // No CA fallback — only state-specific or neutral default.
-// Resolution: stateOverrides[state] → DEFAULT → NEUTRAL_PHASE_MILESTONES → {}
+// Resolution: stateOverrides[state] → NEUTRAL_PHASE_MILESTONES → {}
 // ─────────────────────────────────────────────────────────────────────────────
 export function resolvePhaseHeader(
   phaseKey: string,
   stateCode: string
 ): { milestone?: string; subtitle?: string } {
   const stateOverride = STATE_PHASE_OVERRIDES[stateCode]?.[phaseKey];
-  const defaultOverride = STATE_PHASE_OVERRIDES["DEFAULT"]?.[phaseKey];
   const neutralDefault = NEUTRAL_PHASE_MILESTONES[phaseKey];
 
   return {
-    milestone: stateOverride?.milestone
-      || defaultOverride?.milestone
-      || neutralDefault?.milestone,
-    subtitle: stateOverride?.subtitle
-      || defaultOverride?.subtitle
-      || neutralDefault?.subtitle,
+    milestone: stateOverride?.milestone || neutralDefault?.milestone,
+    subtitle: stateOverride?.subtitle || neutralDefault?.subtitle,
   };
 }
 
