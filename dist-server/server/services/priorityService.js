@@ -29,7 +29,7 @@ export class PriorityService {
             select: { id: true, name: true, amount: true, priorityClass: true }
         });
         // 4. Get Rules Engine
-        const system = PriorityFactory.getSystem(estate.deceasedState || "CA");
+        const system = PriorityFactory.getSystem(estate.deceasedState);
         // 5. Notice Period Check
         // In most states, payments to regular creditors are restricted until the notice period expires.
         // Rank 1 (Administration Expenses) are usually allowed anytime.

@@ -57,7 +57,7 @@ router.get("/priority-options", async (req, res) => {
         const estateId = await getEstateId(req.user.id);
         // Default to CA if no estate exists yet (new users in onboarding)
         const state = estateId
-            ? (await prisma.estate.findUnique({ where: { id: estateId }, select: { deceasedState: true } }))?.deceasedState || "CA"
+            ? (await prisma.estate.findUnique({ where: { id: estateId }, select: { deceasedState: true } }))?.deceasedState || ""
             : "CA";
         const system = PriorityService.getPrioritySystem(state);
         const options = PriorityService.getPriorityOptions(state);
@@ -133,7 +133,7 @@ router.get("/solvency", async (req, res) => {
         const isSolvent = totalLiquidAssets >= totalDebt;
         const ratio = totalDebt > 0 ? (totalLiquidAssets / totalDebt) : 1;
         // Creditor Notice Period Logic (CA default 120 days)
-        const system = PriorityService.getPrioritySystem(estate?.deceasedState || "CA");
+        const system = PriorityService.getPrioritySystem(estate?.deceasedState || "");
         const noticePeriodDays = system.creditorNoticePeriodDays;
         let noticePeriodStatus = 'NOT_STARTED';
         let daysRemaining = noticePeriodDays;

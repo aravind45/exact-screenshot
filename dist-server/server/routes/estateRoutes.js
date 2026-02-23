@@ -202,9 +202,9 @@ router.put("/my", authenticate, async (req, res) => {
                     userId: userId,
                     deceasedFirstName: updateData.deceasedFirstName || "",
                     deceasedLastName: updateData.deceasedLastName || "Estate",
-                    deceasedState: updateData.deceasedState || "CA",
+                    deceasedState: updateData.deceasedState || "",
                     status: "active",
-                    name: `${req.user.fullName}'s Estate`, // Add required name field
+                    name: updateData.name || `${req.user.fullName}'s Estate`,
                     hasContest: updateData.hasContest === undefined ? false : Boolean(updateData.hasContest),
                     ...(updateData.estimatedLiabilities !== undefined && {
                         estimatedLiabilities: updateData.estimatedLiabilities === "" || updateData.estimatedLiabilities === null ? null : new Prisma.Decimal(updateData.estimatedLiabilities)
@@ -496,11 +496,16 @@ router.get("/my/petition/pdf", requireSubscription, async (req, res) => {
             res.setHeader('Content-Type', 'application/pdf');
             res.setHeader('Content-Disposition', 'attachment; filename=NY_Voluntary_Administration.pdf');
         }
-        else {
-            // Default to California / Standard Formal Probate form
+        else if (state === 'CA') {
             pdfBytes = await DocumentService.generateDE111(estate);
             res.setHeader('Content-Type', 'application/pdf');
             res.setHeader('Content-Disposition', 'attachment; filename=Petition_DE111.pdf');
+        }
+        else {
+            return res.status(400).json({
+                error: "State Required",
+                message: "Please select a state in your Profile to generate the correct probate forms."
+            });
         }
         res.send(Buffer.from(pdfBytes));
     }

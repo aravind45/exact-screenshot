@@ -217,9 +217,9 @@ router.put("/my", authenticate, async (req: any, res: Response) => {
                     userId: userId,
                     deceasedFirstName: updateData.deceasedFirstName || "",
                     deceasedLastName: updateData.deceasedLastName || "Estate",
-                    deceasedState: updateData.deceasedState,
+                    deceasedState: updateData.deceasedState || "",
                     status: "active",
-                    name: `${req.user.fullName}'s Estate`, // Add required name field
+                    name: updateData.name || `${req.user.fullName}'s Estate`,
                     hasContest: updateData.hasContest === undefined ? false : Boolean(updateData.hasContest),
                     ...(updateData.estimatedLiabilities !== undefined && {
                         estimatedLiabilities: updateData.estimatedLiabilities === "" || updateData.estimatedLiabilities === null ? null : new Prisma.Decimal(updateData.estimatedLiabilities)

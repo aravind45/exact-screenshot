@@ -89,7 +89,7 @@ export const AuthService = {
                         name: deceasedName ? `${deceasedName}'s Estate` : `${user.fullName}'s Estate`,
                         deceasedFirstName: firstName,
                         deceasedLastName: lastName,
-                        deceasedState: state,
+                        deceasedState: state || "",
                         status: "active",
                         deceasedDateOfDeath: new Date(),
                         estimatedPersonalProperty: estimatedValue ? parseFloat(estimatedValue) : undefined

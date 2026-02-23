@@ -33,7 +33,7 @@ export const RiskService = {
         if (totalLiabilities === 0)
             solvencyRatio = 999;
         // 2. Creditor Notice Period
-        const system = PriorityService.getPrioritySystem(estate.deceasedState || "CA");
+        const system = PriorityService.getPrioritySystem(estate.deceasedState || "");
         let daysRemaining = system.creditorNoticePeriodDays;
         if (estate.appointedDate) {
             const appointed = new Date(estate.appointedDate);

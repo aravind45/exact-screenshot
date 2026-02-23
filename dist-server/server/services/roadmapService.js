@@ -136,7 +136,9 @@ function normalizeTaskForState(task, state) {
         links: mergedTask.links?.map(link => ({
             ...link,
             label: normalizeTextForState(link.label, state) || link.label
-        }))
+        })),
+        primaryActionLabel: normalizeTextForState(mergedTask.primaryActionLabel, state),
+        formNames: mergedTask.formNames?.map(f => normalizeTextForState(f, state) || f)
     };
 }
 // ─────────────────────────────────────────────────────────────────────────────
@@ -320,6 +322,8 @@ const CA_TOKENS = [
     "After Notice Published",
     "After Inventory Filed",
     "IAEA / Court-Confirmed Sales",
+    "IAEA",
+    "Notice of Proposed Action",
     "After Claim Period",
     "Independent Administration",
 ];
@@ -443,6 +447,9 @@ export async function analyzeEstateProfile(estateId) {
     });
     if (!estate) {
         throw new Error(`Estate ${estateId} not found`);
+    }
+    if (!estate.deceasedState) {
+        throw new Error("STATE_REQUIRED");
     }
     // Calculate insolvency FIRST so it is passed INTO calculateAuthorityRecommendation.
     // Previously insolvency was calculated AFTER the engine call, which meant
