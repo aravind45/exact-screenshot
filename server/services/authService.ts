@@ -12,8 +12,18 @@ import { calculateIsTrialing } from "../utils/trialUtils.js";
 import { RoleUtils } from "../utils/userUtils.js";
 
 export const AuthService = {
-    async register(data: { email: string, password: string, fullName: string, state?: string, role?: string, userType?: "EXECUTOR" | "ADVISOR" | "HEIR", ip?: string }) {
-        const { email, password, fullName, state, role, userType, ip } = data;
+    async register(data: {
+        email: string,
+        password: string,
+        fullName: string,
+        state?: string,
+        role?: string,
+        userType?: "EXECUTOR" | "ADVISOR" | "HEIR",
+        deceasedName?: string,
+        estimatedValue?: string,
+        ip?: string
+    }) {
+        const { email, password, fullName, state, role, userType, deceasedName, estimatedValue, ip } = data;
 
         const existingUser = await prisma.user.findUnique({ where: { email } });
         if (existingUser) throw new Error("Email already registered");
@@ -60,15 +70,29 @@ export const AuthService = {
         // The OnboardingWizard expects an estate to exist for the current user.
         if (assignedRole === 'EXECUTOR') {
             try {
+                // Parse deceased name if provided
+                let firstName = "";
+                let lastName = "Estate";
+                if (deceasedName) {
+                    const parts = deceasedName.trim().split(/\s+/);
+                    if (parts.length > 1) {
+                        lastName = parts.pop() || "Estate";
+                        firstName = parts.join(" ");
+                    } else {
+                        firstName = parts[0];
+                    }
+                }
+
                 await prisma.estate.create({
                     data: {
                         userId: user.id,
-                        name: `${user.fullName}'s Estate`,
-                        deceasedFirstName: "",
-                        deceasedLastName: "Estate",
-                        deceasedState: state || "CA", // Default to CA if unset
+                        name: deceasedName ? `${deceasedName}'s Estate` : `${user.fullName}'s Estate`,
+                        deceasedFirstName: firstName,
+                        deceasedLastName: lastName,
+                        deceasedState: state || "CA",
                         status: "active",
-                        deceasedDateOfDeath: new Date() // Add required field
+                        deceasedDateOfDeath: new Date(),
+                        estimatedPersonalProperty: estimatedValue ? parseFloat(estimatedValue) : undefined
                     } as any
                 });
                 logger.debug(`✅ [AUTH] Skeleton estate created for user: ${user.id}`);

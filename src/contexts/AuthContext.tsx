@@ -27,7 +27,7 @@ interface AuthContextType {
   isExecutor: boolean;
   isHeir: boolean;
   signIn: (email: string, password: string) => Promise<{ user: User | null; error: any }>;
-  signUp: (email: string, password: string, fullName: string, role?: string, userType?: string) => Promise<{ user: User | null; error: any }>;
+  signUp: (email: string, password: string, fullName: string, role?: string, userType?: string, deceasedName?: string, state?: string, estimatedValue?: string) => Promise<{ user: User | null; error: any }>;
   signOut: () => void;
   refreshUser: () => Promise<void>;
 }
@@ -196,9 +196,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const signUp = async (email: string, password: string, fullName: string, role?: string, userType?: string) => {
+  const signUp = async (email: string, password: string, fullName: string, role?: string, userType?: string, deceasedName?: string, state?: string, estimatedValue?: string) => {
     try {
-      const data = await api.register({ email, password, fullName, role, userType: userType as any });
+      const data = await api.register({ email, password, fullName, role, userType: userType as any, deceasedName, state, estimatedValue });
       let userData = data.user;
 
       if (!userData.role && userData.email?.toLowerCase() === 'aravind45@gmail.com') {

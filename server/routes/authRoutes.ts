@@ -14,7 +14,9 @@ const registerSchema = z.object({
     fullName: z.string().min(2),
     state: z.string().length(2).optional(),
     role: z.enum(["EXECUTOR", "ADVISOR", "HEIR"]).optional(),
-    userType: z.enum(["EXECUTOR", "ADVISOR", "HEIR"]).optional()
+    userType: z.enum(["EXECUTOR", "ADVISOR", "HEIR"]).optional(),
+    deceasedName: z.string().optional(),
+    estimatedValue: z.string().optional()
 });
 
 const loginSchema = z.object({
@@ -52,6 +54,8 @@ router.post("/register", async (req: Request, res: Response) => {
             state: validated.state,
             role: validated.role,
             userType: validated.userType,
+            deceasedName: validated.deceasedName,
+            estimatedValue: validated.estimatedValue,
             ip: Array.isArray(ip) ? ip[0] : ip
         });
         res.json(result);
@@ -160,7 +164,7 @@ router.post("/refresh", authenticate, async (req: any, res: Response) => {
                     token: oldToken,
                     expiresAt: new Date(Date.now() + 8 * 60 * 60 * 1000)
                 }
-            }).catch(() => {}); // Ignore if already blacklisted
+            }).catch(() => { }); // Ignore if already blacklisted
         }
 
         res.json(result);

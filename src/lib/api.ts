@@ -317,7 +317,16 @@ export const api = {
         return data;
     },
 
-    register: async (data: { email: string, password: string, fullName: string, state?: string, role?: string, userType?: "EXECUTOR" | "ADVISOR" }) => {
+    register: async (data: {
+        email: string,
+        password: string,
+        fullName: string,
+        state?: string,
+        role?: string,
+        userType?: "EXECUTOR" | "ADVISOR",
+        deceasedName?: string,
+        estimatedValue?: string
+    }) => {
         const response = await fetch(`${API_URL}/auth/register`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },

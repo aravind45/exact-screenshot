@@ -87,8 +87,9 @@ export default function Auth() {
       const saved = sessionStorage.getItem("discovery_data");
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed.role === 'ADVISOR') {
-          setUserType('ADVISOR');
+        const role = parsed.role?.toUpperCase();
+        if (['ADVISOR', 'EXECUTOR', 'HEIR'].includes(role)) {
+          setUserType(role as UserType);
           setStep('form');
           return;
         }
@@ -198,7 +199,27 @@ export default function Auth() {
         // Use selected user type or default to EXECUTOR
         const selectedType = userType || 'EXECUTOR';
 
-        const { user: newUser, error } = await signUp(email, password, fullName, selectedType === 'ADVISOR' ? 'ADVISOR' : undefined, selectedType);
+        // Extract discovery data if available to pre-populate the new account
+        let discoveryFields: any = {};
+        try {
+          const saved = sessionStorage.getItem("discovery_data");
+          if (saved) {
+            discoveryFields = JSON.parse(saved);
+          }
+        } catch (e) {
+          console.warn("Failed to load discovery data for signup", e);
+        }
+
+        const { user: newUser, error } = await signUp(
+          email,
+          password,
+          fullName,
+          selectedType === 'ADVISOR' ? 'ADVISOR' : undefined,
+          selectedType,
+          discoveryFields.deceasedName,
+          discoveryFields.state,
+          discoveryFields.estimatedValue
+        );
 
         if (error) {
           if (error.message.includes('User already registered') || error.message.includes('Email already registered')) {
@@ -497,7 +518,7 @@ export default function Auth() {
                         authMode === 'signup'
                           ? userType === 'ADVISOR' ? 'Advisor Registration'
                             : userType === 'HEIR' ? 'Heir Registration'
-                            : 'Executor Registration'
+                              : 'Executor Registration'
                           : 'Reset Password'}
                   </h1>
                   <p className="text-slate-500 font-medium">
@@ -507,9 +528,9 @@ export default function Auth() {
                         ? 'Select your access method below to continue.'
                         : authMode === 'signup' && userType === 'HEIR'
                           ? 'Create your beneficiary account to view your estate share.'
-                        : authMode === 'signup'
-                          ? `Create your ${userType?.toLowerCase() || 'account'} profile to get started.`
-                          : 'Enter your email to receive a secure reset link.'}
+                          : authMode === 'signup'
+                            ? `Create your ${userType?.toLowerCase() || 'account'} profile to get started.`
+                            : 'Enter your email to receive a secure reset link.'}
                   </p>
                 </motion.div>
               </AnimatePresence>

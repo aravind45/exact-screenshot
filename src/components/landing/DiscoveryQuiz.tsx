@@ -178,6 +178,15 @@ export default function DiscoveryQuiz() {
                                         </div>
                                         <div className="space-y-6">
                                             <div className="space-y-3">
+                                                <Label className="text-xs font-black uppercase text-slate-400 tracking-widest ml-1">Their Full Name</Label>
+                                                <Input
+                                                    placeholder="e.g. John Doe"
+                                                    value={data.deceasedName}
+                                                    onChange={(e) => setData({ ...data, deceasedName: e.target.value })}
+                                                    className="h-14 rounded-2xl bg-slate-50 border-slate-200"
+                                                />
+                                            </div>
+                                            <div className="space-y-3">
                                                 <Label className="text-xs font-black uppercase text-slate-400 tracking-widest ml-1">Did they have a Will?</Label>
                                                 <div className="grid grid-cols-2 gap-3">
                                                     <Button
@@ -207,7 +216,7 @@ export default function DiscoveryQuiz() {
                                                 <p className="text-[10px] text-slate-400 italic">Total value of bank accounts, real estate, and investments.</p>
                                             </div>
                                         </div>
-                                        <Button onClick={next} disabled={!data.estimatedValue} size="lg" className="w-full h-14 rounded-2xl text-lg font-bold">
+                                        <Button onClick={next} disabled={!data.estimatedValue || !data.deceasedName} size="lg" className="w-full h-14 rounded-2xl text-lg font-bold">
                                             Analyze My Path
                                         </Button>
                                     </div>
