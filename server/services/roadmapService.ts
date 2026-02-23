@@ -66,6 +66,8 @@ interface EstateProfile {
   activeEngines: string[];
   hasWill: boolean;
   hasUnknownHeirs: boolean;
+  has_foreign_beneficiary: boolean;
+  executor_non_us_resident: boolean;
 }
 
 function normalizeTextForState(text: string | undefined, state: string): string | undefined {
@@ -478,7 +480,9 @@ export async function analyzeEstateProfile(estateId: string): Promise<EstateProf
     distributionModel: rec.distributionModel,
     activeEngines: rec.activeEngines,
     hasWill: estate.hasWill,
-    hasUnknownHeirs: estate.hasUnknownHeirs
+    hasUnknownHeirs: estate.hasUnknownHeirs,
+    has_foreign_beneficiary: estate.internationalReasons?.includes("FOREIGN_BENEFICIARY") || estate.internationalReasons?.includes("FOREIGN_BENEFICIARIES") || false,
+    executor_non_us_resident: estate.internationalReasons?.includes("EXECUTOR_RESIDENCE") || false
   };
 }
 

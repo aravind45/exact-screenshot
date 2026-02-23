@@ -1373,7 +1373,9 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         id: "intl_w8_assessment",
         title: "International Fiduciary: W-8BEN/W-8CE Assessment",
         description: "For non-resident executors or beneficiaries, determine U.S. tax withholding requirements and treaty eligibility.",
-        isInternationalOnly: true,
+        applicability: {
+          predicatesAny: ["has_foreign_beneficiary", "executor_non_us_resident"]
+        },
         isAttorneyReviewNode: true,
         attorneyReviewReason: "Tax Risk: Foreign beneficiary withholding is strictly enforced by the IRS and requires specific treaty analysis.",
         trackCompatibility: ["PROBATE", "TRUST"],
@@ -1386,7 +1388,9 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         id: "itin_acquisition_protocol",
         title: "International Fiduciary: ITIN Acquisition Protocol",
         description: "Identify foreign beneficiaries without a SSN/ITIN. Coordinate acquisition of U.S. Individual Taxpayer Identification Numbers to avoid maximum backup withholding on distributions.",
-        isInternationalOnly: true,
+        applicability: {
+          predicatesAny: ["has_foreign_beneficiary", "executor_non_us_resident"]
+        },
         trackCompatibility: ["PROBATE", "TRUST"],
         alerts: [{
           type: "info",
