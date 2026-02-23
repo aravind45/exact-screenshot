@@ -74,10 +74,10 @@ for (const phase of SETTLEMENT_PHASE_TASKS) {
 // ─────────────────────────────────────────────────────────────────────────────
 export function resolveTaskForState(task, stateCode) {
     const base = { ...task };
-    // 1️⃣ Hard gate by applicability.states
+    // 1️⃣ Hard gate by applicability.states — return null (excluded) on mismatch
     if (task.applicability?.states && task.applicability.states.length > 0) {
         if (!task.applicability.states.includes(stateCode)) {
-            throw new Error(`Task ${task.id} is restricted to states: ${task.applicability.states.join(", ")}`);
+            return null;
         }
     }
     // 2️⃣ Apply stateOverrides if present (inline first, then static lookup for DB tasks)
@@ -98,11 +98,25 @@ export function resolveTaskForState(task, stateCode) {
     return base;
 }
 /**
+ * Strict variant — throws on state mismatch.
+ * Use in deterministic generation paths: PDF export, snapshot tests, CI.
+ */
+export function resolveTaskForStateStrict(task, stateCode) {
+    const result = resolveTaskForState(task, stateCode);
+    if (result === null) {
+        throw new Error(`Task ${task.id} is restricted to states: ${task.applicability?.states?.join(", ")} (current: ${stateCode})`);
+    }
+    return result;
+}
+/**
  * Full task normalization: resolveTaskForState() merge + text normalization + CA dep cleanup.
+ * Returns null if task is excluded for this state.
  */
 function normalizeTaskForState(task, state) {
     // Resolve state override merge (state-neutral first pattern)
     const mergedTask = resolveTaskForState(task, state);
+    if (mergedTask === null)
+        return null; // Task excluded for this state
     // Clean CA-only dependencies for non-CA states
     if (state !== "CA" && mergedTask.dependencies) {
         mergedTask.dependencies = mergedTask.dependencies.filter((dep) => !CA_ONLY_TASK_IDS.has(dep));
@@ -392,7 +406,7 @@ function normalizePhasesForState(phases, state) {
             ...phase,
             milestone: resolved.milestone || phase.milestone,
             subtitle: resolved.subtitle || phase.subtitle,
-            tasks: phase.tasks.map(task => normalizeTaskForState(task, state)),
+            tasks: phase.tasks.map(task => normalizeTaskForState(task, state)).filter((t) => t !== null),
         };
     });
 }

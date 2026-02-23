@@ -77,6 +77,8 @@ export interface PhaseTask {
       utility?: string;
       dependencies?: string[];
       isOptional?: boolean;
+      deadlineWarningId?: string;
+      requiredDocs?: string[];
       alerts?: {
         type: "info" | "warning" | "important" | "caution";
         message: string;
@@ -117,36 +119,50 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         }]
       },
       {
-        id: "check_small_estate",
-        title: "Evaluate Small Estate Eligibility",
-        description: "Determine if total assets are under the state's small estate threshold. This may allow for a simplified Affidavit process, bypassing full probate.",
-        utility: "Shortcut: Avoid full probate if the estate is small enough.",
-        estimatedTime: "1 hour",
-        exclusiveGroup: "filing_path",
-        trackCompatibility: ["PROBATE", "AFFIDAVIT"],
+        id: "publish_notice",
+        title: "Publish Notice to Creditors (If Required)",
+        description: "If required or strategically beneficial in your jurisdiction, publish a notice to creditors using the court-approved or locally accepted format. Publication rules, timing, and whether it affects creditor deadlines vary by state and county.",
+        estimatedTime: "State-specific (often 1–2 weeks)",
+        trackCompatibility: ["PROBATE"],
+        requiredDocs: ["Draft notice text (as applicable)", "Case/filing details (if applicable)"],
+        category: "probate",
+        // deadlineWarningId intentionally omitted from base — only CA links publication to a deadline
+        dependencies: [],
         isOptional: true,
-        helpArticleId: "small-estate-ca",
-        primaryActionLabel: "Prepare Affidavit",
-        primaryActionUrl: "/affidavit",
-        formNames: ["Small Estate Affidavit"],
-        alerts: [{
-          type: "info",
-          message: "Small estate limits vary by state (e.g., $50,000 in NY, $184,500 in CA)."
-        }]
-      },
-      {
-        id: "confirm_executor_role",
-        title: "Confirm Executor/Trustee Role",
-        description: "Review the Will or Trust to confirm your appointment and willingness to serve.",
-        estimatedTime: "2 hours",
-        trackCompatibility: ["PROBATE", "TRUST"],
-        helpArticleId: "executor-duties",
+        helpArticleId: "creditor-notice",
         alerts: [
           {
-            type: "info",
-            message: "You have the right to decline. Once you start 'intermeddling' with assets, you may be legally committed."
+            type: "important",
+            message: "Publication is not required in every state. Confirm local court practice before treating this as mandatory."
           }
-        ]
+        ],
+        stateOverrides: {
+          CA: {
+            title: "Publish Notice to Creditors (CA — Starts Claims Timing)",
+            description: "In California, publication of the required notice is a standard step and commonly drives creditor claims timing. Use the court-accepted notice format and follow local publication and proof requirements for your county.",
+            isOptional: false,
+            dependencies: ["file_probate_petition", "file_administration_petition"],
+            deadlineWarningId: "CREDITOR_NOTICE_DEADLINE",
+            requiredDocs: ["Court case number", "Proposed notice", "Publication proof (when issued)"],
+            alerts: [
+              {
+                type: "important",
+                message: "For California cases, publication is used to establish creditor notice and timing. Confirm local proof-of-publication requirements.",
+              },
+            ],
+          },
+          NY: {
+            title: "Publish Creditor Notice (Optional Risk Mitigation)",
+            description: "In New York, creditor publication is generally optional and may be used as a risk-mitigation step to document notice efforts and reduce unknown-creditor risk. It does not create a guaranteed claim bar. Confirm local Surrogate's Court practice or consult counsel.",
+            isOptional: true,
+            alerts: [
+              {
+                type: "important",
+                message: "Seven-Month Rule (SCPA A1802): Creditors have 7 months from the date of Letters to file claims. Distributing before this period carries personal liability risk."
+              }
+            ]
+          }
+        }
       },
       {
         id: "secure_property",
@@ -1276,22 +1292,37 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "publish_notice",
-        title: "Publish Creditor Notice",
-        description: "Publish notice in a local newspaper for the statutory required duration to notify creditors.",
-        estimatedTime: "1 week",
+        title: "Publish Notice to Creditors (If Required)",
+        description: "If required or strategically beneficial in your jurisdiction, publish a notice to creditors using the court-approved or locally accepted format. Publication rules, timing, and whether it affects creditor deadlines vary by state and county.",
+        estimatedTime: "State-specific (often 1–2 weeks)",
         trackCompatibility: ["PROBATE"],
-        requiredDocs: ["Court Case Number", "Proposed Notice"],
+        requiredDocs: ["Draft notice text (as applicable)", "Case/filing details (if applicable)"],
         category: "probate",
-        deadlineWarningId: "CREDITOR_NOTICE_DEADLINE", // New deadline link
-        dependencies: ["file_probate_petition", "file_administration_petition"],
+        // deadlineWarningId intentionally omitted from base — only CA links publication to a deadline
+        dependencies: [],
+        isOptional: true,
         helpArticleId: "creditor-notice",
         alerts: [
           {
             type: "important",
-            message: "Registration of notice starts the statutory creditor claim period."
+            message: "Publication is not required in every state. Confirm local court practice before treating this as mandatory."
           }
         ],
         stateOverrides: {
+          CA: {
+            title: "Publish Notice to Creditors (CA — Starts Claims Timing)",
+            description: "In California, publication of the required notice is a standard step and commonly drives creditor claims timing. Use the court-accepted notice format and follow local publication and proof requirements for your county.",
+            isOptional: false,
+            dependencies: ["file_probate_petition", "file_administration_petition"],
+            deadlineWarningId: "CREDITOR_NOTICE_DEADLINE",
+            requiredDocs: ["Court case number", "Proposed notice", "Publication proof (when issued)"],
+            alerts: [
+              {
+                type: "important",
+                message: "For California cases, publication is used to establish creditor notice and timing. Confirm local proof-of-publication requirements.",
+              },
+            ],
+          },
           NY: {
             title: "Publish Creditor Notice (Optional Risk Mitigation)",
             description: "In New York, creditor publication is generally optional and may be used as a risk-mitigation step to document notice efforts and reduce unknown-creditor risk. It does not create a guaranteed claim bar. Confirm local Surrogate's Court practice or consult counsel.",
@@ -1307,34 +1338,35 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "mail_notice",
-        title: "Mail Notice to Known Creditors",
-        description: "Send formal notice to all known creditors (banks, credit cards, medical providers).",
-        estimatedTime: "2-3 hours",
-        requiredDocs: ["Notice Form"],
+        title: "Notify Known Creditors",
+        description: "Notify known creditors as appropriate and document your outreach (e.g., banks, credit cards, medical providers). Requirements and best practices vary by jurisdiction.",
+        estimatedTime: "1–3 hours",
+        requiredDocs: ["Creditor notice template (if used)", "Creditor contact list / notice log"],
         category: "probate",
-        dependencies: ["file_probate_petition", "file_administration_petition"],
-        stateOverrides: {
-          NY: {
-            title: "Mail Notice to Creditors (SCPA §1803)",
-            description: "Send formal notice to creditors. In NY, a claim must be in writing and state the facts upon which it is based (SCPA §1803).",
-            alerts: [
-              {
-                type: "warning",
-                message: "Keep proof of mailing. This protects you from late claims."
-              },
-              {
-                type: "info",
-                message: "Disclaimer: This is procedural guidance only and does not constitute legal advice. Consult a licensed NY attorney for case-specific questions."
-              }
-            ]
-          }
-        },
+        dependencies: [],
         alerts: [
           {
-            type: "warning",
-            message: "Keep proof of mailing. This protects you from late claims."
-          }
-        ]
+            type: "info",
+            message: "Keep proof of notice attempts and a dated log of communications. This supports a defensible claims process, but does not guarantee claim cutoff.",
+          },
+        ],
+        stateOverrides: {
+          NY: {
+            title: "Notify Known Creditors (SCPA §1803)",
+            description: "In New York, creditor claims are typically presented in writing. Notify known creditors and keep a written log of when and how notice was provided. If a claim is presented, document the date received and supporting details (SCPA §1803).",
+            alerts: [
+              {
+                type: "caution",
+                message: "Do not admit or pay a claim without documentation. If unsure about validity or priority, consult counsel.",
+              },
+            ],
+          },
+          CA: {
+            title: "Mail Notice to Known Creditors (As Applicable)",
+            description: "Notify known creditors as appropriate and retain proof of mailing/notice. Requirements can vary by county and case posture; confirm local practice.",
+            dependencies: ["file_probate_petition", "file_administration_petition"],
+          },
+        },
       },
       {
         id: "intl_w8_assessment",
@@ -1372,16 +1404,18 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       {
         id: "wait_claim_period",
         title: "Monitor State-Specific Creditor Exposure Period",
-        description: "Creditors have a statutory period to file claims. The trigger event and duration vary by state. Do not distribute assets until this period expires.",
-        utility: "Mandatory waiting period to protect you from future debt liability.",
+        description: "Monitor the creditor exposure timeline applicable in your jurisdiction. The trigger event and timing vary by state and case type. Avoid final distributions until creditor risk is appropriately managed (often by holding reserves and documenting claim handling).",
+        utility: "Helps reduce personal fiduciary liability by managing creditor exposure before final distributions.",
         isLongHorizon: true,
-        estimatedTime: "State-specific (typically 4–7 months)",
-        dependencies: ["publish_notice"],
+        estimatedTime: "State-specific",
+        // Publication is not a universal trigger; do not hard-depend on it.
+        dependencies: [],
         stateOverrides: {
           CA: {
             title: "Wait for 4-Month Claim Period",
             description: "Creditors have 4 months from publication of the creditor notice to file claims against the estate.",
-            estimatedTime: "4 months"
+            estimatedTime: "4 months",
+            dependencies: ["publish_notice"],
           },
           NY: {
             title: "Monitor 7-Month Creditor Exposure Period (from issuance of Letters)",
@@ -1432,7 +1466,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         alerts: [
           {
             type: "info",
-            message: "You cannot distribute assets until this period expires. Use this time to prepare."
+            message: "Timing varies by state. Keep appropriate reserves and document claim handling before making final distributions."
           }
         ]
       },
@@ -1450,7 +1484,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
           },
           {
             type: "caution",
-            message: "State law provides specific timeframes for approving or rejecting claims. Verify compliance with statutory deadlines."
+            message: "Claims handling procedures and timelines vary by state. Verify any notice, response, or objection deadlines that apply in your jurisdiction."
           }
         ]
       },
@@ -1487,45 +1521,77 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "reject_invalid",
-        title: "Reject Invalid Claims",
-        description: "File formal rejections for claims that are incorrect, unsupported, or time-barred.",
-        estimatedTime: "1 week",
+        title: "Dispute or Reject Claims (If Applicable)",
+        description: "If a creditor claim is incorrect, unsupported, or disputed, follow your state's procedure to dispute, reject, or negotiate the claim. Keep written documentation of the reasons and supporting evidence.",
+        estimatedTime: "State-specific (often 1–2 weeks)",
         isConditional: true,
         conditionalRequirementLabel: "Required if creditor claims are invalid or disputed",
-        requiredDocs: ["Notice of Allowance or Rejection"],
+        requiredDocs: ["Claim documentation", "Written dispute/rejection notice (if used)", "Supporting evidence"],
         alerts: [
           {
             type: "warning",
-            message: "Rejected creditors can sue the estate. Document your reasons carefully."
-          }
-        ]
+            message: "Disputed or rejected creditors may pursue litigation. Consult counsel before sending a rejection/dispute notice and document your reasoning carefully.",
+          },
+          {
+            type: "caution",
+            message: "State law may require specific notice language, delivery method, or timing when disputing a claim. Verify local requirements before acting.",
+          },
+        ],
+        stateOverrides: {
+          CA: {
+            title: "File Formal Rejection of Claim (CA)",
+            description: "If a claim is invalid or unsupported, follow California's procedure to reject the claim and retain proof of delivery. Confirm any statutory deadlines and required notice language.",
+            requiredDocs: ["Notice of Rejection (as required)", "Proof of service/mailing"],
+          },
+          NY: {
+            title: "Dispute Claim (NY — Follow SCPA/EPTL Procedure)",
+            description: "If a claim is disputed, follow the applicable New York procedure to challenge or negotiate the claim and maintain written documentation of the basis for dispute. Consult counsel regarding notice requirements and deadlines.",
+            requiredDocs: ["Written dispute documentation", "Counsel-reviewed notice (if required)"],
+          },
+        },
       },
       {
         id: "pay_approved",
-        title: "Pay Approved Claims",
-        description: "Pay valid debts in order of priority (funeral, taxes, secured debts, then unsecured).",
-        estimatedTime: "2-4 weeks",
+        title: "Pay Approved Claims (By Statutory Priority)",
+        description: "Pay valid debts in the statutory priority order applicable in your jurisdiction (commonly including administration costs, taxes, secured debts, then unsecured claims). Document each payment and retain receipts.",
+        estimatedTime: "State/case dependent (often 2–6 weeks)",
         dependencies: ["review_claims"],
         alerts: [
           {
             type: "important",
-            message: "Follow legal priority order. Paying wrong creditors first can make you personally liable."
-          }
-        ]
+            message: "Follow your state's creditor priority rules. Paying the wrong creditors first can create personal fiduciary liability.",
+          },
+        ],
+        outputs: ["Claims payment ledger", "Receipts and proof of payment"],
       },
       {
         id: "file_proof",
-        title: "File Proof of Notice",
-        description: "Submit proof that you properly notified all creditors.",
-        estimatedTime: "1 day",
-        requiredDocs: ["Proof of Publication", "Proof of Mailing"],
-        dependencies: ["publish_notice"],
+        title: "Document Proof of Creditor Notice (If Applicable)",
+        description: "If your jurisdiction requires proof of creditor notice (publication and/or direct notice), retain and submit the required proof in the format your court or process expects. Even when not required to file, maintaining proof supports a defensible administration record.",
+        estimatedTime: "State-specific (often 1–3 days)",
+        requiredDocs: ["Notice log", "Proof documents (if applicable)"],
+        dependencies: [],
         alerts: [
           {
             type: "info",
-            message: "This protects you from late claims after distribution."
-          }
-        ]
+            message: "Notice proof requirements vary by state and case type. Keeping proof helps demonstrate reasonable notice efforts but does not guarantee claim cutoff.",
+          },
+        ],
+        stateOverrides: {
+          CA: {
+            title: "File Proof of Creditor Notice (CA)",
+            description: "Retain and submit proof of publication and any required mailed notices per local court practice. Confirm county-specific proof requirements.",
+            requiredDocs: ["Proof of Publication", "Proof of Mailing (if applicable)"],
+            dependencies: ["publish_notice"],
+          },
+          NY: {
+            title: "Retain Proof of Notice Efforts (NY)",
+            description: "In New York, publication is generally optional, but you should retain a dated log and proof of any notices sent to known creditors. If the court requires proof for a specific filing, follow local Surrogate's Court instructions.",
+            requiredDocs: ["Creditor notice log", "Copies of notices sent (if any)"],
+            dependencies: [],
+          },
+        },
+        outputs: ["Creditor notice proof bundle / log"],
       }
     ]
   },
@@ -1645,14 +1711,14 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       {
         id: "sell_property",
         title: "Complete Property Sale & Transfer",
-        description: "Finalize the sale of real estate, sign closing documents, and receive sale proceeds into the estate account. Court authorization requirements vary by state.",
+        description: "If the estate owns real property and a sale is needed, confirm fiduciary authority and any required court authorization in your jurisdiction before signing a contract. Complete closing, deposit proceeds into the estate account, and retain all closing and tax documents.",
         estimatedTime: "4-8 weeks",
         isConditional: true,
         conditionalRequirementLabel: "Required if estate owns real property",
         isAttorneyReviewNode: true,
-        attorneyReviewReason: "Fiduciary Risk: Property sales are often the largest transactions in an estate. Mismatched closing statements or tax withholding errors create high liability.",
+        attorneyReviewReason: "Fiduciary Risk: Property sales are often the largest transactions in an estate. Confirm jurisdiction-specific authorization requirements and retain all closing documentation.",
         dependencies: [],
-        requiredDocs: ["Final Hud-1/Closing Statement"],
+        requiredDocs: ["Closing statement (HUD-1/CD/ALTA)", "Deed or transfer instrument", "Tax/withholding documents (if any)"],
         stateOverrides: {
           CA: {
             title: "Complete Property Sale & Close Escrow",
