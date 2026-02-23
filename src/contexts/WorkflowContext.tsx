@@ -151,7 +151,7 @@ export function WorkflowProvider({ children }: { children: ReactNode }) {
 
     roadmap.forEach(phase => {
       const total = phase.tasks.length;
-      const completed = completedTaskIds.filter(id => id.startsWith(phase.phase)).length;
+      const completed = phase.tasks.filter(t => completedTaskIds.includes(t.id)).length;
       progress[phase.phase] = {
         completed,
         total,

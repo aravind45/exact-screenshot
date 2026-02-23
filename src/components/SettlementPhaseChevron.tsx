@@ -69,7 +69,7 @@ export function SettlementPhaseChevron({
                     {/* Phase Info */}
                     <div className="flex flex-col items-center text-center min-w-0">
                       <span className={cn(
-                        "text-base font-bold tracking-tight leading-tight",
+                        "text-sm font-bold tracking-tight leading-tight",
                         isCurrent && "text-white",
                         isCompleted && "text-indigo-900",
                         isUpcoming && "text-slate-400"
@@ -77,7 +77,7 @@ export function SettlementPhaseChevron({
                         {phase.title}
                       </span>
                       <span className={cn(
-                        "text-sm font-normal leading-tight mt-0.5 uppercase tracking-wide",
+                        "text-xs font-normal leading-tight mt-0.5 uppercase tracking-wide",
                         isCurrent && "text-indigo-100",
                         isCompleted && "text-indigo-600/70",
                         isUpcoming && "text-slate-400/70"
@@ -85,7 +85,7 @@ export function SettlementPhaseChevron({
                         {phase.subtitle}
                       </span>
                       <span className={cn(
-                        "text-[9px] font-medium leading-tight mt-1 uppercase tracking-wider",
+                        "text-[8px] font-medium leading-tight mt-1 uppercase tracking-wide",
                         isCurrent && "text-indigo-200",
                         isCompleted && "text-indigo-400",
                         isUpcoming && "text-slate-300"

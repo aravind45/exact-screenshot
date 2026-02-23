@@ -196,7 +196,7 @@ router.put("/my", authenticate, async (req: any, res: Response) => {
         let shouldEnableInternational = false;
 
         // 1. Executor Residence Check
-        if (req.user.state && !US_STATES.includes(req.user.state)) {
+        if (req.user.state && !US_STATES.some(s => s.toLowerCase() === req.user.state.toLowerCase())) {
             shouldEnableInternational = true;
             newReasons.push("EXECUTOR_RESIDENCE");
         }
