@@ -1,6 +1,7 @@
 import { SETTLEMENT_PHASE_TASKS } from "../../src/config/settlementPhases.js";
 import { prisma as db } from "../db.js";
 import { calculateAuthorityRecommendation } from "../../src/lib/authorityEngine.js";
+import { getLettersTerm } from "../../src/lib/stateRules.js";
 import { logger } from "../lib/logger.js";
 const FOLLOW_UP_SPAWN_RULES = {
     // ── Creditor Notices ──────────────────────────────────────────────────────
@@ -16,6 +17,8 @@ const FOLLOW_UP_SPAWN_RULES = {
     order_date_of_death_appraisal: { institutionName: "Certified Appraiser", subject: "Date-of-death appraisal ordered — awaiting delivery", responseWindowDays: 21 },
     // ── Court Filings ─────────────────────────────────────────────────────────
     file_petition: { institutionName: "Probate Court", subject: "Petition filed — awaiting court acknowledgment & hearing", responseWindowDays: 30 },
+    file_probate_petition: { institutionName: "Surrogate's Court", subject: "Probate Petition filed — awaiting Decree & Letters", responseWindowDays: 30 },
+    file_administration_petition: { institutionName: "Surrogate's Court", subject: "Administration Petition filed — awaiting Decree & Letters", responseWindowDays: 30 },
     file_inventory_appraisal: { institutionName: "Probate Court", subject: "Inventory & Appraisal filed — awaiting court confirmation", responseWindowDays: 14 },
     file_final_accounting: { institutionName: "Probate Court", subject: "Final Accounting filed — awaiting court approval", responseWindowDays: 21 },
     // ── Tax Authorities ───────────────────────────────────────────────────────
@@ -28,8 +31,221 @@ const FOLLOW_UP_SPAWN_RULES = {
     notify_employer: { institutionName: "Employer HR", subject: "Employer notified — awaiting final pay & benefits information", responseWindowDays: 14 },
     // ── Heirs ─────────────────────────────────────────────────────────────────
     notify_heirs_of_appointment: { institutionName: "Heirs / Beneficiaries", subject: "Heir notification sent — awaiting signed acknowledgments", responseWindowDays: 14 },
-    send_notice_of_proposed_action: { institutionName: "Heirs / Beneficiaries", subject: "Notice of Proposed Action sent — objection window open", responseWindowDays: 15 },
 };
+function normalizeTextForState(text, state) {
+    if (!text)
+        return text;
+    if (state === "CA")
+        return text;
+    const lettersTerm = getLettersTerm(state);
+    let out = text;
+    out = out.replace(/\bCertified Letters\s*\(DE-\d+\)/gi, `Certified ${lettersTerm}`);
+    out = out.replace(/\bLetters Testamentary\s*\(DE-\d+\)/gi, lettersTerm);
+    out = out.replace(/\bLetters of Authority\s*\(DE-\d+\)/gi, lettersTerm);
+    out = out.replace(/\bLetters\s*\(DE-\d+\)/gi, lettersTerm);
+    out = out.replace(/\s*\(DE-\d+\)/gi, "");
+    out = out.replace(/\bDE-\d+\b/gi, "");
+    out = out.replace(/\bMedi-Cal\b/gi, "Medicaid");
+    out = out.replace(/\bDHCS\b/gi, "Medicaid");
+    out = out.replace(/\bCalifornia Probate Code\b/gi, "State probate code");
+    out = out.replace(/\bCA Prob\. Code\b/gi, "State probate code");
+    out = out.replace(/\bCalifornia law\b/gi, "State law");
+    out = out.replace(/\bCalifornia\b/gi, "state");
+    out = out.replace(/\bCA\b/g, "state");
+    out = out.replace(/\s{2,}/g, " ").trim();
+    return out;
+}
+function normalizeTaskForState(task, state) {
+    const override = task.stateOverrides?.[state];
+    const mergedTask = override ? { ...task, ...override } : task;
+    return {
+        ...mergedTask,
+        title: normalizeTextForState(mergedTask.title, state) || mergedTask.title,
+        description: normalizeTextForState(mergedTask.description, state) || mergedTask.description,
+        utility: normalizeTextForState(mergedTask.utility, state),
+        rationale: normalizeTextForState(mergedTask.rationale, state),
+        requiredDocs: mergedTask.requiredDocs?.map(doc => normalizeTextForState(doc, state) || doc),
+        alerts: mergedTask.alerts?.map(alert => ({
+            ...alert,
+            message: normalizeTextForState(alert.message, state) || alert.message
+        })),
+        links: mergedTask.links?.map(link => ({
+            ...link,
+            label: normalizeTextForState(link.label, state) || link.label
+        }))
+    };
+}
+// ─────────────────────────────────────────────────────────────────────────────
+// State-specific phase milestone overrides
+// Base milestones are state-neutral; each state injects its own procedural triggers.
+// ─────────────────────────────────────────────────────────────────────────────
+const STATE_PHASE_OVERRIDES = {
+    NY: {
+        creditor_claims: {
+            milestone: "After Letters Issued",
+            subtitle: "7-Month Exposure Period",
+        },
+        asset_liquidation: {
+            milestone: "Month 6–12",
+            subtitle: "Transfer & Sell",
+        },
+        final_distribution: {
+            milestone: "After Accounting Approved",
+            subtitle: "Court Settlement & Close",
+        },
+    },
+    CA: {
+        creditor_claims: {
+            milestone: "After Notice Published",
+            subtitle: "4-Month Claim Window",
+        },
+        asset_liquidation: {
+            milestone: "After Inventory Filed",
+            subtitle: "IAEA / Court-Confirmed Sales",
+        },
+        final_distribution: {
+            milestone: "After Claim Period",
+            subtitle: "Estate In Closing",
+        },
+    },
+    TX: {
+        creditor_claims: {
+            milestone: "After Letters Issued",
+            subtitle: "4-Month Claim Period",
+        },
+        final_distribution: {
+            milestone: "After Debts Settled",
+            subtitle: "Estate In Closing",
+        },
+    },
+    FL: {
+        creditor_claims: {
+            milestone: "After Letters Issued",
+            subtitle: "3-Month Claim Period",
+        },
+        final_distribution: {
+            milestone: "After Claim Period",
+            subtitle: "Estate In Closing",
+        },
+    },
+    PA: {
+        creditor_claims: {
+            milestone: "After Letters Issued",
+            subtitle: "1-Year Claim Period",
+        },
+    },
+    OH: {
+        creditor_claims: {
+            milestone: "After Appointment",
+            subtitle: "6-Month Claim Period",
+        },
+    },
+    IL: {
+        creditor_claims: {
+            milestone: "After Letters Issued",
+            subtitle: "6-Month Claim Period",
+        },
+    },
+    GA: {
+        creditor_claims: {
+            milestone: "After Publication",
+            subtitle: "3-Month Claim Period",
+        },
+    },
+    NJ: {
+        creditor_claims: {
+            milestone: "After Letters Issued",
+            subtitle: "6-Month Claim Period",
+        },
+    },
+    MA: {
+        creditor_claims: {
+            milestone: "After Date of Death",
+            subtitle: "1-Year Claim Period",
+        },
+    },
+};
+// State-neutral defaults for phases (used when no state override exists)
+const NEUTRAL_PHASE_MILESTONES = {
+    immediate_actions: { milestone: "Death to Filing", subtitle: "Secure & Notify" },
+    pre_filing_compliance: { milestone: "Before Petition Filing", subtitle: "Procedural Checks" },
+    court_filing: { milestone: "After Petition Filed", subtitle: "Obtaining Powers" },
+    asset_discovery: { milestone: "After Letters Issued", subtitle: "Inventory & Appraisal" },
+    creditor_claims: { milestone: "After Letters Issued", subtitle: "Notice & Priority" },
+    asset_liquidation: { milestone: "Month 6–12", subtitle: "Transfer & Sell" },
+    final_distribution: { milestone: "Month 6–12", subtitle: "Estate In Closing" },
+};
+// ─────────────────────────────────────────────────────────────────────────────
+// CA-only tokens that must NEVER appear for non-CA states
+// ─────────────────────────────────────────────────────────────────────────────
+const CA_ONLY_TASK_IDS = new Set([
+    "prepare_notice_proposed_action",
+    "wait_proposed_action_period",
+    "petition_confirm_sale",
+    "obtain_sale_confirmation_order",
+]);
+const CA_ONLY_TEXT_TOKENS = [
+    "Notice of Proposed Action",
+    "15-Day Objection Period",
+    "15-day waiting",
+    "Petition to Confirm Sale",
+    "Sale Confirmation Order",
+    "IAEA",
+    "Independent Administration",
+];
+/**
+ * Hard guard: remove CA-only tasks for non-CA states
+ */
+function removeCAOnlyTasks(phases, state) {
+    if (state === "CA")
+        return phases;
+    return phases.map(phase => ({
+        ...phase,
+        tasks: phase.tasks.filter(task => !CA_ONLY_TASK_IDS.has(task.id)),
+    }));
+}
+/**
+ * Normalize phase-level metadata AND task content for the estate's state.
+ * Phase milestones, subtitles, and task text are all adjusted.
+ */
+function normalizePhasesForState(phases, state) {
+    const stateOverrides = STATE_PHASE_OVERRIDES[state] || {};
+    return phases.map(phase => {
+        // Resolve phase milestone: state-specific → neutral default → original
+        const phaseOverride = stateOverrides[phase.phase];
+        const neutralDefault = NEUTRAL_PHASE_MILESTONES[phase.phase];
+        const resolvedMilestone = phaseOverride?.milestone
+            || neutralDefault?.milestone
+            || phase.milestone;
+        const resolvedSubtitle = phaseOverride?.subtitle
+            || neutralDefault?.subtitle
+            || phase.subtitle;
+        return {
+            ...phase,
+            milestone: resolvedMilestone,
+            subtitle: resolvedSubtitle,
+            tasks: phase.tasks.map(task => normalizeTaskForState(task, state)),
+        };
+    });
+}
+function isProbateMode(profile) {
+    return profile.activeEngines.includes("PROBATE") || profile.activeEngines.includes("AFFIDAVIT");
+}
+function ensurePreFilingCompliance(phases, profile) {
+    if (profile.state !== "NY" || !isProbateMode(profile))
+        return phases;
+    const alreadyPresent = phases.some(p => p.phase === "pre_filing_compliance");
+    if (alreadyPresent)
+        return phases;
+    const preFiling = SETTLEMENT_PHASE_TASKS.find(p => p.phase === "pre_filing_compliance");
+    if (!preFiling)
+        return phases;
+    const immediateIndex = phases.findIndex(p => p.phase === "immediate_actions");
+    const insertIndex = immediateIndex >= 0 ? immediateIndex + 1 : 0;
+    const next = [...phases];
+    next.splice(insertIndex, 0, JSON.parse(JSON.stringify(preFiling)));
+    return next;
+}
 /**
  * Analyze estate to determine which optional tasks should be shown
  */
@@ -138,10 +354,14 @@ export function filterTasksForEstate(allTasks, profile, completedTaskIds = []) {
                 if (!hasMatchingVariant)
                     return false;
             }
-            // 5. Handle Predicates (AND/OR/NOT)
+            // 5. Handle Predicates (AND/OR/NOT) and State Applicability
             if (task.applicability) {
-                const { predicatesAll, predicatesAny, excludePredicates } = task.applicability;
+                const { predicatesAll, predicatesAny, excludePredicates, states } = task.applicability;
                 const profileMap = profile;
+                if (states && states.length > 0) {
+                    if (!states.includes(profile.state))
+                        return false;
+                }
                 if (predicatesAll && predicatesAll.length > 0) {
                     const allTrue = predicatesAll.every(p => !!profileMap[p]);
                     if (!allTrue)
@@ -240,7 +460,10 @@ async function getRoadmapFromDatabase(estateId, profile, completedTaskIds) {
     if (!settlementType) {
         logger.warn(`Settlement type ${settlementTypeCode} not found in database, falling back to hardcoded SETTLEMENT_PHASE_TASKS`);
         // Fallback to hardcoded tasks if type not found
-        return filterTasksForEstate(SETTLEMENT_PHASE_TASKS, profile, completedTaskIds);
+        const injected = ensurePreFilingCompliance(SETTLEMENT_PHASE_TASKS, profile);
+        const filtered = filterTasksForEstate(injected, profile, completedTaskIds);
+        const caGuarded = removeCAOnlyTasks(filtered, profile.state);
+        return normalizePhasesForState(caGuarded, profile.state);
     }
     // Fetch all state overrides for this state once to avoid N+1 or broken relations
     const allOverrides = await db.roadmapTaskStateOverride.findMany({
@@ -290,10 +513,12 @@ async function getRoadmapFromDatabase(estateId, profile, completedTaskIds) {
                 changeLog: stateOverride?.changeLog || undefined,
                 isLongHorizon: undefined, // Add mapping if needed in future schema
                 applicability: (task.applicableVariants && task.applicableVariants.length > 0) ||
+                    (task.applicableStates && task.applicableStates.length > 0) ||
                     (task.predicatesAll && task.predicatesAll.length > 0) ||
                     (task.predicatesAny && task.predicatesAny.length > 0) ||
                     (task.excludePredicates && task.excludePredicates.length > 0)
                     ? {
+                        states: task.applicableStates && task.applicableStates.length > 0 ? task.applicableStates : undefined,
                         variants: task.applicableVariants && task.applicableVariants.length > 0 ? task.applicableVariants : undefined,
                         predicatesAll: task.predicatesAll && task.predicatesAll.length > 0 ? task.predicatesAll : undefined,
                         predicatesAny: task.predicatesAny && task.predicatesAny.length > 0 ? task.predicatesAny : undefined,
@@ -305,8 +530,10 @@ async function getRoadmapFromDatabase(estateId, profile, completedTaskIds) {
             };
         }),
     }));
-    // Apply existing filtering logic
-    return filterTasksForEstate(phases, profile, completedTaskIds);
+    const injected = ensurePreFilingCompliance(phases, profile);
+    const filtered = filterTasksForEstate(injected, profile, completedTaskIds);
+    const caGuarded = removeCAOnlyTasks(filtered, profile.state);
+    return normalizePhasesForState(caGuarded, profile.state);
 }
 /**
  * Get personalized roadmap for an estate

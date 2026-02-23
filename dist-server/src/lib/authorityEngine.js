@@ -71,6 +71,11 @@ export function calculateAuthorityRecommendation(assets, state, metadata) {
     if (probateTotal === 0 && metadata?.estimatedValue && !metadata?.hasTODDeed && !metadata?.isTrustRevocable) {
         probateTotal = metadata.estimatedValue;
     }
+    // Guardrail: if probate-eligible assets exist but values are missing/zero,
+    // treat as probate-present to avoid trust-first bias.
+    if (probateTotal === 0 && probateAssets.length > 0) {
+        probateTotal = 1;
+    }
     const trustAssets = assets.filter(a => a.ownershipType === "TRUST" || a.inTrust);
     const beneficiaryAssets = assets.filter(a => a.ownershipType === "BENEFICIARY" ||
         a.beneficiaryDesignation ||
@@ -148,40 +153,61 @@ export function calculateAuthorityRecommendation(assets, state, metadata) {
         procedureType = "FORMAL_PROBATE";
         type = "INSOLVENT_ESTATE";
     }
-    else if (activeEngines.includes("TRUST")) {
-        procedureType = "TRUST_ADMINISTRATION";
-        // undefined isTrustRevocable → conservative default = revocable (simpler process)
-        type = metadata?.isTrustRevocable === false ? "TRUST_ADMIN_IRREVOCABLE" : "TRUST_ADMIN_REVOCABLE";
-    }
     else if (metadata?.hasContest) {
         // Contested estates require formal probate regardless of out-of-state or will status
         procedureType = "FORMAL_PROBATE";
         type = "CONTESTED_ESTATE";
     }
     else if (metadata?.isOutOfState) {
-        // CRITICAL FIX: Ancillary probate must be checked BEFORE hasWill===false.
-        // When Will=No + OutOfState=Yes → ANCILLARY_PROBATE, not INTESTATE.
-        // The out-of-state jurisdiction requires its own proceeding regardless of will status.
+        // Ancillary probate must be checked BEFORE trust if the primary out-of-state asset is probate
+        // (Trust assets alone wouldn't trigger ancillary if titles are held by trust).
         procedureType = "ANCILLARY_PROBATE";
         type = "ANCILLARY_PROBATE";
     }
+    else if (probateTotal > 0) {
+        // HYBRID PRIORITY: If any assets are outside the trust, the Primary Roadmap track
+        // should be a Court track (Small Estate or Probate) to ensure Phase 0/1 compliance is visible.
+        // Trust tasks will still accompany these via activeEngines.
+        if (probateTotal <= threshold) {
+            procedureType = "SMALL_ESTATE_AFFIDAVIT";
+            type = "SMALL_ESTATE";
+        }
+        else {
+            if (rule.isUPC && metadata?.hasWill && !metadata?.hasContest) {
+                procedureType = "INFORMAL_PROBATE";
+                type = "INFORMAL_PROBATE";
+            }
+            else if (state === "TX" && metadata?.hasWill && !metadata?.hasInsolvencyRisk) {
+                procedureType = "MUNIMENT_OF_TITLE";
+                type = "MUNIMENT_OF_TITLE";
+            }
+            else {
+                procedureType = "FORMAL_PROBATE";
+                type = "FORMAL_PROBATE";
+            }
+        }
+    }
+    else if (activeEngines.includes("TRUST")) {
+        procedureType = "TRUST_ADMINISTRATION";
+        // undefined isTrustRevocable → conservative default = revocable (simpler process)
+        type = metadata?.isTrustRevocable === false ? "TRUST_ADMIN_IRREVOCABLE" : "TRUST_ADMIN_REVOCABLE";
+    }
     else if (metadata?.hasWill === false) {
-        // Intestate only when: no trust, not contested, not out-of-state, not insolvent
+        // Intestate only when: no trust, no probate assets? (Wait, if probateTotal was >0 it would have hit above)
+        // This block handles cases where asset profiles haven't been completed yet but will status is known.
         procedureType = "FORMAL_PROBATE";
         type = "INTESTATE";
     }
-    else if (metadata?.isSpouse && probateTotal > 0) {
+    else if (metadata?.isSpouse) {
         procedureType = "SPOUSAL_PETITION";
         type = "SPOUSAL_PETITION";
     }
-    else if (metadata?.hasWill === true || probateTotal > threshold) {
-        if (rule.isUPC && metadata?.hasWill && !metadata?.hasContest) {
+    else if (metadata?.hasWill === true) {
+        // Covered under probateTotal > threshold, but for clarity/completeness
+        // (This block would only be hit if threshold is very high or probateTotal is exactly 0 but hasWill is true)
+        if (rule.isUPC && !metadata?.hasContest) {
             procedureType = "INFORMAL_PROBATE";
             type = "INFORMAL_PROBATE";
-        }
-        else if (state === "TX" && metadata?.hasWill && !metadata?.hasInsolvencyRisk) {
-            procedureType = "MUNIMENT_OF_TITLE";
-            type = "MUNIMENT_OF_TITLE";
         }
         else {
             procedureType = "FORMAL_PROBATE";

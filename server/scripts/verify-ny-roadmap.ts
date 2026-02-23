@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
-import { generateRoadmap } from '../../src/config/roadmapGenerator';
-import { getRoadmap } from '../services/roadmapService';
+import { generateRoadmap } from '../../src/config/roadmapGenerator.js';
+import { getRoadmap } from '../services/roadmapService.js';
 
 const prisma = new PrismaClient();
 
