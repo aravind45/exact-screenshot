@@ -94,8 +94,24 @@ function normalizeTextForState(text: string | undefined, state: string): string 
   return out;
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Static lookup: hardcoded stateOverrides from SETTLEMENT_PHASE_TASKS by task ID.
+// DB-loaded tasks don't carry stateOverrides, so we resolve them from this map.
+// ─────────────────────────────────────────────────────────────────────────────
+const HARDCODED_STATE_OVERRIDES_MAP = new Map<string, PhaseTask['stateOverrides']>();
+for (const phase of SETTLEMENT_PHASE_TASKS) {
+  for (const task of phase.tasks) {
+    if (task.stateOverrides) {
+      HARDCODED_STATE_OVERRIDES_MAP.set(task.id, task.stateOverrides);
+    }
+  }
+}
+
 function normalizeTaskForState(task: PhaseTask, state: string): PhaseTask {
-  const override = task.stateOverrides?.[state];
+  // Check inline stateOverrides first (hardcoded path), then fall back to
+  // the static lookup map (covers DB-loaded tasks that lack stateOverrides).
+  const override = task.stateOverrides?.[state]
+    || HARDCODED_STATE_OVERRIDES_MAP.get(task.id)?.[state];
   const mergedTask = override ? { ...task, ...override } : task;
 
   return {
@@ -152,7 +168,7 @@ const STATE_PHASE_OVERRIDES: Record<string, Record<string, { milestone?: string;
   TX: {
     creditor_claims: {
       milestone: "After Letters Issued",
-      subtitle: "4-Month Claim Period",
+      subtitle: "Secured & Unsecured Claims (4 Months)",
     },
     final_distribution: {
       milestone: "After Debts Settled",
@@ -162,10 +178,10 @@ const STATE_PHASE_OVERRIDES: Record<string, Record<string, { milestone?: string;
   FL: {
     creditor_claims: {
       milestone: "After Letters Issued",
-      subtitle: "3-Month Claim Period",
+      subtitle: "3-Month Creditor Window",
     },
     final_distribution: {
-      milestone: "After Claim Period",
+      milestone: "After Creditor Period Ends",
       subtitle: "Estate In Closing",
     },
   },
