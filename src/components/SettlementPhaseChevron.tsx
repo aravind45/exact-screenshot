@@ -12,62 +12,19 @@ export interface PhaseConfig {
   isEscalationPath?: boolean;
 }
 
-const DEFAULT_PHASES: PhaseConfig[] = [
-  {
-    id: "immediate_actions",
-    title: "Strategic Assessment",
-    subtitle: "Secure & Notify",
-    milestone: "Death to Filing",
-    color: "bg-indigo-500"
-  },
-  {
-    id: "court_filing",
-    title: "Petition & Authority",
-    subtitle: "Obtaining Powers",
-    milestone: "After Petition Filed",
-    color: "bg-indigo-500"
-  },
-  {
-    id: "asset_discovery",
-    title: "Asset Discovery",
-    subtitle: "Inventory & Appraisal",
-    milestone: "After Letters Issued",
-    color: "bg-indigo-500"
-  },
-  {
-    id: "creditor_claims",
-    title: "Creditor Claims",
-    subtitle: "Notice & Priority",
-    milestone: "After Letters Issued",
-    color: "bg-indigo-500"
-  },
-  {
-    id: "asset_liquidation",
-    title: "Asset Liquidation",
-    subtitle: "Transfer & Sell",
-    milestone: "Month 6–12",
-    color: "bg-indigo-500"
-  },
-  {
-    id: "final_distribution",
-    title: "Final Distribution",
-    subtitle: "Estate In Closing",
-    milestone: "Month 6–12",
-    color: "bg-indigo-500"
-  }
-];
+
 
 interface SettlementPhaseChevronProps {
   currentPhase: SettlementPhase;
   completedPhases: SettlementPhase[];
-  phases?: PhaseConfig[];
+  phases: PhaseConfig[];
   className?: string;
 }
 
 export function SettlementPhaseChevron({
   currentPhase,
   completedPhases,
-  phases = DEFAULT_PHASES,
+  phases,
   className
 }: SettlementPhaseChevronProps) {
   const currentIndex = phases.findIndex(p => p.id === currentPhase);

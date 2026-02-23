@@ -35,19 +35,17 @@ interface NextActionWidgetProps {
   assets?: any[];
 }
 
-const PHASE_ORDER = [
-  "immediate_actions",
-  "court_filing",
-  "asset_discovery",
-  "creditor_claims",
-  "asset_liquidation",
-  "final_distribution",
-] as const;
+import { PHASE_ORDER } from "@/config/roadmapMetadata";
 
 const PHASE_LABELS: Record<string, string> = {
   immediate_actions: "Immediate Actions",
+  pre_filing_compliance: "Pre-Filing Requirements",
   court_filing: "Court Filing",
+  ancillary_phase: "Out of State",
+  litigation_phase: "Disputes & Litigation",
+  insolvency_phase: "Insolvent Estate",
   asset_discovery: "Asset Discovery",
+  probate_escalation: "Court Review",
   creditor_claims: "Creditor Claims",
   asset_liquidation: "Asset Liquidation",
   final_distribution: "Final Distribution",
@@ -57,37 +55,50 @@ const PHASE_LABELS: Record<string, string> = {
 const PHASE_CONTEXT: Record<string, {
   whyItMatters: string;    // one sentence for new users
   afterThis: string;       // what phase comes next
-  phaseNum: number;
 }> = {
   immediate_actions: {
     whyItMatters: "The first 14 days set everything up. Failing to act quickly can let assets get lost or creditors complicate things.",
-    afterThis: "Once secured, you'll petition the court for legal authority to access accounts.",
-    phaseNum: 1,
+    afterThis: "Once secured, you'll prepare for court or start administering.",
+  },
+  pre_filing_compliance: {
+    whyItMatters: "Ensure legal eligibility and compliance before filing.",
+    afterThis: "Once complete, you can safely petition the court.",
   },
   court_filing: {
     whyItMatters: "Without a court order, no bank or brokerage will let you touch the estate's accounts — even if you're the executor named in the Will.",
     afterThis: "Once you have court authority (Letters), you can officially inventory all assets.",
-    phaseNum: 2,
+  },
+  ancillary_phase: {
+    whyItMatters: "File additional court paperwork in states where real estate is located.",
+    afterThis: "Once ancillary proceedings are open, you can manage out-of-state property.",
+  },
+  litigation_phase: {
+    whyItMatters: "Handle legal challenges to the estate or trust.",
+    afterThis: "Once disputes are resolved, standard administration can resume.",
+  },
+  insolvency_phase: {
+    whyItMatters: "Manage debts when they exceed the value of the estate's assets to protect yourself from liability.",
+    afterThis: "Once priority debts are managed, you can proceed with the remaining settlement.",
   },
   asset_discovery: {
     whyItMatters: "You're legally required to find and report every asset the estate owns. Missing accounts can cause delays in distribution.",
     afterThis: "After inventory is filed, the creditor notice period begins.",
-    phaseNum: 3,
+  },
+  probate_escalation: {
+    whyItMatters: "Handle complex issues requiring formal court intervention.",
+    afterThis: "Once the court reviews the escalation, you can proceed with authority.",
   },
   creditor_claims: {
     whyItMatters: "You cannot pay heirs until all valid debts are handled. Paying heirs first — or paying debts in the wrong order — can make you personally liable.",
     afterThis: "After the creditor period closes, you can start transferring assets to heirs.",
-    phaseNum: 4,
   },
   asset_liquidation: {
     whyItMatters: "This is where the estate's assets actually move. You'll transfer accounts, sell property if needed, and file the estate's tax returns.",
     afterThis: "Once all assets are transferred and taxes paid, you can file for final court distribution.",
-    phaseNum: 5,
   },
   final_distribution: {
     whyItMatters: "The final step — you need court approval to pay heirs their share and officially close the estate.",
     afterThis: "After the final hearing, the estate is closed and your duties are complete.",
-    phaseNum: 6,
   },
 };
 
@@ -132,6 +143,10 @@ export function NextActionWidget({ estate, assets = [] }: NextActionWidgetProps)
       return [];
     }
   }, [estate, assets]);
+
+  const activeRoadmapPhases = useMemo(() => {
+    return PHASE_ORDER.filter(phaseKey => roadmap.some(p => p.phase === phaseKey));
+  }, [roadmap]);
 
   // Walk phases in order — find the first unblocked, incomplete task
   const nextAction = useMemo(() => {
@@ -366,19 +381,19 @@ export function NextActionWidget({ estate, assets = [] }: NextActionWidgetProps)
       {/* ── Phase position indicator ── */}
       {PHASE_CONTEXT[nextAction.phase] && (
         <div className="flex items-center gap-1.5">
-          {PHASE_ORDER.map((p, i) => (
+          {activeRoadmapPhases.map((p, i) => (
             <div
               key={p}
               className={cn(
                 "h-1 rounded-full flex-1 transition-all",
-                i < PHASE_CONTEXT[nextAction.phase].phaseNum
+                i <= activeRoadmapPhases.indexOf(nextAction.phase as any)
                   ? "bg-indigo-500"
                   : "bg-slate-200"
               )}
             />
           ))}
           <span className="text-[10px] font-semibold text-slate-400 ml-1 whitespace-nowrap">
-            Phase {PHASE_CONTEXT[nextAction.phase].phaseNum}/{PHASE_ORDER.length}
+            Phase {activeRoadmapPhases.indexOf(nextAction.phase as any) + 1}/{activeRoadmapPhases.length}
           </span>
         </div>
       )}

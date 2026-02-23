@@ -22,6 +22,14 @@ export default function SettlementRoadmapNew() {
     queryFn: api.getMyEstate
   });
 
+  const { data: roadmapData } = useQuery({
+    queryKey: ['roadmap', estate?.id],
+    queryFn: () => api.getEstateRoadmap(estate!.id),
+    enabled: !!estate?.id,
+  });
+
+  const dynamicRoadmap = roadmapData?.phases || [];
+
   const isViewer = (estate as any)?.userRole === 'VIEWER';
 
   const roadmapMutation = useMutation({
@@ -190,6 +198,14 @@ export default function SettlementRoadmapNew() {
               <SettlementPhaseChevron
                 currentPhase={currentPhase as SettlementPhase}
                 completedPhases={completedPhases as SettlementPhase[]}
+                phases={dynamicRoadmap.map(p => ({
+                  id: p.phase,
+                  title: p.title,
+                  subtitle: p.subtitle,
+                  milestone: p.milestone,
+                  isEscalationPath: p.isEscalationPath,
+                  color: "bg-indigo-500"
+                }))}
               />
             </div>
           )}

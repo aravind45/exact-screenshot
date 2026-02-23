@@ -16,6 +16,14 @@ export function SettlementPhaseChevronDemo() {
     "final_distribution"
   ];
 
+  const mockPhases = allPhases.map(p => ({
+    id: p,
+    title: p.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase()),
+    subtitle: "Demo subtitle",
+    milestone: "Demo milestone",
+    color: "bg-indigo-500"
+  }));
+
   const handleNext = () => {
     const currentIndex = allPhases.indexOf(currentPhase);
     if (currentIndex < allPhases.length - 1) {
@@ -51,6 +59,7 @@ export function SettlementPhaseChevronDemo() {
           <SettlementPhaseChevron
             currentPhase={currentPhase}
             completedPhases={completedPhases}
+            phases={mockPhases}
           />
 
           <div className="flex gap-2 mt-6">
