@@ -125,9 +125,27 @@ export default function OnboardingGuidedWizard() {
     const { user } = useAuth();
 
     // Redirect Advisors out of executor onboarding
+    // Auto-skip role selection for known EXECUTOR users
     useEffect(() => {
         if (user?.role === 'ADVISOR') {
             navigate('/advisor/dashboard');
+            return;
+        }
+        // If user already registered as EXECUTOR, skip the role question (step 0)
+        if (user?.role === 'EXECUTOR' || user?.userType === 'EXECUTOR') {
+            if (!role) {
+                setRole('executor');
+            }
+            // Only auto-advance if still on the welcome step
+            if (currentStep === 0) {
+                setCurrentStep(1);
+            }
+        }
+        // If user registered as HEIR, set role accordingly
+        if (user?.role === 'HEIR' || user?.userType === 'HEIR') {
+            if (!role) {
+                setRole('heir');
+            }
         }
     }, [user, navigate]);
 

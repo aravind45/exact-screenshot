@@ -1,6 +1,133 @@
+# This file controls what gets uploaded to Cloud Build
+# Keep in sync with .dockerignore
+
 .gcloudignore
 .git
+.gitignore
+
+# Dependencies (rebuilt in Docker)
 node_modules
+
+# Build outputs (rebuilt in Docker)
 dist
+dist-server
+build
+out
+
+# Environment
 .env
+.env.local
 *.local
+
+# IDE
+.vscode
+.kiro
+.idea
+
+# Test files & reports
+e2e
+test-results
+playwright-report
+coverage
+playwright.config.ts
+playwright_*.txt
+test-*.html
+test-*.js
+test-*.ts
+
+# Test output files
+test_output*.txt
+final_test_output.txt
+full_test_output.txt
+test_debug.txt
+
+# Large data files
+*.xlsx
+*.pdf
+*.png
+*.diff
+Roadmap_pdfs
+RAg_Docs
+figma
+archive
+docs
+pomelli
+
+# State-specific directories (parenthetical dirs)
+(FL-specific/
+(NY-specific/
+(TX-specific)/
+(state/
+(when/
+a/
+already/
+ancillary/
+and/
+as/
+assets/
+branch)/
+Conditional/
+court/
+current/
+default/
+Documentation/
+extension/
+flag/
+flagged/
+FORMAL_PROBATE/
+forms/
+in/
+INFORMAL_PROBATE/
+INTESTATE/
+irrevocable/
+is/
+marked/
+Maryland/
+MUNIMENT_OF_TITLE/
+No/
+Not/
+path/
+Posts/
+present/
+probate/
+process/
+requiring/
+revocability/
+rules/
+SMALL_ESTATE/
+SPOUSAL_PETITION/
+spouse/
+state/
+SUMMARY_ADMINISTRATION/
+Surviving/
+test-data/
+
+# Misc
+bun.lockb
+*.log
+empty
+full
+maxSessionsPerDay
+ny_checklist.txt
+query_log.txt
+estate_roadmap_data.json
+dashboard_ad_creative.html
+generate-launch-hero.html
+generate-og-image.html
+og-image-template.html
+productlaunch.png
+profile.pdf
+gitingest_file.md
+check_*.ts
+recover_db.ts
+test_hash.ts
+test_prisma.ts
+read_pdf.cjs
+read_xlsx.js
+read_xlsx.mjs
+setup-secrets.sh
+deploy-cloud-run.bat
+deploy-cloud-run.sh
+
+# Supabase
+supabase

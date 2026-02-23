@@ -70,11 +70,6 @@ export default function ProfileSettings() {
         onSuccess: () => {
             toast({ title: "Profile Updated", description: "Your settings have been saved." });
             queryClient.invalidateQueries({ queryKey: ["profile"] });
-            // STATE SYNC: Backend now syncs estate.deceasedState when profile state changes.
-            // Invalidate all estate-related caches so dashboard, roadmap, and forms refresh.
-            queryClient.invalidateQueries({ queryKey: ["estate"] });
-            queryClient.invalidateQueries({ queryKey: ["my-estate"] });
-            queryClient.invalidateQueries({ queryKey: ["roadmap"] });
         },
         onError: (err: any) => {
             toast({ variant: "destructive", title: "Update Failed", description: err.message });
@@ -209,7 +204,8 @@ export default function ProfileSettings() {
                                                 </div>
                                             </div>
                                             <div className="space-y-2">
-                                                <Label htmlFor="state">State of Residence</Label>
+                                                <Label htmlFor="state">Your State (Where You Live)</Label>
+                                                <p className="text-[10px] text-muted-foreground -mt-1 ml-1">This is your location as executor — not the deceased's state.</p>
                                                 <div className="relative">
                                                     <MapPin className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground z-10" />
                                                     <Select
