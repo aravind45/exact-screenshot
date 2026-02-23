@@ -38,21 +38,21 @@ const DEFAULT_PHASES: PhaseConfig[] = [
     id: "creditor_claims",
     title: "Creditor Claims",
     subtitle: "Notice & Priority",
-    milestone: "After Notice Published",
+    milestone: "After Letters Issued",
     color: "bg-indigo-500"
   },
   {
     id: "asset_liquidation",
     title: "Asset Liquidation",
-    subtitle: "Managed Transfer",
-    milestone: "After Inventory Filed",
+    subtitle: "Transfer & Sell",
+    milestone: "Month 6–12",
     color: "bg-indigo-500"
   },
   {
     id: "final_distribution",
     title: "Final Distribution",
     subtitle: "Estate In Closing",
-    milestone: "After Claim Period",
+    milestone: "Month 6–12",
     color: "bg-indigo-500"
   }
 ];

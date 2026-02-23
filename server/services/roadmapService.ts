@@ -116,11 +116,166 @@ function normalizeTaskForState(task: PhaseTask, state: string): PhaseTask {
   };
 }
 
-function normalizePhasesForState(phases: PhaseTaskList[], state: string): PhaseTaskList[] {
+// ─────────────────────────────────────────────────────────────────────────────
+// State-specific phase milestone overrides
+// Base milestones are state-neutral; each state injects its own procedural triggers.
+// ─────────────────────────────────────────────────────────────────────────────
+const STATE_PHASE_OVERRIDES: Record<string, Record<string, { milestone?: string; subtitle?: string }>> = {
+  NY: {
+    creditor_claims: {
+      milestone: "After Letters Issued",
+      subtitle: "7-Month Exposure Period",
+    },
+    asset_liquidation: {
+      milestone: "Month 6–12",
+      subtitle: "Transfer & Sell",
+    },
+    final_distribution: {
+      milestone: "After Accounting Approved",
+      subtitle: "Court Settlement & Close",
+    },
+  },
+  CA: {
+    creditor_claims: {
+      milestone: "After Notice Published",
+      subtitle: "4-Month Claim Window",
+    },
+    asset_liquidation: {
+      milestone: "After Inventory Filed",
+      subtitle: "IAEA / Court-Confirmed Sales",
+    },
+    final_distribution: {
+      milestone: "After Claim Period",
+      subtitle: "Estate In Closing",
+    },
+  },
+  TX: {
+    creditor_claims: {
+      milestone: "After Letters Issued",
+      subtitle: "4-Month Claim Period",
+    },
+    final_distribution: {
+      milestone: "After Debts Settled",
+      subtitle: "Estate In Closing",
+    },
+  },
+  FL: {
+    creditor_claims: {
+      milestone: "After Letters Issued",
+      subtitle: "3-Month Claim Period",
+    },
+    final_distribution: {
+      milestone: "After Claim Period",
+      subtitle: "Estate In Closing",
+    },
+  },
+  PA: {
+    creditor_claims: {
+      milestone: "After Letters Issued",
+      subtitle: "1-Year Claim Period",
+    },
+  },
+  OH: {
+    creditor_claims: {
+      milestone: "After Appointment",
+      subtitle: "6-Month Claim Period",
+    },
+  },
+  IL: {
+    creditor_claims: {
+      milestone: "After Letters Issued",
+      subtitle: "6-Month Claim Period",
+    },
+  },
+  GA: {
+    creditor_claims: {
+      milestone: "After Publication",
+      subtitle: "3-Month Claim Period",
+    },
+  },
+  NJ: {
+    creditor_claims: {
+      milestone: "After Letters Issued",
+      subtitle: "6-Month Claim Period",
+    },
+  },
+  MA: {
+    creditor_claims: {
+      milestone: "After Date of Death",
+      subtitle: "1-Year Claim Period",
+    },
+  },
+};
+
+// State-neutral defaults for phases (used when no state override exists)
+const NEUTRAL_PHASE_MILESTONES: Record<string, { milestone: string; subtitle: string }> = {
+  immediate_actions: { milestone: "Death to Filing", subtitle: "Secure & Notify" },
+  pre_filing_compliance: { milestone: "Before Petition Filing", subtitle: "Procedural Checks" },
+  court_filing: { milestone: "After Petition Filed", subtitle: "Obtaining Powers" },
+  asset_discovery: { milestone: "After Letters Issued", subtitle: "Inventory & Appraisal" },
+  creditor_claims: { milestone: "After Letters Issued", subtitle: "Notice & Priority" },
+  asset_liquidation: { milestone: "Month 6–12", subtitle: "Transfer & Sell" },
+  final_distribution: { milestone: "Month 6–12", subtitle: "Estate In Closing" },
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CA-only tokens that must NEVER appear for non-CA states
+// ─────────────────────────────────────────────────────────────────────────────
+const CA_ONLY_TASK_IDS = new Set([
+  "prepare_notice_proposed_action",
+  "wait_proposed_action_period",
+  "petition_confirm_sale",
+  "obtain_sale_confirmation_order",
+]);
+
+const CA_ONLY_TEXT_TOKENS = [
+  "Notice of Proposed Action",
+  "15-Day Objection Period",
+  "15-day waiting",
+  "Petition to Confirm Sale",
+  "Sale Confirmation Order",
+  "IAEA",
+  "Independent Administration",
+];
+
+/**
+ * Hard guard: remove CA-only tasks for non-CA states
+ */
+function removeCAOnlyTasks(phases: PhaseTaskList[], state: string): PhaseTaskList[] {
+  if (state === "CA") return phases;
   return phases.map(phase => ({
     ...phase,
-    tasks: phase.tasks.map(task => normalizeTaskForState(task, state))
+    tasks: phase.tasks.filter(task => !CA_ONLY_TASK_IDS.has(task.id)),
   }));
+}
+
+/**
+ * Normalize phase-level metadata AND task content for the estate's state.
+ * Phase milestones, subtitles, and task text are all adjusted.
+ */
+function normalizePhasesForState(phases: PhaseTaskList[], state: string): PhaseTaskList[] {
+  const stateOverrides = STATE_PHASE_OVERRIDES[state] || {};
+
+  return phases.map(phase => {
+    // Resolve phase milestone: state-specific → neutral default → original
+    const phaseOverride = stateOverrides[phase.phase];
+    const neutralDefault = NEUTRAL_PHASE_MILESTONES[phase.phase];
+
+    const resolvedMilestone = phaseOverride?.milestone
+      || neutralDefault?.milestone
+      || phase.milestone;
+
+    const resolvedSubtitle = phaseOverride?.subtitle
+      || neutralDefault?.subtitle
+      || phase.subtitle;
+
+    return {
+      ...phase,
+      milestone: resolvedMilestone,
+      subtitle: resolvedSubtitle,
+      tasks: phase.tasks.map(task => normalizeTaskForState(task, state)),
+    };
+  });
 }
 
 function isProbateMode(profile: EstateProfile) {
@@ -405,7 +560,8 @@ async function getRoadmapFromDatabase(
     // Fallback to hardcoded tasks if type not found
     const injected = ensurePreFilingCompliance(SETTLEMENT_PHASE_TASKS, profile);
     const filtered = filterTasksForEstate(injected, profile, completedTaskIds);
-    return normalizePhasesForState(filtered, profile.state);
+    const caGuarded = removeCAOnlyTasks(filtered, profile.state);
+    return normalizePhasesForState(caGuarded, profile.state);
   }
 
   // Fetch all state overrides for this state once to avoid N+1 or broken relations
@@ -480,7 +636,8 @@ async function getRoadmapFromDatabase(
 
   const injected = ensurePreFilingCompliance(phases, profile);
   const filtered = filterTasksForEstate(injected, profile, completedTaskIds);
-  return normalizePhasesForState(filtered, profile.state);
+  const caGuarded = removeCAOnlyTasks(filtered, profile.state);
+  return normalizePhasesForState(caGuarded, profile.state);
 }
 
 /**

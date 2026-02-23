@@ -69,10 +69,31 @@ const STATES = [
 ];
 
 const FORM_CONTEXTS: Record<string, string> = {
+    // California (DE-*)
     'DE-111': "Probate Initialization → Court Filing",
     'DE-121': "Creditor Notification → Notice Phase",
     'DE-150': "Probate Hub → Appointment Phase",
-    'DE-160': "Asset Discovery → Inventory Phase"
+    'DE-160': "Asset Discovery → Inventory Phase",
+    // New York (ET-*)
+    'ET-1': "Probate Initialization → Surrogate's Court",
+    'ET-2': "Administration → Surrogate's Court",
+    'ET-4': "Notice → Citation & Service",
+    'ET-5': "Notice → Waiver & Consent",
+    'ET-6': "Authority → Letters Testamentary",
+    'ET-8': "Asset Discovery → Inventory Phase",
+    'ET-10': "Accounting → Judicial Settlement",
+    // Texas (TX-*)
+    'TX-1': "Probate Initialization → County Court",
+    'TX-3': "Independent Admin → Texas Specific",
+    'TX-5': "Authority → Letters Testamentary",
+    'TX-7': "Asset Discovery → Inventory Phase",
+    'TX-12': "Muniment of Title → Texas Specific",
+    // Florida (FL-*)
+    'FL-1': "Probate Initialization → Circuit Court",
+    'FL-2': "Summary Administration → Simplified Path",
+    'FL-5': "Authority → Letters of Administration",
+    'FL-6': "Asset Discovery → Inventory Phase",
+    'FL-7': "Creditor Notification → Notice Phase",
 };
 
 // Map form IDs to process categories
@@ -309,13 +330,13 @@ const Forms = () => {
                             </h3>
                             <p className="text-sm text-gray-600 mb-6 max-w-md text-center">
                                 We're working on adding official probate forms for {STATES.find(s => s.id === selectedState)?.name}.
-                                Currently, only California forms are available.
+                                Forms are currently available for California, New York, Texas, and Florida.
                             </p>
                             <Button
                                 onClick={() => setSelectedState("CA")}
                                 className="bg-primary hover:bg-primary/90 text-white font-bold"
                             >
-                                View California Forms
+                                View Available Forms
                             </Button>
                         </div>
                     ) : (

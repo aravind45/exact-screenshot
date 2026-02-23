@@ -83,7 +83,7 @@ export const FORM_MAPPINGS: Record<string, FormMapping> = {
  * Used for authority-driven filtering and readiness logic.
  */
 export const FORM_AUTHORITIES: Record<string, string> = {
-    // Court Authority Required
+    // ── California (DE-*) ───────────────────────────────────────────────
     'DE-111': 'COURT_REQUIRED',
     'DE-121': 'COURT_REQUIRED',
     'DE-150': 'COURT_REQUIRED',
@@ -104,6 +104,55 @@ export const FORM_AUTHORITIES: Record<string, string> = {
     'DE-310': 'COURT_REQUIRED',
     'DE-350': 'COURT_REQUIRED',
 
+    // ── New York (ET-*) ─────────────────────────────────────────────────
+    'ET-1': 'COURT_REQUIRED',
+    'ET-2': 'COURT_REQUIRED',
+    'ET-3': 'COURT_REQUIRED',
+    'ET-4': 'COURT_REQUIRED',
+    'ET-5': 'COURT_REQUIRED',
+    'ET-6': 'COURT_REQUIRED',
+    'ET-7': 'COURT_REQUIRED',
+    'ET-8': 'COURT_REQUIRED',
+    'ET-9': 'COURT_REQUIRED',
+    'ET-10': 'COURT_REQUIRED',
+    'ET-11': 'COURT_REQUIRED',
+    'ET-12': 'COURT_REQUIRED',
+    'ET-13': 'COURT_REQUIRED',
+    'ET-14': 'AFFIDAVIT_SMALL',
+    'ET-15': 'AFFIDAVIT_SMALL',
+
+    // ── Texas (TX-*) ────────────────────────────────────────────────────
+    'TX-1': 'COURT_REQUIRED',
+    'TX-2': 'COURT_REQUIRED',
+    'TX-3': 'COURT_REQUIRED',
+    'TX-4': 'COURT_REQUIRED',
+    'TX-5': 'COURT_REQUIRED',
+    'TX-6': 'COURT_REQUIRED',
+    'TX-7': 'COURT_REQUIRED',
+    'TX-8': 'COURT_REQUIRED',
+    'TX-9': 'COURT_REQUIRED',
+    'TX-10': 'COURT_REQUIRED',
+    'TX-11': 'AFFIDAVIT_SMALL',
+    'TX-12': 'COURT_REQUIRED',
+
+    // ── Florida (FL-*) ──────────────────────────────────────────────────
+    'FL-1': 'COURT_REQUIRED',
+    'FL-2': 'AFFIDAVIT_SMALL',
+    'FL-3': 'COURT_REQUIRED',
+    'FL-4': 'COURT_REQUIRED',
+    'FL-5': 'COURT_REQUIRED',
+    'FL-6': 'COURT_REQUIRED',
+    'FL-7': 'COURT_REQUIRED',
+    'FL-8': 'COURT_REQUIRED',
+    'FL-9': 'COURT_REQUIRED',
+    'FL-10': 'COURT_REQUIRED',
+    'FL-11': 'COURT_REQUIRED',
+    'FL-12': 'COURT_REQUIRED',
+    'FL-13': 'COURT_REQUIRED',
+    'FL-14': 'AFFIDAVIT_SMALL',
+    'FL-15': 'COURT_REQUIRED',
+
+    // ── Generic / Cross-State ───────────────────────────────────────────
     // Trustee Direct (Templates)
     'Notice 16061.7': 'TRUSTEE_DIRECT',
     'Certification of Trust': 'TRUSTEE_DIRECT',

@@ -1262,7 +1262,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
     title: "Creditor Claims",
     subtitle: "Notice & Priority",
     milestone: "After Letters Issued",
-    description: "Managing the statutory creditor period and determining the legal priority of submitted claims.",
+    description: "Managing the state-specific creditor exposure period and determining the legal priority of submitted claims.",
     tasks: [
       {
         id: "debt_priority_risk",
@@ -1361,17 +1361,62 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "wait_claim_period",
-        title: "Wait for Statutory Claim Period",
-        description: "Creditors have a statutory period (e.g., 4 months) from notice publication to file claims.",
+        title: "Monitor State-Specific Creditor Exposure Period",
+        description: "Creditors have a statutory period to file claims. The trigger event and duration vary by state. Do not distribute assets until this period expires.",
         utility: "Mandatory waiting period to protect you from future debt liability.",
         isLongHorizon: true,
-        estimatedTime: "Statutory duration (e.g. 4-7 months)",
+        estimatedTime: "State-specific (typically 4–7 months)",
         dependencies: ["publish_notice"],
         stateOverrides: {
+          CA: {
+            title: "Wait for 4-Month Claim Period",
+            description: "Creditors have 4 months from publication of the creditor notice to file claims against the estate.",
+            estimatedTime: "4 months"
+          },
           NY: {
             title: "Monitor 7-Month Creditor Exposure Period (from issuance of Letters)",
-            description: "In New York, creditors have 7 months from the date Letters are issued to file claims (SCPA §1802).",
+            description: "In New York, creditors have 7 months from the date Letters are issued to file claims (SCPA §1802). Publication is optional but recommended.",
             estimatedTime: "7 months"
+          },
+          TX: {
+            title: "Monitor Creditor Claim Period",
+            description: "In Texas, creditors generally have 4 months from the date of the published notice or receipt of personal notice to file claims.",
+            estimatedTime: "4 months"
+          },
+          FL: {
+            title: "Monitor 3-Month Creditor Claim Period",
+            description: "In Florida, creditors have 3 months from first publication of Notice to Creditors, or 30 days from actual notice, whichever is later.",
+            estimatedTime: "3 months"
+          },
+          PA: {
+            title: "Monitor 1-Year Creditor Claim Period",
+            description: "In Pennsylvania, creditors have 1 year from the date of death to file claims against the estate (20 Pa.C.S. §3532).",
+            estimatedTime: "12 months"
+          },
+          OH: {
+            title: "Monitor 6-Month Creditor Claim Period",
+            description: "In Ohio, creditors have 6 months from the date of the fiduciary's appointment to present claims (ORC §2117.06).",
+            estimatedTime: "6 months"
+          },
+          IL: {
+            title: "Monitor 6-Month Creditor Claim Period",
+            description: "In Illinois, creditors have 6 months from the date of first publication of the death notice to file claims (755 ILCS 5/18-12).",
+            estimatedTime: "6 months"
+          },
+          GA: {
+            title: "Monitor 3-Month Creditor Claim Period",
+            description: "In Georgia, creditors have 3 months from the date of publication of the notice to creditors to file claims (OCGA §53-7-41).",
+            estimatedTime: "3 months"
+          },
+          NJ: {
+            title: "Monitor 6-Month Creditor Claim Period",
+            description: "In New Jersey, creditors have 6 months from the date of the first publication of notice to present claims (NJSA 3B:22-4).",
+            estimatedTime: "6 months"
+          },
+          MA: {
+            title: "Monitor 1-Year Creditor Claim Period",
+            description: "In Massachusetts, creditors have 1 year from the date of death to present claims against the estate (MGL c.197 §9).",
+            estimatedTime: "12 months"
           }
         },
         alerts: [
