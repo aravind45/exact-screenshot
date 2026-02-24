@@ -27,6 +27,23 @@ export default function FirmDashboard() {
         queryFn: api.getEstates
     });
 
+    const [isCreating, setIsCreating] = useState(false);
+
+    const handleCreateCase = async () => {
+        setIsCreating(true);
+        try {
+            const newEstate = await api.createEstate({
+                name: "New Probate Case",
+                deceasedState: "TX"
+            });
+            navigate(`/onboarding?estateId=${newEstate.id}`);
+        } catch (error) {
+            console.error("Failed to create estate:", error);
+        } finally {
+            setIsCreating(false);
+        }
+    };
+
     const filtered = estates?.filter((e: any) =>
         `${e.deceasedFirstName} ${e.deceasedLastName}`.toLowerCase().includes(search.toLowerCase()) ||
         e.courtCaseNumber?.toLowerCase().includes(search.toLowerCase())
@@ -43,9 +60,13 @@ export default function FirmDashboard() {
                         </h1>
                         <p className="text-slate-500 font-medium">Manage your active Texas probate cases</p>
                     </div>
-                    <Button className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 h-12 rounded-2xl shadow-lg shadow-indigo-100">
+                    <Button
+                        onClick={handleCreateCase}
+                        disabled={isCreating}
+                        className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 h-12 rounded-2xl shadow-lg shadow-indigo-100 disabled:opacity-70"
+                    >
                         <Plus className="w-5 h-5 mr-2" />
-                        New Case
+                        {isCreating ? 'Creating...' : 'New Case'}
                     </Button>
                 </div>
 

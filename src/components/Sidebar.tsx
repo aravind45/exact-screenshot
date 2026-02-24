@@ -28,7 +28,7 @@ import {
     Briefcase,
     FileText,
 } from "lucide-react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTerminology } from "@/hooks/useTerminology";
 import { motion } from "framer-motion";
@@ -49,6 +49,8 @@ export function Sidebar() {
     const location = useLocation();
     const { user, isAdmin, signOut } = useAuth();
     const { t, isB2BTexas } = useTerminology();
+    const [searchParams] = useSearchParams();
+    const estateId = searchParams.get("estateId");
     const [supportOpen, setSupportOpen] = useState(false);
     const [supportTab, setSupportTab] = useState<"feedback" | "contact">("feedback");
     const [isMobileOpen, setIsMobileOpen] = useState(false);
@@ -57,8 +59,8 @@ export function Sidebar() {
     React.useEffect(() => { setIsMobileOpen(false); }, [location.pathname]);
 
     const { data: estate } = useQuery({
-        queryKey: ["estate"],
-        queryFn: api.getMyEstate,
+        queryKey: ["estate", estateId],
+        queryFn: () => api.getMyEstate(estateId || undefined),
     });
 
     // Auto-sync data to the Extension Bridge
@@ -76,6 +78,16 @@ export function Sidebar() {
     }, [estate]);
 
     const isActive = (path: string) => location.pathname === path;
+
+    const navigateWithContext = (path?: string) => {
+        if (!path) return;
+        if (estateId && !path.includes("estateId=")) {
+            const separator = path.includes("?") ? "&" : "?";
+            navigate(`${path}${separator}estateId=${estateId}`);
+        } else {
+            navigate(path);
+        }
+    };
 
     const userRole = (estate as any)?.userRole;
     const isViewer = userRole === 'VIEWER';
@@ -140,7 +152,7 @@ export function Sidebar() {
                                 return (
                                     <button
                                         key={item.label}
-                                        onClick={() => item.path && navigate(item.path)}
+                                        onClick={() => item.path && navigateWithContext(item.path)}
                                         className={cn(
                                             "w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all duration-200 group relative",
                                             active ? "bg-emerald-50/60" : "hover:bg-slate-50"
@@ -326,7 +338,7 @@ export function Sidebar() {
                                 return (
                                     <button
                                         key={item.label}
-                                        onClick={() => (item.onClick ? item.onClick() : item.path && navigate(item.path))}
+                                        onClick={() => (item.onClick ? item.onClick() : item.path && navigateWithContext(item.path))}
                                         className={cn(
                                             "w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all duration-200 group relative",
                                             active ? "bg-indigo-50/50" : "hover:bg-slate-50"

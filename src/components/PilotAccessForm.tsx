@@ -26,6 +26,7 @@ export const PilotAccessForm = () => {
                 },
                 body: JSON.stringify({
                     event: 'pilot_request',
+                    email: formData.email,
                     metadata: formData,
                 }),
             });

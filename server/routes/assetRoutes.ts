@@ -32,7 +32,8 @@ const faxSchema = z.object({
 
 router.get("/", async (req: any, res: Response) => {
     try {
-        const assets = await AssetService.getAll(req.user.id);
+        const estateId = req.query.estateId as string;
+        const assets = await AssetService.getAll(req.user.id, estateId);
         res.json(assets);
     } catch (error: any) {
         logger.error("Error fetching assets:", error.message);
@@ -54,7 +55,8 @@ router.get("/:id", async (req: any, res: Response) => {
 router.post("/", async (req: any, res: Response) => {
     try {
         const validated = assetSchema.parse(req.body);
-        const asset = await AssetService.create(req.user.id, validated);
+        const estateId = req.query.estateId as string || req.body.estateId;
+        const asset = await AssetService.create(req.user.id, validated, estateId);
         res.json(asset);
     } catch (error: any) {
         if (error instanceof z.ZodError) {

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
@@ -86,6 +86,8 @@ export default function OnboardingGuidedWizard() {
     const queryClient = useQueryClient();
     const { toast } = useToast();
     const { trackEvent } = useTracking();
+    const [searchParams] = useSearchParams();
+    const estateId = searchParams.get("estateId") || undefined;
     const [currentStep, setCurrentStep] = useState(0);
     const [isLoading, setIsLoading] = useState(false);
     const [confidenceScore, setConfidenceScore] = useState<number | null>(null);
@@ -117,8 +119,8 @@ export default function OnboardingGuidedWizard() {
     const [collaborators, setCollaborators] = useState<Array<{ email: string; role: string }>>([]);
 
     const { data: estate, isLoading: isEstateLoading } = useQuery({
-        queryKey: ["estate"],
-        queryFn: api.getMyEstate,
+        queryKey: ["estate", estateId],
+        queryFn: () => api.getMyEstate(estateId),
         retry: false,
     });
 
@@ -214,7 +216,7 @@ export default function OnboardingGuidedWizard() {
 
     // Calculate confidence score
     useEffect(() => {
-        const filledFields = Object.values(formData).filter(field => 
+        const filledFields = Object.values(formData).filter(field =>
             typeof field === 'object' && field !== null && field.value !== null
         ).length;
         const totalFields = 7; // hasWill, isSpouse, isOutOfState, hasUnknownHeirs, isTrustRevocable, hasTODDeed, hasContest
@@ -225,7 +227,7 @@ export default function OnboardingGuidedWizard() {
     const handleNext = async () => {
         setIsLoading(true);
         try {
-            let estate = await api.getMyEstate();
+            let estate = await api.getMyEstate(estateId);
 
             // Step 1: Handle Estate Info
             if (currentStep === 1) {
@@ -241,10 +243,10 @@ export default function OnboardingGuidedWizard() {
                     estimatedPersonalProperty: parseFloat(formData.estimatedValue) || 0,
                     estimatedLiabilities: parseFloat(formData.estimatedDebt) || 0,
                     hasContest: formData.hasContest.value === true
-                });
+                }, estateId);
 
                 if (!estate?.id) {
-                    estate = await api.getMyEstate();
+                    estate = await api.getMyEstate(estateId);
                 }
 
                 trackEvent('lead', {
@@ -264,7 +266,7 @@ export default function OnboardingGuidedWizard() {
                     hasTODDeed: formData.hasTODDeed.value === true,
                     isSurvivingSpouse: formData.isSpouse.value === true,
                     hasOutOfStateProperty: formData.isOutOfState.value === true
-                });
+                }, estateId);
 
                 if (estate?.id) {
                     try {
@@ -282,17 +284,17 @@ export default function OnboardingGuidedWizard() {
 
                 await api.updateMyEstate({
                     hasMinorBeneficiaries: hasMinors
-                });
+                }, estateId);
 
                 for (const heir of validHeirs) {
                     await api.createHeir({
                         ...heir,
                         isAdult: !heir.isMinor
-                    });
+                    }, estateId);
                 }
             } else if (currentStep === 5) { // Documents
                 if (uploadedFile) {
-                    await api.uploadEstateDocument("DEATH_CERTIFICATE", "Death Certificate.pdf", uploadedFile);
+                    await api.uploadEstateDocument("DEATH_CERTIFICATE", "Death Certificate.pdf", uploadedFile, { estateId });
                 }
             } else if (currentStep === 6) { // Assets
                 const validAssets = assets.filter(a => a.name.trim() !== "");
@@ -303,12 +305,12 @@ export default function OnboardingGuidedWizard() {
                         assetType: asset.type === 'real_estate' ? 'real_estate' : 'bank_account',
                         status: "discovered",
                         priority: "medium"
-                    });
+                    }, estateId);
                 }
             } else if (currentStep === 7) { // Team
                 const validCollabs = collaborators.filter(c => c.email.trim() !== "");
                 if (validCollabs.length > 0) {
-                    const freshEstate = estate?.id ? estate : await api.getMyEstate();
+                    const freshEstate = estate?.id ? estate : await api.getMyEstate(estateId);
                     if (freshEstate?.id) {
                         for (const collab of validCollabs) {
                             await api.inviteCollaborator({
@@ -330,7 +332,7 @@ export default function OnboardingGuidedWizard() {
                 setCurrentStep(prev => prev + 1);
             } else {
                 await trackEvent("intake_completed");
-                navigate("/dashboard");
+                navigate(estateId ? `/dashboard?estateId=${estateId}` : "/dashboard");
             }
         } catch (error: any) {
             toast({
@@ -655,7 +657,7 @@ export default function OnboardingGuidedWizard() {
                                                         </span>
                                                     </div>
                                                     <div className="w-full bg-slate-200 rounded-full h-2 mt-2">
-                                                        <div 
+                                                        <div
                                                             className={`h-2 rounded-full transition-all ${confidenceScore >= 80 ? 'bg-emerald-500' : confidenceScore >= 60 ? 'bg-amber-500' : 'bg-rose-500'}`}
                                                             style={{ width: `${confidenceScore}%` }}
                                                         />
@@ -939,8 +941,8 @@ export default function OnboardingGuidedWizard() {
                                             >
                                                 Calculate My Path
                                             </Button>
-                                            <Button 
-                                                variant="outline" 
+                                            <Button
+                                                variant="outline"
                                                 onClick={() => setCurrentStep(1)}
                                                 className="text-slate-400 text-xs"
                                             >
@@ -968,15 +970,15 @@ export default function OnboardingGuidedWizard() {
                                                         </span>
                                                     </div>
                                                     <div className="w-full bg-slate-200 rounded-full h-2 mt-2">
-                                                        <div 
+                                                        <div
                                                             className={`h-2 rounded-full transition-all ${confidenceScore >= 80 ? 'bg-emerald-500' : confidenceScore >= 60 ? 'bg-amber-500' : 'bg-rose-500'}`}
                                                             style={{ width: `${confidenceScore}%` }}
                                                         />
                                                     </div>
                                                     <p className="text-xs text-slate-500 mt-2">
-                                                        {confidenceScore >= 80 ? "High confidence - your path is clear!" : 
-                                                         confidenceScore >= 60 ? "Medium confidence - we may need more details as we go." : 
-                                                         "Low confidence - we'll help clarify as we proceed."}
+                                                        {confidenceScore >= 80 ? "High confidence - your path is clear!" :
+                                                            confidenceScore >= 60 ? "Medium confidence - we may need more details as we go." :
+                                                                "Low confidence - we'll help clarify as we proceed."}
                                                     </p>
                                                 </div>
                                             )}
@@ -1400,9 +1402,9 @@ export default function OnboardingGuidedWizard() {
                                                         Path Confidence: {confidenceScore}%
                                                     </div>
                                                     <p className="text-xs text-slate-500 mt-1">
-                                                        {confidenceScore >= 80 ? "Your path is clear and well-defined." : 
-                                                         confidenceScore >= 60 ? "Your path is mostly clear with minor clarifications needed." : 
-                                                         "We'll help clarify your path as we proceed together."}
+                                                        {confidenceScore >= 80 ? "Your path is clear and well-defined." :
+                                                            confidenceScore >= 60 ? "Your path is mostly clear with minor clarifications needed." :
+                                                                "We'll help clarify your path as we proceed together."}
                                                     </p>
                                                 </div>
                                             )}
