@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ShieldCheck, MapPin, AlertTriangle } from 'lucide-react';
 import DebugMARoadmap from '@/components/DebugMARoadmap';
+import SimpleMARoadmapTest from '@/components/SimpleMARoadmapTest';
 
 export default function DebugMARoadmapPage() {
   const { user } = useAuth();

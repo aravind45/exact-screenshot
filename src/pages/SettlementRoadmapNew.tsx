@@ -15,7 +15,7 @@ import { getLettersTerm } from "@/lib/stateRules";
 export default function SettlementRoadmapNew() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const { phaseProgress, probateBlockers, currentPhase, completedPhases, assets, isStateMissing } = useWorkflow();
+  const { phaseProgress, probateBlockers, currentPhase, completedPhases, assets, isStateMissing, clientRoadmap } = useWorkflow();
 
   const { data: estate } = useQuery({
     queryKey: ['estate'],
@@ -28,7 +28,10 @@ export default function SettlementRoadmapNew() {
     enabled: !!estate?.id,
   });
 
-  const dynamicRoadmap = roadmapData?.phases || [];
+  // Primary: server-side roadmap. Fallback: client-side generated roadmap.
+  const dynamicRoadmap = (roadmapData?.phases && roadmapData.phases.length > 0)
+    ? roadmapData.phases
+    : (clientRoadmap && clientRoadmap.length > 0 ? clientRoadmap : []);
 
   const isViewer = (estate as any)?.userRole === 'VIEWER';
 

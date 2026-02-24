@@ -47,6 +47,7 @@ interface WorkflowContextValue {
   liabilities: any[];
   totalTaskCount: number;
   isStateMissing: boolean;
+  clientRoadmap: any[];
 }
 
 const WorkflowContext = createContext<WorkflowContextValue | null>(null);
@@ -254,7 +255,8 @@ export function WorkflowProvider({ children }: { children: ReactNode }) {
       assets,
       liabilities,
       totalTaskCount,
-      isStateMissing
+      isStateMissing,
+      clientRoadmap: roadmap
     }}>
       {children}
     </WorkflowContext.Provider>

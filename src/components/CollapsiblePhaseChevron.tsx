@@ -113,7 +113,8 @@ export function CollapsiblePhaseChevron({ onTaskToggle, isViewer }: CollapsibleP
     phaseLocks,
     phaseProgress,
     completedTaskIds,
-    completedPhases
+    completedPhases,
+    clientRoadmap
   } = useWorkflow();
 
   const { data: documents = [] } = useQuery({
@@ -134,8 +135,17 @@ export function CollapsiblePhaseChevron({ onTaskToggle, isViewer }: CollapsibleP
   });
 
   const dynamicRoadmap = useMemo(() => {
-    return roadmapData?.phases || [];
-  }, [roadmapData]);
+    // Primary: use server-side roadmap if available
+    if (roadmapData?.phases && roadmapData.phases.length > 0) {
+      return roadmapData.phases;
+    }
+    // Fallback: use client-side generated roadmap from WorkflowContext
+    if (clientRoadmap && clientRoadmap.length > 0) {
+      console.log('[CollapsiblePhaseChevron] Using client-side roadmap fallback:', clientRoadmap.length, 'phases');
+      return clientRoadmap;
+    }
+    return [];
+  }, [roadmapData, clientRoadmap]);
 
   const handleSyncRoadmap = async (roadmapId: string, taskTitle?: string, phaseName?: string) => {
     try {
@@ -225,8 +235,8 @@ export function CollapsiblePhaseChevron({ onTaskToggle, isViewer }: CollapsibleP
     }
   };
 
-  // Show loading state
-  if (isLoadingRoadmap) {
+  // Show loading state - but only if we don't have a client-side fallback ready
+  if (isLoadingRoadmap && (!clientRoadmap || clientRoadmap.length === 0)) {
     return (
       <div className="space-y-3">
         <div className="text-center py-8 text-slate-500">
