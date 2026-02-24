@@ -1,142 +1,12 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Scale, Shield, Clock, LogIn, Loader2 } from 'lucide-react';
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { Scale, Shield, Clock, CheckCircle, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { toast } from 'sonner';
 import { PilotAccessForm } from '@/components/PilotAccessForm';
-import { useAuth } from '@/contexts/AuthContext';
-
-const getPostLoginPath = (role?: string | null) => {
-    switch (role) {
-        case 'ADMIN':
-            return '/admin';
-        case 'ADVISOR':
-            return '/advisor/dashboard';
-        case 'ATTORNEY':
-            return '/firm/dashboard';
-        case 'HEIR':
-        case 'EXECUTOR':
-        case 'USER':
-            return '/dashboard';
-        default:
-            return '/dashboard';
-    }
-};
 
 const LandingTexasLawyer = () => {
-    const [isLoginOpen, setIsLoginOpen] = useState(false);
-    const [isLoggingIn, setIsLoggingIn] = useState(false);
-    const [loginData, setLoginData] = useState({
-        email: '',
-        password: ''
-    });
-    const { signIn } = useAuth();
-    const navigate = useNavigate();
-
-    const handleLogin = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsLoggingIn(true);
-
-        try {
-            const { user, error } = await signIn(loginData.email, loginData.password);
-            if (error) {
-                toast.error('Login Failed', {
-                    description: error.message || 'Invalid credentials. Please try again.'
-                });
-            } else {
-                const redirectPath = getPostLoginPath(user?.role);
-                toast.success('Welcome back!', {
-                    description: 'Redirecting to your workspace...'
-                });
-                navigate(redirectPath, { replace: true });
-            }
-        } catch (error: any) {
-            toast.error('Login Failed', {
-                description: error.message || 'Invalid credentials. Please try again.'
-            });
-        } finally {
-            setIsLoggingIn(false);
-        }
-    };
-
     return (
         <div className="min-h-screen bg-slate-50">
-            {/* Navigation Bar */}
-            <nav className="bg-slate-900 text-white py-4 px-6 sticky top-0 z-50">
-                <div className="max-w-6xl mx-auto flex justify-between items-center">
-                    <div className="flex items-center gap-2">
-                        <Scale className="w-6 h-6 text-amber-500" />
-                        <span className="font-serif font-bold text-lg">ExpectedEstate</span>
-                        <span className="text-slate-400 text-sm ml-2">Texas Edition</span>
-                    </div>
-                    <Button
-                        variant="ghost"
-                        className="text-white hover:bg-white/10"
-                        onClick={() => setIsLoginOpen(!isLoginOpen)}
-                    >
-                        <LogIn className="w-4 h-4 mr-2" />
-                        Pilot Login
-                    </Button>
-                </div>
-            </nav>
-
-            {/* Login Dropdown */}
-            {isLoginOpen && (
-                <div className="bg-slate-800 text-white px-6 py-6 border-b border-slate-700">
-                    <div className="max-w-md mx-auto">
-                        <h3 className="text-lg font-semibold mb-4 text-center">Pilot User Login</h3>
-                        <form onSubmit={handleLogin} className="space-y-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="login-email" className="text-slate-300">Email</Label>
-                                <Input
-                                    id="login-email"
-                                    type="email"
-                                    placeholder="your@email.com"
-                                    value={loginData.email}
-                                    onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
-                                    required
-                                    className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="login-password" className="text-slate-300">Password</Label>
-                                <Input
-                                    id="login-password"
-                                    type="password"
-                                    placeholder="••••••••"
-                                    value={loginData.password}
-                                    onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
-                                    required
-                                    className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
-                                />
-                            </div>
-                            <Button
-                                type="submit"
-                                className="w-full bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold"
-                                disabled={isLoggingIn}
-                            >
-                                {isLoggingIn ? (
-                                    <>
-                                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                        Signing in...
-                                    </>
-                                ) : (
-                                    'Sign In'
-                                )}
-                            </Button>
-                        </form>
-                        <p className="text-center text-slate-400 text-sm mt-4">
-                            Don't have pilot access?{' '}
-                            <a href="#request-access" className="text-amber-500 hover:underline" onClick={() => setIsLoginOpen(false)}>
-                                Request access
-                            </a>
-                        </p>
-                    </div>
-                </div>
-            )}
-
             {/* Hero Section */}
             <header className="bg-slate-900 text-white py-20 px-6">
                 <div className="max-w-6xl mx-auto text-center">
@@ -152,9 +22,8 @@ const LandingTexasLawyer = () => {
                         <Button size="lg" className="bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold px-8 py-6 text-lg" asChild>
                             <a href="#request-access">Request Pilot Access</a>
                         </Button>
-                        <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10 px-8 py-6 text-lg" onClick={() => setIsLoginOpen(true)}>
-                            <LogIn className="w-5 h-5 mr-2" />
-                            Pilot User Sign In
+                        <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10 px-8 py-6 text-lg">
+                            Firm Demo
                         </Button>
                     </div>
                     <p className="mt-8 text-amber-400 font-medium animate-pulse">
@@ -214,26 +83,9 @@ const LandingTexasLawyer = () => {
                 </div>
             </section>
 
-            {/* Existing User Login Section */}
-            <section className="bg-slate-100 py-16 px-6">
-                <div className="max-w-md mx-auto text-center">
-                    <h3 className="text-xl font-semibold text-slate-900 mb-4">
-                        Already have pilot access?
-                    </h3>
-                    <Button
-                        size="lg"
-                        className="bg-slate-900 hover:bg-slate-800 text-white px-8"
-                        onClick={() => setIsLoginOpen(true)}
-                    >
-                        <LogIn className="w-4 h-4 mr-2" />
-                        Sign In to Dashboard
-                    </Button>
-                </div>
-            </section>
-
             {/* Footer */}
             <footer className="bg-slate-50 py-12 border-t border-slate-200 px-6">
-                <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center text-slate-400 text-sm">
+                <div className="max-w-6xl mx-auto flex flex-col md:row justify-between items-center text-slate-400 text-sm">
                     <p>© 2026 Expected Estate - Texas Lawyer Edition. All rights reserved.</p>
                     <div className="flex gap-6 mt-4 md:mt-0">
                         <Link to="/terms" className="hover:text-slate-600">Terms</Link>

@@ -39,7 +39,7 @@ import { FinancialHealthWidget } from "@/components/dashboard/FinancialHealthWid
 import { DeadlineTracker } from "@/components/dashboard/DeadlineTracker";
 import { SafetyNetWidget } from "@/components/dashboard/SafetyNetWidget";
 import { motion, AnimatePresence } from "framer-motion";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { WelcomeModal } from "@/components/WelcomeModal";
@@ -82,8 +82,6 @@ const getStatusLabel = (status: string) => {
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const estateId = searchParams.get("estateId") || undefined;
   const { user, signOut } = useAuth();
   const { roleName, estateName, authorityType } = useTerminology();
   const [viewMode, setViewMode] = useState<'grid' | 'trail'>('grid');
@@ -92,10 +90,10 @@ export default function Dashboard() {
   const { toast } = useToast();
 
   const { data: assetsData, isLoading, error } = useQuery({
-    queryKey: ['assets', estateId],
+    queryKey: ['assets'],
     queryFn: async () => {
       try {
-        return await api.getAssets(estateId);
+        return await api.getAssets();
       } catch (err: any) {
         if (err.status === 403) return { isLocked: true, data: [] };
         throw err;
@@ -109,8 +107,8 @@ export default function Dashboard() {
   const assets = isAssetsLocked ? [] : (Array.isArray(assetsData) ? assetsData : []);
 
   const { data: estate } = useQuery({
-    queryKey: ['estate', estateId],
-    queryFn: () => api.getMyEstate(estateId),
+    queryKey: ['estate'],
+    queryFn: api.getMyEstate,
     enabled: !!user,
   });
 
@@ -181,10 +179,10 @@ export default function Dashboard() {
   const firstName = user?.fullName?.split(' ')[0] || user?.email?.split('@')[0] || 'there';
 
   const { data: followUpsData } = useQuery({
-    queryKey: ['follow-ups', estateId],
+    queryKey: ['follow-ups'],
     queryFn: async () => {
       try {
-        return await api.getFollowUps(estateId);
+        return await api.getFollowUps();
       } catch (err: any) {
         if (err.status === 403) return { isLocked: true, data: [] };
         throw err;
@@ -197,10 +195,10 @@ export default function Dashboard() {
   const realFollowUps = isFollowUpsLocked ? [] : (Array.isArray(followUpsData) ? followUpsData : []);
 
   const { data: timelineData } = useQuery({
-    queryKey: ['timeline', 'recent', estateId],
+    queryKey: ['timeline', 'recent'],
     queryFn: async () => {
       try {
-        const data = await api.getTimeline(estateId);
+        const data = await api.getTimeline();
         return { data: data.slice(0, 5) };
       } catch (err: any) {
         if (err.status === 403) return { isLocked: true, data: [] };
@@ -214,10 +212,10 @@ export default function Dashboard() {
   const recentActivity = isTimelineLocked ? [] : (Array.isArray((timelineData as any)?.data) ? (timelineData as any).data : []);
 
   const { data: liabilitiesQueryData } = useQuery({
-    queryKey: ['liabilities', estateId],
+    queryKey: ['liabilities'],
     queryFn: async () => {
       try {
-        return await api.getLiabilities(estateId);
+        return await api.getLiabilities();
       } catch (err: any) {
         if (err.status === 403) return { isLocked: true, data: [] };
         throw err;
@@ -230,16 +228,16 @@ export default function Dashboard() {
   const liabilities = isLiabilitiesLocked ? [] : (Array.isArray(liabilitiesQueryData) ? liabilitiesQueryData : []);
 
   const { data: readiness } = useQuery({
-    queryKey: ["accounting-readiness", estateId],
-    queryFn: () => api.getAccountingReadiness(estateId),
+    queryKey: ["accounting-readiness"],
+    queryFn: () => api.getAccountingReadiness(),
     enabled: !!user,
   });
 
   const { data: activitiesQueryData } = useQuery({
-    queryKey: ['activities', estateId],
+    queryKey: ['activities'],
     queryFn: async () => {
       try {
-        return await api.getActivities(estateId);
+        return await api.getActivities();
       } catch (err: any) {
         if (err.status === 403) return { isLocked: true, data: [] };
         throw err;

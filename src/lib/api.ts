@@ -514,10 +514,8 @@ export const api = {
     /**
      * Get all assets from Neon DB
      */
-    getAssets: async (estateId?: string) => {
-        const url = new URL(`${API_URL}/assets`, window.location.origin);
-        if (estateId) url.searchParams.append("estateId", estateId);
-        const response = await fetch(url.toString(), {
+    getAssets: async () => {
+        const response = await fetch(`${API_URL}/assets`, {
             headers: getHeaders(),
         });
         return parseResponse(response);
@@ -536,10 +534,8 @@ export const api = {
     /**
      * Create a new asset in Neon DB
      */
-    createAsset: async (assetData: any, estateId?: string) => {
-        const url = new URL(`${API_URL}/assets`, window.location.origin);
-        if (estateId) url.searchParams.append("estateId", estateId);
-        const response = await fetch(url.toString(), {
+    createAsset: async (assetData: any) => {
+        const response = await fetch(`${API_URL}/assets`, {
             method: "POST",
             headers: getHeaders(),
             body: JSON.stringify(assetData),
@@ -762,19 +758,9 @@ export const api = {
         return parseResponse(response);
     },
 
-    getMyEstate: async (estateId?: string) => {
-        const endpoint = estateId ? `${API_URL}/estates/${estateId}` : `${API_URL}/estates/my`;
-        const response = await fetch(endpoint, {
+    getMyEstate: async () => {
+        const response = await fetch(`${API_URL}/estates/my`, {
             headers: getHeaders(),
-        });
-        return parseResponse(response);
-    },
-
-    createEstate: async (data: any = {}) => {
-        const response = await fetch(`${API_URL}/estates`, {
-            method: "POST",
-            headers: getHeaders(),
-            body: JSON.stringify(data)
         });
         return parseResponse(response);
     },
@@ -786,19 +772,11 @@ export const api = {
         return parseResponse(response);
     },
 
-    updateMyEstate: async (data: any, estateId?: string) => {
-        const endpoint = estateId ? `${API_URL}/estates/${estateId}` : `${API_URL}/estates/my`;
-        const response = await fetch(endpoint, {
+    updateMyEstate: async (data: any) => {
+        const response = await fetch(`${API_URL}/estates/my`, {
             method: "PUT",
             headers: getHeaders(),
             body: JSON.stringify(data)
-        });
-        return parseResponse(response);
-    },
-
-    getEstate: async (estateId: string) => {
-        const response = await fetch(`${API_URL}/estates/${estateId}`, {
-            headers: getHeaders(),
         });
         return parseResponse(response);
     },
@@ -812,10 +790,8 @@ export const api = {
         downloadBlob(blob, filename);
     },
 
-    createHeir: async (data: any, estateId?: string) => {
-        const url = new URL(`${API_URL}/heirs`, window.location.origin);
-        if (estateId) url.searchParams.append("estateId", estateId);
-        const response = await fetch(url.toString(), {
+    createHeir: async (data: any) => {
+        const response = await fetch(`${API_URL}/heirs`, {
             method: "POST",
             headers: getHeaders(),
             body: JSON.stringify(data)
@@ -823,10 +799,8 @@ export const api = {
         return parseResponse(response);
     },
 
-    updateHeir: async (id: string, data: any, options?: { estateId?: string }) => {
-        const url = new URL(`${API_URL}/heirs/${id}`, window.location.origin);
-        if (options?.estateId) url.searchParams.append("estateId", options.estateId);
-        const response = await fetch(url.toString(), {
+    updateHeir: async (id: string, data: any) => {
+        const response = await fetch(`${API_URL}/heirs/${id}`, {
             method: "PUT",
             headers: getHeaders(),
             body: JSON.stringify(data)
@@ -834,30 +808,24 @@ export const api = {
         return parseResponse(response);
     },
 
-    inviteHeir: async (id: string, options?: { estateId?: string }) => {
-        const url = new URL(`${API_URL}/heirs/${id}/invite`, window.location.origin);
-        if (options?.estateId) url.searchParams.append("estateId", options.estateId);
-        const response = await fetch(url.toString(), {
+    inviteHeir: async (id: string) => {
+        const response = await fetch(`${API_URL}/heirs/${id}/invite`, {
             method: "POST",
             headers: getHeaders()
         });
         return parseResponse(response);
     },
 
-    deleteHeir: async (id: string, options?: { estateId?: string }) => {
-        const url = new URL(`${API_URL}/heirs/${id}`, window.location.origin);
-        if (options?.estateId) url.searchParams.append("estateId", options.estateId);
-        const response = await fetch(url.toString(), {
+    deleteHeir: async (id: string) => {
+        const response = await fetch(`${API_URL}/heirs/${id}`, {
             method: "DELETE",
             headers: getHeaders(),
         });
         return parseResponse(response);
     },
 
-    getHeirs: async (estateId?: string) => {
-        const url = new URL(`${API_URL}/heirs`, window.location.origin);
-        if (estateId) url.searchParams.append("estateId", estateId);
-        const response = await fetch(url.toString(), {
+    getHeirs: async () => {
+        const response = await fetch(`${API_URL}/heirs`, {
             headers: getHeaders(),
         });
         return parseResponse(response);
@@ -955,10 +923,8 @@ export const api = {
         return parseResponse(response);
     },
 
-    getFollowUps: async (estateId?: string): Promise<Communication[]> => {
-        const url = new URL(`${API_URL}/communications/follow-ups`, window.location.origin);
-        if (estateId) url.searchParams.append("estateId", estateId);
-        const response = await fetch(url.toString(), {
+    getFollowUps: async (): Promise<Communication[]> => {
+        const response = await fetch(`${API_URL}/communications/follow-ups`, {
             headers: getHeaders(),
         });
         return parseResponse(response);
@@ -971,10 +937,8 @@ export const api = {
         return parseResponse(response);
     },
 
-    getTimeline: async (estateId?: string): Promise<Communication[]> => {
-        const url = new URL(`${API_URL}/communications/timeline`, window.location.origin);
-        if (estateId) url.searchParams.append("estateId", estateId);
-        const response = await fetch(url.toString(), {
+    getTimeline: async (): Promise<Communication[]> => {
+        const response = await fetch(`${API_URL}/communications/timeline`, {
             headers: getHeaders(),
         });
         return parseResponse(response);
@@ -990,30 +954,26 @@ export const api = {
     },
 
     // Estate Documents
-    getEstateDocuments: async (estateId?: string) => {
-        let finalEstateId = estateId;
-        if (!finalEstateId) {
-            const estate = await api.getMyEstate();
-            if (!estate) throw new Error("No estate found");
-            finalEstateId = estate.id;
-        }
+    getEstateDocuments: async () => {
+        const estate = await api.getMyEstate();
+        if (!estate) throw new Error("No estate found");
 
-        const response = await fetch(`${API_URL}/estates/${finalEstateId}/documents`, {
+        const response = await fetch(`${API_URL}/estates/${estate.id}/documents`, {
             headers: getHeaders(),
         });
         return parseResponse(response);
     },
 
-    uploadEstateDocument: async (documentType: string, name: string, file: File, options?: { estateId?: string }) => {
-        const id = options?.estateId || (await api.getMyEstate())?.id;
-        if (!id) throw new Error("No estate found");
+    uploadEstateDocument: async (documentType: string, name: string, file: File) => {
+        const estate = await api.getMyEstate();
+        if (!estate) throw new Error("No estate found");
 
         const headers = getHeaders();
         // Set content type based on file type
         headers["Content-Type"] = file.type || "application/octet-stream";
 
         const response = await fetch(
-            `${API_URL}/estates/${id}/documents?documentType=${encodeURIComponent(documentType)}&name=${encodeURIComponent(name)}`,
+            `${API_URL}/estates/${estate.id}/documents?documentType=${encodeURIComponent(documentType)}&name=${encodeURIComponent(name)}`,
             {
                 method: "POST",
                 headers,
@@ -1023,18 +983,11 @@ export const api = {
         return parseResponse(response);
     },
 
-    uploadEstateDocumentFile: async (docId: string, file: File, options?: { estateId?: string }) => {
-        let id = options?.estateId;
-        if (!id) {
-            const estate = await api.getMyEstate();
-            if (!estate) throw new Error("No estate found");
-            id = estate.id;
-        }
-
+    uploadEstateDocumentFile: async (id: string, file: File) => {
         const headers = getHeaders();
         headers["Content-Type"] = file.type || "application/octet-stream";
 
-        const response = await fetch(`${API_URL}/estates/${id}/documents/${docId}/upload`, {
+        const response = await fetch(`${API_URL}/estates/my/documents/${id}/upload`, {
             method: "POST",
             headers,
             body: file
@@ -1042,14 +995,8 @@ export const api = {
         return parseResponse(response);
     },
 
-    createEstateDocument: async (data: any, estateId?: string) => {
-        let id = estateId;
-        if (!id) {
-            const estate = await api.getMyEstate();
-            if (!estate) throw new Error("No estate found");
-            id = estate.id;
-        }
-        const response = await fetch(`${API_URL}/estates/${id}/documents`, {
+    createEstateDocument: async (data: any) => {
+        const response = await fetch(`${API_URL}/estates/my/documents`, {
             method: "POST",
             headers: getHeaders(),
             body: JSON.stringify(data),
@@ -1057,14 +1004,8 @@ export const api = {
         return parseResponse(response);
     },
 
-    updateEstateDocument: async (docId: string, data: any, estateId?: string) => {
-        let id = estateId;
-        if (!id) {
-            const estate = await api.getMyEstate();
-            if (!estate) throw new Error("No estate found");
-            id = estate.id;
-        }
-        const response = await fetch(`${API_URL}/estates/${id}/documents/${docId}`, {
+    updateEstateDocument: async (id: string, data: any) => {
+        const response = await fetch(`${API_URL}/estates/my/documents/${id}`, {
             method: "PUT",
             headers: getHeaders(),
             body: JSON.stringify(data),
@@ -1072,14 +1013,8 @@ export const api = {
         return parseResponse(response);
     },
 
-    deleteEstateDocument: async (docId: string, estateId?: string) => {
-        let id = estateId;
-        if (!id) {
-            const estate = await api.getMyEstate();
-            if (!estate) throw new Error("No estate found");
-            id = estate.id;
-        }
-        const response = await fetch(`${API_URL}/estates/${id}/documents/${docId}`, {
+    deleteEstateDocument: async (id: string) => {
+        const response = await fetch(`${API_URL}/estates/my/documents/${id}`, {
             method: "DELETE",
             headers: getHeaders(),
         });
@@ -1242,10 +1177,8 @@ export const api = {
         return { data };
     },
 
-    async getActivities(estateId?: string): Promise<any[]> {
-        const url = new URL(`${API_URL}/estates/my/activities`, window.location.origin);
-        if (estateId) url.searchParams.append("estateId", estateId);
-        const response = await fetch(url.toString(), { headers: getHeaders() });
+    async getActivities(): Promise<any[]> {
+        const response = await fetch(`${API_URL}/estates/my/activities`, { headers: getHeaders() });
         return parseResponse(response);
     },
 
@@ -1267,10 +1200,8 @@ export const api = {
         downloadBlob(blob, "activity-log.csv");
     },
 
-    updateRoadmap: async (data: { completedTaskIds: string[], completedPhases: string[], taskId?: string, action?: 'COMPLETED' | 'UNCOMPLETED' | 'PHASE_COMPLETED', phase?: string, taskTitle?: string, phaseName?: string }, estateId?: string) => {
-        const url = new URL(`${API_URL}/estates/my/roadmap`, window.location.origin);
-        if (estateId) url.searchParams.append("estateId", estateId);
-        const response = await fetch(url.toString(), {
+    updateRoadmap: async (data: { completedTaskIds: string[], completedPhases: string[], taskId?: string, action?: 'COMPLETED' | 'UNCOMPLETED' | 'PHASE_COMPLETED', phase?: string, taskTitle?: string, phaseName?: string }) => {
+        const response = await fetch(`${API_URL}/estates/my/roadmap`, {
             method: "PUT",
             headers: getHeaders(),
             body: JSON.stringify(data),
@@ -1351,10 +1282,8 @@ export const api = {
     },
 
     // Liabilities
-    getLiabilities: async (estateId?: string) => {
-        const url = new URL(`${API_URL}/liabilities`, window.location.origin);
-        if (estateId) url.searchParams.append("estateId", estateId);
-        const response = await fetch(url.toString(), {
+    getLiabilities: async () => {
+        const response = await fetch(`${API_URL}/liabilities`, {
             headers: getHeaders(),
         });
         return parseResponse(response);
@@ -1416,10 +1345,8 @@ export const api = {
         return parseResponse(response);
     },
 
-    async getAccountingReadiness(estateId?: string): Promise<AccountingReadiness> {
-        const url = new URL(`${API_URL}/estates/my/accounting-readiness`, window.location.origin);
-        if (estateId) url.searchParams.append("estateId", estateId);
-        const response = await fetch(url.toString(), { headers: getHeaders() });
+    async getAccountingReadiness(): Promise<AccountingReadiness> {
+        const response = await fetch(`${API_URL}/estates/my/accounting-readiness`, { headers: getHeaders() });
         return parseResponse(response);
     },
 

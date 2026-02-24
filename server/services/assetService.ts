@@ -5,10 +5,9 @@ import { AuditService } from "../services/auditService.js";
 import { logger } from "../lib/logger.js";
 
 export const AssetService = {
-    async getAll(userId: string, estateId?: string) {
+    async getAll(userId: string) {
         const assets = await prisma.asset.findMany({
             where: {
-                estateId: estateId || undefined,
                 OR: [
                     { userId },
                     { estate: { grants: { some: { userId } } } }
@@ -42,19 +41,16 @@ export const AssetService = {
         return asset;
     },
 
-    async create(userId: string, data: any, explicitEstateId?: string) {
-        const estate = explicitEstateId
-            ? await prisma.estate.findUnique({ where: { id: explicitEstateId } })
-            : await prisma.estate.findFirst({
-                where: {
-                    OR: [
-                        { userId },
-                        { grants: { some: { userId } } }
-                    ]
-                }
-            });
-
-        if (!estate) throw new Error("No estate found.");
+    async create(userId: string, data: any) {
+        const estate = await prisma.estate.findFirst({
+            where: {
+                OR: [
+                    { userId },
+                    { grants: { some: { userId } } }
+                ]
+            }
+        });
+        if (!estate) throw new Error("No estate found for user.");
 
         const { institution, assetType, category, ownershipType, value, dateOfDeathValue, priority, status } = data;
 
@@ -121,7 +117,7 @@ export const AssetService = {
         // Trigger Authority Re-assessment (Gap B)
         try {
             const { AuthorityService } = await import("./authorityService.js");
-            const allAssets = await this.getAll(userId, estate.id); // Get all for this specific estate
+            const allAssets = await this.getAll(userId); // Get all to re-calculate
             const { calculateAuthorityRecommendation } = await import("../../src/lib/authorityEngine.js");
             const newRec = calculateAuthorityRecommendation(allAssets, estate.deceasedState, {
                 hasWill: estate.hasWill,
@@ -223,7 +219,7 @@ export const AssetService = {
         try {
             const { AuthorityService } = await import("./authorityService.js");
             const estate = await prisma.estate.findUnique({ where: { id: existing.estateId } });
-            const allAssets = await this.getAll(userId, existing.estateId);
+            const allAssets = await this.getAll(userId);
             const { calculateAuthorityRecommendation } = await import("../../src/lib/authorityEngine.js");
             if (estate) {
                 const newRec = calculateAuthorityRecommendation(allAssets, estate.deceasedState, {

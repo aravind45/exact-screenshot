@@ -94,7 +94,6 @@ function AssetItem({
 export default function Assets() {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
-    const estateId = searchParams.get("estateId") || undefined;
     const { toast } = useToast();
     const [isSelectionMode, setIsSelectionMode] = useState(false);
     const [selectedAssetIds, setSelectedAssetIds] = useState<string[]>([]);
@@ -112,15 +111,15 @@ export default function Assets() {
     const [isScanning, setIsScanning] = useState(false);
 
     const { data: estate } = useQuery({
-        queryKey: ["estate", estateId],
-        queryFn: () => api.getMyEstate(estateId),
+        queryKey: ["estate"],
+        queryFn: api.getMyEstate,
     });
 
     const isViewer = (estate as any)?.userRole === 'VIEWER';
 
     const { data: assetsData, isLoading, error } = useQuery({
-        queryKey: ['assets', estateId],
-        queryFn: () => api.getAssets(estateId),
+        queryKey: ['assets'],
+        queryFn: api.getAssets,
     });
 
     const assets = Array.isArray(assetsData) ? assetsData : [];
@@ -194,8 +193,7 @@ export default function Assets() {
     const normalize = (val: string | undefined) => (val || "").toLowerCase().replace(/ /g, "_");
 
     const handleAssetClick = (id: string) => {
-        const url = `/asset/${id}${estateId ? `?estateId=${estateId}` : ""}`;
-        navigate(url);
+        navigate(`/asset/${id}`);
     };
 
     const handleSelectAsset = (id: string, selected: boolean) => {
@@ -307,7 +305,7 @@ export default function Assets() {
                 status: "discovered",
                 priority: "medium",
                 notes: `Automatically discovered by the Asset Detective. Source clue: ${clue.message}`
-            }, estateId);
+            });
 
             queryClient.invalidateQueries({ queryKey: ['assets'] });
             setClues(prev => prev.map(c => c.id === clue.id ? { ...c, added: true } : c));
@@ -355,7 +353,7 @@ export default function Assets() {
                     </div>
                     {!isViewer && (
                         <Button
-                            onClick={() => navigate(`/add-asset${estateId ? `?estateId=${estateId}` : ""}`)}
+                            onClick={() => navigate('/add-asset')}
                             className="rounded-xl font-black gap-2 h-9 px-5 bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] shadow-sm"
                         >
                             <Plus className="w-4 h-4" />
@@ -517,7 +515,7 @@ export default function Assets() {
                                         <h3 className="text-base font-black text-slate-900 tracking-tight mb-1">No assets yet</h3>
                                         <p className="text-slate-400 text-xs mb-6 font-medium">Add your first financial account or property.</p>
                                         <div className="flex items-center justify-center gap-3">
-                                            <Button onClick={() => navigate(`/add-asset${estateId ? `?estateId=${estateId}` : ""}`)} className="rounded-xl font-black h-9 px-6 bg-indigo-600 hover:bg-indigo-700 text-white text-xs">
+                                            <Button onClick={() => navigate('/add-asset')} className="rounded-xl font-black h-9 px-6 bg-indigo-600 hover:bg-indigo-700 text-white text-xs">
                                                 Add First Asset
                                             </Button>
                                             <Button variant="outline" onClick={() => setActiveTab("detective")} className="rounded-xl font-black h-9 px-6 border-slate-200 text-xs">
@@ -605,7 +603,7 @@ export default function Assets() {
                                             variant="outline"
                                             size="sm"
                                             className="w-full justify-start h-9 text-xs font-black border-slate-200"
-                                            onClick={() => navigate(`/add-asset${estateId ? `?estateId=${estateId}` : ""}`)}
+                                            onClick={() => navigate('/add-asset')}
                                         >
                                             <Plus className="w-3.5 h-3.5 mr-2" />
                                             Add New Asset

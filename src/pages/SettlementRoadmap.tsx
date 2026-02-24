@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { SettlementPhaseChevron } from "@/components/SettlementPhaseChevron";
 import { PhaseTaskList as PhaseTaskListComponent } from "@/components/PhaseTaskList";
@@ -33,25 +33,24 @@ import { calculateAuthorityRecommendation } from "@/lib/authorityEngine";
 
 export default function SettlementRoadmap() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const estateId = searchParams.get("estateId") || undefined;
   const queryClient = useQueryClient();
   const [currentPhase, setCurrentPhase] = useState<SettlementPhase>("immediate_actions");
 
   const { data: estate } = useQuery({
-    queryKey: ['estate', estateId],
-    queryFn: () => api.getMyEstate(estateId),
+    queryKey: ['estate'],
+    queryFn: api.getMyEstate,
   });
 
   const { data: assets = [] } = useQuery({
-    queryKey: ['assets', estateId],
-    queryFn: () => api.getAssets(estateId),
+    queryKey: ['assets'],
+    queryFn: api.getAssets,
   });
 
+  // Estate documents — used for document stage-gate checks
   const { data: uploadedDocs = [] } = useQuery({
-    queryKey: ['estateDocuments', estateId],
-    queryFn: () => api.getEstateDocuments(estateId),
-    enabled: !!estate || !!estateId,
+    queryKey: ['estateDocuments'],
+    queryFn: api.getEstateDocuments,
+    enabled: !!estate,
   });
 
   // Derive a Set of uploaded document type keys for fast lookup
@@ -78,9 +77,9 @@ export default function SettlementRoadmap() {
   }, [assets]);
 
   const { data: roadmapData, isLoading: isLoadingRoadmap } = useQuery({
-    queryKey: ['roadmap', estateId || estate?.id],
-    queryFn: () => api.getEstateRoadmap(estateId || estate!.id),
-    enabled: !!estateId || !!estate?.id,
+    queryKey: ['roadmap', estate?.id],
+    queryFn: () => api.getEstateRoadmap(estate!.id),
+    enabled: !!estate?.id,
   });
 
   // State-aware fallback: if API data isn't available yet, apply client-side
@@ -143,18 +142,18 @@ export default function SettlementRoadmap() {
 
   const completeMutation = useMutation({
     mutationFn: ({ taskId, notes }: { taskId: string; notes?: string }) =>
-      api.completeTask(estateId || estate!.id, taskId, notes),
+      api.completeTask(estate!.id, taskId, notes),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['estate', estateId] });
-      queryClient.invalidateQueries({ queryKey: ['roadmap', estateId || estate?.id] });
+      queryClient.invalidateQueries({ queryKey: ['estate'] });
+      queryClient.invalidateQueries({ queryKey: ['roadmap', estate?.id] });
     }
   });
 
   const uncompleteMutation = useMutation({
-    mutationFn: (taskId: string) => api.uncompleteTask(estateId || estate!.id, taskId),
+    mutationFn: (taskId: string) => api.uncompleteTask(estate!.id, taskId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['estate', estateId] });
-      queryClient.invalidateQueries({ queryKey: ['roadmap', estateId || estate?.id] });
+      queryClient.invalidateQueries({ queryKey: ['estate'] });
+      queryClient.invalidateQueries({ queryKey: ['roadmap', estate?.id] });
     }
   });
 
@@ -284,7 +283,7 @@ export default function SettlementRoadmap() {
               </div>
 
               <Button
-                onClick={() => navigate(`/profile${estateId ? `?estateId=${estateId}` : ""}`)}
+                onClick={() => navigate("/profile")}
                 className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black h-14 rounded-2xl shadow-lg shadow-indigo-200 text-lg group"
               >
                 Complete My Profile
@@ -473,7 +472,7 @@ export default function SettlementRoadmap() {
               <p className="text-[11px] text-rose-700 leading-relaxed font-medium">
                 This phase contains <strong>high-risk legal decision points</strong>. Completing them incorrectly can expose you to personal fiduciary liability.{' '}
                 <button
-                  onClick={() => navigate(`/marketplace${estateId ? `?estateId=${estateId}` : ""}`)}
+                  onClick={() => navigate("/marketplace")}
                   className="underline underline-offset-2 font-bold text-rose-800 hover:text-rose-900"
                 >
                   Consult an estate attorney →
@@ -551,7 +550,7 @@ export default function SettlementRoadmap() {
           <div>
             <h3 className="text-lg font-black text-slate-900 tracking-tight leading-none mb-1">Stuck or overwhelmed?</h3>
             <Button
-              onClick={() => navigate(`/marketplace${estateId ? `?estateId=${estateId}` : ""}`)}
+              onClick={() => navigate("/marketplace")}
               className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-8 h-12 rounded-2xl shadow-lg shadow-indigo-200 shrink-0 relative z-10"
             >
               Find an Advisor
@@ -794,7 +793,7 @@ export default function SettlementRoadmap() {
             {/* Action buttons */}
             <div className="flex flex-col gap-2.5 pt-1">
               <Button
-                onClick={() => { setPendingDocTask(null); navigate(`/documents${estateId ? `?estateId=${estateId}` : ""}`); }}
+                onClick={() => { setPendingDocTask(null); navigate("/documents"); }}
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold h-11 rounded-xl shadow-lg shadow-blue-200"
               >
                 <FileText className="w-4 h-4 mr-2" />

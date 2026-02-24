@@ -7,7 +7,6 @@
  */
 
 import { useState } from "react";
-import { useSearchParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
@@ -98,8 +97,6 @@ const EMPTY_FORM = {
 export default function Heirs() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [searchParams] = useSearchParams();
-  const estateId = searchParams.get("estateId") || undefined;
 
   // XLSX path outcome — determines if heir distributions are legally blocked
   const { distributionsBlocked, isHighRisk, pathLabel, authorityType } = useTerminology();
@@ -112,18 +109,18 @@ export default function Heirs() {
 
   // ── Queries ──
   const { data: heirs = [], isLoading } = useQuery<Heir[]>({
-    queryKey: ["heirs", estateId],
-    queryFn: () => api.getHeirs(estateId),
+    queryKey: ["heirs"],
+    queryFn: () => api.getHeirs(),
   });
 
   const { data: estate } = useQuery({
-    queryKey: ["estate", estateId],
-    queryFn: () => api.getMyEstate(estateId),
+    queryKey: ["estate"],
+    queryFn: api.getMyEstate,
   });
 
   // ── Mutations ──
   const createMutation = useMutation({
-    mutationFn: (data: typeof EMPTY_FORM) => api.createHeir(data, estateId),
+    mutationFn: (data: typeof EMPTY_FORM) => api.createHeir(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["heirs"] });
       queryClient.invalidateQueries({ queryKey: ["estate"] });
@@ -137,7 +134,7 @@ export default function Heirs() {
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<typeof EMPTY_FORM> }) =>
-      api.updateHeir(id, data, { estateId }),
+      api.updateHeir(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["heirs"] });
       queryClient.invalidateQueries({ queryKey: ["estate"] });
@@ -150,7 +147,7 @@ export default function Heirs() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => api.deleteHeir(id, { estateId }),
+    mutationFn: (id: string) => api.deleteHeir(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["heirs"] });
       queryClient.invalidateQueries({ queryKey: ["estate"] });
@@ -163,7 +160,7 @@ export default function Heirs() {
   });
 
   const inviteMutation = useMutation({
-    mutationFn: (id: string) => api.inviteHeir(id, { estateId }),
+    mutationFn: (id: string) => api.inviteHeir(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["heirs"] });
       toast({ title: "Invitation Sent", description: "The heir will receive an email to create their account." });
