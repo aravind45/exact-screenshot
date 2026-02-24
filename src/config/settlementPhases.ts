@@ -666,6 +666,137 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
     milestone: "Court Filing → Authority",
     description: "Submitting the probate petition to the court to obtain official fiduciary authority (Letters).",
     tasks: [
+      // ── State-Specific Court Filing Tasks ──────────────────────────────
+      {
+        id: "file_tx_independent_admin",
+        title: "File Application for Independent Administration",
+        description: "Texas allows Independent Administration, which lets the executor act without continuous court supervision. File the application with the county or statutory probate court.",
+        estimatedTime: "2-4 hours",
+        category: "probate",
+        trackCompatibility: ["PROBATE"],
+        applicability: { states: ["TX"], variants: ["TESTATE"] },
+        requiredDocs: ["Original Will", "Death Certificate", "Application Form"],
+        alerts: [{
+          type: "info",
+          message: "Independent Administration is the preferred TX probate path. The will must explicitly grant or not prohibit independent administration."
+        }],
+        links: [{ label: "TX Estates Code §401", url: "https://statutes.capitol.texas.gov/Docs/ES/htm/ES.401.htm" }]
+      },
+      {
+        id: "file_tx_muniment_of_title",
+        title: "File Application to Probate Will as Muniment of Title",
+        description: "For TX estates with a valid will and no unpaid debts (other than secured debts on real property), Muniment of Title allows the will to be admitted to probate without appointing an executor.",
+        estimatedTime: "2-4 hours",
+        category: "probate",
+        trackCompatibility: ["PROBATE"],
+        applicability: { states: ["TX"], variants: ["TESTATE"] },
+        requiredDocs: ["Original Will", "Death Certificate", "Application Form"],
+        alerts: [{
+          type: "info",
+          message: "Muniment of Title is a simplified TX probate. No Letters Testamentary are issued — the court order itself serves as title transfer authority."
+        }],
+        links: [{ label: "TX Estates Code §257", url: "https://statutes.capitol.texas.gov/Docs/ES/htm/ES.257.htm" }]
+      },
+      {
+        id: "file_fl_disposition_without_admin",
+        title: "File Petition for Disposition Without Administration",
+        description: "For very small FL estates (no real property, assets only cover exempt property/preferences and funeral/medical expenses), file for disposition without formal administration.",
+        estimatedTime: "1-2 hours",
+        category: "probate",
+        trackCompatibility: ["PROBATE"],
+        applicability: { states: ["FL"] },
+        requiredDocs: ["Death Certificate", "Petition Form"],
+        alerts: [{
+          type: "info",
+          message: "FL Stat. §735.301 — Available when estate assets consist only of exempt property, funeral costs, and last illness expenses."
+        }]
+      },
+      {
+        id: "file_ny_surrogate_probate",
+        title: "File Probate Petition with Surrogate's Court",
+        description: "Submit the probate petition (Form P-1) to the county Surrogate's Court. NY uses the Surrogate's Court Procedure Act (SCPA) for all probate proceedings.",
+        estimatedTime: "2-4 hours",
+        category: "probate",
+        trackCompatibility: ["PROBATE"],
+        applicability: { states: ["NY"], variants: ["TESTATE"] },
+        requiredDocs: ["Original Will", "Death Certificate", "P-1 Petition", "Waivers & Consents"],
+        alerts: [{
+          type: "info",
+          message: "NY Surrogate's Court filing fees range from $45 to $1,250 based on estate value (SCPA §2402)."
+        }],
+        links: [{ label: "NY Surrogate's Court Forms", url: "https://ww2.nycourts.gov/forms/surrogates/" }]
+      },
+      {
+        id: "file_ny_ancillary_probate",
+        title: "File Petition for Ancillary Probate (NY)",
+        description: "For out-of-state decedents who owned property in NY, file an ancillary probate petition (Form ET-3) with the Surrogate's Court in the county where the NY property is located.",
+        estimatedTime: "2-4 hours",
+        category: "probate",
+        trackCompatibility: ["PROBATE"],
+        applicability: { states: ["NY"] },
+        requiredDocs: ["Certified Letters from Home State", "Authenticated Will", "ET-3 Petition"],
+        alerts: [{
+          type: "important",
+          message: "Ancillary probate is required for NY real property owned by non-NY decedents."
+        }]
+      },
+      {
+        id: "file_ga_petition",
+        title: "File Petition for Letters in Probate Court",
+        description: "Submit a petition for Letters Testamentary (with will) or Letters of Administration (without will) to the Georgia Probate Court in the county of the decedent's domicile.",
+        estimatedTime: "2-4 hours",
+        category: "probate",
+        trackCompatibility: ["PROBATE"],
+        applicability: { states: ["GA"] },
+        requiredDocs: ["Original Will (if any)", "Death Certificate", "Petition Form"],
+        alerts: [{
+          type: "info",
+          message: "GA Probate Courts handle all estates. Filing fees vary by county."
+        }]
+      },
+      {
+        id: "file_ga_no_admin",
+        title: "File 'No Administration Necessary' Petition",
+        description: "For GA estates under $10,000, file a petition declaring that no administration is necessary under O.C.G.A. § 53-2-40.",
+        estimatedTime: "1-2 hours",
+        category: "probate",
+        trackCompatibility: ["PROBATE", "AFFIDAVIT"],
+        applicability: { states: ["GA"] },
+        requiredDocs: ["Death Certificate", "Petition Form"],
+        alerts: [{
+          type: "info",
+          message: "This simplified path avoids full probate for very small GA estates."
+        }]
+      },
+      {
+        id: "file_ma_informal_probate",
+        title: "File Informal Probate Petition (MUPC)",
+        description: "Under the Massachusetts Uniform Probate Code, file an informal probate petition with the Probate & Family Court. This streamlined process is for uncontested estates.",
+        estimatedTime: "2-4 hours",
+        category: "probate",
+        trackCompatibility: ["PROBATE"],
+        applicability: { states: ["MA"], variants: ["TESTATE"] },
+        requiredDocs: ["Original Will", "Death Certificate", "MPC 150 Petition"],
+        alerts: [{
+          type: "info",
+          message: "Informal probate under MUPC (M.G.L. c. 190B, § 3-301) is processed by the Magistrate without a hearing."
+        }]
+      },
+      {
+        id: "file_ma_voluntary_admin",
+        title: "File Voluntary Administration Statement (MA)",
+        description: "For MA estates ≤ $25,000 with no real property, file a Voluntary Administration statement to bypass full probate.",
+        estimatedTime: "1-2 hours",
+        category: "probate",
+        trackCompatibility: ["PROBATE", "AFFIDAVIT"],
+        applicability: { states: ["MA"] },
+        requiredDocs: ["Death Certificate", "MPC 170 Form"],
+        alerts: [{
+          type: "info",
+          message: "M.G.L. c. 190B, § 3-1201 — Available 30 days after death for qualifying estates."
+        }]
+      },
+      // ── End State-Specific Court Filing Tasks ──────────────────────────
       {
         id: "file_probate_petition",
         title: "File Petition for Probate",
@@ -1900,6 +2031,39 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
           }
         ]
       },
+      // ── State-Specific Final Distribution Tasks ───────────────────────
+      {
+        id: "fl_homestead_petition",
+        title: "File Homestead Property Petition (FL)",
+        description: "Florida homestead property has special constitutional protections. File a petition to determine homestead status and transfer the property to the surviving spouse or heirs per FL Stat. §732.401.",
+        estimatedTime: "2-4 hours",
+        category: "probate",
+        applicability: { states: ["FL"] },
+        isConditional: true,
+        conditionalRequirementLabel: "Required if decedent owned FL homestead property",
+        requiredDocs: ["Death Certificate", "Property Deed", "Homestead Petition Form"],
+        alerts: [{
+          type: "important",
+          message: "FL homestead is exempt from forced sale by creditors and has special descent rules. Do not sell homestead property without legal review."
+        }],
+        links: [{ label: "FL Stat. §732.401", url: "http://www.leg.state.fl.us/statutes/index.cfm?App_mode=Display_Statute&URL=0700-0799/0732/Sections/0732.401.html" }]
+      },
+      {
+        id: "ga_years_support",
+        title: "File Petition for Year's Support (GA)",
+        description: "In Georgia, a surviving spouse or minor children may petition for a 'Year's Support' — an award from the estate to provide for their maintenance for 12 months. This takes priority over most other claims.",
+        estimatedTime: "2-4 hours",
+        category: "probate",
+        applicability: { states: ["GA"] },
+        isConditional: true,
+        conditionalRequirementLabel: "Available for surviving spouse or minor children in GA",
+        requiredDocs: ["Petition for Year's Support", "Death Certificate"],
+        alerts: [{
+          type: "info",
+          message: "O.C.G.A. § 53-3-1 — Year's Support takes priority over all debts except those secured by specific property."
+        }]
+      },
+      // ── End State-Specific Final Distribution Tasks ───────────────────
       {
         id: "close_estate",
         title: "Close Estate",

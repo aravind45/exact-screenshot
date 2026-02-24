@@ -249,6 +249,17 @@ export function calculateAuthorityRecommendation(
                 procedureType = "INFORMAL_PROBATE";
                 type = "INFORMAL_PROBATE";
             }
+        } else if (state === "TX" && !metadata?.hasInsolvencyRisk) {
+            // TX-specific: Muniment of Title for uncontested wills with no unpaid debts (except secured)
+            // Independent Administration is the default for TX wills
+            if (probateTotal <= threshold) {
+                procedureType = "MUNIMENT_OF_TITLE";
+                type = "MUNIMENT_OF_TITLE";
+            } else {
+                // Large TX estates with will → Independent Administration (still formal, but TX-unique)
+                procedureType = "FORMAL_PROBATE";
+                type = "FORMAL_PROBATE";
+            }
         } else if (rule.isUPC) {
             procedureType = "INFORMAL_PROBATE";
             type = "INFORMAL_PROBATE";
@@ -267,6 +278,7 @@ export function calculateAuthorityRecommendation(
         if (state === "MA" && probateTotal <= 25000) procedureType = "VOLUNTARY_ADMINISTRATION";
         else if (state === "FL" && probateTotal < 75000) procedureType = "SUMMARY_ADMINISTRATION";
         else if (state === "NY" && probateTotal < 50000) procedureType = "VOLUNTARY_ADMINISTRATION";
+        else if (state === "GA" && probateTotal <= 10000) procedureType = "SMALL_ESTATE_AFFIDAVIT"; // "No Administration Necessary"
         else procedureType = "SMALL_ESTATE_AFFIDAVIT";
         type = "SMALL_ESTATE";
     } else if (activeEngines.includes("TOD_DEED") || activeEngines.includes("POD_TOD_ACCOUNTS")) {
