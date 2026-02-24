@@ -101,7 +101,7 @@ export default function Pricing(): JSX.Element {
                         <span className="font-black text-xl tracking-tight text-white">ExpectedEstate</span>
                     </div>
                     <Button
-                        variant="ghost"
+                        variant="ghostDark"
                         className="text-slate-400 hover:text-white hover:bg-slate-800"
                         onClick={() => navigate("/dashboard")}
                     >
@@ -227,7 +227,7 @@ export default function Pricing(): JSX.Element {
                         >
                             <div className="mb-8 flex items-center justify-between">
                                 <Button
-                                    variant="ghost"
+                                    variant="ghostDark"
                                     className="text-slate-400 hover:text-white"
                                     onClick={() => setClientSecret(null)}
                                 >

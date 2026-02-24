@@ -275,10 +275,10 @@ export default function Landing() {
                   <ArrowRight className="w-5 h-5 ml-2" />
                 </Button>
                 <Button
-                  variant="ghost"
+                  variant="ghostDark"
                   size="lg"
                   onClick={() => navigate("/login")}
-                  className="text-slate-300 hover:text-white font-bold text-base h-14 w-full sm:w-auto"
+                  className="font-bold text-base h-14 w-full sm:w-auto"
                 >
                   Sign In to Existing Account
                 </Button>

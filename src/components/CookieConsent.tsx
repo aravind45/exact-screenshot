@@ -115,7 +115,7 @@ export function CookieConsent() {
                 <Button variant="outline" onClick={() => setShowSettings(false)}>
                   Back
                 </Button>
-                <Button className="bg-indigo-600 hover:bg-indigo-700" onClick={() => saveConsent(consent)}>
+                <Button className="bg-indigo-600 hover:bg-indigo-700 text-white" onClick={() => saveConsent(consent)}>
                   Save Preferences
                 </Button>
               </div>
@@ -138,7 +138,7 @@ export function CookieConsent() {
                   variant="outline" 
                   size="sm" 
                   onClick={() => setShowSettings(true)}
-                  className="w-full sm:w-auto"
+                  className="w-full sm:w-auto border-slate-300 text-slate-700 hover:bg-slate-50"
                 >
                   Customize
                 </Button>
@@ -146,14 +146,14 @@ export function CookieConsent() {
                   variant="secondary" 
                   size="sm" 
                   onClick={rejectAll}
-                  className="w-full sm:w-auto"
+                  className="w-full sm:w-auto bg-slate-600 hover:bg-slate-700 text-white"
                 >
                   Reject All
                 </Button>
                 <Button 
                   size="sm" 
                   onClick={acceptAll}
-                  className="bg-indigo-600 hover:bg-indigo-700 w-full sm:w-auto"
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white w-full sm:w-auto"
                 >
                   Accept All
                 </Button>
