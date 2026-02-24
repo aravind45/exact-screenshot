@@ -8,6 +8,8 @@ import { logger } from "../lib/logger.js";
 import { requireSubscription } from "../middleware/subscription.js";
 import { CAFormService } from "../services/caFormService.js";
 import { CA_FORM_REGISTRY, CA_FORM_TITLES, type CAFormId } from "../services/caFormRegistry.js";
+import { NYFormService } from "../services/nyFormService.js";
+import { NY_FORM_REGISTRY, NY_FORM_TITLES, type NYFormId } from "../services/nyFormRegistry.js";
 
 const router = Router();
 router.use(requireSubscription);
@@ -371,6 +373,107 @@ router.post("/ca/generate", async (req: any, res: Response) => {
     } catch (e: any) {
         logger.error(`Error generating CA form ${req.body?.formId}:`, e.message);
         res.status(500).json({ error: "Failed to generate CA form" });
+    }
+});
+
+// ── NY Form Auto-Fill Endpoints ───────────────────────────────────────────────
+
+// GET /api/forms/ny/schema/:formId - Return UI field schema for a NY form
+router.get("/ny/schema/:formId", async (req: Request, res: Response) => {
+    try {
+        const formId = req.params.formId as NYFormId;
+        if (!NY_FORM_REGISTRY[formId]) {
+            return res.status(404).json({ error: `No schema found for form ${formId}` });
+        }
+        const schema = NYFormService.getUISchema(formId);
+        res.json({ formId, title: NY_FORM_TITLES[formId] || formId, schema });
+    } catch (e: any) {
+        logger.error(`Error fetching NY form schema for ${req.params.formId}:`, e.message);
+        res.status(500).json({ error: "Failed to fetch form schema" });
+    }
+});
+
+// POST /api/forms/ny/preview - Resolve field values without generating PDF (for UI preview)
+router.post("/ny/preview", async (req: any, res: Response) => {
+    try {
+        const { formId, overrides = {} } = req.body;
+        if (!formId) return res.status(400).json({ error: "formId is required" });
+        if (!NY_FORM_REGISTRY[formId as NYFormId]) {
+            return res.status(400).json({ error: `Unsupported NY form: ${formId}` });
+        }
+
+        const estateId = await getEstateId(req.user.id);
+        if (!estateId) return res.status(404).json({ error: "Estate not found" });
+
+        const estate = await prisma.estate.findUnique({
+            where: { id: estateId },
+            include: { user: true },
+        });
+        if (!estate) return res.status(404).json({ error: "Estate data not found" });
+
+        const assets = await prisma.asset.findMany({ where: { estateId } });
+        const heirs = await prisma.heir.findMany({ where: { estateId } });
+
+        const { fieldValues, validationErrors } = NYFormService.resolveFields({
+            formId: formId as NYFormId,
+            estate: { ...estate, ...overrides },
+            assets,
+            heirs,
+            overrides,
+        });
+
+        res.json({ formId, fieldValues, validationErrors });
+    } catch (e: any) {
+        logger.error(`Error previewing NY form ${req.body?.formId}:`, e.message);
+        res.status(500).json({ error: "Failed to preview form fields" });
+    }
+});
+
+// POST /api/forms/ny/generate - Generate and return filled NY form PDF
+router.post("/ny/generate", async (req: any, res: Response) => {
+    try {
+        const { formId, isPreview = false, overrides = {} } = req.body;
+        if (!formId) return res.status(400).json({ error: "formId is required" });
+        if (!NY_FORM_REGISTRY[formId as NYFormId]) {
+            return res.status(400).json({ error: `Unsupported NY form: ${formId}` });
+        }
+
+        const estateId = await getEstateId(req.user.id);
+        if (!estateId) return res.status(404).json({ error: "Estate not found" });
+
+        const estate = await prisma.estate.findUnique({
+            where: { id: estateId },
+            include: { user: true },
+        });
+        if (!estate) return res.status(404).json({ error: "Estate data not found" });
+
+        const assets = await prisma.asset.findMany({ where: { estateId } });
+        const heirs = await prisma.heir.findMany({ where: { estateId } });
+
+        const result = await NYFormService.generate({
+            formId: formId as NYFormId,
+            estate,
+            assets,
+            heirs,
+            overrides,
+        });
+
+        await DistributionService.logEvent(
+            estateId,
+            req.user.id,
+            isPreview ? 'VIEWED' : 'PREPARED',
+            `${isPreview ? 'PREVIEWED' : 'PREPARED'} – ${formId} (NY Auto-Fill)`,
+        );
+
+        res.setHeader("Content-Type", "application/pdf");
+        res.setHeader(
+            "Content-Disposition",
+            `${isPreview ? 'inline' : 'attachment'}; filename="${formId}.pdf"`,
+        );
+        res.send(Buffer.from(result.pdfBytes));
+    } catch (e: any) {
+        logger.error(`Error generating NY form ${req.body?.formId}:`, e.message);
+        res.status(500).json({ error: "Failed to generate NY form" });
     }
 });
 
