@@ -796,6 +796,128 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
           message: "M.G.L. c. 190B, § 3-1201 — Available 30 days after death for qualifying estates."
         }]
       },
+      // ── NJ-Specific Court Filing Tasks ──────────────────────────────────
+      {
+        id: "file_nj_surrogate_probate",
+        title: "File Probate Application with County Surrogate (NJ)",
+        description: "Submit the probate application to the County Surrogate's Court. NJ probate is handled by the Surrogate in each county for uncontested matters.",
+        estimatedTime: "2-4 hours",
+        category: "probate",
+        trackCompatibility: ["PROBATE"],
+        applicability: { states: ["NJ"], variants: ["TESTATE"] },
+        requiredDocs: ["Original Will", "Death Certificate", "Probate Application", "Executor Affidavit"],
+        alerts: [{
+          type: "info",
+          message: "NJ Surrogate's Court probate is typically uncontested. If contested, the matter transfers to Superior Court, Chancery Division, Probate Part."
+        }],
+        links: [{ label: "NJ Judiciary Probate Information", url: "https://www.njcourts.gov/self-help/probate" }],
+        formNames: ["Probate Application", "Executor's Affidavit", "Certificate of Compliances"]
+      },
+      {
+        id: "file_nj_administration",
+        title: "File Application for Administration (NJ)",
+        description: "Submit the administration application to the County Surrogate's Court for intestate estates. Bond is typically required unless waived by all heirs.",
+        estimatedTime: "2-4 hours",
+        category: "probate",
+        trackCompatibility: ["PROBATE"],
+        applicability: { states: ["NJ"], variants: ["INTESTATE"] },
+        requiredDocs: ["Death Certificate", "Administration Application", "Bond or Waiver", "Next of Kin Affidavit"],
+        alerts: [{
+          type: "important",
+          message: "NJ requires bond for administrators unless all heirs sign written consent to waive. Bond amount typically equals the estate value."
+        }],
+        links: [{ label: "NJ Surrogate's Court Forms", url: "https://www.njcourts.gov/forms/surrogates" }],
+        formNames: ["Administration Application", "Administrator's Bond", "Consent to Serve"]
+      },
+      {
+        id: "file_nj_small_estate_affidavit",
+        title: "File Small Estate Affidavit (NJ)",
+        description: "For NJ estates under $20,000 (or $50,000 if surviving spouse is sole heir), file a Small Estate Affidavit to collect assets without formal probate.",
+        estimatedTime: "1-2 hours",
+        category: "probate",
+        trackCompatibility: ["PROBATE", "AFFIDAVIT"],
+        applicability: { states: ["NJ"] },
+        isConditional: true,
+        conditionalRequirementLabel: "Available if estate value ≤ $20,000 (or $50,000 if spouse is sole heir)",
+        requiredDocs: ["Death Certificate", "Small Estate Affidavit Form", "Asset Information"],
+        alerts: [
+          {
+            type: "info",
+            message: "N.J.S.A. § 3B:10-3 — Small estate affidavit is available 30 days after death. No real property allowed."
+          },
+          {
+            type: "important",
+            message: "Threshold is $20,000 general or $50,000 if surviving spouse is the sole heir."
+          }
+        ],
+        links: [{ label: "NJ Small Estate Information", url: "https://www.njcourts.gov/self-help/small-estate" }],
+        formNames: ["Small Estate Affidavit"]
+      },
+      {
+        id: "nj_bond_determination",
+        title: "Determine Bond Requirement (NJ)",
+        description: "NJ requires a bond for administrators unless waived. For executors, check if the will waives bond. Otherwise, obtain heir consents to waive.",
+        estimatedTime: "1-2 hours",
+        category: "probate",
+        trackCompatibility: ["PROBATE"],
+        applicability: { states: ["NJ"] },
+        requiredDocs: ["Will (if exists)", "Bond Waiver Consents from All Heirs"],
+        alerts: [
+          {
+            type: "important",
+            message: "Bond is MANDATORY for administrators (intestate) unless all heirs sign written consent to waive."
+          },
+          {
+            type: "info",
+            message: "If the will explicitly waives bond, the executor may serve without bond. Otherwise, bond waiver requires all beneficiary signatures."
+          }
+        ],
+        dependencies: ["file_nj_surrogate_probate", "file_nj_administration"]
+      },
+      {
+        id: "nj_contested_probate_escalation",
+        title: "Escalate Contested Probate to Superior Court (NJ)",
+        description: "If the probate is contested, the matter transfers from the County Surrogate to the Superior Court, Chancery Division, Probate Part for litigation.",
+        estimatedTime: "Ongoing",
+        category: "probate",
+        trackCompatibility: ["PROBATE"],
+        applicability: { states: ["NJ"] },
+        isConditional: true,
+        conditionalRequirementLabel: "Required if probate is contested",
+        isAttorneyReviewNode: true,
+        attorneyReviewReason: "Litigation Risk: Contested probate requires representation in Superior Court. The Surrogate cannot adjudicate disputes.",
+        requiredDocs: ["Complaint/Motion", "Supporting Documents"],
+        alerts: [{
+          type: "caution",
+          message: "Contested probate in NJ moves from Surrogate's Court to Superior Court, Chancery Division, Probate Part. This significantly increases timeline and costs."
+        }],
+        dependencies: ["file_nj_surrogate_probate"]
+      },
+      {
+        id: "nj_real_estate_power_of_sale",
+        title: "Determine Power of Sale Authority (NJ)",
+        description: "Review the will and NJ law to determine if you have power of sale for real property without court confirmation, or if court approval is required.",
+        estimatedTime: "1-2 hours",
+        category: "probate",
+        trackCompatibility: ["PROBATE"],
+        applicability: { states: ["NJ"] },
+        isConditional: true,
+        conditionalRequirementLabel: "Required if estate contains NJ real property",
+        isAttorneyReviewNode: true,
+        attorneyReviewReason: "Real Estate Sale: NJ requires determining if power of sale is granted by will or if court confirmation is needed.",
+        alerts: [
+          {
+            type: "info",
+            message: "If the will grants power of sale, you may sell without court confirmation. Otherwise, court approval of the sale may be required."
+          },
+          {
+            type: "important",
+            message: "NJ Inheritance Tax Waiver may be required before transferring title. Check with the county recording office."
+          }
+        ],
+        dependencies: ["receive_letters_testamentary", "receive_letters_administration"]
+      },
+      // ── End NJ-Specific Court Filing Tasks ────────────────────────────────
       // ── End State-Specific Court Filing Tasks ──────────────────────────
       {
         id: "file_probate_petition",
@@ -1328,6 +1450,45 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
           }
         ]
       },
+      // ── NJ-Specific Inventory Tasks ─────────────────────────────────────
+      {
+        id: "nj_inventory_90_day_deadline",
+        title: "File NJ Inventory (90-Day Deadline)",
+        description: "Under N.J.S.A. § 3B:15-1, the inventory must be filed with the County Surrogate within 90 days of appointment. Missing this deadline can result in court sanctions.",
+        estimatedTime: "1-2 weeks",
+        category: "probate",
+        trackCompatibility: ["PROBATE"],
+        applicability: { states: ["NJ"] },
+        deadlineWarningId: "NJ_INVENTORY_DUE_DATE",
+        requiredDocs: ["NJ Inventory Form", "Date-of-Death Appraisals", "Asset Documentation"],
+        alerts: [
+          {
+            type: "important",
+            message: "STATUTORY DEADLINE: NJ law requires inventory filing within 90 days of Letters issuance. Request an extension BEFORE the deadline if needed."
+          }
+        ],
+        dependencies: ["file_nj_surrogate_probate", "file_nj_administration", "complete_inventory"],
+        links: [{ label: "NJ Inventory Requirements", url: "https://www.njcourts.gov/self-help/probate#inventory" }]
+      },
+      {
+        id: "nj_inventory_extension",
+        title: "Request Inventory Extension (NJ)",
+        description: "If additional time is needed to complete the inventory, file a request for extension with the Surrogate's Court BEFORE the 90-day deadline expires.",
+        estimatedTime: "1-2 days",
+        category: "probate",
+        trackCompatibility: ["PROBATE"],
+        applicability: { states: ["NJ"] },
+        isConditional: true,
+        conditionalRequirementLabel: "Required if inventory cannot be completed within 90 days",
+        alerts: [
+          {
+            type: "warning",
+            message: "FILE BEFORE DEADLINE: Extension requests must be submitted before the 90-day period expires. Late requests may be denied."
+          }
+        ],
+        dependencies: ["nj_inventory_90_day_deadline"]
+      },
+      // ── End NJ-Specific Inventory Tasks ─────────────────────────────────
       // International Mode - Tax
       {
         id: "tax_withholding_review",
@@ -2031,6 +2192,106 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
           }
         ]
       },
+      // ── NJ-Specific Inheritance Tax Tasks ─────────────────────────────────
+      {
+        id: "nj_inheritance_tax_assessment",
+        title: "Assess NJ Inheritance Tax Liability",
+        description: "NJ imposes an inheritance tax on transfers to non-exempt beneficiaries. Class A beneficiaries (spouse, children, parents) are fully exempt. Class C (siblings, nieces/nephews) and Class D (others) may owe tax.",
+        estimatedTime: "2-4 hours",
+        category: "probate",
+        trackCompatibility: ["PROBATE", "TRUST"],
+        applicability: { states: ["NJ"] },
+        tags: ["tax", "statutory"],
+        isAttorneyReviewNode: true,
+        attorneyReviewReason: "Tax Complexity: NJ inheritance tax has complex classification rules and exemptions. Proper classification is essential to avoid penalties.",
+        alerts: [
+          {
+            type: "important",
+            message: "NJ INHERITANCE TAX: Unlike federal estate tax, NJ inheritance tax applies based on WHO inherits, not the estate size. Spouses, children, and parents are fully exempt."
+          },
+          {
+            type: "info",
+            message: "Class C beneficiaries (siblings, nieces/nephews) have a $25,000 exemption, then 11-15% tax. Class D beneficiaries (others) face 15-16% tax with no exemption."
+          }
+        ],
+        dependencies: ["complete_inventory"],
+        links: [{ label: "NJ Inheritance Tax Information", url: "https://www.nj.gov/treasury/taxation/inheritance.shtml" }]
+      },
+      {
+        id: "nj_inheritance_tax_return",
+        title: "File NJ Inheritance Tax Return",
+        description: "File Form IT-R (resident) or IT-NR (non-resident) within 8 months of death. Required even if no tax is due, to obtain tax waivers for real estate transfers.",
+        estimatedTime: "4-8 hours",
+        category: "probate",
+        trackCompatibility: ["PROBATE", "TRUST"],
+        applicability: { states: ["NJ"] },
+        tags: ["tax", "statutory"],
+        deadlineWarningId: "NJ_INHERITANCE_TAX_DUE",
+        requiredDocs: ["Form IT-R or IT-NR", "Death Certificate", "Will", "Asset Inventory", "Appraisals"],
+        alerts: [
+          {
+            type: "important",
+            message: "8-MONTH DEADLINE: NJ inheritance tax return is due 8 months after death. Late filing incurs interest and penalties."
+          },
+          {
+            type: "info",
+            message: "Even if no tax is owed, you must file to obtain the Inheritance Tax Waiver needed for real estate transfers."
+          }
+        ],
+        dependencies: ["nj_inheritance_tax_assessment"],
+        formNames: ["Form IT-R (Resident)", "Form IT-NR (Non-Resident)"],
+        links: [{ label: "NJ Inheritance Tax Forms", url: "https://www.nj.gov/treasury/taxation/inheritance_forms.shtml" }]
+      },
+      {
+        id: "nj_inheritance_tax_waiver",
+        title: "Obtain NJ Inheritance Tax Waiver",
+        description: "Request tax waivers from the NJ Division of Taxation. Waivers are required to transfer real estate and some financial accounts without buyer/title company liability concerns.",
+        estimatedTime: "4-12 weeks",
+        category: "probate",
+        trackCompatibility: ["PROBATE", "TRUST"],
+        applicability: { states: ["NJ"] },
+        tags: ["tax", "statutory"],
+        isConditional: true,
+        conditionalRequirementLabel: "Required for NJ real estate transfers and some financial accounts",
+        requiredDocs: ["Filed Inheritance Tax Return", "Tax Payment (if applicable)", "Waiver Request Form"],
+        alerts: [
+          {
+            type: "important",
+            message: "REAL ESTATE TRANSFER BLOCKER: You cannot record a deed transferring NJ real property without an Inheritance Tax Waiver (Form C9700) or proof of tax clearance."
+          },
+          {
+            type: "info",
+            message: "For Class A beneficiaries (spouse, children, parents), waivers are typically issued quickly. For other classes, tax must be paid or bonded first."
+          }
+        ],
+        dependencies: ["nj_inheritance_tax_return"],
+        formNames: ["Tax Waiver Request", "Form C9700"],
+        links: [{ label: "NJ Tax Waiver Information", url: "https://www.nj.gov/treasury/taxation/inheritance_waiver.shtml" }]
+      },
+      {
+        id: "nj_inheritance_tax_payment",
+        title: "Pay NJ Inheritance Tax (If Due)",
+        description: "If inheritance tax is owed, remit payment with the return or request a payment plan. Tax is due 8 months after death regardless of when the estate closes.",
+        estimatedTime: "1-2 hours",
+        category: "probate",
+        trackCompatibility: ["PROBATE", "TRUST"],
+        applicability: { states: ["NJ"] },
+        tags: ["tax", "statutory"],
+        isConditional: true,
+        conditionalRequirementLabel: "Required if inheritance tax is due (non-exempt beneficiaries)",
+        alerts: [
+          {
+            type: "warning",
+            message: "PERSONAL LIABILITY: The executor may be personally liable for unpaid inheritance tax if distributions are made before tax is paid."
+          },
+          {
+            type: "info",
+            message: "Tax rates: Class C (siblings, nieces/nephews): 11-15%. Class D (others): 15-16%."
+          }
+        ],
+        dependencies: ["nj_inheritance_tax_return"]
+      },
+      // ── End NJ-Specific Inheritance Tax Tasks ─────────────────────────────
       // ── State-Specific Final Distribution Tasks ───────────────────────
       {
         id: "fl_homestead_petition",

@@ -260,6 +260,17 @@ export function calculateAuthorityRecommendation(
                 procedureType = "FORMAL_PROBATE";
                 type = "FORMAL_PROBATE";
             }
+        } else if (state === "NJ") {
+            // NJ-specific: Uncontested probate through Surrogate's Court
+            // Contested matters escalate to Superior Court, Chancery Division, Probate Part
+            if (metadata?.hasContest) {
+                procedureType = "FORMAL_PROBATE";
+                type = "CONTESTED_ESTATE";
+                // Note: Contested NJ probate goes to Superior Court, Chancery Division, Probate Part
+            } else {
+                procedureType = "INFORMAL_PROBATE"; // NJ Surrogate's Court handles uncontested matters
+                type = "FORMAL_PROBATE";
+            }
         } else if (rule.isUPC) {
             procedureType = "INFORMAL_PROBATE";
             type = "INFORMAL_PROBATE";
@@ -279,6 +290,18 @@ export function calculateAuthorityRecommendation(
         else if (state === "FL" && probateTotal < 75000) procedureType = "SUMMARY_ADMINISTRATION";
         else if (state === "NY" && probateTotal < 50000) procedureType = "VOLUNTARY_ADMINISTRATION";
         else if (state === "GA" && probateTotal <= 10000) procedureType = "SMALL_ESTATE_AFFIDAVIT"; // "No Administration Necessary"
+        else if (state === "NJ") {
+            // NJ small estate: $20,000 general, $50,000 if spouse is sole heir
+            const njRule = rule as any;
+            const spouseThreshold = njRule?.smallEstateSpouseThreshold || 50000;
+            if (metadata?.isSpouse && probateTotal <= spouseThreshold) {
+                procedureType = "SMALL_ESTATE_AFFIDAVIT";
+            } else if (probateTotal <= threshold) {
+                procedureType = "SMALL_ESTATE_AFFIDAVIT";
+            } else {
+                procedureType = "FORMAL_PROBATE";
+            }
+        }
         else procedureType = "SMALL_ESTATE_AFFIDAVIT";
         type = "SMALL_ESTATE";
     } else if (activeEngines.includes("TOD_DEED") || activeEngines.includes("POD_TOD_ACCOUNTS")) {
