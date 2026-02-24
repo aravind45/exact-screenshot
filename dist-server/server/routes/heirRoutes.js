@@ -15,8 +15,12 @@ const heirSchema = z.object({
 });
 const router = Router();
 router.use(requireSubscription);
-// Middleware to get estateId (assumes user has one estate for now)
+// Middleware to get estateId
 const getEstateId = async (req) => {
+    // Priority: query param > body > first estate (legacy)
+    const explicitId = req.query.estateId || req.body.estateId;
+    if (explicitId)
+        return explicitId;
     const estate = await prisma.estate.findFirst({ where: { userId: req.user.id } });
     return estate?.id;
 };

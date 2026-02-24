@@ -8,6 +8,23 @@ import { toast } from 'sonner';
 import { PilotAccessForm } from '@/components/PilotAccessForm';
 import { useAuth } from '@/contexts/AuthContext';
 
+const getPostLoginPath = (role?: string | null) => {
+    switch (role) {
+        case 'ADMIN':
+            return '/admin';
+        case 'ADVISOR':
+            return '/advisor/dashboard';
+        case 'ATTORNEY':
+            return '/firm/dashboard';
+        case 'HEIR':
+        case 'EXECUTOR':
+        case 'USER':
+            return '/dashboard';
+        default:
+            return '/dashboard';
+    }
+};
+
 const LandingTexasLawyer = () => {
     const [isLoginOpen, setIsLoginOpen] = useState(false);
     const [isLoggingIn, setIsLoggingIn] = useState(false);
@@ -29,10 +46,11 @@ const LandingTexasLawyer = () => {
                     description: error.message || 'Invalid credentials. Please try again.'
                 });
             } else {
+                const redirectPath = getPostLoginPath(user?.role);
                 toast.success('Welcome back!', {
-                    description: 'Redirecting to your dashboard...'
+                    description: 'Redirecting to your workspace...'
                 });
-                navigate('/dashboard');
+                navigate(redirectPath, { replace: true });
             }
         } catch (error: any) {
             toast.error('Login Failed', {

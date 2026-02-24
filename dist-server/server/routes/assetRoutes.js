@@ -26,7 +26,8 @@ const faxSchema = z.object({
 // Note: Authentication middleware is applied to these routes in index.ts
 router.get("/", async (req, res) => {
     try {
-        const assets = await AssetService.getAll(req.user.id);
+        const estateId = req.query.estateId;
+        const assets = await AssetService.getAll(req.user.id, estateId);
         res.json(assets);
     }
     catch (error) {
@@ -49,7 +50,8 @@ router.get("/:id", async (req, res) => {
 router.post("/", async (req, res) => {
     try {
         const validated = assetSchema.parse(req.body);
-        const asset = await AssetService.create(req.user.id, validated);
+        const estateId = req.query.estateId || req.body.estateId;
+        const asset = await AssetService.create(req.user.id, validated, estateId);
         res.json(asset);
     }
     catch (error) {

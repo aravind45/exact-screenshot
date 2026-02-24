@@ -91,6 +91,56 @@ router.get("/", async (req, res) => {
         res.status(500).json({ error: "Failed to fetch estates" });
     }
 });
+// Create a new estate (Case)
+router.post("/", authenticate, async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const estate = await prisma.estate.create({
+            data: {
+                userId,
+                name: req.body.name || `${req.user.fullName}'s Case`,
+                deceasedFirstName: "TBD",
+                deceasedLastName: "TBD",
+                deceasedState: "TX", // Default for B2B Texas Pilot
+                status: "active",
+                probateStatus: "NOT_STARTED"
+            }
+        });
+        logger.info(`✅ [ESTATE] Created new estate ${estate.id} for user ${userId}`);
+        res.json(estate);
+    }
+    catch (error) {
+        logger.error("Error creating estate:", error.message);
+        res.status(500).json({ error: "Failed to create estate" });
+    }
+});
+// Get a specific estate by ID
+router.get("/:estateId", authenticate, requireEstateAccess, async (req, res) => {
+    try {
+        const estate = await prisma.estate.findUnique({
+            where: { id: req.params.estateId },
+            include: { user: true }
+        });
+        if (!estate)
+            return res.status(404).json({ error: "Estate not found" });
+        // Ensure handle/email
+        try {
+            await EmailService.ensureEstateHandle(estate.id);
+        }
+        catch (handleErr) {
+            logger.warn("Failed to ensure estate handle (non-fatal):", handleErr);
+        }
+        // Decrypt SSN
+        if (estate.deceasedSsn) {
+            estate.deceasedSsn = decrypt(estate.deceasedSsn);
+        }
+        res.json(estate);
+    }
+    catch (error) {
+        logger.error("Error fetching specific estate:", error.message);
+        res.status(500).json({ error: "Failed to fetch estate" });
+    }
+});
 router.get("/my", async (req, res) => {
     try {
         const estate = await prisma.estate.findFirst({
@@ -125,6 +175,53 @@ router.get("/my", async (req, res) => {
     catch (error) {
         logger.error("CRITICAL Estate Fetch Error:", error.message);
         res.status(500).json({ error: "Failed to fetch estate", message: error.message });
+    }
+});
+// Parameterized Update
+router.put("/:estateId", authenticate, requireEstateAccess, async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const estateId = req.params.estateId;
+        const validated = estateUpdateSchema.parse(req.body);
+        const updateData = {};
+        const dateFields = ['deceasedDateOfDeath', 'deceasedDateOfBirth', 'authorityEffectiveDate', 'appointedDate', 'willDate', 'hearingDate'];
+        const numericFields = ['certifiedCopies', 'estimatedPersonalProperty', 'estimatedRealProperty', 'estimatedAnnualIncome', 'bondAmount', 'estimatedLiabilities'];
+        for (const [key, value] of Object.entries(validated)) {
+            if (value === undefined)
+                continue;
+            if (dateFields.includes(key)) {
+                if (value) {
+                    const date = new Date(value);
+                    updateData[key] = isNaN(date.getTime()) ? null : date;
+                }
+                else {
+                    updateData[key] = null;
+                }
+            }
+            else if (numericFields.includes(key)) {
+                updateData[key] = (value === "" || value === null) ? null : new Prisma.Decimal(value);
+            }
+            else if (key === 'deceasedSsn') {
+                updateData[key] = value ? encrypt(value) : value;
+            }
+            else {
+                updateData[key] = value;
+            }
+        }
+        const updated = await prisma.estate.update({
+            where: { id: estateId },
+            data: updateData
+        });
+        // Sync assets if status changed
+        if (req.body.probateStatus === 'EXECUTOR_APPOINTED' && updated.id) {
+            const { AssetService } = await import("../services/assetService.js");
+            await AssetService.autoSyncAssetsForEstate(updated.id);
+        }
+        res.json(updated);
+    }
+    catch (error) {
+        logger.error("Parameterized Estate Update Error:", error.message);
+        res.status(500).json({ error: "Failed to update estate" });
     }
 });
 router.put("/my", authenticate, async (req, res) => {
