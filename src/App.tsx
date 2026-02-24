@@ -226,9 +226,13 @@ const AppRoutes = () => {
               </RoleRoute>
             } />
 
-            {/* Texas/Firm Routes (kept available to prevent 404 after attorney login) */}
-            <Route path="/firm/dashboard" element={<ProtectedRoute><RoleRoute allowedRoles={['ATTORNEY', 'ADVISOR', 'ADMIN']}><FirmDashboard /></RoleRoute></ProtectedRoute>} />
-            <Route path="/reports/client-status" element={<ProtectedRoute><RoleRoute allowedRoles={['ATTORNEY', 'ADVISOR', 'ADMIN']}><ClientStatusReport /></RoleRoute></ProtectedRoute>} />
+            {/* B2B Texas Pilot Routes */}
+            {isB2BTexas && (
+              <>
+                <Route path="/firm/dashboard" element={<ProtectedRoute><FirmDashboard /></ProtectedRoute>} />
+                <Route path="/reports/client-status" element={<ProtectedRoute><ClientStatusReport /></ProtectedRoute>} />
+              </>
+            )}
 
             <Route path="/dashboard" element={<RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><Dashboard /></RoleRoute>} />
             <Route path="/assets" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><ProfileGuard><SubscriptionGuard><Assets /></SubscriptionGuard></ProfileGuard></RoleRoute></ProtectedRoute>} />
