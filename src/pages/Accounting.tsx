@@ -129,269 +129,269 @@ export default function Accounting() {
 
     return (
         <DashboardLayout maxWidth="max-w-[1200px]">
-                <div className="space-y-5">
-                    {/* ── Compact Sticky Header ──────────────────────────────── */}
-                    <header className="h-16 border-b border-slate-100 bg-white/80 backdrop-blur-xl px-4 sm:px-12 flex items-center justify-between sticky top-0 z-10 -mx-6 -mt-6 mb-6 pt-0">
-                        <div className="flex items-center gap-3">
-                            <div className="p-1.5 bg-emerald-600 rounded-lg shadow-sm">
-                                <Calculator className="w-4 h-4 text-white" />
-                            </div>
-                            <h1 className="text-xl font-black text-slate-900 tracking-tight">Estate Accounting</h1>
-                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] hidden md:block">
-                                Probate Code § 1060
-                            </span>
-                            {/* Readiness pill — computed, not hardcoded */}
-                            <div className={cn(
-                                "flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wide border",
-                                isReady ? "bg-emerald-50 text-emerald-700 border-emerald-200" :
-                                    isDraft ? "bg-amber-50 text-amber-700 border-amber-200" :
-                                        "bg-rose-50 text-rose-700 border-rose-200"
-                            )}>
-                                <div className={cn("w-1.5 h-1.5 rounded-full", isReady ? "bg-emerald-500" : isDraft ? "bg-amber-500" : "bg-rose-500")} />
-                                {readinessScore}% Ready
-                            </div>
+            <div className="space-y-5">
+                {/* ── Compact Sticky Header ──────────────────────────────── */}
+                <header className="h-16 border-b border-slate-100 bg-white/80 backdrop-blur-xl px-4 sm:px-12 flex items-center justify-between sticky top-0 z-10 -mx-6 -mt-6 mb-6 pt-0">
+                    <div className="flex items-center gap-3">
+                        <div className="p-1.5 bg-emerald-600 rounded-lg shadow-sm">
+                            <Calculator className="w-4 h-4 text-white" />
                         </div>
-                        <div className="flex items-center gap-2">
-                            <Button
-                                variant={isWaiverEnabled ? "default" : "outline"}
-                                size="sm"
-                                className={cn(
-                                    "h-9 text-[10px] font-black uppercase tracking-widest px-4 rounded-xl transition-all",
-                                    isWaiverEnabled ? "bg-amber-500 hover:bg-amber-600 border-none text-white" : "border-slate-200 bg-white text-slate-700"
-                                )}
-                                onClick={() => setIsWaiverEnabled(!isWaiverEnabled)}
-                            >
-                                {isWaiverEnabled ? "Waiver Active" : "Waive Accounting"}
-                            </Button>
-                            <Button
-                                onClick={handleExportReport}
-                                size="sm"
-                                className="h-9 bg-slate-900 hover:bg-slate-800 text-white font-black px-5 rounded-xl text-[11px] gap-1.5"
-                            >
-                                <FileText className="w-3.5 h-3.5" /> Export CSV
-                            </Button>
+                        <h1 className="text-xl font-black text-slate-900 tracking-tight">Estate Accounting</h1>
+                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                        <span className="text-[11px] font-black text-slate-500 uppercase tracking-[0.2em] hidden md:block">
+                            {estate?.deceasedState || "Jurisdiction"} Probate Code
+                        </span>
+                        {/* Readiness pill — computed, not hardcoded */}
+                        <div className={cn(
+                            "flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wide border",
+                            isReady ? "bg-emerald-50 text-emerald-700 border-emerald-200" :
+                                isDraft ? "bg-amber-50 text-amber-700 border-amber-200" :
+                                    "bg-rose-50 text-rose-700 border-rose-200"
+                        )}>
+                            <div className={cn("w-1.5 h-1.5 rounded-full", isReady ? "bg-emerald-500" : isDraft ? "bg-amber-500" : "bg-rose-500")} />
+                            {readinessScore}% Ready
                         </div>
-                    </header>
-
-                    {/* Accounting Readiness Banner */}
-                    <AnimatePresence mode="wait">
-                        {readiness && (
-                            <motion.div
-                                initial={{ opacity: 0, y: -10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className={cn(
-                                    "p-5 rounded-2xl border flex gap-4 items-center shadow-sm",
-                                    isReady ? "bg-emerald-50 border-emerald-100" :
-                                        isDraft ? "bg-amber-50 border-amber-100" :
-                                            "bg-rose-50 border-rose-100"
-                                )}
-                            >
-                                <div className={cn(
-                                    "p-2 rounded-full",
-                                    isReady ? "bg-emerald-500 text-white" :
-                                        isDraft ? "bg-amber-500 text-white" :
-                                            "bg-rose-500 text-white"
-                                )}>
-                                    {isReady ? <CheckCircle2 className="w-5 h-5" /> :
-                                        isDraft ? <Info className="w-5 h-5" /> :
-                                            <AlertCircle className="w-5 h-5" />}
-                                </div>
-                                <div className="flex-1">
-                                    <div className="flex items-center justify-between">
-                                        <h3 className={cn(
-                                            "text-sm font-black uppercase tracking-tight",
-                                            isReady ? "text-emerald-900" :
-                                                isDraft ? "text-amber-900" :
-                                                    "text-rose-900"
-                                        )}>
-                                            {isReady ? "Accounting Ready for Review" :
-                                                isDraft ? "Draft Accounting in Progress" :
-                                                    "Accounting Incomplete"}
-                                        </h3>
-                                        <div className="flex gap-4">
-                                            <CompletenessBadge label="Inventory" active={readiness.checks.inventoryObtained} />
-                                            <CompletenessBadge label="Assets" active={readiness.checks.assetsVerified} />
-                                            <CompletenessBadge label="Claims" active={readiness.checks.claimsResolved} />
-                                        </div>
-                                    </div>
-                                    <p className={cn(
-                                        "text-xs font-medium mt-1",
-                                        isReady ? "text-emerald-700/80" :
-                                            isDraft ? "text-amber-700/80" :
-                                                "text-rose-700/80"
-                                    )}>
-                                        {isReady ? "All financial schedules are balanced and verified. You are ready to proceed with distribution planning." :
-                                            isDraft ? "Some inventory values or asset verifications are still pending. Values below reflect current progress." :
-                                                "Unresolved claims or missing inventory filings prevent finalization of this accounting."}
-                                    </p>
-                                </div>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-
-                    {isWaiverEnabled && (
-                        <Card className="border-none shadow-md bg-amber-50 border-l-4 border-l-amber-500 rounded-2xl">
-                            <CardContent className="p-4 flex gap-4">
-                                <ShieldCheck className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
-                                <div className="space-y-1">
-                                    <h4 className="text-sm font-black text-amber-900 uppercase tracking-tight">Fiduciary Guidance: Accounting Waiver</h4>
-                                    <p className="text-xs text-amber-700 leading-relaxed font-medium">
-                                        Waiving accounting does not waive the duty to report <strong>Net Property on Hand</strong>.
-                                        You are still personally liable for accurate distributions even if beneficiaries consent to a waiver.
-                                    </p>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    )}
-
-                    {/* Financial KPI Cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <KPICol
-                            label="Total Charges"
-                            value={totalCharges}
-                            isReady={!isDraft}
-                            items={[
-                                { name: "Inventory Value", val: inventoryTotal, isReady: readiness?.checks.inventoryObtained },
-                                { name: "Receipts (Income)", val: 0, isReady: true },
-                                { name: "Gains on Sales", val: 0, isReady: true }
-                            ]}
-                        />
-
-                        <KPICol
-                            label="Total Credits"
-                            value={disbursementsTotal}
-                            isReady={!isDraft}
-                            items={[
-                                { name: "Paid Debts/Expenses", val: disbursementsTotal, isReady: readiness?.checks.claimsResolved },
-                                { name: "Pending distributions", val: 0, isReady: true },
-                                { name: "Losses on Sales", val: 0, isReady: true }
-                            ]}
-                        />
-
-                        <Card className="border-none shadow-xl shadow-emerald-100 bg-slate-900 text-white overflow-hidden relative rounded-3xl">
-                            <div className="absolute top-[-50%] right-[-50%] w-full h-full bg-emerald-500/10 blur-3xl rounded-full pointer-events-none" />
-                            <CardHeader className="pb-2 relative z-10">
-                                <CardTitle className="text-[10px] font-black uppercase tracking-widest text-slate-400">Net Property On Hand</CardTitle>
-                                <div className="text-3xl font-black text-white tracking-tight">
-                                    {(isDraft && totalCharges === 0) ? "To be Calculated" : `$${propertyOnHand.toLocaleString()}`}
-                                </div>
-                            </CardHeader>
-                            <CardContent className="relative z-10">
-                                <p className="text-[11px] text-slate-400 leading-relaxed mb-4 font-medium">
-                                    Charges minus Credits. This flows directly into the <strong>Final Distribution</strong> plan.
-                                </p>
-                                <div className="flex flex-col gap-2">
-                                    <div className="bg-slate-800/50 rounded-2xl p-4 border border-slate-700/50">
-                                        <div className="flex justify-between items-center mb-2">
-                                            <span className="text-[10px] font-black uppercase text-slate-400">Solvency Health</span>
-                                            <span className={cn("text-[10px] font-black uppercase", solvencyRatio >= 100 ? "text-emerald-400" : "text-amber-400")}>
-                                                {solvencyRatio >= 100 ? "Estate Solvent" : "Risk of Insolvency"}
-                                            </span>
-                                        </div>
-                                        <Progress value={Math.min(solvencyRatio, 100)} className={cn("h-1.5 bg-slate-700", solvencyRatio >= 100 ? "[&>div]:bg-emerald-500" : "[&>div]:bg-amber-500")} />
-                                    </div>
-
-                                    {lockedTotal > 0 && (
-                                        <div className="bg-rose-900/50 rounded-2xl p-3 border border-rose-800/50 flex items-center justify-between">
-                                            <div>
-                                                <p className="text-[9px] font-black uppercase text-rose-300">Court Authority Locked</p>
-                                                <p className="text-sm font-black text-white">${lockedTotal.toLocaleString()}</p>
-                                            </div>
-                                            <Badge variant="outline" className="bg-rose-500/20 text-rose-200 border-rose-500/30 text-[8px] font-black uppercase tracking-tighter">
-                                                Probate Blocker
-                                            </Badge>
-                                        </div>
-                                    )}
-
-                                    <div className="bg-slate-800/50 rounded-2xl p-3 border border-slate-700/50 space-y-2">
-                                        <div className="flex justify-between items-center">
-                                            <span className="text-[9px] font-black uppercase text-slate-400">Net by Authority</span>
-                                        </div>
-                                        <div className="flex items-center gap-1.5">
-                                            <div className="flex-1 flex flex-col gap-1">
-                                                <div className="flex justify-between text-[8px] font-bold text-slate-300 uppercase">
-                                                    <span>Probate</span>
-                                                    <span>${authorityTotals.probate.toLocaleString()}</span>
-                                                </div>
-                                                <div className="h-1 bg-slate-700 rounded-full overflow-hidden">
-                                                    <div
-                                                        className="h-full bg-blue-500"
-                                                        style={{ width: `${totalCharges > 0 ? (authorityTotals.probate / totalCharges) * 100 : 0}%` }}
-                                                    />
-                                                </div>
-                                            </div>
-                                            <div className="flex-1 flex flex-col gap-1">
-                                                <div className="flex justify-between text-[8px] font-bold text-slate-300 uppercase">
-                                                    <span>Excluded</span>
-                                                    <span>${authorityTotals.excluded.toLocaleString()}</span>
-                                                </div>
-                                                <div className="h-1 bg-slate-700 rounded-full overflow-hidden">
-                                                    <div
-                                                        className="h-full bg-emerald-500"
-                                                        style={{ width: `${totalCharges > 0 ? (authorityTotals.excluded / totalCharges) * 100 : 0}%` }}
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
                     </div>
+                    <div className="flex items-center gap-2">
+                        <Button
+                            variant={isWaiverEnabled ? "default" : "outline"}
+                            size="sm"
+                            className={cn(
+                                "h-9 text-[11px] font-black uppercase tracking-widest px-4 rounded-xl transition-all",
+                                isWaiverEnabled ? "bg-amber-600 hover:bg-amber-700 border-none text-white shadow-md shadow-amber-200" : "border-slate-300 bg-white text-slate-700"
+                            )}
+                            onClick={() => setIsWaiverEnabled(!isWaiverEnabled)}
+                        >
+                            {isWaiverEnabled ? "Waiver Active" : "Waive Accounting"}
+                        </Button>
+                        <Button
+                            onClick={handleExportReport}
+                            size="sm"
+                            className="h-9 bg-slate-900 hover:bg-slate-800 text-white font-black px-5 rounded-xl text-[11px] gap-1.5"
+                        >
+                            <FileText className="w-3.5 h-3.5" /> Export CSV
+                        </Button>
+                    </div>
+                </header>
 
-                    {/* Tabs for Schedules */}
-                    <Tabs defaultValue="charges" className="space-y-4">
-                        <TabsList className="bg-slate-200/50 p-1 border-none rounded-xl h-auto">
-                            <TabsTrigger value="charges" className="data-[state=active]:bg-white data-[state=active]:shadow-sm px-6 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-lg flex gap-2">
-                                Schedules A & B (Assets)
-                                {readiness?.checks.assetsVerified && <CheckCircle2 className="w-3 h-3 text-emerald-500" />}
-                            </TabsTrigger>
-                            <TabsTrigger value="credits" className="data-[state=active]:bg-white data-[state=active]:shadow-sm px-6 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-lg flex gap-2">
-                                Schedules C & D (Debts)
-                                {readiness?.status === 'READY_FOR_REVIEW' && <CheckCircle2 className="w-3 h-3 text-emerald-500" />}
-                            </TabsTrigger>
-                        </TabsList>
-
-                        <TabsContent value="charges">
-                            <ScheduleCard title="Outputs from Asset Ledger (Inventory & Receipts)" data={assets} />
-                        </TabsContent>
-
-                        <TabsContent value="credits">
-                            <ScheduleCard
-                                title="Disbursements (Paid Debts)"
-                                data={paidLiabilities}
-                                isDebt
-                                onAdd={() => navigate('/liabilities')}
-                                onDiscovery={() => navigate('/discovery')}
-                            />
-                        </TabsContent>
-                    </Tabs>
-
-                    <footer className="pt-8 border-t border-slate-200">
-                        <div className="bg-white p-6 rounded-3xl border border-slate-100 flex items-center justify-between">
-                            <div className="flex gap-4 items-center">
-                                <div className="p-3 bg-indigo-50 rounded-2xl">
-                                    <ArrowRight className="w-6 h-6 text-indigo-600" />
+                {/* Accounting Readiness Banner */}
+                <AnimatePresence mode="wait">
+                    {readiness && (
+                        <motion.div
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className={cn(
+                                "p-5 rounded-2xl border flex gap-4 items-center shadow-sm",
+                                isReady ? "bg-emerald-50 border-emerald-100" :
+                                    isDraft ? "bg-amber-50 border-amber-100" :
+                                        "bg-rose-50 border-rose-100"
+                            )}
+                        >
+                            <div className={cn(
+                                "p-2 rounded-full",
+                                isReady ? "bg-emerald-500 text-white" :
+                                    isDraft ? "bg-amber-500 text-white" :
+                                        "bg-rose-500 text-white"
+                            )}>
+                                {isReady ? <CheckCircle2 className="w-5 h-5" /> :
+                                    isDraft ? <Info className="w-5 h-5" /> :
+                                        <AlertCircle className="w-5 h-5" />}
+                            </div>
+                            <div className="flex-1">
+                                <div className="flex items-center justify-between">
+                                    <h3 className={cn(
+                                        "text-sm font-black uppercase tracking-tight",
+                                        isReady ? "text-emerald-900" :
+                                            isDraft ? "text-amber-900" :
+                                                "text-rose-900"
+                                    )}>
+                                        {isReady ? "Accounting Ready for Review" :
+                                            isDraft ? "Draft Accounting in Progress" :
+                                                "Accounting Incomplete"}
+                                    </h3>
+                                    <div className="flex gap-4">
+                                        <CompletenessBadge label="Inventory" active={readiness.checks.inventoryObtained} />
+                                        <CompletenessBadge label="Assets" active={readiness.checks.assetsVerified} />
+                                        <CompletenessBadge label="Claims" active={readiness.checks.claimsResolved} />
+                                    </div>
                                 </div>
-                                <div className="space-y-1">
-                                    <h4 className="font-black text-slate-900 uppercase tracking-tight">Next Phase: Final Distribution</h4>
-                                    <p className="text-xs text-slate-500 font-medium">Once accounting is finalized, you can proceed to the court petition for distribution.</p>
+                                <p className={cn(
+                                    "text-[11px] font-bold mt-1",
+                                    isReady ? "text-emerald-700" :
+                                        isDraft ? "text-amber-700" :
+                                            "text-rose-700"
+                                )}>
+                                    {isReady ? "All financial schedules are balanced and verified. You are ready to proceed with distribution planning." :
+                                        isDraft ? "Some inventory values or asset verifications are still pending. Values below reflect current progress." :
+                                            "Unresolved claims or missing inventory filings prevent finalization of this accounting."}
+                                </p>
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
+                {isWaiverEnabled && (
+                    <Card className="border-none shadow-md bg-amber-50 border-l-4 border-l-amber-500 rounded-2xl">
+                        <CardContent className="p-4 flex gap-4">
+                            <ShieldCheck className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+                            <div className="space-y-1">
+                                <h4 className="text-sm font-black text-amber-900 uppercase tracking-tight">Fiduciary Guidance: Accounting Waiver</h4>
+                                <p className="text-xs text-amber-700 leading-relaxed font-medium">
+                                    Waiving accounting does not waive the duty to report <strong>Net Property on Hand</strong>.
+                                    You are still personally liable for accurate distributions even if beneficiaries consent to a waiver.
+                                </p>
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
+
+                {/* Financial KPI Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <KPICol
+                        label="Total Charges"
+                        value={totalCharges}
+                        isReady={!isDraft}
+                        items={[
+                            { name: "Inventory Value", val: inventoryTotal, isReady: readiness?.checks.inventoryObtained },
+                            { name: "Receipts (Income)", val: 0, isReady: true },
+                            { name: "Gains on Sales", val: 0, isReady: true }
+                        ]}
+                    />
+
+                    <KPICol
+                        label="Total Credits"
+                        value={disbursementsTotal}
+                        isReady={!isDraft}
+                        items={[
+                            { name: "Paid Debts/Expenses", val: disbursementsTotal, isReady: readiness?.checks.claimsResolved },
+                            { name: "Pending distributions", val: 0, isReady: true },
+                            { name: "Losses on Sales", val: 0, isReady: true }
+                        ]}
+                    />
+
+                    <Card className="border-none shadow-xl shadow-emerald-100 bg-slate-900 text-white overflow-hidden relative rounded-3xl">
+                        <div className="absolute top-[-50%] right-[-50%] w-full h-full bg-emerald-500/10 blur-3xl rounded-full pointer-events-none" />
+                        <CardHeader className="pb-2 relative z-10">
+                            <CardTitle className="text-[11px] font-black uppercase tracking-widest text-slate-400">Net Property On Hand</CardTitle>
+                            <div className="text-3xl font-black text-white tracking-tight">
+                                {(isDraft && totalCharges === 0) ? "To be Calculated" : `$${propertyOnHand.toLocaleString()}`}
+                            </div>
+                        </CardHeader>
+                        <CardContent className="relative z-10">
+                            <p className="text-[11px] text-slate-400 leading-relaxed mb-4 font-bold">
+                                Charges minus Credits. This flows directly into the <strong>Final Distribution</strong> plan.
+                            </p>
+                            <div className="flex flex-col gap-2">
+                                <div className="bg-slate-800/50 rounded-2xl p-4 border border-slate-700/50">
+                                    <div className="flex justify-between items-center mb-2">
+                                        <span className="text-[11px] font-black uppercase text-slate-400">Solvency Health</span>
+                                        <span className={cn("text-[10px] font-black uppercase", solvencyRatio >= 100 ? "text-emerald-400" : "text-amber-400")}>
+                                            {solvencyRatio >= 100 ? "Estate Solvent" : "Risk of Insolvency"}
+                                        </span>
+                                    </div>
+                                    <Progress value={Math.min(solvencyRatio, 100)} className={cn("h-1.5 bg-slate-700", solvencyRatio >= 100 ? "[&>div]:bg-emerald-500" : "[&>div]:bg-amber-500")} />
+                                </div>
+
+                                {lockedTotal > 0 && (
+                                    <div className="bg-rose-900/50 rounded-2xl p-3 border border-rose-800/50 flex items-center justify-between">
+                                        <div>
+                                            <p className="text-[9px] font-black uppercase text-rose-300">Court Authority Locked</p>
+                                            <p className="text-sm font-black text-white">${lockedTotal.toLocaleString()}</p>
+                                        </div>
+                                        <Badge variant="outline" className="bg-rose-500 border-none text-white text-[10px] font-black uppercase tracking-tight px-1.5 h-4 mb-2">
+                                            Probate Blocker
+                                        </Badge>
+                                    </div>
+                                )}
+
+                                <div className="bg-slate-800/50 rounded-2xl p-3 border border-slate-700/50 space-y-2">
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-[9px] font-black uppercase text-slate-400">Net by Authority</span>
+                                    </div>
+                                    <div className="flex items-center gap-1.5">
+                                        <div className="flex-1 flex flex-col gap-1">
+                                            <div className="flex justify-between text-[8px] font-bold text-slate-300 uppercase">
+                                                <span>Probate</span>
+                                                <span>${authorityTotals.probate.toLocaleString()}</span>
+                                            </div>
+                                            <div className="h-1 bg-slate-700 rounded-full overflow-hidden">
+                                                <div
+                                                    className="h-full bg-blue-500"
+                                                    style={{ width: `${totalCharges > 0 ? (authorityTotals.probate / totalCharges) * 100 : 0}%` }}
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="flex-1 flex flex-col gap-1">
+                                            <div className="flex justify-between text-[8px] font-bold text-slate-300 uppercase">
+                                                <span>Excluded</span>
+                                                <span>${authorityTotals.excluded.toLocaleString()}</span>
+                                            </div>
+                                            <div className="h-1 bg-slate-700 rounded-full overflow-hidden">
+                                                <div
+                                                    className="h-full bg-emerald-500"
+                                                    style={{ width: `${totalCharges > 0 ? (authorityTotals.excluded / totalCharges) * 100 : 0}%` }}
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            <Button
-                                onClick={() => navigate('/distribution')}
-                                disabled={!isReady}
-                                className={cn(
-                                    "h-12 px-8 rounded-2xl font-black uppercase tracking-widest text-xs transition-all",
-                                    isReady ? "bg-indigo-600 hover:bg-indigo-700 shadow-xl shadow-indigo-100" : "bg-slate-100 text-slate-300"
-                                )}
-                            >
-                                {isReady ? "Go to Distribution" : <><Lock className="w-4 h-4 mr-2" /> Distribution Locked</>}
-                            </Button>
-                        </div>
-                    </footer>
+                        </CardContent>
+                    </Card>
                 </div>
+
+                {/* Tabs for Schedules */}
+                <Tabs defaultValue="charges" className="space-y-4">
+                    <TabsList className="bg-slate-200/50 p-1 border-none rounded-xl h-auto">
+                        <TabsTrigger value="charges" className="data-[state=active]:bg-white data-[state=active]:shadow-sm px-6 py-2.5 text-[11px] font-black uppercase tracking-widest rounded-lg flex gap-2">
+                            Schedules A & B (Assets)
+                            {readiness?.checks.assetsVerified && <CheckCircle2 className="w-3 h-3 text-emerald-500" />}
+                        </TabsTrigger>
+                        <TabsTrigger value="credits" className="data-[state=active]:bg-white data-[state=active]:shadow-sm px-6 py-2.5 text-[11px] font-black uppercase tracking-widest rounded-lg flex gap-2">
+                            Schedules C & D (Debts)
+                            {readiness?.status === 'READY_FOR_REVIEW' && <CheckCircle2 className="w-3 h-3 text-emerald-500" />}
+                        </TabsTrigger>
+                    </TabsList>
+
+                    <TabsContent value="charges">
+                        <ScheduleCard title="Outputs from Asset Ledger (Inventory & Receipts)" data={assets} />
+                    </TabsContent>
+
+                    <TabsContent value="credits">
+                        <ScheduleCard
+                            title="Disbursements (Paid Debts)"
+                            data={paidLiabilities}
+                            isDebt
+                            onAdd={() => navigate('/liabilities')}
+                            onDiscovery={() => navigate('/discovery')}
+                        />
+                    </TabsContent>
+                </Tabs>
+
+                <footer className="pt-8 border-t border-slate-200">
+                    <div className="bg-white p-6 rounded-3xl border border-slate-100 flex items-center justify-between">
+                        <div className="flex gap-4 items-center">
+                            <div className="p-3 bg-indigo-50 rounded-2xl">
+                                <ArrowRight className="w-6 h-6 text-indigo-600" />
+                            </div>
+                            <div className="space-y-1">
+                                <h4 className="font-black text-slate-900 uppercase tracking-tight">Next Phase: Final Distribution</h4>
+                                <p className="text-xs text-slate-500 font-medium">Once accounting is finalized, you can proceed to the court petition for distribution.</p>
+                            </div>
+                        </div>
+                        <Button
+                            onClick={() => navigate('/distribution')}
+                            disabled={!isReady}
+                            className={cn(
+                                "h-12 px-8 rounded-2xl font-black uppercase tracking-widest text-xs transition-all",
+                                isReady ? "bg-indigo-600 hover:bg-indigo-700 shadow-xl shadow-indigo-100" : "bg-slate-100 text-slate-300"
+                            )}
+                        >
+                            {isReady ? "Go to Distribution" : <><Lock className="w-4 h-4 mr-2" /> Distribution Locked</>}
+                        </Button>
+                    </div>
+                </footer>
+            </div>
         </DashboardLayout>
     );
 }
@@ -400,7 +400,7 @@ function KPICol({ label, value, isReady, items }: { label: string, value: number
     return (
         <Card className="border-none shadow-sm bg-white overflow-hidden rounded-3xl">
             <CardHeader className="pb-2">
-                <CardTitle className="text-[10px] font-black uppercase tracking-widest text-slate-400">{label}</CardTitle>
+                <CardTitle className="text-[11px] font-black uppercase tracking-widest text-slate-400">{label}</CardTitle>
                 <div className={cn("text-2xl font-black", !isReady && value === 0 ? "text-slate-300 italic font-medium" : "text-slate-900")}>
                     {!isReady && value === 0 ? "Pending" : `$${value.toLocaleString()}`}
                 </div>
@@ -428,9 +428,9 @@ function ScheduleCard({ title, data, isDebt, onAdd, onDiscovery }: { title: stri
     return (
         <Card className="border-none shadow-sm bg-white overflow-hidden rounded-3xl">
             <div className="p-4 bg-slate-50/50 border-b border-slate-100 flex justify-between items-center">
-                <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-500">{title}</h3>
+                <h3 className="text-[11px] font-black uppercase tracking-widest text-slate-500">{title}</h3>
                 {isDebt && data.length > 0 && (
-                    <Button onClick={onAdd} variant="ghost" size="sm" className="h-6 px-2 text-[8px] font-black uppercase tracking-widest text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50">
+                    <Button onClick={onAdd} variant="ghost" size="sm" className="h-6 px-2 text-[10px] font-black uppercase tracking-widest text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50">
                         <Plus className="w-3 h-3 mr-1" /> Add Payment
                     </Button>
                 )}
@@ -449,10 +449,10 @@ function ScheduleCard({ title, data, isDebt, onAdd, onDiscovery }: { title: stri
                                 <div className="flex items-center gap-2">
                                     <div className="text-xs font-black text-slate-900">{item.name || item.institution}</div>
                                     {!isDebt && item.authorityType && (
-                                        <AuthorityBadge type={item.authorityType} showIcon={false} className="h-4 px-1.5 border-none bg-slate-100 text-[8px]" />
+                                        <AuthorityBadge type={item.authorityType} showIcon={false} className="h-4 px-1.5 border-none bg-slate-100 text-[10px]" />
                                     )}
                                 </div>
-                                <div className="text-[10px] text-slate-400 font-bold uppercase tracking-tight">
+                                <div className="text-[11px] text-slate-500 font-bold uppercase tracking-tight">
                                     {isDebt ? `Paid on ${item.updatedAt ? new Date(item.updatedAt).toLocaleDateString() : 'N/A'}` : (item.category || "General Asset")}
                                 </div>
                             </div>
@@ -469,7 +469,7 @@ function ScheduleCard({ title, data, isDebt, onAdd, onDiscovery }: { title: stri
                                 {isDebt ? <Search className="w-8 h-8 text-indigo-400 opacity-40 shrink-0" /> : <Search className="w-8 h-8 opacity-20" />}
                             </div>
                             <div className="space-y-1">
-                                <h4 className="text-xs font-black uppercase tracking-widest text-slate-900">
+                                <h4 className="text-[11px] font-black uppercase tracking-widest text-slate-900">
                                     {isDebt ? "No Paid Debts Found" : "No records found for this schedule"}
                                 </h4>
                                 {isDebt && (
@@ -512,8 +512,8 @@ function CompletenessBadge({ label, active }: { label: string, active: boolean }
                 active ? "bg-emerald-500" : "bg-slate-300"
             )} />
             <span className={cn(
-                "text-[9px] font-black uppercase tracking-tighter",
-                active ? "text-slate-600" : "text-slate-300"
+                "text-[10px] font-black uppercase tracking-tighter",
+                active ? "text-slate-900" : "text-slate-400"
             )}>
                 {label}
             </span>

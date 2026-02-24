@@ -144,7 +144,7 @@ export default function Inbox() {
                         </div>
                         <div>
                             <h1 className="text-xl font-bold text-slate-900 tracking-tight">Settlement Trail</h1>
-                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-none mt-1">ExpectedEstate Engine</p>
+                            <p className="text-[11px] text-slate-500 font-bold uppercase tracking-widest leading-none mt-1">ExpectedEstate Engine</p>
                         </div>
                         <Badge variant="secondary" className="ml-2 bg-slate-100 text-slate-600 border-none font-bold">
                             {filteredMessages.length} Interactions
@@ -220,14 +220,14 @@ export default function Inbox() {
                                                         {msg.institutionName || "General Inquiry"}
                                                     </span>
                                                 </div>
-                                                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">
+                                                <span className="text-[11px] text-slate-500 font-bold uppercase tracking-tighter">
                                                     {formatDistanceToNow(new Date(msg.occurredAt), { addSuffix: true })}
                                                 </span>
                                             </div>
                                             <h4 className="text-xs font-semibold text-slate-700 mb-1 truncate capitalize">
                                                 {msg.subject || (msg.type === 'call' ? 'Phone Conversation' : '(No Subject)')}
                                             </h4>
-                                            <p className="text-[11px] text-slate-500 line-clamp-2 leading-relaxed italic">
+                                            <p className="text-[11px] text-slate-600 line-clamp-2 leading-relaxed italic font-medium">
                                                 "{msg.notes}"
                                             </p>
                                             <div className="mt-3 flex items-center justify-between">
@@ -236,12 +236,10 @@ export default function Inbox() {
                                                         {msg.asset.name}
                                                     </Badge>
                                                 )}
-                                                {msg.statusChange && msg.statusChange !== 'none' && (
-                                                    <div className="flex items-center gap-1 text-[9px] font-black text-amber-600 uppercase">
-                                                        <AlertCircle className="w-2.5 h-2.5" />
-                                                        Status Updated
-                                                    </div>
-                                                )}
+                                                <div className="flex items-center gap-1 text-[10px] font-black text-amber-700 uppercase">
+                                                    <AlertCircle className="w-2.5 h-2.5" />
+                                                    Status Updated
+                                                </div>
                                             </div>
                                         </button>
                                     );
@@ -259,19 +257,19 @@ export default function Inbox() {
                                         <div className="space-y-4">
                                             <div className="flex items-center gap-3">
                                                 <Badge className={cn(
-                                                    "px-3 py-1 font-black uppercase text-[10px] tracking-widest border-none",
-                                    selectedMessage.direction === 'INBOUND' ? "bg-emerald-500 text-white" : "bg-indigo-500 text-white"
+                                                    "px-3 py-1 font-black uppercase text-[11px] tracking-widest border-none",
+                                                    selectedMessage.direction === 'INBOUND' ? "bg-emerald-600 text-white" : "bg-indigo-600 text-white"
                                                 )}>
                                                     {selectedMessage.direction} {selectedMessage.type}
                                                 </Badge>
                                                 {selectedMessage.followUpDueAt && !selectedMessage.followUpCompletedAt && (
-                                                    <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-700 font-bold text-[10px]">
+                                                    <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-800 font-black text-[11px] uppercase">
                                                         Follow-up Due: {new Date(selectedMessage.followUpDueAt).toLocaleDateString()}
                                                     </Badge>
                                                 )}
                                             </div>
                                             <h2 className="text-3xl font-black text-slate-900 tracking-tight leading-none">
-                                {selectedMessage.subject || (selectedMessage.type === 'CALL' ? 'Call Summary' : 'Interaction Details')}
+                                                {selectedMessage.subject || (selectedMessage.type === 'CALL' ? 'Call Summary' : 'Interaction Details')}
                                             </h2>
                                             <div className="flex items-center gap-2 text-sm text-slate-500 font-medium">
                                                 < Landmark className="w-4 h-4" />
@@ -312,7 +310,7 @@ export default function Inbox() {
                                                 <LayoutGrid className="w-4 h-4 text-indigo-600" />
                                             </div>
                                             <div>
-                                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Impacted Asset</p>
+                                                <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">Impacted Asset</p>
                                                 <p className="text-sm font-bold text-slate-900">{selectedMessage.asset.name}</p>
                                             </div>
                                             <ChevronRight className="w-4 h-4 text-slate-300 group-hover:translate-x-1 transition-transform" />
@@ -324,7 +322,7 @@ export default function Inbox() {
                                     <div className="max-w-3xl">
                                         <div className="flex items-center gap-2 mb-4">
                                             <div className="h-[1px] flex-1 bg-slate-100"></div>
-                                            <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Interaction Notes</span>
+                                            <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Interaction Notes</span>
                                             <div className="h-[1px] flex-1 bg-slate-100"></div>
                                         </div>
 
@@ -338,8 +336,8 @@ export default function Inbox() {
                                                     <CheckCircle2 className="w-5 h-5" />
                                                     <h4 className="font-black uppercase text-xs tracking-widest">Automatic System Trigger</h4>
                                                 </div>
-                                                <p className="text-sm text-amber-900 font-medium">
-                                                    This communication automatically updated the asset status to <strong>{selectedMessage.statusChange.toUpperCase()}</strong>.
+                                                <p className="text-sm text-amber-900 font-bold">
+                                                    This communication automatically updated the asset status to <strong className="underline underline-offset-4">{selectedMessage.statusChange.toUpperCase()}</strong>.
                                                 </p>
                                             </div>
                                         )}

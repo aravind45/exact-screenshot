@@ -258,7 +258,7 @@ export function DocumentVault() {
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
-                                    <Label className="text-[10px] font-black uppercase text-slate-500 tracking-widest pl-1">Document Type</Label>
+                                    <Label className="text-[11px] font-black uppercase text-slate-600 tracking-widest pl-1">Document Type</Label>
                                     <select
                                         className="w-full h-11 px-4 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none appearance-none cursor-pointer"
                                         value={formData.documentType}
@@ -276,7 +276,7 @@ export function DocumentVault() {
                                     </select>
                                 </div>
                                 <div className="space-y-2">
-                                    <Label className="text-[10px] font-black uppercase text-slate-500 tracking-widest pl-1">Display Name</Label>
+                                    <Label className="text-[11px] font-black uppercase text-slate-600 tracking-widest pl-1">Display Name</Label>
                                     <Input
                                         value={formData.name}
                                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -286,7 +286,7 @@ export function DocumentVault() {
                                 </div>
 
                                 <div className="col-span-1 md:col-span-2 space-y-2">
-                                    <Label className="text-[10px] font-black uppercase text-slate-500 tracking-widest pl-1">Upload File (Optional)</Label>
+                                    <Label className="text-[11px] font-black uppercase text-slate-600 tracking-widest pl-1">Upload File (Optional)</Label>
                                     <div
                                         className="relative group/upload h-32 border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center hover:border-indigo-300 hover:bg-white transition-all cursor-pointer overflow-hidden bg-white/50"
                                         onClick={() => document.getElementById('new-doc-file')?.click()}
@@ -311,7 +311,7 @@ export function DocumentVault() {
                                                     <Upload className="w-5 h-5 text-slate-400 group-hover/upload:text-indigo-500" />
                                                 </div>
                                                 <p className="text-xs font-bold text-slate-500 group-hover/upload:text-slate-700">Click to select or drag and drop</p>
-                                                <p className="text-[9px] text-slate-400 mt-1 font-medium italic">Max size 10MB</p>
+                                                <p className="text-[10px] text-slate-500 mt-1 font-bold italic">Max size 10MB</p>
                                             </>
                                         )}
                                         <input
@@ -366,7 +366,7 @@ export function DocumentVault() {
                     <div className="flex items-center gap-2 px-1">
                         <FileCheck className="w-5 h-5 text-indigo-600" />
                         <h3 className="font-bold text-slate-900">Foundation Documents</h3>
-                        <Badge variant="outline" className="ml-2 bg-indigo-50 text-indigo-700 border-indigo-100 text-[9px] uppercase font-black tracking-widest px-1.5 h-5">
+                        <Badge variant="outline" className="ml-2 bg-indigo-50 text-indigo-700 border-indigo-200 text-[10px] uppercase font-black tracking-widest px-2 h-6">
                             Required for Compliance
                         </Badge>
                     </div>
@@ -389,14 +389,14 @@ export function DocumentVault() {
                                             {isObtained ? <CheckCircle2 className="w-6 h-6" /> : <Plus className="w-6 h-6" />}
                                         </div>
                                         {isObtained && (
-                                            <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 border-none text-[8px] font-black uppercase tracking-tight h-5 px-1.5">
+                                            <Badge variant="secondary" className="bg-emerald-100 text-emerald-800 border-none text-[10px] font-black uppercase tracking-tight h-5 px-2">
                                                 Obtained
                                             </Badge>
                                         )}
                                     </div>
 
                                     <h4 className="text-sm font-bold text-slate-900 mb-1">{foundation.label}</h4>
-                                    <p className="text-[10px] text-slate-500 leading-tight mb-4 min-h-[2.5em]">{foundation.note}</p>
+                                    <p className="text-[11px] text-slate-500 leading-tight mb-4 min-h-[2.5em] font-medium">{foundation.note}</p>
 
                                     {isObtained ? (
                                         <Button
@@ -462,7 +462,7 @@ export function DocumentVault() {
 
                 <div className="flex items-center justify-between px-1 mb-4">
                     <h3 className="font-bold text-slate-900">General Vault</h3>
-                    <p className="text-[10px] text-slate-400 font-medium uppercase tracking-widest">
+                    <p className="text-[11px] text-slate-500 font-bold uppercase tracking-widest">
                         {documents.length} Items Total
                     </p>
                 </div>
@@ -527,7 +527,7 @@ export function DocumentVault() {
                                                 )}
 
                                                 {doc.obtainedDate && (
-                                                    <p className="text-[10px] text-slate-500 mt-1 flex items-center gap-1">
+                                                    <p className="text-[11px] text-slate-600 font-bold mt-1 flex items-center gap-1">
                                                         <Clock className="w-3 h-3" />
                                                         Obtained on {new Date(doc.obtainedDate).toLocaleDateString()}
                                                     </p>
@@ -539,7 +539,7 @@ export function DocumentVault() {
 
                                                 {doc.clues && Array.isArray(doc.clues) && doc.clues.length > 0 && (
                                                     <div className="mt-3 p-2 bg-indigo-50/50 rounded-lg border border-indigo-100">
-                                                        <p className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest mb-1.5 flex items-center gap-1">
+                                                        <p className="text-[11px] font-black text-indigo-700 uppercase tracking-widest mb-1.5 flex items-center gap-1">
                                                             <Search className="w-3 h-3" />
                                                             AI Discovered Leads
                                                         </p>
@@ -547,7 +547,7 @@ export function DocumentVault() {
                                                             {(doc.clues as any[]).map((clue: any, idx: number) => (
                                                                 <div key={idx} className="flex items-center justify-between text-[11px] text-slate-600">
                                                                     <span className="font-medium">{clue.institution} ({clue.potentialAsset || clue.type})</span>
-                                                                    <Badge variant="outline" className="h-4 text-[9px] bg-indigo-100 text-indigo-700 px-1 border-none">
+                                                                    <Badge variant="outline" className="h-4 text-[10px] font-bold bg-indigo-100 text-indigo-800 px-1.5 border-none">
                                                                         {Math.round((clue.confidence || 0) * 100)}% Match
                                                                     </Badge>
                                                                 </div>
@@ -674,6 +674,6 @@ export function DocumentVault() {
                     </div>
                 )}
             </CardContent>
-        </Card>
+        </Card >
     );
 }

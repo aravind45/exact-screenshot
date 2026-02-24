@@ -64,7 +64,7 @@ export function SettlementPhaseChevron({
               >
                 <div className="flex items-start justify-between gap-2">
                   <span className={cn(
-                    "text-[11px] font-semibold uppercase tracking-wide",
+                    "text-[11px] font-bold uppercase tracking-widest",
                     isCompleted && "text-emerald-700",
                     isCurrent && "text-indigo-100",
                     isUpcoming && "text-slate-500"
@@ -73,7 +73,7 @@ export function SettlementPhaseChevron({
                   </span>
 
                   <span className={cn(
-                    "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium",
+                    "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider",
                     isCompleted && "bg-emerald-100 text-emerald-700",
                     isCurrent && "bg-indigo-500/40 text-indigo-100",
                     isUpcoming && "bg-slate-100 text-slate-500"
@@ -104,7 +104,7 @@ export function SettlementPhaseChevron({
                 </div>
 
                 <div className={cn(
-                  "mt-2 text-[10px] uppercase tracking-wide",
+                  "mt-2 text-[11px] font-bold uppercase tracking-widest",
                   isCompleted && "text-emerald-600",
                   isCurrent && "text-indigo-200",
                   isUpcoming && "text-slate-400"

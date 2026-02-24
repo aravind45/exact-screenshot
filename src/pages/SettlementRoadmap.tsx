@@ -318,12 +318,12 @@ export default function SettlementRoadmap() {
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <h1 className="text-2xl font-black text-slate-900 tracking-tight">Action Plan</h1>
-              <Badge variant="outline" className="bg-indigo-600 text-white border-none text-[8px] font-black uppercase tracking-tighter px-1.5 h-4">
+              <Badge variant="outline" className="bg-indigo-600 text-white border-none text-[10px] font-black uppercase tracking-tight px-2 h-5">
                 Derived from Ledger
               </Badge>
               <div className="flex gap-1">
                 {authorityRec?.activeEngines?.map(engine => (
-                  <Badge key={engine} variant="outline" className="bg-indigo-50 border-indigo-200 text-indigo-700 text-[9px] font-bold uppercase py-0 px-2 h-4 shrink-0">
+                  <Badge key={engine} variant="outline" className="bg-indigo-50 border-indigo-200 text-indigo-700 text-[11px] font-bold uppercase py-0.5 px-2.5 h-5 shrink-0">
                     {engine.replace('_', ' ')}
                   </Badge>
                 ))}
@@ -331,19 +331,19 @@ export default function SettlementRoadmap() {
             </div>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
               <p className="text-[11px] text-slate-600 font-medium flex items-center gap-1">
-                Source: <span className="text-slate-900 font-bold bg-slate-100 px-1.5 py-0.5 rounded uppercase text-[9px]">{authorityRec?.authoritySource?.replace(/_/g, " ")}</span>
+                Source: <span className="text-slate-900 font-bold bg-slate-100 px-1.5 py-0.5 rounded uppercase text-[10px]">{authorityRec?.authoritySource?.replace(/_/g, " ")}</span>
               </p>
               <p className="text-[11px] text-slate-600 font-medium flex items-center gap-1">
                 Model: <span className="text-slate-900 font-bold bg-slate-100 px-1.5 py-0.5 rounded uppercase text-[9px]">{authorityRec?.distributionModel?.replace(/_/g, " ")}</span>
               </p>
               <p className="text-[11px] text-slate-600 font-medium flex items-center gap-1">
-                Procedure: <span className="text-slate-900 font-bold uppercase text-[10px]">{authorityRec?.legalTerm}</span>
+                Procedure: <span className="text-slate-900 font-black uppercase text-[11px]">{authorityRec?.legalTerm}</span>
               </p>
             </div>
           </div>
           <div className="flex items-center gap-3">
             <div className="text-right">
-              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest leading-none">Overall Progress</p>
+              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest leading-none">Overall Progress</p>
               <p className="text-xl font-black text-slate-900 leading-tight">{overallProgress}%</p>
             </div>
             <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center">
@@ -379,19 +379,19 @@ export default function SettlementRoadmap() {
         {/* Stats */}
         <div className="grid grid-cols-4 gap-3">
           <div className="bg-white p-3 rounded-xl border border-slate-200">
-            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Total Phases</p>
+            <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Total Phases</p>
             <p className="text-xl font-black text-slate-900 mt-0.5">{dynamicRoadmap.length}</p>
           </div>
           <div className="bg-white p-3 rounded-xl border border-slate-200">
-            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Total Tasks</p>
+            <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Total Tasks</p>
             <p className="text-xl font-black text-slate-900 mt-0.5">{totalTasks}</p>
           </div>
           <div className="bg-white p-3 rounded-xl border border-emerald-200 bg-emerald-50">
-            <p className="text-[10px] font-bold text-emerald-700 uppercase tracking-widest">Completed</p>
+            <p className="text-[11px] font-bold text-emerald-700 uppercase tracking-widest">Completed</p>
             <p className="text-xl font-black text-emerald-900 mt-0.5">{completedTaskIds.length}</p>
           </div>
           <div className="bg-white p-3 rounded-xl border border-amber-200 bg-amber-50">
-            <p className="text-[10px] font-bold text-amber-700 uppercase tracking-widest">Remaining</p>
+            <p className="text-[11px] font-bold text-amber-700 uppercase tracking-widest">Remaining</p>
             <p className="text-xl font-black text-amber-900 mt-0.5">{totalTasks - completedTaskIds.length}</p>
           </div>
         </div>
@@ -415,13 +415,13 @@ export default function SettlementRoadmap() {
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
                   <h3 className={cn(
-                    "text-[10px] font-black uppercase tracking-[0.2em]",
+                    "text-[11px] font-black uppercase tracking-[0.2em]",
                     isContested ? "text-rose-300" : "text-indigo-300"
                   )}>
                     {isContested ? "Active Conflict Overlay" : "Deterministic Settlement Engine"}
                   </h3>
                   {isContested && (
-                    <Badge className="bg-white text-rose-900 border-none text-[8px] font-black uppercase tracking-tighter px-1.5 h-4 animate-pulse">
+                    <Badge className="bg-white text-rose-900 border-none text-[10px] font-black uppercase tracking-tighter px-2 h-5 animate-pulse">
                       SPECIAL Path Active
                     </Badge>
                   )}
@@ -431,18 +431,18 @@ export default function SettlementRoadmap() {
                 </p>
                 <div className="flex flex-wrap gap-2 mt-4">
                   <div className="flex items-center gap-1.5 px-2 py-1 bg-white/10 rounded border border-white/20">
-                    <span className="text-[9px] font-black uppercase tracking-tight text-white/70">Master Source</span>
-                    <span className="text-[9px] font-bold text-white uppercase">{authorityRec.authoritySource?.replace('_', ' ')}</span>
+                    <span className="text-[10px] font-black uppercase tracking-tight text-white/70">Master Source</span>
+                    <span className="text-[10px] font-bold text-white uppercase">{authorityRec.authoritySource?.replace('_', ' ')}</span>
                   </div>
                   <div className="flex items-center gap-1.5 px-2 py-1 bg-white/10 rounded border border-white/20">
-                    <span className="text-[9px] font-black uppercase tracking-tight text-white/70">Orchestrator Mode</span>
-                    <span className="text-[9px] font-bold text-white uppercase">{authorityRec.masterMode}</span>
+                    <span className="text-[10px] font-black uppercase tracking-tight text-white/70">Orchestrator Mode</span>
+                    <span className="text-[10px] font-bold text-white uppercase">{authorityRec.masterMode}</span>
                   </div>
                   <div className="flex items-center gap-1.5 px-2 py-1 bg-white/10 rounded border border-white/20">
-                    <span className="text-[9px] font-black uppercase tracking-tight text-white/70">Active Engines</span>
+                    <span className="text-[10px] font-black uppercase tracking-tight text-white/70">Active Engines</span>
                     <div className="flex gap-1">
                       {authorityRec.activeEngines?.map(engine => (
-                        <span key={engine} className="text-[9px] font-bold text-white uppercase bg-white/10 px-1 rounded">{engine.replace('_', ' ')}</span>
+                        <span key={engine} className="text-[10px] font-bold text-white uppercase bg-white/10 px-1.5 rounded">{engine.replace('_', ' ')}</span>
                       ))}
                     </div>
                   </div>
@@ -498,14 +498,14 @@ export default function SettlementRoadmap() {
               >
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <Badge variant="outline" className="text-[8px] font-black uppercase tracking-tight bg-slate-50 border-slate-200 text-slate-500">Next Required</Badge>
+                    <Badge variant="outline" className="text-[10px] font-black uppercase tracking-tight bg-slate-50 border-slate-200 text-slate-500">Next Required</Badge>
                     {isHighRisk && (
-                      <Badge className="text-[8px] font-black uppercase tracking-tight bg-rose-600 text-white border-rose-600 px-1.5">
+                      <Badge className="text-[10px] font-black uppercase tracking-tight bg-rose-600 text-white border-rose-600 px-1.5">
                         ⚠ Liability Risk
                       </Badge>
                     )}
                     {hasMissingDocs && !isHighRisk && (
-                      <Badge className="text-[8px] font-black uppercase tracking-tight bg-blue-600 text-white border-blue-600 px-1.5">
+                      <Badge className="text-[10px] font-black uppercase tracking-tight bg-blue-600 text-white border-blue-600 px-1.5">
                         <FileText className="w-2.5 h-2.5 mr-0.5" />
                         Docs Required
                       </Badge>
@@ -522,7 +522,7 @@ export default function SettlementRoadmap() {
                 {isHighRisk && (
                   <div className="mt-2.5 pt-2.5 border-t border-rose-100 flex items-center gap-1.5">
                     <AlertCircle className="w-3 h-3 text-rose-500 shrink-0" />
-                    <p className="text-[10px] text-rose-600 font-semibold">Attorney review recommended before completing</p>
+                    <p className="text-[11px] text-rose-600 font-bold">Attorney review recommended before completing</p>
                   </div>
                 )}
               </div>
@@ -628,7 +628,7 @@ export default function SettlementRoadmap() {
         <div className="flex items-center gap-2 px-1 pt-4">
           <div className="w-1.5 h-6 bg-slate-300 rounded-full" />
           <h2 className="text-sm font-black uppercase tracking-widest text-slate-900">Full Roadmap</h2>
-          <span className="text-[10px] text-slate-400 font-bold uppercase">(Phases 1-6)</span>
+          <span className="text-[11px] text-slate-500 font-black uppercase">(Phases 1-6)</span>
         </div>
         <h2 className="text-xl font-bold text-slate-900">All Phases</h2>
         <div className="grid grid-cols-1 gap-4">
@@ -691,12 +691,12 @@ export default function SettlementRoadmap() {
                       <div className="flex items-center gap-2">
                         <h3 className="text-sm font-bold text-slate-900">{phase.title}</h3>
                         {isFuture && !isComplete && (
-                          <Badge variant="outline" className="h-4 px-1.5 text-[8px] font-black uppercase tracking-widest bg-white border-slate-200 text-slate-400">
+                          <Badge variant="outline" className="h-4 px-1.5 text-[10px] font-black uppercase tracking-widest bg-white border-slate-200 text-slate-400">
                             Locked
                           </Badge>
                         )}
                         {phase.isEscalationPath && (
-                          <Badge className="h-4 px-1.5 text-[8px] font-black uppercase tracking-widest bg-amber-600 text-white border-amber-600">
+                          <Badge className="h-4 px-1.5 text-[10px] font-black uppercase tracking-widest bg-amber-600 text-white border-amber-600">
                             Escalation Path
                           </Badge>
                         )}
@@ -710,7 +710,7 @@ export default function SettlementRoadmap() {
                   </div>
                   <div className="flex items-center gap-3">
                     {isCurrent && (
-                      <Badge className="bg-indigo-600 text-white border-indigo-600 animate-pulse shadow-sm px-3 py-1 text-[10px] font-black uppercase">
+                      <Badge className="bg-indigo-600 text-white border-indigo-600 animate-pulse shadow-sm px-3 py-1 text-[11px] font-black uppercase">
                         Currently Active
                       </Badge>
                     )}
@@ -730,7 +730,7 @@ export default function SettlementRoadmap() {
                         </span>
                       </div>
                     ) : (
-                      <div className="text-[10px] font-bold text-slate-300 uppercase tracking-widest pl-8">
+                      <div className="text-[11px] font-black text-slate-300 uppercase tracking-widest pl-8">
                         Awaiting Progress
                       </div>
                     )}

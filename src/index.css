@@ -271,47 +271,47 @@
     box-shadow: var(--shadow-lg);
   }
 
-  /* Status badge base */
+  /* Status badge base - standardized for high visibility */
   .status-badge {
-    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium;
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-widest border border-transparent shadow-sm;
   }
 
-  /* Priority indicators */
+  /* Priority indicators - darkened for contrast */
   .priority-low {
-    @apply bg-success/10 text-success;
+    @apply bg-emerald-50 text-emerald-700 border-emerald-200;
   }
 
   .priority-medium {
-    @apply bg-warning/10 text-warning;
+    @apply bg-amber-50 text-amber-700 border-amber-200;
   }
 
   .priority-high {
-    @apply bg-orange-500/10 text-orange-600;
+    @apply bg-orange-50 text-orange-700 border-orange-200;
   }
 
   .priority-urgent {
-    @apply bg-destructive/10 text-destructive;
+    @apply bg-rose-50 text-rose-700 border-rose-200/60;
   }
 
-  /* Category badges */
+  /* Category badges - improved depth and contrast */
   .category-financial {
-    @apply bg-primary/10 text-primary;
+    @apply bg-primary/10 text-primary border-primary/20;
   }
 
   .category-retirement {
-    @apply bg-violet-500/10 text-violet-600;
+    @apply bg-violet-50 text-violet-700 border-violet-200;
   }
 
   .category-insurance {
-    @apply bg-success/10 text-success;
+    @apply bg-emerald-50 text-emerald-700 border-emerald-200;
   }
 
   .category-employer {
-    @apply bg-warning/10 text-warning;
+    @apply bg-amber-50 text-amber-700 border-amber-200;
   }
 
   .category-property {
-    @apply bg-orange-500/10 text-orange-600;
+    @apply bg-orange-50 text-orange-700 border-orange-200;
   }
 
   /* Glass effect for overlays */
