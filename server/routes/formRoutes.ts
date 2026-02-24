@@ -10,6 +10,10 @@ import { CAFormService } from "../services/caFormService.js";
 import { CA_FORM_REGISTRY, CA_FORM_TITLES, type CAFormId } from "../services/caFormRegistry.js";
 import { NYFormService } from "../services/nyFormService.js";
 import { NY_FORM_REGISTRY, NY_FORM_TITLES, type NYFormId } from "../services/nyFormRegistry.js";
+import { TXFormService } from "../services/txFormService.js";
+import { TX_FORM_REGISTRY, TX_FORM_TITLES, type TXFormId } from "../services/txFormRegistry.js";
+import { FLFormService } from "../services/flFormService.js";
+import { FL_FORM_REGISTRY, FL_FORM_TITLES, type FLFormId } from "../services/flFormRegistry.js";
 
 const router = Router();
 router.use(requireSubscription);
@@ -474,6 +478,208 @@ router.post("/ny/generate", async (req: any, res: Response) => {
     } catch (e: any) {
         logger.error(`Error generating NY form ${req.body?.formId}:`, e.message);
         res.status(500).json({ error: "Failed to generate NY form" });
+    }
+});
+
+// ── TX Form Auto-Fill Endpoints ───────────────────────────────────────────────
+
+// GET /api/forms/tx/schema/:formId - Return UI field schema for a TX form
+router.get("/tx/schema/:formId", async (req: Request, res: Response) => {
+    try {
+        const formId = req.params.formId as TXFormId;
+        if (!TX_FORM_REGISTRY[formId]) {
+            return res.status(404).json({ error: `No schema found for form ${formId}` });
+        }
+        const schema = TXFormService.getUISchema(formId);
+        res.json({ formId, title: TX_FORM_TITLES[formId] || formId, schema });
+    } catch (e: any) {
+        logger.error(`Error fetching TX form schema for ${req.params.formId}:`, e.message);
+        res.status(500).json({ error: "Failed to fetch form schema" });
+    }
+});
+
+// POST /api/forms/tx/preview - Resolve field values without generating PDF (for UI preview)
+router.post("/tx/preview", async (req: any, res: Response) => {
+    try {
+        const { formId, overrides = {} } = req.body;
+        if (!formId) return res.status(400).json({ error: "formId is required" });
+        if (!TX_FORM_REGISTRY[formId as TXFormId]) {
+            return res.status(400).json({ error: `Unsupported TX form: ${formId}` });
+        }
+
+        const estateId = await getEstateId(req.user.id);
+        if (!estateId) return res.status(404).json({ error: "Estate not found" });
+
+        const estate = await prisma.estate.findUnique({
+            where: { id: estateId },
+            include: { user: true },
+        });
+        if (!estate) return res.status(404).json({ error: "Estate data not found" });
+
+        const assets = await prisma.asset.findMany({ where: { estateId } });
+        const heirs = await prisma.heir.findMany({ where: { estateId } });
+
+        const { fieldValues, validationErrors } = TXFormService.resolveFields({
+            formId: formId as TXFormId,
+            estate: { ...estate, ...overrides },
+            assets,
+            heirs,
+            overrides,
+        });
+
+        res.json({ formId, fieldValues, validationErrors });
+    } catch (e: any) {
+        logger.error(`Error previewing TX form ${req.body?.formId}:`, e.message);
+        res.status(500).json({ error: "Failed to preview form fields" });
+    }
+});
+
+// POST /api/forms/tx/generate - Generate and return filled TX form PDF
+router.post("/tx/generate", async (req: any, res: Response) => {
+    try {
+        const { formId, isPreview = false, overrides = {} } = req.body;
+        if (!formId) return res.status(400).json({ error: "formId is required" });
+        if (!TX_FORM_REGISTRY[formId as TXFormId]) {
+            return res.status(400).json({ error: `Unsupported TX form: ${formId}` });
+        }
+
+        const estateId = await getEstateId(req.user.id);
+        if (!estateId) return res.status(404).json({ error: "Estate not found" });
+
+        const estate = await prisma.estate.findUnique({
+            where: { id: estateId },
+            include: { user: true },
+        });
+        if (!estate) return res.status(404).json({ error: "Estate data not found" });
+
+        const assets = await prisma.asset.findMany({ where: { estateId } });
+        const heirs = await prisma.heir.findMany({ where: { estateId } });
+
+        const result = await TXFormService.generate({
+            formId: formId as TXFormId,
+            estate,
+            assets,
+            heirs,
+            overrides,
+        });
+
+        await DistributionService.logEvent(
+            estateId,
+            req.user.id,
+            isPreview ? 'VIEWED' : 'PREPARED',
+            `${isPreview ? 'PREVIEWED' : 'PREPARED'} – ${formId} (TX Auto-Fill)`,
+        );
+
+        res.setHeader("Content-Type", "application/pdf");
+        res.setHeader(
+            "Content-Disposition",
+            `${isPreview ? 'inline' : 'attachment'}; filename="${formId}.pdf"`,
+        );
+        res.send(Buffer.from(result.pdfBytes));
+    } catch (e: any) {
+        logger.error(`Error generating TX form ${req.body?.formId}:`, e.message);
+        res.status(500).json({ error: "Failed to generate TX form" });
+    }
+});
+
+// ── FL Form Auto-Fill Endpoints ───────────────────────────────────────────────
+
+// GET /api/forms/fl/schema/:formId - Return UI field schema for a FL form
+router.get("/fl/schema/:formId", async (req: Request, res: Response) => {
+    try {
+        const formId = req.params.formId as FLFormId;
+        if (!FL_FORM_REGISTRY[formId]) {
+            return res.status(404).json({ error: `No schema found for form ${formId}` });
+        }
+        const schema = FLFormService.getUISchema(formId);
+        res.json({ formId, title: FL_FORM_TITLES[formId] || formId, schema });
+    } catch (e: any) {
+        logger.error(`Error fetching FL form schema for ${req.params.formId}:`, e.message);
+        res.status(500).json({ error: "Failed to fetch form schema" });
+    }
+});
+
+// POST /api/forms/fl/preview - Resolve field values without generating PDF (for UI preview)
+router.post("/fl/preview", async (req: any, res: Response) => {
+    try {
+        const { formId, overrides = {} } = req.body;
+        if (!formId) return res.status(400).json({ error: "formId is required" });
+        if (!FL_FORM_REGISTRY[formId as FLFormId]) {
+            return res.status(400).json({ error: `Unsupported FL form: ${formId}` });
+        }
+
+        const estateId = await getEstateId(req.user.id);
+        if (!estateId) return res.status(404).json({ error: "Estate not found" });
+
+        const estate = await prisma.estate.findUnique({
+            where: { id: estateId },
+            include: { user: true },
+        });
+        if (!estate) return res.status(404).json({ error: "Estate data not found" });
+
+        const assets = await prisma.asset.findMany({ where: { estateId } });
+        const heirs = await prisma.heir.findMany({ where: { estateId } });
+
+        const { fieldValues, validationErrors } = FLFormService.resolveFields({
+            formId: formId as FLFormId,
+            estate: { ...estate, ...overrides },
+            assets,
+            heirs,
+            overrides,
+        });
+
+        res.json({ formId, fieldValues, validationErrors });
+    } catch (e: any) {
+        logger.error(`Error previewing FL form ${req.body?.formId}:`, e.message);
+        res.status(500).json({ error: "Failed to preview form fields" });
+    }
+});
+
+// POST /api/forms/fl/generate - Generate and return filled FL form PDF
+router.post("/fl/generate", async (req: any, res: Response) => {
+    try {
+        const { formId, isPreview = false, overrides = {} } = req.body;
+        if (!formId) return res.status(400).json({ error: "formId is required" });
+        if (!FL_FORM_REGISTRY[formId as FLFormId]) {
+            return res.status(400).json({ error: `Unsupported FL form: ${formId}` });
+        }
+
+        const estateId = await getEstateId(req.user.id);
+        if (!estateId) return res.status(404).json({ error: "Estate not found" });
+
+        const estate = await prisma.estate.findUnique({
+            where: { id: estateId },
+            include: { user: true },
+        });
+        if (!estate) return res.status(404).json({ error: "Estate data not found" });
+
+        const assets = await prisma.asset.findMany({ where: { estateId } });
+        const heirs = await prisma.heir.findMany({ where: { estateId } });
+
+        const result = await FLFormService.generate({
+            formId: formId as FLFormId,
+            estate,
+            assets,
+            heirs,
+            overrides,
+        });
+
+        await DistributionService.logEvent(
+            estateId,
+            req.user.id,
+            isPreview ? 'VIEWED' : 'PREPARED',
+            `${isPreview ? 'PREVIEWED' : 'PREPARED'} – ${formId} (FL Auto-Fill)`,
+        );
+
+        res.setHeader("Content-Type", "application/pdf");
+        res.setHeader(
+            "Content-Disposition",
+            `${isPreview ? 'inline' : 'attachment'}; filename="${formId}.pdf"`,
+        );
+        res.send(Buffer.from(result.pdfBytes));
+    } catch (e: any) {
+        logger.error(`Error generating FL form ${req.body?.formId}:`, e.message);
+        res.status(500).json({ error: "Failed to generate FL form" });
     }
 });
 
