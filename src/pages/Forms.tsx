@@ -3,7 +3,7 @@ import { Sidebar } from "@/components/Sidebar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { SEO } from "@/components/SEO";
-import { FileText, Download, Eye, Gavel, Scale, ScrollText, Loader2, MapPin, Search, ShieldCheck, Lock, AlertCircle, CheckCircle2, Info } from "lucide-react";
+import { FileText, Download, Eye, Gavel, Scale, ScrollText, Loader2, MapPin, Search, ShieldCheck, Lock, AlertCircle, CheckCircle2, Info, Sparkles } from "lucide-react";
 import * as LucideIcons from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { api, FormReadiness } from "@/lib/api";
@@ -13,6 +13,7 @@ import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { AuthorityBadge, AuthorityType } from "@/components/AuthorityBadge";
+import { CAFormAutoFillDialog } from "@/components/CAFormAutoFillDialog";
 
 const STATES = [
     { id: "AL", name: "Alabama", icon: "🏛️", supported: false },
@@ -146,12 +147,15 @@ const DynamicIcon = ({ name, className }: { name: string, className?: string }) 
     return <IconComponent className={className} />;
 };
 
+const CA_AUTO_FILL_FORMS = new Set(['DE-111', 'DE-160', 'DE-310']);
+
 const Forms = () => {
     const [selectedState, setSelectedState] = useState("CA");
     const [searchQuery, setSearchQuery] = useState("");
     const [processFilter, setProcessFilter] = useState("");
     const [authorityFilter, setAuthorityFilter] = useState("");
     const [loadingAction, setLoadingAction] = useState<string | null>(null);
+    const [caAutoFillForm, setCaAutoFillForm] = useState<{ id: string; title: string } | null>(null);
 
     const stateName = STATES.find(s => s.id === selectedState)?.name || selectedState;
 
@@ -456,18 +460,31 @@ const Forms = () => {
                                                                                 className={cn(
                                                                                     "w-full transition-all border font-black uppercase tracking-widest text-[10px] h-10 rounded-xl",
                                                                                     formReady
-                                                                                        ? "bg-primary/10 hover:bg-primary text-primary hover:text-white border-primary/20"
+                                                                                        ? CA_AUTO_FILL_FORMS.has(form.name)
+                                                                                            ? "bg-primary hover:bg-primary/90 text-white border-primary"
+                                                                                            : "bg-primary/10 hover:bg-primary text-primary hover:text-white border-primary/20"
                                                                                         : "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
                                                                                 )}
-                                                                                onClick={() => formReady && handleFormAction(form.name, false)}
+                                                                                onClick={() => {
+                                                                                    if (!formReady) return;
+                                                                                    if (CA_AUTO_FILL_FORMS.has(form.name)) {
+                                                                                        setCaAutoFillForm({ id: form.name, title: form.title });
+                                                                                    } else {
+                                                                                        handleFormAction(form.name, false);
+                                                                                    }
+                                                                                }}
                                                                                 disabled={loadingAction !== null || !formReady}
                                                                             >
                                                                                 {loadingAction === `${form.name}-generate` ? (
                                                                                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                                                                ) : formReady && CA_AUTO_FILL_FORMS.has(form.name) ? (
+                                                                                    <Sparkles className="w-4 h-4 mr-2" />
+                                                                                ) : formReady ? (
+                                                                                    <FileText className="w-4 h-4 mr-2 transition-transform group-hover:scale-110" />
                                                                                 ) : (
-                                                                                    formReady ? <FileText className="w-4 h-4 mr-2 transition-transform group-hover:scale-110" /> : <Lock className="w-4 h-4 mr-2" />
+                                                                                    <Lock className="w-4 h-4 mr-2" />
                                                                                 )}
-                                                                                Auto-Fill (Beta)
+                                                                                {CA_AUTO_FILL_FORMS.has(form.name) ? 'Auto-Fill' : 'Auto-Fill (Beta)'}
                                                                             </Button>
                                                                         </div>
                                                                     </TooltipTrigger>
@@ -512,6 +529,15 @@ const Forms = () => {
                     </div>
                 </footer>
             </main>
+
+            {caAutoFillForm && (
+                <CAFormAutoFillDialog
+                    open={!!caAutoFillForm}
+                    onOpenChange={open => { if (!open) setCaAutoFillForm(null); }}
+                    formId={caAutoFillForm.id}
+                    formTitle={caAutoFillForm.title}
+                />
+            )}
         </div>
     );
 };
