@@ -1,15 +1,16 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { PilotAccessForm } from '../PilotAccessForm';
 
 // Mock fetch globally
-const mockFetch = jest.fn();
+const mockFetch = vi.fn();
 global.fetch = mockFetch;
 
 // Mock toast
-jest.mock('sonner', () => ({
+vi.mock('sonner', () => ({
     toast: {
-        success: jest.fn(),
-        error: jest.fn(),
+        success: vi.fn(),
+        error: vi.fn(),
     },
 }));
 
