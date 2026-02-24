@@ -16,7 +16,8 @@ export const requireSubscription = async (req, res, next) => {
                 fullName: true,
                 role: true,
                 email: true,
-                trialStartedAt: true
+                trialStartedAt: true,
+                isPilot: true
             }
         });
         if (!user)
@@ -25,12 +26,13 @@ export const requireSubscription = async (req, res, next) => {
         const isAlphaUser = user.fullName?.includes("(Alpha)") || user.email?.endsWith("@expectedestate.com");
         const isAdmin = user.role === 'ADMIN';
         const isActive = user.subscriptionStatus === 'ACTIVE';
+        const isPilot = user.isPilot === true;
         // 7-Day Trial Logic
         const TRIAL_DAYS = 7;
         const isTrialing = user.trialStartedAt
             ? (new Date().getTime() - new Date(user.trialStartedAt).getTime() < TRIAL_DAYS * 24 * 60 * 60 * 1000)
             : false;
-        const canAccess = isAdmin || isAlphaUser || isActive || isTrialing;
+        const canAccess = isAdmin || isAlphaUser || isActive || isTrialing || isPilot;
         if (!canAccess) {
             return res.status(403).json({
                 error: "Subscription Required",

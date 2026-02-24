@@ -1,4 +1,5 @@
 import { SETTLEMENT_PHASE_TASKS } from "../../src/config/settlementPhases.js";
+import { STATE_PHASE_OVERRIDES, NEUTRAL_PHASE_MILESTONES } from "../../src/config/roadmapMetadata.js";
 import { prisma as db } from "../db.js";
 import { calculateAuthorityRecommendation } from "../../src/lib/authorityEngine.js";
 import { getLettersTerm } from "../../src/lib/stateRules.js";
@@ -92,6 +93,7 @@ export function resolveTaskForState(task, stateCode) {
             requiredDocs: merged.requiredDocs ?? base.requiredDocs,
             links: override.links ?? base.links,
             outputs: merged.outputs ?? base.outputs,
+            dependencies: merged.dependencies ?? base.dependencies,
         };
     }
     // 3️⃣ If no override, return neutral base
@@ -142,120 +144,8 @@ function normalizeTaskForState(task, state) {
     };
 }
 // ─────────────────────────────────────────────────────────────────────────────
-// State-specific phase milestone overrides
-// Base milestones are state-neutral; each state injects its own procedural triggers.
+// (Overrides and Neutral milestones now imported from roadmapMetadata)
 // ─────────────────────────────────────────────────────────────────────────────
-const STATE_PHASE_OVERRIDES = {
-    NY: {
-        creditor_claims: {
-            milestone: "After Letters Issued",
-            subtitle: "7-Month Exposure Management",
-        },
-        asset_liquidation: {
-            milestone: "Month 6–12",
-            subtitle: "Transfer & Sell",
-        },
-        final_distribution: {
-            milestone: "After Accounting & Approvals",
-            subtitle: "Settle & Close",
-        },
-    },
-    CA: {
-        creditor_claims: {
-            milestone: "After Notice Published",
-            subtitle: "4-Month Claim Window",
-        },
-        asset_liquidation: {
-            milestone: "After Inventory Filed",
-            subtitle: "IAEA / Court-Confirmed Sales",
-        },
-        final_distribution: {
-            milestone: "After Claim Period",
-            subtitle: "Estate Closing",
-        },
-    },
-    TX: {
-        creditor_claims: {
-            milestone: "After Letters Issued",
-            subtitle: "Secured & Unsecured Claims (4 Months)",
-        },
-        final_distribution: {
-            milestone: "After Debts Settled",
-            subtitle: "Estate In Closing",
-        },
-    },
-    FL: {
-        creditor_claims: {
-            milestone: "After Letters Issued",
-            subtitle: "3-Month Creditor Window",
-        },
-        final_distribution: {
-            milestone: "After Creditor Period Ends",
-            subtitle: "Estate In Closing",
-        },
-    },
-    PA: {
-        creditor_claims: {
-            milestone: "After Letters Issued",
-            subtitle: "1-Year Claim Period",
-        },
-    },
-    OH: {
-        creditor_claims: {
-            milestone: "After Appointment",
-            subtitle: "6-Month Claim Period",
-        },
-    },
-    IL: {
-        creditor_claims: {
-            milestone: "After Letters Issued",
-            subtitle: "6-Month Claim Period",
-        },
-    },
-    GA: {
-        creditor_claims: {
-            milestone: "After Publication",
-            subtitle: "3-Month Claim Period",
-        },
-    },
-    NJ: {
-        creditor_claims: {
-            milestone: "After Letters Issued",
-            subtitle: "6-Month Claim Period",
-        },
-    },
-    MA: {
-        creditor_claims: {
-            milestone: "After Date of Death",
-            subtitle: "1-Year Claim Period",
-        },
-    },
-    // ── DEFAULT: state-neutral fallback so renderer never falls back to CA ──
-    DEFAULT: {
-        creditor_claims: {
-            milestone: "After Letters Issued",
-            subtitle: "State-Specific Timing",
-        },
-        asset_liquidation: {
-            milestone: "Post-Inventory",
-            subtitle: "State-Specific Process",
-        },
-        final_distribution: {
-            milestone: "After Claims & Accounting",
-            subtitle: "Distribution & Closeout",
-        },
-    },
-};
-// State-neutral defaults for phases (used when no state override exists)
-const NEUTRAL_PHASE_MILESTONES = {
-    immediate_actions: { milestone: "Death to Filing", subtitle: "Secure & Notify" },
-    pre_filing_compliance: { milestone: "Before Petition Filing", subtitle: "Procedural Checks" },
-    court_filing: { milestone: "After Petition Filed", subtitle: "Obtaining Authority" },
-    asset_discovery: { milestone: "After Letters Issued", subtitle: "Inventory & Valuation" },
-    creditor_claims: { milestone: "After Letters Issued", subtitle: "State-Specific Claim Handling" },
-    asset_liquidation: { milestone: "Post-Inventory", subtitle: "Transfer & Sale (If Required)" },
-    final_distribution: { milestone: "After Claims & Accounting", subtitle: "Distribution & Closeout" },
-};
 // ─────────────────────────────────────────────────────────────────────────────
 // CA-only tokens that must NEVER appear for non-CA states
 // ─────────────────────────────────────────────────────────────────────────────
@@ -371,19 +261,14 @@ function validateNoStateContamination(phases, state) {
 // ─────────────────────────────────────────────────────────────────────────────
 // Step 4 — Phase Header Override Resolver
 // No CA fallback — only state-specific or neutral default.
-// Resolution: stateOverrides[state] → DEFAULT → NEUTRAL_PHASE_MILESTONES → {}
+// Resolution: stateOverrides[state] → NEUTRAL_PHASE_MILESTONES → {}
 // ─────────────────────────────────────────────────────────────────────────────
 export function resolvePhaseHeader(phaseKey, stateCode) {
     const stateOverride = STATE_PHASE_OVERRIDES[stateCode]?.[phaseKey];
-    const defaultOverride = STATE_PHASE_OVERRIDES["DEFAULT"]?.[phaseKey];
     const neutralDefault = NEUTRAL_PHASE_MILESTONES[phaseKey];
     return {
-        milestone: stateOverride?.milestone
-            || defaultOverride?.milestone
-            || neutralDefault?.milestone,
-        subtitle: stateOverride?.subtitle
-            || defaultOverride?.subtitle
-            || neutralDefault?.subtitle,
+        milestone: stateOverride?.milestone || neutralDefault?.milestone,
+        subtitle: stateOverride?.subtitle || neutralDefault?.subtitle,
     };
 }
 /**
@@ -418,10 +303,11 @@ function isProbateMode(profile) {
     return profile.activeEngines.includes("PROBATE") || profile.activeEngines.includes("AFFIDAVIT");
 }
 function ensurePreFilingCompliance(phases, profile) {
-    if (profile.state !== "NY" || !isProbateMode(profile))
-        return phases;
     const alreadyPresent = phases.some(p => p.phase === "pre_filing_compliance");
     if (alreadyPresent)
+        return phases;
+    // If not present, only auto-inject for NY probate (traditional behavior)
+    if (profile.state !== "NY" || !isProbateMode(profile))
         return phases;
     const preFiling = SETTLEMENT_PHASE_TASKS.find(p => p.phase === "pre_filing_compliance");
     if (!preFiling)
@@ -497,7 +383,9 @@ export async function analyzeEstateProfile(estateId) {
         distributionModel: rec.distributionModel,
         activeEngines: rec.activeEngines,
         hasWill: estate.hasWill,
-        hasUnknownHeirs: estate.hasUnknownHeirs
+        hasUnknownHeirs: estate.hasUnknownHeirs,
+        has_foreign_beneficiary: estate.internationalReasons?.includes("FOREIGN_BENEFICIARY") || estate.internationalReasons?.includes("FOREIGN_BENEFICIARIES") || false,
+        executor_non_us_resident: estate.internationalReasons?.includes("EXECUTOR_RESIDENCE") || false
     };
 }
 /**
@@ -513,17 +401,23 @@ export function filterTasksForEstate(allTasks, profile, completedTaskIds = []) {
             }
         });
     });
-    return allTasks.map((phaseList) => ({
+    const filteredPhases = allTasks.map((phaseList) => ({
         ...phaseList,
         tasks: phaseList.tasks.filter((task) => {
+            // (normalizeTaskForState is called upstream or we should call it here if needed)
+            // Actually, SETTLEMENT_PHASE_TASKS contains PhaseTasks which need normalization.
+            // Resolve state override merge (state-neutral first pattern)
+            const mergedTask = resolveTaskForState(task, profile.state);
+            if (mergedTask === null)
+                return false; // Task excluded for this state
+            // Note: we are filtering, but we ALSO need to map the tasks to their normalized versions.
+            // The current filterTasksForEstate logic in this project seems to only filter, 
+            // but the normalizeTaskForState call should probably happen here.
             // 2. Handle Exclusivity: If a group is "set", only show the completed task in that group
             if (task.exclusiveGroup && completedGroups.has(task.exclusiveGroup)) {
                 return completedTaskIds.includes(task.id);
             }
             // 3. Handle Track Compatibility (Multi-Dimensional)
-            // We check if the task is compatible with ANY of the active engines.
-            // E.g., if "PROBATE" is an active engine, show probate tasks.
-            // If trackCompatibility is empty or null, show the task (no restrictions)
             if (task.trackCompatibility && task.trackCompatibility.length > 0) {
                 const isCompatible = task.trackCompatibility.some(track => profile.activeEngines.includes(track) ||
                     (track === "AFFIDAVIT" && profile.procedureType === "SMALL_ESTATE_AFFIDAVIT"));
@@ -537,7 +431,6 @@ export function filterTasksForEstate(allTasks, profile, completedTaskIds = []) {
                         return profile.hasWill;
                     if (variant === "INTESTATE")
                         return !profile.hasWill;
-                    // Expand with more dynamic states here as needed (e.g. UPC_UNSUPERVISED)
                     return false;
                 });
                 if (!hasMatchingVariant)
@@ -568,18 +461,17 @@ export function filterTasksForEstate(allTasks, profile, completedTaskIds = []) {
                 }
             }
             // Always show non-optional tasks (if they survived compatibility, variant, & predicate checks)
-            if (!task.isOptional)
+            const isMandatory = mergedTask.isOptional === false;
+            if (isMandatory)
                 return true;
             // Filter based on task ID and estate profile
             switch (task.id) {
-                // Guardian Ad Litem Tasks (for minors)
                 case "identify_minor_beneficiaries":
                 case "petition_guardian_ad_litem":
                 case "obtain_guardian_order":
                 case "coordinate_with_guardian":
                 case "guardian_distribution_approval":
                     return profile.hasMinorBeneficiaries;
-                // Primary Residence Succession (small estates in CA)
                 case "check_primary_residence_succession":
                 case "file_succession_petition":
                 case "give_succession_notice":
@@ -587,36 +479,43 @@ export function filterTasksForEstate(allTasks, profile, completedTaskIds = []) {
                     return (profile.isSmallEstate &&
                         profile.isPrimaryResidence &&
                         profile.state === "CA");
-                // Contested Probate Tasks
                 case "respond_to_objections":
                 case "attend_contest_hearing":
                 case "resolve_contest":
                     return profile.isContested;
-                // Bond Waiver (always show as optional - saves money)
                 case "request_bond_waiver":
                 case "file_bond_waiver":
                 case "obtain_bond_waiver_order":
-                    return profile.authoritySource === "COURT"; // Only for court authority
-                // Special Notice (always show - used in 90% of estates)
+                    return profile.authoritySource === "COURT";
                 case "track_special_notice_requests":
                 case "serve_special_notice_parties":
-                    return profile.authoritySource === "COURT"; // Only for court authority
-                // Will Search vs General Doc Search
+                    return profile.authoritySource === "COURT";
                 case "locate_will":
                     return profile.hasWill;
                 case "locate_docs_no_will":
                     return !profile.hasWill;
-                // Default: show other optional tasks
                 default:
                     return true;
             }
         }),
+    })).map(phaseList => ({
+        ...phaseList,
+        tasks: phaseList.tasks.map(t => normalizeTaskForState(t, profile.state))
+    }));
+    // 6. Scrub Dependencies: Filter out any dependencies that are not present in the current roadmap
+    const allVisibleTaskIds = new Set(filteredPhases.flatMap(p => p.tasks.map(t => t.id)));
+    return filteredPhases.map(phase => ({
+        ...phase,
+        tasks: phase.tasks.map(task => ({
+            ...task,
+            dependencies: task.dependencies?.filter(depId => allVisibleTaskIds.has(depId)) || []
+        }))
     }));
 }
 /**
  * Get roadmap from database based on estate's settlement type
  */
-async function getRoadmapFromDatabase(estateId, profile, completedTaskIds) {
+export async function getRoadmapFromDatabase(estateId, profile, completedTaskIds) {
     // Get estate to determine settlement type
     const estate = await db.estate.findUnique({
         where: { id: estateId },
@@ -676,10 +575,10 @@ async function getRoadmapFromDatabase(estateId, profile, completedTaskIds) {
                 description: stateOverride?.description || task.description || task.title,
                 estimatedTime: task.estimatedTime || undefined,
                 category: task.category,
-                isOptional: task.isOptional,
+                isOptional: stateOverride?.isOptional !== undefined ? stateOverride.isOptional : task.isOptional,
                 requiresAuthority: task.requiresAuthority,
                 requiredDocs: task.requiredDocs,
-                dependencies: task.dependencies,
+                dependencies: stateOverride?.dependencies?.length > 0 ? stateOverride.dependencies : task.dependencies,
                 exclusiveGroup: task.exclusiveGroup || undefined,
                 trackCompatibility: task.trackCompatibility,
                 tags: task.tags,

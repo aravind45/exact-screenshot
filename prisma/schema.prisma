@@ -32,6 +32,7 @@ model User {
   trialStartedAt          DateTime?                 @default(now()) @map("trial_started_at")
   userType                String                    @default("EXECUTOR") @map("user_type")
   role                    UserRole                  @default(EXECUTOR)
+  isPilot                 Boolean                   @default(false) @map("is_pilot")
   emailVerifiedAt         DateTime?                 @map("email_verified_at")
   verificationToken       String?                   @map("verification_token")
   adminActionLogs         AdminActionLog[]
@@ -78,6 +79,7 @@ model Estate {
   hearingDept               String?              @map("hearing_dept")
   hearingAddress            String?              @map("hearing_address")
   probateStatus             String               @default("NOT_STARTED") @map("probate_status")
+  administrationType        String?              @map("administration_type")
   courtCaseNumber           String?              @map("court_case_number")
   probateCounty             String?              @map("probate_county")
   status                    String?

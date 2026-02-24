@@ -174,4 +174,73 @@ router.post("/contact", async (req, res) => {
     }
 });
 
+/**
+ * Handles "Request Pilot Access" submissions for B2B.
+ */
+router.post("/pilot-request", async (req, res) => {
+    const { email, event, metadata } = req.body;
+    const { firmName, attorneyName, casesPerYear } = metadata || {};
+
+    if (!email || !firmName || !attorneyName) {
+        return res.status(400).json({ error: "Required fields missing" });
+    }
+
+    try {
+        // 1. Log the pilot request event
+        await prisma.marketingEvent.create({
+            data: {
+                event: event || "pilot_request_submitted",
+                email,
+                source: "texas_b2b_landing",
+                metadata: { firmName, attorneyName, casesPerYear }
+            }
+        });
+
+        // 2. Send email to support
+        const apiKey = process.env.MAILGUN_API_KEY;
+        const domain = process.env.MAILGUN_DOMAIN || "expectedestate.com";
+        const supportEmail = "expected.estate@gmail.com";
+
+        const subject = `🚀 B2B Pilot Request: ${firmName}`;
+        const body = `
+New Texas Lawyer Pilot Request Received:
+
+Firm Name: ${firmName}
+Attorney: ${attorneyName}
+Email: ${email}
+Cases/Year: ${casesPerYear}
+
+Next Steps:
+1. Review the firm.
+2. Manually provision the account (Set role=ATTORNEY, isPilot=true).
+3. Contact the attorney via ${email}.
+        `.trim();
+
+        if (apiKey) {
+            const encodedKey = Buffer.from(`api:${apiKey}`).toString("base64");
+            const formData = new URLSearchParams();
+            formData.append("from", `Pilot Support <noreply@${domain}>`);
+            formData.append("to", supportEmail);
+            formData.append("reply-to", email);
+            formData.append("subject", subject);
+            formData.append("text", body);
+
+            const baseUrl = process.env.MAILGUN_BASE_URL || "https://api.mailgun.net";
+            await fetch(`${baseUrl}/v3/${domain}/messages`, {
+                method: "POST",
+                headers: { "Authorization": `Basic ${encodedKey}` },
+                body: formData
+            });
+            logger.info(`[Marketing] Pilot request forwarded for ${email}`);
+        } else {
+            logger.info(`📧 [SIMULATED] PILOT REQUEST from ${email}: ${JSON.stringify(metadata)}`);
+        }
+
+        res.json({ success: true, message: "Pilot request submitted" });
+    } catch (error: any) {
+        logger.error("Pilot Request Error:", error.message);
+        res.status(500).json({ error: "Failed to process pilot request" });
+    }
+});
+
 export default router;

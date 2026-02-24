@@ -39,6 +39,7 @@ import lettersDispatchRoutes from "./routes/lettersDispatchRoutes.js";
 import deadlineRoutes from "./routes/deadlineRoutes.js";
 import formRoutes from "./routes/formRoutes.js";
 import ssotRoutes from "./routes/ssotRoutes.js";
+import { TENANTS, getTenantByHostname } from "../src/config/tenantConfig.js";
 
 const isServerless = process.env.VERCEL === '1' || process.env.NETLIFY === 'true' || !!process.env.AWS_EXECUTION_ENV || !!process.env.FUNCTION_NAME;
 const app = express();
@@ -88,7 +89,8 @@ const allowedOrigins = [
     'http://localhost:8081',
     'http://localhost:3000',
     'https://www.expectedestate.com',
-    'https://expected-estate.vercel.app'
+    'https://expected-estate.vercel.app',
+    'https://texas.expectedestate.com'
 ].filter(Boolean) as string[];
 
 app.use(cors({
@@ -156,6 +158,24 @@ app.get("/api/health", async (req, res) => {
 
 app.get("/api/ping", (req, res) => {
     res.send("pong");
+});
+
+// Tenant Configuration
+app.get("/api/tenant-config", (req, res) => {
+    const host = req.headers.host || "expectedestate.com";
+    // Check for query param for development testing
+    const tenantParam = req.query.tenant as string;
+
+    let tenant;
+    if (tenantParam && TENANTS[tenantParam as keyof typeof TENANTS]) {
+        tenant = TENANTS[tenantParam as keyof typeof TENANTS];
+    } else {
+        // Remove port if present
+        const hostname = host.split(':')[0];
+        tenant = getTenantByHostname(hostname);
+    }
+
+    res.json(tenant);
 });
 
 // Routes

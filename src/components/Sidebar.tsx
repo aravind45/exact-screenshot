@@ -25,9 +25,12 @@ import {
     Eye,
     Menu,
     X,
+    Briefcase,
+    FileText,
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTerminology } from "@/hooks/useTerminology";
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
@@ -45,6 +48,7 @@ export function Sidebar() {
     const navigate = useNavigate();
     const location = useLocation();
     const { user, isAdmin, signOut } = useAuth();
+    const { t, isB2BTexas } = useTerminology();
     const [supportOpen, setSupportOpen] = useState(false);
     const [supportTab, setSupportTab] = useState<"feedback" | "contact">("feedback");
     const [isMobileOpen, setIsMobileOpen] = useState(false);
@@ -81,7 +85,7 @@ export function Sidebar() {
     if (isHeir) {
         const HEIR_NAV: { title: string; items: NavItem[] }[] = [
             {
-                title: "Estate Overview",
+                title: `${t('estateName')} Management`,
                 items: [
                     { label: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
                     { label: "Asset Ledger", icon: Landmark, path: "/assets" },
@@ -189,10 +193,17 @@ export function Sidebar() {
     // ────────────────────────────────────────────────────────────────────────────
 
     const NAV_CATEGORIES: { title: string; items: NavItem[] }[] = [
+        ...(isB2BTexas ? [{
+            title: "Firm Management",
+            items: [
+                { label: t('firmDashboard') as string, icon: Briefcase, path: "/firm/dashboard" },
+                { label: t('clientStatusReport') as string, icon: FileText, path: "/reports/client-status" },
+            ]
+        }] : []),
         {
             title: "Navigation",
             items: [
-                { label: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
+                { label: t('executorDashboard') as string, icon: LayoutDashboard, path: "/dashboard" },
                 { label: "Action Plan", icon: Map, path: "/roadmap" },
             ]
         },
@@ -217,7 +228,7 @@ export function Sidebar() {
                 { label: "Follow-Ups", icon: Bell, path: "/follow-ups" },
             ]
         },
-        {
+        ...(!isB2BTexas ? [{
             title: "Advisor Marketplace",
             items: [
                 { label: "Marketplace", icon: Search, path: "/marketplace" },
@@ -230,7 +241,7 @@ export function Sidebar() {
                     : []
                 ),
             ]
-        },
+        }] : []),
         ...(!isViewer ? [{
             title: "Support",
             items: [

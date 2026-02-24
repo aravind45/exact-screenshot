@@ -765,6 +765,13 @@ export const api = {
         return parseResponse(response);
     },
 
+    getEstates: async () => {
+        const response = await fetch(`${API_URL}/estates`, {
+            headers: getHeaders(),
+        });
+        return parseResponse(response);
+    },
+
     updateMyEstate: async (data: any) => {
         const response = await fetch(`${API_URL}/estates/my`, {
             method: "PUT",

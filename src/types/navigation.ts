@@ -162,6 +162,7 @@ export interface EstateProfileData {
   executorName: string;
   state: string;
   deathCertificateUploaded: boolean;
+  administrationType?: string;
 }
 
 export interface ProbateStatusData {
