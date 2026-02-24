@@ -10,6 +10,7 @@ export type SettlementTrack =
     | "POD_TOD_TRANSFER"
     | "SPOUSAL_PETITION"
     | "ANCILLARY_PROBATE"
+    | "VOLUNTARY_ADMINISTRATION"
     | "INSOLVENT"
     | "SPECIAL"
     | "DISCOVERY";
@@ -731,6 +732,67 @@ export const TRACK_STAGES: Record<SettlementTrack, ProcessStage[]> = {
             id: "select_track", title: "Track Selection", description: "Commit to the correct legal path based on findings.",
             tasks: [
                 { id: "finalize_track", title: "Finalize Settlement Track" }
+            ]
+        }
+    ],
+    VOLUNTARY_ADMINISTRATION: [
+        {
+            id: "preliminary",
+            title: "Preliminary Tasks",
+            description: "Wait required period and gather necessary documents.",
+            trigger: 'IMMEDIATE',
+            milestone: 'Death Initial',
+            tasks: [
+                { id: "death_certs", title: "Obtain Certified Death Certificates" },
+                { id: "will_original", title: "Locate Original Will (if any)" },
+                { id: "wait_30_days", title: "Wait 30 Days from Date of Death" }
+            ]
+        },
+        {
+            id: "statement",
+            title: "Voluntary Statement",
+            description: "File the Voluntary Administration Statement with the Court.",
+            trigger: 'AFTER_PETITION_FILED',
+            milestone: 'Post-Filing',
+            tasks: [
+                { id: "prepare_statement", title: "Prepare Voluntary Administration Statement" },
+                { id: "attach_will", title: "Attach Original Will (if any)" },
+                { id: "pay_fee", title: "Pay Filing Fee" },
+                { id: "file_court", title: "File with Probate & Family Court" }
+            ]
+        },
+        {
+            id: "authority",
+            title: "Certified Statement",
+            description: "The court issues a certified copy of the statement as your authority.",
+            trigger: 'AFTER_LETTERS_ISSUED',
+            milestone: 'Fiduciary Authority Issued',
+            tasks: [
+                { id: "obtain_certified", title: "Obtain Certified Copy of Statement" },
+                { id: "ein", title: "Apply for EIN" }
+            ]
+        },
+        {
+            id: "collection",
+            title: "Collection & Payment",
+            description: "Collect assets and pay debts in priority order.",
+            trigger: 'AFTER_LETTERS_ISSUED',
+            tasks: [
+                { id: "present_certified", title: "Present Certified Statement to Institutions" },
+                { id: "collect_assets", title: "Collect Assets into Estate Account" },
+                { id: "pay_funeral", title: "Pay Funeral & Burial Expenses" },
+                { id: "pay_debts", title: "Pay Valid Creditors" }
+            ]
+        },
+        {
+            id: "distribution",
+            title: "Final Distribution",
+            description: "Distribute remaining assets per Will or Intestacy law.",
+            trigger: 'AFTER_DEBTS_PAID',
+            tasks: [
+                { id: "calc_shares", title: "Calculate Final Shares" },
+                { id: "distribute", title: "Distribute to Heirs/Devisees" },
+                { id: "close_account", title: "Close Estate Account" }
             ]
         }
     ]

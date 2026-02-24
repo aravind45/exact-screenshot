@@ -59,6 +59,12 @@ const SETTLEMENT_TYPE_META: Record<string, { tier: number; coverage: number; nam
         name: 'Ancillary Probate',
         description: 'Secondary probate in state where out-of-state property is located'
     },
+    VOLUNTARY_ADMINISTRATION: {
+        tier: 5,
+        coverage: 0.005,
+        name: 'Voluntary Administration',
+        description: 'Simplified small estate procedure for Massachusetts'
+    },
     INSOLVENT: {
         tier: 4,
         coverage: 0.01,
@@ -197,7 +203,7 @@ async function main() {
                     const task = stage.tasks[j];
                     const description = generateTaskDescription(task.title);
 
-                    await prisma.roadmapTask.upsert({
+                    await (prisma as any).roadmapTask.upsert({
                         where: {
                             phaseId_taskCode: {
                                 phaseId: phase.id,
@@ -219,8 +225,8 @@ async function main() {
                             riskWarning: task.riskWarning,
                             deadlineWarningId: null,
                             isInternationalOnly: false,
-                            alerts: null,
-                            links: null,
+                            alerts: {} as any,
+                            links: {} as any,
                             tags: [],
                         },
                         create: {
@@ -240,8 +246,8 @@ async function main() {
                             riskWarning: task.riskWarning,
                             deadlineWarningId: null,
                             isInternationalOnly: false,
-                            alerts: null,
-                            links: null,
+                            alerts: {} as any,
+                            links: {} as any,
                             tags: [],
                         },
                     });
@@ -252,7 +258,6 @@ async function main() {
 
             console.log(`   ✅ Phase: ${stage.title} (${stage.tasks?.length || 0} tasks)`);
         }
-
         console.log('');
     }
 

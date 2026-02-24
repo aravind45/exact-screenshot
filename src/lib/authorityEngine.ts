@@ -237,32 +237,6 @@ export function calculateAuthorityRecommendation(
         // Ancillary probate must be checked BEFORE trust if the primary out-of-state asset is probate
         // (Trust assets alone wouldn't trigger ancillary if titles are held by trust).
         procedureType = "ANCILLARY_PROBATE";
-        type = "ANCILLARY_PROBATE";
-    } else if (probateTotal > 0) {
-        // HYBRID PRIORITY: If any assets are outside the trust, the Primary Roadmap track
-        // should be a Court track (Small Estate or Probate) to ensure Phase 0/1 compliance is visible.
-        // Trust tasks will still accompany these via activeEngines.
-        if (probateTotal <= threshold) {
-            procedureType = "SMALL_ESTATE_AFFIDAVIT";
-            type = "SMALL_ESTATE";
-        } else {
-            if (rule.isUPC && metadata?.hasWill && !metadata?.hasContest) {
-                procedureType = "INFORMAL_PROBATE";
-                type = "INFORMAL_PROBATE";
-            } else if (state === "TX" && metadata?.hasWill && !metadata?.hasInsolvencyRisk) {
-                procedureType = "MUNIMENT_OF_TITLE";
-                type = "MUNIMENT_OF_TITLE";
-            } else {
-                procedureType = "FORMAL_PROBATE";
-                type = "FORMAL_PROBATE";
-            }
-        }
-    } else if (activeEngines.includes("TRUST")) {
-        procedureType = "TRUST_ADMINISTRATION";
-        // undefined isTrustRevocable → conservative default = revocable (simpler process)
-        type = metadata?.isTrustRevocable === false ? "TRUST_ADMIN_IRREVOCABLE" : "TRUST_ADMIN_REVOCABLE";
-    } else if (metadata?.hasWill === false) {
-        // Intestate only when: no trust, no probate assets? (Wait, if probateTotal was >0 it would have hit above)
         // This block handles cases where asset profiles haven't been completed yet but will status is known.
         procedureType = "FORMAL_PROBATE";
         type = "INTESTATE";
@@ -280,7 +254,8 @@ export function calculateAuthorityRecommendation(
             type = "FORMAL_PROBATE";
         }
     } else if (probateTotal > 0 || isEligibleForSmallEstate) {
-        if (state === "FL" && probateTotal < 75000) procedureType = "SUMMARY_ADMINISTRATION";
+        if (state === "MA" && probateTotal <= 25000) procedureType = "VOLUNTARY_ADMINISTRATION";
+        else if (state === "FL" && probateTotal < 75000) procedureType = "SUMMARY_ADMINISTRATION";
         else if (state === "NY" && probateTotal < 50000) procedureType = "VOLUNTARY_ADMINISTRATION";
         else procedureType = "SMALL_ESTATE_AFFIDAVIT";
         type = "SMALL_ESTATE";

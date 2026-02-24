@@ -656,6 +656,24 @@ model RoadmapTaskStateOverride {
   @@map("roadmap_task_state_overrides")
 }
 
+model JurisdictionRule {
+  id                    String   @id @default(uuid())
+  stateCode             String   @unique @map("state_code")
+  probateSystem         String   @default("GENERIC") @map("probate_system") // e.g., "MUPC", "GENERIC"
+  smallEstateThreshold  Decimal  @map("small_estate_threshold") @db.Decimal(12, 2)
+  smallEstateTerm       String   @map("small_estate_term")
+  claimWindowDays       Int      @default(365) @map("claim_window_days")
+  shortenedWindowDays   Int?     @map("shortened_window_days")
+  estateTaxThreshold    Decimal? @map("estate_tax_threshold") @db.Decimal(12, 2)
+  bondDefaultRequired   Boolean  @default(true) @map("bond_default_required")
+  bondWaiverRules       Json?    @map("bond_waiver_rules")
+  citations             Json?    
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+
+  @@map("jurisdiction_rules")
+}
+
 model Transaction {
   id                    String   @id @default(uuid())
   userId                String   @map("user_id")

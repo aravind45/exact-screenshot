@@ -92,6 +92,15 @@ function normalizeTextForState(text: string | undefined, state: string): string 
   out = out.replace(/\bCalifornia law\b/gi, "State law");
   out = out.replace(/\bCalifornia\b/gi, "state");
   out = out.replace(/\bCA\b/g, "state");
+  out = out.replace(/\bstateCode\b/g, state);
+
+  if (state === "MA") {
+    out = out.replace(/\bSmall Estate Affidavit\b/gi, "Voluntary Administration Statement");
+    out = out.replace(/\bSmall Estate\b/gi, "Voluntary Administration");
+    out = out.replace(/\bLetters Testamentary\b/gi, "Letters of Authority");
+    out = out.replace(/\bLetters of Administration\b/gi, "Letters of Authority");
+    out = out.replace(/\bFile Probate Petition\b/gi, "File Petition for Probate");
+  }
 
   out = out.replace(/\s{2,}/g, " ").trim();
   return out;
@@ -414,6 +423,21 @@ export interface RoadmapResponse {
 }
 
 /**
+ * Fetch jurisdiction rules from database with fallback to hardcoded defaults
+ */
+async function getJurisdictionRule(stateCode: string): Promise<any> {
+  const dbRule = await (db as any).jurisdictionRule.findUnique({
+    where: { stateCode }
+  });
+
+  if (dbRule) return dbRule;
+
+  // Fallback to hardcoded defaults from stateRules.ts
+  const { STATE_RULES } = await import("../../src/lib/stateRules.js");
+  return STATE_RULES[stateCode] || STATE_RULES["CA"];
+}
+
+/**
  * Analyze estate to determine which optional tasks should be shown
  */
 export async function analyzeEstateProfile(estateId: string): Promise<EstateProfile> {
@@ -434,6 +458,9 @@ export async function analyzeEstateProfile(estateId: string): Promise<EstateProf
   if (!estate.deceasedState) {
     throw new Error("STATE_REQUIRED");
   }
+
+  // Fetch state-specific rules from DB
+  const stateRule = await getJurisdictionRule(estate.deceasedState);
 
   // Calculate insolvency FIRST so it is passed INTO calculateAuthorityRecommendation.
   // Previously insolvency was calculated AFTER the engine call, which meant
@@ -610,6 +637,23 @@ export function filterTasksForEstate(
           return profile.hasWill;
         case "locate_docs_no_will":
           return !profile.hasWill;
+
+        // MA Specific Logic
+        case "file_estate_tax_return":
+        case "evaluate_form_706":
+          if (profile.state === 'MA') {
+            return profile.estimatedValue > 2000000;
+          }
+          return true; // Use default logic for other states
+
+        case "handle_bond_waivers":
+        case "obtain_bond_waiver_order":
+        case "request_bond_waiver":
+          if (profile.state === 'MA') {
+            // In MA, bonds are almost always required but surety can be waived
+            return profile.authoritySource === "COURT";
+          }
+          return profile.authoritySource === "COURT";
 
         default:
           return true;

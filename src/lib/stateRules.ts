@@ -67,6 +67,12 @@ export interface StateRule {
         citation: string[];
     };
     notes?: string;
+    // MUPC / Dynamic Logic Fields
+    probateSystem?: "MUPC" | "GENERIC";
+    claimWindowDays?: number;
+    shortenedWindowDays?: number;
+    estateTaxThreshold?: number;
+    bondDefaultRequired?: boolean;
 }
 
 export const STATE_RULES: Record<string, StateRule> = {
@@ -125,7 +131,20 @@ export const STATE_RULES: Record<string, StateRule> = {
     "LA": { threshold: 125000, smallEstateTerm: "Small Estate Affidavit", smallEstateCitation: ["La. C.C.P. Art. 3421"], probateTerm: "Formal Probate", probateCitation: ["La. C.C.P."], isUPC: false, lettersTerm: "Letters of Appointment" },
     "ME": { threshold: 40000, smallEstateTerm: "Small Estate Affidavit", smallEstateCitation: ["18-C M.R.S. § 3-1201"], probateTerm: "Informal Probate", probateCitation: ["18-C M.R.S. § 3-301"], isUPC: true, lettersTerm: "Letters Testamentary" },
     "MD": { threshold: 50000, smallEstateTerm: "Small Estate Affidavit", smallEstateCitation: ["Md. Code, Est. & Trusts § 5-601"], probateTerm: "Formal Probate", probateCitation: ["Md. Code, Est. & Trusts"], isUPC: false, lettersTerm: "Letters of Administration" },
-    "MA": { threshold: 25000, smallEstateTerm: "Voluntary Administration", smallEstateCitation: ["M.G.L. c. 190B, § 3-1201"], probateTerm: "Formal Probate", probateCitation: ["M.G.L. c. 190B"], isUPC: true, lettersTerm: "Letters of Authority" },
+    "MA": {
+        threshold: 25000,
+        smallEstateTerm: "Voluntary Administration",
+        smallEstateCitation: ["M.G.L. c. 190B, § 3-1201"],
+        probateTerm: "Probate",
+        probateCitation: ["M.G.L. c. 190B"],
+        isUPC: true,
+        lettersTerm: "Letters of Authority",
+        probateSystem: "MUPC",
+        claimWindowDays: 365,
+        shortenedWindowDays: 120,
+        estateTaxThreshold: 2000000,
+        bondDefaultRequired: true
+    },
     "MI": { threshold: 50000, smallEstateTerm: "Small Estate Affidavit", smallEstateCitation: ["M.C.L. § 700.3983"], probateTerm: "Informal Probate", probateCitation: ["M.C.L. § 700.3301"], isUPC: true, lettersTerm: "Letters of Authority", notes: "Threshold adjusted annually for inflation ($50k for 2024)." },
     "MN": { threshold: 75000, smallEstateTerm: "Small Estate Affidavit", smallEstateCitation: ["Minn. Stat. § 524.3-1201"], probateTerm: "Informal Probate", probateCitation: ["Minn. Stat. § 524.3-301"], isUPC: true, lettersTerm: "Letters Testamentary" },
     "MS": { threshold: 50000, smallEstateTerm: "Small Estate Affidavit", smallEstateCitation: ["Miss. Code § 91-7-322"], probateTerm: "Formal Probate", probateCitation: ["Miss. Code § 91-7"], isUPC: false, lettersTerm: "Letters Testamentary" },
