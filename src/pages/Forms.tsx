@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { AuthorityBadge, AuthorityType } from "@/components/AuthorityBadge";
 import { CAFormAutoFillDialog } from "@/components/CAFormAutoFillDialog";
+import { NYFormAutoFillDialog } from "@/components/NYFormAutoFillDialog";
 
 const STATES = [
     { id: "AL", name: "Alabama", icon: "🏛️", supported: false },
@@ -148,6 +149,8 @@ const DynamicIcon = ({ name, className }: { name: string, className?: string }) 
 };
 
 const CA_AUTO_FILL_FORMS = new Set(['DE-111', 'DE-160', 'DE-310']);
+const NY_AUTO_FILL_FORMS = new Set(['ET-1', 'ET-2', 'ET-3', 'ET-8', 'ET-13']);
+const AUTO_FILL_FORMS = new Set([...CA_AUTO_FILL_FORMS, ...NY_AUTO_FILL_FORMS]);
 
 const Forms = () => {
     const [selectedState, setSelectedState] = useState("CA");
@@ -156,6 +159,7 @@ const Forms = () => {
     const [authorityFilter, setAuthorityFilter] = useState("");
     const [loadingAction, setLoadingAction] = useState<string | null>(null);
     const [caAutoFillForm, setCaAutoFillForm] = useState<{ id: string; title: string } | null>(null);
+    const [nyAutoFillForm, setNyAutoFillForm] = useState<{ id: string; title: string } | null>(null);
 
     const stateName = STATES.find(s => s.id === selectedState)?.name || selectedState;
 
@@ -460,7 +464,7 @@ const Forms = () => {
                                                                                 className={cn(
                                                                                     "w-full transition-all border font-black uppercase tracking-widest text-[10px] h-10 rounded-xl",
                                                                                     formReady
-                                                                                        ? CA_AUTO_FILL_FORMS.has(form.name)
+                                                                                        ? AUTO_FILL_FORMS.has(form.name)
                                                                                             ? "bg-primary hover:bg-primary/90 text-white border-primary"
                                                                                             : "bg-primary/10 hover:bg-primary text-primary hover:text-white border-primary/20"
                                                                                         : "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
@@ -469,6 +473,8 @@ const Forms = () => {
                                                                                     if (!formReady) return;
                                                                                     if (CA_AUTO_FILL_FORMS.has(form.name)) {
                                                                                         setCaAutoFillForm({ id: form.name, title: form.title });
+                                                                                    } else if (NY_AUTO_FILL_FORMS.has(form.name)) {
+                                                                                        setNyAutoFillForm({ id: form.name, title: form.title });
                                                                                     } else {
                                                                                         handleFormAction(form.name, false);
                                                                                     }
@@ -477,14 +483,14 @@ const Forms = () => {
                                                                             >
                                                                                 {loadingAction === `${form.name}-generate` ? (
                                                                                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                                                                ) : formReady && CA_AUTO_FILL_FORMS.has(form.name) ? (
+                                                                                ) : formReady && AUTO_FILL_FORMS.has(form.name) ? (
                                                                                     <Sparkles className="w-4 h-4 mr-2" />
                                                                                 ) : formReady ? (
                                                                                     <FileText className="w-4 h-4 mr-2 transition-transform group-hover:scale-110" />
                                                                                 ) : (
                                                                                     <Lock className="w-4 h-4 mr-2" />
                                                                                 )}
-                                                                                {CA_AUTO_FILL_FORMS.has(form.name) ? 'Auto-Fill' : 'Auto-Fill (Beta)'}
+                                                                                {AUTO_FILL_FORMS.has(form.name) ? 'Auto-Fill' : 'Auto-Fill (Beta)'}
                                                                             </Button>
                                                                         </div>
                                                                     </TooltipTrigger>
@@ -536,6 +542,15 @@ const Forms = () => {
                     onOpenChange={open => { if (!open) setCaAutoFillForm(null); }}
                     formId={caAutoFillForm.id}
                     formTitle={caAutoFillForm.title}
+                />
+            )}
+
+            {nyAutoFillForm && (
+                <NYFormAutoFillDialog
+                    open={!!nyAutoFillForm}
+                    onOpenChange={open => { if (!open) setNyAutoFillForm(null); }}
+                    formId={nyAutoFillForm.id}
+                    formTitle={nyAutoFillForm.title}
                 />
             )}
         </div>
