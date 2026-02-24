@@ -445,10 +445,11 @@ export default function Dashboard() {
             </p>
             <Button
               size="sm"
-              className="mt-3 h-8 bg-amber-600 hover:bg-amber-700 text-white font-black text-[10px] uppercase tracking-widest rounded-lg px-4"
+              variant="default"
+              className="mt-3 bg-amber-600 hover:bg-amber-700 font-bold border-none"
               onClick={() => navigate('/profile')}
             >
-              <MapPin className="w-3.5 h-3.5 mr-1.5" />
+              <MapPin className="w-4 h-4" />
               Set State Now
             </Button>
           </div>
@@ -552,9 +553,9 @@ export default function Dashboard() {
               <Landmark className="w-4 h-4 text-indigo-600 group-hover:text-white transition-colors" />
             </div>
             <Button
-              variant="ghost"
+              variant="outline"
               size="sm"
-              className="h-6 text-[8px] uppercase font-black tracking-widest text-indigo-600 hover:bg-indigo-50 px-2 py-0 border border-indigo-100"
+              className="h-8 text-xs font-bold border-indigo-100 text-indigo-600 hover:bg-indigo-50"
               disabled={isAssetsLocked}
               onClick={() => generateCPAExport(assets, liabilities)}
             >
@@ -631,7 +632,7 @@ export default function Dashboard() {
                     </p>
                     <Button
                       variant="link"
-                      className="p-0 h-auto text-xs text-indigo-800 font-black uppercase mt-2"
+                      className="p-0 h-auto text-xs text-indigo-800 font-black uppercase mt-2 hover:no-underline hover:text-indigo-600"
                       onClick={() => navigate('/probate')}
                     >
                       Review Authority Requirements →
@@ -647,7 +648,7 @@ export default function Dashboard() {
                   <p className="text-[10px] text-slate-400 mt-1 mb-4">Real-time alerts and follow-ups are available on professional plans.</p>
                   <Button
                     size="sm"
-                    className="h-8 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest"
+                    className="mt-4 bg-slate-900 text-white rounded-xl text-xs font-bold px-6"
                     onClick={() => navigate('/pricing')}
                   >
                     Start 7-Day Trial

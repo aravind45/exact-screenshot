@@ -121,7 +121,7 @@ export function Sidebar() {
                     <div className="pl-0.5">
                         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-100 shadow-sm">
                             <Eye className="w-3 h-3 text-emerald-600" />
-                            <span className="text-[9px] font-bold uppercase tracking-widest text-emerald-700">
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-800">
                                 Beneficiary View
                             </span>
                         </div>
@@ -132,7 +132,7 @@ export function Sidebar() {
                 <nav className="flex-1 px-2.5 space-y-4 overflow-y-auto pt-2 pb-4 custom-scrollbar scroll-smooth">
                     {HEIR_NAV.map((category) => (
                         <div key={category.title} className="space-y-0.5">
-                            <p className="px-3 text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2 antialiased">
+                            <p className="px-3 text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-2 antialiased">
                                 {category.title}
                             </p>
                             {category.items.map((item) => {
@@ -143,7 +143,7 @@ export function Sidebar() {
                                         onClick={() => item.path && navigate(item.path)}
                                         className={cn(
                                             "w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all duration-200 group relative",
-                                            active ? "bg-emerald-50/60" : "hover:bg-slate-50"
+                                            active ? "bg-emerald-50 shadow-sm" : "hover:bg-slate-50"
                                         )}
                                     >
                                         <div className="flex items-center gap-3 relative z-10">
@@ -152,7 +152,7 @@ export function Sidebar() {
                                                 active ? "text-emerald-600" : "text-slate-400 group-hover:text-slate-600"
                                             )} />
                                             <span className={cn(
-                                                "text-sm font-semibold tracking-tight transition-colors duration-200 antialiased",
+                                                "text-sm font-bold tracking-tight transition-colors duration-200 antialiased",
                                                 active ? "text-slate-900" : "text-slate-600 group-hover:text-slate-800"
                                             )}>
                                                 {item.label}
@@ -306,7 +306,7 @@ export function Sidebar() {
                         <div className="pl-0.5">
                             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-100 shadow-sm">
                                 <div className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
-                                <span className="text-[9px] font-bold uppercase tracking-widest text-indigo-700">
+                                <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-800">
                                     {estate.estateType.replace(/_/g, " ")}
                                 </span>
                             </div>
@@ -318,7 +318,7 @@ export function Sidebar() {
                 <nav className="flex-1 px-2.5 space-y-4 overflow-y-auto pt-2 pb-4 custom-scrollbar scroll-smooth">
                     {NAV_CATEGORIES.map((category) => (
                         <div key={category.title} className="space-y-0.5">
-                            <p className="px-3 text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2 antialiased">
+                            <p className="px-3 text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-2 antialiased">
                                 {category.title}
                             </p>
                             {category.items.map((item) => {
@@ -329,7 +329,7 @@ export function Sidebar() {
                                         onClick={() => (item.onClick ? item.onClick() : item.path && navigate(item.path))}
                                         className={cn(
                                             "w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all duration-200 group relative",
-                                            active ? "bg-indigo-50/50" : "hover:bg-slate-50"
+                                            active ? "bg-indigo-50 shadow-sm" : "hover:bg-slate-50"
                                         )}
                                     >
                                         <div className="flex items-center gap-3 relative z-10">
@@ -338,8 +338,8 @@ export function Sidebar() {
                                                 active ? "text-indigo-600" : "text-slate-400 group-hover:text-slate-600"
                                             )} />
                                             <span className={cn(
-                                                "text-sm font-semibold tracking-tight transition-colors duration-200 antialiased",
-                                                active ? "text-slate-900" : "text-slate-600 group-hover:text-slate-800"
+                                                "text-sm font-bold tracking-tight transition-colors duration-200 antialiased",
+                                                active ? "text-primary" : "text-slate-600 group-hover:text-slate-900"
                                             )}>
                                                 {item.label}
                                             </span>

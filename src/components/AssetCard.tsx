@@ -102,7 +102,7 @@ export function AssetCard({ asset, onClick, onSelect, selected, selectable, clas
                 <h3 className="font-['Outfit'] font-black text-base text-slate-900 leading-tight group-hover:text-primary transition-colors">
                   {asset.institution}
                 </h3>
-                <p className="text-[10px] uppercase font-black tracking-widest text-slate-400 mt-1">
+                <p className="text-[11px] uppercase font-bold tracking-widest text-slate-500 mt-1">
                   {asset.type.replace(/_/g, ' ')}
                 </p>
               </div>
@@ -115,11 +115,11 @@ export function AssetCard({ asset, onClick, onSelect, selected, selectable, clas
                       <span className="leading-none">{formatCurrency(asset.value)}</span>
                       {asset.dateOfDeathValue && (
                         <div className="flex flex-col items-end gap-1 mt-1">
-                          <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+                          <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
                             Value at Death: {formatCurrency(asset.dateOfDeathValue)}
                           </span>
-                          <span className="inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100/50">
-                            <ShieldAlert className="w-2.5 h-2.5" />
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 shadow-sm">
+                            <ShieldAlert className="w-3 h-3" />
                             Tax Basis Reset
                           </span>
                         </div>
@@ -167,7 +167,7 @@ export function AssetCard({ asset, onClick, onSelect, selected, selectable, clas
           </div>
 
           {/* Arrow */}
-          <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0 mt-1 group-hover:text-foreground transition-colors" />
+          <ChevronRight className="w-5 h-5 text-slate-400 shrink-0 mt-1 group-hover:text-primary transition-colors" />
         </div>
       </button>
     </motion.div >
@@ -185,8 +185,8 @@ function LegalClassBadge({ asset }: { asset: any }) {
     <div className={cn(
       "flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest border transition-all",
       isProbate
-        ? "bg-rose-50 text-rose-600 border-rose-200"
-        : "bg-emerald-50 text-emerald-600 border-emerald-200"
+        ? "bg-rose-50 text-rose-700 border-rose-200"
+        : "bg-emerald-50 text-emerald-700 border-emerald-200"
     )}>
       {isProbate ? <Scale className="w-3 h-3" /> : <Share2 className="w-3 h-3" />}
       <span>{isProbate ? 'Probate Estate' : 'Non-Probate'}</span>

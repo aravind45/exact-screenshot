@@ -12,6 +12,7 @@
    individual page files. Also adds top padding for the hamburger button.
    ─────────────────────────────────────────────────────────────────────────── */
 @media (max-width: 767px) {
+
   .ml-64,
   .ml-\[220px\],
   .ml-\[256px\] {
@@ -19,8 +20,8 @@
   }
 
   /* Give page content breathing room so the hamburger button doesn't overlap */
-  .ml-64 > *:first-child,
-  .ml-\[220px\] > *:first-child,
+  .ml-64>*:first-child,
+  .ml-\[220px\]>*:first-child,
   .flex-1.ml-64,
   .flex-1.ml-\[220px\] {
     padding-top: 0;
@@ -29,7 +30,8 @@
   /* Mobile top safe area — prevent hamburger overlapping sticky headers */
   header.sticky.top-0,
   header[class*="sticky"] {
-    padding-left: 3.5rem !important; /* 56px — clears the hamburger button */
+    padding-left: 3.5rem !important;
+    /* 56px — clears the hamburger button */
   }
 }
 
@@ -53,8 +55,8 @@
     --popover: 214 31% 91%;
     --popover-foreground: 222 47% 11%;
 
-    /* Primary - Peaceful Blue (evokes hope & peace) */
-    --primary: 221 83% 53%;
+    /* Primary - Peaceful Blue (darkened for better contrast) */
+    --primary: 221 83% 45%;
     --primary-foreground: 0 0% 100%;
 
     /* Secondary - Soft neutral */
@@ -124,11 +126,11 @@
     --sidebar-border: 212 26% 83%;
     --sidebar-ring: 200 98% 39%;
 
-    /* Shadows - Soft and reassuring */
-    --shadow-sm: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 1px 2px -1px hsl(0 0% 0% / 0.1);
-    --shadow-md: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 2px 4px -1px hsl(0 0% 0% / 0.1);
-    --shadow-lg: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 4px 6px -1px hsl(0 0% 0% / 0.1);
-    --shadow-xl: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 8px 10px -1px hsl(0 0% 0% / 0.1);
+    /* Shadows - Strengthened for better depth perception */
+    --shadow-sm: 0 1px 3px 0px hsl(222 47% 11% / 0.12), 0 1px 2px -1px hsl(222 47% 11% / 0.1);
+    --shadow-md: 0 4px 6px -1px hsl(222 47% 11% / 0.12), 0 2px 4px -2px hsl(222 47% 11% / 0.1);
+    --shadow-lg: 0 10px 15px -3px hsl(222 47% 11% / 0.12), 0 4px 6px -4px hsl(222 47% 11% / 0.1);
+    --shadow-xl: 0 20px 25px -5px hsl(222 47% 11% / 0.12), 0 8px 10px -6px hsl(222 47% 11% / 0.1);
 
     /* Gradients */
     --gradient-primary: linear-gradient(135deg, hsl(217 91% 60%) 0%, hsl(217 91% 50%) 100%);
