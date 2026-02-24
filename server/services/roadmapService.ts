@@ -471,6 +471,11 @@ export async function analyzeEstateProfile(estateId: string): Promise<EstateProf
   const solvencyRatio = totalDebts > 0 ? (totalAssets / totalDebts) : 100;
   const hasInsolvencyRisk = solvencyRatio < 1.0;
 
+  // Use registration-time estimates if no assets entered yet
+  const estimatedPersonal = Number(estate.estimatedPersonalProperty) || 0;
+  const estimatedReal = Number(estate.estimatedRealProperty) || 0;
+  const registrationEstimate = estimatedPersonal + estimatedReal;
+
   // Calculate recommendation using the multi-dimensional engine.
   // All 7 XLSX dimensions must be passed here:
   //   hasWill, isTrustRevocable, hasTODDeed, hasContest, isSpouse, isOutOfState, hasInsolvencyRisk
@@ -486,6 +491,8 @@ export async function analyzeEstateProfile(estateId: string): Promise<EstateProf
     hasTODDeed: (estate as any).hasTODDeed ?? estate.assets.some((a: any) => a.todDeedRecorded),
     // Pass pre-calculated insolvency risk so the engine sets type=INSOLVENT_ESTATE correctly
     hasInsolvencyRisk,
+    // Pass registration-time estimate so engine can pick a procedure even with 0 assets
+    estimatedValue: registrationEstimate > 0 ? registrationEstimate : undefined
   });
 
   // Ensure INSOLVENT modifier is present and PROBATE engine active when insolvent

@@ -32,9 +32,9 @@ model User {
   trialStartedAt          DateTime?                 @default(now()) @map("trial_started_at")
   userType                String                    @default("EXECUTOR") @map("user_type")
   role                    UserRole                  @default(EXECUTOR)
-  isPilot                 Boolean                   @default(false) @map("is_pilot")
   emailVerifiedAt         DateTime?                 @map("email_verified_at")
   verificationToken       String?                   @map("verification_token")
+  isPilot                 Boolean                   @default(false) @map("is_pilot")
   adminActionLogs         AdminActionLog[]
   advisorProfile          AdvisorProfile?
   agentExecutions         AgentExecution[]
@@ -79,7 +79,6 @@ model Estate {
   hearingDept               String?              @map("hearing_dept")
   hearingAddress            String?              @map("hearing_address")
   probateStatus             String               @default("NOT_STARTED") @map("probate_status")
-  administrationType        String?              @map("administration_type")
   courtCaseNumber           String?              @map("court_case_number")
   probateCounty             String?              @map("probate_county")
   status                    String?
@@ -117,6 +116,7 @@ model Estate {
   isOutOfState              Boolean              @default(false) @map("is_out_of_state")
   isSurvivingSpouse         Boolean              @default(false) @map("is_surviving_spouse")
   isTrustRevocable          Boolean?             @map("is_trust_revocable")
+  administrationType        String?              @map("administration_type")
   assets                    Asset[]
   authorityDecisions        AuthorityDecision[]
   bookings                  Booking[]
@@ -585,91 +585,91 @@ model RoadmapPhase {
 }
 
 model RoadmapTask {
-  id                  String       @id @default(uuid())
-  phaseId             String       @map("phase_id")
-  taskCode            String
-  title               String
-  description         String?
-  estimatedTime       String?      @map("estimated_time")
-  category            String?
-  orderIndex          Int          @map("order_index")
-  isOptional          Boolean      @default(false) @map("is_optional")
-  requiresAuthority   Boolean      @default(false) @map("requires_authority")
-  requiredDocs        String[]     @map("required_docs")
-  dependencies        String[]
-  exclusiveGroup      String?      @map("exclusive_group")
-  trackCompatibility  String[]     @map("track_compatibility")
-  riskWarning         String?      @map("risk_warning")
-  rationale           String?      @map("rationale")
-  isAttorneyReviewNode Boolean     @default(false) @map("is_attorney_review_node")
-  attorneyReviewReason String?     @map("attorney_review_reason")
-  isConditional       Boolean      @default(false) @map("is_conditional")
-  conditionalRequirementLabel String? @map("conditional_requirement_label")
-  utility             String?      @map("utility")
-  requiresNotary      Boolean      @default(false) @map("requires_notary")
-  requiresPhysicalMail Boolean     @default(false) @map("requires_physical_mail")
-  deadlineWarningId   String?      @map("deadline_warning_id")
-  isInternationalOnly Boolean      @default(false) @map("is_international_only")
-  alerts              Json?
-  links               Json?
-  tags                String[]
-  primaryActionLabel  String?      @map("primary_action_label")
-  primaryActionUrl    String?      @map("primary_action_url")
-  formNames           String[]     @map("form_names")
-  applicableStates    String[]     @map("applicable_states")
-  applicableVariants  String[]     @map("applicable_variants")
-  predicatesAll       String[]     @map("predicates_all")
-  predicatesAny       String[]     @map("predicates_any")
-  excludePredicates   String[]     @map("exclude_predicates")
-  requiredProfileFields String[]   @map("required_profile_fields")
-  outputs             String[]
-  createdAt           DateTime     @default(now()) @map("created_at")
-  updatedAt           DateTime     @updatedAt @map("updated_at")
-  phase               RoadmapPhase @relation(fields: [phaseId], references: [id], onDelete: Cascade)
+  id                          String       @id @default(uuid())
+  phaseId                     String       @map("phase_id")
+  taskCode                    String
+  title                       String
+  description                 String?
+  estimatedTime               String?      @map("estimated_time")
+  category                    String?
+  orderIndex                  Int          @map("order_index")
+  isOptional                  Boolean      @default(false) @map("is_optional")
+  requiresAuthority           Boolean      @default(false) @map("requires_authority")
+  requiredDocs                String[]     @map("required_docs")
+  dependencies                String[]
+  exclusiveGroup              String?      @map("exclusive_group")
+  trackCompatibility          String[]     @map("track_compatibility")
+  riskWarning                 String?      @map("risk_warning")
+  rationale                   String?      @map("rationale")
+  isAttorneyReviewNode        Boolean      @default(false) @map("is_attorney_review_node")
+  attorneyReviewReason        String?      @map("attorney_review_reason")
+  isConditional               Boolean      @default(false) @map("is_conditional")
+  conditionalRequirementLabel String?      @map("conditional_requirement_label")
+  utility                     String?      @map("utility")
+  requiresNotary              Boolean      @default(false) @map("requires_notary")
+  requiresPhysicalMail        Boolean      @default(false) @map("requires_physical_mail")
+  deadlineWarningId           String?      @map("deadline_warning_id")
+  isInternationalOnly         Boolean      @default(false) @map("is_international_only")
+  alerts                      Json?
+  links                       Json?
+  tags                        String[]
+  primaryActionLabel          String?      @map("primary_action_label")
+  primaryActionUrl            String?      @map("primary_action_url")
+  formNames                   String[]     @map("form_names")
+  applicableVariants          String[]     @map("applicable_variants")
+  predicatesAll               String[]     @map("predicates_all")
+  predicatesAny               String[]     @map("predicates_any")
+  excludePredicates           String[]     @map("exclude_predicates")
+  requiredProfileFields       String[]     @map("required_profile_fields")
+  outputs                     String[]
+  createdAt                   DateTime     @default(now()) @map("created_at")
+  updatedAt                   DateTime     @updatedAt @map("updated_at")
+  applicableStates            String[]     @map("applicable_states")
+  phase                       RoadmapPhase @relation(fields: [phaseId], references: [id], onDelete: Cascade)
 
   @@unique([phaseId, taskCode])
   @@map("roadmap_tasks")
 }
 
 model RoadmapTaskStateOverride {
-  id                  String       @id @default(uuid())
-  taskKey             String       @map("task_key")
-  stateCode           String       @map("state_code")
-  title               String?      
-  description         String?      
-  formNames           String[]     @map("form_names") 
-  primaryActionLabel  String?      @map("primary_action_label")
-  primaryActionUrl    String?      @map("primary_action_url")
-  links               Json?        
-  sourceUrl           String?      @map("source_url")
-  lastVerifiedAt      DateTime?    @map("last_verified_at")
-  reviewedBy          String?      @map("reviewed_by")
-  changeLog           Json?        @map("change_log")
-  confidence          String?      @default("draft")
-  officialForms       Json?        @map("official_forms")
-  isOptional          Boolean?      @map("is_optional")
-  dependencies        String[]
-  createdAt           DateTime     @default(now()) @map("created_at")
-  updatedAt           DateTime     @updatedAt @map("updated_at")
+  id                 String    @id @default(uuid())
+  taskKey            String    @map("task_key")
+  stateCode          String    @map("state_code")
+  title              String?
+  description        String?
+  formNames          String[]  @map("form_names")
+  primaryActionLabel String?   @map("primary_action_label")
+  primaryActionUrl   String?   @map("primary_action_url")
+  links              Json?
+  sourceUrl          String?   @map("source_url")
+  lastVerifiedAt     DateTime? @map("last_verified_at")
+  reviewedBy         String?   @map("reviewed_by")
+  changeLog          Json?     @map("change_log")
+  confidence         String?   @default("draft")
+  officialForms      Json?     @map("official_forms")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+  isOptional         Boolean?  @map("is_optional")
+  dependencies       String[]
 
   @@unique([stateCode, taskKey])
   @@map("roadmap_task_state_overrides")
 }
 
 model JurisdictionRule {
-  id                    String   @id @default(uuid())
-  stateCode             String   @unique @map("state_code")
-  probateSystem         String   @default("GENERIC") @map("probate_system") // e.g., "MUPC", "GENERIC"
-  smallEstateThreshold  Decimal  @map("small_estate_threshold") @db.Decimal(12, 2)
-  smallEstateTerm       String   @map("small_estate_term")
-  claimWindowDays       Int      @default(365) @map("claim_window_days")
-  shortenedWindowDays   Int?     @map("shortened_window_days")
-  estateTaxThreshold    Decimal? @map("estate_tax_threshold") @db.Decimal(12, 2)
-  bondDefaultRequired   Boolean  @default(true) @map("bond_default_required")
-  bondWaiverRules       Json?    @map("bond_waiver_rules")
-  citations             Json?    
-  createdAt             DateTime @default(now()) @map("created_at")
-  updatedAt             DateTime @updatedAt @map("updated_at")
+  id                   String   @id @default(uuid())
+  stateCode            String   @unique @map("state_code")
+  probateSystem        String   @default("GENERIC") @map("probate_system")
+  smallEstateThreshold Decimal  @map("small_estate_threshold") @db.Decimal(12, 2)
+  smallEstateTerm      String   @map("small_estate_term")
+  claimWindowDays      Int      @default(365) @map("claim_window_days")
+  shortenedWindowDays  Int?     @map("shortened_window_days")
+  estateTaxThreshold   Decimal? @map("estate_tax_threshold") @db.Decimal(12, 2)
+  bondDefaultRequired  Boolean  @default(true) @map("bond_default_required")
+  bondWaiverRules      Json?    @map("bond_waiver_rules")
+  citations            Json?
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
 
   @@map("jurisdiction_rules")
 }
@@ -691,12 +691,11 @@ model Transaction {
 }
 
 model KnowledgeChunk {
-  id        String                 @id @default(uuid())
+  id        String   @id @default(uuid())
   content   String
   metadata  Json?
-  // embedding Unsupported("vector")?
   source    String?
-  createdAt DateTime               @default(now()) @map("created_at")
+  createdAt DateTime @default(now()) @map("created_at")
 
   @@map("knowledge_chunks")
   @@ignore
@@ -733,7 +732,6 @@ model RagChunk {
   contentHash String              @map("content_hash")
   createdAt   DateTime            @default(now()) @map("created_at")
   updatedAt   DateTime            @updatedAt @map("updated_at")
-  // tsv         Unsupported("tsvector")?
   embeddings  RagChunkEmbedding[]
   document    RagDocument         @relation(fields: [documentId], references: [id], onDelete: Cascade)
   parent      RagChunk?           @relation("ChunkParent", fields: [parentId], references: [id])
@@ -747,13 +745,12 @@ model RagChunk {
 }
 
 model RagChunkEmbedding {
-  id         String                @id @default(uuid())
-  chunkId    String                @map("chunk_id")
-  vectorType String                @default("content") @map("vector_type")
-  modelId    String                @map("model_id")
-  // embedding  Unsupported("vector")
-  createdAt  DateTime              @default(now()) @map("created_at")
-  chunk      RagChunk              @relation(fields: [chunkId], references: [id], onDelete: Cascade)
+  id         String   @id @default(uuid())
+  chunkId    String   @map("chunk_id")
+  vectorType String   @default("content") @map("vector_type")
+  modelId    String   @map("model_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+  chunk      RagChunk @relation(fields: [chunkId], references: [id], onDelete: Cascade)
 
   @@index([chunkId])
   @@index([vectorType, modelId])

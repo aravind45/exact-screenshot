@@ -234,26 +234,27 @@ export function calculateAuthorityRecommendation(
         procedureType = "FORMAL_PROBATE";
         type = "CONTESTED_ESTATE";
     } else if (metadata?.isOutOfState) {
-        // Ancillary probate must be checked BEFORE trust if the primary out-of-state asset is probate
-        // (Trust assets alone wouldn't trigger ancillary if titles are held by trust).
         procedureType = "ANCILLARY_PROBATE";
-        // This block handles cases where asset profiles haven't been completed yet but will status is known.
-        procedureType = "FORMAL_PROBATE";
-        type = "INTESTATE";
+        type = metadata?.hasWill ? "FORMAL_PROBATE" : "INTESTATE";
     } else if (metadata?.isSpouse) {
         procedureType = "SPOUSAL_PETITION";
         type = "SPOUSAL_PETITION";
-    } else if (metadata?.hasWill === true) {
-        // Covered under probateTotal > threshold, but for clarity/completeness
-        // (This block would only be hit if threshold is very high or probateTotal is exactly 0 but hasWill is true)
-        if (rule.isUPC && !metadata?.hasContest) {
+    } else if (metadata?.hasWill) {
+        if (rule.isUPC) {
             procedureType = "INFORMAL_PROBATE";
             type = "INFORMAL_PROBATE";
         } else {
             procedureType = "FORMAL_PROBATE";
             type = "FORMAL_PROBATE";
         }
-    } else if (probateTotal > 0 || isEligibleForSmallEstate) {
+    } else if (probateTotal > threshold) {
+        type = "INTESTATE";
+        if (rule.isUPC) {
+            procedureType = "INFORMAL_PROBATE";
+        } else {
+            procedureType = "FORMAL_PROBATE";
+        }
+    } else if (isEligibleForSmallEstate) {
         if (state === "MA" && probateTotal <= 25000) procedureType = "VOLUNTARY_ADMINISTRATION";
         else if (state === "FL" && probateTotal < 75000) procedureType = "SUMMARY_ADMINISTRATION";
         else if (state === "NY" && probateTotal < 50000) procedureType = "VOLUNTARY_ADMINISTRATION";
@@ -262,6 +263,9 @@ export function calculateAuthorityRecommendation(
     } else if (activeEngines.includes("TOD_DEED") || activeEngines.includes("POD_TOD_ACCOUNTS")) {
         procedureType = "DIRECT_TRANSFER";
         type = metadata?.hasTODDeed ? "TOD_DEED" : "POD_TOD_TRANSFER";
+    } else if (trustAssets.length > 0) {
+        procedureType = "TRUST_ADMINISTRATION";
+        type = metadata?.isTrustRevocable ? "TRUST_ADMIN_REVOCABLE" : "TRUST_ADMIN_IRREVOCABLE";
     }
 
     // DISTRIBUTION MODEL
