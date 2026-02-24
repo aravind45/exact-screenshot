@@ -183,6 +183,8 @@ const AppRoutes = () => {
           <Routes>
             <Route path="/" element={tenant?.id === 'texas_lawyer' ? <LandingTexasLawyer /> : <Landing />} />
             <Route path="/landing/texas-lawyer" element={<LandingTexasLawyer />} />
+            <Route path="/attorney" element={<Navigate to="/landing/texas-lawyer" replace />} />
+            <Route path="/attorney-login" element={<Navigate to="/landing/texas-lawyer" replace />} />
             <Route path="/home" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/login" element={<Navigate to="/auth" replace />} />
