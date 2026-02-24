@@ -1016,7 +1016,7 @@ export default function OnboardingGuidedWizard() {
                                         <Button
                                             size="lg"
                                             onClick={handleNext}
-                                            className="w-full rounded-2xl h-12 font-bold mt-4"
+                                            className="w-full rounded-2xl h-12 font-bold"
                                         >
                                             Understood, Continue
                                         </Button>
@@ -1138,7 +1138,7 @@ export default function OnboardingGuidedWizard() {
                                         <Button
                                             size="lg"
                                             onClick={handleNext}
-                                            className="w-full rounded-2xl h-12 font-bold mt-4"
+                                            className="w-full rounded-2xl h-12 font-bold"
                                         >
                                             {isLoading ? "Saving Heirs..." : "Continue"}
                                         </Button>
@@ -1193,14 +1193,14 @@ export default function OnboardingGuidedWizard() {
                                         </div>
 
                                         <div className="flex flex-col gap-3">
-                                            <Button
-                                                size="lg"
-                                                onClick={handleNext}
-                                                disabled={!uploadedFile || isLoading}
-                                                className="w-full rounded-2xl h-12 font-bold"
-                                            >
-                                                {isLoading ? "Uploading..." : "Sync & Continue"}
-                                            </Button>
+                                        <Button
+                                            size="lg"
+                                            onClick={handleNext}
+                                            disabled={!uploadedFile || isLoading}
+                                            className="w-full rounded-2xl h-12 font-bold"
+                                        >
+                                            {isLoading ? "Uploading..." : "Sync & Continue"}
+                                        </Button>
                                             <Button variant="ghost" onClick={() => setCurrentStep(prev => prev + 1)} className="text-slate-400 text-xs">
                                                 I don't have it yet, skip for now
                                             </Button>
@@ -1289,7 +1289,7 @@ export default function OnboardingGuidedWizard() {
                                             size="lg"
                                             onClick={handleNext}
                                             disabled={assets.every(a => !a.name) || isLoading}
-                                            className="w-full rounded-2xl h-12 font-bold mt-4"
+                                            className="w-full rounded-2xl h-12 font-bold"
                                         >
                                             {isLoading ? "Saving..." : "Continue to Team"}
                                         </Button>
@@ -1365,14 +1365,14 @@ export default function OnboardingGuidedWizard() {
                                         </div>
 
                                         <div className="flex flex-col gap-3">
-                                            <Button
-                                                size="lg"
-                                                onClick={handleNext}
-                                                disabled={isLoading}
-                                                className="w-full rounded-2xl h-12 font-bold"
-                                            >
-                                                {isLoading ? "Sending Invites..." : collaborators.length > 0 ? "Send Invites & Finish" : "Finish Setup"}
-                                            </Button>
+                                        <Button
+                                            size="lg"
+                                            onClick={handleNext}
+                                            disabled={isLoading}
+                                            className="w-full rounded-2xl h-12 font-bold"
+                                        >
+                                            {isLoading ? "Sending Invites..." : collaborators.length > 0 ? "Send Invites & Finish" : "Finish Setup"}
+                                        </Button>
                                             <Button variant="ghost" onClick={handleNext} className="text-slate-400 text-xs">
                                                 Skip for now
                                             </Button>
