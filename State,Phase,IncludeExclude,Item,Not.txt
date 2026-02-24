@@ -1,0 +1,30 @@
+State,Phase,Include/Exclude,Item,Notes
+CA,Phase 2 (Court Filing),Include,Spousal/Domestic Partner Property Petition (DE-221),CA-specific spousal property path
+CA,Phase 3 (Asset Discovery),Include,Small Estate Affidavit (DE-305),CA small-estate route
+CA,Phase 5 (Asset Liquidation),Include,Real Property Sale Petition (DE-260),CA-specific asset sale form
+CA,Phase 5 (Asset Liquidation),Include,Securities Sale Petition (DE-270),CA-specific asset sale form
+CA,All Phases,Exclude,Homestead Property Petition (FL-15),Florida-specific
+CA,All Phases,Exclude,Independent Administration / Muniment of Title,Texas-specific
+CA,All Phases,Exclude,Surrogate’s Court procedural steps,New York-specific
+NY,Phase 2 (Court Filing),Include,Surrogate’s Court track,NY-specific court process
+NY,Phase 2 (Court Filing),Include,Ancillary Probate Petition (ET-3),For out-of-state decedent with NY property
+NY,Phase 3 (Asset Discovery),Include,Voluntary Administration (ET-15),NY small-estate route
+NY,All Phases,Exclude,Spousal Property Petition (DE-221),California-specific
+NY,All Phases,Exclude,Homestead Property Petition (FL-15),Florida-specific
+NY,All Phases,Exclude,Independent Administration / Muniment of Title,Texas-specific
+MA,All Phases,Include,None documented,Needs MA-specific roadmap/forms plan
+MA,All Phases,Exclude,CA/NY/TX/FL-specific steps,Not documented for MA
+GA,All Phases,Include,None documented,Needs GA-specific roadmap/forms plan
+GA,All Phases,Exclude,CA/NY/TX/FL-specific steps,Not documented for GA
+TX,Phase 2 (Court Filing),Include,Independent Administration,Texas-specific
+TX,Phase 2 (Court Filing),Include,Muniment of Title,Simplified TX will probate
+TX,Phase 3 (Asset Discovery),Include,Small Estate Affidavit (TX-11),Texas small-estate route
+TX,All Phases,Exclude,Spousal Property Petition (DE-221),California-specific
+TX,All Phases,Exclude,Homestead Property Petition (FL-15),Florida-specific
+TX,All Phases,Exclude,Surrogate’s Court procedural steps,New York-specific
+FL,Phase 2 (Court Filing),Include,Summary Administration,Florida small-estate route
+FL,Phase 2 (Court Filing),Include,Disposition Without Administration,Very small estates
+FL,Phase 6 (Final Distribution / Close),Include,Homestead Property Petition (FL-15),Florida-specific homestead rules
+FL,All Phases,Exclude,Spousal Property Petition (DE-221),California-specific
+FL,All Phases,Exclude,Independent Administration / Muniment of Title,Texas-specific
+FL,All Phases,Exclude,Surrogate’s Court procedural steps,New York-specific
