@@ -88,6 +88,28 @@ export const STATE_PHASE_OVERRIDES: Record<string, Record<string, { milestone?: 
             subtitle: "IAEA / Court-Confirmed Sales",
         },
     },
+    NJ: {
+        court_filing: {
+            milestone: "Surrogate's Court Filing",
+            subtitle: "Uncontested vs. Contested Path",
+        },
+        creditor_claims: {
+            milestone: "After First Publication",
+            subtitle: "6-Month Claim Window (N.J.S.A. 3B:22-4)",
+        },
+        asset_discovery: {
+            milestone: "After Authority Issued",
+            subtitle: "Inventory Due in 90 Days",
+        },
+        asset_liquidation: {
+            milestone: "After Inventory Filed",
+            subtitle: "Power of Sale or Court Confirmation",
+        },
+        final_distribution: {
+            milestone: "After Taxes & Waivers",
+            subtitle: "Inheritance Tax Waiver Required",
+        },
+    },
 };
 
 // State-neutral defaults for phases (used when no state override exists)

@@ -119,6 +119,22 @@ export interface StateRule {
         state: string;
         estateTax: string;
     };
+    // NJ-specific inheritance tax configuration
+    inheritanceTax?: {
+        applies: boolean;
+        exemptionThresholds?: {
+            spouse: string;
+            child: string;
+            parent: string;
+            sibling: string;
+            nieceNephew: string;
+            other: string;
+        };
+        dueDate?: string;
+        waiverRequired?: string;
+    };
+    // Small estate spouse threshold override (NJ: $50k if spouse is sole heir)
+    smallEstateSpouseThreshold?: number;
 }
 
 export const STATE_RULES: Record<string, StateRule> = {
@@ -245,7 +261,79 @@ export const STATE_RULES: Record<string, StateRule> = {
     "NE": { threshold: 50000, smallEstateTerm: "Small Estate Affidavit", smallEstateCitation: ["Neb. Rev. Stat. § 30-24,125"], probateTerm: "Informal Probate", probateCitation: ["Neb. Rev. Stat. § 30-24"], isUPC: true, lettersTerm: "Letters Testamentary" },
     "NV": { threshold: 25000, smallEstateTerm: "Small Estate Affidavit", smallEstateCitation: ["N.R.S. § 146.080"], probateTerm: "Formal Probate", probateCitation: ["N.R.S. § 136"], isUPC: false, lettersTerm: "Letters Testamentary", notes: "Higher threshold ($100k) if surviving spouse is the heir." },
     "NH": { threshold: 10000, smallEstateTerm: "Small Estate Affidavit", smallEstateCitation: ["N.H. Rev. Stat. § 553:31-a"], probateTerm: "Formal Probate", probateCitation: ["N.H. Rev. Stat. § 553"], isUPC: false, lettersTerm: "Letters of Administration" },
-    "NJ": { threshold: 20000, smallEstateTerm: "Small Estate Affidavit", smallEstateCitation: ["N.J.S.A. § 3B:10-3"], probateTerm: "Formal Probate", probateCitation: ["N.J.S.A. § 3B"], isUPC: false, lettersTerm: "Letters of Administration", notes: "Higher threshold ($50k) if surviving spouse is the heir." },
+    "NJ": {
+        threshold: 20000,
+        smallEstateTerm: "Small Estate Affidavit",
+        smallEstateCitation: ["N.J.S.A. § 3B:10-3"],
+        probateTerm: "Formal Probate",
+        probateCitation: ["N.J.S.A. § 3B"],
+        isUPC: false,
+        lettersTerm: "Letters of Administration",
+        notes: "Higher threshold ($50k) if surviving spouse is sole heir. NJ has inheritance tax.",
+        claimWindowDays: 180, // 6 months from first publication
+        estateTaxThreshold: 0, // NJ has inheritance tax, not estate tax
+        bondDefaultRequired: true, // Bond required for administrators unless waived
+        smallEstateSpouseThreshold: 50000, // $50k if spouse is sole heir
+        probatePaths: {
+            informal: {
+                term: "Uncontested Probate",
+                citation: ["N.J.S.A. § 3B:10-1 et seq."],
+                description: "Standard probate through County Surrogate's Court when no contests exist"
+            },
+            formal: {
+                term: "Contested Probate",
+                citation: ["N.J.S.A. § 3B:10-1 et seq.", "R. 4:80"],
+                description: "Litigated probate proceeding in Superior Court, Chancery Division, Probate Part"
+            },
+            voluntary: {
+                term: "Small Estate Affidavit",
+                citation: ["N.J.S.A. § 3B:10-3"],
+                description: "Simplified process for estates under $20,000 ($50,000 if spouse is sole heir)"
+            }
+        },
+        bondOptions: {
+            required_with_sureties: {
+                term: "Bond with Surety",
+                description: "Required for administrators unless all heirs waive or will waives"
+            },
+            required_without_sureties: {
+                term: "Bond without Surety",
+                description: "May be ordered when estate is solvent but surety waiver is appropriate"
+            },
+            waived_by_assent: {
+                term: "Bond Waived by Written Consent",
+                description: "All beneficiaries may sign written consent to waive bond requirement"
+            },
+            waived_by_will: {
+                term: "Bond Waived by Will",
+                description: "Will may expressly waive bond requirement for named executor"
+            }
+        },
+        creditorPublication: {
+            defaultWindow: 180, // 6 months from first publication
+            publicationWindow: 60, // Publication must run for 4 consecutive weeks
+            strategicOption: "Publication starts 6-month creditor claim period"
+        },
+        taxForms: {
+            federal: "Form 1041",
+            state: "NJ-1041 (Fiduciary Income Tax)",
+            estateTax: "NJ Inheritance Tax Return (Form IT-R for residents)"
+        },
+        // NJ-specific: Inheritance tax applies (not estate tax)
+        inheritanceTax: {
+            applies: true,
+            exemptionThresholds: {
+                spouse: "Full exemption (Class A)",
+                child: "Full exemption (Class A)",
+                parent: "Full exemption (Class A)",
+                sibling: "$25,000 exemption, then 11-15% tax (Class C)",
+                nieceNephew: "$25,000 exemption, then 15% tax (Class C)",
+                other: "No exemption, 15-16% tax (Class D)"
+            },
+            dueDate: "8 months after death",
+            waiverRequired: "NJ Inheritance Tax Waiver required for real estate and some financial accounts"
+        }
+    },
     "NM": { threshold: 50000, smallEstateTerm: "Small Estate Affidavit", smallEstateCitation: ["N.M. Stat. § 45-3-1201"], probateTerm: "Informal Probate", probateCitation: ["N.M. Stat. § 45-3-301"], isUPC: true, lettersTerm: "Letters Testamentary" },
     "NY": {
         threshold: 50000,
