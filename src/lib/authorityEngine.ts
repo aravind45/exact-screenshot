@@ -240,7 +240,16 @@ export function calculateAuthorityRecommendation(
         procedureType = "SPOUSAL_PETITION";
         type = "SPOUSAL_PETITION";
     } else if (metadata?.hasWill) {
-        if (rule.isUPC) {
+        if (state === "MA") {
+            // MA-specific: Use Informal Probate for uncontested estates, Formal for contested
+            if (metadata?.hasContest) {
+                procedureType = "FORMAL_PROBATE";
+                type = "FORMAL_PROBATE";
+            } else {
+                procedureType = "INFORMAL_PROBATE";
+                type = "INFORMAL_PROBATE";
+            }
+        } else if (rule.isUPC) {
             procedureType = "INFORMAL_PROBATE";
             type = "INFORMAL_PROBATE";
         } else {

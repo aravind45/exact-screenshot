@@ -24,6 +24,12 @@ export const PHASE_ORDER: SettlementPhase[] = [
 
 // State-specific phase milestone overrides
 export const STATE_PHASE_OVERRIDES: Record<string, Record<string, { milestone?: string; subtitle?: string }>> = {
+    MA: {
+        creditor_claims: {
+            milestone: "After Authority Issued",
+            subtitle: "1-Year Claim Window (4-Month Option)",
+        },
+    },
     NY: {
         creditor_claims: {
             milestone: "After Letters Issued",

@@ -73,6 +73,52 @@ export interface StateRule {
     shortenedWindowDays?: number;
     estateTaxThreshold?: number;
     bondDefaultRequired?: boolean;
+    // MA-Specific Configuration
+    probatePaths?: {
+        informal: {
+            term: string;
+            citation: string[];
+            description: string;
+        };
+        formal: {
+            term: string;
+            citation: string[];
+            description: string;
+        };
+        voluntary: {
+            term: string;
+            citation: string[];
+            description: string;
+        };
+    };
+    bondOptions?: {
+        required_with_sureties: {
+            term: string;
+            description: string;
+        };
+        required_without_sureties: {
+            term: string;
+            description: string;
+        };
+        waived_by_assent: {
+            term: string;
+            description: string;
+        };
+        waived_by_will: {
+            term: string;
+            description: string;
+        };
+    };
+    creditorPublication?: {
+        defaultWindow: number;
+        publicationWindow: number;
+        strategicOption: string;
+    };
+    taxForms?: {
+        federal: string;
+        state: string;
+        estateTax: string;
+    };
 }
 
 export const STATE_RULES: Record<string, StateRule> = {
@@ -143,7 +189,53 @@ export const STATE_RULES: Record<string, StateRule> = {
         claimWindowDays: 365,
         shortenedWindowDays: 120,
         estateTaxThreshold: 2000000,
-        bondDefaultRequired: true
+        bondDefaultRequired: true,
+        // MA-Specific Configuration
+        probatePaths: {
+            informal: {
+                term: "Informal Probate",
+                citation: ["M.G.L. c. 190B, § 3-301"],
+                description: "Streamlined probate process for uncontested estates"
+            },
+            formal: {
+                term: "Formal Probate",
+                citation: ["M.G.L. c. 190B, § 3-302"],
+                description: "Court-supervised probate for contested or complex estates"
+            },
+            voluntary: {
+                term: "Voluntary Administration",
+                citation: ["M.G.L. c. 190B, § 3-1201"],
+                description: "Simplified process for small estates under $25,000"
+            }
+        },
+        bondOptions: {
+            required_with_sureties: {
+                term: "Bond with Sureties",
+                description: "Traditional bond requiring co-signers"
+            },
+            required_without_sureties: {
+                term: "Bond without Sureties",
+                description: "Bond without co-signers, often used in informal probate"
+            },
+            waived_by_assent: {
+                term: "Bond Waived by Heir Assent",
+                description: "All heirs sign to waive bond requirement"
+            },
+            waived_by_will: {
+                term: "Bond Waived by Will",
+                description: "Will explicitly waives bond requirement"
+            }
+        },
+        creditorPublication: {
+            defaultWindow: 365,
+            publicationWindow: 120,
+            strategicOption: "Publish to shorten claim window from 1 year to 4 months"
+        },
+        taxForms: {
+            federal: "Form 1041",
+            state: "Form 2 (Fiduciary Income Tax Return)",
+            estateTax: "Form 1 (Massachusetts Estate Tax Return)"
+        }
     },
     "MI": { threshold: 50000, smallEstateTerm: "Small Estate Affidavit", smallEstateCitation: ["M.C.L. § 700.3983"], probateTerm: "Informal Probate", probateCitation: ["M.C.L. § 700.3301"], isUPC: true, lettersTerm: "Letters of Authority", notes: "Threshold adjusted annually for inflation ($50k for 2024)." },
     "MN": { threshold: 75000, smallEstateTerm: "Small Estate Affidavit", smallEstateCitation: ["Minn. Stat. § 524.3-1201"], probateTerm: "Informal Probate", probateCitation: ["Minn. Stat. § 524.3-301"], isUPC: true, lettersTerm: "Letters Testamentary" },
