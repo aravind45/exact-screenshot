@@ -900,8 +900,10 @@ export default router;
 
 // Roadmap endpoints
 import { getEstateRoadmap, completeTask, uncompleteTask, getTaskCompletions } from "../services/roadmapService.js";
+import { requireSubscription } from "../middleware/subscription.js";
 
-router.get("/:id/roadmap", async (req: any, res: Response) => {
+// GET /:id/roadmap - Get personalized roadmap (requires subscription)
+router.get("/:id/roadmap", requireSubscription, async (req: any, res: Response) => {
     try {
         const { id } = req.params;
 
@@ -929,7 +931,8 @@ router.get("/:id/roadmap", async (req: any, res: Response) => {
     }
 });
 
-router.get("/:id/tasks", async (req: any, res: Response) => {
+// GET /:id/tasks - Get task completions (requires subscription)
+router.get("/:id/tasks", requireSubscription, async (req: any, res: Response) => {
     try {
         const { id } = req.params;
 
@@ -957,7 +960,7 @@ router.get("/:id/tasks", async (req: any, res: Response) => {
     }
 });
 
-router.post("/:id/tasks/:taskId/complete", async (req: any, res: Response) => {
+router.post("/:id/tasks/:taskId/complete", requireSubscription, async (req: any, res: Response) => {
     try {
         const { id, taskId } = req.params;
         const { notes } = req.body;
@@ -986,7 +989,7 @@ router.post("/:id/tasks/:taskId/complete", async (req: any, res: Response) => {
     }
 });
 
-router.delete("/:id/tasks/:taskId/complete", async (req: any, res: Response) => {
+router.delete("/:id/tasks/:taskId/complete", requireSubscription, async (req: any, res: Response) => {
     try {
         const { id, taskId } = req.params;
 

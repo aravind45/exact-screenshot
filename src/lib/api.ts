@@ -243,6 +243,8 @@ export interface RoadmapResponse {
         showSpecialNotice: boolean;
     };
     profile: any;
+    version: string;
+    pinnedAt?: string | null;
 }
 
 const API_URL = import.meta.env.VITE_API_URL || "/api";
