@@ -152,7 +152,7 @@ export function Sidebar() {
                                                 active ? "text-emerald-600" : "text-slate-400 group-hover:text-slate-600"
                                             )} />
                                             <span className={cn(
-                                                "text-sm font-bold tracking-tight transition-colors duration-200 antialiased",
+                                                "text-[13px] font-bold tracking-tight transition-colors duration-200 antialiased whitespace-nowrap",
                                                 active ? "text-slate-900" : "text-slate-600 group-hover:text-slate-800"
                                             )}>
                                                 {item.label}
@@ -214,7 +214,7 @@ export function Sidebar() {
                 { label: "Liabilities", icon: AlertCircle, path: "/liabilities" },
                 { label: "Accounting", icon: Calculator, path: "/accounting" },
                 { label: "Final Distribution", icon: CheckCircle2, path: "/distribution" },
-                { label: "Heirs & Beneficiaries", icon: Users, path: "/heirs" },
+                { label: "Heirs & Benes", icon: Users, path: "/heirs" },
                 ...(!isViewer ? [{ label: "Official Forms", icon: ScrollText, path: "/forms" }] : []),
                 ...(estate?.id && !isViewer ? [{ label: "Legal Research", icon: Zap, path: `/estates/${estate.id}/agents` }] : []),
             ]
@@ -222,7 +222,7 @@ export function Sidebar() {
         {
             title: "Records",
             items: [
-                ...(!isViewer ? [{ label: "Discovery Assistant", icon: Search, path: "/discovery" }] : []),
+                ...(!isViewer ? [{ label: "Discovery", icon: Search, path: "/discovery" }] : []),
                 { label: "Document Vault", icon: Inbox, path: "/documents" },
                 { label: "Settlement Trail", icon: History, path: "/settlement-trail" },
                 { label: "Follow-Ups", icon: Bell, path: "/follow-ups" },
@@ -338,7 +338,7 @@ export function Sidebar() {
                                                 active ? "text-indigo-600" : "text-slate-400 group-hover:text-slate-600"
                                             )} />
                                             <span className={cn(
-                                                "text-sm font-bold tracking-tight transition-colors duration-200 antialiased",
+                                                "text-[13px] font-bold tracking-tight transition-colors duration-200 antialiased whitespace-nowrap",
                                                 active ? "text-primary" : "text-slate-600 group-hover:text-slate-900"
                                             )}>
                                                 {item.label}

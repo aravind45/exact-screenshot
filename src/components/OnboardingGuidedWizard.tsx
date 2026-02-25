@@ -74,7 +74,7 @@ const STEPS = [
     { id: "estate_info", title: "Estate Basics" },
     { id: "guided_assessment", title: "Quick Assessment" },
     { id: "track_scout", title: "Your Path" },
-    { id: "heirs", title: "Heirs & Beneficiaries" },
+    { id: "heirs", title: "Heirs & Benes" },
     { id: "documents", title: "Death Certificate" },
     { id: "assets", title: "Key Assets" },
     { id: "team", title: "The Team" },
@@ -214,7 +214,7 @@ export default function OnboardingGuidedWizard() {
 
     // Calculate confidence score
     useEffect(() => {
-        const filledFields = Object.values(formData).filter(field => 
+        const filledFields = Object.values(formData).filter(field =>
             typeof field === 'object' && field !== null && field.value !== null
         ).length;
         const totalFields = 7; // hasWill, isSpouse, isOutOfState, hasUnknownHeirs, isTrustRevocable, hasTODDeed, hasContest
@@ -655,7 +655,7 @@ export default function OnboardingGuidedWizard() {
                                                         </span>
                                                     </div>
                                                     <div className="w-full bg-slate-200 rounded-full h-2 mt-2">
-                                                        <div 
+                                                        <div
                                                             className={`h-2 rounded-full transition-all ${confidenceScore >= 80 ? 'bg-emerald-500' : confidenceScore >= 60 ? 'bg-amber-500' : 'bg-rose-500'}`}
                                                             style={{ width: `${confidenceScore}%` }}
                                                         />
@@ -939,8 +939,8 @@ export default function OnboardingGuidedWizard() {
                                             >
                                                 Calculate My Path
                                             </Button>
-                                            <Button 
-                                                variant="outline" 
+                                            <Button
+                                                variant="outline"
                                                 onClick={() => setCurrentStep(1)}
                                                 className="text-slate-400 text-xs"
                                             >
@@ -968,15 +968,15 @@ export default function OnboardingGuidedWizard() {
                                                         </span>
                                                     </div>
                                                     <div className="w-full bg-slate-200 rounded-full h-2 mt-2">
-                                                        <div 
+                                                        <div
                                                             className={`h-2 rounded-full transition-all ${confidenceScore >= 80 ? 'bg-emerald-500' : confidenceScore >= 60 ? 'bg-amber-500' : 'bg-rose-500'}`}
                                                             style={{ width: `${confidenceScore}%` }}
                                                         />
                                                     </div>
                                                     <p className="text-xs text-slate-500 mt-2">
-                                                        {confidenceScore >= 80 ? "High confidence - your path is clear!" : 
-                                                         confidenceScore >= 60 ? "Medium confidence - we may need more details as we go." : 
-                                                         "Low confidence - we'll help clarify as we proceed."}
+                                                        {confidenceScore >= 80 ? "High confidence - your path is clear!" :
+                                                            confidenceScore >= 60 ? "Medium confidence - we may need more details as we go." :
+                                                                "Low confidence - we'll help clarify as we proceed."}
                                                     </p>
                                                 </div>
                                             )}
@@ -1193,14 +1193,14 @@ export default function OnboardingGuidedWizard() {
                                         </div>
 
                                         <div className="flex flex-col gap-3">
-                                        <Button
-                                            size="lg"
-                                            onClick={handleNext}
-                                            disabled={!uploadedFile || isLoading}
-                                            className="w-full rounded-2xl h-12 font-bold"
-                                        >
-                                            {isLoading ? "Uploading..." : "Sync & Continue"}
-                                        </Button>
+                                            <Button
+                                                size="lg"
+                                                onClick={handleNext}
+                                                disabled={!uploadedFile || isLoading}
+                                                className="w-full rounded-2xl h-12 font-bold"
+                                            >
+                                                {isLoading ? "Uploading..." : "Sync & Continue"}
+                                            </Button>
                                             <Button variant="ghost" onClick={() => setCurrentStep(prev => prev + 1)} className="text-slate-400 text-xs">
                                                 I don't have it yet, skip for now
                                             </Button>
@@ -1365,14 +1365,14 @@ export default function OnboardingGuidedWizard() {
                                         </div>
 
                                         <div className="flex flex-col gap-3">
-                                        <Button
-                                            size="lg"
-                                            onClick={handleNext}
-                                            disabled={isLoading}
-                                            className="w-full rounded-2xl h-12 font-bold"
-                                        >
-                                            {isLoading ? "Sending Invites..." : collaborators.length > 0 ? "Send Invites & Finish" : "Finish Setup"}
-                                        </Button>
+                                            <Button
+                                                size="lg"
+                                                onClick={handleNext}
+                                                disabled={isLoading}
+                                                className="w-full rounded-2xl h-12 font-bold"
+                                            >
+                                                {isLoading ? "Sending Invites..." : collaborators.length > 0 ? "Send Invites & Finish" : "Finish Setup"}
+                                            </Button>
                                             <Button variant="ghost" onClick={handleNext} className="text-slate-400 text-xs">
                                                 Skip for now
                                             </Button>
@@ -1400,9 +1400,9 @@ export default function OnboardingGuidedWizard() {
                                                         Path Confidence: {confidenceScore}%
                                                     </div>
                                                     <p className="text-xs text-slate-500 mt-1">
-                                                        {confidenceScore >= 80 ? "Your path is clear and well-defined." : 
-                                                         confidenceScore >= 60 ? "Your path is mostly clear with minor clarifications needed." : 
-                                                         "We'll help clarify your path as we proceed together."}
+                                                        {confidenceScore >= 80 ? "Your path is clear and well-defined." :
+                                                            confidenceScore >= 60 ? "Your path is mostly clear with minor clarifications needed." :
+                                                                "We'll help clarify your path as we proceed together."}
                                                     </p>
                                                 </div>
                                             )}
