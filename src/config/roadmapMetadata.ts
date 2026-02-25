@@ -107,8 +107,8 @@ export const STATE_PHASE_OVERRIDES: Record<string, Record<string, { milestone?: 
             subtitle: "Uncontested: Admin Filing → Letters Same Day",
         },
         creditor_claims: {
-            milestone: "After Letters Issued",
-            subtitle: "6-Month Claim Window (N.J.S.A. 3B:22-4)",
+            milestone: "After First Publication",
+            subtitle: "6-Month Claim Window – First Publication (N.J.S.A. 3B:22-4)",
         },
         asset_discovery: {
             milestone: "After Letters Issued",
