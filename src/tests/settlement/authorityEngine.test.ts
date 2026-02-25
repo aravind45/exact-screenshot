@@ -4,7 +4,7 @@ import { calculateAuthorityRecommendation } from '../../lib/authorityEngine';
 describe('Authority Engine', () => {
     it('should recommend FORMAL_PROBATE for high-value California estates', () => {
         const assets = [
-            { value: 200000, ownershipType: 'INDIVIDUAL' }
+            { value: 250000, ownershipType: 'INDIVIDUAL', assetType: 'CHECKING' }
         ];
         const rec = calculateAuthorityRecommendation(assets, 'CA', { hasWill: true });
 
@@ -57,9 +57,10 @@ describe('Authority Engine', () => {
         const assets = [
             { value: 100000, ownershipType: 'INDIVIDUAL' }
         ];
-        const rec = calculateAuthorityRecommendation(assets, 'CA', { isOutOfState: true });
+        const rec = calculateAuthorityRecommendation(assets, 'CA', { hasWill: true, isOutOfState: true });
 
         expect(rec.type).toBe('ANCILLARY_PROBATE');
+        expect(rec.procedureType).toBe('ANCILLARY_PROBATE');
     });
 
     it('should recommend SPOUSAL_PETITION for surviving spouse claims', () => {
@@ -92,11 +93,13 @@ describe('Authority Engine', () => {
     });
 
     it('should recommend MUNIMENT_OF_TITLE in Texas when applicable', () => {
+        // TX threshold is $75,000. Muniment of Title is for wills under threshold.
         const assets = [
-            { value: 100000, ownershipType: 'INDIVIDUAL' }
+            { value: 50000, ownershipType: 'INDIVIDUAL' }
         ];
         const rec = calculateAuthorityRecommendation(assets, 'TX', { hasWill: true });
 
         expect(rec.type).toBe('MUNIMENT_OF_TITLE');
+        expect(rec.procedureType).toBe('MUNIMENT_OF_TITLE');
     });
 });

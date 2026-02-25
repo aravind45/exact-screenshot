@@ -235,10 +235,26 @@ export function calculateAuthorityRecommendation(
         type = "CONTESTED_ESTATE";
     } else if (metadata?.isOutOfState) {
         procedureType = "ANCILLARY_PROBATE";
-        type = metadata?.hasWill ? "FORMAL_PROBATE" : "INTESTATE";
-    } else if (metadata?.isSpouse) {
-        procedureType = "SPOUSAL_PETITION";
-        type = "SPOUSAL_PETITION";
+        type = "ANCILLARY_PROBATE";  // Ancillary probate is the primary type for out-of-state estates
+    } else if (state === "TX" && metadata?.hasWill && !metadata?.hasInsolvencyRisk && probateTotal <= threshold) {
+        // TX-specific: Muniment of Title for uncontested wills with no unpaid debts at or below threshold
+        // This must be checked BEFORE isEligibleForSmallEstate since TX Muniment is a probate shortcut, not a small estate affidavit
+        procedureType = "MUNIMENT_OF_TITLE";
+        type = "MUNIMENT_OF_TITLE";
+    } else if (isEligibleForSmallEstate) {
+        // Small estate eligibility - check BEFORE hasWill to prioritize affidavit path
+        // This ensures estates below threshold get simplified processing regardless of will status
+        // EXCEPT for TX which has Muniment of Title (handled above)
+        if (state === "MA" && probateTotal <= 25000) procedureType = "VOLUNTARY_ADMINISTRATION";
+        else if (state === "FL" && probateTotal < 75000) procedureType = "SUMMARY_ADMINISTRATION";
+        else if (state === "NY" && probateTotal < 50000) procedureType = "VOLUNTARY_ADMINISTRATION";
+        else if (state === "GA" && probateTotal <= 10000) procedureType = "SMALL_ESTATE_AFFIDAVIT"; // "No Administration Necessary"
+        else if (state === "NJ") {
+            // NJ small estate: $20,000 general, $50,000 if spouse is sole heir
+            procedureType = "SMALL_ESTATE_AFFIDAVIT";
+        }
+        else procedureType = "SMALL_ESTATE_AFFIDAVIT";
+        type = "SMALL_ESTATE";
     } else if (metadata?.hasWill) {
         if (state === "MA") {
             // MA-specific: Use Informal Probate for uncontested estates, Formal for contested
@@ -249,17 +265,11 @@ export function calculateAuthorityRecommendation(
                 procedureType = "INFORMAL_PROBATE";
                 type = "INFORMAL_PROBATE";
             }
-        } else if (state === "TX" && !metadata?.hasInsolvencyRisk) {
-            // TX-specific: Muniment of Title for uncontested wills with no unpaid debts (except secured)
-            // Independent Administration is the default for TX wills
-            if (probateTotal <= threshold) {
-                procedureType = "MUNIMENT_OF_TITLE";
-                type = "MUNIMENT_OF_TITLE";
-            } else {
-                // Large TX estates with will → Independent Administration (still formal, but TX-unique)
-                procedureType = "FORMAL_PROBATE";
-                type = "FORMAL_PROBATE";
-            }
+        } else if (state === "TX") {
+            // TX wills above threshold go to Independent Administration (formal probate)
+            // TX wills at/below threshold already handled by Muniment of Title check above
+            procedureType = "FORMAL_PROBATE";
+            type = "FORMAL_PROBATE";
         } else if (state === "NJ") {
             // NJ-specific: Uncontested probate through Surrogate's Court
             // Contested matters escalate to Superior Court, Chancery Division, Probate Part
@@ -268,8 +278,9 @@ export function calculateAuthorityRecommendation(
                 type = "CONTESTED_ESTATE";
                 // Note: Contested NJ probate goes to Superior Court, Chancery Division, Probate Part
             } else {
-                procedureType = "INFORMAL_PROBATE"; // NJ Surrogate's Court handles uncontested matters
-                type = "FORMAL_PROBATE";
+                // NJ uncontested probate through Surrogate's Court - align type with procedureType
+                procedureType = "INFORMAL_PROBATE";
+                type = "INFORMAL_PROBATE";
             }
         } else if (rule.isUPC) {
             procedureType = "INFORMAL_PROBATE";
@@ -278,6 +289,23 @@ export function calculateAuthorityRecommendation(
             procedureType = "FORMAL_PROBATE";
             type = "FORMAL_PROBATE";
         }
+    } else if (metadata?.isSpouse) {
+        // NJ-specific: Check spouse small estate threshold BEFORE general eligibility
+        // This ensures spouse threshold ($50k) is reachable for small estates
+        if (state === "NJ") {
+            const njRule = rule as any;
+            const spouseThreshold = njRule?.smallEstateSpouseThreshold || 50000;
+            if (probateTotal <= spouseThreshold) {
+                procedureType = "SMALL_ESTATE_AFFIDAVIT";
+                type = "SMALL_ESTATE";
+            } else {
+                procedureType = "SPOUSAL_PETITION";
+                type = "SPOUSAL_PETITION";
+            }
+        } else {
+            procedureType = "SPOUSAL_PETITION";
+            type = "SPOUSAL_PETITION";
+        }
     } else if (probateTotal > threshold) {
         type = "INTESTATE";
         if (rule.isUPC) {
@@ -285,25 +313,6 @@ export function calculateAuthorityRecommendation(
         } else {
             procedureType = "FORMAL_PROBATE";
         }
-    } else if (isEligibleForSmallEstate) {
-        if (state === "MA" && probateTotal <= 25000) procedureType = "VOLUNTARY_ADMINISTRATION";
-        else if (state === "FL" && probateTotal < 75000) procedureType = "SUMMARY_ADMINISTRATION";
-        else if (state === "NY" && probateTotal < 50000) procedureType = "VOLUNTARY_ADMINISTRATION";
-        else if (state === "GA" && probateTotal <= 10000) procedureType = "SMALL_ESTATE_AFFIDAVIT"; // "No Administration Necessary"
-        else if (state === "NJ") {
-            // NJ small estate: $20,000 general, $50,000 if spouse is sole heir
-            const njRule = rule as any;
-            const spouseThreshold = njRule?.smallEstateSpouseThreshold || 50000;
-            if (metadata?.isSpouse && probateTotal <= spouseThreshold) {
-                procedureType = "SMALL_ESTATE_AFFIDAVIT";
-            } else if (probateTotal <= threshold) {
-                procedureType = "SMALL_ESTATE_AFFIDAVIT";
-            } else {
-                procedureType = "FORMAL_PROBATE";
-            }
-        }
-        else procedureType = "SMALL_ESTATE_AFFIDAVIT";
-        type = "SMALL_ESTATE";
     } else if (activeEngines.includes("TOD_DEED") || activeEngines.includes("POD_TOD_ACCOUNTS")) {
         procedureType = "DIRECT_TRANSFER";
         type = metadata?.hasTODDeed ? "TOD_DEED" : "POD_TOD_TRANSFER";

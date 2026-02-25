@@ -436,17 +436,29 @@ describe('Phase 2: 50-State Comprehensive Matrix', () => {
           expect(below.procedureType).toBe('SUMMARY_ADMINISTRATION');
         } else if (state === 'NY') {
           expect(below.procedureType).toBe('VOLUNTARY_ADMINISTRATION');
+        } else if (state === 'TX') {
+          // TX with will under threshold routes to Muniment of Title, not Small Estate Affidavit
+          expect(below.type).toBe('MUNIMENT_OF_TITLE');
+          expect(below.procedureType).toBe('MUNIMENT_OF_TITLE');
+        } else if (state === 'NJ') {
+          // NJ has its own threshold handling - test for small estate affidavit
+          expect(below.type).toBe('SMALL_ESTATE');
         } else {
           expect(below.type).toBe('SMALL_ESTATE');
         }
 
-        // At threshold - Should be standard SMALL_ESTATE (Affidavit)
+        // At threshold - Should be standard SMALL_ESTATE (Affidavit) for most states
         const at = calculateAuthorityRecommendation(
           [{ value: threshold, ownershipType: 'INDIVIDUAL', assetType: 'CHECKING' }],
           state,
           { hasWill: true }
         );
-        expect(at.type).toBe('SMALL_ESTATE');
+        if (state === 'TX') {
+          // TX at threshold with will still routes to Muniment of Title
+          expect(at.type).toBe('MUNIMENT_OF_TITLE');
+        } else {
+          expect(at.type).toBe('SMALL_ESTATE');
+        }
 
         // Above threshold
         const above = calculateAuthorityRecommendation(
@@ -456,7 +468,8 @@ describe('Phase 2: 50-State Comprehensive Matrix', () => {
         );
 
         if (state === 'TX') {
-          expect(above.type).toBe('MUNIMENT_OF_TITLE');
+          // TX above threshold with will routes to Formal Probate (Independent Administration)
+          expect(above.type).toBe('FORMAL_PROBATE');
         } else if (UPC_STATES.includes(state)) {
           expect(above.type).toBe('INFORMAL_PROBATE');
         } else {
@@ -500,13 +513,10 @@ describe('Phase 2: 50-State Comprehensive Matrix', () => {
             { hasWill: true, hasContest: true }
           );
 
-          if (state === 'TX') {
-            // TX behavior currently remains muniment per engine logic
-            // TODO: Verify if contested wills should still route to Muniment in TX
-            expect(result.type).toBe('MUNIMENT_OF_TITLE');
-          } else {
-            expect(result.type).toBe('FORMAL_PROBATE');
-          }
+          // Contested estates route to CONTESTED_ESTATE regardless of state
+          // This is correct behavior - contested wills require litigation proceedings
+          expect(result.type).toBe('CONTESTED_ESTATE');
+          expect(result.procedureType).toBe('FORMAL_PROBATE');
         });
       });
 
