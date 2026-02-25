@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { TenantConfig } from '@/config/tenantConfig';
+import { hexToHslVariables } from '@/lib/utils';
 
 interface TenantContextType {
     tenant: TenantConfig | null;
@@ -37,9 +38,21 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
     const applyTheme = (config: TenantConfig) => {
         if (config.primaryColor) {
-            document.documentElement.style.setProperty('--primary', config.primaryColor);
-            // Simple HSL conversion or variation could be done here if needed
-            // For now, we just set the primary hex/css variable
+            try {
+                const hslValues = hexToHslVariables(config.primaryColor);
+                document.documentElement.style.setProperty('--primary', hslValues);
+            } catch (error) {
+                console.error('Failed to parse primary color:', error);
+            }
+        }
+
+        if (config.secondaryColor) {
+            try {
+                const hslValues = hexToHslVariables(config.secondaryColor);
+                document.documentElement.style.setProperty('--secondary', hslValues);
+            } catch (error) {
+                console.error('Failed to parse secondary color:', error);
+            }
         }
     };
 
