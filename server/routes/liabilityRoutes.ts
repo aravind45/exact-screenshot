@@ -5,7 +5,8 @@ import { encrypt, decrypt } from "../utils/encryption.js";
 import { RiskService } from "../services/riskService.js";
 import { AuditService } from "../services/auditService.js";
 import { requireRole } from "../middleware/rbac.js";
-import { requireAuthorityStatus, requireEstateAccess } from "../middleware/authorityGating.js";
+import { requireAuthorityStatus } from "../middleware/authorityGating.js";
+import { requireEstateAccess } from "../middleware/estateAuth.js";
 import { z } from "zod";
 import { logger } from "../lib/logger.js";
 import { requireSubscription } from "../middleware/subscription.js";
@@ -307,7 +308,7 @@ router.delete("/:id", requireEstateAccess, requireAuthorityStatus({
         if (!estateId) return res.status(404).json({ error: "Estate not found" });
 
         const { id } = req.params;
-        
+
         // Log the liability deletion
         await AuditService.logActivity(
             estateId,
@@ -316,7 +317,7 @@ router.delete("/:id", requireEstateAccess, requireAuthorityStatus({
             "DELETED",
             `Deleted liability: ${id}`
         );
-        
+
         await prisma.liability.delete({ where: { id } });
 
         res.json({ success: true });
