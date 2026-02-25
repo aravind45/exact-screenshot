@@ -20,10 +20,58 @@ export const PHASE_ORDER = [
 ];
 // State-specific phase milestone overrides
 export const STATE_PHASE_OVERRIDES = {
+    MA: {
+        court_filing: {
+            milestone: "Probate & Family Court Filing",
+            subtitle: "MUPC Informal/Formal Petition",
+        },
+        creditor_claims: {
+            milestone: "After Authority Issued",
+            subtitle: "1-Year Claim Window (4-Month Option)",
+        },
+    },
     NY: {
+        court_filing: {
+            milestone: "Surrogate's Court Filing",
+            subtitle: "Petition & Letters via Surrogate's Court",
+        },
         creditor_claims: {
             milestone: "After Letters Issued",
             subtitle: "7-Month Exposure Management",
+        },
+    },
+    TX: {
+        court_filing: {
+            milestone: "County/Statutory Probate Court Filing",
+            subtitle: "Independent Admin or Muniment of Title",
+        },
+        creditor_claims: {
+            milestone: "After Letters Issued",
+            subtitle: "Secured & Unsecured Claims (Optional for Muniment)",
+        },
+    },
+    FL: {
+        court_filing: {
+            milestone: "Circuit Court Filing",
+            subtitle: "Formal Admin or Summary Administration",
+        },
+        creditor_claims: {
+            milestone: "After Notice to Creditors Published",
+            subtitle: "3-Month Claim Window (FL Stat. §733.702)",
+        },
+        final_distribution: {
+            milestone: "After Claims & Taxes Addressed",
+            subtitle: "Distribution & Homestead Determination",
+        },
+    },
+    GA: {
+        court_filing: {
+            milestone: "Probate Court Filing",
+            subtitle: "Petition for Letters or No Administration Necessary",
+        },
+        creditor_claims: {
+            milestone: "After Letters Issued",
+            subtitle: "3-Month Creditor Notice Period",
         },
     },
     CA: {
@@ -34,6 +82,28 @@ export const STATE_PHASE_OVERRIDES = {
         asset_liquidation: {
             milestone: "After Inventory Prepared",
             subtitle: "IAEA / Court-Confirmed Sales",
+        },
+    },
+    NJ: {
+        court_filing: {
+            milestone: "Surrogate's Court Filing",
+            subtitle: "Uncontested vs. Contested Path",
+        },
+        creditor_claims: {
+            milestone: "After First Publication",
+            subtitle: "6-Month Claim Window (N.J.S.A. 3B:22-4)",
+        },
+        asset_discovery: {
+            milestone: "After Authority Issued",
+            subtitle: "Inventory Due in 90 Days",
+        },
+        asset_liquidation: {
+            milestone: "After Inventory Filed",
+            subtitle: "Power of Sale or Court Confirmation",
+        },
+        final_distribution: {
+            milestone: "After Taxes & Waivers",
+            subtitle: "Inheritance Tax Waiver Required",
         },
     },
 };
