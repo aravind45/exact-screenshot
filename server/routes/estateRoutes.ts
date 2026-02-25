@@ -6,6 +6,7 @@ import { encrypt, decrypt, encryptBuffer, decryptBuffer } from "../utils/encrypt
 import { AuditService } from "../services/auditService.js";
 import { requireRole } from "../middleware/rbac.js";
 import { requireEstateAccess } from "../middleware/estateAuth.js";
+import { requireAuthorityStatus } from "../middleware/authorityGating.js";
 import { z } from "zod";
 import { logger } from "../lib/logger.js";
 import { requireSubscription } from "../middleware/subscription.js";
@@ -988,7 +989,10 @@ router.post("/:id/tasks/:taskId/complete", requireSubscription, async (req: any,
     }
 });
 
-router.delete("/:id/tasks/:taskId/complete", requireSubscription, async (req: any, res: Response) => {
+router.delete("/:id/tasks/:taskId/complete", requireSubscription, requireEstateAccess, requireAuthorityStatus({
+    operation: "estate:amend",
+    customMessage: "Modifying task completions requires legal authority"
+}), async (req: any, res: Response) => {
     try {
         const { id, taskId } = req.params;
 
@@ -1009,6 +1013,16 @@ router.delete("/:id/tasks/:taskId/complete", requireSubscription, async (req: an
 
         // Uncomplete task
         const result = await uncompleteTask(id, taskId, req.user.id);
+        
+        // Log the task uncompletion
+        await AuditService.logActivity(
+            id,
+            req.user.id,
+            "TASK",
+            "UNCOMPLETED",
+            `Uncompleted task: ${taskId}`
+        );
+        
         res.json(result);
     } catch (error: any) {
         logger.error("Error uncompleting task:", error.message);

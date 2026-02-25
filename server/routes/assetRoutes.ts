@@ -3,6 +3,9 @@ import { AssetService } from "../services/assetService.js";
 import { z } from "zod";
 import { logger } from "../lib/logger.js";
 import { requireSubscription } from "../middleware/subscription.js";
+import { requireAuthorityStatus } from "../middleware/authorityGating.js";
+import { requireEstateAccess } from "../middleware/estateAuth.js";
+import { AuditService } from "../services/auditService.js";
 
 const router = Router();
 
@@ -65,9 +68,22 @@ router.post("/", async (req: any, res: Response) => {
     }
 });
 
-router.put("/:id", async (req: any, res: Response) => {
+router.put("/:id", requireEstateAccess, requireAuthorityStatus({
+    operation: "assets:update",
+    customMessage: "Asset updates require authority status"
+}), async (req: any, res: Response) => {
     try {
         const validated = assetSchema.partial().parse(req.body);
+        
+        // Log the asset update attempt
+        await AuditService.logActivity(
+            req.estateId,
+            req.user.id,
+            "ASSET",
+            "UPDATED",
+            `Updated asset: ${req.params.id}`
+        );
+        
         const asset = await AssetService.update(req.params.id, req.user.id, validated);
         res.json(asset);
     } catch (error: any) {
@@ -79,8 +95,20 @@ router.put("/:id", async (req: any, res: Response) => {
     }
 });
 
-router.delete("/:id", async (req: any, res: Response) => {
+router.delete("/:id", requireEstateAccess, requireAuthorityStatus({
+    operation: "assets:delete",
+    customMessage: "Asset deletion requires legal authority"
+}), async (req: any, res: Response) => {
     try {
+        // Log the asset deletion attempt
+        await AuditService.logActivity(
+            req.estateId,
+            req.user.id,
+            "ASSET",
+            "DELETED",
+            `Deleted asset: ${req.params.id}`
+        );
+        
         const result = await AssetService.delete(req.params.id, req.user.id);
         res.json(result);
     } catch (error: any) {
