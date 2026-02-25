@@ -754,46 +754,55 @@ export const SETTLEMENT_PHASE_TASKS = [
             },
             {
                 id: "nj_bond_calculation",
-                title: "Calculate NJ Bond Amount",
-                description: "NJ bond amount is based on the value of PERSONAL PROPERTY only (not real estate). Calculate: (Personal Property Value) + (Estimated Annual Income). This is the bond amount required unless waived.",
+                title: "Calculate NJ Bond Amount (Pre-Filing Estimate)",
+                description: "Estimate the NJ bond amount before filing using the preliminary asset scan. NJ calculates bond on PERSONAL PROPERTY only (not real estate): Bond = Personal Property Value + Estimated Annual Estate Income. This estimate is provided to the Surrogate at filing and can be updated after the formal inventory is completed.",
                 estimatedTime: "1-2 hours",
                 category: "probate",
                 trackCompatibility: ["PROBATE"],
                 applicability: { states: ["NJ"] },
                 tags: ["fiduciary", "statutory"],
-                requiredDocs: ["Asset Inventory", "Personal Property Valuation"],
-                outputs: ["Calculated Bond Amount"],
+                requiredDocs: ["Preliminary Asset List", "Bank / Brokerage Statements (estimated)", "Income Estimate"],
+                outputs: ["Estimated Bond Amount", "Bond Waiver Eligibility Assessment"],
                 alerts: [
                     {
                         type: "important",
-                        message: "BOND FORMULA: Bond Amount = Personal Property Value + Estimated Annual Income from Estate. Real estate is NOT included in bond calculation."
+                        message: "BOND FORMULA (N.J.S.A. 3B:15-1): Bond Amount = Value of Personal Property + Estimated Annual Income from Estate. Real estate is EXCLUDED from the bond calculation."
                     },
                     {
                         type: "info",
-                        message: "Personal property includes: bank accounts, brokerage accounts, vehicles, household goods, and other tangible personal property. Does NOT include real estate."
+                        message: "Personal property in scope: bank accounts, brokerage/investment accounts, vehicles, household goods, and other tangible personal property. Real estate and non-probate assets (POD/TOD/joint) are excluded."
+                    },
+                    {
+                        type: "info",
+                        message: "WAIVER SHORTCUT: If the will waives bond, or if ALL heirs sign written consent to waive, the bond can be eliminated entirely — avoiding annual surety premiums."
                     }
                 ],
-                dependencies: ["preliminary_asset_scan", "complete_inventory"],
-                links: [{ label: "NJ Bond Requirements", url: "https://www.njcourts.gov/self-help/probate#bond" }]
+                dependencies: ["preliminary_asset_scan"],
+                links: [{ label: "NJ Bond Requirements (N.J.S.A. 3B:15-1)", url: "https://www.njcourts.gov/self-help/probate#bond" }]
             },
             {
                 id: "nj_bond_determination",
-                title: "Determine Bond Requirement (NJ)",
-                description: "NJ requires a bond for administrators (intestate) unless waived. For executors (testate), check if the will waives bond. Obtain heir consents to waive if applicable.",
+                title: "Determine Bond Requirement & Waiver Gate (NJ)",
+                description: "Determine whether bond is required and whether it can be waived before filing. Two waiver paths: (1) Will waives bond — executor is automatically exempt if the will contains an explicit bond waiver clause; (2) Heir consent — ALL heirs/beneficiaries must sign notarized written consent. If neither path is available, obtain a surety bond before Letters are issued.",
                 estimatedTime: "1-2 hours",
                 category: "probate",
                 trackCompatibility: ["PROBATE"],
                 applicability: { states: ["NJ"] },
                 tags: ["fiduciary", "statutory"],
-                requiredDocs: ["Will (if exists)", "Bond Waiver Consents from All Heirs/Beneficiaries", "Bond Calculation"],
+                requiredDocs: ["Will (review for bond waiver clause)", "Bond Amount Estimate", "Heir/Beneficiary Contact List"],
+                outputs: ["Bond Requirement Decision", "Waiver Path Selection"],
                 alerts: [
                     {
                         type: "important",
-                        message: "ADMINISTRATOR BOND: MANDATORY for intestate estates unless ALL heirs sign written consent to waive. Bond protects heirs from fiduciary misconduct."
+                        message: "ADMINISTRATOR BOND: Mandatory for intestate estates (N.J.S.A. 3B:15-1) unless ALL heirs sign written consent to waive. Bond amount = personal property value + estimated annual income."
                     },
                     {
                         type: "info",
-                        message: "EXECUTOR BOND: Required UNLESS the will explicitly waives bond. If will is silent, obtain signed waivers from ALL beneficiaries to avoid bond cost."
+                        message: "EXECUTOR BOND: Required UNLESS the will explicitly waives bond. If the will is silent, collect notarized waivers from ALL beneficiaries to avoid bond cost. A single refusal means bond is required."
+                    },
+                    {
+                        type: "info",
+                        message: "NEXT STEPS: If bond can be waived → file Bond Waiver Affidavit. If bond is required → obtain surety bond or consider bond without surety (court approval required)."
                     }
                 ],
                 dependencies: ["nj_bond_calculation", "file_nj_surrogate_probate", "file_nj_administration"]
@@ -1011,15 +1020,20 @@ export const SETTLEMENT_PHASE_TASKS = [
                 category: "probate",
                 trackCompatibility: ["PROBATE"],
                 dependencies: ["file_probate_petition", "file_administration_petition"],
+                isConditional: true,
+                conditionalRequirementLabel: "Required when contested or court schedules a hearing",
                 stateOverrides: {
                     NJ: {
-                        title: "Obtain Citation (If Required by Surrogate)",
-                        description: "In NJ, Citation is only required when the Surrogate determines a hearing is necessary (e.g., contested matters, missing heirs, waivers not obtained). Uncontested probate proceeds without citation.",
+                        title: "Obtain Citation (Contested / Surrogate-Directed Only)",
+                        description: "In NJ, Citation is only issued when the Surrogate determines a hearing is necessary — e.g., contested matter, missing heirs, or waivers not obtained. Standard uncontested Surrogate's Court probate does not require a Citation.",
                         isConditional: true,
-                        conditionalRequirementLabel: "Required only if Surrogate requires hearing",
+                        conditionalRequirementLabel: "Required only if estate is contested or Surrogate requires a hearing",
+                        applicability: {
+                            predicatesAny: ["isContested", "surrogate_requires_hearing"]
+                        },
                         alerts: [{
                                 type: "info",
-                                message: "NJ Uncontested: If all waivers are obtained and no contests exist, the Surrogate can probate the will without issuing a Citation."
+                                message: "NJ Uncontested Path: Obtain all Waivers & Consents before filing. The Surrogate probates the will administratively — no Citation or hearing issued."
                             }]
                     }
                 }
@@ -1032,16 +1046,21 @@ export const SETTLEMENT_PHASE_TASKS = [
                 category: "probate",
                 trackCompatibility: ["PROBATE"],
                 dependencies: ["obtain_citation"],
+                isConditional: true,
+                conditionalRequirementLabel: "Required only if a Citation was issued",
                 alerts: [{
                         type: "warning",
                         message: "Service must be completed within strict deadlines before the hearing date. Proper affidavits of service are required."
                     }],
                 stateOverrides: {
                     NJ: {
-                        title: "Serve Citation (If Issued)",
-                        description: "Serve the Citation only if the Surrogate issued one. This is not required for standard uncontested NJ probate.",
+                        title: "Serve Citation (Contested / Surrogate-Directed Only)",
+                        description: "Serve the Citation only if the Surrogate issued one. Not required for standard uncontested NJ Surrogate's Court probate.",
                         isConditional: true,
-                        conditionalRequirementLabel: "Required only if Citation was issued"
+                        conditionalRequirementLabel: "Required only if Citation was issued by the Surrogate",
+                        applicability: {
+                            predicatesAny: ["isContested", "surrogate_requires_hearing"]
+                        }
                     }
                 }
             },
@@ -1052,6 +1071,8 @@ export const SETTLEMENT_PHASE_TASKS = [
                 estimatedTime: "2-3 hours",
                 requiredDocs: ["Valid ID", "Proof of Notice"],
                 applicability: { variants: ["TESTATE"] },
+                isConditional: true,
+                conditionalRequirementLabel: "Required when contested or court schedules a hearing",
                 dependencies: ["file_probate_petition"],
                 alerts: [
                     {
@@ -1061,13 +1082,16 @@ export const SETTLEMENT_PHASE_TASKS = [
                 ],
                 stateOverrides: {
                     NJ: {
-                        title: "Attend Probate Hearing (If Required)",
-                        description: "In NJ, hearings are typically not required for uncontested probate. The Surrogate processes the application administratively. Only attend if the Surrogate schedules a hearing.",
+                        title: "Attend Probate Hearing (Contested / Surrogate-Directed Only)",
+                        description: "In NJ, hearings are not required for uncontested Surrogate's Court probate. The Surrogate processes the application administratively. Only attend if the Surrogate schedules a hearing due to a contest or other issue.",
                         isConditional: true,
                         conditionalRequirementLabel: "Required only if Surrogate schedules a hearing",
+                        applicability: {
+                            predicatesAny: ["isContested", "surrogate_requires_hearing"]
+                        },
                         alerts: [{
                                 type: "info",
-                                message: "NJ Uncontested: Most NJ probates are processed by the Surrogate without a court hearing."
+                                message: "NJ Uncontested: Most NJ probates are processed by the Surrogate without a court hearing. A hearing is only set when disputes arise or the Surrogate determines one is needed."
                             }]
                     }
                 }
@@ -1079,6 +1103,8 @@ export const SETTLEMENT_PHASE_TASKS = [
                 estimatedTime: "2-3 hours",
                 requiredDocs: ["Valid ID", "Proof of Notice"],
                 applicability: { variants: ["INTESTATE"] },
+                isConditional: true,
+                conditionalRequirementLabel: "Required when contested or court schedules a hearing",
                 dependencies: ["file_administration_petition"],
                 alerts: [
                     {
@@ -1088,10 +1114,13 @@ export const SETTLEMENT_PHASE_TASKS = [
                 ],
                 stateOverrides: {
                     NJ: {
-                        title: "Attend Administration Hearing (If Required)",
-                        description: "In NJ, hearings are typically not required for uncontested administration. The Surrogate processes the application administratively. Only attend if the Surrogate schedules a hearing.",
+                        title: "Attend Administration Hearing (Contested / Surrogate-Directed Only)",
+                        description: "In NJ, hearings are not required for uncontested Surrogate's Court administration. The Surrogate processes the application administratively. Only attend if the Surrogate schedules a hearing.",
                         isConditional: true,
-                        conditionalRequirementLabel: "Required only if Surrogate schedules a hearing"
+                        conditionalRequirementLabel: "Required only if Surrogate schedules a hearing",
+                        applicability: {
+                            predicatesAny: ["isContested", "surrogate_requires_hearing"]
+                        }
                     }
                 }
             },
@@ -1100,12 +1129,18 @@ export const SETTLEMENT_PHASE_TASKS = [
                 title: "Obtain Letters Testamentary",
                 description: "Once the Will is admitted to probate, obtain certified copies of your Letters Testamentary.",
                 requiresAuthority: true,
-                estimatedTime: "1-2 weeks after hearing",
+                estimatedTime: "1-2 weeks after filing",
                 category: "court-issued",
                 requiredDocs: ["Letters Testamentary"],
                 applicability: { variants: ["TESTATE"] },
-                dependencies: ["attend_probate_hearing"],
+                dependencies: ["attend_probate_hearing", "file_nj_surrogate_probate"],
                 stateOverrides: {
+                    NJ: {
+                        title: "Obtain Letters Testamentary (NJ)",
+                        description: "After the County Surrogate approves the probate application, Letters Testamentary are issued — typically at the time of filing for uncontested matters. No hearing is required.",
+                        estimatedTime: "Same day to 1 week after filing",
+                        dependencies: ["file_nj_surrogate_probate"]
+                    },
                     NY: {
                         title: "Obtain Letters Testamentary",
                         description: "After the Surrogate's Court approves the petition, it issues Letters Testamentary granting the executor authority to act on behalf of the estate."
@@ -1123,12 +1158,18 @@ export const SETTLEMENT_PHASE_TASKS = [
                 title: "Obtain Letters of Administration",
                 description: "Once the court approves the petition, obtain certified copies of your Letters of Administration.",
                 requiresAuthority: true,
-                estimatedTime: "1-2 weeks after hearing",
+                estimatedTime: "1-2 weeks after filing",
                 category: "court-issued",
                 requiredDocs: ["Letters of Administration"],
                 applicability: { variants: ["INTESTATE"] },
-                dependencies: ["attend_administration_hearing"],
+                dependencies: ["attend_administration_hearing", "file_nj_administration"],
                 stateOverrides: {
+                    NJ: {
+                        title: "Obtain Letters of Administration (NJ)",
+                        description: "After the County Surrogate approves the administration application, Letters of Administration are issued — typically within a few days of filing for uncontested matters. No hearing is required unless the Surrogate directs one.",
+                        estimatedTime: "Same day to 1 week after filing",
+                        dependencies: ["file_nj_administration"]
+                    },
                     NY: {
                         title: "Obtain Letters of Administration",
                         description: "The Surrogate's Court issues the Decree and Letters of Administration.",
@@ -1171,17 +1212,8 @@ export const SETTLEMENT_PHASE_TASKS = [
                 conditionalRequirementLabel: "Required if property is being transferred to a surviving spouse or domestic partner",
                 helpArticleId: "spousal-property",
                 requiredDocs: ["Petition Form", "Death Certificate"],
-                // NJ does not use spousal property petition - uses small estate affidavit for spouse or standard probate
-                stateOverrides: {
-                    NJ: {
-                        title: "NOT USED IN NJ - Use Small Estate Affidavit or Probate",
-                        description: "NJ does not have a separate spousal property petition. Surviving spouses should use the Small Estate Affidavit (up to $50,000) or proceed with standard probate.",
-                        isOptional: true,
-                        alerts: [{
-                                type: "info",
-                                message: "NJ Alternative: Surviving spouse as sole heir can use Small Estate Affidavit (up to $50,000 threshold). For larger estates, standard probate through Surrogate's Court applies."
-                            }]
-                    }
+                applicability: {
+                    excludePredicates: ["isNJ"]
                 }
             },
             {
@@ -1193,6 +1225,9 @@ export const SETTLEMENT_PHASE_TASKS = [
                 isOptional: true,
                 dependencies: ["file_spousal_petition"],
                 requiredDocs: ["Notice of Hearing Form"],
+                applicability: {
+                    excludePredicates: ["isNJ"]
+                },
                 alerts: [{
                         type: "important",
                         message: "Notice must be served at least 15 days before the hearing date."
@@ -1207,6 +1242,9 @@ export const SETTLEMENT_PHASE_TASKS = [
                 isOptional: true,
                 dependencies: ["give_spousal_notice"],
                 requiredDocs: ["Court Order"],
+                applicability: {
+                    excludePredicates: ["isNJ"]
+                },
                 alerts: [{
                         type: "important",
                         message: "A certified copy of this order serves as the new deed for real property."
@@ -2340,15 +2378,15 @@ export const SETTLEMENT_PHASE_TASKS = [
             {
                 id: "nj_inheritance_tax_waiver",
                 title: "Obtain NJ Inheritance Tax Waiver (Tax Clearance)",
-                description: "Request tax waivers (Form C9700) from the NJ Division of Taxation. Waivers are REQUIRED to transfer NJ real estate and certain financial accounts. For Class A beneficiaries, waivers are issued quickly. For others, tax must be paid first.",
-                estimatedTime: "4-12 weeks",
+                description: "Request tax waivers (Form C9700) from the NJ Division of Taxation. Waivers are REQUIRED to transfer NJ real estate and certain financial accounts. Class A beneficiaries (spouse, children, parents) receive waivers shortly after filing the return — no tax payment required. Class C and D beneficiaries must pay tax before waivers are issued.",
+                estimatedTime: "2-12 weeks (Class A: 2-4 weeks; Class C/D: after tax payment)",
                 category: "probate",
                 trackCompatibility: ["PROBATE", "TRUST"],
                 applicability: { states: ["NJ"] },
                 tags: ["tax", "statutory"],
                 isConditional: true,
-                conditionalRequirementLabel: "REQUIRED for ALL NJ real estate transfers",
-                requiredDocs: ["Filed Inheritance Tax Return", "Tax Payment Proof (if applicable)", "Waiver Request Form C9700"],
+                conditionalRequirementLabel: "REQUIRED for ALL NJ real estate transfers and most financial account transfers",
+                requiredDocs: ["Filed Inheritance Tax Return", "Tax Payment Proof (Class C/D only)", "Waiver Request Form C9700"],
                 alerts: [
                     {
                         type: "important",
@@ -2356,36 +2394,38 @@ export const SETTLEMENT_PHASE_TASKS = [
                     },
                     {
                         type: "info",
-                        message: "CLASS A FAST-TRACK: Waivers for Class A beneficiaries (spouse, children, parents) are typically issued within 2-4 weeks. Other classes require tax payment first."
+                        message: "CLASS A FAST-TRACK: Waivers for Class A beneficiaries (spouse, children, parents) are issued after the return is filed — tax payment is NOT required. Class C/D waivers require tax payment first."
                     }
                 ],
-                dependencies: ["nj_inheritance_tax_return", "nj_inheritance_tax_payment"],
+                dependencies: ["nj_inheritance_tax_return"],
                 formNames: ["Tax Waiver Request (Form C9700)"],
                 links: [{ label: "NJ Tax Waiver Information", url: "https://www.nj.gov/treasury/taxation/inheritance_waiver.shtml" }]
             },
             {
                 id: "nj_distribution_block_until_clearance",
-                title: "WAIT: Do Not Distribute Until Tax Clearance Received",
-                description: "NJ law prohibits distribution of estate assets to non-Class A beneficiaries until inheritance tax is paid and clearance is received. Premature distributions expose the executor to personal liability for the unpaid tax.",
-                estimatedTime: "8-12 months",
+                title: "HOLD: Do Not Distribute to Class C/D Beneficiaries Until Waiver Received",
+                description: "NJ requires tax clearance before distributing assets to non-exempt (Class C or D) beneficiaries. Do not transfer real estate or make final distributions to Class C/D beneficiaries until the Inheritance Tax Waiver (Form C9700) is received from the NJ Division of Taxation. Class A distributions (spouse, children, parents) may proceed after the return is filed.",
+                estimatedTime: "Ongoing until waiver received",
                 category: "probate",
                 trackCompatibility: ["PROBATE", "TRUST"],
                 applicability: { states: ["NJ"] },
                 tags: ["risk-guardrail", "statutory"],
                 isLongHorizon: true,
+                isConditional: true,
+                conditionalRequirementLabel: "Required if estate has Class C or D beneficiaries",
                 isAttorneyReviewNode: true,
-                attorneyReviewReason: "Fiduciary Liability: Distributing to non-exempt beneficiaries before tax clearance creates personal liability for the executor.",
+                attorneyReviewReason: "Fiduciary Liability: Distributing to Class C/D beneficiaries before receiving the Inheritance Tax Waiver creates direct personal liability for unpaid tax.",
                 alerts: [
                     {
                         type: "caution",
-                        message: "DISTRIBUTION HOLD: For estates with Class C or D beneficiaries, do NOT make final distributions until you receive the tax waiver/clearance from NJ Division of Taxation."
+                        message: "DISTRIBUTION HOLD — CLASS C/D ONLY: Do NOT make final distributions to Class C or D beneficiaries until you have the NJ Inheritance Tax Waiver (Form C9700) in hand."
                     },
                     {
                         type: "info",
-                        message: "Class A Exception: Distributions to Class A beneficiaries (spouse, children, parents) can proceed without waiting for tax clearance since they are fully exempt."
+                        message: "CLASS A EXCEPTION: Distributions to Class A beneficiaries (spouse, children, parents, grandparents) can proceed after the inheritance tax return is filed. They do NOT need to wait for the waiver."
                     }
                 ],
-                dependencies: ["nj_inheritance_tax_return"]
+                dependencies: ["nj_inheritance_tax_waiver", "nj_inheritance_tax_payment"]
             },
             // ── End NJ-Specific Inheritance Tax Tasks ─────────────────────────────
             // ── State-Specific Final Distribution Tasks ───────────────────────
