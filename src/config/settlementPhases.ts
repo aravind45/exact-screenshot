@@ -2198,7 +2198,13 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         ],
         links: [{ label: "Texas MERP Information", url: "https://www.hhs.texas.gov/services/financial/medicaid-chip/estate-recovery" }]
       },
-stateOverrides: {
+      {
+        id: "monitor_creditor_claim_period",
+        title: "Monitor Creditor Claim Period",
+        description: "Monitor the creditor claim period applicable in your jurisdiction. The timing and trigger events vary by state. This task provides state-specific guidance for creditor claim monitoring.",
+        isLongHorizon: true,
+        estimatedTime: "State-specific",
+        stateOverrides: {
           CA: {
             title: "Wait for 4-Month Claim Period",
             description: "Creditors have 4 months from publication of the creditor notice to file claims against the estate.",
