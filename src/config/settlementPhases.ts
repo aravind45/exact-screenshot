@@ -78,6 +78,8 @@ export interface PhaseTask {
       dependencies?: string[];
       isOptional?: boolean;
       deadlineWarningId?: string;
+      isConditional?: boolean;
+      conditionalRequirementLabel?: string;
       requiredDocs?: string[];
       alerts?: {
         type: "info" | "warning" | "important" | "caution";

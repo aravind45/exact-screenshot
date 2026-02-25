@@ -159,53 +159,68 @@ export function calculateAuthorityRecommendation(assets, state, metadata) {
         type = "CONTESTED_ESTATE";
     }
     else if (metadata?.isOutOfState) {
-        // Ancillary probate must be checked BEFORE trust if the primary out-of-state asset is probate
-        // (Trust assets alone wouldn't trigger ancillary if titles are held by trust).
         procedureType = "ANCILLARY_PROBATE";
-        type = "ANCILLARY_PROBATE";
+        type = "ANCILLARY_PROBATE"; // Ancillary probate is the primary type for out-of-state estates
     }
-    else if (probateTotal > 0) {
-        // HYBRID PRIORITY: If any assets are outside the trust, the Primary Roadmap track
-        // should be a Court track (Small Estate or Probate) to ensure Phase 0/1 compliance is visible.
-        // Trust tasks will still accompany these via activeEngines.
-        if (probateTotal <= threshold) {
+    else if (state === "TX" && metadata?.hasWill && !metadata?.hasInsolvencyRisk && probateTotal <= threshold) {
+        // TX-specific: Muniment of Title for uncontested wills with no unpaid debts at or below threshold
+        // This must be checked BEFORE isEligibleForSmallEstate since TX Muniment is a probate shortcut, not a small estate affidavit
+        procedureType = "MUNIMENT_OF_TITLE";
+        type = "MUNIMENT_OF_TITLE";
+    }
+    else if (isEligibleForSmallEstate) {
+        // Small estate eligibility - check BEFORE hasWill to prioritize affidavit path
+        // This ensures estates below threshold get simplified processing regardless of will status
+        // EXCEPT for TX which has Muniment of Title (handled above)
+        if (state === "MA" && probateTotal <= 25000)
+            procedureType = "VOLUNTARY_ADMINISTRATION";
+        else if (state === "FL" && probateTotal < 75000)
+            procedureType = "SUMMARY_ADMINISTRATION";
+        else if (state === "NY" && probateTotal < 50000)
+            procedureType = "VOLUNTARY_ADMINISTRATION";
+        else if (state === "GA" && probateTotal <= 10000)
+            procedureType = "SMALL_ESTATE_AFFIDAVIT"; // "No Administration Necessary"
+        else if (state === "NJ") {
+            // NJ small estate: $20,000 general, $50,000 if spouse is sole heir
             procedureType = "SMALL_ESTATE_AFFIDAVIT";
-            type = "SMALL_ESTATE";
         }
-        else {
-            if (rule.isUPC && metadata?.hasWill && !metadata?.hasContest) {
-                procedureType = "INFORMAL_PROBATE";
-                type = "INFORMAL_PROBATE";
-            }
-            else if (state === "TX" && metadata?.hasWill && !metadata?.hasInsolvencyRisk) {
-                procedureType = "MUNIMENT_OF_TITLE";
-                type = "MUNIMENT_OF_TITLE";
-            }
-            else {
+        else
+            procedureType = "SMALL_ESTATE_AFFIDAVIT";
+        type = "SMALL_ESTATE";
+    }
+    else if (metadata?.hasWill) {
+        if (state === "MA") {
+            // MA-specific: Use Informal Probate for uncontested estates, Formal for contested
+            if (metadata?.hasContest) {
                 procedureType = "FORMAL_PROBATE";
                 type = "FORMAL_PROBATE";
             }
+            else {
+                procedureType = "INFORMAL_PROBATE";
+                type = "INFORMAL_PROBATE";
+            }
         }
-    }
-    else if (activeEngines.includes("TRUST")) {
-        procedureType = "TRUST_ADMINISTRATION";
-        // undefined isTrustRevocable → conservative default = revocable (simpler process)
-        type = metadata?.isTrustRevocable === false ? "TRUST_ADMIN_IRREVOCABLE" : "TRUST_ADMIN_REVOCABLE";
-    }
-    else if (metadata?.hasWill === false) {
-        // Intestate only when: no trust, no probate assets? (Wait, if probateTotal was >0 it would have hit above)
-        // This block handles cases where asset profiles haven't been completed yet but will status is known.
-        procedureType = "FORMAL_PROBATE";
-        type = "INTESTATE";
-    }
-    else if (metadata?.isSpouse) {
-        procedureType = "SPOUSAL_PETITION";
-        type = "SPOUSAL_PETITION";
-    }
-    else if (metadata?.hasWill === true) {
-        // Covered under probateTotal > threshold, but for clarity/completeness
-        // (This block would only be hit if threshold is very high or probateTotal is exactly 0 but hasWill is true)
-        if (rule.isUPC && !metadata?.hasContest) {
+        else if (state === "TX") {
+            // TX wills above threshold go to Independent Administration (formal probate)
+            // TX wills at/below threshold already handled by Muniment of Title check above
+            procedureType = "FORMAL_PROBATE";
+            type = "FORMAL_PROBATE";
+        }
+        else if (state === "NJ") {
+            // NJ-specific: Uncontested probate through Surrogate's Court
+            // Contested matters escalate to Superior Court, Chancery Division, Probate Part
+            if (metadata?.hasContest) {
+                procedureType = "FORMAL_PROBATE";
+                type = "CONTESTED_ESTATE";
+                // Note: Contested NJ probate goes to Superior Court, Chancery Division, Probate Part
+            }
+            else {
+                // NJ uncontested probate through Surrogate's Court - align type with procedureType
+                procedureType = "INFORMAL_PROBATE";
+                type = "INFORMAL_PROBATE";
+            }
+        }
+        else if (rule.isUPC) {
             procedureType = "INFORMAL_PROBATE";
             type = "INFORMAL_PROBATE";
         }
@@ -214,18 +229,42 @@ export function calculateAuthorityRecommendation(assets, state, metadata) {
             type = "FORMAL_PROBATE";
         }
     }
-    else if (probateTotal > 0 || isEligibleForSmallEstate) {
-        if (state === "FL" && probateTotal < 75000)
-            procedureType = "SUMMARY_ADMINISTRATION";
-        else if (state === "NY" && probateTotal < 50000)
-            procedureType = "VOLUNTARY_ADMINISTRATION";
-        else
-            procedureType = "SMALL_ESTATE_AFFIDAVIT";
-        type = "SMALL_ESTATE";
+    else if (metadata?.isSpouse) {
+        // NJ-specific: Check spouse small estate threshold BEFORE general eligibility
+        // This ensures spouse threshold ($50k) is reachable for small estates
+        if (state === "NJ") {
+            const njRule = rule;
+            const spouseThreshold = njRule?.smallEstateSpouseThreshold || 50000;
+            if (probateTotal <= spouseThreshold) {
+                procedureType = "SMALL_ESTATE_AFFIDAVIT";
+                type = "SMALL_ESTATE";
+            }
+            else {
+                procedureType = "SPOUSAL_PETITION";
+                type = "SPOUSAL_PETITION";
+            }
+        }
+        else {
+            procedureType = "SPOUSAL_PETITION";
+            type = "SPOUSAL_PETITION";
+        }
+    }
+    else if (probateTotal > threshold) {
+        type = "INTESTATE";
+        if (rule.isUPC) {
+            procedureType = "INFORMAL_PROBATE";
+        }
+        else {
+            procedureType = "FORMAL_PROBATE";
+        }
     }
     else if (activeEngines.includes("TOD_DEED") || activeEngines.includes("POD_TOD_ACCOUNTS")) {
         procedureType = "DIRECT_TRANSFER";
         type = metadata?.hasTODDeed ? "TOD_DEED" : "POD_TOD_TRANSFER";
+    }
+    else if (trustAssets.length > 0) {
+        procedureType = "TRUST_ADMINISTRATION";
+        type = metadata?.isTrustRevocable ? "TRUST_ADMIN_REVOCABLE" : "TRUST_ADMIN_IRREVOCABLE";
     }
     // DISTRIBUTION MODEL
     if (metadata?.hasWill && trustAssets.length > 0 && probateTotal > 0) {

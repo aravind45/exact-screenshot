@@ -54,7 +54,66 @@ export const STATE_RULES = {
     "LA": { threshold: 125000, smallEstateTerm: "Small Estate Affidavit", smallEstateCitation: ["La. C.C.P. Art. 3421"], probateTerm: "Formal Probate", probateCitation: ["La. C.C.P."], isUPC: false, lettersTerm: "Letters of Appointment" },
     "ME": { threshold: 40000, smallEstateTerm: "Small Estate Affidavit", smallEstateCitation: ["18-C M.R.S. § 3-1201"], probateTerm: "Informal Probate", probateCitation: ["18-C M.R.S. § 3-301"], isUPC: true, lettersTerm: "Letters Testamentary" },
     "MD": { threshold: 50000, smallEstateTerm: "Small Estate Affidavit", smallEstateCitation: ["Md. Code, Est. & Trusts § 5-601"], probateTerm: "Formal Probate", probateCitation: ["Md. Code, Est. & Trusts"], isUPC: false, lettersTerm: "Letters of Administration" },
-    "MA": { threshold: 25000, smallEstateTerm: "Voluntary Administration", smallEstateCitation: ["M.G.L. c. 190B, § 3-1201"], probateTerm: "Formal Probate", probateCitation: ["M.G.L. c. 190B"], isUPC: true, lettersTerm: "Letters of Authority" },
+    "MA": {
+        threshold: 25000,
+        smallEstateTerm: "Voluntary Administration",
+        smallEstateCitation: ["M.G.L. c. 190B, § 3-1201"],
+        probateTerm: "Probate",
+        probateCitation: ["M.G.L. c. 190B"],
+        isUPC: true,
+        lettersTerm: "Letters of Authority",
+        probateSystem: "MUPC",
+        claimWindowDays: 365,
+        shortenedWindowDays: 120,
+        estateTaxThreshold: 2000000,
+        bondDefaultRequired: true,
+        // MA-Specific Configuration
+        probatePaths: {
+            informal: {
+                term: "Informal Probate",
+                citation: ["M.G.L. c. 190B, § 3-301"],
+                description: "Streamlined probate process for uncontested estates"
+            },
+            formal: {
+                term: "Formal Probate",
+                citation: ["M.G.L. c. 190B, § 3-302"],
+                description: "Court-supervised probate for contested or complex estates"
+            },
+            voluntary: {
+                term: "Voluntary Administration",
+                citation: ["M.G.L. c. 190B, § 3-1201"],
+                description: "Simplified process for small estates under $25,000"
+            }
+        },
+        bondOptions: {
+            required_with_sureties: {
+                term: "Bond with Sureties",
+                description: "Traditional bond requiring co-signers"
+            },
+            required_without_sureties: {
+                term: "Bond without Sureties",
+                description: "Bond without co-signers, often used in informal probate"
+            },
+            waived_by_assent: {
+                term: "Bond Waived by Heir Assent",
+                description: "All heirs sign to waive bond requirement"
+            },
+            waived_by_will: {
+                term: "Bond Waived by Will",
+                description: "Will explicitly waives bond requirement"
+            }
+        },
+        creditorPublication: {
+            defaultWindow: 365,
+            publicationWindow: 120,
+            strategicOption: "Publish to shorten claim window from 1 year to 4 months"
+        },
+        taxForms: {
+            federal: "Form 1041",
+            state: "Form 2 (Fiduciary Income Tax Return)",
+            estateTax: "Form 1 (Massachusetts Estate Tax Return)"
+        }
+    },
     "MI": { threshold: 50000, smallEstateTerm: "Small Estate Affidavit", smallEstateCitation: ["M.C.L. § 700.3983"], probateTerm: "Informal Probate", probateCitation: ["M.C.L. § 700.3301"], isUPC: true, lettersTerm: "Letters of Authority", notes: "Threshold adjusted annually for inflation ($50k for 2024)." },
     "MN": { threshold: 75000, smallEstateTerm: "Small Estate Affidavit", smallEstateCitation: ["Minn. Stat. § 524.3-1201"], probateTerm: "Informal Probate", probateCitation: ["Minn. Stat. § 524.3-301"], isUPC: true, lettersTerm: "Letters Testamentary" },
     "MS": { threshold: 50000, smallEstateTerm: "Small Estate Affidavit", smallEstateCitation: ["Miss. Code § 91-7-322"], probateTerm: "Formal Probate", probateCitation: ["Miss. Code § 91-7"], isUPC: false, lettersTerm: "Letters Testamentary" },
@@ -63,7 +122,79 @@ export const STATE_RULES = {
     "NE": { threshold: 50000, smallEstateTerm: "Small Estate Affidavit", smallEstateCitation: ["Neb. Rev. Stat. § 30-24,125"], probateTerm: "Informal Probate", probateCitation: ["Neb. Rev. Stat. § 30-24"], isUPC: true, lettersTerm: "Letters Testamentary" },
     "NV": { threshold: 25000, smallEstateTerm: "Small Estate Affidavit", smallEstateCitation: ["N.R.S. § 146.080"], probateTerm: "Formal Probate", probateCitation: ["N.R.S. § 136"], isUPC: false, lettersTerm: "Letters Testamentary", notes: "Higher threshold ($100k) if surviving spouse is the heir." },
     "NH": { threshold: 10000, smallEstateTerm: "Small Estate Affidavit", smallEstateCitation: ["N.H. Rev. Stat. § 553:31-a"], probateTerm: "Formal Probate", probateCitation: ["N.H. Rev. Stat. § 553"], isUPC: false, lettersTerm: "Letters of Administration" },
-    "NJ": { threshold: 20000, smallEstateTerm: "Small Estate Affidavit", smallEstateCitation: ["N.J.S.A. § 3B:10-3"], probateTerm: "Formal Probate", probateCitation: ["N.J.S.A. § 3B"], isUPC: false, lettersTerm: "Letters of Administration", notes: "Higher threshold ($50k) if surviving spouse is the heir." },
+    "NJ": {
+        threshold: 20000,
+        smallEstateTerm: "Small Estate Affidavit",
+        smallEstateCitation: ["N.J.S.A. § 3B:10-3"],
+        probateTerm: "Formal Probate",
+        probateCitation: ["N.J.S.A. § 3B"],
+        isUPC: false,
+        lettersTerm: "Letters of Administration",
+        notes: "Higher threshold ($50k) if surviving spouse is sole heir. NJ has inheritance tax.",
+        claimWindowDays: 180, // 6 months from first publication
+        estateTaxThreshold: 0, // NJ has inheritance tax, not estate tax
+        bondDefaultRequired: true, // Bond required for administrators unless waived
+        smallEstateSpouseThreshold: 50000, // $50k if spouse is sole heir
+        probatePaths: {
+            informal: {
+                term: "Uncontested Probate",
+                citation: ["N.J.S.A. § 3B:10-1 et seq."],
+                description: "Standard probate through County Surrogate's Court when no contests exist"
+            },
+            formal: {
+                term: "Contested Probate",
+                citation: ["N.J.S.A. § 3B:10-1 et seq.", "R. 4:80"],
+                description: "Litigated probate proceeding in Superior Court, Chancery Division, Probate Part"
+            },
+            voluntary: {
+                term: "Small Estate Affidavit",
+                citation: ["N.J.S.A. § 3B:10-3"],
+                description: "Simplified process for estates under $20,000 ($50,000 if spouse is sole heir)"
+            }
+        },
+        bondOptions: {
+            required_with_sureties: {
+                term: "Bond with Surety",
+                description: "Required for administrators unless all heirs waive or will waives"
+            },
+            required_without_sureties: {
+                term: "Bond without Surety",
+                description: "May be ordered when estate is solvent but surety waiver is appropriate"
+            },
+            waived_by_assent: {
+                term: "Bond Waived by Written Consent",
+                description: "All beneficiaries may sign written consent to waive bond requirement"
+            },
+            waived_by_will: {
+                term: "Bond Waived by Will",
+                description: "Will may expressly waive bond requirement for named executor"
+            }
+        },
+        creditorPublication: {
+            defaultWindow: 180, // 6 months from first publication
+            publicationWindow: 60, // Publication must run for 4 consecutive weeks
+            strategicOption: "Publication starts 6-month creditor claim period"
+        },
+        taxForms: {
+            federal: "Form 1041",
+            state: "NJ-1041 (Fiduciary Income Tax)",
+            estateTax: "NJ Inheritance Tax Return (Form IT-R for residents)"
+        },
+        // NJ-specific: Inheritance tax applies (not estate tax)
+        inheritanceTax: {
+            applies: true,
+            exemptionThresholds: {
+                spouse: "Full exemption (Class A)",
+                child: "Full exemption (Class A)",
+                parent: "Full exemption (Class A)",
+                sibling: "$25,000 exemption, then 11-15% tax (Class C)",
+                nieceNephew: "$25,000 exemption, then 15% tax (Class C)",
+                other: "No exemption, 15-16% tax (Class D)"
+            },
+            dueDate: "8 months after death",
+            waiverRequired: "NJ Inheritance Tax Waiver required for real estate and some financial accounts"
+        }
+    },
     "NM": { threshold: 50000, smallEstateTerm: "Small Estate Affidavit", smallEstateCitation: ["N.M. Stat. § 45-3-1201"], probateTerm: "Informal Probate", probateCitation: ["N.M. Stat. § 45-3-301"], isUPC: true, lettersTerm: "Letters Testamentary" },
     "NY": {
         threshold: 50000,
