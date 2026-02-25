@@ -85,6 +85,15 @@ export interface PhaseTask {
         type: "info" | "warning" | "important" | "caution";
         message: string;
       }[];
+      applicability?: {
+        masterModes?: MasterMode[];
+        variants?: string[];
+        predicatesAll?: string[];
+        predicatesAny?: string[];
+        excludePredicates?: string[];
+        authorityTypes?: AuthorityType[];
+        states?: string[];
+      };
     }
   };
   requiredProfileFields?: string[];

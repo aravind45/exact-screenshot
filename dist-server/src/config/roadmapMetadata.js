@@ -18,6 +18,18 @@ export const PHASE_ORDER = [
     "asset_liquidation",
     "final_distribution"
 ];
+// ─────────────────────────────────────────────────────────────────────────────
+// NJ-specific predicates used in applicability filters across settlementPhases.ts
+//
+// isNJ               — state === "NJ" (base predicate)
+// isNJ_uncontested_surrogate — NJ estate where no contest exists and the
+//                     Surrogate has not directed a hearing (standard path).
+//                     Citation, serve-citation, and probate/admin hearings are
+//                     hidden when this predicate is true.
+// isContested        — Estate has been flagged as contested
+// surrogate_requires_hearing — Surrogate has explicitly scheduled a hearing
+//                     (missing heirs, contested will, bond issues, etc.)
+// ─────────────────────────────────────────────────────────────────────────────
 // State-specific phase milestone overrides
 export const STATE_PHASE_OVERRIDES = {
     MA: {
@@ -86,24 +98,24 @@ export const STATE_PHASE_OVERRIDES = {
     },
     NJ: {
         court_filing: {
-            milestone: "Surrogate's Court Filing",
-            subtitle: "Uncontested vs. Contested Path",
+            milestone: "County Surrogate's Court Filing",
+            subtitle: "Uncontested: Admin Filing → Letters Same Day",
         },
         creditor_claims: {
-            milestone: "After First Publication",
+            milestone: "After Letters Issued",
             subtitle: "6-Month Claim Window (N.J.S.A. 3B:22-4)",
         },
         asset_discovery: {
-            milestone: "After Authority Issued",
-            subtitle: "Inventory Due in 90 Days",
+            milestone: "After Letters Issued",
+            subtitle: "Inventory Due Within 90 Days (N.J.S.A. 3B:15-1)",
         },
         asset_liquidation: {
             milestone: "After Inventory Filed",
             subtitle: "Power of Sale or Court Confirmation",
         },
         final_distribution: {
-            milestone: "After Taxes & Waivers",
-            subtitle: "Inheritance Tax Waiver Required",
+            milestone: "After Tax Waivers Received",
+            subtitle: "Class A: Exempt | Class C/D: Waiver Required",
         },
     },
 };
