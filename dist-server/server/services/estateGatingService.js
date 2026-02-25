@@ -135,13 +135,13 @@ export const EstateGatingService = {
         const totalValue = estate.assets.reduce((sum, a) => sum + (a.value || 0), 0);
         const hasRealEstate = estate.assets.some(a => a.category === "real_estate");
         const hasDebts = estate.liabilities.length > 0;
-        // Small estate affidavit path
-        if (["UNSET", "FORMAL_PROBATE", "INFORMAL_PROBATE"].includes(currentType)) {
+        // Small estate affidavit path (only from UNSET, not from existing probate)
+        if (["UNSET", "INFORMAL_PROBATE"].includes(currentType)) {
             const stateRule = await import("../../src/lib/stateRules.js").then(m => m.getStateRule(estate.deceasedState));
             if (totalValue <= stateRule.threshold && !hasRealEstate) {
                 possibleUpgrades.push("SMALL_ESTATE");
                 requirements["SMALL_ESTATE"] = [
-                    `Estate value ($${totalValue}) below threshold ($${stateRule.threshold})`,
+                    `Estate value (${totalValue}) below threshold (${stateRule.threshold})`,
                     "No real property"
                 ];
             }

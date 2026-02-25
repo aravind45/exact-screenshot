@@ -67,7 +67,7 @@ export const GATE_DEFINITIONS = {
     DISTRIBUTION: {
         gateType: "DISTRIBUTION",
         requiredStatus: ["GRANTED", "LIMITED_GRANTED"],
-        excludedTypes: ["UNSET", "PENDING_FILING", "PENDING_HEARING", "PENDING_LETTERS"],
+        excludedTypes: ["UNSET"],
         description: "Distribute assets to beneficiaries",
         warningMessage: "Distribution requires granted legal authority"
     },
@@ -81,7 +81,7 @@ export const GATE_DEFINITIONS = {
     FINANCIAL_ACCOUNTS: {
         gateType: "FINANCIAL_ACCOUNTS",
         requiredStatus: ["GRANTED", "LIMITED_GRANTED"],
-        excludedTypes: ["UNSET", "PENDING_FILING", "PENDING_HEARING"],
+        excludedTypes: ["UNSET"],
         description: "Access and manage financial accounts",
         warningMessage: "Financial account access requires granted authority"
     },
@@ -102,7 +102,7 @@ export const GATE_DEFINITIONS = {
     FULL_ADMINISTRATION: {
         gateType: "FULL_ADMINISTRATION",
         requiredStatus: ["GRANTED"],
-        excludedTypes: ["UNSET", "SMALL_ESTATE", "SUMMARY_ADMINISTRATION", "VOLUNTARY_ADMINISTRATION", "LIMITED_GRANTED"],
+        excludedTypes: ["UNSET", "SMALL_ESTATE", "SUMMARY_ADMINISTRATION", "VOLUNTARY_ADMINISTRATION", "MUNIMENT_OF_TITLE", "LIMITED_GRANTED"],
         description: "Complete estate administration authority",
         warningMessage: "This action requires full probate authority to be granted"
     }
