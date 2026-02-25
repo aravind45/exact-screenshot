@@ -34,6 +34,9 @@ interface StateRule {
     creditorClaimDays: number;
     inventoryDays: number;
     hasStateTax: boolean;
+    // CA-specific: creditor claim period uses max(4 months after Letters, 60 days after notice)
+    creditorClaimFromLettersDays?: number;
+    creditorClaimFromNoticeDays?: number;
 }
 
 const STATE_RULES: Record<string, StateRule> = {
@@ -41,7 +44,16 @@ const STATE_RULES: Record<string, StateRule> = {
     AK: { creditorClaimDays: 120, inventoryDays: 90,  hasStateTax: false },
     AZ: { creditorClaimDays: 120, inventoryDays: 90,  hasStateTax: false },
     AR: { creditorClaimDays: 180, inventoryDays: 90,  hasStateTax: false },
-    CA: { creditorClaimDays: 120, inventoryDays: 120, hasStateTax: false },
+    CA: {
+        creditorClaimDays: 120, // Legacy field - CA uses MAX(4 months after Letters, 60 days after notice)
+        inventoryDays: 120,
+        hasStateTax: false,
+        // CA Probate Code §9154: Creditor claim period is LATER of:
+        // - 4 months after Letters issued (120 days), OR
+        // - 60 days after notice mailed/published
+        creditorClaimFromLettersDays: 120,
+        creditorClaimFromNoticeDays: 60,
+    },
     CO: { creditorClaimDays: 120, inventoryDays: 90,  hasStateTax: false },
     CT: { creditorClaimDays: 150, inventoryDays: 90,  hasStateTax: true  },
     DE: { creditorClaimDays: 240, inventoryDays: 90,  hasStateTax: false },
@@ -269,6 +281,11 @@ export class DeadlineService {
             );
 
             // 2. Creditor claim period end
+            // CA-SPECIFIC: Probate Code §9154 uses MAX(4 months after Letters, 60 days after notice)
+            const caCreditorDescription = state === 'CA' && rules.creditorClaimFromLettersDays && rules.creditorClaimFromNoticeDays
+                ? `CA Probate Code §9154: Creditor claim period ends on the LATER of: (1) ${rules.creditorClaimFromLettersDays} days after Letters issued, OR (2) ${rules.creditorClaimFromNoticeDays} days after notice mailed/published. The claim period is calculated as whichever date occurs later.`
+                : `Creditors have ${rules.creditorClaimDays} days from the date of notice publication to file claims against the estate. After this period, most untimely claims are barred.`;
+
             push(
                 'CREDITOR_CLAIM_PERIOD_END',
                 isInsolvent
@@ -276,7 +293,7 @@ export class DeadlineService {
                     : `Creditor Claim Period End — ${rules.creditorClaimDays} Days (${state})`,
                 isInsolvent
                     ? `Creditors have ${rules.creditorClaimDays} days from notice publication to file claims. This estate is INSOLVENT — you must pay creditors in statutory priority order before distributing ANY assets to heirs. Violation may result in personal liability for the executor.`
-                    : `Creditors have ${rules.creditorClaimDays} days from the date of notice publication to file claims against the estate. After this period, most untimely claims are barred.`,
+                    : caCreditorDescription,
                 rules.creditorClaimDays, 'noticePublishedDate'
             );
 

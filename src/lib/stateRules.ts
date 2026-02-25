@@ -73,6 +73,40 @@ export interface StateRule {
     shortenedWindowDays?: number;
     estateTaxThreshold?: number;
     bondDefaultRequired?: boolean;
+    // CA-Specific Simplified Succession Configuration
+    simplifiedSuccession?: {
+        personalProperty: {
+            threshold: number;
+            waitingDays: number;
+            citation: string;
+        };
+        realProperty: {
+            threshold: number;
+            waitingDays: number;
+            citation: string;
+            note?: string;
+        };
+        spousalProperty: {
+            threshold: number | null;
+            waitingDays: number;
+            citation: string;
+            note?: string;
+        };
+    };
+    // CA IAEA (Independent Administration) Configuration
+    iaeaConfiguration?: {
+        fullAuthority: {
+            description: string;
+            citation: string;
+        };
+        limitedAuthority: {
+            description: string;
+            citation: string;
+        };
+        noticePeriodDays: number;
+        overbidFormula: string;
+        overbidCitation: string;
+    };
     // MA-Specific Configuration
     probatePaths?: {
         informal: {
@@ -179,7 +213,47 @@ export const STATE_RULES: Record<string, StateRule> = {
             term: "Spousal Property Order",
             citation: ["CA Prob. Code §13500"]
         },
-        notes: "Updated 2025/2026 threshold is $208,850."
+        notes: "Updated 2025/2026 threshold is $208,850. Creditor timing: MAX(4 months after Letters, 60 days after notice).",
+        // CA-Specific Simplified Succession Configuration
+        // Probate Code §13100: Personal property affidavit (40-day waiting period)
+        // Probate Code §13200: Real property affidavit (rarely used due to title issues)
+        // Probate Code §13500: Spousal Property Petition (no dollar limit)
+        claimWindowDays: 120, // 4 months from Letters
+        shortenedWindowDays: 60, // 60 days from notice (whichever is later per §9154)
+        // CA simplified succession thresholds with real vs personal property split
+        simplifiedSuccession: {
+            personalProperty: {
+                threshold: 208850, // Probate Code §13100 - adjusted annually
+                waitingDays: 40, // 40 days after death
+                citation: "CA Prob. Code §13100",
+            },
+            realProperty: {
+                threshold: 208850, // Probate Code §13200 - same threshold but rarely used
+                waitingDays: 40,
+                citation: "CA Prob. Code §13200",
+                note: "Real property affidavits are rarely accepted by title insurers; formal probate often required",
+            },
+            spousalProperty: {
+                threshold: null, // No dollar limit
+                waitingDays: 0, // Can file immediately
+                citation: "CA Prob. Code §13500",
+                note: "Surviving spouse/domestic partner can claim community property without dollar limit",
+            },
+        },
+        // IAEA (Independent Administration of Estates Act) configuration
+        iaeaConfiguration: {
+            fullAuthority: {
+                description: "Full IAEA - no court confirmation needed for most sales",
+                citation: "CA Prob. Code §10400 et seq.",
+            },
+            limitedAuthority: {
+                description: "Limited IAEA - court confirmation required for real estate sales",
+                citation: "CA Prob. Code §10400 et seq.",
+            },
+            noticePeriodDays: 15, // 15-day objection period for Notice of Proposed Action
+            overbidFormula: "MAX(bid + $500, bid + 5% of first $10k + 2.5% of excess)",
+            overbidCitation: "CA Prob. Code §10310",
+        },
     },
     "CO": { threshold: 82000, smallEstateTerm: "Small Estate Affidavit", smallEstateCitation: ["C.R.S. § 15-12-1201"], probateTerm: "Informal Probate", probateCitation: ["C.R.S. § 15-12-301"], isUPC: true, lettersTerm: "Letters Testamentary", notes: "Threshold adjusted annually for inflation ($82k for 2024/25)." },
     "CT": { threshold: 40000, smallEstateTerm: "Small Estate Affidavit", smallEstateCitation: ["Conn. Gen. Stat. § 45a-273"], probateTerm: "Formal Probate", probateCitation: ["Conn. Gen. Stat. § 45a"], isUPC: false, lettersTerm: "Letters Testamentary" },

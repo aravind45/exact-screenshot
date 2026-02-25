@@ -11,10 +11,164 @@ const CA_RULES: PriorityRule[] = [
     { rank: 7, classId: "GENERAL_DEBTS", label: "General Debts", description: "Credit cards, personal loans, utilities" }
 ];
 
+// California Simplified Succession Thresholds (Probate Code §13100 et seq.)
+// Updated for 2025/2026
+export const CA_SIMPLIFIED_THRESHOLDS = {
+    // Personal Property - total aggregate value threshold
+    personalProperty: {
+        threshold: 208850, // CA Probate Code §13100 - adjusted annually
+        citation: "CA Prob. Code §13100",
+        waitingDays: 40, // 40 days after death before affidavit can be used
+    },
+    // Real Property - different thresholds apply
+    realProperty: {
+        // Under Probate Code §13200, real property up to certain value can use affidavit
+        // Note: This is rarely used due to title insurance issues
+        threshold: 208850, // Same threshold as personal property
+        citation: "CA Prob. Code §13200",
+        waitingDays: 40,
+    },
+    // Spousal Property Petition (Probate Code §13500)
+    // No dollar limit - surviving spouse/domestic partner can claim community property
+    spousalProperty: {
+        threshold: null, // No limit
+        citation: "CA Prob. Code §13500",
+        waitingDays: 0, // Can file immediately
+    },
+};
+
+// California Creditor Claim Timing
+// Probate Code §9154: Creditor claim period is the LATER of:
+// - 4 months after Letters issued, OR
+// - 60 days after notice mailed/published
+export const CA_CREDITOR_TIMING = {
+    lettersBasedDays: 120, // 4 months after Letters issued
+    noticeBasedDays: 60,   // 60 days after notice mailed/published
+    calculation: "MAX",    // Use maximum of the two periods
+    citation: "CA Prob. Code §9154",
+};
+
+/**
+ * Calculate California creditor claim deadline
+ * Returns the later of (Letters date + 4 months) or (Notice date + 60 days)
+ */
+export function calculateCACreditorDeadline(
+    lettersIssuedDate: Date,
+    noticePublishedDate?: Date
+): Date {
+    const lettersDeadline = new Date(lettersIssuedDate);
+    lettersDeadline.setDate(lettersDeadline.getDate() + CA_CREDITOR_TIMING.lettersBasedDays);
+
+    // If notice date provided, calculate notice-based deadline
+    if (noticePublishedDate) {
+        const noticeDeadline = new Date(noticePublishedDate);
+        noticeDeadline.setDate(noticeDeadline.getDate() + CA_CREDITOR_TIMING.noticeBasedDays);
+        // Return the later date
+        return noticeDeadline > lettersDeadline ? noticeDeadline : lettersDeadline;
+    }
+
+    return lettersDeadline;
+}
+
+/**
+ * Calculate California simplified succession eligibility
+ * Returns detailed eligibility info including waiting period status
+ */
+export function calculateCASimplifiedEligibility(
+    personalPropertyValue: number,
+    realPropertyValue: number,
+    daysSinceDeath: number,
+    isSurvivingSpouse: boolean
+): {
+    eligibleForAffidavit: boolean;
+    waitingPeriodMet: boolean;
+    waitingDaysRemaining: number;
+    affidavitType: "personal" | "real" | "spousal" | null;
+    totalValue: number;
+} {
+    const totalValue = personalPropertyValue + realPropertyValue;
+    const waitingPeriodMet = daysSinceDeath >= CA_SIMPLIFIED_THRESHOLDS.personalProperty.waitingDays;
+    const waitingDaysRemaining = Math.max(0, CA_SIMPLIFIED_THRESHOLDS.personalProperty.waitingDays - daysSinceDeath);
+
+    // Spousal property petition has no dollar limit
+    if (isSurvivingSpouse) {
+        return {
+            eligibleForAffidavit: true,
+            waitingPeriodMet: true,
+            waitingDaysRemaining: 0,
+            affidavitType: "spousal",
+            totalValue,
+        };
+    }
+
+    // Check personal property threshold
+    if (personalPropertyValue <= CA_SIMPLIFIED_THRESHOLDS.personalProperty.threshold && realPropertyValue === 0) {
+        return {
+            eligibleForAffidavit: waitingPeriodMet,
+            waitingPeriodMet,
+            waitingDaysRemaining,
+            affidavitType: "personal",
+            totalValue,
+        };
+    }
+
+    // Real property affidavit is rarely used but check threshold
+    if (realPropertyValue <= CA_SIMPLIFIED_THRESHOLDS.realProperty.threshold && personalPropertyValue === 0) {
+        return {
+            eligibleForAffidavit: waitingPeriodMet,
+            waitingPeriodMet,
+            waitingDaysRemaining,
+            affidavitType: "real",
+            totalValue,
+        };
+    }
+
+    return {
+        eligibleForAffidavit: false,
+        waitingPeriodMet,
+        waitingDaysRemaining,
+        affidavitType: null,
+        totalValue,
+    };
+}
+
+/**
+ * Calculate real estate sale overbid amount for court confirmation
+ * Per CA Probate Code §10310
+ */
+export function calculateOverbidAmount(
+    originalBid: number,
+    overbidIncrement?: number
+): {
+    minimumOverbid: number;
+    requiredDeposit: number;
+    totalRequired: number;
+    formula: string;
+} {
+    // Probate Code §10310: Minimum overbid is the greater of:
+    // (a) Original bid + $500, OR
+    // (b) Original bid + (original bid × 0.05) [5% of first $10k = $500, then scaled]
+    
+    const optionA = originalBid + 500;
+    const optionB = originalBid + (Math.min(originalBid, 10000) * 0.05) + (originalBid > 10000 ? (originalBid - 10000) * 0.025 : 0);
+    
+    const minimumOverbid = Math.max(optionA, optionB);
+    
+    // Deposit is typically 10% of the overbid amount
+    const requiredDeposit = Math.round(minimumOverbid * 0.1);
+    
+    return {
+        minimumOverbid: Math.ceil(minimumOverbid),
+        requiredDeposit,
+        totalRequired: Math.ceil(minimumOverbid) + requiredDeposit,
+        formula: "Greater of (bid + $500) or (bid + 5% of first $10k + 2.5% of excess)",
+    };
+}
+
 export const CaliforniaPrioritySystem: StatePrioritySystem = {
     stateCode: "CA",
     rules: CA_RULES,
-    creditorNoticePeriodDays: 120, // 4 months
+    creditorNoticePeriodDays: CA_CREDITOR_TIMING.lettersBasedDays, // Base period - 4 months
 
     isValidPayment: (currentLiabilityClass, openLiabilities, authorityType) => {
         // Find the rank of the current liability we want to pay
