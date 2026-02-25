@@ -4,6 +4,8 @@ import { PriorityService } from "../services/priorityService.js";
 import { encrypt, decrypt } from "../utils/encryption.js";
 import { RiskService } from "../services/riskService.js";
 import { AuditService } from "../services/auditService.js";
+import { requireAuthorityStatus } from "../middleware/authorityGating.js";
+import { requireEstateAccess } from "../middleware/estateAuth.js";
 import { z } from "zod";
 import { logger } from "../lib/logger.js";
 import { requireSubscription } from "../middleware/subscription.js";
@@ -208,7 +210,10 @@ router.post("/", async (req, res) => {
     }
 });
 // PUT /api/liabilities/:id - Update
-router.put("/:id", async (req, res) => {
+router.put("/:id", requireEstateAccess, requireAuthorityStatus({
+    operation: "creditors:settle",
+    customMessage: "Updating liabilities requires legal authority"
+}), async (req, res) => {
     try {
         const estateId = await getEstateId(req.user.id);
         if (!estateId)
@@ -259,12 +264,17 @@ router.put("/:id", async (req, res) => {
     }
 });
 // DELETE /api/liabilities/:id - Delete
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", requireEstateAccess, requireAuthorityStatus({
+    operation: "creditors:reject",
+    customMessage: "Deleting liabilities requires legal authority"
+}), async (req, res) => {
     try {
         const estateId = await getEstateId(req.user.id);
         if (!estateId)
             return res.status(404).json({ error: "Estate not found" });
         const { id } = req.params;
+        // Log the liability deletion
+        await AuditService.logActivity(estateId, req.user.id, "LIABILITY", "DELETED", `Deleted liability: ${id}`);
         await prisma.liability.delete({ where: { id } });
         res.json({ success: true });
     }

@@ -5,6 +5,7 @@ import { EmailService } from "../services/emailService.js";
 import { encrypt, decrypt, encryptBuffer, decryptBuffer } from "../utils/encryption.js";
 import { AuditService } from "../services/auditService.js";
 import { requireEstateAccess } from "../middleware/estateAuth.js";
+import { requireAuthorityStatus } from "../middleware/authorityGating.js";
 import { z } from "zod";
 import { logger } from "../lib/logger.js";
 import { requireSubscription } from "../middleware/subscription.js";
@@ -893,7 +894,10 @@ router.post("/:id/tasks/:taskId/complete", requireSubscription, async (req, res)
         res.status(500).json({ error: "Failed to complete task", message: error.message });
     }
 });
-router.delete("/:id/tasks/:taskId/complete", requireSubscription, async (req, res) => {
+router.delete("/:id/tasks/:taskId/complete", requireSubscription, requireEstateAccess, requireAuthorityStatus({
+    operation: "estate:amend",
+    customMessage: "Modifying task completions requires legal authority"
+}), async (req, res) => {
     try {
         const { id, taskId } = req.params;
         // Verify user has access to this estate
@@ -911,6 +915,8 @@ router.delete("/:id/tasks/:taskId/complete", requireSubscription, async (req, re
         }
         // Uncomplete task
         const result = await uncompleteTask(id, taskId, req.user.id);
+        // Log the task uncompletion
+        await AuditService.logActivity(id, req.user.id, "TASK", "UNCOMPLETED", `Uncompleted task: ${taskId}`);
         res.json(result);
     }
     catch (error) {
