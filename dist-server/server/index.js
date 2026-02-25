@@ -36,6 +36,7 @@ import lettersDispatchRoutes from "./routes/lettersDispatchRoutes.js";
 import deadlineRoutes from "./routes/deadlineRoutes.js";
 import formRoutes from "./routes/formRoutes.js";
 import ssotRoutes from "./routes/ssotRoutes.js";
+import authorityRoutes from "./routes/authorityRoutes.js";
 import { TENANTS, getTenantByHostname } from "../src/config/tenantConfig.js";
 const isServerless = process.env.VERCEL === '1' || process.env.NETLIFY === 'true' || !!process.env.AWS_EXECUTION_ENV || !!process.env.FUNCTION_NAME;
 const app = express();
@@ -187,6 +188,7 @@ app.use("/api/mail", authenticate, mailingRoutes);
 app.use("/api/deadlines", authenticate, deadlineRoutes);
 app.use("/api/forms", authenticate, formRoutes);
 app.use("/api/ssot", authenticate, ssotRoutes);
+app.use("/api", authenticate, authorityRoutes);
 // Profile (simple, keep here or move if grows)
 app.get("/api/auth/me", authenticate, (req, res) => {
     const user = req.user;

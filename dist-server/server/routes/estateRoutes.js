@@ -815,7 +815,8 @@ router.post("/my/distribution-activity", async (req, res) => {
 export default router;
 // Roadmap endpoints
 import { getEstateRoadmap, completeTask, uncompleteTask, getTaskCompletions } from "../services/roadmapService.js";
-router.get("/:id/roadmap", async (req, res) => {
+// GET /:id/roadmap - Get personalized roadmap (requires subscription)
+router.get("/:id/roadmap", requireSubscription, async (req, res) => {
     try {
         const { id } = req.params;
         // Verify user has access to this estate
@@ -840,7 +841,8 @@ router.get("/:id/roadmap", async (req, res) => {
         res.status(500).json({ error: "Failed to fetch roadmap", message: error.message });
     }
 });
-router.get("/:id/tasks", async (req, res) => {
+// GET /:id/tasks - Get task completions (requires subscription)
+router.get("/:id/tasks", requireSubscription, async (req, res) => {
     try {
         const { id } = req.params;
         // Verify user has access to this estate
@@ -865,7 +867,7 @@ router.get("/:id/tasks", async (req, res) => {
         res.status(500).json({ error: "Failed to fetch task completions", message: error.message });
     }
 });
-router.post("/:id/tasks/:taskId/complete", async (req, res) => {
+router.post("/:id/tasks/:taskId/complete", requireSubscription, async (req, res) => {
     try {
         const { id, taskId } = req.params;
         const { notes } = req.body;
@@ -891,7 +893,7 @@ router.post("/:id/tasks/:taskId/complete", async (req, res) => {
         res.status(500).json({ error: "Failed to complete task", message: error.message });
     }
 });
-router.delete("/:id/tasks/:taskId/complete", async (req, res) => {
+router.delete("/:id/tasks/:taskId/complete", requireSubscription, async (req, res) => {
     try {
         const { id, taskId } = req.params;
         // Verify user has access to this estate

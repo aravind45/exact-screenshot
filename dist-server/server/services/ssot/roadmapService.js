@@ -218,3 +218,59 @@ export async function linkFormToStep(data) {
 export async function unlinkFormFromStep(id) {
     await executeSQL(`DELETE FROM ssot_step_forms WHERE id=$1`, id);
 }
+// ─── Roadmap Versions (SSOT) ───
+export async function listRoadmapVersions(settlementTypeCode) {
+    const where = settlementTypeCode ? `WHERE rv.settlement_type_code = $1` : '';
+    const params = settlementTypeCode ? [settlementTypeCode] : [];
+    return queryRows(`
+    SELECT rv.*, 
+      (SELECT COUNT(*) FROM estates e WHERE e.roadmap_version = rv.version) as estate_count
+    FROM roadmap_versions rv
+    ${where}
+    ORDER BY rv.released_at DESC
+  `, ...params);
+}
+export async function createRoadmapVersion(data, userId) {
+    const rows = await queryRows(`
+    INSERT INTO roadmap_versions (id, version, settlement_type_code, is_active, is_published, changelog, schema_hash, released_by)
+    VALUES (gen_random_uuid()::text, $1, $2, $3, false, $4, $5, $6)
+    ON CONFLICT (version, settlement_type_code) DO UPDATE SET 
+      is_active = $3, changelog = $4, schema_hash = $5, released_by = $6
+    RETURNING *
+  `, data.version, data.settlementTypeCode, data.isActive !== false, data.changelog || null, data.schemaHash || null, userId || null);
+    await logChange({ entityType: 'roadmap_version', entityId: rows[0].id, action: 'CREATE', newValue: data, changedBy: userId });
+    return rows[0];
+}
+export async function publishRoadmapVersion(id, userId) {
+    // Get the version info
+    const versions = await queryRows(`SELECT * FROM roadmap_versions WHERE id = $1`, id);
+    if (!versions.length) {
+        throw new Error('Roadmap version not found');
+    }
+    const version = versions[0];
+    // Unpublish any existing published version for this settlement type
+    await executeSQL(`
+    UPDATE roadmap_versions SET is_published = false, published_at = NULL
+    WHERE settlement_type_code = $1 AND is_published = true
+  `, version.settlement_type_code);
+    // Publish this version
+    await executeSQL(`
+    UPDATE roadmap_versions SET is_published = true, published_at = NOW()
+    WHERE id = $1
+  `, id);
+    await logChange({ entityType: 'roadmap_version', entityId: id, action: 'PUBLISH', newValue: version, changedBy: userId });
+    return { success: true, version: version.version };
+}
+export async function deleteRoadmapVersion(id, userId) {
+    // Check if any estates are pinned to this version
+    const estates = await queryRows(`
+    SELECT COUNT(*) as count FROM estates WHERE roadmap_version = (
+      SELECT version FROM roadmap_versions WHERE id = $1
+    )
+  `, id);
+    if (parseInt(estates[0]?.count || '0') > 0) {
+        throw new Error('Cannot delete roadmap version that is pinned to estates. Unpin estates first.');
+    }
+    await executeSQL(`DELETE FROM roadmap_versions WHERE id = $1`, id);
+    await logChange({ entityType: 'roadmap_version', entityId: id, action: 'DELETE', changedBy: userId });
+}

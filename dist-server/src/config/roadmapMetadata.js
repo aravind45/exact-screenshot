@@ -88,12 +88,12 @@ export const STATE_PHASE_OVERRIDES = {
     },
     CA: {
         creditor_claims: {
-            milestone: "After Notice Published",
-            subtitle: "4-Month Claim Window",
+            milestone: "After Letters Issued OR Notice Published",
+            subtitle: "MAX(4 Months After Letters, 60 Days After Notice) - Prob. Code §9154",
         },
         asset_liquidation: {
             milestone: "After Inventory Prepared",
-            subtitle: "IAEA / Court-Confirmed Sales",
+            subtitle: "IAEA / Court-Confirmed Sales with Overbid",
         },
     },
     NJ: {
@@ -102,8 +102,8 @@ export const STATE_PHASE_OVERRIDES = {
             subtitle: "Uncontested: Admin Filing → Letters Same Day",
         },
         creditor_claims: {
-            milestone: "After Letters Issued",
-            subtitle: "6-Month Claim Window (N.J.S.A. 3B:22-4)",
+            milestone: "After First Publication",
+            subtitle: "6-Month Claim Window – First Publication (N.J.S.A. 3B:22-4)",
         },
         asset_discovery: {
             milestone: "After Letters Issued",
