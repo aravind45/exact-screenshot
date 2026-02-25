@@ -2131,7 +2131,8 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         estimatedTime: "State-specific",
         // Publication is not a universal trigger; do not hard-depend on it.
         dependencies: [],
-              {
+      },
+      {
         id: "tx_publish_creditor_notice",
         title: "Publish Notice to Creditors (Optional but Recommended)",
         description: "Texas allows optional publication of notice to creditors. While not required, publication starts the 4-month claim period and provides protection against late claims.",
