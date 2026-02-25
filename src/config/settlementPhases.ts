@@ -917,7 +917,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
             message: "NEXT STEPS: If bond can be waived → file Bond Waiver Affidavit. If bond is required → obtain surety bond or consider bond without surety (court approval required)."
           }
         ],
-        dependencies: ["nj_bond_calculation", "file_nj_surrogate_probate", "file_nj_administration"]
+        dependencies: ["nj_bond_calculation"]
       },
       {
         id: "nj_bond_waiver_affidavit",
@@ -1246,7 +1246,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         category: "court-issued",
         requiredDocs: ["Letters Testamentary"],
         applicability: { variants: ["TESTATE"] },
-        dependencies: ["attend_probate_hearing", "file_nj_surrogate_probate"],
+        dependencies: ["file_nj_surrogate_probate"],
         stateOverrides: {
           NJ: {
             title: "Obtain Letters Testamentary (NJ)",
@@ -1275,7 +1275,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         category: "court-issued",
         requiredDocs: ["Letters of Administration"],
         applicability: { variants: ["INTESTATE"] },
-        dependencies: ["attend_administration_hearing", "file_nj_administration"],
+        dependencies: ["file_nj_administration"],
         stateOverrides: {
           NJ: {
             title: "Obtain Letters of Administration (NJ)",
@@ -1916,13 +1916,13 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
             estimatedTime: "12 months"
           },
           OH: {
-            title: "Monitor 6-Month Creditor Claim Period",
+            title: "6-Month Claim Window – Triggered by First Publication (N.J.S.A. 3B:22-4)",
             description: "In Ohio, creditors have 6 months from the date of the fiduciary's appointment to present claims (ORC §2117.06).",
             estimatedTime: "6 months",
             dependencies: ["receive_letters_testamentary", "receive_letters_administration"],
           },
           IL: {
-            title: "Monitor 6-Month Creditor Claim Period",
+            title: "6-Month Claim Window – Triggered by First Publication (N.J.S.A. 3B:22-4)",
             description: "In Illinois, creditors have 6 months from the date of first publication of the death notice to file claims (755 ILCS 5/18-12).",
             estimatedTime: "6 months"
           },
@@ -1932,8 +1932,8 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
             estimatedTime: "3 months"
           },
           NJ: {
-            title: "Monitor 6-Month Creditor Claim Period",
-            description: "In New Jersey, creditors have 6 months from the date of the first publication of notice to present claims (NJSA 3B:22-4).",
+            title: "6-Month Claim Window – Triggered by First Publication (N.J.S.A. 3B:22-4)",
+            description: "In New Jersey, creditors have 6 months from the date of the first publication of notice to present claims (N.J.S.A. 3B:22-4). The clock starts from first publication, not from Letters issuance.",
             estimatedTime: "6 months"
           },
           MA: {
