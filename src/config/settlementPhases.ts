@@ -1630,7 +1630,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "file_succession_petition",
-        title: "File Petition to Determine Succession",
+        title: "File Petition to Determine Succession to Real Property",
         description: "File petition with court to determine who inherits the primary residence without full probate.",
         estimatedTime: "2-4 hours",
         category: "probate",
@@ -1667,7 +1667,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "obtain_succession_order",
-        title: "Obtain Order Determining Succession",
+        title: "Obtain Order Determining Succession to Real Property",
         description: "Receive court order determining property succession. Record order with county recorder.",
         estimatedTime: "1-2 weeks after hearing",
         category: "court-issued",

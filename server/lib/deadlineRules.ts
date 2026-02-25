@@ -147,7 +147,7 @@ export const PROBATE_DEADLINES: DeadlineRule[] = [
     isStatutory: true,
     tracks: ["FORMAL_PROBATE", "INFORMAL_PROBATE", "INTESTATE"],
     stateOverrides: {
-      CA: { offsetDays: 120, legalBasis: "CA Prob. Code §9100 — 4 months from Letters" },
+      CA: { offsetDays: 120, legalBasis: "CA Prob. Code §9154 — LATER of 4 months from Letters OR 60 days from notice" },
       TX: { offsetDays: 120, legalBasis: "TX Estates Code §308.054 — 4 months from publication" },
       FL: { offsetDays: 90, legalBasis: "FL Stat. §733.702 — 3 months from publication or 30 days from actual notice" },
       NY: { offsetDays: 210, legalBasis: "NY SCPA §1802 — 7 months from Letters" },
