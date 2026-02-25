@@ -117,6 +117,11 @@ model Estate {
   isSurvivingSpouse         Boolean              @default(false) @map("is_surviving_spouse")
   isTrustRevocable          Boolean?             @map("is_trust_revocable")
   administrationType        String?              @map("administration_type")
+  
+  // Roadmap versioning for SSOT pinning
+  roadmapVersion            String?              @map("roadmap_version")
+  roadmapPinnedAt           DateTime?            @map("roadmap_pinned_at")
+  
   assets                    Asset[]
   authorityDecisions        AuthorityDecision[]
   bookings                  Booking[]
@@ -556,11 +561,31 @@ model SettlementType {
   coverage    Float          @default(0)
   isActive    Boolean        @default(true) @map("is_active")
   version     Int            @default(1)
+  versionTag  String?        @map("version_tag")
+  isPublished Boolean        @default(false) @map("is_published")
+  publishedAt DateTime?      @map("published_at")
   createdAt   DateTime       @default(now()) @map("created_at")
   updatedAt   DateTime       @updatedAt @map("updated_at")
   phases      RoadmapPhase[]
 
   @@map("settlement_types")
+}
+
+// SSOT Roadmap Version tracking for estate pinning
+model RoadmapVersion {
+  id          String   @id @default(uuid())
+  version     String   // Semantic version: "1.0.0", "1.1.0", etc.
+  settlementTypeCode String @map("settlement_type_code")
+  isActive   Boolean  @default(true) @map("is_active")
+  isPublished Boolean @default(false) @map("is_published")
+  publishedAt DateTime? @map("published_at")
+  releasedAt  DateTime @default(now()) @map("released_at")
+  releasedBy  String?  @map("released_by")
+  changelog   String?
+  schemaHash  String?  @map("schema_hash") // Hash of tasks/phases for change detection
+  
+  @@unique([version, settlementTypeCode])
+  @@map("roadmap_versions")
 }
 
 model RoadmapPhase {
