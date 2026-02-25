@@ -93,12 +93,12 @@ export const STATE_PHASE_OVERRIDES: Record<string, Record<string, { milestone?: 
     },
     CA: {
         creditor_claims: {
-            milestone: "After Notice Published",
-            subtitle: "4-Month Claim Window",
+            milestone: "After Letters Issued OR Notice Published",
+            subtitle: "MAX(4 Months After Letters, 60 Days After Notice) - Prob. Code §9154",
         },
         asset_liquidation: {
             milestone: "After Inventory Prepared",
-            subtitle: "IAEA / Court-Confirmed Sales",
+            subtitle: "IAEA / Court-Confirmed Sales with Overbid",
         },
     },
     NJ: {

@@ -224,6 +224,9 @@ const CA_ONLY_TASK_IDS = new Set([
   "wait_proposed_action_period",
   "petition_confirm_sale",
   "obtain_sale_confirmation_order",
+  "ca_calculate_overbid_requirements",
+  "ca_notice_of_hearing",
+  "ca_attend_confirmation_hearing",
 ]);
 
 const CA_ONLY_TEXT_TOKENS = [
