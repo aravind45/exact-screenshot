@@ -10,17 +10,17 @@ interface TableProps extends React.HTMLAttributes<HTMLTableElement> {
    * Accessible label for the table. Required for screen readers.
    * Use this when the table doesn't have a visible caption.
    */
-  'aria-label'?: string;
+  "aria-label"?: string;
   /**
    * ID of an element that labels the table. Alternative to aria-label.
    * Use this when there's a visible heading that describes the table.
    */
-  'aria-labelledby'?: string;
+  "aria-labelledby"?: string;
 }
 
 /**
  * Table component wrapper with accessibility support.
- * 
+ *
  * @example
  * ```tsx
  * <Table aria-label="User data">
@@ -38,38 +38,33 @@ interface TableProps extends React.HTMLAttributes<HTMLTableElement> {
  *   </TableBody>
  * </Table>
  * ```
- * 
- * @accessibility 
+ *
+ * @accessibility
  * - Always include either `aria-label` or `aria-labelledby` for screen readers
  * - Always use `TableHeader` with proper `TableHead` elements
  * - Use `TableCaption` for complex tables to provide additional context
  */
-const Table = React.forwardRef<HTMLTableElement, TableProps>(
-  ({ className, ...props }, ref) => {
-    // Warn in development if no aria-label or aria-labelledby is provided
-    if (process.env.NODE_ENV === 'development' && !props['aria-label'] && !props['aria-labelledby']) {
-      console.warn(
-        'Table component should have either aria-label or aria-labelledby for accessibility. ' +
-        'This helps screen reader users understand the purpose of the table.'
-      );
-    }
-
-    return (
-      <div className="relative w-full overflow-auto">
-        <table
-          ref={ref}
-          className={cn("w-full caption-bottom text-sm", className)}
-          role="table"
-          {...props}
-        />
-      </div>
+const Table = React.forwardRef<HTMLTableElement, TableProps>(({ className, ...props }, ref) => {
+  // Warn in development if no aria-label or aria-labelledby is provided
+  if (process.env.NODE_ENV === "development" && !props["aria-label"] && !props["aria-labelledby"]) {
+    console.warn(
+      "Table component should have either aria-label or aria-labelledby for accessibility. " +
+        "This helps screen reader users understand the purpose of the table.",
     );
-  },
-);
+  }
+
+  return (
+    <div className="relative w-full overflow-auto rounded-lg border">
+      <table ref={ref} className={cn("w-full caption-bottom text-sm", className)} role="table" {...props} />
+    </div>
+  );
+});
 Table.displayName = "Table";
 
 const TableHeader = React.forwardRef<HTMLTableSectionElement, React.HTMLAttributes<HTMLTableSectionElement>>(
-  ({ className, ...props }, ref) => <thead ref={ref} className={cn("[&_tr]:border-b", className)} {...props} />,
+  ({ className, ...props }, ref) => (
+    <thead ref={ref} className={cn("bg-muted/50 [&_tr]:border-b border-border", className)} {...props} />
+  ),
 );
 TableHeader.displayName = "TableHeader";
 
@@ -82,7 +77,11 @@ TableBody.displayName = "TableBody";
 
 const TableFooter = React.forwardRef<HTMLTableSectionElement, React.HTMLAttributes<HTMLTableSectionElement>>(
   ({ className, ...props }, ref) => (
-    <tfoot ref={ref} className={cn("border-t bg-muted/50 font-medium [&>tr]:last:border-b-0", className)} {...props} />
+    <tfoot
+      ref={ref}
+      className={cn("border-t bg-muted/50 font-medium [&>tr]:last:border-b-0 border-border", className)}
+      {...props}
+    />
   ),
 );
 TableFooter.displayName = "TableFooter";
@@ -91,7 +90,10 @@ const TableRow = React.forwardRef<HTMLTableRowElement, React.HTMLAttributes<HTML
   ({ className, ...props }, ref) => (
     <tr
       ref={ref}
-      className={cn("border-b transition-colors data-[state=selected]:bg-muted hover:bg-muted/50", className)}
+      className={cn(
+        "border-b border-border transition-colors data-[state=selected]:bg-muted hover:bg-muted/60",
+        className,
+      )}
       {...props}
     />
   ),
@@ -103,7 +105,7 @@ const TableHead = React.forwardRef<HTMLTableCellElement, React.ThHTMLAttributes<
     <th
       ref={ref}
       className={cn(
-        "h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0",
+        "h-12 px-4 text-left align-middle font-semibold text-muted-foreground [&:has([role=checkbox])]:pr-0",
         className,
       )}
       {...props}

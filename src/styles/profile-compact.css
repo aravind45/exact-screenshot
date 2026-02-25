@@ -14,7 +14,8 @@
 }
 
 /* Compact form elements */
-.form-compact .input, .form-compact .select-trigger {
+.form-compact .input,
+.form-compact .select-trigger {
   height: 2rem;
   font-size: 0.875rem;
   padding: 0.375rem 0.5rem;
@@ -82,7 +83,7 @@
 }
 
 .collapsible-header:hover {
-  background-color: rgba(0, 0, 0, 0.02);
+  background-color: hsl(var(--muted) / 0.5);
 }
 
 .collapsible-icon {
@@ -99,7 +100,7 @@
 }
 
 .availability-row:hover {
-  background-color: rgba(0, 0, 0, 0.02);
+  background-color: hsl(var(--muted) / 0.5);
 }
 
 /* Compact plan cards */
@@ -109,7 +110,7 @@
 
 .plan-card:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-md);
 }
 
 /* Responsive improvements */
@@ -118,27 +119,27 @@
   .form-stack .grid-cols-2 {
     grid-template-columns: 1fr;
   }
-  
+
   /* Reduce padding on mobile */
   .card-compact .card-content {
     padding: 0.5rem;
   }
-  
+
   /* Make chips full width on mobile */
   .chip-full-width {
     width: 100%;
     justify-content: flex-start;
   }
-  
+
   /* Compact mobile spacing */
   .space-y-mobile > * + * {
     margin-top: 0.375rem;
   }
 }
 
-/* Focus states for accessibility */
+/* Focus states for accessibility - aligned with theme tokens */
 .focus-outline:focus {
-  outline: 2px solid #3b82f6;
+  outline: 2px solid hsl(var(--ring));
   outline-offset: 2px;
 }
 
@@ -147,20 +148,20 @@
   transition: all 0.2s ease-in-out;
 }
 
-/* Better visual hierarchy */
+/* Better visual hierarchy - using theme tokens */
 .text-hierarchy-1 {
   font-weight: 600;
-  color: #1f2937;
+  color: hsl(var(--foreground));
 }
 
 .text-hierarchy-2 {
   font-weight: 500;
-  color: #374151;
+  color: hsl(var(--foreground) / 0.8);
 }
 
 .text-hierarchy-3 {
   font-weight: 400;
-  color: #6b7280;
+  color: hsl(var(--muted-foreground));
 }
 
 /* Compact badges */
@@ -170,10 +171,10 @@
   border-radius: 0.25rem;
 }
 
-/* Improved hover states */
+/* Improved hover states - using theme shadow tokens */
 .hover-lift:hover {
   transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-md);
 }
 
 /* Subtle animations */
