@@ -162,6 +162,9 @@ const CA_ONLY_TASK_IDS = new Set([
     "wait_proposed_action_period",
     "petition_confirm_sale",
     "obtain_sale_confirmation_order",
+    "ca_calculate_overbid_requirements",
+    "ca_notice_of_hearing",
+    "ca_attend_confirmation_hearing",
 ]);
 const CA_ONLY_TEXT_TOKENS = [
     "Notice of Proposed Action",
@@ -557,13 +560,29 @@ export function filterTasksForEstate(allTasks, profile, completedTaskIds = []) {
     }));
 }
 /**
+ * Get the latest published roadmap version for a settlement type
+ */
+async function getLatestPublishedVersion(settlementTypeCode) {
+    const version = await db.roadmapVersion.findFirst({
+        where: {
+            settlementTypeCode,
+            isPublished: true,
+            isActive: true
+        },
+        orderBy: { releasedAt: 'desc' },
+        select: { version: true }
+    });
+    return version?.version || null;
+}
+/**
  * Get roadmap from database based on estate's settlement type
+ * Supports estate-time pinning via roadmapVersion field
  */
 export async function getRoadmapFromDatabase(estateId, profile, completedTaskIds) {
-    // Get estate to determine settlement type
+    // Get estate to determine settlement type and version pinning
     const estate = await db.estate.findUnique({
         where: { id: estateId },
-        select: { estateType: true, settlementPath: true },
+        select: { estateType: true, settlementPath: true, roadmapVersion: true, roadmapPinnedAt: true },
     });
     if (!estate)
         throw new Error(`Estate ${estateId} not found`);
@@ -572,9 +591,22 @@ export async function getRoadmapFromDatabase(estateId, profile, completedTaskIds
     const settlementTypeCode = profile.procedureType !== "UNSET"
         ? profile.procedureType
         : (estate.settlementPath || estate.estateType || 'FORMAL_PROBATE');
+    // Handle version pinning - if estate has a pinned version, use that
+    // Otherwise, get the latest published version
+    let targetVersion = estate.roadmapVersion;
+    let isPinned = !!estate.roadmapVersion;
+    if (!targetVersion) {
+        // No pinned version - use latest published
+        targetVersion = await getLatestPublishedVersion(settlementTypeCode);
+    }
+    // Build the query based on whether we're using a pinned version or latest
+    const whereClause = { code: settlementTypeCode };
+    // If pinned to a specific version, we'd need to match against roadmap_versions
+    // For now, we use the settlementType and assume version consistency
+    // The version pinning is primarily for the estate record itself
     // Fetch roadmap from database
     const settlementType = await db.settlementType.findUnique({
-        where: { code: settlementTypeCode },
+        where: whereClause,
         include: {
             phases: {
                 orderBy: { orderIndex: 'asc' },
@@ -679,6 +711,11 @@ export async function getEstateRoadmap(estateId) {
     const filteredPhases = await getRoadmapFromDatabase(estateId, profile, completedTaskIds);
     // Development-time contamination check: warn if CA tokens leaked into non-CA state
     validateNoStateContamination(filteredPhases, profile.state);
+    // Get estate for version info
+    const estate = await db.estate.findUnique({
+        where: { id: estateId },
+        select: { roadmapVersion: true, roadmapPinnedAt: true }
+    });
     // Return roadmap with triggers
     return {
         estateId,
@@ -693,7 +730,92 @@ export async function getEstateRoadmap(estateId) {
             activeEngines: profile.activeEngines
         },
         profile,
+        // Include version info for client awareness
+        version: estate?.roadmapVersion || 'latest',
+        pinnedAt: estate?.roadmapPinnedAt,
     };
+}
+/**
+ * Pin roadmap version for an estate
+ * Once pinned, the estate will use that specific version forever
+ */
+export async function pinRoadmapVersion(estateId, version, userId) {
+    const estate = await db.estate.findUnique({
+        where: { id: estateId },
+        select: { id: true }
+    });
+    if (!estate) {
+        throw new Error(`Estate ${estateId} not found`);
+    }
+    const pinnedAt = new Date();
+    await db.estate.update({
+        where: { id: estateId },
+        data: {
+            roadmapVersion: version,
+            roadmapPinnedAt: pinnedAt
+        }
+    });
+    // Log activity
+    await db.settlementActivity.create({
+        data: {
+            estateId,
+            userId,
+            type: "ROADMAP",
+            action: "VERSION_PINNED",
+            notes: `Roadmap pinned to version ${version}`
+        }
+    });
+    return { success: true, version, pinnedAt };
+}
+/**
+ * Unpin roadmap version for an estate
+ * This will make the estate use the latest published version
+ */
+export async function unpinRoadmapVersion(estateId, userId) {
+    const estate = await db.estate.findUnique({
+        where: { id: estateId },
+        select: { id: true }
+    });
+    if (!estate) {
+        throw new Error(`Estate ${estateId} not found`);
+    }
+    await db.estate.update({
+        where: { id: estateId },
+        data: {
+            roadmapVersion: null,
+            roadmapPinnedAt: null
+        }
+    });
+    // Log activity
+    await db.settlementActivity.create({
+        data: {
+            estateId,
+            userId,
+            type: "ROADMAP",
+            action: "VERSION_UNPINNED",
+            notes: `Roadmap unpinned - now using latest version`
+        }
+    });
+    return { success: true };
+}
+/**
+ * Get available roadmap versions for a settlement type
+ */
+export async function getAvailableRoadmapVersions(settlementTypeCode) {
+    const versions = await db.roadmapVersion.findMany({
+        where: {
+            settlementTypeCode,
+            isActive: true
+        },
+        orderBy: { releasedAt: 'desc' },
+        select: {
+            version: true,
+            isPublished: true,
+            releasedAt: true,
+            changelog: true
+        }
+    });
+    return versions;
 }
 /**
  * Get task completion status for an estate

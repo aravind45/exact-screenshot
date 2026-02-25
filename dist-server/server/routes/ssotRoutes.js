@@ -94,6 +94,24 @@ router.post('/roadmaps/:id/publish', isAdmin, wrap(async (req, res) => {
     await RoadmapSvc.publishRoadmap(req.params.id, req.user?.id);
     res.json({ success: true });
 }));
+// ══════ ROADMAP VERSIONS (SSOT) ══════
+router.get('/roadmap-versions', isAdmin, wrap(async (req, res) => {
+    const settlementTypeCode = req.query.settlementTypeCode;
+    const versions = await RoadmapSvc.listRoadmapVersions(settlementTypeCode);
+    res.json(versions);
+}));
+router.post('/roadmap-versions', isAdmin, wrap(async (req, res) => {
+    const result = await RoadmapSvc.createRoadmapVersion(req.body, req.user?.id);
+    res.status(201).json(result);
+}));
+router.put('/roadmap-versions/:id/publish', isAdmin, wrap(async (req, res) => {
+    const result = await RoadmapSvc.publishRoadmapVersion(req.params.id, req.user?.id);
+    res.json(result);
+}));
+router.delete('/roadmap-versions/:id', isAdmin, wrap(async (req, res) => {
+    await RoadmapSvc.deleteRoadmapVersion(req.params.id, req.user?.id);
+    res.json({ success: true });
+}));
 // ══════ PHASES ══════
 router.get('/roadmaps/:roadmapId/phases', isAdmin, wrap(async (req, res) => {
     res.json(await RoadmapSvc.listPhases(req.params.roadmapId));

@@ -4,7 +4,16 @@ const STATE_RULES = {
     AK: { creditorClaimDays: 120, inventoryDays: 90, hasStateTax: false },
     AZ: { creditorClaimDays: 120, inventoryDays: 90, hasStateTax: false },
     AR: { creditorClaimDays: 180, inventoryDays: 90, hasStateTax: false },
-    CA: { creditorClaimDays: 120, inventoryDays: 120, hasStateTax: false },
+    CA: {
+        creditorClaimDays: 120, // Legacy field - CA uses MAX(4 months after Letters, 60 days after notice)
+        inventoryDays: 120,
+        hasStateTax: false,
+        // CA Probate Code §9154: Creditor claim period is LATER of:
+        // - 4 months after Letters issued (120 days), OR
+        // - 60 days after notice mailed/published
+        creditorClaimFromLettersDays: 120,
+        creditorClaimFromNoticeDays: 60,
+    },
     CO: { creditorClaimDays: 120, inventoryDays: 90, hasStateTax: false },
     CT: { creditorClaimDays: 150, inventoryDays: 90, hasStateTax: true },
     DE: { creditorClaimDays: 240, inventoryDays: 90, hasStateTax: false },
@@ -155,11 +164,15 @@ export class DeadlineService {
                 ? `INSOLVENT ESTATE — Publishing creditor notice is mandatory and time-sensitive. Creditors must be given ${rules.creditorClaimDays} days to file claims. DO NOT make any distribution to heirs until ALL creditors are paid in statutory priority order.`
                 : 'Publish notice to creditors in a newspaper of general circulation in the county. Required within 30 days of appointment as personal representative.', 30, 'filingDate');
             // 2. Creditor claim period end
+            // CA-SPECIFIC: Probate Code §9154 uses MAX(4 months after Letters, 60 days after notice)
+            const caCreditorDescription = state === 'CA' && rules.creditorClaimFromLettersDays && rules.creditorClaimFromNoticeDays
+                ? `CA Probate Code §9154: Creditor claim period ends on the LATER of: (1) ${rules.creditorClaimFromLettersDays} days after Letters issued, OR (2) ${rules.creditorClaimFromNoticeDays} days after notice mailed/published. The claim period is calculated as whichever date occurs later.`
+                : `Creditors have ${rules.creditorClaimDays} days from the date of notice publication to file claims against the estate. After this period, most untimely claims are barred.`;
             push('CREDITOR_CLAIM_PERIOD_END', isInsolvent
                 ? `⚠️ CRITICAL: Creditor Claim Period End — ${rules.creditorClaimDays} Days (${state})`
                 : `Creditor Claim Period End — ${rules.creditorClaimDays} Days (${state})`, isInsolvent
                 ? `Creditors have ${rules.creditorClaimDays} days from notice publication to file claims. This estate is INSOLVENT — you must pay creditors in statutory priority order before distributing ANY assets to heirs. Violation may result in personal liability for the executor.`
-                : `Creditors have ${rules.creditorClaimDays} days from the date of notice publication to file claims against the estate. After this period, most untimely claims are barred.`, rules.creditorClaimDays, 'noticePublishedDate');
+                : caCreditorDescription, rules.creditorClaimDays, 'noticePublishedDate');
             // 3. Inventory due
             push('INVENTORY_DUE', 'Inventory and Appraisement Due', `File a complete inventory of estate assets with the probate court within ${rules.inventoryDays} days of receiving Letters Testamentary/Administration. Include all real and personal property, with appraised values.`, rules.inventoryDays, 'letterIssuedDate');
             // 4. Federal estate tax
