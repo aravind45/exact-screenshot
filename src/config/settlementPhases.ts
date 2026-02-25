@@ -1281,7 +1281,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
             title: "Obtain Letters of Administration (NJ)",
             description: "After the County Surrogate approves the administration application, Letters of Administration are issued — typically within a few days of filing for uncontested matters. No hearing is required unless the Surrogate directs one.",
             estimatedTime: "Same day to 1 week after filing",
-            dependencies: ["file_nj_administration"]
+            dependencies: ["attend_administration_hearing", "file_nj_administration"]
           },
           NY: {
             title: "Obtain Letters of Administration",
