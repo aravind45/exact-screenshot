@@ -135,6 +135,31 @@ export interface StateRule {
     };
     // Small estate spouse threshold override (NJ: $50k if spouse is sole heir)
     smallEstateSpouseThreshold?: number;
+    // TX-specific: Muniment of Title
+    munimentOfTitle?: {
+        available: boolean;
+        citation: string[];
+        requirements: string[];
+        notes: string;
+    };
+    // TX-specific: Heirship proceedings
+    heirshipProceeding?: {
+        available: boolean;
+        citation: string[];
+        description: string;
+    };
+    // TX-specific: Homestead protections
+    homesteadProtections?: {
+        available: boolean;
+        citation: string[];
+        description: string;
+    };
+    // TX-specific: 10-day posting requirement
+    postingRequirement?: {
+        days: number;
+        citation: string[];
+        description: string;
+    };
 }
 
 export const STATE_RULES: Record<string, StateRule> = {
@@ -370,7 +395,81 @@ export const STATE_RULES: Record<string, StateRule> = {
         probateCitation: ["TX Estates Code §401"],
         isUPC: false,
         lettersTerm: "Letters Testamentary",
-        notes: "Supports Muniment of Title for uncontested wills."
+        notes: "Supports Muniment of Title for uncontested wills with no debts.",
+        // TX-Specific Configuration
+        claimWindowDays: 120, // 4 months from published notice or personal notice
+        bondDefaultRequired: false, // Bond not required unless will demands it or court orders it
+        estateTaxThreshold: 0, // TX has no state estate tax
+        probatePaths: {
+            informal: {
+                term: "Independent Administration",
+                citation: ["TX Estates Code §401"],
+                description: "Streamlined probate where executor acts without continuous court supervision"
+            },
+            formal: {
+                term: "Dependent Administration",
+                citation: ["TX Estates Code §359"],
+                description: "Court-supervised probate with required hearings for most actions"
+            },
+            voluntary: {
+                term: "Small Estate Affidavit",
+                citation: ["TX Estates Code §205"],
+                description: "Simplified process for estates under $75,000 when no real property other than homestead"
+            }
+        },
+        bondOptions: {
+            required_with_sureties: {
+                term: "Bond with Sureties",
+                description: "Required only if will explicitly demands it or for dependent administration"
+            },
+            required_without_sureties: {
+                term: "Personal Bond",
+                description: "Allowed in many TX counties for independent administration without surety"
+            },
+            waived_by_assent: {
+                term: "Bond Waived by Heir Consent",
+                description: "All heirs can consent to waive bond requirement"
+            },
+            waived_by_will: {
+                term: "Bond Waived by Will",
+                description: "Most wills waive bond; this is the standard TX practice"
+            }
+        },
+        creditorPublication: {
+            defaultWindow: 120, // 4 months
+            publicationWindow: 60, // Publication runs for 2+ weeks typically
+            strategicOption: "Publication optional but recommended to start 4-month claim period"
+        },
+        taxForms: {
+            federal: "Form 1041",
+            state: "None (TX has no state income tax)",
+            estateTax: "None (TX has no state estate tax)"
+        },
+        // TX-specific: Muniment of Title
+        munimentOfTitle: {
+            available: true,
+            citation: ["TX Estates Code §257"],
+            requirements: ["Valid will", "No unpaid debts (except secured real property debts)", "No Medicaid recovery claims"],
+            notes: "No executor appointed; court order serves as title transfer authority"
+        },
+        // TX-specific: Heirship proceedings
+        heirshipProceeding: {
+            available: true,
+            citation: ["TX Estates Code §202"],
+            description: "Determination of heirship required for intestate estates when heirs are unknown or disputed"
+        },
+        // TX-specific: Homestead protections
+        homesteadProtections: {
+            available: true,
+            citation: ["TX Estates Code §102", "TX Constitution Art. XVI, §51"],
+            description: "Homestead passes to surviving spouse and/or minor children; exempt from creditor claims"
+        },
+        // TX-specific: 10-day posting requirement
+        postingRequirement: {
+            days: 10,
+            citation: ["TX Estates Code §54"],
+            description: "Application must be posted at courthouse for 10 days before hearing (unless waived by court for good cause)"
+        }
     },
     "UT": { threshold: 100000, smallEstateTerm: "Small Estate Affidavit", smallEstateCitation: ["Utah Code § 75-3-1201"], probateTerm: "Informal Probate", probateCitation: ["Utah Code § 75-3-301"], isUPC: true, lettersTerm: "Letters Testamentary" },
     "VT": { threshold: 45000, smallEstateTerm: "Small Estate Affidavit", smallEstateCitation: ["14 V.S.A. § 1902"], probateTerm: "Formal Probate", probateCitation: ["14 V.S.A."], isUPC: false, lettersTerm: "Letters Testamentary" },

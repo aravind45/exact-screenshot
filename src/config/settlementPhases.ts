@@ -709,6 +709,249 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         links: [{ label: "TX Estates Code §257", url: "https://statutes.capitol.texas.gov/Docs/ES/htm/ES.257.htm" }]
       },
       {
+        id: "tx_muniment_compliance_check",
+        title: "Verify Muniment of Title Eligibility",
+        description: "Before filing for Muniment of Title, verify the estate meets all requirements: valid will, no unsecured debts, no Medicaid recovery claims, and no need for estate administration.",
+        estimatedTime: "1-2 hours",
+        category: "probate",
+        trackCompatibility: ["PROBATE"],
+        applicability: { states: ["TX"], variants: ["TESTATE"] },
+        isConditional: true,
+        conditionalRequirementLabel: "Required if considering Muniment of Title",
+        requiredDocs: ["Will Review", "Debt Inventory", "Medicaid Status Check"],
+        alerts: [
+          {
+            type: "important",
+            message: "Muniment of Title is ONLY available if the estate has no unpaid debts (except secured debts on real property) and no Medicaid recovery claims."
+          },
+          {
+            type: "caution",
+            message: "If debts exist, you must use Independent or Dependent Administration instead."
+          }
+        ],
+        links: [{ label: "TX Estates Code §257.001", url: "https://statutes.capitol.texas.gov/Docs/ES/htm/ES.257.htm" }]
+      },
+      {
+        id: "file_tx_dependent_admin",
+        title: "File Application for Dependent Administration",
+        description: "For TX intestate estates or when Independent Administration is not available, file for Dependent Administration which requires court supervision for most actions.",
+        estimatedTime: "2-4 hours",
+        category: "probate",
+        trackCompatibility: ["PROBATE"],
+        applicability: { states: ["TX"], variants: ["INTESTATE"] },
+        requiredDocs: ["Death Certificate", "Heirship Information", "Application Form"],
+        alerts: [{
+          type: "info",
+          message: "Dependent Administration requires court approval for most actions including sales, payments, and distributions. It takes longer but provides more oversight."
+        }],
+        links: [{ label: "TX Estates Code §359", url: "https://statutes.capitol.texas.gov/Docs/ES/htm/ES.359.htm" }]
+      },
+      {
+        id: "tx_admin_type_branching",
+        title: "Determine TX Administration Type",
+        description: "Texas requires choosing between Independent Administration (preferred, less court oversight), Dependent Administration (court-supervised), or Muniment of Title (no executor). The choice depends on will terms, debts, and heir cooperation.",
+        estimatedTime: "1-2 hours",
+        category: "probate",
+        trackCompatibility: ["PROBATE"],
+        applicability: { states: ["TX"] },
+        isAttorneyReviewNode: true,
+        attorneyReviewReason: "Strategic Decision: Administration type affects timeline, costs, and fiduciary responsibilities. This decision is difficult to change later.",
+        alerts: [
+          {
+            type: "important",
+            message: "Independent Administration: Available if will allows it OR all distributees agree. This is the preferred path for most TX estates."
+          },
+          {
+            type: "info",
+            message: "Muniment of Title: Only for estates with no unsecured debts and no need for administration."
+          },
+          {
+            type: "caution",
+            message: "Dependent Administration: Required if heirs don't agree to independent administration or if court supervision is needed."
+          }
+        ]
+      },
+      {
+        id: "tx_ten_day_posting",
+        title: "Post Application at Courthouse (10-Day Gate)",
+        description: "Texas requires the probate application to be posted at the courthouse for 10 days before the hearing can occur. This gives interested parties notice of the proceeding.",
+        estimatedTime: "10 days (mandatory)",
+        category: "probate",
+        trackCompatibility: ["PROBATE"],
+        applicability: { states: ["TX"] },
+        isLongHorizon: true,
+        requiredDocs: ["Posted Application Notice"],
+        alerts: [
+          {
+            type: "important",
+            message: "MANDATORY 10-DAY POSTING: TX Estates Code §54 requires the application to be posted at the courthouse for 10 days before hearing. No hearing can occur before this period expires."
+          },
+          {
+            type: "info",
+            message: "The court clerk handles posting. Verify posting date to calculate earliest hearing date."
+          }
+        ],
+        links: [{ label: "TX Estates Code §54.001", url: "https://statutes.capitol.texas.gov/Docs/ES/htm/ES.54.htm" }]
+      },
+      {
+        id: "file_tx_heirship_proceeding",
+        title: "File Proceeding to Determine Heirship",
+        description: "For TX intestate estates where heirs are unknown, missing, or their shares are disputed, file a proceeding to determine heirship. This requires a court-appointed attorney ad litem to represent unknown heirs.",
+        estimatedTime: "4-8 weeks",
+        category: "probate",
+        trackCompatibility: ["PROBATE"],
+        applicability: { states: ["TX"], variants: ["INTESTATE"] },
+        isConditional: true,
+        conditionalRequirementLabel: "Required if heirs are unknown, missing, or disputed",
+        isAttorneyReviewNode: true,
+        attorneyReviewReason: "Heirship proceedings involve complex genealogy and due diligence requirements. An attorney ad litem must be appointed to represent unknown heirs.",
+        requiredDocs: ["Family Tree Affidavit", "Death Certificate", "Genealogical Research"],
+        alerts: [
+          {
+            type: "important",
+            message: "An attorney ad litem will be appointed by the court to represent unknown or missing heirs. Their fees are paid by the estate."
+          },
+          {
+            type: "warning",
+            message: "Heirship proceedings can add significant time and cost. Ensure thorough genealogical research is conducted."
+          }
+        ],
+        links: [{ label: "TX Estates Code §202", url: "https://statutes.capitol.texas.gov/Docs/ES/htm/ES.202.htm" }]
+      },
+      {
+        id: "tx_homestead_protection",
+        title: "Assert Texas Homestead Protections",
+        description: "Texas homestead property is protected from most creditor claims and passes directly to surviving spouse and/or minor children. Assert these protections to preserve the family home.",
+        estimatedTime: "1-2 hours",
+        category: "probate",
+        trackCompatibility: ["PROBATE", "AFFIDAVIT"],
+        applicability: { states: ["TX"] },
+        isConditional: true,
+        conditionalRequirementLabel: "Required if decedent owned Texas homestead property",
+        requiredDocs: ["Property Deed", "Homestead Affidavit"],
+        alerts: [
+          {
+            type: "important",
+            message: "Texas homestead is protected from most creditor claims (TX Constitution Art. XVI, §51). It passes to surviving spouse and/or minor children outside the probate estate."
+          },
+          {
+            type: "info",
+            message: "Rural homestead: Up to 200 acres for family. Urban homestead: Up to 1 acre."
+          }
+        ],
+        links: [
+          { label: "TX Estates Code §102", url: "https://statutes.capitol.texas.gov/Docs/ES/htm/ES.102.htm" },
+          { label: "TX Constitution Art. XVI, §51", url: "https://statutes.capitol.texas.gov/Docs/CN/htm/CN.16.htm" }
+        ]
+      },
+      {
+        id: "tx_exempt_property",
+        title: "Claim Texas Exempt Property Allowances",
+        description: "Texas provides exempt property allowances including homestead, personal property exemptions up to $100,000 (family) or $50,000 (single), and family allowances for support during administration.",
+        estimatedTime: "2-3 hours",
+        category: "probate",
+        trackCompatibility: ["PROBATE"],
+        applicability: { states: ["TX"] },
+        isConditional: true,
+        conditionalRequirementLabel: "Available for surviving spouse and/or minor children",
+        requiredDocs: ["Exempt Property Inventory", "Family Allowance Request"],
+        alerts: [
+          {
+            type: "important",
+            message: "Exempt personal property includes home furnishings, heirlooms, food, clothing, and tools (up to $100,000 for family, $50,000 for single person)."
+          },
+          {
+            type: "info",
+            message: "Family allowance provides funds for support during administration. Priority over most creditor claims."
+          }
+        ],
+        links: [{ label: "TX Estates Code §353", url: "https://statutes.capitol.texas.gov/Docs/ES/htm/ES.353.htm" }]
+      },
+      {
+        id: "tx_small_estate_affidavit",
+        title: "File Small Estate Affidavit (TX §205)",
+        description: "For TX estates under $75,000 with no real property (other than homestead), file a Small Estate Affidavit to collect assets without formal probate. All distributees must sign.",
+        estimatedTime: "1-2 hours",
+        category: "probate",
+        trackCompatibility: ["PROBATE", "AFFIDAVIT"],
+        applicability: { states: ["TX"] },
+        isConditional: true,
+        conditionalRequirementLabel: "Available if estate value ≤ $75,000 and no real property other than homestead",
+        requiredDocs: ["Small Estate Affidavit", "Death Certificate", "Asset Information"],
+        alerts: [
+          {
+            type: "important",
+            message: "TX Estates Code §205 — Available 30 days after death. Estate must be ≤ $75,000 and contain no real property (except homestead)."
+          },
+          {
+            type: "warning",
+            message: "ALL distributees must sign the affidavit. If any heir refuses or is unavailable, this path is not available."
+          }
+        ],
+        links: [{ label: "TX Estates Code §205", url: "https://statutes.capitol.texas.gov/Docs/ES/htm/ES.205.htm" }]
+      },
+      {
+        id: "tx_bond_determination",
+        title: "Determine TX Bond Requirement",
+        description: "Texas generally does not require bond for Independent Administration if the will waives it (standard). Bond may be required for Dependent Administration or if will explicitly demands it.",
+        estimatedTime: "1 hour",
+        category: "probate",
+        trackCompatibility: ["PROBATE"],
+        applicability: { states: ["TX"] },
+        tags: ["fiduciary", "statutory"],
+        requiredDocs: ["Will Review (bond clause)", "Heir Consent Forms (if applicable)"],
+        outputs: ["Bond Requirement Decision"],
+        alerts: [
+          {
+            type: "info",
+            message: "Most TX wills waive bond requirement. If will is silent, all heirs can consent to waive bond."
+          },
+          {
+            type: "caution",
+            message: "Dependent Administration typically requires bond unless all heirs consent to waive."
+          }
+        ],
+        links: [{ label: "TX Estates Code §401", url: "https://statutes.capitol.texas.gov/Docs/ES/htm/ES.401.htm" }]
+      },
+      {
+        id: "tx_filing_fee_calculation",
+        title: "Calculate TX Court Filing Fees",
+        description: "Texas probate filing fees vary by county. Calculate fees based on estate type (Muniment, Independent, Dependent) and county fee schedule.",
+        estimatedTime: "30 minutes",
+        category: "probate",
+        trackCompatibility: ["PROBATE"],
+        applicability: { states: ["TX"] },
+        outputs: ["Filing Fee Estimate"],
+        alerts: [
+          {
+            type: "info",
+            message: "TX filing fees vary by county. Check with the specific statutory or county probate court for current fee schedule."
+          },
+          {
+            type: "info",
+            message: "Additional fees may apply for citations, publications, and certified copies of court orders."
+          }
+        ]
+      },
+      {
+        id: "tx_citation_issuance",
+        title: "Obtain and Serve TX Citation",
+        description: "Texas requires citation to be issued and served on all distributees and named beneficiaries. Personal service is required unless waived by signed waiver.",
+        estimatedTime: "1-2 weeks",
+        category: "probate",
+        trackCompatibility: ["PROBATE"],
+        applicability: { states: ["TX"] },
+        requiredDocs: ["Citation", "Proof of Service", "Waivers (if any)"],
+        alerts: [
+          {
+            type: "important",
+            message: "Personal service is required unless the distributee signs a Waiver of Citation. Publication is not a substitute for personal service on known distributees."
+          }
+        ],
+        links: [{ label: "TX Estates Code §51", url: "https://statutes.capitol.texas.gov/Docs/ES/htm/ES.51.htm" }]
+      },
+
+      {
         id: "file_fl_disposition_without_admin",
         title: "File Petition for Disposition Without Administration",
         description: "For very small FL estates (no real property, assets only cover exempt property/preferences and funeral/medical expenses), file for disposition without formal administration.",
@@ -1888,7 +2131,73 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         estimatedTime: "State-specific",
         // Publication is not a universal trigger; do not hard-depend on it.
         dependencies: [],
-        stateOverrides: {
+              {
+        id: "tx_publish_creditor_notice",
+        title: "Publish Notice to Creditors (Optional but Recommended)",
+        description: "Texas allows optional publication of notice to creditors. While not required, publication starts the 4-month claim period and provides protection against late claims.",
+        estimatedTime: "1-2 weeks",
+        category: "probate",
+        trackCompatibility: ["PROBATE"],
+        applicability: { states: ["TX"] },
+        isOptional: true,
+        requiredDocs: ["Notice to Creditors", "Publication Proof"],
+        alerts: [
+          {
+            type: "info",
+            message: "OPTIONAL: TX does not require creditor publication, but it starts the 4-month claim bar (TX Estates Code §355)."
+          },
+          {
+            type: "important",
+            message: "Without publication, creditors may have up to 4 years to file claims (general limitations period)."
+          }
+        ],
+        links: [{ label: "TX Estates Code §355", url: "https://statutes.capitol.texas.gov/Docs/ES/htm/ES.355.htm" }]
+      },
+      {
+        id: "tx_personal_creditor_notice",
+        title: "Mail Notice to Known Creditors (TX)",
+        description: "Texas requires actual notice to known creditors. Mail notice by certified mail, return receipt requested, to trigger the 4-month claim period for each creditor.",
+        estimatedTime: "1-3 hours",
+        category: "probate",
+        trackCompatibility: ["PROBATE"],
+        applicability: { states: ["TX"] },
+        requiredDocs: ["Certified Mail Receipts", "Creditor Notice Log"],
+        alerts: [
+          {
+            type: "important",
+            message: "Actual notice by certified mail starts the 4-month claim period for THAT creditor (TX Estates Code §355.002). Keep all proof of mailing."
+          },
+          {
+            type: "caution",
+            message: "Each creditor's 4-month period starts when THEY receive notice, not when others do."
+          }
+        ],
+        links: [{ label: "TX Estates Code §355.002", url: "https://statutes.capitol.texas.gov/Docs/ES/htm/ES.355.htm" }]
+      },
+      {
+        id: "tx_medicaid_recovery_check",
+        title: "Check for Texas Medicaid Estate Recovery (MERP)",
+        description: "Texas Medicaid Estate Recovery Program (MERP) may have claims against the estate for benefits paid. Check MERP status before distributing assets or filing Muniment of Title.",
+        estimatedTime: "1-2 weeks",
+        category: "probate",
+        trackCompatibility: ["PROBATE"],
+        applicability: { states: ["TX"] },
+        isConditional: true,
+        conditionalRequirementLabel: "Required if decedent received Medicaid benefits",
+        requiredDocs: ["MERP Notice Request", "MERP Response"],
+        alerts: [
+          {
+            type: "important",
+            message: "MERP: Texas may recover Medicaid benefits from the estate. Muniment of Title is NOT available if MERP claims exist."
+          },
+          {
+            type: "warning",
+            message: "Request MERP status early. If recovery is pursued, full probate administration may be required."
+          }
+        ],
+        links: [{ label: "Texas MERP Information", url: "https://www.hhs.texas.gov/services/financial/medicaid-chip/estate-recovery" }]
+      },
+stateOverrides: {
           CA: {
             title: "Wait for 4-Month Claim Period",
             description: "Creditors have 4 months from publication of the creditor notice to file claims against the estate.",
