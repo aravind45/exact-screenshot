@@ -38,7 +38,8 @@ export type AuthorityType =
     | "TOD_DEED"
     | "INTESTATE"
     | "INSOLVENT_ESTATE"
-    | "CONTESTED_ESTATE";
+    | "CONTESTED_ESTATE"
+    | "LIMITED_GRANTED";  // Limited authority (e.g., small estate affidavit)
 
 /**
  * Gate Types
