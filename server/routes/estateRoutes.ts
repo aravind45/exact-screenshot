@@ -900,7 +900,6 @@ export default router;
 
 // Roadmap endpoints
 import { getEstateRoadmap, completeTask, uncompleteTask, getTaskCompletions } from "../services/roadmapService.js";
-import { requireSubscription } from "../middleware/subscription.js";
 
 // GET /:id/roadmap - Get personalized roadmap (requires subscription)
 router.get("/:id/roadmap", requireSubscription, async (req: any, res: Response) => {
