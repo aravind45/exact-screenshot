@@ -1543,14 +1543,14 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "file_affidavit",
-        title: "File Small Estate Affidavit",
-        description: "For estates under threshold, use this shortcut to bypass court probate.",
-        utility: "Bypass court entirely for qualifying small estates.",
+        title: "File {{smallEstateTerm}}",
+        description: "Use the {{smallEstateTerm}} to bypass court probate when probate assets are below {{smallEstateThreshold}} ({{smallEstateCitation}}).",
+        utility: "Bypass court entirely for qualifying small estates under {{smallEstateThreshold}}.",
         estimatedTime: "40 days after death",
         category: "court-issued",
         exclusiveGroup: "filing_path",
         isConditional: true,
-        conditionalRequirementLabel: "Available if estate value is below state small estate threshold",
+        conditionalRequirementLabel: "Available when probate assets are below {{smallEstateThreshold}}",
         helpArticleId: "small-estate-affidavit",
         requiredDocs: ["Affidavit Form", "Death Certificate"],
         // NJ has its own specific small estate affidavit task (file_nj_small_estate_affidavit)
@@ -1637,6 +1637,15 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         exclusiveGroup: "filing_path",
         isOptional: true,
         requiredDocs: ["Petition Form", "Death Certificate", "Property Deed"],
+        stateOverrides: {
+          CA: {
+            description: "File petition with court to determine who inherits the primary residence without full probate (CA Prob. Code §13150).",
+            links: [{
+              label: "CA Prob. Code §13150",
+              url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?sectionNum=13150.&lawCode=PROB"
+            }]
+          }
+        },
         links: [{
           label: "About Succession Petitions",
           url: "#"
@@ -1656,6 +1665,15 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         isOptional: true,
         dependencies: ["file_succession_petition"],
         requiredDocs: ["Notice of Hearing Form"],
+        stateOverrides: {
+          CA: {
+            description: "Notify all interested parties of the hearing date for the succession petition (CA Prob. Code §13152).",
+            links: [{
+              label: "CA Prob. Code §13152",
+              url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?sectionNum=13152.&lawCode=PROB"
+            }]
+          }
+        },
         links: [{
           label: "About Notice of Hearing Forms",
           url: "#"
@@ -1675,6 +1693,15 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         isOptional: true,
         requiredDocs: ["Court Order"],
         dependencies: ["file_succession_petition", "give_succession_notice"],
+        stateOverrides: {
+          CA: {
+            description: "Receive court order determining property succession and record it with the county recorder (CA Prob. Code §13154).",
+            links: [{
+              label: "CA Prob. Code §13154",
+              url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?sectionNum=13154.&lawCode=PROB"
+            }]
+          }
+        },
         links: [{
           label: "About Succession Orders",
           url: "#"
@@ -2001,16 +2028,15 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         ],
         stateOverrides: {
           CA: {
-            title: "Publish Notice to Creditors (CA — Starts Claims Timing)",
-            description: "In California, publication of the required notice is a standard step and commonly drives creditor claims timing. Use the court-accepted notice format and follow local publication and proof requirements for your county.",
+            title: "Publish Notice to Creditors (CA)",
+            description: "In California, publish notice to creditors in an approved newspaper and file proof of publication. Publication helps notify unknown creditors, but the claim deadline is the later of 4 months after Letters or 60 days after direct notice (CA Prob. Code §9154).",
             isOptional: false,
             dependencies: ["file_probate_petition", "file_administration_petition"],
-            deadlineWarningId: "CREDITOR_NOTICE_DEADLINE",
             requiredDocs: ["Court case number", "Proposed notice", "Publication proof (when issued)"],
             alerts: [
               {
                 type: "important",
-                message: "For California cases, publication is used to establish creditor notice and timing. Confirm local proof-of-publication requirements.",
+                message: "Publication satisfies notice to unknown creditors. Retain proof of publication and confirm local requirements.",
               },
             ],
           },
@@ -2206,10 +2232,9 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         estimatedTime: "State-specific",
         stateOverrides: {
           CA: {
-            title: "Wait for 4-Month Claim Period",
-            description: "Creditors have 4 months from publication of the creditor notice to file claims against the estate.",
-            estimatedTime: "4 months",
-            dependencies: ["publish_notice"],
+            title: "Monitor Creditor Claim Deadline (CA)",
+            description: "In California, the claim deadline is the later of 4 months after Letters are issued or 60 days after notice is given to the creditor (CA Prob. Code §9154).",
+            estimatedTime: "Later of 4 months after Letters or 60 days after notice",
           },
           NY: {
             title: "Monitor 7-Month Creditor Exposure Period (from issuance of Letters)",
