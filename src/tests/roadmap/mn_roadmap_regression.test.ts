@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { STATE_RULES } from "../../lib/stateRules";
+import { generateRoadmap } from "../../config/roadmapGenerator";
 
 describe("MN Roadmap Compliance", () => {
   it("MN STATE_RULES: has correct creditor timing fields", () => {
@@ -91,5 +92,67 @@ describe("MN Roadmap Compliance", () => {
     
     expect(daysSinceDeath).toBe(31);
     expect(daysSinceDeath).toBeGreaterThanOrEqual(30); // Affidavit should be visible
+  });
+
+  it("MN roadmap: creditor deadline contains 'later of' formula", () => {
+    const roadmap = generateRoadmap("FORMAL_PROBATE", "MN", [], ["PROBATE"], true);
+    const allTasks = roadmap.flatMap(phase => phase.tasks);
+    
+    const task = allTasks.find(t => t.id === "monitor_creditor_claim_period");
+    expect(task?.description).toContain("later");
+    expect(task?.description).toContain("4 months");
+    expect(task?.description).toContain("1 month");
+    expect(task?.description).toContain("MN Stat. §524.3-801");
+  });
+
+  it("MN roadmap: affidavit task contains 30-day requirement", () => {
+    const roadmap = generateRoadmap("FORMAL_PROBATE", "MN", [], ["PROBATE"], true);
+    const allTasks = roadmap.flatMap(phase => phase.tasks);
+    
+    const task = allTasks.find(t => t.id === "file_affidavit");
+    expect(task?.description).toContain("30 days");
+    expect(task?.description).toContain("MN Stat. §524.3-1201");
+  });
+
+  it("MN roadmap: succession tasks use Decree of Distribution terminology", () => {
+    const roadmap = generateRoadmap("FORMAL_PROBATE", "MN", [], ["PROBATE"], true);
+    const allTasks = roadmap.flatMap(phase => phase.tasks);
+    
+    const task = allTasks.find(t => t.id === "file_succession_petition");
+    expect(task?.title).toContain("Decree of Distribution");
+    expect(task?.description).toContain("MN Stat. §524.3-1001");
+  });
+
+  it("MN roadmap: NO generic creditor placeholder", () => {
+    const roadmap = generateRoadmap("FORMAL_PROBATE", "MN", [], ["PROBATE"], true);
+    const allTasks = roadmap.flatMap(phase => phase.tasks);
+    
+    expect(allTasks.find(t => t.id === "wait_claim_period")).toBeUndefined();
+  });
+
+  it("MN roadmap: debt priority cites MN Stat. §524.3-805", () => {
+    const roadmap = generateRoadmap("FORMAL_PROBATE", "MN", [], ["PROBATE"], true);
+    const allTasks = roadmap.flatMap(phase => phase.tasks);
+    
+    const task = allTasks.find(t => t.id === "debt_priority_risk");
+    expect(task?.description).toContain("MN Stat. §524.3-805");
+  });
+
+  it("MN roadmap: publish_notice has MN Stat. §524.3-801 link", () => {
+    const roadmap = generateRoadmap("FORMAL_PROBATE", "MN", [], ["PROBATE"], true);
+    const allTasks = roadmap.flatMap(phase => phase.tasks);
+    
+    const task = allTasks.find(t => t.id === "publish_notice");
+    expect(task?.links).toBeDefined();
+    expect(task?.links?.some(l => l.url.includes("524.3-801"))).toBe(true);
+  });
+
+  it("MN roadmap: monitor_creditor_claim_period has alerts with 'later of' formula", () => {
+    const roadmap = generateRoadmap("FORMAL_PROBATE", "MN", [], ["PROBATE"], true);
+    const allTasks = roadmap.flatMap(phase => phase.tasks);
+    
+    const task = allTasks.find(t => t.id === "monitor_creditor_claim_period");
+    expect(task?.alerts).toBeDefined();
+    expect(task?.alerts?.some(a => a.message.includes("MAX(4 months"))).toBe(true);
   });
 });

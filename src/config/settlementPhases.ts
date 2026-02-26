@@ -1716,7 +1716,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         isOptional: true,
         requiredDocs: ["Petition Form", "Death Certificate", "Property Deed"],
         applicability: {
-          excludePredicates: ["isOH"]
+          excludePredicates: ["isOH", "isMN"]
         },
         stateOverrides: {
           CA: {
@@ -1755,7 +1755,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         dependencies: ["file_succession_petition"],
         requiredDocs: ["Notice of Hearing Form"],
         applicability: {
-          excludePredicates: ["isOH"]
+          excludePredicates: ["isOH", "isMN"]
         },
         stateOverrides: {
           CA: {
@@ -1794,7 +1794,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         requiredDocs: ["Court Order"],
         dependencies: ["file_succession_petition", "give_succession_notice"],
         applicability: {
-          excludePredicates: ["isOH"]
+          excludePredicates: ["isOH", "isMN"]
         },
         stateOverrides: {
           CA: {
@@ -2211,7 +2211,11 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
                 type: "info",
                 message: "Minnesota does not require publication, but it provides a clear 'later of' deadline: 4 months from publication OR 1 month from mailed notice to known creditors."
               }
-            ]
+            ],
+            links: [{
+              label: "MN Stat. §524.3-801",
+              url: "https://www.revisor.mn.gov/statutes/cite/524.3-801"
+            }]
           },
           GA: {
             title: "Publish Notice to Creditors (Required - Georgia)",
@@ -2318,7 +2322,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         // Publication is not a universal trigger; do not hard-depend on it.
         dependencies: [],
         applicability: {
-          excludePredicates: ["isOH"]
+          excludePredicates: ["isOH", "isMN"]
         },
       },
       {
@@ -2454,8 +2458,22 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
           },
           MN: {
             title: "Monitor Minnesota Creditor Deadline",
-            description: "Minnesota Creditor Deadline: Claims are barred 4 months after first publication of notice OR 1 month after mailed notice to a known creditor, whichever is later (MN Stat. §524.3-801).",
-            estimatedTime: "Later of 4 months after publication or 1 month after mailed notice"
+            description: "Minnesota Creditor Deadline: Claims are barred the later of: (1) 4 months after first publication of notice, OR (2) 1 month after mailed notice to a known creditor (MN Stat. §524.3-801). Publication is optional but triggers the 4-month bar.",
+            estimatedTime: "Later of 4 months after publication or 1 month after mailed notice",
+            alerts: [
+              {
+                type: "important",
+                message: "Later Of Formula: The deadline is MAX(4 months from publication, 1 month from mailed notice to known creditor). If no publication occurs, extended creditor exposure may apply."
+              },
+              {
+                type: "info",
+                message: "Publication triggers the 4-month claim bar. Without publication, creditors may have extended exposure under general limitations."
+              }
+            ],
+            links: [{
+              label: "MN Stat. §524.3-801",
+              url: "https://www.revisor.mn.gov/statutes/cite/524.3-801"
+            }]
           }
         },
         alerts: [
