@@ -89,9 +89,13 @@ create_secret "JWT_SECRET" "Random secret for JWT token signing (e.g., generate 
 echo "Setting up optional secrets (press Enter to skip)..."
 echo ""
 
+create_secret "RESEND_API_KEY" "Resend API key for email features (optional)"
+create_secret "RESEND_DOMAIN" "Resend domain for email features (optional)"
+create_secret "RESEND_WEBHOOK_SECRET" "Resend webhook secret for inbound email signature verification (optional)"
+
 create_secret "GROQ_API_KEY" "Groq API key for AI features (optional)"
-create_secret "MAILGUN_API_KEY" "Mailgun API key for email features (optional)"
-create_secret "MAILGUN_DOMAIN" "Mailgun domain for email features (optional)"
+create_secret "MAILGUN_API_KEY" "Mailgun API key for email features (deprecated)"
+create_secret "MAILGUN_DOMAIN" "Mailgun domain for email features (deprecated)"
 
 echo ""
 echo "✅ Secrets setup complete!"

@@ -2,7 +2,7 @@ import { SETTLEMENT_PHASE_TASKS } from "../../src/config/settlementPhases.js";
 import { STATE_PHASE_OVERRIDES, NEUTRAL_PHASE_MILESTONES } from "../../src/config/roadmapMetadata.js";
 import { prisma as db } from "../db.js";
 import { calculateAuthorityRecommendation } from "../../src/lib/authorityEngine.js";
-import { getLettersTerm } from "../../src/lib/stateRules.js";
+import { getLettersTerm, getStateRule } from "../../src/lib/stateRules.js";
 import { logger } from "../lib/logger.js";
 const FOLLOW_UP_SPAWN_RULES = {
     // ── Creditor Notices ──────────────────────────────────────────────────────
@@ -33,13 +33,22 @@ const FOLLOW_UP_SPAWN_RULES = {
     // ── Heirs ─────────────────────────────────────────────────────────────────
     notify_heirs_of_appointment: { institutionName: "Heirs / Beneficiaries", subject: "Heir notification sent — awaiting signed acknowledgments", responseWindowDays: 14 },
 };
+const formatCurrency = (value) => `$${value.toLocaleString()}`;
+function applyStateRuleTokens(text, state) {
+    const rule = getStateRule(state);
+    return text
+        .replace(/\{\{smallEstateThreshold\}\}/g, formatCurrency(rule.threshold))
+        .replace(/\{\{smallEstateTerm\}\}/g, rule.smallEstateTerm)
+        .replace(/\{\{smallEstateCitation\}\}/g, rule.smallEstateCitation?.join(", ") || "");
+}
 function normalizeTextForState(text, state) {
     if (!text)
         return text;
+    const tokenized = applyStateRuleTokens(text, state);
     if (state === "CA")
-        return text;
+        return tokenized;
     const lettersTerm = getLettersTerm(state);
-    let out = text;
+    let out = tokenized;
     out = out.replace(/\bCertified Letters\s*\(DE-\d+\)/gi, `Certified ${lettersTerm}`);
     out = out.replace(/\bLetters Testamentary\s*\(DE-\d+\)/gi, lettersTerm);
     out = out.replace(/\bLetters of Authority\s*\(DE-\d+\)/gi, lettersTerm);
@@ -138,6 +147,7 @@ function normalizeTaskForState(task, state) {
         description: normalizeTextForState(mergedTask.description, state) || mergedTask.description,
         utility: normalizeTextForState(mergedTask.utility, state),
         rationale: normalizeTextForState(mergedTask.rationale, state),
+        conditionalRequirementLabel: normalizeTextForState(mergedTask.conditionalRequirementLabel, state) || mergedTask.conditionalRequirementLabel,
         requiredDocs: mergedTask.requiredDocs?.map(doc => normalizeTextForState(doc, state) || doc),
         alerts: mergedTask.alerts?.map(alert => ({
             ...alert,

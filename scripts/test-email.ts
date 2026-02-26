@@ -1,49 +1,39 @@
 import 'dotenv/config';
 import fetch from 'node-fetch';
 
-async function testMailgun() {
-    const apiKey = process.env.MAILGUN_API_KEY;
-    const domain = process.env.MAILGUN_DOMAIN;
-    const baseUrl = process.env.MAILGUN_BASE_URL || "https://api.mailgun.net";
+async function testResend() {
+    const apiKey = process.env.RESEND_API_KEY;
+    const domain = process.env.RESEND_DOMAIN || "expectedestate.com";
 
-    console.log(`Testing Mailgun...`);
+    console.log(`Testing Resend...`);
     console.log(`Domain: ${domain}`);
-    console.log(`Base URL: ${baseUrl}`);
     console.log(`API Key set: ${!!apiKey}`);
 
-    if (!apiKey || !domain) {
-        console.error("Missing MAILGUN_API_KEY or MAILGUN_DOMAIN");
+    if (!apiKey) {
+        console.error("Missing RESEND_API_KEY");
         return;
     }
 
-    const encodedKey = Buffer.from(`api:${apiKey}`).toString("base64");
-    const formData = new URLSearchParams();
-    formData.append("from", `Tester <postmaster@${domain}>`);
-    formData.append("to", "aravind.77479@gmail.com");
-    formData.append("subject", "Mailgun Configuration Test");
-    formData.append("text", "This is a test email to verify Mailgun configuration.");
-
     try {
-        const response = await fetch(`${baseUrl}/v3/${domain}/messages`, {
-            method: "POST",
-            headers: {
-                "Authorization": `Basic ${encodedKey}`
-            },
-            body: formData
+        const { Resend } = await import('resend');
+        const resend = new Resend(apiKey);
+
+        console.log("Sending test email...");
+        const { data, error } = await resend.emails.send({
+            from: `Tester <noreply@${domain}>`,
+            to: ["aravind.77479@gmail.com"],
+            subject: "Resend Configuration Test",
+            text: "This is a test email to verify Resend configuration."
         });
 
-        console.log(`Response Status: ${response.status}`);
-        const result = await response.text();
-        console.log(`Response Body: ${result}`);
-
-        if (response.ok) {
-            console.log("✅ Test email sent successfully (or accepted by Mailgun)!");
+        if (error) {
+            console.error("❌ Failed to send test email:", error);
         } else {
-            console.error("❌ Failed to send test email.");
+            console.log("✅ Test email sent successfully!", data);
         }
     } catch (error) {
         console.error("❌ Request Error:", error);
     }
 }
 
-testMailgun();
+testResend();

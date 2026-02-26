@@ -125,6 +125,119 @@ export function calculateOverbidAmount(originalBid, overbidIncrement) {
         formula: "Greater of (bid + $500) or (bid + 5% of first $10k + 2.5% of excess)",
     };
 }
+// California County Fee Overrides
+// Filing fees vary by county - these are base fees that can be overridden
+export const CA_COUNTY_FEES = {
+    "Los Angeles": {
+        filingFee: 435,
+        firstPetitionFee: 435,
+        citation: "LA Superior Court Fee Schedule",
+        notes: "Additional fees for complex estates",
+    },
+    "San Diego": {
+        filingFee: 435,
+        firstPetitionFee: 435,
+        citation: "SD Superior Court Probate Fee Schedule",
+    },
+    "Orange": {
+        filingFee: 435,
+        firstPetitionFee: 435,
+        citation: "OC Superior Court Fee Schedule",
+    },
+    "San Francisco": {
+        filingFee: 435,
+        firstPetitionFee: 435,
+        citation: "SF Superior Court Fee Schedule",
+    },
+    "Sacramento": {
+        filingFee: 435,
+        firstPetitionFee: 435,
+        citation: "Sacramento Superior Court Fee Schedule",
+    },
+    "Santa Clara": {
+        filingFee: 435,
+        firstPetitionFee: 435,
+        citation: "Santa Clara Superior Court Fee Schedule",
+    },
+    "Alameda": {
+        filingFee: 435,
+        firstPetitionFee: 435,
+        citation: "Alameda Superior Court Fee Schedule",
+    },
+    "Contra Costa": {
+        filingFee: 435,
+        firstPetitionFee: 435,
+        citation: "Contra Costa Superior Court Fee Schedule",
+    },
+    "Riverside": {
+        filingFee: 435,
+        firstPetitionFee: 435,
+        citation: "Riverside Superior Court Fee Schedule",
+    },
+    "San Bernardino": {
+        filingFee: 435,
+        firstPetitionFee: 435,
+        citation: "San Bernardino Superior Court Fee Schedule",
+    },
+};
+// California Probate Code §850 - Heggstad Petition
+// For assets that should have been in a trust but weren't properly transferred
+export const CA_HEGGSTAD_PROVISIONS = {
+    probateCodeSection: "850",
+    citation: "CA Prob. Code §850",
+    description: "Petition to transfer assets to trust that were not properly titled in the trust name but were intended to be trust assets",
+    requirements: [
+        "Evidence of intent to transfer to trust (typically from the trust document)",
+        "Description of the property",
+        "Explanation of why transfer wasn't completed",
+    ],
+    applicableSituations: [
+        "Property listed on trust schedule but deed not transferred",
+        "Bank accounts intended for trust but not retitled",
+        "Other assets where settlor intent is clear but transfer incomplete",
+    ],
+    typicalTimeline: "30-60 days if uncontested",
+    formReference: "DE-850 (Petition)",
+};
+// Small Estate / Spousal / §850 Parameterized Branching Configuration
+export const CA_BRANCHING_CONFIG = {
+    smallEstate: {
+        threshold: CA_SIMPLIFIED_THRESHOLDS.personalProperty.threshold,
+        citation: CA_SIMPLIFIED_THRESHOLDS.personalProperty.citation,
+        waitingDays: CA_SIMPLIFIED_THRESHOLDS.personalProperty.waitingDays,
+        formNumber: "DE-310", // Affidavit for Collection of Personal Property
+    },
+    spousalProperty: {
+        threshold: null, // No dollar limit
+        citation: CA_SIMPLIFIED_THRESHOLDS.spousalProperty.citation,
+        waitingDays: CA_SIMPLIFIED_THRESHOLDS.spousalProperty.waitingDays,
+        formNumber: "DE-221", // Spousal Property Petition
+    },
+    heggstadPetition: {
+        citation: CA_HEGGSTAD_PROVISIONS.citation,
+        formNumber: "DE-850",
+        requirements: CA_HEGGSTAD_PROVISIONS.requirements,
+    },
+    // Branching logic based on estate characteristics
+    determinePath: (params) => {
+        // Priority 1: Spousal Property Petition (no dollar limit)
+        if (params.isSurvivingSpouse) {
+            return { path: "spousal", reason: "Surviving spouse eligible for Spousal Property Petition (no dollar limit)" };
+        }
+        // Priority 2: Heggstad Petition (if trust transfer issues exist)
+        if (params.hasTrust && params.trustTransferIssues) {
+            return { path: "heggstad", reason: "Assets intended for trust can be transferred via §850 Heggstad petition" };
+        }
+        // Priority 3: Small Estate Affidavit
+        if (params.personalPropertyValue <= CA_SIMPLIFIED_THRESHOLDS.personalProperty.threshold &&
+            params.realPropertyValue === 0 &&
+            params.daysSinceDeath >= CA_SIMPLIFIED_THRESHOLDS.personalProperty.waitingDays) {
+            return { path: "small_estate", reason: `Personal property ≤ ${CA_SIMPLIFIED_THRESHOLDS.personalProperty.threshold} qualifies for affidavit` };
+        }
+        // Default: Formal Probate
+        return { path: "formal_probate", reason: "Estate requires formal probate proceedings" };
+    },
+};
 export const CaliforniaPrioritySystem = {
     stateCode: "CA",
     rules: CA_RULES,
