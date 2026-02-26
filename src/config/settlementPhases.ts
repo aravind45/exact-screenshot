@@ -1626,13 +1626,13 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
             }],
           },
           OH: {
-            title: "File Release from Administration (Ohio)",
-            description: "File Release from Administration to bypass formal probate when total estate value does not exceed $35,000 ($100,000 if surviving spouse is sole heir) per R.C. §2113.03.",
-            estimatedTime: "5-10 business days",
-            alerts: [{
-              type: "info",
-              message: "Ohio Threshold: $35,000 for general estates, $100,000 if surviving spouse is the sole heir."
-            }],
+            title: "Apply for Release from Administration (OH)",
+            description: "Apply for Release from Administration when estate value falls below Ohio statutory threshold (ORC §2113.03). Summary Release from Administration may be available for qualifying estates.",
+            estimatedTime: "2-4 weeks",
+            alerts: [
+              { type: "info", message: "Ohio Threshold: Release from Administration is available for estates under $35,000 ($100,000 if surviving spouse is sole heir)." }
+            ],
+            links: [{ label: "ORC §2113.03", url: "https://codes.ohio.gov/ohio-revised-code/2113.03" }]
           }
         }
       },
@@ -2420,10 +2420,13 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
             estimatedTime: "12 months"
           },
           OH: {
-            title: "6-Month Claim Window - Ohio Creditor Claims (ORC 2117.06)",
-            description: "In Ohio, creditors have 6 months from the date of the fiduciary's appointment to present claims (ORC 2117.06). The 6-month period runs from the date of death if no administration is opened within that time.",
-            estimatedTime: "6 months",
-            dependencies: ["receive_letters_testamentary", "receive_letters_administration"],
+            title: "Monitor Ohio 6-Month Creditor Claim Period",
+            description: "Ohio Creditor Deadline: Claims must be presented within 6 months from the decedent's date of death (ORC §2117.06). Publication under ORC §2117.07 is required but does NOT shorten the 6-month bar.",
+            estimatedTime: "6 months from date of death",
+            alerts: [{
+              type: "important",
+              message: "Fixed Deadline: The 6-month claim period starts from the date of death, not from publication or appointment. Claims presented after 6 months are barred."
+            }]
           },
           IL: {
             title: "6-Month Claim Window - Illinois Creditor Claims (755 ILCS 5/18-12)",

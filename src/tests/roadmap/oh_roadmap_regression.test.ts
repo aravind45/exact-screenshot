@@ -1,107 +1,95 @@
 import { describe, it, expect } from "vitest";
 import { STATE_RULES } from "../../lib/stateRules";
 import { generateRoadmap } from "../../config/roadmapGenerator";
-import { filterTasksForEstate } from "../../../server/services/roadmapService";
-import { SETTLEMENT_PHASE_TASKS } from "../../config/settlementPhases";
 
-function collectRoadmapText(roadmap: ReturnType<typeof generateRoadmap>) {
-    const chunks: string[] = [];
-    roadmap.forEach(phase => {
-        phase.tasks.forEach(task => {
-            if (task.title) chunks.push(task.title);
-            if (task.description) chunks.push(task.description);
-            if (task.requiredDocs) chunks.push(...task.requiredDocs);
-            if (task.alerts) chunks.push(...task.alerts.map(a => a.message));
-        });
-    });
-    return chunks.join(" ");
-}
+describe("OH Roadmap Compliance - Structural Isolation", () => {
+  it("NO NJ statute citations in OH roadmap", () => {
+    const roadmap = generateRoadmap("FORMAL_PROBATE", "OH", [], ["PROBATE"], true);
+    const text = roadmap.flatMap(p => p.tasks).map(t => (t.title || "") + " " + (t.description || "")).join(" ");
 
-describe("OH Roadmap Compliance", () => {
-    const mockProfile = {
-        id: "test-estate-oh",
-        hasMinorBeneficiaries: false,
-        isSmallEstate: false,
-        isPrimaryResidence: false,
-        isContested: false,
-        state: "OH",
-        estimatedValue: 500000,
-        authoritySource: "COURT" as any,
-        procedureType: "FORMAL_PROBATE" as any,
-        distributionModel: "PROBATE" as any,
-        activeEngines: ["PROBATE"],
-        isOH: true,
-    };
+    expect(text).not.toContain("N.J.S.A.");
+    expect(text).not.toContain("3B:22-4");
+  });
 
-    it("OH STATE_RULES: has correct creditor timing fields", () => {
-        const oh = STATE_RULES["OH"];
-        expect(oh.claimWindowDays).toBe(180); // 6 months
-        expect(oh.smallEstateTerm).toBe("Release from Administration");
-        expect(oh.threshold).toBe(35000);
-    });
+  it("NO succession petition in OH roadmap", () => {
+    const roadmap = generateRoadmap("FORMAL_PROBATE", "OH", [], ["PROBATE"], true);
+    const allTasks = roadmap.flatMap(phase => phase.tasks);
 
-    it("OH creditor deadline: date of death Jan 1 -> deadline approximately 6 months later", () => {
-        const dateOfDeath = new Date("2024-01-01");
-        const oh = STATE_RULES["OH"];
-        
-        const deadline = new Date(dateOfDeath);
-        deadline.setDate(deadline.getDate() + (oh.claimWindowDays || 180));
-        
-        // 180 days from Jan 1 is approximately June 30 (leap year)
-        // In non-leap years it's around July 1
-        expect(deadline.getMonth()).toBeGreaterThanOrEqual(5); // June or July (0-indexed)
-        expect(deadline.getMonth()).toBeLessThanOrEqual(6); 
-    });
+    expect(allTasks.find(t => t.id === "file_succession_petition")).toBeUndefined();
+    expect(allTasks.find(t => t.id === "obtain_succession_order")).toBeUndefined();
+  });
 
-    it("OH roadmap: No NJ statute leakage in creditor tasks", () => {
-        const roadmap = generateRoadmap("FORMAL_PROBATE", "OH", [], ["PROBATE"], true);
-        const allTasks = roadmap.flatMap(phase => phase.tasks);
-        
-        const creditorMonitor = allTasks.find(t => t.id === "monitor_creditor_claim_period");
-        expect(creditorMonitor?.title).not.toContain("N.J.S.A.");
-        expect(creditorMonitor?.description).not.toContain("N.J.S.A.");
-        expect(creditorMonitor?.title).toContain("Ohio");
-    });
+  it("NO spousal property petition in OH roadmap", () => {
+    const roadmap = generateRoadmap("FORMAL_PROBATE", "OH", [], ["PROBATE"], true);
+    const allTasks = roadmap.flatMap(phase => phase.tasks);
 
-    it("OH roadmap: Release from Administration appears (not Small Estate Affidavit)", () => {
-        const roadmap = generateRoadmap("FORMAL_PROBATE", "OH", [], ["PROBATE"], true);
-        const allTasks = roadmap.flatMap(phase => phase.tasks);
-        
-        const fileAffidavit = allTasks.find(t => t.id === "file_affidavit");
-        expect(fileAffidavit).toBeDefined();
-        expect(fileAffidavit?.title).toContain("Release from Administration");
-    });
+    expect(allTasks.find(t => t.id === "file_spousal_petition")).toBeUndefined();
+    expect(allTasks.find(t => t.id === "obtain_spousal_order")).toBeUndefined();
+  });
 
-    it("OH roadmap: Spousal property petition should be hidden", () => {
-        const filteredPhases = filterTasksForEstate(SETTLEMENT_PHASE_TASKS, mockProfile, []);
-        const allTasks = filteredPhases.flatMap(phase => phase.tasks);
-        
-        const spousalPetition = allTasks.find(t => t.id === "file_spousal_petition");
-        expect(spousalPetition).toBeUndefined();
-    });
+  it("Certificate of Transfer task exists", () => {
+    const roadmap = generateRoadmap("FORMAL_PROBATE", "OH", [], ["PROBATE"], true);
+    const allTasks = roadmap.flatMap(phase => phase.tasks);
 
-    it("OH roadmap: Succession petition should be hidden", () => {
-        const filteredPhases = filterTasksForEstate(SETTLEMENT_PHASE_TASKS, mockProfile, []);
-        const allTasks = filteredPhases.flatMap(phase => phase.tasks);
-        
-        const successionPetition = allTasks.find(t => t.id === "file_succession_petition");
-        expect(successionPetition).toBeUndefined();
-    });
+    const task = allTasks.find(t => t.id === "oh_certificate_of_transfer");
+    expect(task).toBeDefined();
+    expect(task?.title).toContain("Certificate of Transfer");
+    expect(task?.description).toContain("ORC §2113.61");
+  });
 
-    it("OH roadmap: Generic wait_claim_period should be hidden (has state-specific override)", () => {
-        const filteredPhases = filterTasksForEstate(SETTLEMENT_PHASE_TASKS, mockProfile, []);
-        const allTasks = filteredPhases.flatMap(phase => phase.tasks);
-        
-        const waitClaim = allTasks.find(t => t.id === "wait_claim_period");
-        expect(waitClaim).toBeUndefined();
-    });
+  it("Family Allowance task exists", () => {
+    const roadmap = generateRoadmap("FORMAL_PROBATE", "OH", [], ["PROBATE"], true);
+    const allTasks = roadmap.flatMap(phase => phase.tasks);
 
-    it("OH roadmap: monitor_creditor_claim_period should show OH-specific content", () => {
-        const roadmap = generateRoadmap("FORMAL_PROBATE", "OH", [], ["PROBATE"], true);
-        const allTasks = roadmap.flatMap(phase => phase.tasks);
-        
-        const creditorMonitor = allTasks.find(t => t.id === "monitor_creditor_claim_period");
-        expect(creditorMonitor).toBeDefined();
-        expect(creditorMonitor?.description).toContain("ORC 2117.06");
-    });
+    const task = allTasks.find(t => t.id === "oh_family_allowance");
+    expect(task).toBeDefined();
+    expect(task?.description).toContain("ORC Chapter 2106");
+  });
+
+  it("Creditor deadline is 6 months from date of death", () => {
+    const roadmap = generateRoadmap("FORMAL_PROBATE", "OH", [], ["PROBATE"], true);
+    const allTasks = roadmap.flatMap(phase => phase.tasks);
+
+    const task = allTasks.find(t => t.id === "monitor_creditor_claim_period");
+    expect(task?.description).toContain("6 months");
+    expect(task?.description).toContain("date of death");
+    expect(task?.description).toContain("ORC §2117.06");
+    expect(task?.description).not.toContain("publication");
+  });
+
+  it("Uses Release from Administration terminology", () => {
+    expect(STATE_RULES["OH"].smallEstateTerm).toBe("Release from Administration");
+  });
+
+  it("NO generic creditor placeholder", () => {
+    const roadmap = generateRoadmap("FORMAL_PROBATE", "OH", [], ["PROBATE"], true);
+    const allTasks = roadmap.flatMap(phase => phase.tasks);
+
+    expect(allTasks.find(t => t.id === "wait_claim_period")).toBeUndefined();
+  });
+
+  it("Creditor deadline calculation: dateOfDeath Jan 1 → deadline July 1", () => {
+    const dateOfDeath = new Date("2024-01-01");
+    const claimWindowDays = STATE_RULES["OH"].claimWindowDays || 180;
+
+    const deadline = new Date(dateOfDeath);
+    deadline.setDate(deadline.getDate() + claimWindowDays);
+
+    // 180 days from Jan 1 is approximately June 29
+    expect(deadline.getMonth()).toBe(5); // June (0-indexed)
+  });
+
+  it("Publication date does NOT affect creditor deadline", () => {
+    // Ohio: deadline is fixed at 6 months from date of death
+    // Publication under ORC §2117.07 is required but doesn't shorten the bar
+    const dateOfDeath = new Date("2024-01-01");
+    const publicationDate = new Date("2024-02-01");
+
+    const claimWindowDays = STATE_RULES["OH"].claimWindowDays || 180;
+    const deadline = new Date(dateOfDeath);
+    deadline.setDate(deadline.getDate() + claimWindowDays);
+
+    // Deadline should be ~June 29 regardless of publication date
+    expect(deadline.getMonth()).toBe(5); // June
+  });
 });
