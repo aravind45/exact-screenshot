@@ -1624,6 +1624,15 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
               type: "important",
               message: "30-Day Wait Required: Minnesota law requires waiting 30 days after the date of death before filing the Small Estate Affidavit (MN Stat. §524.3-1201)."
             }],
+          },
+          OH: {
+            title: "File Release from Administration (Ohio)",
+            description: "File Release from Administration to bypass formal probate when total estate value does not exceed $35,000 ($100,000 if surviving spouse is sole heir) per R.C. §2113.03.",
+            estimatedTime: "5-10 business days",
+            alerts: [{
+              type: "info",
+              message: "Ohio Threshold: $35,000 for general estates, $100,000 if surviving spouse is the sole heir."
+            }],
           }
         }
       },
@@ -1638,7 +1647,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         helpArticleId: "spousal-property",
         requiredDocs: ["Petition Form", "Death Certificate"],
         applicability: {
-          excludePredicates: ["isNJ"]
+          excludePredicates: ["isNJ", "isOH"]
         }
       },
       {
@@ -1651,7 +1660,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         dependencies: ["file_spousal_petition"],
         requiredDocs: ["Notice of Hearing Form"],
         applicability: {
-          excludePredicates: ["isNJ"]
+          excludePredicates: ["isNJ", "isOH"]
         },
         alerts: [{
           type: "important",
@@ -1668,7 +1677,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         dependencies: ["give_spousal_notice"],
         requiredDocs: ["Court Order"],
         applicability: {
-          excludePredicates: ["isNJ"]
+          excludePredicates: ["isNJ", "isOH"]
         },
         alerts: [{
           type: "important",
@@ -1706,6 +1715,9 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         exclusiveGroup: "filing_path",
         isOptional: true,
         requiredDocs: ["Petition Form", "Death Certificate", "Property Deed"],
+        applicability: {
+          excludePredicates: ["isOH"]
+        },
         stateOverrides: {
           CA: {
             description: "File petition with court to determine who inherits the primary residence without full probate (CA Prob. Code §13150).",
@@ -1742,6 +1754,9 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         isOptional: true,
         dependencies: ["file_succession_petition"],
         requiredDocs: ["Notice of Hearing Form"],
+        applicability: {
+          excludePredicates: ["isOH"]
+        },
         stateOverrides: {
           CA: {
             description: "Notify all interested parties of the hearing date for the succession petition (CA Prob. Code §13152).",
@@ -1778,6 +1793,9 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         isOptional: true,
         requiredDocs: ["Court Order"],
         dependencies: ["file_succession_petition", "give_succession_notice"],
+        applicability: {
+          excludePredicates: ["isOH"]
+        },
         stateOverrides: {
           CA: {
             description: "Receive court order determining property succession and record it with the county recorder (CA Prob. Code §13154).",
@@ -2299,6 +2317,9 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         estimatedTime: "State-specific",
         // Publication is not a universal trigger; do not hard-depend on it.
         dependencies: [],
+        applicability: {
+          excludePredicates: ["isOH"]
+        },
       },
       {
         id: "tx_publish_creditor_notice",
@@ -2399,13 +2420,13 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
             estimatedTime: "12 months"
           },
           OH: {
-            title: "6-Month Claim Window – Triggered by First Publication (N.J.S.A. 3B:22-4)",
-            description: "In Ohio, creditors have 6 months from the date of the fiduciary's appointment to present claims (ORC §2117.06).",
+            title: "6-Month Claim Window - Ohio Creditor Claims (ORC 2117.06)",
+            description: "In Ohio, creditors have 6 months from the date of the fiduciary's appointment to present claims (ORC 2117.06). The 6-month period runs from the date of death if no administration is opened within that time.",
             estimatedTime: "6 months",
             dependencies: ["receive_letters_testamentary", "receive_letters_administration"],
           },
           IL: {
-            title: "6-Month Claim Window – Triggered by First Publication (N.J.S.A. 3B:22-4)",
+            title: "6-Month Claim Window - Illinois Creditor Claims (755 ILCS 5/18-12)",
             description: "In Illinois, creditors have 6 months from the date of first publication of the death notice to file claims (755 ILCS 5/18-12).",
             estimatedTime: "6 months"
           },
