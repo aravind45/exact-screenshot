@@ -554,6 +554,28 @@ export async function analyzeEstateProfile(estateId: string): Promise<EstateProf
     if (!rec.activeEngines.includes("PROBATE")) rec.activeEngines.push("PROBATE");
   }
 
+  // Compute state-specific predicates for task filtering
+  const stateCode = estate.deceasedState;
+  const isNJ = stateCode === "NJ";
+  const isOH = stateCode === "OH";
+  const isGA = stateCode === "GA";
+  const isCA = stateCode === "CA";
+  const isNY = stateCode === "NY";
+  const isTX = stateCode === "TX";
+  const isFL = stateCode === "FL";
+  const isPA = stateCode === "PA";
+  const isIL = stateCode === "IL";
+  const isMA = stateCode === "MA";
+  const isMN = stateCode === "MN";
+  const isVA = stateCode === "VA";
+  const isWA = stateCode === "WA";
+  const isAZ = stateCode === "AZ";
+  const isCO = stateCode === "CO";
+  const isCT = stateCode === "CT";
+  const isMD = stateCode === "MD";
+  const isNC = stateCode === "NC";
+  const isSC = stateCode === "SC";
+
   return {
     id: estate.id,
     hasMinorBeneficiaries: rec.modifiers?.includes("MINOR_HEIRS") || false,
@@ -571,7 +593,27 @@ export async function analyzeEstateProfile(estateId: string): Promise<EstateProf
     hasWill: estate.hasWill,
     hasUnknownHeirs: estate.hasUnknownHeirs,
     has_foreign_beneficiary: estate.internationalReasons?.includes("FOREIGN_BENEFICIARY") || estate.internationalReasons?.includes("FOREIGN_BENEFICIARIES") || false,
-    executor_non_us_resident: estate.internationalReasons?.includes("EXECUTOR_RESIDENCE") || false
+    executor_non_us_resident: estate.internationalReasons?.includes("EXECUTOR_RESIDENCE") || false,
+    // State-specific predicates for task exclusion
+    isNJ,
+    isOH,
+    isGA,
+    isCA,
+    isNY,
+    isTX,
+    isFL,
+    isPA,
+    isIL,
+    isMA,
+    isMN,
+    isVA,
+    isWA,
+    isAZ,
+    isCO,
+    isCT,
+    isMD,
+    isNC,
+    isSC,
   };
 }
 

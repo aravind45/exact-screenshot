@@ -481,7 +481,23 @@ export const STATE_RULES: Record<string, StateRule> = {
     },
     "NC": { threshold: 20000, smallEstateTerm: "Small Estate Affidavit", smallEstateCitation: ["N.C.G.S. § 28A-25-1"], probateTerm: "Formal Probate", probateCitation: ["N.C.G.S. § 28A"], isUPC: false, lettersTerm: "Letters Testamentary", notes: "$30k if surviving spouse is sole heir." },
     "ND": { threshold: 50000, smallEstateTerm: "Small Estate Affidavit", smallEstateCitation: ["N.D. Cent. Code § 30.1-23-01"], probateTerm: "Informal Probate", probateCitation: ["N.D. Cent. Code § 30.1-14-01"], isUPC: true, lettersTerm: "Letters Testamentary" },
-    "OH": { threshold: 35000, smallEstateTerm: "Release from Administration", smallEstateCitation: ["R.C. § 2113.03"], probateTerm: "Formal Probate", probateCitation: ["R.C. § 2113"], isUPC: false, lettersTerm: "Letters of Administration", notes: "$100k if surviving spouse is sole heir." },
+    "OH": { 
+        threshold: 35000, 
+        smallEstateTerm: "Release from Administration", 
+        smallEstateCitation: ["R.C. § 2113.03"], 
+        probateTerm: "Formal Probate", 
+        probateCitation: ["R.C. § 2113"], 
+        isUPC: false, 
+        lettersTerm: "Letters of Administration", 
+        notes: "$100k if surviving spouse is sole heir.",
+        // Ohio creditor claim timing - 6 months from date of death or fiduciary appointment
+        claimWindowDays: 180,
+        creditorPublication: {
+            defaultWindow: 180,
+            publicationWindow: 180,
+            strategicOption: "Ohio does not require publication; 6-month period runs from date of death"
+        }
+    },
     "OK": { threshold: 50000, smallEstateTerm: "Small Estate Affidavit", smallEstateCitation: ["58 O.S. § 393"], probateTerm: "Formal Probate", probateCitation: ["58 O.S."], isUPC: false, lettersTerm: "Letters Testamentary" },
     "OR": { threshold: 75000, smallEstateTerm: "Small Estate Affidavit", smallEstateCitation: ["O.R.S. § 114.515"], probateTerm: "Formal Probate", probateCitation: ["O.R.S. § 113"], isUPC: false, lettersTerm: "Letters Testamentary", notes: "Limit is for personal property. Real property limit is $200k." },
     "PA": {
