@@ -14,6 +14,30 @@ const CA_ONLY_TASK_IDS = new Set([
     "obtain_sale_confirmation_order",
 ]);
 
+// ─────────────────────────────────────────────────────────────────────────────
+// GA-only task IDs that must NEVER appear for non-GA states.
+// Georgia ultra-minimal cleanup: hide spousal/succession petitions and generic creditor placeholder
+// ─────────────────────────────────────────────────────────────────────────────
+const GA_ONLY_TASK_IDS = new Set([
+    "ga_years_support_petition",
+    "ga_years_support_citation",
+    "ga_years_support_order",
+    "file_ga_no_admin",
+]);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Tasks to EXCLUDE for Georgia (GA ultra-minimal cleanup)
+// ─────────────────────────────────────────────────────────────────────────────
+const GA_EXCLUDED_TASK_IDS = new Set([
+    "file_spousal_petition",
+    "give_spousal_notice",
+    "obtain_spousal_order",
+    "file_succession_petition",
+    "give_succession_notice",
+    "obtain_succession_order",
+    "wait_claim_period",
+]);
+
 const CA_ONLY_TITLE_PATTERNS = [
     /\bNotice of Proposed Action\b/i,
     /\b15-Day Objection Period\b/i,
@@ -95,6 +119,26 @@ function removeCAOnlyTasks(phases: PhaseTaskList[], state: string): PhaseTaskLis
             if (CA_ONLY_TASK_IDS.has(task.id)) return false;
             if (task.applicability?.states?.length && !task.applicability.states.includes(state)) return false;
             if (CA_ONLY_TITLE_PATTERNS.some(p => p.test(task.title))) return false;
+            return true;
+        }),
+    }));
+}
+
+/**
+ * Hard guard: remove GA-excluded tasks for non-GA states (client-side version).
+ * Georgia ultra-minimal cleanup: hide spousal/succession petitions and generic creditor placeholder.
+ */
+function removeGAExcludedTasks(phases: PhaseTaskList[], state: string): PhaseTaskList[] {
+    return phases.map(phase => ({
+        ...phase,
+        tasks: phase.tasks.filter(task => {
+            // GA-excluded tasks should NOT show for GA state
+            if (GA_EXCLUDED_TASK_IDS.has(task.id) && state === "GA") return false;
+
+            // GA-only tasks should ONLY show for GA state
+            if (GA_ONLY_TASK_IDS.has(task.id)) return state === "GA";
+
+            // All other tasks should show
             return true;
         }),
     }));
@@ -247,6 +291,7 @@ export function generateRoadmap(
 
     // Apply CA-only task removal and phase milestone normalization
     finalPhases = removeCAOnlyTasks(finalPhases, state);
+    finalPhases = removeGAExcludedTasks(finalPhases, state);
     finalPhases = normalizePhasesForState(finalPhases, state);
 
     // Development-time contamination check

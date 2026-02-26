@@ -242,6 +242,30 @@ const CA_ONLY_TASK_IDS = new Set([
   "ca_attend_confirmation_hearing",
 ]);
 
+// ─────────────────────────────────────────────────────────────────────────────
+// GA-only task IDs that must NEVER appear for non-GA states
+// Georgia ultra-minimal cleanup: Year's Support and No Admin tasks
+// ─────────────────────────────────────────────────────────────────────────────
+const GA_ONLY_TASK_IDS = new Set([
+  "ga_years_support_petition",
+  "ga_years_support_citation",
+  "ga_years_support_order",
+  "file_ga_no_admin",
+]);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Tasks to EXCLUDE for Georgia (GA ultra-minimal cleanup)
+// ─────────────────────────────────────────────────────────────────────────────
+const GA_EXCLUDED_TASK_IDS = new Set([
+  "file_spousal_petition",
+  "give_spousal_notice",
+  "obtain_spousal_order",
+  "file_succession_petition",
+  "give_succession_notice",
+  "obtain_succession_order",
+  "wait_claim_period",
+]);
+
 const CA_ONLY_TEXT_TOKENS = [
   "Notice of Proposed Action",
   "15-Day Objection Period",
@@ -276,6 +300,17 @@ export function filterTasksForState(
     if (CA_ONLY_TASK_IDS.has(task.id)) {
       return stateCode === "CA";
     }
+
+    // Hard gate: GA-only task IDs
+    if (GA_ONLY_TASK_IDS.has(task.id)) {
+      return stateCode === "GA";
+    }
+
+    // Hard gate: GA-excluded task IDs (hide spousal/succession petitions and generic creditor placeholder)
+    if (GA_EXCLUDED_TASK_IDS.has(task.id)) {
+      return stateCode !== "GA";
+    }
+
     // Hard gate: applicability.states
     if (task.applicability?.states && task.applicability.states.length > 0) {
       return task.applicability.states.includes(stateCode);
