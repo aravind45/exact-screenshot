@@ -273,7 +273,22 @@ export const STATE_RULES: Record<string, StateRule> = {
             citation: ["FL Stat. §732.401"]
         }
     },
-    "GA": { threshold: 10000, smallEstateTerm: "No Administration Necessary", smallEstateCitation: ["O.C.G.A. § 53-2-40"], probateTerm: "Formal Probate", probateCitation: ["O.C.G.A. § 53-7"], isUPC: false, lettersTerm: "Letters Testamentary" },
+    "GA": {
+        threshold: 10000,
+        smallEstateTerm: "No Administration Necessary",
+        smallEstateCitation: ["O.C.G.A. § 53-2-40"],
+        probateTerm: "Formal Probate",
+        probateCitation: ["O.C.G.A. § 53-7"],
+        isUPC: false,
+        lettersTerm: "Letters Testamentary",
+        // GA-specific creditor timing
+        claimWindowDays: 90, // 3 months from publication
+        creditorPublication: {
+            defaultWindow: 90,
+            publicationWindow: 90,
+            strategicOption: "Publication required to trigger 3-month claim bar"
+        }
+    },
     "HI": { threshold: 100000, smallEstateTerm: "Small Estate Affidavit", smallEstateCitation: ["H.R.S. § 560:3-1201"], probateTerm: "Informal Probate", probateCitation: ["H.R.S. § 560:3-301"], isUPC: true, lettersTerm: "Letters Testamentary" },
     "ID": { threshold: 100000, smallEstateTerm: "Small Estate Affidavit", smallEstateCitation: ["Idaho Code § 15-3-1201"], probateTerm: "Informal Probate", probateCitation: ["Idaho Code § 15-3-301"], isUPC: true, lettersTerm: "Letters Testamentary" },
     "IL": {
