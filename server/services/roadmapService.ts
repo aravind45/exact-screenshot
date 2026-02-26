@@ -68,6 +68,27 @@ interface EstateProfile {
   hasUnknownHeirs: boolean;
   has_foreign_beneficiary: boolean;
   executor_non_us_resident: boolean;
+
+  // State-specific predicates for task exclusion
+  isNJ: boolean;
+  isOH: boolean;
+  isGA: boolean;
+  isCA: boolean;
+  isNY: boolean;
+  isTX: boolean;
+  isFL: boolean;
+  isPA: boolean;
+  isIL: boolean;
+  isMA: boolean;
+  isMN: boolean;
+  isVA: boolean;
+  isWA: boolean;
+  isAZ: boolean;
+  isCO: boolean;
+  isCT: boolean;
+  isMD: boolean;
+  isNC: boolean;
+  isSC: boolean;
 }
 
 const formatCurrency = (value: number) => `$${value.toLocaleString()}`;
