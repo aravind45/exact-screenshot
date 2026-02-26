@@ -250,7 +250,7 @@ export default function Landing() {
                 Free to Start — No Credit Card Required
               </Badge>
 
-              <h1 className="text-5xl md:text-7xl font-black leading-[1.1] tracking-tight mb-8 max-w-4xl mx-auto">
+              <h1 className="text-5xl md:text-7xl font-black text-white leading-[1.1] tracking-tight mb-8 max-w-4xl mx-auto">
                 The Probate Software <br />
                 <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-blue-400">
                   That Pays for Itself
