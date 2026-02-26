@@ -232,33 +232,32 @@ export default function Landing() {
         <Header />
 
         {/* ── Hero ── */}
-        <section className="relative overflow-hidden bg-gradient-to-b from-slate-950 to-slate-900 text-white">
-          {/* background rings */}
+        <section className="relative overflow-hidden bg-slate-950 text-white pt-24 pb-32">
+          {/* Advanced background aesthetics */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full border border-white/5" />
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full border border-white/5" />
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] rounded-full border border-indigo-500/20" />
-            <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-600/20 rounded-full blur-3xl" />
-            <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl" />
+            <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-indigo-600/10 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/4" />
+            <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-blue-600/5 rounded-full blur-[100px] translate-y-1/2 -translate-x-1/4" />
+            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-[0.03]" />
           </div>
 
-          <div className="relative z-10 max-w-4xl mx-auto px-6 pt-24 pb-28 text-center">
+          <div className="relative z-10 max-w-5xl mx-auto px-6 text-center">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
             >
-              <Badge className="bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 mb-6 px-4 py-1.5 text-xs font-black uppercase tracking-widest">
-                Free to Start — No Credit Card
+              <Badge className="bg-white/10 text-indigo-300 border border-white/10 mb-8 px-5 py-2 text-[10px] font-black uppercase tracking-[0.2em] backdrop-blur-md">
+                Free to Start — No Credit Card Required
               </Badge>
 
-              <h1 className="text-5xl md:text-6xl font-black leading-tight tracking-tight mb-6">
-                The Probate Software
-                <br />
-                <span className="text-indigo-400">That Pays for Itself</span>
+              <h1 className="text-5xl md:text-7xl font-black leading-[1.1] tracking-tight mb-8 max-w-4xl mx-auto">
+                The Probate Software <br />
+                <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-blue-400">
+                  That Pays for Itself
+                </span>
               </h1>
 
-              <p className="text-lg md:text-xl text-slate-300 font-medium max-w-2xl mx-auto leading-relaxed mb-10">
+              <p className="text-lg md:text-xl text-slate-400 font-medium max-w-2xl mx-auto leading-relaxed mb-12">
                 Settle your loved one's estate in months, not years — without the{" "}
                 <strong className="text-white">$15,000 manual overhead</strong>. Get a
                 personalized AI action plan, track every legal deadline, and automate
@@ -309,31 +308,38 @@ export default function Landing() {
         </section>
 
         {/* ── Pain Bar ── */}
-        <section className="bg-slate-50 border-y border-slate-200 py-10">
+        <section className="bg-slate-900 border-y border-white/5 py-16">
           <div className="max-w-5xl mx-auto px-6">
-            <p className="text-center text-sm font-black text-slate-400 uppercase tracking-widest mb-6">
-              As executor, you're legally responsible for all of this:
-            </p>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="flex flex-col items-center text-center mb-12">
+              <Badge variant="outline" className="border-rose-500/30 text-rose-400 bg-rose-500/5 mb-4 uppercase tracking-[0.2em] font-black py-1.5 px-4">
+                The Cost of Inaction
+              </Badge>
+              <h2 className="text-3xl font-black text-white tracking-tight">
+                As executor, you are legally responsible.
+              </h2>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {[
-                { label: "Filing probate court petition", risk: "Deadline: 30 days" },
-                { label: "Notifying all creditors", risk: "Deadline: 60 days" },
-                { label: "Estate inventory & appraisal", risk: "Personal liability" },
-                { label: "Final tax return (Form 1041)", risk: "IRS penalties" },
+                { label: "Probate Court Petition", risk: "Deadline: 30 days" },
+                { label: "Creditor Notification", risk: "Deadline: 60 days" },
+                { label: "Inventory & Appraisal", risk: "Personal liability" },
+                { label: "Final Tax Return", risk: "IRS penalties" },
               ].map((item) => (
                 <div
                   key={item.label}
-                  className="bg-white rounded-2xl border border-slate-200 p-4"
+                  className="bg-white/5 rounded-3xl border border-white/5 p-6 backdrop-blur-sm group hover:bg-white/10 transition-colors"
                 >
-                  <AlertCircle className="w-4 h-4 text-rose-500 mb-2" />
-                  <p className="text-sm font-bold text-slate-900 leading-tight">{item.label}</p>
-                  <p className="text-[11px] text-rose-600 font-semibold mt-1">{item.risk}</p>
+                  <div className="w-8 h-8 rounded-full bg-rose-500/20 flex items-center justify-center mb-4">
+                    <AlertCircle className="w-4 h-4 text-rose-500" />
+                  </div>
+                  <p className="text-base font-bold text-white mb-2 leading-tight">{item.label}</p>
+                  <p className="text-xs text-rose-400 font-black uppercase tracking-widest">{item.risk}</p>
                 </div>
               ))}
             </div>
-            <p className="text-center text-sm text-slate-500 font-medium mt-6">
+            <p className="text-center text-sm text-slate-400 font-medium mt-10">
               Miss a deadline → personal liability. Miss a creditor → lawsuit.
-              <strong className="text-slate-900"> ExpectedEstate tracks it all for you.</strong>
+              <strong className="text-white"> ExpectedEstate tracks it all for you automatically.</strong>
             </p>
           </div>
         </section>
@@ -363,76 +369,78 @@ export default function Landing() {
         </section>
 
         {/* ── How It Works ── */}
-        <section id="how-it-works" className="py-24 px-6 max-w-5xl mx-auto">
-          <div className="text-center mb-16">
-            <Badge className="bg-indigo-50 text-indigo-600 border border-indigo-100 mb-4 text-xs font-black uppercase tracking-widest">
-              How It Works
-            </Badge>
-            <h2 className="text-4xl font-black text-slate-900 tracking-tight">
-              From overwhelmed to organized
-              <br />
-              <span className="text-indigo-600">in under 10 minutes</span>
-            </h2>
-          </div>
-          <div className="grid md:grid-cols-3 gap-8">
-            {STEPS.map((s, i) => (
-              <motion.div
-                key={s.step}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                className="relative"
+        <section id="how-it-works" className="py-32 bg-slate-50 border-y border-slate-100 px-6">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-24">
+              <Badge className="bg-indigo-50 text-indigo-600 border border-indigo-100 mb-6 px-5 py-2 text-[10px] font-black uppercase tracking-[0.2em]">
+                The Process
+              </Badge>
+              <h2 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight leading-tight">
+                From overwhelmed to organized <br />
+                <span className="text-indigo-600">in under 10 minutes</span>
+              </h2>
+            </div>
+            <div className="grid md:grid-cols-3 gap-12 relative">
+              {/* Connector Line */}
+              <div className="hidden lg:block absolute top-16 left-0 right-0 h-px bg-slate-200 z-0" />
+
+              {STEPS.map((s, i) => (
+                <motion.div
+                  key={s.step}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1 }}
+                  className="relative z-10 bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-xl shadow-slate-200/50"
+                >
+                  <div className="w-16 h-16 rounded-2xl bg-indigo-600 text-white flex items-center justify-center text-2xl font-black mb-8 shadow-lg shadow-indigo-200">
+                    {s.step}
+                  </div>
+                  <h3 className="text-xl font-black text-slate-900 mb-4">{s.title}</h3>
+                  <p className="text-slate-500 font-medium leading-relaxed">{s.description}</p>
+                </motion.div>
+              ))}
+            </div>
+            <div className="text-center mt-20">
+              <Button
+                onClick={() => navigate("/register?mode=signup")}
+                size="lg"
+                className="bg-indigo-600 hover:bg-indigo-500 text-white font-black px-12 h-16 rounded-2xl shadow-2xl shadow-indigo-900/20"
               >
-                <div className="text-6xl font-black text-slate-100 leading-none mb-4">{s.step}</div>
-                <h3 className="text-xl font-black text-slate-900 mb-3">{s.title}</h3>
-                <p className="text-slate-600 font-medium leading-relaxed">{s.description}</p>
-                {i < STEPS.length - 1 && (
-                  <ArrowRight className="hidden md:block absolute top-8 -right-4 w-5 h-5 text-slate-300" />
-                )}
-              </motion.div>
-            ))}
-          </div>
-          <div className="text-center mt-12">
-            <Button
-              onClick={() => navigate("/register?mode=signup")}
-              size="lg"
-              className="bg-indigo-600 hover:bg-indigo-700 text-white font-black px-10 h-14 rounded-2xl shadow-xl shadow-indigo-200"
-            >
-              Get My Free Action Plan
-              <ArrowRight className="w-5 h-5 ml-2" />
-            </Button>
+                Get My Free Action Plan
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </Button>
+            </div>
           </div>
         </section>
 
         {/* ── Features ── */}
-        <section id="features" className="bg-slate-50 py-24 px-6">
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-16">
-              <Badge className="bg-indigo-50 text-indigo-600 border border-indigo-100 mb-4 text-xs font-black uppercase tracking-widest">
-                Features
+        <section id="features" className="bg-white py-32 px-6">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-20">
+              <Badge className="bg-indigo-50 text-indigo-600 border border-indigo-100 mb-6 px-5 py-2 text-[10px] font-black uppercase tracking-[0.2em]">
+                Complete Toolkit
               </Badge>
-              <h2 className="text-4xl font-black text-slate-900 tracking-tight">
-                Everything an executor needs.
-                <br />
-                Nothing they don't.
+              <h2 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight leading-tight">
+                Everything an executor needs. <br />
+                <span className="text-slate-400">Nothing they don't.</span>
               </h2>
             </div>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
               {FEATURES.map((f, i) => (
                 <motion.div
                   key={f.title}
                   initial={{ opacity: 0, y: 16 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
-                  transition={{ delay: i * 0.07 }}
-                  className="bg-white rounded-3xl border border-slate-200 p-6 hover:shadow-lg hover:border-slate-300 transition-all"
+                  transition={{ delay: i * 0.05 }}
+                  className="group bg-white rounded-[2.5rem] border border-slate-200 p-8 hover:shadow-2xl hover:shadow-indigo-500/10 hover:border-indigo-500/20 transition-all duration-500"
                 >
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-4 ${f.color}`}>
-                    <f.icon className="w-5 h-5" />
+                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-8 transition-transform group-hover:scale-110 duration-500 ${f.color}`}>
+                    <f.icon className="w-7 h-7" />
                   </div>
-                  <h3 className="text-lg font-black text-slate-900 mb-2">{f.title}</h3>
-                  <p className="text-sm text-slate-600 font-medium leading-relaxed">{f.description}</p>
+                  <h3 className="text-xl font-black text-slate-900 mb-4 tracking-tight">{f.title}</h3>
+                  <p className="text-slate-500 font-medium leading-relaxed">{f.description}</p>
                 </motion.div>
               ))}
             </div>
@@ -510,14 +518,15 @@ export default function Landing() {
         </section>
 
         {/* ── Testimonials ── */}
-        <section className="bg-slate-50 py-24 px-6">
-          <div className="max-w-5xl mx-auto">
-            <div className="text-center mb-14">
-              <h2 className="text-4xl font-black text-slate-900 tracking-tight">
-                Executors who've been where you are
+        <section className="bg-slate-50 py-32 px-6 overflow-hidden">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-20">
+              <h2 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight leading-tight">
+                Executors who've been <br />
+                <span className="text-slate-400">exactly where you are</span>
               </h2>
             </div>
-            <div className="grid md:grid-cols-3 gap-6">
+            <div className="grid md:grid-cols-3 gap-8">
               {TESTIMONIALS.map((t, i) => (
                 <motion.div
                   key={t.name}
@@ -525,19 +534,26 @@ export default function Landing() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.1 }}
-                  className="bg-white rounded-3xl border border-slate-200 p-6"
+                  className="bg-white rounded-[2.5rem] border border-slate-200 p-10 shadow-xl shadow-slate-200/50 flex flex-col justify-between"
                 >
-                  <div className="flex gap-0.5 mb-4">
-                    {Array.from({ length: t.stars }).map((_, j) => (
-                      <Star key={j} className="w-4 h-4 fill-amber-400 text-amber-400" />
-                    ))}
-                  </div>
-                  <p className="text-slate-700 text-sm font-medium leading-relaxed mb-6">
-                    "{t.quote}"
-                  </p>
                   <div>
-                    <p className="font-black text-slate-900 text-sm">{t.name}</p>
-                    <p className="text-xs text-slate-500 font-semibold">{t.role}</p>
+                    <div className="flex gap-1 mb-8">
+                      {Array.from({ length: t.stars }).map((_, j) => (
+                        <Star key={j} className="w-5 h-5 fill-amber-400 text-amber-400" />
+                      ))}
+                    </div>
+                    <p className="text-slate-700 text-lg font-medium leading-relaxed mb-10 italic">
+                      "{t.quote}"
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center font-black text-indigo-600">
+                      {t.name.charAt(0)}
+                    </div>
+                    <div>
+                      <p className="font-black text-slate-900 text-base">{t.name}</p>
+                      <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">{t.role}</p>
+                    </div>
                   </div>
                 </motion.div>
               ))}
@@ -546,96 +562,134 @@ export default function Landing() {
         </section>
 
         {/* ── FAQ ── */}
-        <section className="py-24 px-6 max-w-3xl mx-auto">
-          <div className="text-center mb-14">
-            <Badge className="bg-slate-100 text-slate-600 border border-slate-200 mb-4 text-xs font-black uppercase tracking-widest">
-              FAQ
-            </Badge>
-            <h2 className="text-4xl font-black text-slate-900 tracking-tight">
-              Common questions about probate &amp; estate settlement
-            </h2>
-          </div>
-          <div className="space-y-4">
-            {FAQS.map((f) => (
-              <details
-                key={f.q}
-                className="group bg-white border border-slate-200 rounded-2xl overflow-hidden"
+        <section className="py-32 px-6 bg-white">
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center mb-20">
+              <Badge className="bg-slate-100 text-slate-600 border border-slate-200 mb-6 px-5 py-2 text-[10px] font-black uppercase tracking-[0.2em]">
+                Common Questions
+              </Badge>
+              <h2 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight leading-tight">
+                Navigating the maze <br />
+                <span className="text-slate-400">with absolute clarity</span>
+              </h2>
+            </div>
+            <div className="space-y-4">
+              {FAQS.map((f) => (
+                <details
+                  key={f.q}
+                  className="group bg-slate-50 border border-slate-200 rounded-[2rem] overflow-hidden transition-all duration-300 open:bg-white open:shadow-xl open:shadow-slate-200/50 open:border-indigo-500/20"
+                >
+                  <summary className="flex items-center justify-between p-8 cursor-pointer list-none">
+                    <span className="font-bold text-slate-900 text-lg pr-6">{f.q}</span>
+                    <div className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center transition-transform group-open:rotate-180 group-open:bg-indigo-600 group-open:border-indigo-600">
+                      <ChevronDown className="w-5 h-5 text-slate-400 group-open:text-white" />
+                    </div>
+                  </summary>
+                  <div className="px-8 pb-8 text-slate-600 text-base leading-relaxed font-medium">
+                    {f.a}
+                  </div>
+                </details>
+              ))}
+            </div>
+            <div className="text-center mt-12">
+              <Link
+                to="/guides/california-probate-deadlines"
+                className="inline-flex items-center gap-2 text-indigo-600 font-bold hover:gap-3 transition-all"
               >
-                <summary className="flex items-center justify-between p-6 cursor-pointer list-none">
-                  <span className="font-black text-slate-900 pr-6">{f.q}</span>
-                  <ChevronDown className="w-5 h-5 text-slate-400 shrink-0 group-open:rotate-180 transition-transform" />
-                </summary>
-                <div className="px-6 pb-6 text-slate-600 text-sm leading-relaxed font-medium">
-                  {f.a}
-                </div>
-              </details>
-            ))}
-          </div>
-          <div className="text-center mt-10">
-            <Link
-              to="/guides/california-probate-deadlines"
-              className="text-indigo-600 font-bold text-sm hover:underline"
-            >
-              See California Probate Deadlines →
-            </Link>
+                Explore our full Knowledge Base <ArrowRight className="w-5 h-5" />
+              </Link>
+            </div>
           </div>
         </section>
 
-        <section className="bg-indigo-600 py-24 px-6 text-white overflow-hidden text-center">
-          <div className="max-w-3xl mx-auto">
+        <section className="relative overflow-hidden bg-slate-950 py-32 px-6 text-center">
+          {/* Background decoration */}
+          <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[radial-gradient(circle_at_center,rgba(79,70,229,0.15)_0,transparent_70%)]" />
+          </div>
+
+          <div className="max-w-4xl mx-auto relative z-10">
             <motion.div
               initial={{ opacity: 0, y: 32 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
+              transition={{ duration: 0.8 }}
             >
-              <h2 className="text-4xl md:text-5xl font-black tracking-tight mb-5 leading-tight">
-                Finalize with <span className="text-indigo-200">confidence.</span>
+              <h2 className="text-5xl md:text-7xl font-black text-white tracking-tight mb-8 leading-[1.1]">
+                Finalize with <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-blue-400">absolute confidence.</span>
               </h2>
-              <p className="text-indigo-200 font-medium text-lg mb-10 leading-relaxed max-w-xl mx-auto">
-                Free account. No credit card. Your personalized action plan is ready in minutes.
+              <p className="text-slate-400 font-medium text-xl mb-12 leading-relaxed max-w-2xl mx-auto">
+                No surprises. No hidden fees. Just clear, compassionate guidance to help you finish what you started.
               </p>
-              <Button
-                onClick={() => navigate("/register?mode=signup")}
-                size="lg"
-                className="bg-white hover:bg-indigo-50 text-indigo-700 font-black text-lg px-12 h-14 rounded-2xl shadow-2xl w-full sm:w-auto"
-              >
-                Create Free Account
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </Button>
-              <p className="text-indigo-300 text-sm font-semibold mt-8">
-                Join executors across all 50 states who chose clarity over chaos.
-              </p>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
+                <Button
+                  onClick={() => navigate("/register?mode=signup")}
+                  size="lg"
+                  className="bg-indigo-600 hover:bg-indigo-500 text-white font-black text-lg px-12 h-16 rounded-2xl shadow-2xl shadow-indigo-900/50 w-full sm:w-auto"
+                >
+                  Start Your Free Roadmap
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </Button>
+                <div className="flex items-center gap-4 text-slate-500 font-bold">
+                  <div className="flex -space-x-2">
+                    {[1, 2, 3].map(i => (
+                      <div key={i} className="w-8 h-8 rounded-full border-2 border-slate-900 bg-slate-800" />
+                    ))}
+                  </div>
+                  <span>Joined by 1,200+ executors</span>
+                </div>
+              </div>
             </motion.div>
           </div>
         </section>
 
         {/* ── Footer ── */}
-        <footer className="bg-slate-950 text-slate-400 py-12 px-6">
-          <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="flex items-center gap-2.5">
-              <div className="p-1.5 rounded-lg bg-indigo-600 text-white">
-                <Landmark className="w-4 h-4" />
+        <footer className="bg-slate-950 text-slate-400 py-24 px-6 border-t border-white/5">
+          <div className="max-w-7xl mx-auto">
+            <div className="grid md:grid-cols-4 gap-12 mb-16">
+              <div className="col-span-1 md:col-span-1">
+                <div className="flex items-center gap-2.5 mb-6">
+                  <div className="p-1.5 rounded-lg bg-indigo-600 text-white">
+                    <Landmark className="w-5 h-5" />
+                  </div>
+                  <span className="font-black text-white text-xl tracking-tight">ExpectedEstate</span>
+                </div>
+                <p className="text-sm font-medium leading-relaxed mb-6">
+                  The compassionate platform for modern estate settlement. Built to handle the logistics so you can handle the family.
+                </p>
               </div>
-              <span className="font-black text-white">ExpectedEstate</span>
+              <div className="col-span-1">
+                <h4 className="text-white font-bold mb-6 tracking-tight uppercase text-xs">Resources</h4>
+                <ul className="space-y-4 text-sm font-semibold">
+                  <li><Link to="/guides/california-probate-deadlines" className="hover:text-white transition-colors">California Probate Guide</Link></li>
+                  <li><Link to="/guides/texas-probate-deadlines" className="hover:text-white transition-colors">Texas Probate Guide</Link></li>
+                  <li><Link to="/probate-process" className="hover:text-white transition-colors">Probate Process Overview</Link></li>
+                </ul>
+              </div>
+              <div className="col-span-1">
+                <h4 className="text-white font-bold mb-6 tracking-tight uppercase text-xs">Platform</h4>
+                <ul className="space-y-4 text-sm font-semibold">
+                  <li><Link to="/marketplace" className="hover:text-white transition-colors">Find an Advisor</Link></li>
+                  <li><Link to="/pricing" className="hover:text-white transition-colors">Pricing</Link></li>
+                  <li><Link to="/advisor/onboarding" className="hover:text-white transition-colors">Become an Advisor</Link></li>
+                </ul>
+              </div>
+              <div className="col-span-1">
+                <h4 className="text-white font-bold mb-6 tracking-tight uppercase text-xs">Legal</h4>
+                <ul className="space-y-4 text-sm font-semibold">
+                  <li><Link to="/terms" className="hover:text-white transition-colors">Terms of Service</Link></li>
+                  <li><Link to="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
+                </ul>
+              </div>
             </div>
-            <div className="flex flex-wrap gap-6 text-sm font-semibold">
-              <Link to="/guides/california-probate-deadlines" className="hover:text-white transition-colors">
-                CA Probate Guide
-              </Link>
-              <Link to="/marketplace" className="hover:text-white transition-colors">
-                Find an Advisor
-              </Link>
-              <Link to="/login" className="hover:text-white transition-colors">
-                Sign In
-              </Link>
-              <Link to="/register?mode=signup" className="hover:text-white transition-colors">
-                Register
-              </Link>
+            <div className="pt-12 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-6">
+              <p className="text-xs text-slate-600 font-bold uppercase tracking-widest">
+                © {new Date().getFullYear()} ExpectedEstate. Not legal advice. Educational purposes only.
+              </p>
+              <div className="flex gap-8">
+                {/* Social links could go here */}
+              </div>
             </div>
-            <p className="text-xs text-slate-600">
-              © {new Date().getFullYear()} ExpectedEstate. Not legal advice.
-            </p>
           </div>
         </footer>
       </div>
