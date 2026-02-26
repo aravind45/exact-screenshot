@@ -1442,6 +1442,17 @@ export const SETTLEMENT_PHASE_TASKS = [
                 // NJ has its own specific small estate affidavit task (file_nj_small_estate_affidavit)
                 applicability: {
                     excludePredicates: ["isNJ"]
+                },
+                stateOverrides: {
+                    MN: {
+                        title: "File Affidavit for Collection of Personal Property (Minnesota)",
+                        description: "File Affidavit for Collection of Personal Property (Available 30 days after date of death if estate value does not exceed Minnesota statutory threshold — MN Stat. §524.3-1201).",
+                        estimatedTime: "30 days after death",
+                        alerts: [{
+                                type: "important",
+                                message: "30-Day Wait Required: Minnesota law requires waiting 30 days after the date of death before filing the Small Estate Affidavit (MN Stat. §524.3-1201)."
+                            }],
+                    }
                 }
             },
             {
@@ -1530,6 +1541,14 @@ export const SETTLEMENT_PHASE_TASKS = [
                                 label: "CA Prob. Code §13150",
                                 url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?sectionNum=13150.&lawCode=PROB"
                             }]
+                    },
+                    MN: {
+                        title: "Obtain Decree of Distribution / Order of Probate (MN)",
+                        description: "File petition with court for Decree of Distribution to transfer property to heirs/beneficiaries (MN Stat. §524.3-1001).",
+                        links: [{
+                                label: "MN Stat. §524.3-1001",
+                                url: "https://www.revisor.mn.gov/statutes/cite/524.3-1001"
+                            }],
                     }
                 },
                 links: [{
@@ -1558,6 +1577,14 @@ export const SETTLEMENT_PHASE_TASKS = [
                                 label: "CA Prob. Code §13152",
                                 url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?sectionNum=13152.&lawCode=PROB"
                             }]
+                    },
+                    MN: {
+                        title: "Give Notice of Hearing (MN)",
+                        description: "Notify all interested parties of the hearing date for the distribution petition under Minnesota probate procedure.",
+                        links: [{
+                                label: "MN Probate Procedure",
+                                url: "#"
+                            }],
                     }
                 },
                 links: [{
@@ -1586,6 +1613,18 @@ export const SETTLEMENT_PHASE_TASKS = [
                                 label: "CA Prob. Code §13154",
                                 url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?sectionNum=13154.&lawCode=PROB"
                             }]
+                    },
+                    MN: {
+                        title: "Obtain Decree of Distribution (MN)",
+                        description: "Receive court Decree of Distribution and record with county recorder (MN Stat. §524.3-1001).",
+                        alerts: [{
+                                type: "important",
+                                message: "Record the certified Decree of Distribution with the county recorder to transfer title to real property."
+                            }],
+                        links: [{
+                                label: "MN Stat. §524.3-1001",
+                                url: "https://www.revisor.mn.gov/statutes/cite/524.3-1001"
+                            }],
                     }
                 },
                 links: [{
@@ -1892,6 +1931,16 @@ export const SETTLEMENT_PHASE_TASKS = [
                         message: "Liability Alert: Do not pay claims out of order. Maintain reserves and verify your state's priority rules and any notice/claims procedures before making non-essential payments."
                     }],
                 outputs: ["Debt priority worksheet", "Proposed payment order / reserve plan"],
+                stateOverrides: {
+                    MN: {
+                        title: "FIDUCIARY RISK: Minnesota Statutory Debt Priority",
+                        description: "Assess creditor claims and potential debts under Minnesota statutory priority order (MN Stat. §524.3-805).",
+                        alerts: [{
+                                type: "caution",
+                                message: "Minnesota Priority Order (MN Stat. §524.3-805): Pay claims in statutory order - administration expenses, funeral expenses, debts/taxes with preference under federal/state law, reasonable/necessary medical/hospital expenses, debts/taxes due to state, other claims. Incorrect payment order creates personal liability."
+                            }],
+                    }
+                }
             },
             {
                 id: "publish_notice",
@@ -1955,6 +2004,21 @@ export const SETTLEMENT_PHASE_TASKS = [
                             {
                                 type: "important",
                                 message: "Mandatory Requirement (ORC §2117.07): Publication must be completed, though it does not accelerate the 6-month claim window."
+                            }
+                        ]
+                    },
+                    MN: {
+                        title: "Publish Notice to Creditors (Optional but Recommended - MN)",
+                        description: "While publication is not mandatory, failure to publish may extend creditor exposure beyond the 4-month bar. Publication triggers the 4-month claim cutoff under MN Stat. §524.3-801.",
+                        isOptional: true,
+                        alerts: [
+                            {
+                                type: "important",
+                                message: "Strategic Recommendation: Publication triggers the 4-month claim bar under MN Stat. §524.3-801. Without publication, creditors may have extended exposure periods."
+                            },
+                            {
+                                type: "info",
+                                message: "Minnesota does not require publication, but it provides a clear 'later of' deadline: 4 months from publication OR 1 month from mailed notice to known creditors."
                             }
                         ]
                     }
@@ -2166,6 +2230,11 @@ export const SETTLEMENT_PHASE_TASKS = [
                         title: "Monitor 1-Year Creditor Claim Period",
                         description: "In Massachusetts, creditors have 1 year from the date of death to present claims against the estate (MGL c.197 §9).",
                         estimatedTime: "12 months"
+                    },
+                    MN: {
+                        title: "Monitor Minnesota Creditor Deadline",
+                        description: "Minnesota Creditor Deadline: Claims are barred 4 months after first publication of notice OR 1 month after mailed notice to a known creditor, whichever is later (MN Stat. §524.3-801).",
+                        estimatedTime: "Later of 4 months after publication or 1 month after mailed notice"
                     }
                 },
                 alerts: [

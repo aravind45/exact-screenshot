@@ -48,11 +48,8 @@ router.post("/checklist", async (req, res) => {
             }
         });
         // 2. Send the checklist email
-        // We use sendInternalNotification as a shortcut for a generic email if no specific template exists,
-        // but let's try to find if there's a better way or simulate a nicely formatted email.
         const appUrl = (await EmailService.getAppUrl()).replace(/\/$/, "");
         const intakeUrl = `${appUrl}/auth`;
-        const subject = "Your First 30 Days Action Plan";
         const body = `
 Hi there,
 
@@ -77,31 +74,12 @@ If you ever feel overwhelmed, you can reply to this email or chat with an expert
 With sympathy,
 The ExpectedEstate Team
         `.trim();
-        // Note: EmailService.sendEmail requires an estateId and assetId which we don't have for leads.
-        // We'll add a more generic sendLeadEmail or use a workaround.
-        // For now, let's use a simulated send or check if EmailService can be adapted.
-        // Let's assume for a startup MVP we can use a simpler sending method or adapt EmailService.
-        // Given the constraints, I'll log it as a simulated send for now if no generic sender exists.
-        const apiKey = process.env.MAILGUN_API_KEY;
-        const domain = process.env.MAILGUN_DOMAIN || "expectedestate.com";
-        if (apiKey) {
-            const encodedKey = Buffer.from(`api:${apiKey}`).toString("base64");
-            const formData = new URLSearchParams();
-            formData.append("from", `ExpectedEstate <noreply@${domain}>`);
-            formData.append("to", email);
-            formData.append("subject", subject);
-            formData.append("text", body);
-            const baseUrl = process.env.MAILGUN_BASE_URL || "https://api.mailgun.net";
-            await fetch(`${baseUrl}/v3/${domain}/messages`, {
-                method: "POST",
-                headers: { "Authorization": `Basic ${encodedKey}` },
-                body: formData
-            });
-            logger.info(`[Marketing] Checklist email sent to ${email}`);
-        }
-        else {
-            logger.info(`📧 [SIMULATED] CHECKLIST EMAIL to ${email}`);
-        }
+        await EmailService.sendMarketingEmail({
+            to: email,
+            subject: "Your First 30 Days Action Plan",
+            body: body
+        });
+        logger.info(`[Marketing] Checklist email sent to ${email}`);
         res.json({ success: true, message: "Checklist sent" });
     }
     catch (error) {
@@ -128,28 +106,8 @@ router.post("/contact", async (req, res) => {
             }
         });
         // 2. Send email to support
-        const apiKey = process.env.MAILGUN_API_KEY;
-        const domain = process.env.MAILGUN_DOMAIN || "expectedestate.com";
-        const supportEmail = "expected.estate@gmail.com"; // Forwarding destination
-        if (apiKey) {
-            const encodedKey = Buffer.from(`api:${apiKey}`).toString("base64");
-            const formData = new URLSearchParams();
-            formData.append("from", `Contact Form <noreply@${domain}>`);
-            formData.append("to", supportEmail);
-            formData.append("reply-to", email); // Allow direct reply
-            formData.append("subject", `New Contact: ${name || email}`);
-            formData.append("text", `Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`);
-            const baseUrl = process.env.MAILGUN_BASE_URL || "https://api.mailgun.net";
-            await fetch(`${baseUrl}/v3/${domain}/messages`, {
-                method: "POST",
-                headers: { "Authorization": `Basic ${encodedKey}` },
-                body: formData
-            });
-            logger.info(`[Marketing] Contact email forwarded for ${email}`);
-        }
-        else {
-            logger.info(`📧 [SIMULATED] CONTACT FORM from ${email}: ${message}`);
-        }
+        await EmailService.sendInternalNotification(`New Contact: ${name || email}`, `Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`);
+        logger.info(`[Marketing] Contact email forwarded for ${email}`);
         res.json({ success: true, message: "Message sent" });
     }
     catch (error) {
@@ -177,9 +135,6 @@ router.post("/pilot-request", async (req, res) => {
             }
         });
         // 2. Send email to support
-        const apiKey = process.env.MAILGUN_API_KEY;
-        const domain = process.env.MAILGUN_DOMAIN || "expectedestate.com";
-        const supportEmail = "expected.estate@gmail.com";
         const subject = `🚀 B2B Pilot Request: ${firmName}`;
         const body = `
 New Texas Lawyer Pilot Request Received:
@@ -194,25 +149,8 @@ Next Steps:
 2. Manually provision the account (Set role=ATTORNEY, isPilot=true).
 3. Contact the attorney via ${email}.
         `.trim();
-        if (apiKey) {
-            const encodedKey = Buffer.from(`api:${apiKey}`).toString("base64");
-            const formData = new URLSearchParams();
-            formData.append("from", `Pilot Support <noreply@${domain}>`);
-            formData.append("to", supportEmail);
-            formData.append("reply-to", email);
-            formData.append("subject", subject);
-            formData.append("text", body);
-            const baseUrl = process.env.MAILGUN_BASE_URL || "https://api.mailgun.net";
-            await fetch(`${baseUrl}/v3/${domain}/messages`, {
-                method: "POST",
-                headers: { "Authorization": `Basic ${encodedKey}` },
-                body: formData
-            });
-            logger.info(`[Marketing] Pilot request forwarded for ${email}`);
-        }
-        else {
-            logger.info(`📧 [SIMULATED] PILOT REQUEST from ${email}: ${JSON.stringify(metadata)}`);
-        }
+        await EmailService.sendInternalNotification(subject, body);
+        logger.info(`[Marketing] Pilot request forwarded for ${email}`);
         res.json({ success: true, message: "Pilot request submitted" });
     }
     catch (error) {

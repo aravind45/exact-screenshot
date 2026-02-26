@@ -155,7 +155,27 @@ export const STATE_RULES = {
         }
     },
     "MI": { threshold: 50000, smallEstateTerm: "Small Estate Affidavit", smallEstateCitation: ["M.C.L. § 700.3983"], probateTerm: "Informal Probate", probateCitation: ["M.C.L. § 700.3301"], isUPC: true, lettersTerm: "Letters of Authority", notes: "Threshold adjusted annually for inflation ($50k for 2024)." },
-    "MN": { threshold: 75000, smallEstateTerm: "Small Estate Affidavit", smallEstateCitation: ["Minn. Stat. § 524.3-1201"], probateTerm: "Informal Probate", probateCitation: ["Minn. Stat. § 524.3-301"], isUPC: true, lettersTerm: "Letters Testamentary" },
+    "MN": {
+        threshold: 75000,
+        smallEstateTerm: "Small Estate Affidavit",
+        smallEstateCitation: ["Minn. Stat. § 524.3-1201"],
+        probateTerm: "Informal Probate",
+        probateCitation: ["Minn. Stat. § 524.3-301"],
+        isUPC: true,
+        lettersTerm: "Letters Testamentary",
+        // MN-specific creditor timing (UPC state)
+        // Minnesota uses "later of" rule: 4 months from publication OR 1 month from mailed notice
+        claimWindowDays: 120, // 4 months from first publication
+        shortenedWindowDays: 30, // 1 month from mailed notice
+        // Small estate affidavit waiting period
+        waitingDays: 30, // 30 days after death per MN Stat. §524.3-1201
+        // Publication strategy configuration
+        creditorPublication: {
+            defaultWindow: undefined, // Publication not required, but triggers 4-month bar
+            publicationWindow: 120, // 4 months from publication
+            strategicOption: "Publication triggers 4-month claim bar; without it, creditors may have longer exposure"
+        }
+    },
     "MS": { threshold: 50000, smallEstateTerm: "Small Estate Affidavit", smallEstateCitation: ["Miss. Code § 91-7-322"], probateTerm: "Formal Probate", probateCitation: ["Miss. Code § 91-7"], isUPC: false, lettersTerm: "Letters Testamentary" },
     "MO": { threshold: 40000, smallEstateTerm: "Small Estate Affidavit", smallEstateCitation: ["Mo. Rev. Stat. § 473.097"], probateTerm: "Formal Probate", probateCitation: ["Mo. Rev. Stat. § 473"], isUPC: false, lettersTerm: "Letters Testamentary" },
     "MT": { threshold: 50000, smallEstateTerm: "Small Estate Affidavit", smallEstateCitation: ["Mont. Code § 72-3-1101"], probateTerm: "Informal Probate", probateCitation: ["Mont. Code § 72-3-301"], isUPC: true, lettersTerm: "Letters Testamentary" },
