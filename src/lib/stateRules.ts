@@ -495,7 +495,7 @@ export const STATE_RULES: Record<string, StateRule> = {
         creditorPublication: {
             defaultWindow: 180,
             publicationWindow: 180,
-            strategicOption: "Ohio does not require publication; 6-month period runs from date of death"
+            strategicOption: "Publication required by ORC §2117.07 but does not affect 6-month deadline from date of death"
         }
     },
     "OK": { threshold: 50000, smallEstateTerm: "Small Estate Affidavit", smallEstateCitation: ["58 O.S. § 393"], probateTerm: "Formal Probate", probateCitation: ["58 O.S."], isUPC: false, lettersTerm: "Letters Testamentary" },
