@@ -1065,33 +1065,52 @@ export async function getEstateRoadmap(estateId: string): Promise<RoadmapRespons
 }
 
 /**
- * Pin roadmap version for an estate
- * Once pinned, the estate will use that specific version forever
+ * Pin roadmap for an estate
+ * Sets all hashes and version to freeze the current roadmap.
  */
-export async function pinRoadmapVersion(
+export async function pinEstateRoadmap(
   estateId: string,
-  version: string,
   userId: string
 ): Promise<{ success: boolean; version: string; pinnedAt: Date }> {
   const estate = await db.estate.findUnique({
     where: { id: estateId },
-    select: { id: true }
+    select: {
+      id: true,
+      deceasedState: true,
+      probateCounty: true,
+      estateType: true,
+      settlementPath: true
+    }
   });
 
   if (!estate) {
     throw new Error(`Estate ${estateId} not found`);
   }
 
+  if (!estate.deceasedState) {
+    throw new Error("STATE_REQUIRED");
+  }
+
+  const profile = await analyzeEstateProfile(estateId);
+
+  // Determine settlement type logic similar to getRoadmapFromDatabase
+  const settlementTypeCode = profile.procedureType !== "UNSET"
+    ? profile.procedureType
+    : (estate.settlementPath || estate.estateType || 'FORMAL_PROBATE');
+
+  const version = await getLatestPublishedVersion(settlementTypeCode) || '1.0.0';
   const pinnedAt = new Date();
 
-  // Get current county override hash
-  const estateWithCounty = await db.estate.findUnique({
-    where: { id: estateId },
-    select: { deceasedState: true, probateCounty: true }
+  // 1. Get State Roadmap Hash (representing the core + state rules)
+  // For now, we can use the version's schemaHash or derive one
+  const roadmapVersionRecord = await (db as any).roadmapVersion.findUnique({
+    where: { version_settlementTypeCode: { version, settlementTypeCode } }
   });
+  const stateRulesetHash = roadmapVersionRecord?.schemaHash || `ruleset-${version}`;
 
-  const countyHash = estateWithCounty?.probateCounty
-    ? await CountyOverrideService.getOverrideHash(estateWithCounty.deceasedState, estateWithCounty.probateCounty)
+  // 2. Get County Override Hash
+  const countyOverrideHash = estate.probateCounty
+    ? await CountyOverrideService.getOverrideHash(estate.deceasedState, estate.probateCounty)
     : null;
 
   await db.estate.update({
@@ -1099,7 +1118,9 @@ export async function pinRoadmapVersion(
     data: {
       roadmapVersion: version,
       roadmapPinnedAt: pinnedAt,
-      countyOverrideHash: countyHash
+      stateRulesetHash,
+      countyOverrideHash,
+      authorityType: profile.activeEngines.includes("TRUST") ? "TRUST" : "PROBATE" // Pinning authority context
     }
   });
 
@@ -1109,12 +1130,42 @@ export async function pinRoadmapVersion(
       estateId,
       userId,
       type: "ROADMAP",
-      action: "VERSION_PINNED",
-      notes: `Roadmap pinned to version ${version}`
+      action: "PINNED",
+      notes: `Roadmap pinned to version ${version} (Ruleset: ${stateRulesetHash?.substring(0, 8)})`
     }
   });
 
   return { success: true, version, pinnedAt };
+}
+
+/**
+ * Repin roadmap version for an estate with safety checks
+ */
+export async function repinEstateRoadmap(
+  estateId: string,
+  userId: string,
+  force: boolean = false
+): Promise<{ success: boolean; version: string; pinnedAt: Date }> {
+  const estate = await db.estate.findUnique({
+    where: { id: estateId },
+    include: {
+      taskCompletions: {
+        where: { completed: true }
+      }
+    }
+  });
+
+  if (!estate) throw new Error(`Estate ${estateId} not found`);
+
+  // SAFETY CHECK: If tasks are completed, block repin unless forced
+  if (estate.taskCompletions.length > 0 && !force) {
+    throw new Error("REPIN_BLOCKED_COMPLETED_TASKS");
+  }
+
+  // TODO: Future - implement migration map for tasks if forced repin
+  // For now, we just perform a fresh pin which might shift task IDs
+
+  return pinEstateRoadmap(estateId, userId);
 }
 
 /**

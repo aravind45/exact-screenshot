@@ -58,6 +58,7 @@ interface GuidedFormData {
     deceasedName: string;
     dateOfDeath: string;
     location: string;
+    probateCounty: string;
     estimatedValue: string;
     estimatedDebt: string;
     hasWill: ClarificationField;
@@ -96,6 +97,7 @@ export default function OnboardingGuidedWizard() {
         deceasedName: "",
         dateOfDeath: "",
         location: "",
+        probateCounty: "",
         estimatedValue: "",
         estimatedDebt: "",
         hasWill: { value: null, clarificationOpen: false, clarificationAnswer: "" },
@@ -161,6 +163,7 @@ export default function OnboardingGuidedWizard() {
                 deceasedName: deceasedName || prev.deceasedName,
                 dateOfDeath: estate.deceasedDateOfDeath ? new Date(estate.deceasedDateOfDeath).toISOString().split('T')[0] : prev.dateOfDeath,
                 location: estate.deceasedState || prev.location,
+                probateCounty: estate.probateCounty || prev.probateCounty,
                 estimatedValue: estate.estimatedPersonalProperty?.toString() || prev.estimatedValue,
                 estimatedDebt: estate.estimatedLiabilities?.toString() || prev.estimatedDebt,
                 hasContest: { ...prev.hasContest, value: estate.hasContest ?? null },
@@ -238,6 +241,7 @@ export default function OnboardingGuidedWizard() {
                     deceasedLastName: lastName,
                     deceasedDateOfDeath: new Date(formData.dateOfDeath),
                     deceasedState: formData.location,
+                    probateCounty: formData.probateCounty || null,
                     estimatedPersonalProperty: parseFloat(formData.estimatedValue) || 0,
                     estimatedLiabilities: parseFloat(formData.estimatedDebt) || 0,
                     hasContest: formData.hasContest.value === true
@@ -272,10 +276,19 @@ export default function OnboardingGuidedWizard() {
                     } catch (e) {
                         console.warn("Failed to auto-complete task", e);
                     }
+
+                    // AUTO-PIN ROADMAP after authority decision
+                    try {
+                        await api.pinRoadmap(estate.id);
+                        console.log("Roadmap pinned after Track Scout");
+                    } catch (e) {
+                        console.warn("Failed to pin roadmap (non-fatal)", e);
+                    }
                 }
 
                 await queryClient.invalidateQueries({ queryKey: ["tasks"] });
                 await queryClient.invalidateQueries({ queryKey: ["estate"] });
+                await queryClient.invalidateQueries({ queryKey: ["roadmap"] });
             } else if (currentStep === 4) { // Heirs
                 const validHeirs = heirs.filter(h => h.name.trim() !== "");
                 const hasMinors = validHeirs.some(h => h.isMinor);
@@ -544,6 +557,16 @@ export default function OnboardingGuidedWizard() {
                                                         </SelectContent>
                                                     </Select>
                                                 </div>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label>Probate County <span className="text-[10px] text-slate-400 font-normal">(Optional)</span></Label>
+                                                <Input
+                                                    placeholder="e.g. Los Angeles, Cook, Harris"
+                                                    value={formData.probateCounty}
+                                                    onChange={e => setFormData({ ...formData, probateCounty: e.target.value })}
+                                                    className="h-12 bg-slate-50 border-slate-200"
+                                                />
+                                                <p className="text-[10px] text-slate-400 mt-1 italic">If known, this helps us show county-specific tasks and forms.</p>
                                             </div>
                                             <div className="space-y-2">
                                                 <Label className="flex justify-between">

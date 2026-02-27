@@ -234,6 +234,8 @@ function validateNoStateContamination(phases: PhaseTaskList[], state: string): v
     }
 }
 
+let _clientGenWarnedOnce = false;
+
 export function generateRoadmap(
     authorityType: AuthorityType,
     state: string,
@@ -241,6 +243,17 @@ export function generateRoadmap(
     activeEngines: string[] = [],
     hasWill?: boolean
 ): PhaseTaskList[] {
+    // PRODUCTION GUARD: Client-side generation is deprecated in favor of server SSOT.
+    // In production, components should use GET /api/estates/:id/roadmap instead.
+    if (import.meta.env.PROD && !_clientGenWarnedOnce) {
+        console.warn(
+            "[DEPRECATION] generateRoadmap() called in production. " +
+            "Use GET /api/estates/:id/roadmap for the canonical server-authoritative roadmap. " +
+            "Client-side generation will be removed in a future release."
+        );
+        _clientGenWarnedOnce = true;
+    }
+
     const masterMode = getMasterMode(authorityType);
 
     // If no active engines provided, infer them from authorityType for backwards compatibility

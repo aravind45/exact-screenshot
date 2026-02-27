@@ -900,7 +900,14 @@ router.post("/my/distribution-activity", async (req: any, res: Response) => {
 export default router;
 
 // Roadmap endpoints
-import { getEstateRoadmap, completeTask, uncompleteTask, getTaskCompletions } from "../services/roadmapService.js";
+import {
+    getEstateRoadmap,
+    completeTask,
+    uncompleteTask,
+    getTaskCompletions,
+    pinEstateRoadmap,
+    repinEstateRoadmap
+} from "../services/roadmapService.js";
 
 // GET /:id/roadmap - Get personalized roadmap (requires subscription)
 router.get("/:id/roadmap", requireSubscription, async (req: any, res: Response) => {
@@ -926,8 +933,79 @@ router.get("/:id/roadmap", requireSubscription, async (req: any, res: Response) 
         const roadmap = await getEstateRoadmap(id);
         res.json(roadmap);
     } catch (error: any) {
+        if (error.message === 'STATE_REQUIRED') {
+            return res.status(400).json({
+                error: "State not selected",
+                code: "STATE_REQUIRED",
+                message: "Please select a state before generating a roadmap."
+            });
+        }
         console.error("Error fetching roadmap:", error);
         res.status(500).json({ error: "Failed to fetch roadmap", message: error.message });
+    }
+});
+
+/**
+ * POST /:id/pin - Freeze the current roadmap
+ */
+router.post("/:id/pin", requireSubscription, async (req: any, res: Response) => {
+    try {
+        const { id } = req.params;
+        const result = await pinEstateRoadmap(id, req.user.id);
+        res.json(result);
+    } catch (error: any) {
+        logger.error("Error pinning roadmap:", error);
+        res.status(error.message === 'STATE_REQUIRED' ? 400 : 500).json({
+            error: "Failed to pin roadmap",
+            message: error.message
+        });
+    }
+});
+
+/**
+ * POST /:id/repin - Update frozen roadmap to latest
+ */
+router.post("/:id/repin", requireSubscription, async (req: any, res: Response) => {
+    try {
+        const { id } = req.params;
+        const { force } = req.body;
+        const result = await repinEstateRoadmap(id, req.user.id, !!force);
+        res.json(result);
+    } catch (error: any) {
+        if (error.message === "REPIN_BLOCKED_COMPLETED_TASKS") {
+            return res.status(409).json({
+                error: "Repin Blocked",
+                code: "REPIN_BLOCKED",
+                message: "This estate has completed tasks. Repinning will lose progress mapping unless forced."
+            });
+        }
+        logger.error("Error repinning roadmap:", error);
+        res.status(500).json({ error: "Failed to repin roadmap", message: error.message });
+    }
+});
+
+/**
+ * GET /:id/jurisdictionPreview - Non-task hints about jurisdiction
+ */
+router.get("/:id/jurisdictionPreview", async (req: any, res: Response) => {
+    try {
+        const { id } = req.params;
+        const estate = await prisma.estate.findUnique({ where: { id } });
+        if (!estate || !estate.deceasedState) {
+            return res.status(404).json({ error: "Jurisdiction not set" });
+        }
+
+        // Return preview metadata (authority engine recommendation, count of tasks, etc.)
+        const profile = await getEstateRoadmap(id);
+        res.json({
+            state: estate.deceasedState,
+            county: estate.probateCounty,
+            authorityRecommendation: profile.profile.procedureType,
+            activeEngines: profile.profile.activeEngines,
+            totalTasks: profile.phases.reduce((acc, p) => acc + p.tasks.length, 0)
+        });
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
     }
 });
 
@@ -1013,7 +1091,7 @@ router.delete("/:id/tasks/:taskId/complete", requireSubscription, requireEstateA
 
         // Uncomplete task
         const result = await uncompleteTask(id, taskId, req.user.id);
-        
+
         // Log the task uncompletion
         await AuditService.logActivity(
             id,
@@ -1022,7 +1100,7 @@ router.delete("/:id/tasks/:taskId/complete", requireSubscription, requireEstateA
             "UNCOMPLETED",
             `Uncompleted task: ${taskId}`
         );
-        
+
         res.json(result);
     } catch (error: any) {
         logger.error("Error uncompleting task:", error.message);

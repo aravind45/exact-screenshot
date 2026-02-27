@@ -1565,6 +1565,23 @@ export const api = {
         return parseResponse(response);
     },
 
+    pinRoadmap: async (id: string) => {
+        const response = await fetch(`${API_URL}/estates/${id}/pin`, {
+            method: "POST",
+            headers: getHeaders(),
+        });
+        return parseResponse(response);
+    },
+
+    repinRoadmap: async (id: string, force: boolean = false) => {
+        const response = await fetch(`${API_URL}/estates/${id}/repin`, {
+            method: "POST",
+            headers: getHeaders(),
+            body: JSON.stringify({ force }),
+        });
+        return parseResponse(response);
+    },
+
     help: {
         getRecommendations: async (estateId: string) => {
             const response = await fetch(`${API_URL}/help/recommendations/${estateId}`, {
