@@ -1,0 +1,19 @@
+{
+  "id": "ca_trust",
+  "name": "California Trust Estate",
+  "stateCode": "CA",
+  "county": "Orange",
+  "authorityType": "TRUST",
+  "hasRealProperty": true,
+  "estateValue": 1200000,
+  "hasWill": false,
+  "characteristics": {
+    "isSmallEstate": false,
+    "hasMinorBeneficiaries": false,
+    "hasContest": false,
+    "isInternational": false,
+    "hasTODDeed": true,
+    "hasOutOfStateProperty": true,
+    "isSurvivingSpouse": true
+  }
+}

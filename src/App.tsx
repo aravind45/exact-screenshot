@@ -81,6 +81,7 @@ const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const AdminInstitutions = lazy(() => import("./pages/admin/AdminInstitutions"));
 const AdminAdvisorQueue = lazy(() => import("./pages/admin/AdminAdvisorQueue"));
 const SSOTProbateEngine = lazy(() => import("./pages/admin/SSOTProbateEngine"));
+const JurisdictionHealthDashboard = lazy(() => import("./pages/admin/JurisdictionHealthDashboard"));
 const DebugMARoadmapPage = lazy(() => import("./pages/DebugMARoadmapPage"));
 
 // Advisor
@@ -323,6 +324,7 @@ const AppRoutes = () => {
             <Route path="/admin/institutions" element={<ProtectedRoute><RoleRoute allowedRoles={['ADMIN']}><AdminInstitutions /></RoleRoute></ProtectedRoute>} />
             <Route path="/admin/advisors" element={<ProtectedRoute><RoleRoute allowedRoles={['ADMIN']}><AdminAdvisorQueue /></RoleRoute></ProtectedRoute>} />
             <Route path="/admin/probate-engine" element={<ProtectedRoute><RoleRoute allowedRoles={['ADMIN']}><SSOTProbateEngine /></RoleRoute></ProtectedRoute>} />
+            <Route path="/admin/jurisdiction-health" element={<ProtectedRoute><RoleRoute allowedRoles={['ADMIN']}><JurisdictionHealthDashboard /></RoleRoute></ProtectedRoute>} />
             <Route path="/debug/ma-roadmap" element={<ProtectedRoute><DebugMARoadmapPage /></ProtectedRoute>} />
 
             <Route path="*" element={<NotFound />} />

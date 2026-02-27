@@ -1,0 +1,19 @@
+{
+  "id": "ny_probate_no_real",
+  "name": "New York Probate Estate without Real Property",
+  "stateCode": "NY",
+  "county": "Albany",
+  "authorityType": "PROBATE",
+  "hasRealProperty": false,
+  "estateValue": 35000,
+  "hasWill": true,
+  "characteristics": {
+    "isSmallEstate": true,
+    "hasMinorBeneficiaries": false,
+    "hasContest": false,
+    "isInternational": false,
+    "hasTODDeed": false,
+    "hasOutOfStateProperty": false,
+    "isSurvivingSpouse": false
+  }
+}

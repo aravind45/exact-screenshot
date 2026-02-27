@@ -1,0 +1,19 @@
+{
+  "id": "ny_probate_real",
+  "name": "New York Probate Estate with Real Property",
+  "stateCode": "NY",
+  "county": "New York",
+  "authorityType": "PROBATE",
+  "hasRealProperty": true,
+  "estateValue": 950000,
+  "hasWill": true,
+  "characteristics": {
+    "isSmallEstate": false,
+    "hasMinorBeneficiaries": false,
+    "hasContest": false,
+    "isInternational": false,
+    "hasTODDeed": false,
+    "hasOutOfStateProperty": false,
+    "isSurvivingSpouse": true
+  }
+}

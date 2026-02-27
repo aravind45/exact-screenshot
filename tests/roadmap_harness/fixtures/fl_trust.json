@@ -1,0 +1,19 @@
+{
+  "id": "fl_trust",
+  "name": "Florida Trust Estate",
+  "stateCode": "FL",
+  "county": "Broward",
+  "authorityType": "TRUST",
+  "hasRealProperty": true,
+  "estateValue": 900000,
+  "hasWill": false,
+  "characteristics": {
+    "isSmallEstate": false,
+    "hasMinorBeneficiaries": true,
+    "hasContest": false,
+    "isInternational": true,
+    "hasTODDeed": false,
+    "hasOutOfStateProperty": true,
+    "isSurvivingSpouse": true
+  }
+}

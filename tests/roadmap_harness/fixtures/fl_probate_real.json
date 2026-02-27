@@ -1,0 +1,19 @@
+{
+  "id": "fl_probate_real",
+  "name": "Florida Probate Estate with Real Property",
+  "stateCode": "FL",
+  "county": "Miami-Dade",
+  "authorityType": "PROBATE",
+  "hasRealProperty": true,
+  "estateValue": 600000,
+  "hasWill": true,
+  "characteristics": {
+    "isSmallEstate": false,
+    "hasMinorBeneficiaries": false,
+    "hasContest": false,
+    "isInternational": false,
+    "hasTODDeed": false,
+    "hasOutOfStateProperty": false,
+    "isSurvivingSpouse": true
+  }
+}
