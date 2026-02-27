@@ -61,9 +61,12 @@ export class CountyOverrideService {
                     }
                 };
             });
-        } catch (error) {
-            logger.error({ error, stateCode, countyName }, "Failed to apply county overrides");
-            return tasks; // Fail safe: return original tasks
+        } catch (error: unknown) {
+            // Defensive: catch ALL errors including Prisma validation errors,
+            // table not found errors, and any other runtime issues.
+            // Fail silently by returning original tasks rather than throwing.
+            logger.error({ error, stateCode, countyName }, "Failed to apply county overrides - using default tasks");
+            return tasks;
         }
     }
 
@@ -85,7 +88,11 @@ export class CountyOverrideService {
             const signature = overrides.map(o => `${o.taskId}:${o.updatedAt.getTime()}`).join('|');
             // Simple string-based hash for comparison
             return Buffer.from(signature).toString('base64').substring(0, 32);
-        } catch (e) {
+        } catch (error: unknown) {
+            // Defensive: catch ALL errors including Prisma validation errors,
+            // table not found errors, and any other runtime issues.
+            // Return null to indicate no overrides available.
+            logger.error({ error, stateCode, countyName }, "Failed to get county override hash - returning null");
             return null;
         }
     }
