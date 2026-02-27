@@ -1,0 +1,98 @@
+
+[1m[46m RUN [49m[22m [36mv3.2.4 [39m[90mC:/Users/aravi/Documents/AI_LLM/projects/exact-screenshot[39m
+
+stderr | src/tests/roadmap/mn_roadmap_regression.test.ts > MN Roadmap Compliance > MN roadmap: creditor deadline contains 'later of' formula
+[roadmapGenerator] Dropped 3 tasks for state MN: [
+  'file_spousal_petition: scope "US-CA" does not match state MN',
+  'give_spousal_notice: scope "US-CA" does not match state MN',
+  'obtain_spousal_order: scope "US-CA" does not match state MN'
+]
+
+stderr | src/tests/roadmap/mn_roadmap_regression.test.ts > MN Roadmap Compliance > MN roadmap: affidavit task contains 30-day requirement
+[roadmapGenerator] Dropped 3 tasks for state MN: [
+  'file_spousal_petition: scope "US-CA" does not match state MN',
+  'give_spousal_notice: scope "US-CA" does not match state MN',
+  'obtain_spousal_order: scope "US-CA" does not match state MN'
+]
+
+stderr | src/tests/roadmap/mn_roadmap_regression.test.ts > MN Roadmap Compliance > MN roadmap: succession tasks use Decree of Distribution terminology
+[roadmapGenerator] Dropped 3 tasks for state MN: [
+  'file_spousal_petition: scope "US-CA" does not match state MN',
+  'give_spousal_notice: scope "US-CA" does not match state MN',
+  'obtain_spousal_order: scope "US-CA" does not match state MN'
+]
+
+stderr | src/tests/roadmap/mn_roadmap_regression.test.ts > MN Roadmap Compliance > MN roadmap: NO generic creditor placeholder
+[roadmapGenerator] Dropped 3 tasks for state MN: [
+  'file_spousal_petition: scope "US-CA" does not match state MN',
+  'give_spousal_notice: scope "US-CA" does not match state MN',
+  'obtain_spousal_order: scope "US-CA" does not match state MN'
+]
+
+stderr | src/tests/roadmap/mn_roadmap_regression.test.ts > MN Roadmap Compliance > MN roadmap: debt priority cites MN Stat. ┬º524.3-805
+[roadmapGenerator] Dropped 3 tasks for state MN: [
+  'file_spousal_petition: scope "US-CA" does not match state MN',
+  'give_spousal_notice: scope "US-CA" does not match state MN',
+  'obtain_spousal_order: scope "US-CA" does not match state MN'
+]
+
+stderr | src/tests/roadmap/mn_roadmap_regression.test.ts > MN Roadmap Compliance > MN roadmap: publish_notice has MN Stat. ┬º524.3-801 link
+[roadmapGenerator] Dropped 3 tasks for state MN: [
+  'file_spousal_petition: scope "US-CA" does not match state MN',
+  'give_spousal_notice: scope "US-CA" does not match state MN',
+  'obtain_spousal_order: scope "US-CA" does not match state MN'
+]
+
+stderr | src/tests/roadmap/mn_roadmap_regression.test.ts > MN Roadmap Compliance > MN roadmap: monitor_creditor_claim_period has alerts with 'later of' formula
+[roadmapGenerator] Dropped 3 tasks for state MN: [
+  'file_spousal_petition: scope "US-CA" does not match state MN',
+  'give_spousal_notice: scope "US-CA" does not match state MN',
+  'obtain_spousal_order: scope "US-CA" does not match state MN'
+]
+
+ [31mΓ¥»[39m src/tests/roadmap/mn_roadmap_regression.test.ts [2m([22m[2m14 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[32m 25[2mms[22m[39m
+   [32mΓ£ô[39m MN Roadmap Compliance[2m > [22mMN STATE_RULES: has correct creditor timing fields[32m 1[2mms[22m[39m
+   [32mΓ£ô[39m MN Roadmap Compliance[2m > [22mMN STATE_RULES: has creditorPublication configuration[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m MN Roadmap Compliance[2m > [22mMN creditor deadline: publication Jan 1, mailed Jan 15 ΓåÆ deadline May 1[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m MN Roadmap Compliance[2m > [22mMN creditor deadline: publication Jan 1, mailed Apr 1 ΓåÆ deadline May 1[32m 0[2mms[22m[39m
+[31m   [31m├ù[31m MN Roadmap Compliance[2m > [22mMN creditor deadline: no publication, mailed Feb 1 ΓåÆ deadline Mar 1[39m[32m 3[2mms[22m[39m
+[31m     ΓåÆ expected 2 to be 1 // Object.is equality[39m
+   [32mΓ£ô[39m MN Roadmap Compliance[2m > [22mMN small estate: death Jan 1, today Jan 20 ΓåÆ affidavit hidden (< 30 days)[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m MN Roadmap Compliance[2m > [22mMN small estate: death Jan 1, today Feb 1 ΓåÆ affidavit visible (ΓëÑ 30 days)[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m MN Roadmap Compliance[2m > [22mMN roadmap: creditor deadline contains 'later of' formula[32m 5[2mms[22m[39m
+   [32mΓ£ô[39m MN Roadmap Compliance[2m > [22mMN roadmap: affidavit task contains 30-day requirement[32m 2[2mms[22m[39m
+   [32mΓ£ô[39m MN Roadmap Compliance[2m > [22mMN roadmap: succession tasks use Decree of Distribution terminology[32m 2[2mms[22m[39m
+   [32mΓ£ô[39m MN Roadmap Compliance[2m > [22mMN roadmap: NO generic creditor placeholder[32m 2[2mms[22m[39m
+   [32mΓ£ô[39m MN Roadmap Compliance[2m > [22mMN roadmap: debt priority cites MN Stat. ┬º524.3-805[32m 4[2mms[22m[39m
+   [32mΓ£ô[39m MN Roadmap Compliance[2m > [22mMN roadmap: publish_notice has MN Stat. ┬º524.3-801 link[32m 2[2mms[22m[39m
+   [32mΓ£ô[39m MN Roadmap Compliance[2m > [22mMN roadmap: monitor_creditor_claim_period has alerts with 'later of' formula[32m 2[2mms[22m[39m
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 1 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  src/tests/roadmap/mn_roadmap_regression.test.ts > MN Roadmap Compliance > MN creditor deadline: no publication, mailed Feb 1 ΓåÆ deadline Mar 1
+AssertionError: expected 2 to be 1 // Object.is equality
+
+- Expected
++ Received
+
+- 1
++ 2
+
+ Γ¥» src/tests/roadmap/mn_roadmap_regression.test.ts:70:38
+     68|     
+     69|     expect(mailedDeadline.getMonth()).toBe(2); // March (0-indexed)
+     70|     expect(mailedDeadline.getDate()).toBe(1);
+       |                                      ^
+     71|   });
+     72| 
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/1]ΓÄ»
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m13 passed[39m[22m[90m (14)[39m
+[2m   Start at [22m 09:19:27
+[2m   Duration [22m 1.41s[2m (transform 139ms, setup 256ms, collect 155ms, tests 25ms, environment 580ms, prepare 116ms)[22m
+
+[1m[7m[35m HTML [39m[27m[22m [35mReport is generated[39m
+[2m       You can run [22m[1mnpx vite preview --outDir test-results[22m[2m to see the test results.[22m

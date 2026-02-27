@@ -1,0 +1,61 @@
+
+[1m[46m RUN [49m[22m [36mv3.2.4 [39m[90mC:/Users/aravi/Documents/AI_LLM/projects/exact-screenshot[39m
+
+stderr | src/tests/roadmap/mn_roadmap_regression.test.ts > MN Roadmap Compliance > MN roadmap: creditor deadline contains 'later of' formula
+[roadmapGenerator] Dropped 3 tasks for state MN: [
+  'file_spousal_petition: scope "US-CA" does not match state MN',
+  'give_spousal_notice: scope "US-CA" does not match state MN',
+  'obtain_spousal_order: scope "US-CA" does not match state MN'
+]
+
+stderr | src/tests/roadmap/mn_roadmap_regression.test.ts > MN Roadmap Compliance > MN roadmap: affidavit task contains 30-day requirement
+[roadmapGenerator] Dropped 3 tasks for state MN: [
+  'file_spousal_petition: scope "US-CA" does not match state MN',
+  'give_spousal_notice: scope "US-CA" does not match state MN',
+  'obtain_spousal_order: scope "US-CA" does not match state MN'
+]
+
+stderr | src/tests/roadmap/mn_roadmap_regression.test.ts > MN Roadmap Compliance > MN roadmap: succession tasks use Decree of Distribution terminology
+[roadmapGenerator] Dropped 3 tasks for state MN: [
+  'file_spousal_petition: scope "US-CA" does not match state MN',
+  'give_spousal_notice: scope "US-CA" does not match state MN',
+  'obtain_spousal_order: scope "US-CA" does not match state MN'
+]
+
+stderr | src/tests/roadmap/mn_roadmap_regression.test.ts > MN Roadmap Compliance > MN roadmap: NO generic creditor placeholder
+[roadmapGenerator] Dropped 3 tasks for state MN: [
+  'file_spousal_petition: scope "US-CA" does not match state MN',
+  'give_spousal_notice: scope "US-CA" does not match state MN',
+  'obtain_spousal_order: scope "US-CA" does not match state MN'
+]
+
+stderr | src/tests/roadmap/mn_roadmap_regression.test.ts > MN Roadmap Compliance > MN roadmap: debt priority cites MN Stat. ┬º524.3-805
+[roadmapGenerator] Dropped 3 tasks for state MN: [
+  'file_spousal_petition: scope "US-CA" does not match state MN',
+  'give_spousal_notice: scope "US-CA" does not match state MN',
+  'obtain_spousal_order: scope "US-CA" does not match state MN'
+]
+
+stderr | src/tests/roadmap/mn_roadmap_regression.test.ts > MN Roadmap Compliance > MN roadmap: publish_notice has MN Stat. ┬º524.3-801 link
+[roadmapGenerator] Dropped 3 tasks for state MN: [
+  'file_spousal_petition: scope "US-CA" does not match state MN',
+  'give_spousal_notice: scope "US-CA" does not match state MN',
+  'obtain_spousal_order: scope "US-CA" does not match state MN'
+]
+
+stderr | src/tests/roadmap/mn_roadmap_regression.test.ts > MN Roadmap Compliance > MN roadmap: monitor_creditor_claim_period has alerts with 'later of' formula
+[roadmapGenerator] Dropped 3 tasks for state MN: [
+  'file_spousal_petition: scope "US-CA" does not match state MN',
+  'give_spousal_notice: scope "US-CA" does not match state MN',
+  'obtain_spousal_order: scope "US-CA" does not match state MN'
+]
+
+ [32mΓ£ô[39m src/tests/roadmap/mn_roadmap_regression.test.ts [2m([22m[2m14 tests[22m[2m)[22m[32m 22[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m14 passed[39m[22m[90m (14)[39m
+[2m   Start at [22m 09:20:09
+[2m   Duration [22m 1.36s[2m (transform 122ms, setup 250ms, collect 135ms, tests 22ms, environment 583ms, prepare 117ms)[22m
+
+[1m[7m[35m HTML [39m[27m[22m [35mReport is generated[39m
+[2m       You can run [22m[1mnpx vite preview --outDir test-results[22m[2m to see the test results.[22m

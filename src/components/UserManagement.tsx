@@ -26,7 +26,12 @@ import { UserPlus, Mail, Shield, UserCircle, CreditCard, Clock, Loader2, AlertCi
 import { loadStripe } from "@stripe/stripe-js";
 import { EmbeddedCheckoutProvider, EmbeddedCheckout } from "@stripe/react-stripe-js";
 
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || "pk_test_placeholder");
+// Initialize Stripe
+const stripeKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
+if (!stripeKey && import.meta.env.PROD) {
+    throw new Error("VITE_STRIPE_PUBLISHABLE_KEY is required in production");
+}
+const stripePromise = loadStripe(stripeKey || "pk_test_placeholder");
 
 interface UserManagementProps {
     estateId: string;

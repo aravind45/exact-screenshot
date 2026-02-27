@@ -10,7 +10,11 @@ import { EmbeddedCheckoutProvider, EmbeddedCheckout } from "@stripe/react-stripe
 import { motion, AnimatePresence } from "framer-motion";
 
 // Initialize Stripe
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || "pk_test_placeholder");
+const stripeKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
+if (!stripeKey && import.meta.env.PROD) {
+    throw new Error("VITE_STRIPE_PUBLISHABLE_KEY is required in production");
+}
+const stripePromise = loadStripe(stripeKey || "pk_test_placeholder");
 
 import { useAuth } from "@/contexts/AuthContext";
 import { SEO } from "@/components/SEO";

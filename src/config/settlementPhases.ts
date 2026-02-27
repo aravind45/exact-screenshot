@@ -1895,7 +1895,8 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "file_succession_petition",
-        scope: "US-CA",
+        scope: "CORE",
+        allowedStates: ["CA", "MN"],
         title: "File Petition to Determine Succession to Real Property",
         description: "File petition with court to determine who inherits the primary residence without full probate.",
         estimatedTime: "2-4 hours",
@@ -1904,7 +1905,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         isOptional: true,
         requiredDocs: ["Petition Form", "Death Certificate", "Property Deed"],
         applicability: {
-          excludePredicates: ["isOH", "isMN", "isNJ"]
+          excludePredicates: ["isOH", "isNJ"]
         },
         stateOverrides: {
           CA: {
@@ -1934,7 +1935,8 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "give_succession_notice",
-        scope: "US-CA",
+        scope: "CORE",
+        allowedStates: ["CA", "MN"],
         title: "Give Notice of Hearing",
         description: "Notify all interested parties of the hearing date for the succession petition.",
         estimatedTime: "2 hours",
@@ -1944,7 +1946,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         dependencies: ["file_succession_petition"],
         requiredDocs: ["Notice of Hearing Form"],
         applicability: {
-          excludePredicates: ["isOH", "isMN", "isNJ"]
+          excludePredicates: ["isOH", "isNJ"]
         },
         stateOverrides: {
           CA: {
@@ -1974,7 +1976,8 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "obtain_succession_order",
-        scope: "US-CA",
+        scope: "CORE",
+        allowedStates: ["CA", "MN"],
         title: "Obtain Order Determining Succession to Real Property",
         description: "Receive court order determining property succession. Record order with county recorder.",
         estimatedTime: "1-2 weeks after hearing",
@@ -1984,7 +1987,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         requiredDocs: ["Court Order"],
         dependencies: ["file_succession_petition", "give_succession_notice"],
         applicability: {
-          excludePredicates: ["isOH", "isMN", "isNJ"]
+          excludePredicates: ["isOH", "isNJ"]
         },
         stateOverrides: {
           CA: {

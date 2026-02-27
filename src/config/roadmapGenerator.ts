@@ -1,6 +1,6 @@
 import { AuthorityType, MasterMode, getMasterMode } from "@/lib/authorityEngine";
 import { getLettersTerm, getStateRule } from "@/lib/stateRules";
-import { PhaseTaskList, SETTLEMENT_PHASE_TASKS, TRUST_PHASE_TASKS, MODIFIER_PHASE_TASKS, PROBATE_ESCALATION_PHASE } from "./settlementPhases";
+import { PhaseTask, PhaseTaskList, SETTLEMENT_PHASE_TASKS, TRUST_PHASE_TASKS, MODIFIER_PHASE_TASKS, PROBATE_ESCALATION_PHASE } from "./settlementPhases";
 import { SettlementPhase, PHASE_ORDER, STATE_PHASE_OVERRIDES, NEUTRAL_PHASE_MILESTONES } from "./roadmapMetadata";
 import { filterPhasesByJurisdiction } from "@/shared/filterByJurisdiction";
 
@@ -88,7 +88,7 @@ function normalizeTextForState(text: string | undefined, state: string): string 
     return out;
 }
 
-function normalizeTaskForState(task: any, state: string) {
+function normalizeTaskForState(task: PhaseTask, state: string): PhaseTask {
     const override = task.stateOverrides?.[state];
     const mergedTask = override ? { ...task, ...override } : task;
 
@@ -101,18 +101,18 @@ function normalizeTaskForState(task: any, state: string) {
 
     return {
         ...mergedTask,
-        title: normalizeTextForState(mergedTask.title, state),
-        description: normalizeTextForState(mergedTask.description, state),
+        title: normalizeTextForState(mergedTask.title, state) || "",
+        description: normalizeTextForState(mergedTask.description, state) || "",
         utility: normalizeTextForState(mergedTask.utility, state),
         rationale: normalizeTextForState(mergedTask.rationale, state),
-        requiredDocs: mergedTask.requiredDocs?.map((doc: string) => normalizeTextForState(doc, state)) ?? mergedTask.requiredDocs,
-        alerts: mergedTask.alerts?.map((alert: any) => ({
+        requiredDocs: mergedTask.requiredDocs?.map((doc: string) => normalizeTextForState(doc, state) || "") ?? mergedTask.requiredDocs,
+        alerts: mergedTask.alerts?.map((alert) => ({
             ...alert,
-            message: normalizeTextForState(alert.message, state)
+            message: normalizeTextForState(alert.message, state) || ""
         })) ?? mergedTask.alerts,
-        links: mergedTask.links?.map((link: any) => ({
+        links: mergedTask.links?.map((link) => ({
             ...link,
-            label: normalizeTextForState(link.label, state)
+            label: normalizeTextForState(link.label, state) || ""
         })) ?? mergedTask.links
     };
 }
@@ -152,6 +152,29 @@ function removeStateExcludedTasks(phases: PhaseTaskList[], state: string): Phase
             return true;
         }),
     }));
+}
+
+function isTaskExcludedForState(task: PhaseTask, state: string): boolean {
+    if (state === "CA") return false;
+
+    if (state === "GA" && GA_EXCLUDED_TASK_IDS.has(task.id)) return true;
+    if (state === "OH" && OH_EXCLUDED_TASK_IDS.has(task.id)) return true;
+
+    if (state !== "CA" && CA_ONLY_TASK_IDS.has(task.id)) return true;
+    if (state !== "GA" && GA_ONLY_TASK_IDS.has(task.id)) return true;
+
+    // Reject generic CA-specific titles for other states
+    if (state !== "CA" && CA_ONLY_TITLE_PATTERNS.some(p => p.test(task.title))) {
+        return true;
+    }
+
+    return false;
+}
+
+function processPhase(phaseTasks: PhaseTask[], state: string): PhaseTask[] {
+    return phaseTasks
+        .filter((task: PhaseTask) => !isTaskExcludedForState(task, state))
+        .map((task: PhaseTask) => normalizeTaskForState(task, state));
 }
 
 /**
@@ -346,7 +369,7 @@ function generateTransferOnlyRoadmap(type: AuthorityType, state: string, modifie
         const trackTag = isTOD ? "NON_PROBATE" : "AFFIDAVIT";
         tasks = tasks.filter(t =>
             t.category !== "probate" &&
-            (!t.trackCompatibility || t.trackCompatibility.includes(trackTag as any)) &&
+            (!t.trackCompatibility || t.trackCompatibility.includes(trackTag as "AFFIDAVIT" | "NON_PROBATE")) &&
             (!t.applicability?.states || t.applicability.states.includes(state)) &&
             (!t.applicability?.excludePredicates?.includes(`is${state}`))
         );
@@ -525,6 +548,7 @@ function generateFiduciaryRoadmap(type: AuthorityType, state: string, modifiers:
 
         if (modifiers.includes("CONTESTED")) {
             tasks.unshift({
+                scope: "CORE",
                 id: "litigation_hold",
                 title: "LITIGATION HOLD: Distribution Freeze",
                 description: "Estate is contested. Do not distribute any assets or pay non-essential claims without court order.",
@@ -601,13 +625,13 @@ function generateProbateRoadmap(type: AuthorityType, state: string, modifiers: s
             }
             return { ...p, tasks };
         });
-    }
 
-    // Handle Ancillary Probate
-    if (type === "ANCILLARY_PROBATE") {
-        const courtFiling = roadmap.find((p: any) => p.phase === "court_filing");
-        if (courtFiling) {
-            courtFiling.tasks.unshift({
+        // Handle Ancillary Probate
+        // Final sorting — ensure milestones are respected
+        const courtFilingPhase = roadmap.find((p: PhaseTaskList) => p.phase === "court_filing");
+        if (courtFilingPhase) {
+            courtFilingPhase.tasks.unshift({
+                scope: "CORE",
                 id: "ancillary_filing",
                 title: "File Ancillary Probate in " + state,
                 description: "Open a secondary probate case in the state where the real property is located.",
@@ -621,12 +645,13 @@ function generateProbateRoadmap(type: AuthorityType, state: string, modifiers: s
     if (type === "SPOUSAL_PETITION") {
         // CAUTION: Do NOT skip creditor claims without explicit legal evidence.
         // Instead, we add a high-priority task to verify the 'Spousal Set-Aside' requirements.
-        const creditorPhase = roadmap.find((p: any) => p.phase === "creditor_claims");
+        const creditorPhase = roadmap.find((p: PhaseTaskList) => p.phase === "creditor_claims");
         if (creditorPhase) {
             // State-neutral text; normalizeTextForState handles CA→state substitution,
             // but we avoid hardcoding CA references in the first place for non-CA states.
             const isCA = state === "CA";
             creditorPhase.tasks.unshift({
+                scope: "CORE",
                 id: "verify_spousal_creditor_exemption",
                 title: "Verify Creditor Notice Exemption",
                 description: "Surviving spouses may be exempt from standard creditor notice if they assume personal liability for decedent's debts.",
@@ -671,6 +696,7 @@ function generateProbateRoadmap(type: AuthorityType, state: string, modifiers: s
 
         if (modifiers.includes("INSOLVENT") && p.phase === "creditor_claims") {
             tasks.unshift({
+                scope: "CORE",
                 id: "insolvency_freeze",
                 title: "Insolvency ALERT: Freeze Distributions",
                 description: "Estate liabilities exceed assets. DO NOT pay any debts or distribute any assets.",
@@ -701,6 +727,7 @@ function generateProbateRoadmap(type: AuthorityType, state: string, modifiers: s
 
         if (modifiers.includes("MINOR_HEIRS") && p.phase === "final_distribution") {
             tasks.unshift({
+                scope: "CORE",
                 id: "minor_distribution_petition",
                 title: "Petition for Minor Distribution Approval",
                 description: "File to have the court approve the guardian or trustee for minor's inheritance.",
@@ -710,6 +737,7 @@ function generateProbateRoadmap(type: AuthorityType, state: string, modifiers: s
 
         if (modifiers.includes("CONTESTED")) {
             tasks.unshift({
+                scope: "CORE",
                 id: "litigation_hold_probate",
                 title: "LITIGATION HOLD: Freeze Distributions",
                 description: "Will contest or heirship dispute detected. Assets must remain in the estate account until resolved.",
@@ -783,6 +811,7 @@ function generateDiscoveryRoadmap(type: AuthorityType, state: string, hasWill?: 
         );
         if (p.phase === "immediate_actions") {
             tasks.unshift({
+                scope: "CORE",
                 id: "initial_search_protocol",
                 title: "Initialize Forensic Discovery Protocol",
                 description: "Estate track is unknown. Begin systematic asset search to calibrate the correct legal path.",
