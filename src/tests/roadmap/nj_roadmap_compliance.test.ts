@@ -59,9 +59,45 @@ describe("NJ Roadmap Compliance - Structural Isolation", () => {
         const roadmap = generateRoadmap("FORMAL_PROBATE", "NJ", [], ["PROBATE"], true);
         const allTasks = roadmap.flatMap(phase => phase.tasks);
 
-        const task = allTasks.find(t => t.id === "wait_claim_period");
+        const task = allTasks.find(t => t.id === "publish_notice");
         expect(task).toBeDefined();
-        expect(task?.title).toContain("6 months");
         expect(task?.title).toContain("N.J.S.A. 3B:22-4");
+        expect(task?.description).toContain("6 months");
+    });
+
+    it("NO generic 'varies by state' language in NJ roadmap", () => {
+        const roadmap = generateRoadmap("FORMAL_PROBATE", "NJ", [], ["PROBATE"], true);
+        const text = roadmap.flatMap(p => p.tasks).map(t => JSON.stringify(t)).join(" ");
+
+        expect(text).not.toContain("varies by state");
+        expect(text).not.toContain("jurisdiction");
+    });
+
+    it("STRICT GATING: Probate track hides trust-only tasks", () => {
+        const roadmap = generateRoadmap("FORMAL_PROBATE", "NJ", [], ["PROBATE"], true);
+        const allTasks = roadmap.flatMap(phase => phase.tasks);
+
+        expect(allTasks.find(t => t.id === "prepare_certification_of_trust")).toBeUndefined();
+        expect(allTasks.find(t => t.id === "sign_trustee_acceptance")).toBeUndefined();
+        expect(allTasks.find(t => t.title?.includes("Trust accounting"))).toBeUndefined();
+    });
+
+    it("STRICT GATING: Trust track hides probate-only tasks", () => {
+        const roadmap = generateRoadmap("TRUST_ADMIN_REVOCABLE", "NJ", [], ["TRUST"], true);
+        const allTasks = roadmap.flatMap(phase => phase.tasks);
+
+        expect(allTasks.find(t => t.id === "file_probate_petition")).toBeUndefined();
+        expect(allTasks.find(t => t.title?.includes("Letters Test"))).toBeUndefined();
+        expect(allTasks.find(t => t.category === "probate")).toBeUndefined();
+    });
+
+    it("Contains all mandatory NJ primary statutes", () => {
+        const roadmap = generateRoadmap("FORMAL_PROBATE", "NJ", [], ["PROBATE"], true);
+        const text = JSON.stringify(roadmap);
+
+        expect(text).toContain("3B:15-1"); // Inventory
+        expect(text).toContain("3B:22-4"); // Creditor
+        expect(text).toContain("3B:8-1");  // Elective Share
+        expect(text).toContain("3B:15-3"); // Bond/Family Allowance context
     });
 });

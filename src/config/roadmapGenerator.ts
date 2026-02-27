@@ -26,7 +26,7 @@ const GA_ONLY_TASK_IDS = new Set([
 ]);
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Tasks to EXCLUDE for Georgia (GA ultra-minimal cleanup)
+// Tasks to EXCLUDE for specific states (State Isolation)
 // ─────────────────────────────────────────────────────────────────────────────
 const GA_EXCLUDED_TASK_IDS = new Set([
     "file_spousal_petition",
@@ -36,6 +36,15 @@ const GA_EXCLUDED_TASK_IDS = new Set([
     "give_succession_notice",
     "obtain_succession_order",
     "wait_claim_period",
+]);
+
+const OH_EXCLUDED_TASK_IDS = new Set([
+    "file_spousal_petition",
+    "give_spousal_notice",
+    "obtain_spousal_order",
+    "file_succession_petition",
+    "give_succession_notice",
+    "obtain_succession_order",
 ]);
 
 const CA_ONLY_TITLE_PATTERNS = [
@@ -125,20 +134,20 @@ function removeCAOnlyTasks(phases: PhaseTaskList[], state: string): PhaseTaskLis
 }
 
 /**
- * Hard guard: remove GA-excluded tasks for non-GA states (client-side version).
- * Georgia ultra-minimal cleanup: hide spousal/succession petitions and generic creditor placeholder.
+ * Hard guard: remove state-excluded tasks (State Isolation).
  */
-function removeGAExcludedTasks(phases: PhaseTaskList[], state: string): PhaseTaskList[] {
+function removeStateExcludedTasks(phases: PhaseTaskList[], state: string): PhaseTaskList[] {
     return phases.map(phase => ({
         ...phase,
         tasks: phase.tasks.filter(task => {
-            // GA-excluded tasks should NOT show for GA state
-            if (GA_EXCLUDED_TASK_IDS.has(task.id) && state === "GA") return false;
+            // GA-excluded tasks
+            if (state === "GA" && GA_EXCLUDED_TASK_IDS.has(task.id)) return false;
+            // OH-excluded tasks (CA module removals)
+            if (state === "OH" && OH_EXCLUDED_TASK_IDS.has(task.id)) return false;
 
             // GA-only tasks should ONLY show for GA state
             if (GA_ONLY_TASK_IDS.has(task.id)) return state === "GA";
 
-            // All other tasks should show
             return true;
         }),
     }));
@@ -289,9 +298,9 @@ export function generateRoadmap(
             tasks: mergedPhases[key].tasks.map(task => normalizeTaskForState(task, state))
         }));
 
-    // Apply CA-only task removal and phase milestone normalization
+    // Apply state-specific exclusions and phase milestone normalization
     finalPhases = removeCAOnlyTasks(finalPhases, state);
-    finalPhases = removeGAExcludedTasks(finalPhases, state);
+    finalPhases = removeStateExcludedTasks(finalPhases, state);
     finalPhases = normalizePhasesForState(finalPhases, state);
 
     // Development-time contamination check
@@ -510,6 +519,15 @@ function generateFiduciaryRoadmap(type: AuthorityType, state: string, modifiers:
         // STRIP AUTHORITY REQUIREMENT: In Trust tracks, court-issued Letters are NOT the default.
         tasks = tasks.map(t => ({ ...t, requiresAuthority: false }));
 
+        // GATING: Hide probate-only tasks in Trust track
+        const probateOnlyCategories = ["probate", "court-issued"];
+        const probateOnlyKeywords = ["Probate Application", "Letters", "Bond calculation", "Surrogate filing"];
+        tasks = tasks.filter(t => {
+            if (probateOnlyCategories.includes(t.category || "")) return false;
+            if (probateOnlyKeywords.some(k => t.title?.includes(k))) return false;
+            return true;
+        });
+
         return { ...p, tasks };
     });
 
@@ -697,6 +715,20 @@ function generateProbateRoadmap(type: AuthorityType, state: string, modifiers: s
                 tags: ["fiduciary"]
             });
         }
+
+        // GATING: Hide trust-only tasks in Probate track
+        const trustOnlyIds = [
+            "prepare_certification_of_trust",
+            "evaluate_trust_solvency",
+            "prepare_trust_accounting",
+            "sign_trustee_acceptance"
+        ];
+        const trustOnlyKeywords = ["Certification of Trust", "Trust solvency", "Trust accounting", "Trustee acceptance"];
+        tasks = tasks.filter(t => {
+            if (trustOnlyIds.includes(t.id)) return false;
+            if (trustOnlyKeywords.some(k => t.title?.includes(k))) return false;
+            return true;
+        });
 
         return { ...p, tasks };
     });

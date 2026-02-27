@@ -459,26 +459,35 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
     title: "Court Compliance & Eligibility",
     subtitle: "Eligibility, Venue, Parties",
     milestone: "Before Court Filing",
-    description: "Ensure all jurisdictional, statutory, and documentation requirements are met prior to formal court submission. This universal layer adapts to state-specific rules.",
+    description: "Ensure all statutory and documentation requirements are met prior to formal court submission. This universal layer adapts to state-specific rules.",
     tasks: [
       {
-        id: "validate_venue_jurisdiction",
-        title: "Validate Venue and Jurisdiction",
-        description: "Confirm the decedent's legal domicile and county residency to ensure the petition is filed in the legally appropriate court.",
+        id: "validate_venue_authority",
+        title: "Validate Venue and Court Filing Authority",
+        description: "Confirm the decedent's legal domicile and county residency to ensure the application is filed in the legally appropriate court.",
         utility: "Prevents immediate case dismissal due to improper venue.",
         estimatedTime: "30 minutes",
         category: "probate",
         requiredProfileFields: ["decedent_domicile", "county", "death_date", "property_location"],
-        outputs: ["Verified Court of Jurisdiction"],
+        outputs: ["Verified Court for Filing"],
         alerts: [{
           type: "important",
-          message: "Jurisdictional Error Risk: Filing in the wrong county or state can invalidate all subsequent legal actions."
+          message: "Filing Error Risk: Filing in the wrong county or state can invalidate all subsequent legal actions."
         }],
         stateOverrides: {
           NY: {
             title: "Validate Surrogate's Court Venue (SCPA §205)",
             description: "Verify the decedent's domicile in NY to ensure the petition is filed in the correct Surrogate's Court (SCPA §205).",
-            utility: "Prevents case dismissal based on lack of subject matter jurisdiction."
+            utility: "Prevents case dismissal based on lack of subject matter authority."
+          },
+          NJ: {
+            title: "Validate County Surrogate Venue (N.J.S.A. 3B:2-3)",
+            description: "Confirm the decedent's legal domicile to ensure the application is filed with the correct County Surrogate per N.J.S.A. 3B:2-3.",
+            utility: "Prevents application rejection due to improper county filing.",
+            alerts: [{
+              type: "important",
+              message: "Venue Rule: In New Jersey, probate must be filed with the Surrogate of the county where the decedent was domiciled at the time of death."
+            }]
           }
         }
       },
@@ -666,6 +675,22 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         alerts: [{
           type: "info",
           message: "Guardian ad litem fees are paid by the estate, typically $150-300/hour."
+        }]
+      },
+      {
+        id: "oh_family_allowance",
+        title: "Surviving Spouse Allowance / Family Allowance (ORC Chapter 2106)",
+        description: "Surviving spouse may claim statutory allowance prior to general distribution (ORC Chapter 2106).",
+        estimatedTime: "2-4 weeks",
+        category: "probate",
+        applicability: {
+          states: ["OH"],
+          predicatesAny: ["isSpouse"]
+        },
+        links: [{ label: "ORC Chapter 2106", url: "https://codes.ohio.gov/ohio-revised-code/chapter-2106" }],
+        alerts: [{
+          type: "info",
+          message: "Statutory Allowance: Ohio law provides a support allowance for the surviving spouse and minor children."
         }]
       }
     ]
@@ -2011,7 +2036,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
     title: "Asset Discovery",
     subtitle: "Inventory & Valuation",
     milestone: "After Authority Issued",
-    description: "Identify all assets within the estate's jurisdiction and obtain formal Date-of-Death valuations.",
+    description: "Identify all probate assets and obtain official appraisals for court filing.",
     tasks: [
       {
         id: "check_unclaimed_property",
@@ -2105,6 +2130,23 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
           }
         ]
       },
+      {
+        id: "oh_certificate_of_transfer",
+        title: "Apply for Certificate of Transfer (ORC §2113.61)",
+        description: "Probate Court issues Certificate of Transfer to transfer real property and documented interests from the decedent to heirs or beneficiaries as recorded in the county where property is located.",
+        estimatedTime: "2-4 weeks",
+        category: "court-issued",
+        applicability: {
+          states: ["OH"],
+          predicatesAny: ["hasRealProperty", "isPrimaryResidence"]
+        },
+        requiredDocs: ["Application for Certificate of Transfer", "Description of Real Estate"],
+        links: [{ label: "ORC §2113.61", url: "https://codes.ohio.gov/ohio-revised-code/section-2113.61" }],
+        alerts: [{
+          type: "important",
+          message: "Real Property Transfer: Mandatory for transferring Ohio real estate without a transfer-on-death affidavit."
+        }]
+      },
       // ── NJ-Specific Inventory Tasks ─────────────────────────────────────
       {
         id: "nj_inventory_90_day_deadline",
@@ -2183,7 +2225,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       {
         id: "debt_priority_risk",
         title: "FIDUCIARY RISK: Statutory Debt Priority",
-        description: "Assess creditor claims and potential debts under the statutory priority rules applicable in your jurisdiction (often including administration expenses and taxes before unsecured debts).",
+        description: "Assess creditor claims and potential debts under the statutory priority rules applicable in your state (often including administration expenses and taxes before unsecured debts).",
         isAttorneyReviewNode: true,
         trackCompatibility: ["PROBATE", "TRUST", "NON_PROBATE"],
         alerts: [{
@@ -2199,13 +2241,21 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
               type: "caution",
               message: "Minnesota Priority Order (MN Stat. §524.3-805): Pay claims in statutory order - administration expenses, funeral expenses, debts/taxes with preference under federal/state law, reasonable/necessary medical/hospital expenses, debts/taxes due to state, other claims. Incorrect payment order creates personal liability."
             }],
+          },
+          NJ: {
+            title: "FIDUCIARY RISK: NJ Statutory Debt Priority (N.J.S.A. 3B:22-2)",
+            description: "Assess claims under the NJ statutory priority rules (N.J.S.A. 3B:22-2). Administration and funeral expenses take priority over unsecured debts.",
+            alerts: [{
+              type: "caution",
+              message: "NJ Priority Order: Funeral expenses, administration expenses, and taxes must be addressed before general unsecured creditors."
+            }]
           }
         }
       },
       {
         id: "publish_notice",
         title: "Publish Notice to Creditors (If Required)",
-        description: "If required or strategically beneficial in your jurisdiction, publish a notice to creditors using the court-approved or locally accepted format. Publication rules, timing, and whether it affects creditor deadlines vary by state and county.",
+        description: "If required or strategically beneficial in your state, publish a notice to creditors using the court-approved or locally accepted format. Publication rules, timing, and whether it affects creditor deadlines vary by state and county.",
         estimatedTime: "State-specific (often 1–2 weeks)",
         trackCompatibility: ["PROBATE"],
         requiredDocs: ["Draft notice text (as applicable)", "Case/filing details (if applicable)"],
@@ -2305,13 +2355,25 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
               label: "O.C.G.A. §53-7-40",
               url: "https://law.justia.com/codes/georgia/2022/title-53/chapter-7/article-4/"
             }]
+          },
+          NJ: {
+            title: "Publish Notice to Creditors (N.J.S.A. 3B:22-4)",
+            description: "Publish a notice to creditors in an approved New Jersey newspaper. Under N.J.S.A. 3B:22-4, creditors have 6 months from the date of the first publication to present their claims. This starts the statutory bar against unknown claims.",
+            isOptional: false,
+            estimatedTime: "6 months (statutory window)",
+            requiredDocs: ["Notice to Creditors", "Proof of Publication"],
+            alerts: [{
+              type: "important",
+              message: "Strict 6-Month Bar: Claims presented after 6 months from first publication may be barred under N.J.S.A. 3B:22-4. Retain the 'Proof of Publication' from the newspaper."
+            }],
+            links: [{ label: "N.J.S.A. 3B:22-4", url: "https://law.justia.com/codes/new-jersey/2022/title-3b/section-3b-22-4/" }]
           }
         }
       },
       {
         id: "mail_notice",
         title: "Notify Known Creditors",
-        description: "Notify known creditors as appropriate and document your outreach (e.g., banks, credit cards, medical providers). Requirements and best practices vary by jurisdiction.",
+        description: "Notify known creditors as appropriate and document your outreach (e.g., banks, credit cards, medical providers). Requirements and best practices vary by state.",
         estimatedTime: "1–3 hours",
         requiredDocs: ["Creditor notice template (if used)", "Creditor contact list / notice log"],
         category: "probate",
@@ -2319,7 +2381,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         alerts: [
           {
             type: "info",
-            message: "Keep proof of notice attempts and a dated log of communications. This supports a defensible claims process, but does not guarantee claim cutoff.",
+            message: "Keep proof of notice attempts and a dated log of communications. This supports a defensible claims process, but does not guarantee claim cutoff."
           },
         ],
         stateOverrides: {
@@ -2338,6 +2400,14 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
             description: "Notify known creditors as appropriate and retain proof of mailing/notice. Requirements can vary by county and case posture; confirm local practice.",
             dependencies: ["file_probate_petition", "file_administration_petition"],
           },
+          NJ: {
+            title: "Notify Known Creditors (N.J.S.A. 3B:22-4)",
+            description: "Provide notice of the 6-month claim period to all known creditors of the decedent. NJ law requires proof of mailing or delivery to establish the 6-month bar against known participants.",
+            alerts: [{
+              type: "info",
+              message: "N.J.S.A. 3B:22-4: While publication handles unknown creditors, direct notice is required for known creditors to enforce the 6-month statutory bar."
+            }]
+          }
         },
       },
       {
@@ -2377,14 +2447,14 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         attorneyReviewReason: "Fiduciary Risk: If the estate is insolvent, payment priority and distribution rules change materially. Paying the wrong creditor first is a major source of personal liability.",
         alerts: [{
           type: "caution",
-          message: "If liabilities exceed assets, treat the estate as potentially insolvent and follow your jurisdiction's insolvency/payment priority rules before paying claims or making distributions."
+          message: "If liabilities exceed assets, treat the estate as potentially insolvent and follow your state's insolvency/payment priority rules before paying claims or making distributions."
         }],
         outputs: ["Solvency worksheet (assets vs liabilities)", "Preliminary insolvency flag"],
       },
       {
         id: "wait_claim_period",
         title: "Monitor State-Specific Creditor Exposure Period",
-        description: "Monitor the creditor exposure timeline applicable in your jurisdiction. The trigger event and timing vary by state and case type. Avoid final distributions until creditor risk is appropriately managed (often by holding reserves and documenting claim handling).",
+        description: "Monitor the creditor exposure timeline applicable in your state. The trigger event and timing vary by state and case type. Avoid final distributions until creditor risk is appropriately managed (often by holding reserves and documenting claim handling).",
         utility: "Helps reduce personal fiduciary liability by managing creditor exposure before final distributions.",
         isLongHorizon: true,
         estimatedTime: "State-specific",
@@ -2469,7 +2539,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       {
         id: "monitor_creditor_claim_period",
         title: "Monitor Creditor Claim Period",
-        description: "Monitor the creditor claim period applicable in your jurisdiction. The timing and trigger events vary by state. This task provides state-specific guidance for creditor claim monitoring.",
+        description: "Monitor the creditor claim period applicable in your state. The timing and trigger events vary by state. This task provides state-specific guidance for creditor claim monitoring.",
         isLongHorizon: true,
         estimatedTime: "State-specific",
         stateOverrides: {
@@ -2524,7 +2594,11 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
           NJ: {
             title: "6-Month Claim Window – Triggered by First Publication (N.J.S.A. 3B:22-4)",
             description: "In New Jersey, creditors have 6 months from the date of the first publication of notice to present claims (N.J.S.A. 3B:22-4). The clock starts from first publication, not from Letters issuance.",
-            estimatedTime: "6 months"
+            estimatedTime: "6 months",
+            alerts: [{
+              type: "info",
+              message: "6-Month Clock: NJ maintains a strict statutory window from first publication for unknown claims to be presented."
+            }]
           },
           MA: {
             title: "Monitor 1-Year Creditor Claim Period",
@@ -2572,9 +2646,19 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
           },
           {
             type: "caution",
-            message: "Claims handling procedures and timelines vary by state. Verify any notice, response, or objection deadlines that apply in your jurisdiction."
+            message: "Claims handling procedures and timelines vary by state. Verify any notice, response, or objection deadlines that apply in your state."
           }
-        ]
+        ],
+        stateOverrides: {
+          NJ: {
+            title: "Review Submitted Claims (N.J.S.A. 3B:22-4)",
+            description: "Examine claims presented within the 6-month window since first publication. Verify that each claim is supported by sufficient evidence of debt.",
+            alerts: [{
+              type: "important",
+              message: "N.J.S.A. 3B:22-4: Claims must be presented in writing. You have the right to demand formal proof of any presented claim."
+            }]
+          }
+        }
       },
       {
         id: "tod_creditor_review",
@@ -2600,14 +2684,24 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         title: "Document Claim Evaluation & Decision",
         description: "Evaluate each creditor claim and document your decision (allowed, partially allowed, disputed/rejected) with supporting rationale and evidence. Claims handling procedures vary by state and case type.",
         isAttorneyReviewNode: true,
-        attorneyReviewReason: "Litigation Risk: Disputing or rejecting claims can trigger formal dispute processes and deadlines that vary by jurisdiction. Counsel guidance reduces risk.",
+        attorneyReviewReason: "Litigation Risk: Disputing or rejecting claims can trigger formal dispute processes and deadlines that are state-specific. Counsel guidance reduces risk.",
         trackCompatibility: ["PROBATE", "TRUST"],
         alerts: [
           {
             type: "caution",
             message: "State law may impose specific notice language, delivery methods, or response deadlines when disputing a claim. Confirm local requirements before issuing a formal dispute/rejection notice.",
           },
-        ]
+        ],
+        stateOverrides: {
+          NJ: {
+            title: "Document Claim Decision (N.J.S.A. 3B:22-7)",
+            description: "Formally allow or reject each claim. Under N.J.S.A. 3B:22-7, you must notify the creditor of your decision.",
+            alerts: [{
+              type: "important",
+              message: "Notice of Rejection: If you dispute a claim, you must serve a written notice of rejection to start the creditor's 3-month limitation to sue."
+            }]
+          }
+        }
       },
       {
         id: "reject_invalid",
@@ -2621,12 +2715,11 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         alerts: [
           {
             type: "warning",
-            message: "Disputed or rejected creditors may pursue litigation. Consult counsel and document your reasoning carefully before sending a dispute/rejection notice.",
-          },
-          {
+            message: "Disputed or rejected creditors may pursue litigation. Consult counsel and document your reasoning carefully before sending a dispute/rejection notice."
+          }, {
             type: "caution",
-            message: "Notice requirements and deadlines vary by state. Verify local procedure before acting.",
-          },
+            message: "Notice requirements and deadlines vary by state. Verify local procedure before acting."
+          }
         ],
         stateOverrides: {
           CA: {
@@ -2639,36 +2732,60 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
             description: "If a claim is disputed, follow the applicable New York procedure to challenge or negotiate the claim and maintain written documentation of the basis for dispute. Consult counsel regarding notice requirements and deadlines.",
             requiredDocs: ["Written dispute documentation", "Counsel-reviewed notice (if required)"],
           },
+          NJ: {
+            title: "Reject Invalid Claims (N.J.S.A. 3B:22-7)",
+            description: "Serve a formal written reject notice to the creditor. This forces the creditor to file suit within 3 months or be forever barred from recovery.",
+            alerts: [{
+              type: "warning",
+              message: "3-Month Limitation: Once you serve a formal rejection in NJ, the creditor only has 3 months to take legal action (N.J.S.A. 3B:22-7)."
+            }]
+          }
         },
       },
       {
         id: "pay_approved",
         title: "Pay Approved Claims (By Statutory Priority)",
-        description: "Pay valid debts in the statutory priority order applicable in your jurisdiction (commonly including administration costs, taxes, secured debts, then unsecured claims). Document each payment and retain receipts.",
+        description: "Pay valid debts in the statutory priority order (commonly including administration costs, taxes, secured debts, then unsecured claims). Document each payment and retain receipts.",
         estimatedTime: "State/case dependent (often 2–6 weeks)",
         dependencies: ["review_claims"],
-        alerts: [
-          {
-            type: "important",
-            message: "Follow your state's creditor priority rules. Paying the wrong creditors first can create personal fiduciary liability.",
-          },
-        ],
+        alerts: [{
+          type: "important",
+          message: "Follow state creditor priority rules. Paying the wrong creditors first can create personal fiduciary liability."
+        }],
+        stateOverrides: {
+          NJ: {
+            title: "Pay Approved Claims (N.J.S.A. 3B:22-2)",
+            description: "Pay claims in NJ statutory priority order (N.J.S.A. 3B:22-2). Administration and funeral expenses take precedence.",
+            alerts: [{
+              type: "important",
+              message: "NJ Priority: Funeral/admin expenses must be paid before general creditors."
+            }]
+          }
+        },
         outputs: ["Claims payment ledger", "Receipts and proof of payment"],
       },
       {
         id: "file_proof",
         title: "Document Proof of Creditor Notice (If Applicable)",
-        description: "If your jurisdiction requires proof of creditor notice (publication and/or direct notice), retain and submit the required proof in the format your court or process expects. Even when not required to file, maintaining proof supports a defensible administration record.",
+        description: "If your state requires proof of creditor notice (publication and/or direct notice), retain and submit the required proof in the format your court or process expects. Even when not required to file, maintaining proof supports a defensible administration record.",
         estimatedTime: "State-specific (often 1–3 days)",
         requiredDocs: ["Notice log", "Proof documents (if applicable)"],
         dependencies: [],
         alerts: [
           {
             type: "info",
-            message: "Notice proof requirements vary by state and case type. Keeping proof helps demonstrate reasonable notice efforts but does not guarantee claim cutoff.",
+            message: "Notice proof requirements vary by state and case type. Keeping proof helps demonstrate reasonable notice efforts but does not guarantee claim cutoff."
           },
         ],
         stateOverrides: {
+          NJ: {
+            title: "File Proof of Publication (N.J.S.A. 3B:22-4)",
+            description: "Secure the 'Affidavit of Publication' from the newspaper and retain it for your records. This is critical proof that the 6-month claim window was properly triggered.",
+            alerts: [{
+              type: "info",
+              message: "Statutory Proof: The Affidavit of Publication is your primary shield against future claims under N.J.S.A. 3B:22-4."
+            }]
+          },
           CA: {
             title: "File Proof of Creditor Notice (CA)",
             description: "Retain and submit proof of publication and any required mailed notices per local court practice. Confirm county-specific proof requirements.",
@@ -2802,15 +2919,23 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       {
         id: "sell_property",
         title: "Complete Property Sale & Transfer",
-        description: "If the estate owns real property and a sale is needed, confirm fiduciary authority and any required court authorization in your jurisdiction before signing a contract. Complete closing, deposit proceeds into the estate account, and retain all closing and tax documents.",
+        description: "If the estate owns real property and a sale is needed, confirm that the fiduciary has the appropriate legal authority in the target state. before signing a contract. Complete closing, deposit proceeds into the estate account, and retain all closing and tax documents.",
         estimatedTime: "4-8 weeks",
         isConditional: true,
         conditionalRequirementLabel: "Required if estate owns real property",
         isAttorneyReviewNode: true,
-        attorneyReviewReason: "Fiduciary Risk: Property sales are often the largest transactions in an estate. Confirm jurisdiction-specific authorization requirements and retain all closing documentation.",
+        attorneyReviewReason: "Fiduciary Risk: Property sales are often the largest transactions in an estate. Confirm state-specific authorization requirements and retain all closing documentation.",
         dependencies: [],
-        requiredDocs: ["Closing statement (HUD-1/CD/ALTA)", "Deed or transfer instrument", "Tax/withholding documents (if any)"],
+        outputs: ["Closing statement (HUD-1/CD/ALTA)", "Deed or transfer instrument", "Tax/withholding documents (if any)"],
         stateOverrides: {
+          NJ: {
+            title: "Complete Property Sale & Obtain Tax Waiver",
+            description: "Finalize NJ real estate sale. Ensure the NJ Inheritance Tax Waiver is obtained and recorded to clear the tax lien on the property.",
+            alerts: [{
+              type: "important",
+              message: "Tax Lien: NJ real estate is subject to an automatic tax lien. You must obtain Form C-9700 (Waiver) to clear title for sale."
+            }]
+          },
           CA: {
             title: "Complete Property Sale & Close Escrow",
             description: "Finalize the sale of real estate through IAEA or court-confirmed process, sign closing documents, and receive sale proceeds into the estate account.",
@@ -3216,21 +3341,13 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
   }
 ];
 
-/**
- * TRUST ADMINISTRATION - 6-STATE MACHINE
- * 
- * Trust admin is fundamentally different from probate:
- * - Authority comes from trust instrument + death certificate, NOT court
- * - No formal petition or Letters required
- * - Probate is only an escalation when trust funding fails
- */
 export const MODIFIER_PHASE_TASKS: PhaseTaskList[] = [
   {
     phase: "ancillary_phase",
     title: "Ancillary / Multi-State",
     subtitle: "Out-of-State Property",
     milestone: "After Primary Filing",
-    description: "Coordinate with other jurisdictions where the decedent owned real estate or titled assets.",
+    description: "Coordinate with other states where the decedent owned real estate or titled assets.",
     isEscalationPath: true,
     tasks: [
       {
@@ -3248,9 +3365,9 @@ export const MODIFIER_PHASE_TASKS: PhaseTaskList[] = [
         isAttorneyReviewNode: true
       },
       {
-        id: "open_ancillary_proceeding",
-        title: "Open Ancillary Proceeding",
-        description: "File certified copies of the primary Letters and Will in the secondary jurisdiction to obtain local authority.",
+        id: "ancillary_filing",
+        title: "File Ancillary Probate",
+        description: "File certified copies of the primary Letters and Will in the secondary state or court to obtain local authority.",
         estimatedTime: "2-4 weeks",
         requiredDocs: ["Certified Letters", "Authenticated Will", "Ancillary Petition"]
       }
@@ -3332,6 +3449,15 @@ export const MODIFIER_PHASE_TASKS: PhaseTaskList[] = [
     ]
   }
 ];
+
+/**
+ * TRUST ADMINISTRATION - 6-STATE MACHINE
+ * 
+ * Trust admin is fundamentally different from probate:
+ * - Authority comes from trust instrument + death certificate, NOT court
+ * - No formal petition or Letters required
+ * - Probate is only an escalation when trust funding fails
+ */
 
 export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
   // STATE 1: Trustee Authority (not court-issued)

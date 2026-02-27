@@ -102,6 +102,14 @@ export const STATE_PHASE_OVERRIDES: Record<string, Record<string, { milestone?: 
         },
     },
     NJ: {
+        immediate_actions: {
+            milestone: "Immediately After Death",
+            subtitle: "NJ-Native Initial Assessments",
+        },
+        pre_filing_compliance: {
+            milestone: "Before Surrogate Filing",
+            subtitle: "NJ Statutory Eligibility & Venue",
+        },
         court_filing: {
             milestone: "County Surrogate's Court Filing",
             subtitle: "Uncontested: Admin Filing → Letters Same Day",
