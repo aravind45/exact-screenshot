@@ -69,6 +69,7 @@ model Estate {
   deceasedState             String               @map("deceased_state")
   estateType                String?              @map("estate_type")
   authorityType             String               @default("UNSET") @map("authority_type")
+  estateAuthorityType      String?              @map("estate_authority_type")
   authorityStatus           String               @default("NOT_STARTED") @map("authority_status")
   certifiedCopies           Int                  @default(0) @map("certified_copies")
   authorityEffectiveDate    DateTime?            @map("authority_effective_date")
@@ -650,6 +651,7 @@ model RoadmapTask {
   excludePredicates           String[]     @map("exclude_predicates")
   requiredProfileFields       String[]     @map("required_profile_fields")
   outputs                     String[]
+  authorityScope              String?      @map("authority_scope")
   scope                       String       @default("CORE")
   allowedCounties             String[]     @map("allowed_counties")
   createdAt                   DateTime     @default(now()) @map("created_at")

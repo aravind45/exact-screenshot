@@ -7,6 +7,7 @@ import {
     PhaseTask,
     PhaseTaskList,
 } from "../../config/settlementPhases";
+import type { AuthorityScope } from "../../types/authorityScope";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Collect ALL tasks from every exported phase array
@@ -133,5 +134,58 @@ describe("Scope Audit — State Tasks Have Correct Scope", () => {
         expect(
             bad.map((t) => `${t.id}: scope=${t.scope}`)
         ).toEqual([]);
+    });
+});
+
+describe("Authority Scope Audit — Task Coverage", () => {
+    const tasks = allTasks();
+
+    it("every task with trackCompatibility=TRUST has authorityScope defined", () => {
+        const trustTasks = tasks.filter(t =>
+            t.trackCompatibility?.includes("TRUST")
+        );
+        const trustTasksWithoutScope = trustTasks.filter(t =>
+            t.authorityScope === undefined
+        );
+        expect(trustTasksWithoutScope.map(t => t.id)).toEqual([]);
+    });
+
+    it("every task with trackCompatibility=PROBATE has authorityScope defined", () => {
+        const probateTasks = tasks.filter(t =>
+            t.trackCompatibility?.includes("PROBATE")
+        );
+        const probateTasksWithoutScope = probateTasks.filter(t =>
+            t.authorityScope === undefined
+        );
+        expect(probateTasksWithoutScope.map(t => t.id)).toEqual([]);
+    });
+
+    it("tasks with authorityScope=TRUST must not have trackCompatibility=PROBATE", () => {
+        const trustOnlyTasks = tasks.filter(t =>
+            t.authorityScope === "TRUST"
+        );
+        const bad = trustOnlyTasks.filter(t =>
+            t.trackCompatibility?.includes("PROBATE") || t.trackCompatibility?.includes("AFFIDAVIT")
+        );
+        expect(bad.map(t => `${t.id}: authorityScope=${t.authorityScope} but trackCompatibility=${t.trackCompatibility}`)).toEqual([]);
+    });
+
+    it("tasks with authorityScope=PROBATE must not have trackCompatibility=TRUST", () => {
+        const probateOnlyTasks = tasks.filter(t =>
+            t.authorityScope === "PROBATE"
+        );
+        const bad = probateOnlyTasks.filter(t =>
+            t.trackCompatibility?.includes("TRUST")
+        );
+        expect(bad.map(t => `${t.id}: authorityScope=${t.authorityScope} but trackCompatibility=${t.trackCompatibility}`)).toEqual([]);
+    });
+
+    it("all tasks have valid authorityScope values", () => {
+        const validScopes: AuthorityScope[] = ["PROBATE", "TRUST", "BOTH"];
+        const tasksWithInvalidScope = tasks.filter(task => {
+            if (!task.authorityScope) return false; // Backward compatibility allowed
+            return !validScopes.includes(task.authorityScope);
+        });
+        expect(tasksWithInvalidScope.map(t => `${t.id}: ${task.authorityScope}`)).toEqual([]);
     });
 });

@@ -5,7 +5,8 @@ import { calculateAuthorityRecommendation } from "../../src/lib/authorityEngine.
 import { AuthoritySource, ProcedureType, DistributionModel, getLettersTerm, getStateRule } from "../../src/lib/stateRules.js";
 import { logger } from "../lib/logger.js";
 import { CountyOverrideService } from "./countyOverrideService.js";
-import { filterPhasesByJurisdiction, type PhaseLike } from "../../src/shared/filterByJurisdiction.js";
+import { filterPhasesByJurisdiction, filterTasksByAuthorityScope, type PhaseLike } from "../../src/shared/filterByJurisdiction.js";
+import { deriveEstateAuthorityType } from "../../src/types/authorityScope.js";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Follow-Up Spawn Rules: tasks that auto-create a "waiting on them" entry
@@ -66,6 +67,7 @@ interface EstateProfile {
   procedureType: ProcedureType;
   distributionModel: DistributionModel;
   activeEngines: string[];
+  estateAuthorityType: "PROBATE" | "TRUST" | "BOTH"; // Computed from activeEngines
   hasWill: boolean;
   hasUnknownHeirs: boolean;
   has_foreign_beneficiary: boolean;
@@ -627,6 +629,9 @@ export async function analyzeEstateProfile(estateId: string): Promise<EstateProf
   const isNC = stateCode === "NC";
   const isSC = stateCode === "SC";
 
+  // Compute estateAuthorityType from activeEngines
+  const estateAuthorityType = deriveEstateAuthorityType(rec.activeEngines);
+
   return {
     id: estate.id,
     hasMinorBeneficiaries: rec.modifiers?.includes("MINOR_HEIRS") || false,
@@ -641,6 +646,7 @@ export async function analyzeEstateProfile(estateId: string): Promise<EstateProf
     procedureType: rec.procedureType,
     distributionModel: rec.distributionModel,
     activeEngines: rec.activeEngines,
+    estateAuthorityType, // Computed from activeEngines for authority scope filtering
     hasWill: estate.hasWill,
     hasUnknownHeirs: estate.hasUnknownHeirs,
     has_foreign_beneficiary: estate.internationalReasons?.includes("FOREIGN_BENEFICIARY") || estate.internationalReasons?.includes("FOREIGN_BENEFICIARIES") || false,
@@ -995,10 +1001,26 @@ export async function getRoadmapFromDatabase(
   const filtered = filterTasksForEstate(injected, profile, completedTaskIds);
 
   // Apply unified jurisdiction filter (fail-closed scope check)
-  const { phases: scopeFiltered } = filterPhasesByJurisdiction(filtered as unknown as PhaseLike<PhaseTask>[], profile.state);
+  const { phases: scopeFiltered, dropped: jurisdictionDropped } = filterPhasesByJurisdiction(filtered as unknown as PhaseLike<PhaseTask>[], profile.state);
+
+  // Apply authorityScope filtering (ROOT-CAUSE filter for trust/probate module leakage)
+  const { phases: authorityFiltered, dropped: authorityDropped } = filterPhasesByAuthorityScope(
+    scopeFiltered as unknown as PhaseLike<PhaseTask>[],
+    profile.estateAuthorityType
+  );
+
+  // Log dropped tasks for audit trail
+  if (authorityDropped.length > 0) {
+    logger.info({
+      estateId: profile.id,
+      estateAuthorityType: profile.estateAuthorityType,
+      droppedTasks: authorityDropped.map(d => d.id),
+      reasons: authorityDropped.map(d => d.reason)
+    }, "Authority scope filtering applied");
+  }
 
   // Apply county overrides with pinning awareness
-  let finalizedPhases = scopeFiltered as unknown as PhaseTaskList[];
+  let finalizedPhases = authorityFiltered as unknown as PhaseTaskList[];
   if (estate.probateCounty && estate.probateCounty.trim() !== "") {
     // Check if overrides have drifted if pinned
     let shouldApply = true;
@@ -1123,7 +1145,8 @@ export async function pinEstateRoadmap(
       roadmapPinnedAt: pinnedAt,
       stateRulesetHash,
       countyOverrideHash,
-      authorityType: profile.activeEngines.includes("TRUST") ? "TRUST" : "PROBATE" // Pinning authority context
+      authorityType: profile.activeEngines.includes("TRUST") ? "TRUST" : "PROBATE", // Pinning authority context
+      estateAuthorityType: profile.estateAuthorityType // Pinning computed authority type
     }
   });
 
