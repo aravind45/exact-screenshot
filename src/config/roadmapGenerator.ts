@@ -330,7 +330,8 @@ function generateTransferOnlyRoadmap(type: AuthorityType, state: string, modifie
         tasks = tasks.filter(t =>
             t.category !== "probate" &&
             (!t.trackCompatibility || t.trackCompatibility.includes(trackTag as any)) &&
-            (!t.applicability?.states || t.applicability.states.includes(state))
+            (!t.applicability?.states || t.applicability.states.includes(state)) &&
+            (!t.applicability?.excludePredicates?.includes(`is${state}`))
         );
 
         // STRIP AUTHORITY REQUIREMENT: In TOD/Transfer tracks, court-issued Letters are NOT the default.
@@ -433,7 +434,10 @@ function generateFiduciaryRoadmap(type: AuthorityType, state: string, modifiers:
         }
 
         // Apply strict state compatibility
-        tasks = tasks.filter(t => !t.applicability?.states || t.applicability.states.includes(state));
+        tasks = tasks.filter(t =>
+            (!t.applicability?.states || t.applicability.states.includes(state)) &&
+            (!t.applicability?.excludePredicates?.includes(`is${state}`))
+        );
 
         // Phase-specific additions and overrides
         if (p.phase === "immediate_actions") {
@@ -615,8 +619,11 @@ function generateProbateRoadmap(type: AuthorityType, state: string, modifiers: s
         // Apply strict track compatibility for Probate
         tasks = tasks.filter(t => !t.trackCompatibility || t.trackCompatibility.includes("PROBATE"));
 
-        // Apply strict state compatibility
-        tasks = tasks.filter(t => !t.applicability?.states || t.applicability.states.includes(state));
+        // Apply strict state compatibility & exclusion predicates
+        tasks = tasks.filter(t =>
+            (!t.applicability?.states || t.applicability.states.includes(state)) &&
+            (!t.applicability?.excludePredicates?.includes(`is${state}`))
+        );
 
         // Will Search vs General Doc Search
         if (hasWill !== undefined) {
@@ -717,7 +724,10 @@ function generateDiscoveryRoadmap(type: AuthorityType, state: string, hasWill?: 
     );
 
     return baseline.map(p => {
-        let tasks = [...p.tasks];
+        let tasks = p.tasks.filter(t =>
+            (!t.applicability?.states || t.applicability.states.includes(state)) &&
+            (!t.applicability?.excludePredicates?.includes(`is${state}`))
+        );
         if (p.phase === "immediate_actions") {
             tasks.unshift({
                 id: "initial_search_protocol",

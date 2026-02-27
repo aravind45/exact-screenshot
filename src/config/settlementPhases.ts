@@ -950,6 +950,41 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         ],
         links: [{ label: "TX Estates Code §51", url: "https://statutes.capitol.texas.gov/Docs/ES/htm/ES.51.htm" }]
       },
+      // ── Ohio-Specific Filing & Support Tasks ──────────────────────────
+      {
+        id: "oh_certificate_of_transfer",
+        title: "File Application for Certificate of Transfer (ORC §2113.61)",
+        description: "In Ohio, real property can be transferred by filing an application for a Certificate of Transfer (ORC §2113.61). The certificate serves as the deed and must be recorded with the county recorder where the property is located.",
+        estimatedTime: "2-4 hours",
+        category: "probate",
+        trackCompatibility: ["PROBATE"],
+        applicability: { states: ["OH"] },
+        isConditional: true,
+        conditionalRequirementLabel: "Required if estate includes Ohio real property",
+        requiredDocs: ["Application for Certificate of Transfer", "Legal Description of Property"],
+        alerts: [{
+          type: "important",
+          message: "The Certificate of Transfer is the primary method for transferring real estate title in Ohio probate. It must be filed with the court and then recorded in the county deed records."
+        }],
+        links: [{ label: "ORC §2113.61", url: "https://codes.ohio.gov/ohio-revised-code/section-2113.61" }]
+      },
+      {
+        id: "oh_family_allowance",
+        title: "Claim Ohio Family Allowance (ORC §2106.13)",
+        description: "The surviving spouse and/or minor children are entitled to a family allowance of $40,000 for support (ORC Chapter 2106). This claim must be filed with the probate court and has priority over most general creditor claims.",
+        estimatedTime: "1-2 hours",
+        category: "probate",
+        trackCompatibility: ["PROBATE"],
+        applicability: { states: ["OH"] },
+        isConditional: true,
+        conditionalRequirementLabel: "Available for surviving spouse or minor children",
+        requiredDocs: ["Family Allowance Claim Form"],
+        alerts: [{
+          type: "info",
+          message: "The $40,000 allowance is a unified amount for the spouse and minor children. It is exempt from most creditors."
+        }],
+        links: [{ label: "ORC Chapter 2106", url: "https://codes.ohio.gov/ohio-revised-code/chapter-2106" }]
+      },
 
       {
         id: "file_fl_disposition_without_admin",
@@ -1192,6 +1227,40 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         ],
         dependencies: ["preliminary_asset_scan"],
         links: [{ label: "NJ Bond Requirements (N.J.S.A. 3B:15-1)", url: "https://www.njcourts.gov/self-help/probate#bond" }]
+      },
+      {
+        id: "nj_elective_share_claim",
+        title: "Elective Share Claim (N.J.S.A. 3B:8-1)",
+        description: "Surviving spouse may file elective share claim within statutory period if they choose to claim a portion of the estate regardless of the Will's provisions (N.J.S.A. 3B:8-1).",
+        estimatedTime: "1-2 hours",
+        category: "probate",
+        trackCompatibility: ["PROBATE"],
+        applicability: { states: ["NJ"] },
+        isOptional: true,
+        alerts: [
+          {
+            type: "info",
+            message: "N.J.S.A. 3B:8-1: Surviving spouse has a right of election to take a one-third share of the augmented estate."
+          },
+          {
+            type: "info",
+            message: "Family Allowance: Reference N.J.S.A. 3B:15-3 for additional spouse/child protection through the family allowance."
+          }
+        ]
+      },
+      {
+        id: "nj_real_property_transfer",
+        title: "Transfer Real Property via Executor’s Deed",
+        description: "Execute and record a deed for the transfer of real property if Power of Sale exists under the Will or NJ statutory default authority.",
+        estimatedTime: "2-4 hours",
+        category: "probate",
+        trackCompatibility: ["PROBATE"],
+        applicability: { states: ["NJ"] },
+        requiresAuthority: true,
+        alerts: [{
+          type: "important",
+          message: "Check for Power of Sale: If the Will doesn't grant Power of Sale, the executor may require court approval or heir consent under N.J.S.A. 3B:14-23."
+        }]
       },
       {
         id: "nj_bond_determination",
@@ -1716,7 +1785,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         isOptional: true,
         requiredDocs: ["Petition Form", "Death Certificate", "Property Deed"],
         applicability: {
-          excludePredicates: ["isOH", "isMN"]
+          excludePredicates: ["isOH", "isMN", "isNJ"]
         },
         stateOverrides: {
           CA: {
@@ -1755,7 +1824,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         dependencies: ["file_succession_petition"],
         requiredDocs: ["Notice of Hearing Form"],
         applicability: {
-          excludePredicates: ["isOH", "isMN"]
+          excludePredicates: ["isOH", "isMN", "isNJ"]
         },
         stateOverrides: {
           CA: {
@@ -1794,7 +1863,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         requiredDocs: ["Court Order"],
         dependencies: ["file_succession_petition", "give_succession_notice"],
         applicability: {
-          excludePredicates: ["isOH", "isMN"]
+          excludePredicates: ["isOH", "isMN", "isNJ"]
         },
         stateOverrides: {
           CA: {
@@ -2324,6 +2393,12 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         applicability: {
           excludePredicates: ["isOH", "isMN"]
         },
+        stateOverrides: {
+          NJ: {
+            title: "6 months from first publication (N.J.S.A. 3B:22-4)",
+            description: "NJ law mandates a 6-month period from the date of first publication for creditors to present claims. (N.J.S.A. 3B:22-4).",
+          }
+        }
       },
       {
         id: "tx_publish_creditor_notice",

@@ -1,0 +1,51 @@
+
+[1m[46m RUN [49m[22m [36mv3.2.4 [39m[90mC:/Users/aravi/Documents/AI_LLM/projects/exact-screenshot[39m
+
+ [31mΓ¥»[39m src/tests/roadmap/oh_roadmap_regression.test.ts [2m([22m[2m10 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[32m 17[2mms[22m[39m
+   [32mΓ£ô[39m OH Roadmap Compliance - Structural Isolation[2m > [22mNO NJ statute citations in OH roadmap[32m 4[2mms[22m[39m
+   [32mΓ£ô[39m OH Roadmap Compliance - Structural Isolation[2m > [22mNO succession petition in OH roadmap[32m 2[2mms[22m[39m
+   [32mΓ£ô[39m OH Roadmap Compliance - Structural Isolation[2m > [22mNO spousal property petition in OH roadmap[32m 2[2mms[22m[39m
+[31m   [31m├ù[31m OH Roadmap Compliance - Structural Isolation[2m > [22mCertificate of Transfer task exists[39m[32m 3[2mms[22m[39m
+[31m     ΓåÆ expected undefined to be defined[39m
+[31m   [31m├ù[31m OH Roadmap Compliance - Structural Isolation[2m > [22mFamily Allowance task exists[39m[32m 2[2mms[22m[39m
+[31m     ΓåÆ expected undefined to be defined[39m
+   [32mΓ£ô[39m OH Roadmap Compliance - Structural Isolation[2m > [22mCreditor deadline is 6 months from date of death[32m 2[2mms[22m[39m
+   [32mΓ£ô[39m OH Roadmap Compliance - Structural Isolation[2m > [22mUses Release from Administration terminology[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m OH Roadmap Compliance - Structural Isolation[2m > [22mNO generic creditor placeholder[32m 1[2mms[22m[39m
+   [32mΓ£ô[39m OH Roadmap Compliance - Structural Isolation[2m > [22mCreditor deadline calculation: dateOfDeath Jan 1 ΓåÆ deadline July 1[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m OH Roadmap Compliance - Structural Isolation[2m > [22mPublication date does NOT affect creditor deadline[32m 0[2mms[22m[39m
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 2 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  src/tests/roadmap/oh_roadmap_regression.test.ts > OH Roadmap Compliance - Structural Isolation > Certificate of Transfer task exists
+AssertionError: expected undefined to be defined
+ Γ¥» src/tests/roadmap/oh_roadmap_regression.test.ts:35:18
+     33| 
+     34|     const task = allTasks.find(t => t.id === "oh_certificate_of_transfΓÇª
+     35|     expect(task).toBeDefined();
+       |                  ^
+     36|     expect(task?.title).toContain("Certificate of Transfer");
+     37|     expect(task?.description).toContain("ORC ┬º2113.61");
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/2]ΓÄ»
+
+ FAIL  src/tests/roadmap/oh_roadmap_regression.test.ts > OH Roadmap Compliance - Structural Isolation > Family Allowance task exists
+AssertionError: expected undefined to be defined
+ Γ¥» src/tests/roadmap/oh_roadmap_regression.test.ts:45:18
+     43| 
+     44|     const task = allTasks.find(t => t.id === "oh_family_allowance");
+     45|     expect(task).toBeDefined();
+       |                  ^
+     46|     expect(task?.description).toContain("ORC Chapter 2106");
+     47|   });
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[2/2]ΓÄ»
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m8 passed[39m[22m[90m (10)[39m
+[2m   Start at [22m 20:04:53
+[2m   Duration [22m 1.33s[2m (transform 116ms, setup 259ms, collect 125ms, tests 17ms, environment 557ms, prepare 117ms)[22m
+
+[1m[7m[35m HTML [39m[27m[22m [35mReport is generated[39m
+[2m       You can run [22m[1mnpx vite preview --outDir test-results[22m[2m to see the test results.[22m
