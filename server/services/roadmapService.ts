@@ -940,6 +940,9 @@ export async function getRoadmapFromDatabase(
 
       return {
         id: task.taskCode,
+        scope: task.scope || 'CORE',
+        allowedStates: task.applicableStates && task.applicableStates.length > 0 ? task.applicableStates : undefined,
+        allowedCounties: task.allowedCounties && task.allowedCounties.length > 0 ? task.allowedCounties : undefined,
         title: stateOverride?.title || task.title,
         description: stateOverride?.description || task.description || task.title,
         estimatedTime: task.estimatedTime || undefined,
