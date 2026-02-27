@@ -1,3 +1,6 @@
+import type { AuthorityScope, EstateAuthorityType } from "../types/authorityScope.js";
+import { deriveEstateAuthorityType } from "../types/authorityScope.js";
+
 /**
  * Unified Jurisdiction Filter — Single Source of Truth
  *
@@ -5,12 +8,18 @@
  * import this. No duplicated filtering logic allowed.
  *
  * Fail-closed: any task without a valid scope is DROPPED.
+ *
+ * FILTERING ORDER (Critical - do not reorder):
+ * 1. State scope (CORE/US-XX) check
+ * 2. AuthorityScope (PROBATE/TRUST/BOTH) check
+ * 3. County overrides (additive)
  */
 
 // Minimal task shape required for filtering — both PhaseTask and DB-mapped tasks conform
 export interface ScopedTask {
     id: string;
     scope?: string;
+    authorityScope?: AuthorityScope;
     allowedStates?: string[];
     allowedCounties?: string[];
     applicability?: {
@@ -20,6 +29,11 @@ export interface ScopedTask {
 }
 
 export interface JurisdictionFilterResult<T extends ScopedTask> {
+    kept: T[];
+    dropped: { id: string; reason: string }[];
+}
+
+export interface AuthorityScopeFilterResult<T extends ScopedTask> {
     kept: T[];
     dropped: { id: string; reason: string }[];
 }
@@ -86,6 +100,62 @@ export function filterTasksByJurisdiction<T extends ScopedTask>(
 }
 
 /**
+ * Filter tasks by authorityScope (PROBATE, TRUST, BOTH).
+ * This is the ROOT-CAUSE filter that prevents trust/probate module leakage.
+ *
+ * Fail-closed rules:
+ * 1. Tasks without authorityScope → default to "BOTH" (backward compatibility)
+ * 2. authorityScope = "BOTH" → always visible
+ * 3. authorityScope = "PROBATE" → visible only if estateAuthorityType is "PROBATE" or "BOTH"
+ * 4. authorityScope = "TRUST" → visible only if estateAuthorityType is "TRUST" or "BOTH"
+ * 5. Unknown authorityScope values → DROP (fail-closed)
+ */
+export function filterTasksByAuthorityScope<T extends ScopedTask>(
+    tasks: T[],
+    estateAuthorityType: EstateAuthorityType
+): AuthorityScopeFilterResult<T> {
+    const kept: T[] = [];
+    const dropped: { id: string; reason: string }[] = [];
+
+    for (const task of tasks) {
+        // Backward compatibility: tasks without authorityScope default to BOTH
+        const taskScope = task.authorityScope;
+
+        // No authorityScope = visible to all (backward compatibility)
+        if (!taskScope) {
+            kept.push(task);
+            continue;
+        }
+
+        // BOTH tasks are always visible
+        if (taskScope === "BOTH") {
+            kept.push(task);
+            continue;
+        }
+
+        // Estate is BOTH: show all tasks
+        if (estateAuthorityType === "BOTH") {
+            kept.push(task);
+            continue;
+        }
+
+        // Exact match required for PROBATE or TRUST
+        if (taskScope === estateAuthorityType) {
+            kept.push(task);
+            continue;
+        }
+
+        // Mismatch → DROP (fail-closed)
+        dropped.push({
+            id: task.id,
+            reason: `authorityScope="${taskScope}" does not match estateAuthorityType="${estateAuthorityType}"`
+        });
+    }
+
+    return { kept, dropped };
+}
+
+/**
  * Phase-level wrapper: filters tasks within each phase, removing empty phases.
  * Returns dropped task report for logging/auditing.
  */
@@ -104,6 +174,25 @@ export function filterPhasesByJurisdiction<T extends ScopedTask>(
 
     const filteredPhases = phases.map(phase => {
         const { kept, dropped } = filterTasksByJurisdiction(phase.tasks, stateCode, county);
+        allDropped.push(...dropped);
+        return { ...phase, tasks: kept };
+    });
+
+    return { phases: filteredPhases, dropped: allDropped };
+}
+
+/**
+ * Phase-level wrapper for authorityScope filtering.
+ * Filters tasks within each phase based on estateAuthorityType.
+ */
+export function filterPhasesByAuthorityScope<T extends ScopedTask>(
+    phases: PhaseLike<T>[],
+    estateAuthorityType: EstateAuthorityType
+): { phases: PhaseLike<T>[]; dropped: { id: string; reason: string }[] } {
+    const allDropped: { id: string; reason: string }[] = [];
+
+    const filteredPhases = phases.map(phase => {
+        const { kept, dropped } = filterTasksByAuthorityScope(phase.tasks, estateAuthorityType);
         allDropped.push(...dropped);
         return { ...phase, tasks: kept };
     });
