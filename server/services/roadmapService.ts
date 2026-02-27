@@ -999,7 +999,7 @@ export async function getRoadmapFromDatabase(
 
   // Apply county overrides with pinning awareness
   let finalizedPhases = scopeFiltered as unknown as PhaseTaskList[];
-  if (estate.probateCounty) {
+  if (estate.probateCounty && estate.probateCounty.trim() !== "") {
     // Check if overrides have drifted if pinned
     let shouldApply = true;
     if (estate.countyOverrideHash) {
