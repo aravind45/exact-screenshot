@@ -5,7 +5,7 @@ import { calculateAuthorityRecommendation } from "../../src/lib/authorityEngine.
 import { AuthoritySource, ProcedureType, DistributionModel, getLettersTerm, getStateRule } from "../../src/lib/stateRules.js";
 import { logger } from "../lib/logger.js";
 import { CountyOverrideService } from "./countyOverrideService.js";
-import { filterPhasesByJurisdiction, filterTasksByAuthorityScope, type PhaseLike } from "../../src/shared/filterByJurisdiction.js";
+import { filterPhasesByJurisdiction, filterPhasesByAuthorityScope, filterTasksByAuthorityScope, type PhaseLike } from "../../src/shared/filterByJurisdiction.js";
 import { deriveEstateAuthorityType, type EstateAuthorityType } from "../../src/types/authorityScope.js";
 import {
   computeAuthorityRecommendation,
