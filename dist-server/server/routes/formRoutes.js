@@ -14,6 +14,8 @@ import { TXFormService } from "../services/txFormService.js";
 import { TX_FORM_REGISTRY, TX_FORM_TITLES } from "../services/txFormRegistry.js";
 import { FLFormService } from "../services/flFormService.js";
 import { FL_FORM_REGISTRY, FL_FORM_TITLES } from "../services/flFormRegistry.js";
+import { NJFormService } from "../services/njFormService.js";
+import { NJ_FORM_REGISTRY, NJ_FORM_TITLES } from "../services/njFormRegistry.js";
 const router = Router();
 router.use(requireSubscription);
 const getEstateId = async (userId) => {
@@ -129,18 +131,24 @@ router.get("/readiness", async (req, res) => {
             'FL-14': entry(hasDecedentInfo, "Disposition without administration affidavit.", "READY", "LOCKED", "AFFIDAVIT_SMALL"),
             'FL-15': entry(hasDecedentInfo, "Requires estate information for family allowance.", "READY", "LOCKED"),
         };
+        // --- New Jersey (NJ-*) ---
+        const njReadiness = {
+            'NJ-1': entry(hasDecedentInfo, "Requires decedent information.", "READY", "LOCKED"),
+            'NJ-2': entry(hasDecedentInfo, "Requires petitioner and decedent information.", "READY", "LOCKED"),
+        };
         // Return readiness for the estate's state, or all states if query param requests it
         const requestedState = req.query.state?.toUpperCase() || estateState;
         const stateMap = {
             CA: caReadiness,
             NY: nyReadiness,
             TX: txReadiness,
-            FL: flReadiness
+            FL: flReadiness,
+            NJ: njReadiness
         };
         // Always include the estate's state; if "all" requested, merge everything
         let readiness;
         if (requestedState === 'ALL') {
-            readiness = { ...caReadiness, ...nyReadiness, ...txReadiness, ...flReadiness };
+            readiness = { ...caReadiness, ...nyReadiness, ...txReadiness, ...flReadiness, ...njReadiness };
         }
         else {
             readiness = stateMap[requestedState] || caReadiness;
@@ -593,6 +601,93 @@ router.post("/fl/generate", async (req, res) => {
     catch (e) {
         logger.error(`Error generating FL form ${req.body?.formId}:`, e.message);
         res.status(500).json({ error: "Failed to generate FL form" });
+    }
+});
+// ─── NJ Form Auto-Fill Endpoints ───────────────────────────────────────────────
+// GET /api/forms/nj/schema/:formId - Return UI field schema for a NJ form
+router.get("/nj/schema/:formId", async (req, res) => {
+    try {
+        const formId = req.params.formId;
+        if (!NJ_FORM_REGISTRY[formId]) {
+            return res.status(404).json({ error: `No schema found for form ${formId}` });
+        }
+        const schema = NJFormService.getUISchema(formId);
+        res.json({ formId, title: NJ_FORM_TITLES[formId] || formId, schema });
+    }
+    catch (e) {
+        logger.error(`Error fetching NJ form schema for ${req.params.formId}:`, e.message);
+        res.status(500).json({ error: "Failed to fetch form schema" });
+    }
+});
+// POST /api/forms/nj/preview - Resolve field values without generating PDF (for UI preview)
+router.post("/nj/preview", async (req, res) => {
+    try {
+        const { formId, overrides = {} } = req.body;
+        if (!formId)
+            return res.status(400).json({ error: "formId is required" });
+        if (!NJ_FORM_REGISTRY[formId]) {
+            return res.status(400).json({ error: `Unsupported NJ form: ${formId}` });
+        }
+        const estateId = await getEstateId(req.user.id);
+        if (!estateId)
+            return res.status(404).json({ error: "Estate not found" });
+        const estate = await prisma.estate.findUnique({
+            where: { id: estateId },
+            include: { user: true },
+        });
+        if (!estate)
+            return res.status(404).json({ error: "Estate data not found" });
+        const assets = await prisma.asset.findMany({ where: { estateId } });
+        const heirs = await prisma.heir.findMany({ where: { estateId } });
+        const { fieldValues, validationErrors } = NJFormService.resolveFields({
+            formId: formId,
+            estate: { ...estate, ...overrides },
+            assets,
+            heirs,
+            overrides,
+        });
+        res.json({ formId, fieldValues, validationErrors });
+    }
+    catch (e) {
+        logger.error(`Error previewing NJ form ${req.body?.formId}:`, e.message);
+        res.status(500).json({ error: "Failed to preview form fields" });
+    }
+});
+// POST /api/forms/nj/generate - Generate and return filled NJ form PDF
+router.post("/nj/generate", async (req, res) => {
+    try {
+        const { formId, isPreview = false, overrides = {} } = req.body;
+        if (!formId)
+            return res.status(400).json({ error: "formId is required" });
+        if (!NJ_FORM_REGISTRY[formId]) {
+            return res.status(400).json({ error: `Unsupported NJ form: ${formId}` });
+        }
+        const estateId = await getEstateId(req.user.id);
+        if (!estateId)
+            return res.status(404).json({ error: "Estate not found" });
+        const estate = await prisma.estate.findUnique({
+            where: { id: estateId },
+            include: { user: true },
+        });
+        if (!estate)
+            return res.status(404).json({ error: "Estate data not found" });
+        const assets = await prisma.asset.findMany({ where: { estateId } });
+        const heirs = await prisma.heir.findMany({ where: { estateId } });
+        const result = await NJFormService.generate({
+            formId: formId,
+            estate,
+            assets,
+            heirs,
+            overrides,
+        });
+        await DistributionService.logEvent(estateId, req.user.id, isPreview ? 'VIEWED' : 'PREPARED', `${isPreview ? 'PREVIEWED' : 'PREPARED'} – ${formId} (NJ Auto-Fill)`);
+        res.setHeader("Content-Type", "application/pdf");
+        res.setHeader("Content-Disposition", `${isPreview ? 'inline' : 'attachment'}; filename="${formId}.pdf"`);
+        res.send(Buffer.from(result.pdfBytes));
+    }
+    catch (e) {
+        logger.error(`Error generating NJ form ${req.body?.formId}:`, e.message);
+        res.status(500).json({ error: "Failed to generate NJ form" });
     }
 });
 export default router;

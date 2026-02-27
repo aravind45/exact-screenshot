@@ -15,6 +15,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { AuthorityBadge, AuthorityType } from "@/components/AuthorityBadge";
 import { CAFormAutoFillDialog } from "@/components/CAFormAutoFillDialog";
 import { NYFormAutoFillDialog } from "@/components/NYFormAutoFillDialog";
+import { NJFormAutoFillDialog } from "@/components/NJFormAutoFillDialog";
 
 const STATES = [
     { id: "AL", name: "Alabama", icon: "🏛️", supported: false },
@@ -47,7 +48,7 @@ const STATES = [
     { id: "NE", name: "Nebraska", icon: "🌾", supported: false },
     { id: "NV", name: "Nevada", icon: "🎰", supported: false },
     { id: "NH", name: "New Hampshire", icon: "🍁", supported: false },
-    { id: "NJ", name: "New Jersey", icon: "🏖️", supported: false },
+    { id: "NJ", name: "New Jersey", icon: "🏖️", supported: true },
     { id: "NM", name: "New Mexico", icon: "🌶️", supported: false },
     { id: "NY", name: "New York", icon: "🗽", supported: true },
     { id: "NC", name: "North Carolina", icon: "🏔️", supported: false },
@@ -96,6 +97,9 @@ const FORM_CONTEXTS: Record<string, string> = {
     'FL-5': "Authority → Letters of Administration",
     'FL-6': "Asset Discovery → Inventory Phase",
     'FL-7': "Creditor Notification → Notice Phase",
+    // New Jersey (NJ-*)
+    'NJ-1': "Probate Initialization → Surrogate's Court",
+    'NJ-2': "Notice → Authorization",
 };
 
 // Map form IDs to process categories
@@ -150,7 +154,8 @@ const DynamicIcon = ({ name, className }: { name: string, className?: string }) 
 
 const CA_AUTO_FILL_FORMS = new Set(['DE-111', 'DE-160', 'DE-310']);
 const NY_AUTO_FILL_FORMS = new Set(['ET-1', 'ET-2', 'ET-3', 'ET-8', 'ET-13']);
-const AUTO_FILL_FORMS = new Set([...CA_AUTO_FILL_FORMS, ...NY_AUTO_FILL_FORMS]);
+const NJ_AUTO_FILL_FORMS = new Set(['NJ-1', 'NJ-2']);
+const AUTO_FILL_FORMS = new Set([...CA_AUTO_FILL_FORMS, ...NY_AUTO_FILL_FORMS, ...NJ_AUTO_FILL_FORMS]);
 
 const Forms = () => {
     const [selectedState, setSelectedState] = useState("CA");
@@ -160,6 +165,7 @@ const Forms = () => {
     const [loadingAction, setLoadingAction] = useState<string | null>(null);
     const [caAutoFillForm, setCaAutoFillForm] = useState<{ id: string; title: string } | null>(null);
     const [nyAutoFillForm, setNyAutoFillForm] = useState<{ id: string; title: string } | null>(null);
+    const [njAutoFillForm, setNjAutoFillForm] = useState<{ id: string; title: string } | null>(null);
 
     const stateName = STATES.find(s => s.id === selectedState)?.name || selectedState;
 
@@ -475,6 +481,8 @@ const Forms = () => {
                                                                                         setCaAutoFillForm({ id: form.name, title: form.title });
                                                                                     } else if (NY_AUTO_FILL_FORMS.has(form.name)) {
                                                                                         setNyAutoFillForm({ id: form.name, title: form.title });
+                                                                                    } else if (NJ_AUTO_FILL_FORMS.has(form.name)) {
+                                                                                        setNjAutoFillForm({ id: form.name, title: form.title });
                                                                                     } else {
                                                                                         handleFormAction(form.name, false);
                                                                                     }
@@ -551,6 +559,15 @@ const Forms = () => {
                     onOpenChange={open => { if (!open) setNyAutoFillForm(null); }}
                     formId={nyAutoFillForm.id}
                     formTitle={nyAutoFillForm.title}
+                />
+            )}
+
+            {njAutoFillForm && (
+                <NJFormAutoFillDialog
+                    open={!!njAutoFillForm}
+                    onOpenChange={open => { if (!open) setNjAutoFillForm(null); }}
+                    formId={njAutoFillForm.id}
+                    formTitle={njAutoFillForm.title}
                 />
             )}
         </div>

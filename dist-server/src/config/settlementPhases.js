@@ -909,6 +909,64 @@ export const SETTLEMENT_PHASE_TASKS = [
                         message: "This simplified path avoids full probate for very small GA estates."
                     }]
             },
+            // ── GA Year's Support Workflow (3 tasks) ──────────────────────────────────
+            {
+                id: "ga_years_support_petition",
+                title: "File Petition for Year's Support (O.C.G.A. §53-3-1)",
+                description: "Surviving spouse and/or minor children may petition for a Year's Support award. This proceeding can take priority over creditor claims and provides a 12-month maintenance allowance for the family.",
+                estimatedTime: "2-4 hours",
+                category: "probate",
+                trackCompatibility: ["PROBATE"],
+                applicability: { states: ["GA"] },
+                isConditional: true,
+                conditionalRequirementLabel: "Available if surviving spouse or minor children exist",
+                requiredDocs: ["Petition for Year's Support", "Death Certificate", "Asset Schedule", "Family Budget/Needs Statement"],
+                alerts: [
+                    {
+                        type: "important",
+                        message: "Priority Claim: Year's Support awards take priority over most creditor claims under Georgia law. This is a key protection for surviving families."
+                    },
+                    {
+                        type: "info",
+                        message: "Year's Support can include personal property, real property, or both. The court considers the family's needs and the estate's value."
+                    }
+                ],
+                links: [{
+                        label: "O.C.G.A. §53-3-1",
+                        url: "https://law.justia.com/codes/georgia/2022/title-53/chapter-3/article-1/"
+                    }]
+            },
+            {
+                id: "ga_years_support_citation",
+                title: "Issue Citation for Year's Support (GA)",
+                description: "The probate court will issue citation to be served on interested parties. Citation must be published and/or served to heirs and creditors.",
+                estimatedTime: "1-2 weeks",
+                category: "probate",
+                trackCompatibility: ["PROBATE"],
+                applicability: { states: ["GA"] },
+                dependencies: ["ga_years_support_petition"],
+                requiredDocs: ["Citation", "Proof of Service or Publication"],
+                alerts: [{
+                        type: "info",
+                        message: "Objections to Year's Support must be filed within the time specified in the citation (typically 10 days after service or 30 days after publication)."
+                    }]
+            },
+            {
+                id: "ga_years_support_order",
+                title: "Obtain Year's Support Order (GA)",
+                description: "Receive court order granting Year's Support award. If real property is involved, record the order with the county clerk to transfer title.",
+                estimatedTime: "2-4 weeks after petition",
+                category: "court-issued",
+                trackCompatibility: ["PROBATE"],
+                applicability: { states: ["GA"] },
+                dependencies: ["ga_years_support_petition", "ga_years_support_citation"],
+                requiredDocs: ["Year's Support Order"],
+                outputs: ["Year's Support Award", "Recorded Order (if real property)"],
+                alerts: [{
+                        type: "important",
+                        message: "If real property is awarded as Year's Support, record the certified order with the county clerk where the property is located to transfer title."
+                    }]
+            },
             {
                 id: "file_ma_informal_probate",
                 title: "File Informal Probate Petition (MUPC)",
@@ -1452,6 +1510,15 @@ export const SETTLEMENT_PHASE_TASKS = [
                                 type: "important",
                                 message: "30-Day Wait Required: Minnesota law requires waiting 30 days after the date of death before filing the Small Estate Affidavit (MN Stat. §524.3-1201)."
                             }],
+                    },
+                    OH: {
+                        title: "Apply for Release from Administration (OH)",
+                        description: "Apply for Release from Administration when estate value falls below Ohio statutory threshold (ORC §2113.03). Summary Release from Administration may be available for qualifying estates.",
+                        estimatedTime: "2-4 weeks",
+                        alerts: [
+                            { type: "info", message: "Ohio Threshold: Release from Administration is available for estates under $35,000 ($100,000 if surviving spouse is sole heir)." }
+                        ],
+                        links: [{ label: "ORC §2113.03", url: "https://codes.ohio.gov/ohio-revised-code/2113.03" }]
                     }
                 }
             },
@@ -1466,7 +1533,7 @@ export const SETTLEMENT_PHASE_TASKS = [
                 helpArticleId: "spousal-property",
                 requiredDocs: ["Petition Form", "Death Certificate"],
                 applicability: {
-                    excludePredicates: ["isNJ"]
+                    excludePredicates: ["isNJ", "isOH"]
                 }
             },
             {
@@ -1479,7 +1546,7 @@ export const SETTLEMENT_PHASE_TASKS = [
                 dependencies: ["file_spousal_petition"],
                 requiredDocs: ["Notice of Hearing Form"],
                 applicability: {
-                    excludePredicates: ["isNJ"]
+                    excludePredicates: ["isNJ", "isOH"]
                 },
                 alerts: [{
                         type: "important",
@@ -1496,7 +1563,7 @@ export const SETTLEMENT_PHASE_TASKS = [
                 dependencies: ["give_spousal_notice"],
                 requiredDocs: ["Court Order"],
                 applicability: {
-                    excludePredicates: ["isNJ"]
+                    excludePredicates: ["isNJ", "isOH"]
                 },
                 alerts: [{
                         type: "important",
@@ -1534,6 +1601,9 @@ export const SETTLEMENT_PHASE_TASKS = [
                 exclusiveGroup: "filing_path",
                 isOptional: true,
                 requiredDocs: ["Petition Form", "Death Certificate", "Property Deed"],
+                applicability: {
+                    excludePredicates: ["isOH", "isMN"]
+                },
                 stateOverrides: {
                     CA: {
                         description: "File petition with court to determine who inherits the primary residence without full probate (CA Prob. Code §13150).",
@@ -1570,6 +1640,9 @@ export const SETTLEMENT_PHASE_TASKS = [
                 isOptional: true,
                 dependencies: ["file_succession_petition"],
                 requiredDocs: ["Notice of Hearing Form"],
+                applicability: {
+                    excludePredicates: ["isOH", "isMN"]
+                },
                 stateOverrides: {
                     CA: {
                         description: "Notify all interested parties of the hearing date for the succession petition (CA Prob. Code §13152).",
@@ -1606,6 +1679,9 @@ export const SETTLEMENT_PHASE_TASKS = [
                 isOptional: true,
                 requiredDocs: ["Court Order"],
                 dependencies: ["file_succession_petition", "give_succession_notice"],
+                applicability: {
+                    excludePredicates: ["isOH", "isMN"]
+                },
                 stateOverrides: {
                     CA: {
                         description: "Receive court order determining property succession and record it with the county recorder (CA Prob. Code §13154).",
@@ -2020,7 +2096,31 @@ export const SETTLEMENT_PHASE_TASKS = [
                                 type: "info",
                                 message: "Minnesota does not require publication, but it provides a clear 'later of' deadline: 4 months from publication OR 1 month from mailed notice to known creditors."
                             }
-                        ]
+                        ],
+                        links: [{
+                                label: "MN Stat. §524.3-801",
+                                url: "https://www.revisor.mn.gov/statutes/cite/524.3-801"
+                            }]
+                    },
+                    GA: {
+                        title: "Publish Notice to Creditors (Required - Georgia)",
+                        description: "Georgia requires publication of notice to creditors in the county where the estate is being administered. This triggers the 3-month claim bar under O.C.G.A. §53-7-41.",
+                        isOptional: false,
+                        requiredDocs: ["Notice to Creditors", "Publication Proof"],
+                        alerts: [
+                            {
+                                type: "important",
+                                message: "REQUIRED: Publication triggers the 3-month claim period in Georgia. Without publication, the claim period may not be triggered."
+                            },
+                            {
+                                type: "info",
+                                message: "Publication must run in the official county newspaper for 4 consecutive weeks. File proof of publication with the probate court."
+                            }
+                        ],
+                        links: [{
+                                label: "O.C.G.A. §53-7-40",
+                                url: "https://law.justia.com/codes/georgia/2022/title-53/chapter-7/article-4/"
+                            }]
                     }
                 }
             },
@@ -2106,6 +2206,9 @@ export const SETTLEMENT_PHASE_TASKS = [
                 estimatedTime: "State-specific",
                 // Publication is not a universal trigger; do not hard-depend on it.
                 dependencies: [],
+                applicability: {
+                    excludePredicates: ["isOH", "isMN"]
+                },
             },
             {
                 id: "tx_publish_creditor_notice",
@@ -2206,20 +2309,27 @@ export const SETTLEMENT_PHASE_TASKS = [
                         estimatedTime: "12 months"
                     },
                     OH: {
-                        title: "6-Month Claim Window – Triggered by First Publication (N.J.S.A. 3B:22-4)",
-                        description: "In Ohio, creditors have 6 months from the date of the fiduciary's appointment to present claims (ORC §2117.06).",
-                        estimatedTime: "6 months",
-                        dependencies: ["receive_letters_testamentary", "receive_letters_administration"],
+                        title: "Monitor Ohio 6-Month Creditor Claim Period",
+                        description: "Ohio Creditor Deadline: Claims must be presented within 6 months from the decedent's date of death (ORC §2117.06). Publication under ORC §2117.07 is required but does NOT shorten the 6-month bar.",
+                        estimatedTime: "6 months from date of death",
+                        alerts: [{
+                                type: "important",
+                                message: "Fixed Deadline: The 6-month claim period starts from the date of death, not from publication or appointment. Claims presented after 6 months are barred."
+                            }]
                     },
                     IL: {
-                        title: "6-Month Claim Window – Triggered by First Publication (N.J.S.A. 3B:22-4)",
+                        title: "6-Month Claim Window - Illinois Creditor Claims (755 ILCS 5/18-12)",
                         description: "In Illinois, creditors have 6 months from the date of first publication of the death notice to file claims (755 ILCS 5/18-12).",
                         estimatedTime: "6 months"
                     },
                     GA: {
-                        title: "Monitor 3-Month Creditor Claim Period",
-                        description: "In Georgia, creditors have 3 months from the date of publication of the notice to creditors to file claims (OCGA §53-7-41).",
-                        estimatedTime: "3 months"
+                        title: "Monitor Georgia 3-Month Creditor Claim Period",
+                        description: "Georgia Creditor Deadline: Claims are barred 3 months after publication of notice (O.C.G.A. §53-7-41). Publication is required to trigger the 3-month bar.",
+                        estimatedTime: "3 months from publication",
+                        alerts: [{
+                                type: "important",
+                                message: "Publication Required: Georgia requires publication to trigger the 3-month claim bar. Without publication, the claim period may not be triggered."
+                            }]
                     },
                     NJ: {
                         title: "6-Month Claim Window – Triggered by First Publication (N.J.S.A. 3B:22-4)",
@@ -2233,8 +2343,22 @@ export const SETTLEMENT_PHASE_TASKS = [
                     },
                     MN: {
                         title: "Monitor Minnesota Creditor Deadline",
-                        description: "Minnesota Creditor Deadline: Claims are barred 4 months after first publication of notice OR 1 month after mailed notice to a known creditor, whichever is later (MN Stat. §524.3-801).",
-                        estimatedTime: "Later of 4 months after publication or 1 month after mailed notice"
+                        description: "Minnesota Creditor Deadline: Claims are barred the later of: (1) 4 months after first publication of notice, OR (2) 1 month after mailed notice to a known creditor (MN Stat. §524.3-801). Publication is optional but triggers the 4-month bar.",
+                        estimatedTime: "Later of 4 months after publication or 1 month after mailed notice",
+                        alerts: [
+                            {
+                                type: "important",
+                                message: "Later Of Formula: The deadline is MAX(4 months from publication, 1 month from mailed notice to known creditor). If no publication occurs, extended creditor exposure may apply."
+                            },
+                            {
+                                type: "info",
+                                message: "Publication triggers the 4-month claim bar. Without publication, creditors may have extended exposure under general limitations."
+                            }
+                        ],
+                        links: [{
+                                label: "MN Stat. §524.3-801",
+                                url: "https://www.revisor.mn.gov/statutes/cite/524.3-801"
+                            }]
                     }
                 },
                 alerts: [
@@ -2522,6 +2646,35 @@ export const SETTLEMENT_PHASE_TASKS = [
                         ]
                     },
                 },
+            },
+            // ── GA Deed of Assent Task ──────────────────────────────────
+            {
+                id: "ga_deed_of_assent",
+                title: "Execute and Record Deed of Assent (O.C.G.A. §53-8-15)",
+                description: "Transfer title to real property from the estate to heirs or beneficiaries by executing and recording a Deed of Assent. This is Georgia's standard method for transferring estate real property.",
+                estimatedTime: "1-2 hours",
+                category: "probate",
+                trackCompatibility: ["PROBATE"],
+                applicability: { states: ["GA"] },
+                isConditional: true,
+                conditionalRequirementLabel: "Required if estate includes real property to be distributed to heirs/beneficiaries",
+                requiresAuthority: true,
+                requiredDocs: ["Letters Testamentary or Letters of Administration", "Deed of Assent", "Property Description"],
+                tags: ["fiduciary", "statutory"],
+                alerts: [
+                    {
+                        type: "info",
+                        message: "Georgia Standard: Georgia uses the Deed of Assent (not succession petitions) to transfer real property from estates to heirs/beneficiaries."
+                    },
+                    {
+                        type: "important",
+                        message: "Record the Deed of Assent with the county clerk where the property is located. The deed must be signed by the executor/administrator."
+                    }
+                ],
+                links: [{
+                        label: "O.C.G.A. §53-8-15",
+                        url: "https://law.justia.com/codes/georgia/2022/title-53/chapter-8/"
+                    }]
             },
             {
                 id: "file_form_1041",
@@ -2853,21 +3006,6 @@ export const SETTLEMENT_PHASE_TASKS = [
                         message: "FL homestead is exempt from forced sale by creditors and has special descent rules. Do not sell homestead property without legal review."
                     }],
                 links: [{ label: "FL Stat. §732.401", url: "http://www.leg.state.fl.us/statutes/index.cfm?App_mode=Display_Statute&URL=0700-0799/0732/Sections/0732.401.html" }]
-            },
-            {
-                id: "ga_years_support",
-                title: "File Petition for Year's Support (GA)",
-                description: "In Georgia, a surviving spouse or minor children may petition for a 'Year's Support' — an award from the estate to provide for their maintenance for 12 months. This takes priority over most other claims.",
-                estimatedTime: "2-4 hours",
-                category: "probate",
-                applicability: { states: ["GA"] },
-                isConditional: true,
-                conditionalRequirementLabel: "Available for surviving spouse or minor children in GA",
-                requiredDocs: ["Petition for Year's Support", "Death Certificate"],
-                alerts: [{
-                        type: "info",
-                        message: "O.C.G.A. § 53-3-1 — Year's Support takes priority over all debts except those secured by specific property."
-                    }]
             },
             // ── End State-Specific Final Distribution Tasks ───────────────────
             {

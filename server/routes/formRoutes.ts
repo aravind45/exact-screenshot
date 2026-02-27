@@ -14,6 +14,8 @@ import { TXFormService } from "../services/txFormService.js";
 import { TX_FORM_REGISTRY, TX_FORM_TITLES, type TXFormId } from "../services/txFormRegistry.js";
 import { FLFormService } from "../services/flFormService.js";
 import { FL_FORM_REGISTRY, FL_FORM_TITLES, type FLFormId } from "../services/flFormRegistry.js";
+import { NJFormService } from "../services/njFormService.js";
+import { NJ_FORM_REGISTRY, NJ_FORM_TITLES, type NJFormId } from "../services/njFormRegistry.js";
 
 const router = Router();
 router.use(requireSubscription);
@@ -88,15 +90,15 @@ router.get("/readiness", async (req: any, res: Response) => {
 
         // --- New York (ET-*) ---
         const nyReadiness: Record<string, any> = {
-            'ET-1':  entry(hasDecedentInfo, "Requires decedent name, address, and date of death.", "READY", "LOCKED"),
-            'ET-2':  entry(hasDecedentInfo, "Requires decedent and heir information.", "READY", "LOCKED"),
-            'ET-3':  entry(hasDecedentInfo, "Requires decedent name and domicile.", "READY", "LOCKED"),
-            'ET-4':  entry(isAppointed, "Requires Letters Testamentary or Administration to be issued.", "READY (Letters Issued)", "PENDING COURT ORDER"),
-            'ET-5':  entry(isAppointed, "Requires court appointment before filing.", "READY", "PENDING COURT ORDER"),
-            'ET-6':  entry(isAppointed, "Can be prepared after appointment.", "READY", "PENDING COURT ORDER"),
-            'ET-7':  entry(hasInventory, "Appropriate once assets have been discovered and valued.", "READY (Inventory Open)", "COLLECTING ASSETS"),
-            'ET-8':  entry(isAppointed, "Requires Letters to be issued for creditor notice.", "READY", "PENDING COURT ORDER"),
-            'ET-9':  entry(hasInventory, "Requires accounting data from estate administration.", "READY", "COLLECTING DATA"),
+            'ET-1': entry(hasDecedentInfo, "Requires decedent name, address, and date of death.", "READY", "LOCKED"),
+            'ET-2': entry(hasDecedentInfo, "Requires decedent and heir information.", "READY", "LOCKED"),
+            'ET-3': entry(hasDecedentInfo, "Requires decedent name and domicile.", "READY", "LOCKED"),
+            'ET-4': entry(isAppointed, "Requires Letters Testamentary or Administration to be issued.", "READY (Letters Issued)", "PENDING COURT ORDER"),
+            'ET-5': entry(isAppointed, "Requires court appointment before filing.", "READY", "PENDING COURT ORDER"),
+            'ET-6': entry(isAppointed, "Can be prepared after appointment.", "READY", "PENDING COURT ORDER"),
+            'ET-7': entry(hasInventory, "Appropriate once assets have been discovered and valued.", "READY (Inventory Open)", "COLLECTING ASSETS"),
+            'ET-8': entry(isAppointed, "Requires Letters to be issued for creditor notice.", "READY", "PENDING COURT ORDER"),
+            'ET-9': entry(hasInventory, "Requires accounting data from estate administration.", "READY", "COLLECTING DATA"),
             'ET-10': entry(hasInventory, "Requires accounting data.", "READY", "COLLECTING DATA"),
             'ET-11': entry(hasInventory, "Requires estate accounting to be completed.", "READY", "COLLECTING DATA"),
             'ET-12': entry(hasInventory, "Requires final accounting.", "READY", "COLLECTING DATA"),
@@ -107,15 +109,15 @@ router.get("/readiness", async (req: any, res: Response) => {
 
         // --- Texas (TX-*) ---
         const txReadiness: Record<string, any> = {
-            'TX-1':  entry(hasDecedentInfo, "Requires decedent name, date of death, and county.", "READY", "LOCKED"),
-            'TX-2':  entry(hasDecedentInfo, "Requires decedent and heir information.", "READY", "LOCKED"),
-            'TX-3':  entry(hasDecedentInfo, "Requires will and decedent information.", "READY", "LOCKED"),
-            'TX-4':  entry(isAppointed, "Requires court appointment.", "READY (Letters Issued)", "PENDING COURT ORDER"),
-            'TX-5':  entry(hasInventory, "Requires asset inventory data.", "READY (Inventory Open)", "COLLECTING ASSETS"),
-            'TX-6':  entry(isAppointed, "Requires Letters Testamentary.", "READY", "PENDING COURT ORDER"),
-            'TX-7':  entry(isAppointed, "Requires appointment for creditor notice.", "READY", "PENDING COURT ORDER"),
-            'TX-8':  entry(hasInventory, "Requires estate accounting.", "READY", "COLLECTING DATA"),
-            'TX-9':  entry(hasInventory, "Requires final accounting.", "READY", "COLLECTING DATA"),
+            'TX-1': entry(hasDecedentInfo, "Requires decedent name, date of death, and county.", "READY", "LOCKED"),
+            'TX-2': entry(hasDecedentInfo, "Requires decedent and heir information.", "READY", "LOCKED"),
+            'TX-3': entry(hasDecedentInfo, "Requires will and decedent information.", "READY", "LOCKED"),
+            'TX-4': entry(isAppointed, "Requires court appointment.", "READY (Letters Issued)", "PENDING COURT ORDER"),
+            'TX-5': entry(hasInventory, "Requires asset inventory data.", "READY (Inventory Open)", "COLLECTING ASSETS"),
+            'TX-6': entry(isAppointed, "Requires Letters Testamentary.", "READY", "PENDING COURT ORDER"),
+            'TX-7': entry(isAppointed, "Requires appointment for creditor notice.", "READY", "PENDING COURT ORDER"),
+            'TX-8': entry(hasInventory, "Requires estate accounting.", "READY", "COLLECTING DATA"),
+            'TX-9': entry(hasInventory, "Requires final accounting.", "READY", "COLLECTING DATA"),
             'TX-10': entry(hasInventory, "Requires completed administration for closing.", "READY", "COLLECTING DATA"),
             'TX-11': entry(hasDecedentInfo, "Small estate affidavit — requires decedent info and asset values.", "READY", "LOCKED", "AFFIDAVIT_SMALL"),
             'TX-12': entry(hasDecedentInfo, "Requires estate and beneficiary info for Muniment of Title.", "READY", "LOCKED"),
@@ -123,21 +125,27 @@ router.get("/readiness", async (req: any, res: Response) => {
 
         // --- Florida (FL-*) ---
         const flReadiness: Record<string, any> = {
-            'FL-1':  entry(hasDecedentInfo, "Requires decedent name, date of death, and county.", "READY", "LOCKED"),
-            'FL-2':  entry(hasDecedentInfo, "Summary administration — requires decedent info and estate value.", "READY", "LOCKED", "AFFIDAVIT_SMALL"),
-            'FL-3':  entry(hasDecedentInfo, "Requires decedent and estate information.", "READY", "LOCKED"),
-            'FL-4':  entry(isAppointed, "Requires court appointment.", "READY (Letters Issued)", "PENDING COURT ORDER"),
-            'FL-5':  entry(hasDecedentInfo, "Requires will and decedent information.", "READY", "LOCKED"),
-            'FL-6':  entry(isAppointed, "Requires Letters of Administration.", "READY", "PENDING COURT ORDER"),
-            'FL-7':  entry(isAppointed, "Requires appointment for creditor notice.", "READY", "PENDING COURT ORDER"),
-            'FL-8':  entry(hasInventory, "Requires asset inventory data.", "READY (Inventory Open)", "COLLECTING ASSETS"),
-            'FL-9':  entry(hasInventory, "Requires estate accounting data.", "READY", "COLLECTING DATA"),
+            'FL-1': entry(hasDecedentInfo, "Requires decedent name, date of death, and county.", "READY", "LOCKED"),
+            'FL-2': entry(hasDecedentInfo, "Summary administration — requires decedent info and estate value.", "READY", "LOCKED", "AFFIDAVIT_SMALL"),
+            'FL-3': entry(hasDecedentInfo, "Requires decedent and estate information.", "READY", "LOCKED"),
+            'FL-4': entry(isAppointed, "Requires court appointment.", "READY (Letters Issued)", "PENDING COURT ORDER"),
+            'FL-5': entry(hasDecedentInfo, "Requires will and decedent information.", "READY", "LOCKED"),
+            'FL-6': entry(isAppointed, "Requires Letters of Administration.", "READY", "PENDING COURT ORDER"),
+            'FL-7': entry(isAppointed, "Requires appointment for creditor notice.", "READY", "PENDING COURT ORDER"),
+            'FL-8': entry(hasInventory, "Requires asset inventory data.", "READY (Inventory Open)", "COLLECTING ASSETS"),
+            'FL-9': entry(hasInventory, "Requires estate accounting data.", "READY", "COLLECTING DATA"),
             'FL-10': entry(hasInventory, "Requires accounting data.", "READY", "COLLECTING DATA"),
             'FL-11': entry(hasInventory, "Requires final accounting.", "READY", "COLLECTING DATA"),
             'FL-12': entry(hasInventory, "Requires completed administration for closing.", "READY", "COLLECTING DATA"),
             'FL-13': entry(hasDecedentInfo, "Requires estate and beneficiary info.", "READY", "LOCKED"),
             'FL-14': entry(hasDecedentInfo, "Disposition without administration affidavit.", "READY", "LOCKED", "AFFIDAVIT_SMALL"),
             'FL-15': entry(hasDecedentInfo, "Requires estate information for family allowance.", "READY", "LOCKED"),
+        };
+
+        // --- New Jersey (NJ-*) ---
+        const njReadiness: Record<string, any> = {
+            'NJ-1': entry(hasDecedentInfo, "Requires decedent information.", "READY", "LOCKED"),
+            'NJ-2': entry(hasDecedentInfo, "Requires petitioner and decedent information.", "READY", "LOCKED"),
         };
 
         // Return readiness for the estate's state, or all states if query param requests it
@@ -147,13 +155,14 @@ router.get("/readiness", async (req: any, res: Response) => {
             CA: caReadiness,
             NY: nyReadiness,
             TX: txReadiness,
-            FL: flReadiness
+            FL: flReadiness,
+            NJ: njReadiness
         };
 
         // Always include the estate's state; if "all" requested, merge everything
         let readiness: Record<string, any>;
         if (requestedState === 'ALL') {
-            readiness = { ...caReadiness, ...nyReadiness, ...txReadiness, ...flReadiness };
+            readiness = { ...caReadiness, ...nyReadiness, ...txReadiness, ...flReadiness, ...njReadiness };
         } else {
             readiness = stateMap[requestedState] || caReadiness;
         }
@@ -680,6 +689,107 @@ router.post("/fl/generate", async (req: any, res: Response) => {
     } catch (e: any) {
         logger.error(`Error generating FL form ${req.body?.formId}:`, e.message);
         res.status(500).json({ error: "Failed to generate FL form" });
+    }
+});
+
+// ─── NJ Form Auto-Fill Endpoints ───────────────────────────────────────────────
+
+// GET /api/forms/nj/schema/:formId - Return UI field schema for a NJ form
+router.get("/nj/schema/:formId", async (req: Request, res: Response) => {
+    try {
+        const formId = req.params.formId as NJFormId;
+        if (!NJ_FORM_REGISTRY[formId]) {
+            return res.status(404).json({ error: `No schema found for form ${formId}` });
+        }
+        const schema = NJFormService.getUISchema(formId);
+        res.json({ formId, title: NJ_FORM_TITLES[formId] || formId, schema });
+    } catch (e: any) {
+        logger.error(`Error fetching NJ form schema for ${req.params.formId}:`, e.message);
+        res.status(500).json({ error: "Failed to fetch form schema" });
+    }
+});
+
+// POST /api/forms/nj/preview - Resolve field values without generating PDF (for UI preview)
+router.post("/nj/preview", async (req: any, res: Response) => {
+    try {
+        const { formId, overrides = {} } = req.body;
+        if (!formId) return res.status(400).json({ error: "formId is required" });
+        if (!NJ_FORM_REGISTRY[formId as NJFormId]) {
+            return res.status(400).json({ error: `Unsupported NJ form: ${formId}` });
+        }
+
+        const estateId = await getEstateId(req.user.id);
+        if (!estateId) return res.status(404).json({ error: "Estate not found" });
+
+        const estate = await prisma.estate.findUnique({
+            where: { id: estateId },
+            include: { user: true },
+        });
+        if (!estate) return res.status(404).json({ error: "Estate data not found" });
+
+        const assets = await prisma.asset.findMany({ where: { estateId } });
+        const heirs = await prisma.heir.findMany({ where: { estateId } });
+
+        const { fieldValues, validationErrors } = NJFormService.resolveFields({
+            formId: formId as NJFormId,
+            estate: { ...estate, ...overrides },
+            assets,
+            heirs,
+            overrides,
+        });
+
+        res.json({ formId, fieldValues, validationErrors });
+    } catch (e: any) {
+        logger.error(`Error previewing NJ form ${req.body?.formId}:`, e.message);
+        res.status(500).json({ error: "Failed to preview form fields" });
+    }
+});
+
+// POST /api/forms/nj/generate - Generate and return filled NJ form PDF
+router.post("/nj/generate", async (req: any, res: Response) => {
+    try {
+        const { formId, isPreview = false, overrides = {} } = req.body;
+        if (!formId) return res.status(400).json({ error: "formId is required" });
+        if (!NJ_FORM_REGISTRY[formId as NJFormId]) {
+            return res.status(400).json({ error: `Unsupported NJ form: ${formId}` });
+        }
+
+        const estateId = await getEstateId(req.user.id);
+        if (!estateId) return res.status(404).json({ error: "Estate not found" });
+
+        const estate = await prisma.estate.findUnique({
+            where: { id: estateId },
+            include: { user: true },
+        });
+        if (!estate) return res.status(404).json({ error: "Estate data not found" });
+
+        const assets = await prisma.asset.findMany({ where: { estateId } });
+        const heirs = await prisma.heir.findMany({ where: { estateId } });
+
+        const result = await NJFormService.generate({
+            formId: formId as NJFormId,
+            estate,
+            assets,
+            heirs,
+            overrides,
+        });
+
+        await DistributionService.logEvent(
+            estateId,
+            req.user.id,
+            isPreview ? 'VIEWED' : 'PREPARED',
+            `${isPreview ? 'PREVIEWED' : 'PREPARED'} – ${formId} (NJ Auto-Fill)`,
+        );
+
+        res.setHeader("Content-Type", "application/pdf");
+        res.setHeader(
+            "Content-Disposition",
+            `${isPreview ? 'inline' : 'attachment'}; filename="${formId}.pdf"`,
+        );
+        res.send(Buffer.from(result.pdfBytes));
+    } catch (e: any) {
+        logger.error(`Error generating NJ form ${req.body?.formId}:`, e.message);
+        res.status(500).json({ error: "Failed to generate NJ form" });
     }
 });
 

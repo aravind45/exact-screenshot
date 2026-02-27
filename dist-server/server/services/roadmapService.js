@@ -176,6 +176,28 @@ const CA_ONLY_TASK_IDS = new Set([
     "ca_notice_of_hearing",
     "ca_attend_confirmation_hearing",
 ]);
+// ─────────────────────────────────────────────────────────────────────────────
+// GA-only task IDs that must NEVER appear for non-GA states
+// Georgia ultra-minimal cleanup: Year's Support and No Admin tasks
+// ─────────────────────────────────────────────────────────────────────────────
+const GA_ONLY_TASK_IDS = new Set([
+    "ga_years_support_petition",
+    "ga_years_support_citation",
+    "ga_years_support_order",
+    "file_ga_no_admin",
+]);
+// ─────────────────────────────────────────────────────────────────────────────
+// Tasks to EXCLUDE for Georgia (GA ultra-minimal cleanup)
+// ─────────────────────────────────────────────────────────────────────────────
+const GA_EXCLUDED_TASK_IDS = new Set([
+    "file_spousal_petition",
+    "give_spousal_notice",
+    "obtain_spousal_order",
+    "file_succession_petition",
+    "give_succession_notice",
+    "obtain_succession_order",
+    "wait_claim_period",
+]);
 const CA_ONLY_TEXT_TOKENS = [
     "Notice of Proposed Action",
     "15-Day Objection Period",
@@ -204,6 +226,14 @@ export function filterTasksForState(tasks, stateCode) {
         // Hard gate: CA-only task IDs
         if (CA_ONLY_TASK_IDS.has(task.id)) {
             return stateCode === "CA";
+        }
+        // Hard gate: GA-only task IDs
+        if (GA_ONLY_TASK_IDS.has(task.id)) {
+            return stateCode === "GA";
+        }
+        // Hard gate: GA-excluded task IDs (hide spousal/succession petitions and generic creditor placeholder)
+        if (GA_EXCLUDED_TASK_IDS.has(task.id)) {
+            return stateCode !== "GA";
         }
         // Hard gate: applicability.states
         if (task.applicability?.states && task.applicability.states.length > 0) {
@@ -410,6 +440,27 @@ export async function analyzeEstateProfile(estateId) {
         if (!rec.activeEngines.includes("PROBATE"))
             rec.activeEngines.push("PROBATE");
     }
+    // Compute state-specific predicates for task filtering
+    const stateCode = estate.deceasedState;
+    const isNJ = stateCode === "NJ";
+    const isOH = stateCode === "OH";
+    const isGA = stateCode === "GA";
+    const isCA = stateCode === "CA";
+    const isNY = stateCode === "NY";
+    const isTX = stateCode === "TX";
+    const isFL = stateCode === "FL";
+    const isPA = stateCode === "PA";
+    const isIL = stateCode === "IL";
+    const isMA = stateCode === "MA";
+    const isMN = stateCode === "MN";
+    const isVA = stateCode === "VA";
+    const isWA = stateCode === "WA";
+    const isAZ = stateCode === "AZ";
+    const isCO = stateCode === "CO";
+    const isCT = stateCode === "CT";
+    const isMD = stateCode === "MD";
+    const isNC = stateCode === "NC";
+    const isSC = stateCode === "SC";
     return {
         id: estate.id,
         hasMinorBeneficiaries: rec.modifiers?.includes("MINOR_HEIRS") || false,
@@ -427,7 +478,27 @@ export async function analyzeEstateProfile(estateId) {
         hasWill: estate.hasWill,
         hasUnknownHeirs: estate.hasUnknownHeirs,
         has_foreign_beneficiary: estate.internationalReasons?.includes("FOREIGN_BENEFICIARY") || estate.internationalReasons?.includes("FOREIGN_BENEFICIARIES") || false,
-        executor_non_us_resident: estate.internationalReasons?.includes("EXECUTOR_RESIDENCE") || false
+        executor_non_us_resident: estate.internationalReasons?.includes("EXECUTOR_RESIDENCE") || false,
+        // State-specific predicates for task exclusion
+        isNJ,
+        isOH,
+        isGA,
+        isCA,
+        isNY,
+        isTX,
+        isFL,
+        isPA,
+        isIL,
+        isMA,
+        isMN,
+        isVA,
+        isWA,
+        isAZ,
+        isCO,
+        isCT,
+        isMD,
+        isNC,
+        isSC,
     };
 }
 /**

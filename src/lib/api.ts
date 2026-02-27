@@ -1330,6 +1330,50 @@ export const api = {
         return await response.blob();
     },
 
+    getNJFormSchema: async (formId: string): Promise<{
+        formId: string;
+        title: string;
+        schema: Array<{
+            key: string;
+            label: string;
+            type: string;
+            required: boolean;
+            description?: string;
+            overridable: boolean;
+        }>;
+    }> => {
+        const response = await fetch(`${API_URL}/forms/nj/schema/${formId}`, {
+            headers: getHeaders(),
+        });
+        return parseResponse(response);
+    },
+
+    previewNJFormFields: async (formId: string, overrides?: Record<string, any>): Promise<{
+        formId: string;
+        fieldValues: Record<string, any>;
+        validationErrors: string[];
+    }> => {
+        const response = await fetch(`${API_URL}/forms/nj/preview`, {
+            method: 'POST',
+            headers: getHeaders(),
+            body: JSON.stringify({ formId, overrides: overrides || {} }),
+        });
+        return parseResponse(response);
+    },
+
+    generateNJForm: async (formId: string, isPreview: boolean = true, overrides?: Record<string, any>): Promise<Blob> => {
+        const response = await fetch(`${API_URL}/forms/nj/generate`, {
+            method: 'POST',
+            headers: getHeaders(),
+            body: JSON.stringify({ formId, isPreview, overrides: overrides || {} }),
+        });
+        if (!response.ok) {
+            const err = await response.json().catch(() => ({ error: 'Failed to generate NJ form' }));
+            throw new Error(err.error || 'Failed to generate NJ form');
+        }
+        return await response.blob();
+    },
+
     inviteCollaborator: async (data: { estateId: string, email: string, role: string }) => {
         const response = await fetch(`${API_URL}/collaboration/invitations`, {
             method: "POST",
