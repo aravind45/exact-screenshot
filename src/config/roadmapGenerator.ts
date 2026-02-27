@@ -2,6 +2,7 @@ import { AuthorityType, MasterMode, getMasterMode } from "@/lib/authorityEngine"
 import { getLettersTerm, getStateRule } from "@/lib/stateRules";
 import { PhaseTaskList, SETTLEMENT_PHASE_TASKS, TRUST_PHASE_TASKS, MODIFIER_PHASE_TASKS, PROBATE_ESCALATION_PHASE } from "./settlementPhases";
 import { SettlementPhase, PHASE_ORDER, STATE_PHASE_OVERRIDES, NEUTRAL_PHASE_MILESTONES } from "./roadmapMetadata";
+import { filterPhasesByJurisdiction } from "@/shared/filterByJurisdiction";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // CA-only task IDs that must NEVER appear for non-CA states.
@@ -298,7 +299,14 @@ export function generateRoadmap(
             tasks: mergedPhases[key].tasks.map(task => normalizeTaskForState(task, state))
         }));
 
-    // Apply state-specific exclusions and phase milestone normalization
+    // Apply unified jurisdiction filter (fail-closed scope check)
+    const { phases: scopeFiltered, dropped } = filterPhasesByJurisdiction(finalPhases, state);
+    if (dropped.length > 0 && typeof process !== "undefined" && process.env?.NODE_ENV !== "production") {
+        console.warn(`[roadmapGenerator] Dropped ${dropped.length} tasks for state ${state}:`, dropped.map(d => `${d.id}: ${d.reason}`));
+    }
+    finalPhases = scopeFiltered as unknown as PhaseTaskList[];
+
+    // Legacy guards (defense-in-depth until scope migration is 100% complete)
     finalPhases = removeCAOnlyTasks(finalPhases, state);
     finalPhases = removeStateExcludedTasks(finalPhases, state);
     finalPhases = normalizePhasesForState(finalPhases, state);
@@ -374,6 +382,7 @@ function generateTransferOnlyRoadmap(type: AuthorityType, state: string, modifie
             // Standard Small Estate / Joint Transfer path
             if (type === "SMALL_ESTATE" && p.phase === "immediate_actions") {
                 tasks.push({
+                    scope: "CORE",
                     id: "prepare_affidavit",
                     title: "Prepare Small Estate Affidavit",
                     description: `Draft the ${state} Small Estate Affidavit to transfer assets without court.`,
@@ -384,6 +393,7 @@ function generateTransferOnlyRoadmap(type: AuthorityType, state: string, modifie
             }
             if (type === "JOINT_TRANSFER" && p.phase === "immediate_actions") {
                 tasks.push({
+                    scope: "CORE",
                     id: "transfer_joint_assets",
                     title: "Transfer Jointly Owned Assets",
                     description: "Submit death certificates to financial institutions to remove decedent from joint accounts.",
@@ -451,6 +461,7 @@ function generateFiduciaryRoadmap(type: AuthorityType, state: string, modifiers:
         // Phase-specific additions and overrides
         if (p.phase === "immediate_actions") {
             tasks.push({
+                scope: "CORE",
                 id: "issue_cert_trust_gen",
                 title: "Issue Certificate of Trust",
                 description: "Prepare and notarize a Certificate of Trust to present successor trustee authority to banks.",
@@ -460,6 +471,7 @@ function generateFiduciaryRoadmap(type: AuthorityType, state: string, modifiers:
 
         if (modifiers.includes("INSOLVENT")) {
             tasks.push({
+                scope: "CORE",
                 id: "insolvency_prioritization",
                 title: "Statutory Priority Assessment",
                 description: "Estate liabilities may exceed assets. The fiduciary must strictly follow statutory payment priority to avoid personal liability.",
@@ -471,6 +483,7 @@ function generateFiduciaryRoadmap(type: AuthorityType, state: string, modifiers:
         if (modifiers.includes("BUSINESS_ESTATE")) {
             if (p.phase === "immediate_actions") {
                 tasks.push({
+                    scope: "CORE",
                     id: "business_operating_authority",
                     title: "Establish Business Operating Authority",
                     description: "Confirm legal authority to continue business operations to avoid loss of value.",
@@ -479,6 +492,7 @@ function generateFiduciaryRoadmap(type: AuthorityType, state: string, modifiers:
             }
             if (p.phase === "asset_discovery") {
                 tasks.push({
+                    scope: "CORE",
                     id: "business_valuation",
                     title: "Order Professional Business Valuation",
                     description: "Obtain a formal appraisal of the business interest as of the date of death.",
@@ -490,6 +504,7 @@ function generateFiduciaryRoadmap(type: AuthorityType, state: string, modifiers:
         if (modifiers.includes("MINOR_HEIRS")) {
             if (p.phase === "final_distribution") {
                 tasks.push({
+                    scope: "CORE",
                     id: "minor_distribution_block",
                     title: "Establish Blocked Accounts for Minors",
                     description: "Distributions to minors must be held in court-approved blocked accounts or trusts.",
@@ -500,6 +515,7 @@ function generateFiduciaryRoadmap(type: AuthorityType, state: string, modifiers:
 
         if (modifiers.includes("UNCLAIMED_PROPERTY") && p.phase === "asset_discovery") {
             tasks.push({
+                scope: "CORE",
                 id: "search_state_unclaimed",
                 title: "Search State Unclaimed Property",
                 description: "Check state controller databases for forgotten accounts or safe deposit boxes.",
@@ -576,6 +592,7 @@ function generateProbateRoadmap(type: AuthorityType, state: string, modifiers: s
             let tasks = [...p.tasks];
             if (p.phase === "immediate_actions") {
                 tasks.push({
+                    scope: "CORE",
                     id: "file_summary_petition",
                     title: "File Petition for Summary Administration",
                     description: "For FL estates < $75k, file this petition to bypass full formal probate.",
@@ -664,6 +681,7 @@ function generateProbateRoadmap(type: AuthorityType, state: string, modifiers: s
         if (modifiers.includes("BUSINESS_ESTATE")) {
             if (p.phase === "court_filing") {
                 tasks.push({
+                    scope: "CORE",
                     id: "petition_operating_orders",
                     title: "Petition for Business Operating Orders",
                     description: "Ask the court for explicit permission to continue decedent's business operations.",
@@ -672,6 +690,7 @@ function generateProbateRoadmap(type: AuthorityType, state: string, modifiers: s
             }
             if (p.phase === "asset_discovery") {
                 tasks.push({
+                    scope: "CORE",
                     id: "business_appraisal",
                     title: "Conduct Business Valuation",
                     description: "Engage a certified appraiser to determine the value of decedent's business stake.",
@@ -700,6 +719,7 @@ function generateProbateRoadmap(type: AuthorityType, state: string, modifiers: s
 
         if (modifiers.includes("ELECTIVE_SHARE") && p.phase === "creditor_claims") {
             tasks.push({
+                scope: "CORE",
                 id: "elective_share_calc",
                 title: "Spousal Elective Share Calculation",
                 description: "A spouse has asserted an elective share claim. Recalculate distribution priorities accordingly.",
@@ -709,6 +729,7 @@ function generateProbateRoadmap(type: AuthorityType, state: string, modifiers: s
 
         if (modifiers.includes("UNCLAIMED_PROPERTY") && p.phase === "asset_discovery") {
             tasks.push({
+                scope: "CORE",
                 id: "search_state_unclaimed_probate",
                 title: "Search State Unclaimed Property",
                 description: "Check state controller databases for dormant accounts or forgotten insurance policies.",

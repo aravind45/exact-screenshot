@@ -121,6 +121,9 @@ model Estate {
   // Roadmap versioning for SSOT pinning
   roadmapVersion            String?              @map("roadmap_version")
   roadmapPinnedAt           DateTime?            @map("roadmap_pinned_at")
+  stateRulesetHash          String?              @map("state_ruleset_hash")
+  countyOverrideId          String?              @map("county_override_id")
+  countyOverrideHash        String?              @map("county_override_hash")
   
   assets                    Asset[]
   authorityDecisions        AuthorityDecision[]
@@ -647,6 +650,8 @@ model RoadmapTask {
   excludePredicates           String[]     @map("exclude_predicates")
   requiredProfileFields       String[]     @map("required_profile_fields")
   outputs                     String[]
+  scope                       String       @default("CORE")
+  allowedCounties             String[]     @map("allowed_counties")
   createdAt                   DateTime     @default(now()) @map("created_at")
   updatedAt                   DateTime     @updatedAt @map("updated_at")
   applicableStates            String[]     @map("applicable_states")
@@ -697,6 +702,23 @@ model JurisdictionRule {
   updatedAt            DateTime @updatedAt @map("updated_at")
 
   @@map("jurisdiction_rules")
+}
+
+model CountyOverride {
+  id               String    @id @default(uuid())
+  stateCode        String    @map("state_code")
+  countyName       String    @map("county_name")
+  effectiveFrom    DateTime  @default(now()) @map("effective_from")
+  effectiveTo      DateTime? @map("effective_to")
+  overridesJson    Json      @map("overrides_json") // Schema-validated additive data
+  sourcesJson      Json?     @map("sources_json")
+  approvedBy       String?   @map("approved_by")
+  approvedAt       DateTime? @map("approved_at")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  @@unique([stateCode, countyName, effectiveFrom])
+  @@map("county_overrides")
 }
 
 model Transaction {
@@ -1150,4 +1172,27 @@ enum UserRole {
   ATTORNEY
   EXECUTOR
   HEIR
+}
+
+model CountyOverride {
+  id              String   @id @default(uuid())
+  stateCode       String   @map("state_code")
+  countyName      String   @map("county_name")
+  taskId          String   @map("task_id")
+  
+  // Whitelisted fields allowed for override
+  title           String?
+  description     String?
+  feeAmount       Decimal? @map("fee_amount") @db.Decimal(12, 2)
+  primaryActionUrl String?  @map("primary_action_url")
+  formNames       String[] @map("form_names")
+  attachments     Json?    // Array of { label: string, url: string }
+  
+  // Internal tracking
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+  publishedAt     DateTime? @map("published_at")
+  
+  @@unique([stateCode, countyName, taskId])
+  @@map("county_overrides")
 }

@@ -98,6 +98,9 @@ export interface PhaseTask {
   };
   requiredProfileFields?: string[];
   outputs?: string[];
+  scope: string;
+  allowedStates?: string[];
+  allowedCounties?: string[];
 }
 
 export interface PhaseTaskList {
@@ -120,6 +123,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
     tasks: [
       {
         id: "preliminary_asset_scan",
+        scope: "CORE",
         title: "Preliminary Asset & Liability Scan",
         description: "Identify known bank accounts, real estate, and major debts. This data is critical for estimating estate value on the petition and determining bond requirements.",
         estimatedTime: "2-4 hours",
@@ -131,6 +135,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "secure_property",
+        scope: "CORE",
         title: "Secure the Property",
         description: "Change locks, forward mail, and ensure the home is protected from theft or damage.",
         estimatedTime: "1-2 days",
@@ -143,6 +148,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "identify_minor_beneficiaries",
+        scope: "CORE",
         title: "Identify Minor Beneficiaries",
         description: "Review all heirs and identify any beneficiaries under age 18. Minors require special court protection through a guardian ad litem.",
         estimatedTime: "30 minutes",
@@ -155,6 +161,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "check_primary_residence_succession",
+        scope: "CORE",
         title: "Evaluate Primary Residence Succession",
         description: "If the estate consists primarily of a primary residence valued under the state's simplified threshold, you may qualify for a simplified succession process.",
         utility: "Shortcut: Simplified path for qualifying primary residences.",
@@ -170,6 +177,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "secure_property_2",
+        scope: "CORE",
         title: "Initial Property Protection",
         description: "Ensure the decedent's residence is secured, mail is forwarded, and assets are protected from loss or damage.",
         estimatedTime: "1-2 days",
@@ -182,6 +190,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "check_tod_recordation",
+        scope: "CORE",
         title: "Verify TOD Deed Recordation Date",
         description: "Statutory Rule: A TOD deed must be recorded before the owner's death to be legally valid. Confirm the 'Date Filed' on the deed.",
         estimatedTime: "30 minutes",
@@ -193,6 +202,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "check_tod_revocation",
+        scope: "CORE",
         title: "Confirm No Subsequent Revocation",
         description: "Check for any subsequently recorded 'Revocation of TOD Deed' or a newer TOD deed that might override the current one.",
         estimatedTime: "1 hour",
@@ -202,6 +212,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "check_beneficiary_survival",
+        scope: "CORE",
         title: "Confirm Beneficiary Survival Status",
         description: "Verify the named TOD beneficiary survived the transferor. If the beneficiary predeceased, the TOD deed typically fails unless 'Anti-Lapse' rules apply.",
         estimatedTime: "1 hour",
@@ -213,6 +224,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "check_joint_tenancy_override",
+        scope: "CORE",
         title: "Check for Joint Tenancy Override",
         description: "Verify the property was not held in Joint Tenancy at the time of death. In many states, Joint Tenancy survivorship overrides a TOD deed.",
         estimatedTime: "1 hour",
@@ -222,6 +234,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "prepare_beneficiary_authority_packet",
+        scope: "CORE",
         title: "Establish Beneficiary Transfer Authority",
         description: "Instead of 'Letters Testamentary', the TOD beneficiary uses a 'Transfer Packet' to claim title.",
         estimatedTime: "2-4 hours",
@@ -234,6 +247,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "escalate_to_probate_trigger",
+        scope: "CORE",
         title: "PROBATE ESCALATION: Deed Issue Detected",
         description: "If any of the validation checks failed (unrecorded deed, predeceased beneficiary, joint tenancy conflict), you must pivot to a formal probate petition.",
         estimatedTime: "Ongoing",
@@ -247,6 +261,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "notify_ssa",
+        scope: "CORE",
         title: "Notify Social Security Administration",
         description: "Report the death to stop benefit payments and prevent overpayment recovery.",
         estimatedTime: "30 minutes",
@@ -266,6 +281,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "record_affidavit_of_death",
+        scope: "CORE",
         title: "Record Affidavit of Death (TOD)",
         description: "Prepare and record an Affidavit of Death of Transferor to formally transfer title to the TOD beneficiary.",
         estimatedTime: "2-4 hours",
@@ -278,6 +294,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "notify_recorder_assessor",
+        scope: "CORE",
         title: "Notify County Recorder & Assessor",
         description: "Submit Change in Ownership Statement to the county to update tax records and prevent penalties.",
         estimatedTime: "1 hour",
@@ -290,6 +307,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "cancel_cards",
+        scope: "CORE",
         title: "Cancel Credit Cards & Subscriptions",
         description: "Stop recurring charges and prevent identity theft by closing accounts.",
         estimatedTime: "2-3 hours",
@@ -302,6 +320,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "manage_utilities",
+        scope: "CORE",
         title: "Manage Utilities",
         description: "Review decedent's utility accounts (electricity, water, gas).",
         alerts: [
@@ -313,6 +332,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "genealogical_search",
+        scope: "CORE",
         title: "Conduct Genealogical Search",
         description: "If heirs are unknown or missing, you must perform a formal search to identify all legal beneficiaries. This is required for your final distribution decree.",
         estimatedTime: "4-8 weeks",
@@ -331,6 +351,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "locate_will",
+        scope: "CORE",
         title: "Locate Will and Important Documents",
         description: "Find the original Will, trust documents, insurance policies, and account statements.",
         estimatedTime: "1-2 days",
@@ -344,6 +365,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "locate_docs_no_will",
+        scope: "CORE",
         title: "Locate Important Documents (Intestate)",
         description: "Since there is no Will, search for insurance policies, real estate deeds, and final account statements to inventory the estate.",
         estimatedTime: "1-2 days",
@@ -357,6 +379,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "open_estate_account",
+        scope: "CORE",
         title: "Establish Estate Financial Account",
         description: "Open a separate fiduciary account for estate income and expenses once legal authority is obtained.",
         estimatedTime: "1 hour",
@@ -371,6 +394,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "pay_immediate_bills",
+        scope: "CORE",
         title: "Managed Payment of Immediate Bills",
         description: "Prioritize current utilities, mortgage, and insurance to protect the value of estate assets.",
         estimatedTime: "Ongoing",
@@ -387,6 +411,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "obtain_ein_probate",
+        scope: "CORE",
         title: "Obtain EIN for the Estate",
         description: "Apply for an Employer Identification Number from the IRS. This unique ID is required to open an estate bank account and for all tax filings.",
         estimatedTime: "30 minutes",
@@ -404,6 +429,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "file_irs_form_56_probate",
+        scope: "CORE",
         title: "File IRS Form 56 (Notice of Fiduciary)",
         description: "Formally notify the IRS that you have taken on the role of Executor/Administrator. This ensures that all tax correspondence regarding the decedent is sent to you.",
         estimatedTime: "1 hour",
@@ -422,6 +448,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       // International Mode Tasks - Group 1: Representation
       {
         id: "confirm_us_rep",
+        scope: "CORE",
         title: "Confirm U.S. Legal Representative",
         description: "Decide if you will hire a U.S. probate attorney or appoint a local co-executor/agent to handle on-the-ground tasks.",
         estimatedTime: "1 week",
@@ -435,6 +462,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "check_apostille",
+        scope: "CORE",
         title: "Verify Notarization Rules (Apostille)",
         description: "Check if your current country of residence is a member of the Hague Apostille Convention. This determines how documents signed abroad must be authenticated for U.S. court acceptance.",
         estimatedTime: "1 hour",
@@ -463,6 +491,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
     tasks: [
       {
         id: "validate_venue_authority",
+        scope: "CORE",
         title: "Validate Venue and Court Filing Authority",
         description: "Confirm the decedent's legal domicile and county residency to ensure the application is filed in the legally appropriate court.",
         utility: "Prevents immediate case dismissal due to improper venue.",
@@ -493,6 +522,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "screen_fiduciary_eligibility",
+        scope: "CORE",
         title: "Screen Fiduciary Eligibility",
         description: "Verify that the proposed executor or administrator meets all state-specific legal requirements to serve.",
         estimatedTime: "30 minutes",
@@ -512,6 +542,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "validate_interested_parties",
+        scope: "CORE",
         title: "Validate Interested Parties",
         description: "Identify all individuals legally entitled to notice or inheritance, including heirs-at-law, beneficiaries, and devisees.",
         estimatedTime: "2 hours",
@@ -532,6 +563,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "compile_will_and_proof",
+        scope: "CORE",
         title: "Compile Will and Testamentary Proofs",
         description: "Gather the original valid will, codicils, and secure witness affidavits or self-proving attestations.",
         estimatedTime: "1-2 weeks",
@@ -553,6 +585,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "identify_protected_persons_and_representation",
+        scope: "CORE",
         title: "Identify Protected Persons representation",
         description: "Screen the interested party list for minors, incapacitated adults, or unknown heirs that require a court-appointed Guardian ad Litem (GAL).",
         estimatedTime: "1 hour",
@@ -568,6 +601,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "prepare_required_notices_and_waivers",
+        scope: "CORE",
         title: "Prepare Required Notices and Waivers",
         description: "Generate the formal notice plan to serve interested parties, or gather Signed Waivers and Consents to expedite the process.",
         estimatedTime: "1-3 weeks",
@@ -587,6 +621,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "request_temporary_authority",
+        scope: "CORE",
         title: "Evaluate Need for Temporary Authority",
         description: "Determine if preliminary letters or special administration is necessary to protect assets or run a business while formal probate is pending.",
         estimatedTime: "1 hour",
@@ -599,6 +634,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "calculate_filing_fees",
+        scope: "CORE",
         title: "Calculate Court Filing Fees",
         description: "Determine the exact statutory filing fee based on the estimated gross value of the probate estate.",
         estimatedTime: "15 minutes",
@@ -618,6 +654,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "compile_required_form_pack",
+        scope: "CORE",
         title: "Compile Required Court Form Packet",
         description: "Synthesize the official local forms and procedural filing notes required by your specific court into a ready-to-file package.",
         estimatedTime: "1-2 hours",
@@ -641,6 +678,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "petition_guardian_ad_litem",
+        scope: "CORE",
         title: "File Petition for Guardian Ad Litem",
         description: "Request court appointment of a guardian ad litem to represent minor beneficiaries' interests throughout probate.",
         estimatedTime: "2-4 hours",
@@ -661,6 +699,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "obtain_guardian_order",
+        scope: "CORE",
         title: "Obtain Guardian Ad Litem Order",
         description: "Receive court order appointing guardian ad litem. Provide guardian with all estate information.",
         estimatedTime: "2-3 weeks",
@@ -679,6 +718,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "oh_family_allowance",
+        scope: "US-OH",
         title: "Surviving Spouse Allowance / Family Allowance (ORC Chapter 2106)",
         description: "Surviving spouse may claim statutory allowance prior to general distribution (ORC Chapter 2106).",
         estimatedTime: "2-4 weeks",
@@ -705,6 +745,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       // ── State-Specific Court Filing Tasks ──────────────────────────────
       {
         id: "file_tx_independent_admin",
+        scope: "US-TX",
         title: "File Application for Independent Administration",
         description: "Texas allows Independent Administration, which lets the executor act without continuous court supervision. File the application with the county or statutory probate court.",
         estimatedTime: "2-4 hours",
@@ -720,6 +761,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "file_tx_muniment_of_title",
+        scope: "US-TX",
         title: "File Application to Probate Will as Muniment of Title",
         description: "For TX estates with a valid will and no unpaid debts (other than secured debts on real property), Muniment of Title allows the will to be admitted to probate without appointing an executor.",
         estimatedTime: "2-4 hours",
@@ -735,6 +777,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "tx_muniment_compliance_check",
+        scope: "US-TX",
         title: "Verify Muniment of Title Eligibility",
         description: "Before filing for Muniment of Title, verify the estate meets all requirements: valid will, no unsecured debts, no Medicaid recovery claims, and no need for estate administration.",
         estimatedTime: "1-2 hours",
@@ -758,6 +801,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "file_tx_dependent_admin",
+        scope: "US-TX",
         title: "File Application for Dependent Administration",
         description: "For TX intestate estates or when Independent Administration is not available, file for Dependent Administration which requires court supervision for most actions.",
         estimatedTime: "2-4 hours",
@@ -773,6 +817,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "tx_admin_type_branching",
+        scope: "US-TX",
         title: "Determine TX Administration Type",
         description: "Texas requires choosing between Independent Administration (preferred, less court oversight), Dependent Administration (court-supervised), or Muniment of Title (no executor). The choice depends on will terms, debts, and heir cooperation.",
         estimatedTime: "1-2 hours",
@@ -798,6 +843,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "tx_ten_day_posting",
+        scope: "US-TX",
         title: "Post Application at Courthouse (10-Day Gate)",
         description: "Texas requires the probate application to be posted at the courthouse for 10 days before the hearing can occur. This gives interested parties notice of the proceeding.",
         estimatedTime: "10 days (mandatory)",
@@ -820,6 +866,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "file_tx_heirship_proceeding",
+        scope: "US-TX",
         title: "File Proceeding to Determine Heirship",
         description: "For TX intestate estates where heirs are unknown, missing, or their shares are disputed, file a proceeding to determine heirship. This requires a court-appointed attorney ad litem to represent unknown heirs.",
         estimatedTime: "4-8 weeks",
@@ -845,6 +892,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "tx_homestead_protection",
+        scope: "US-TX",
         title: "Assert Texas Homestead Protections",
         description: "Texas homestead property is protected from most creditor claims and passes directly to surviving spouse and/or minor children. Assert these protections to preserve the family home.",
         estimatedTime: "1-2 hours",
@@ -871,6 +919,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "tx_exempt_property",
+        scope: "US-TX",
         title: "Claim Texas Exempt Property Allowances",
         description: "Texas provides exempt property allowances including homestead, personal property exemptions up to $100,000 (family) or $50,000 (single), and family allowances for support during administration.",
         estimatedTime: "2-3 hours",
@@ -894,6 +943,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "tx_small_estate_affidavit",
+        scope: "US-TX",
         title: "File Small Estate Affidavit (TX §205)",
         description: "For TX estates under $75,000 with no real property (other than homestead), file a Small Estate Affidavit to collect assets without formal probate. All distributees must sign.",
         estimatedTime: "1-2 hours",
@@ -917,6 +967,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "tx_bond_determination",
+        scope: "US-TX",
         title: "Determine TX Bond Requirement",
         description: "Texas generally does not require bond for Independent Administration if the will waives it (standard). Bond may be required for Dependent Administration or if will explicitly demands it.",
         estimatedTime: "1 hour",
@@ -940,6 +991,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "tx_filing_fee_calculation",
+        scope: "US-TX",
         title: "Calculate TX Court Filing Fees",
         description: "Texas probate filing fees vary by county. Calculate fees based on estate type (Muniment, Independent, Dependent) and county fee schedule.",
         estimatedTime: "30 minutes",
@@ -960,6 +1012,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "tx_citation_issuance",
+        scope: "US-TX",
         title: "Obtain and Serve TX Citation",
         description: "Texas requires citation to be issued and served on all distributees and named beneficiaries. Personal service is required unless waived by signed waiver.",
         estimatedTime: "1-2 weeks",
@@ -978,6 +1031,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       // ── Ohio-Specific Filing & Support Tasks ──────────────────────────
       {
         id: "oh_certificate_of_transfer",
+        scope: "US-OH",
         title: "File Application for Certificate of Transfer (ORC §2113.61)",
         description: "In Ohio, real property can be transferred by filing an application for a Certificate of Transfer (ORC §2113.61). The certificate serves as the deed and must be recorded with the county recorder where the property is located.",
         estimatedTime: "2-4 hours",
@@ -995,6 +1049,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "oh_family_allowance",
+        scope: "US-OH",
         title: "Claim Ohio Family Allowance (ORC §2106.13)",
         description: "The surviving spouse and/or minor children are entitled to a family allowance of $40,000 for support (ORC Chapter 2106). This claim must be filed with the probate court and has priority over most general creditor claims.",
         estimatedTime: "1-2 hours",
@@ -1013,6 +1068,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
 
       {
         id: "file_fl_disposition_without_admin",
+        scope: "US-FL",
         title: "File Petition for Disposition Without Administration",
         description: "For very small FL estates (no real property, assets only cover exempt property/preferences and funeral/medical expenses), file for disposition without formal administration.",
         estimatedTime: "1-2 hours",
@@ -1027,6 +1083,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "file_ny_surrogate_probate",
+        scope: "US-NY",
         title: "File Probate Petition with Surrogate's Court",
         description: "Submit the probate petition (Form P-1) to the county Surrogate's Court. NY uses the Surrogate's Court Procedure Act (SCPA) for all probate proceedings.",
         estimatedTime: "2-4 hours",
@@ -1042,6 +1099,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "file_ny_ancillary_probate",
+        scope: "US-NY",
         title: "File Petition for Ancillary Probate (NY)",
         description: "For out-of-state decedents who owned property in NY, file an ancillary probate petition (Form ET-3) with the Surrogate's Court in the county where the NY property is located.",
         estimatedTime: "2-4 hours",
@@ -1056,6 +1114,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "file_ga_petition",
+        scope: "US-GA",
         title: "File Petition for Letters in Probate Court",
         description: "Submit a petition for Letters Testamentary (with will) or Letters of Administration (without will) to the Georgia Probate Court in the county of the decedent's domicile.",
         estimatedTime: "2-4 hours",
@@ -1070,6 +1129,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "file_ga_no_admin",
+        scope: "US-GA",
         title: "File 'No Administration Necessary' Petition",
         description: "For GA estates under $10,000, file a petition declaring that no administration is necessary under O.C.G.A. § 53-2-40.",
         estimatedTime: "1-2 hours",
@@ -1085,6 +1145,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       // ── GA Year's Support Workflow (3 tasks) ──────────────────────────────────
       {
         id: "ga_years_support_petition",
+        scope: "US-GA",
         title: "File Petition for Year's Support (O.C.G.A. §53-3-1)",
         description: "Surviving spouse and/or minor children may petition for a Year's Support award. This proceeding can take priority over creditor claims and provides a 12-month maintenance allowance for the family.",
         estimatedTime: "2-4 hours",
@@ -1111,6 +1172,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "ga_years_support_citation",
+        scope: "US-GA",
         title: "Issue Citation for Year's Support (GA)",
         description: "The probate court will issue citation to be served on interested parties. Citation must be published and/or served to heirs and creditors.",
         estimatedTime: "1-2 weeks",
@@ -1126,6 +1188,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "ga_years_support_order",
+        scope: "US-GA",
         title: "Obtain Year's Support Order (GA)",
         description: "Receive court order granting Year's Support award. If real property is involved, record the order with the county clerk to transfer title.",
         estimatedTime: "2-4 weeks after petition",
@@ -1142,6 +1205,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "file_ma_informal_probate",
+        scope: "US-MA",
         title: "File Informal Probate Petition (MUPC)",
         description: "Under the Massachusetts Uniform Probate Code, file an informal probate petition with the Probate & Family Court. This streamlined process is for uncontested estates.",
         estimatedTime: "2-4 hours",
@@ -1156,6 +1220,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "file_ma_voluntary_admin",
+        scope: "US-MA",
         title: "File Voluntary Administration Statement (MA)",
         description: "For MA estates ≤ $25,000 with no real property, file a Voluntary Administration statement to bypass full probate.",
         estimatedTime: "1-2 hours",
@@ -1171,6 +1236,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       // ── NJ-Specific Court Filing Tasks ──────────────────────────────────
       {
         id: "file_nj_surrogate_probate",
+        scope: "US-NJ",
         title: "File Probate Application with County Surrogate (NJ)",
         description: "Submit the probate application to the County Surrogate's Court. NJ probate is handled by the Surrogate in each county for uncontested matters.",
         estimatedTime: "2-4 hours",
@@ -1187,6 +1253,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "file_nj_administration",
+        scope: "US-NJ",
         title: "File Application for Administration (NJ)",
         description: "Submit the administration application to the County Surrogate's Court for intestate estates. Bond is typically required unless waived by all heirs.",
         estimatedTime: "2-4 hours",
@@ -1203,6 +1270,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "file_nj_small_estate_affidavit",
+        scope: "US-NJ",
         title: "File Small Estate Affidavit (NJ)",
         description: "For NJ estates under $20,000 (or $50,000 if surviving spouse is sole heir), file a Small Estate Affidavit to collect assets without formal probate.",
         estimatedTime: "1-2 hours",
@@ -1227,6 +1295,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "nj_bond_calculation",
+        scope: "US-NJ",
         title: "Calculate NJ Bond Amount (Pre-Filing Estimate)",
         description: "Estimate the NJ bond amount before filing using the preliminary asset scan. NJ calculates bond on PERSONAL PROPERTY only (not real estate): Bond = Personal Property Value + Estimated Annual Estate Income. This estimate is provided to the Surrogate at filing and can be updated after the formal inventory is completed.",
         estimatedTime: "1-2 hours",
@@ -1255,6 +1324,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "nj_elective_share_claim",
+        scope: "US-NJ",
         title: "Elective Share Claim (N.J.S.A. 3B:8-1)",
         description: "Surviving spouse may file elective share claim within statutory period if they choose to claim a portion of the estate regardless of the Will's provisions (N.J.S.A. 3B:8-1).",
         estimatedTime: "1-2 hours",
@@ -1275,6 +1345,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "nj_real_property_transfer",
+        scope: "US-NJ",
         title: "Transfer Real Property via Executor’s Deed",
         description: "Execute and record a deed for the transfer of real property if Power of Sale exists under the Will or NJ statutory default authority.",
         estimatedTime: "2-4 hours",
@@ -1289,6 +1360,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "nj_bond_determination",
+        scope: "US-NJ",
         title: "Determine Bond Requirement & Waiver Gate (NJ)",
         description: "Determine whether bond is required and whether it can be waived before filing. Two waiver paths: (1) Will waives bond — executor is automatically exempt if the will contains an explicit bond waiver clause; (2) Heir consent — ALL heirs/beneficiaries must sign notarized written consent. If neither path is available, obtain a surety bond before Letters are issued.",
         estimatedTime: "1-2 hours",
@@ -1316,6 +1388,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "nj_bond_waiver_affidavit",
+        scope: "US-NJ",
         title: "File Bond Waiver Affidavit (If Applicable)",
         description: "If all heirs/beneficiaries consent to waive bond, file a Bond Waiver Affidavit with the Surrogate's Court. Each heir must sign and notarize their consent.",
         estimatedTime: "1-2 weeks",
@@ -1340,6 +1413,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "nj_bond_obtain_surety",
+        scope: "US-NJ",
         title: "Obtain Bond with Surety (If Required)",
         description: "If bond cannot be waived, obtain a surety bond from a licensed surety company. The bond guarantees faithful performance of fiduciary duties. Premium is paid annually.",
         estimatedTime: "1-2 weeks",
@@ -1364,6 +1438,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "nj_bond_without_surety",
+        scope: "US-NJ",
         title: "Consider Bond Without Surety (If Applicable)",
         description: "NJ allows bond without surety (personal obligation only) if the estate is solvent and all beneficiaries consent. This option has no premium cost but exposes the fiduciary to full personal liability.",
         estimatedTime: "1-2 hours",
@@ -1387,6 +1462,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "nj_contested_probate_escalation",
+        scope: "US-NJ",
         title: "Escalate Contested Probate to Superior Court (NJ)",
         description: "If the probate is contested, the matter transfers from the County Surrogate to the Superior Court, Chancery Division, Probate Part for litigation.",
         estimatedTime: "Ongoing",
@@ -1406,6 +1482,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "nj_real_estate_power_of_sale",
+        scope: "US-NJ",
         title: "Determine Power of Sale Authority (NJ)",
         description: "Review the will and NJ law to determine if you have power of sale for real property without court confirmation, or if court approval is required.",
         estimatedTime: "1-2 hours",
@@ -1432,6 +1509,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       // ── End State-Specific Court Filing Tasks ──────────────────────────
       {
         id: "file_probate_petition",
+        scope: "CORE",
         title: "File Petition for Probate",
         description: "Submit the probate petition and original Will to the court to open the estate case and request appointment as Executor.",
         utility: "Required to obtain legal authority to access accounts.",
@@ -1468,6 +1546,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "file_administration_petition",
+        scope: "CORE",
         title: "File Petition for Administration",
         description: "Submit the administration petition to the court to open the estate case and request appointment as Administrator (since there is no Will).",
         utility: "Required to obtain legal authority to access accounts.",
@@ -1503,6 +1582,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "pay_filing_fee",
+        scope: "CORE",
         title: "Pay Court Filing Fee",
         description: "Pay the required court filing fee to process the petition. Fees vary by estate value.",
         estimatedTime: "1 day",
@@ -1512,6 +1592,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "submit_oath_designation",
+        scope: "CORE",
         title: "Submit Oath and Designation",
         description: "Sign and submit the Oath and Designation form, officially agreeing to serve as the fiduciary.",
         estimatedTime: "1-2 days",
@@ -1521,6 +1602,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "obtain_citation",
+        scope: "CORE",
         title: "Obtain Citation from Court",
         description: "Receive the issued Citation from the court, which sets the hearing date and commands interested parties to appear.",
         estimatedTime: "1-3 weeks",
@@ -1547,6 +1629,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "serve_citation",
+        scope: "CORE",
         title: "Serve Citation on Interested Parties",
         description: "Serve the Citation to all required heirs and interested parties according to strict statutory rules.",
         estimatedTime: "1-3 weeks",
@@ -1574,6 +1657,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
 
       {
         id: "attend_probate_hearing",
+        scope: "CORE",
         title: "Attend Probate Hearing",
         description: "Appear in court for the probate hearing (typically 30-60 days after filing) to confirm the Will and your appointment.",
         estimatedTime: "2-3 hours",
@@ -1606,6 +1690,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "attend_administration_hearing",
+        scope: "CORE",
         title: "Attend Administration Hearing",
         description: "Appear in court for the administration hearing. Since there is no Will, the court will confirm heirs and appointing you as Administrator.",
         estimatedTime: "2-3 hours",
@@ -1634,6 +1719,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "receive_letters_testamentary",
+        scope: "CORE",
         title: "Obtain Letters Testamentary",
         description: "Once the Will is admitted to probate, obtain certified copies of your Letters Testamentary.",
         requiresAuthority: true,
@@ -1663,6 +1749,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "receive_letters_administration",
+        scope: "CORE",
         title: "Obtain Letters of Administration",
         description: "Once the court approves the petition, obtain certified copies of your Letters of Administration.",
         requiresAuthority: true,
@@ -1695,6 +1782,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "file_affidavit",
+        scope: "CORE",
         title: "File {{smallEstateTerm}}",
         description: "Use the {{smallEstateTerm}} to bypass court probate when probate assets are below {{smallEstateThreshold}} ({{smallEstateCitation}}).",
         utility: "Bypass court entirely for qualifying small estates under {{smallEstateThreshold}}.",
@@ -1732,6 +1820,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "file_spousal_petition",
+        scope: "US-CA",
         title: "File Spousal Property Petition",
         description: "Request court order to transfer property to surviving spouse without full probate.",
         estimatedTime: "4-6 weeks",
@@ -1746,6 +1835,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "give_spousal_notice",
+        scope: "US-CA",
         title: "Give Notice of Hearing",
         description: "Notify all interested parties about the court hearing date for the petition.",
         estimatedTime: "2 hours",
@@ -1763,6 +1853,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "obtain_spousal_order",
+        scope: "US-CA",
         title: "Obtain Spousal Property Order",
         description: "Receive signed court order confirming property ownership transfer to spouse. Record with county recorder if real estate is involved.",
         estimatedTime: "1-2 weeks after hearing",
@@ -1780,6 +1871,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "issue_cert_trust",
+        scope: "CORE",
         title: "Issue Certificate of Trust",
         description: "Formalize successor trustee authority for trust-held assets.",
         estimatedTime: "1 week",
@@ -1790,6 +1882,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "manage_business_authority",
+        scope: "CORE",
         title: "Obtain Business Operating Authority",
         description: "If the decedent owned a business, you may need a court order to continue operations and pay employees.",
         estimatedTime: "1-2 weeks",
@@ -1802,6 +1895,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "file_succession_petition",
+        scope: "US-CA",
         title: "File Petition to Determine Succession to Real Property",
         description: "File petition with court to determine who inherits the primary residence without full probate.",
         estimatedTime: "2-4 hours",
@@ -1840,6 +1934,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "give_succession_notice",
+        scope: "US-CA",
         title: "Give Notice of Hearing",
         description: "Notify all interested parties of the hearing date for the succession petition.",
         estimatedTime: "2 hours",
@@ -1879,6 +1974,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "obtain_succession_order",
+        scope: "US-CA",
         title: "Obtain Order Determining Succession to Real Property",
         description: "Receive court order determining property succession. Record order with county recorder.",
         estimatedTime: "1-2 weeks after hearing",
@@ -1922,6 +2018,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "track_special_notice_requests",
+        scope: "CORE",
         title: "Track Special Notice Requests",
         description: "Maintain list of all parties who have requested special notice. You must serve them copies of ALL court filings.",
         estimatedTime: "Ongoing",
@@ -1941,6 +2038,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "serve_special_notice_parties",
+        scope: "CORE",
         title: "Serve All Special Notice Recipients",
         description: "Each time you file a document with the court, serve copies by mail on all parties who requested special notice.",
         estimatedTime: "1-2 hours per filing",
@@ -1954,6 +2052,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "handle_bond_waivers",
+        scope: "CORE",
         title: "Avoid Bond Cost",
         description: "Obtain signatures from all heirs to waive the bond requirement, then file the completed waiver with the court.",
         utility: "Cost Savings: Eliminate bond premium (typically $500-$5,000/year).",
@@ -1974,6 +2073,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "obtain_bond_waiver_order",
+        scope: "CORE",
         title: "Obtain Order Waiving Bond",
         description: "Verify that the court has officially waived the bond requirement, typically reflected in a separate Order or the Order for Probate.",
         estimatedTime: "At hearing",
@@ -1988,6 +2088,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "respond_to_objections",
+        scope: "CORE",
         title: "Respond to Objections",
         description: "If someone files an objection to the petition or will, you must respond formally and prepare for contest hearing.",
         estimatedTime: "2-4 weeks",
@@ -2006,6 +2107,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "attend_contest_hearing",
+        scope: "CORE",
         title: "Attend Will Contest Hearing",
         description: "Appear in court for hearing on objection. Be prepared to present evidence supporting will validity.",
         estimatedTime: "4-8 hours",
@@ -2018,6 +2120,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "resolve_contest",
+        scope: "CORE",
         title: "Resolve Will Contest",
         description: "Obtain court ruling on objection. If will is upheld, proceed with probate. If invalidated, estate becomes intestate. Contested probate can extend the timeline by 6-24 months.",
         estimatedTime: "Varies (can take 6-24 months)",
@@ -2040,6 +2143,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
     tasks: [
       {
         id: "check_unclaimed_property",
+        scope: "CORE",
         title: "Search State Unclaimed Property",
         description: "Check state databases for dormant accounts, uncashed checks, or forgotten insurance policies.",
         estimatedTime: "1 hour",
@@ -2048,6 +2152,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "business_valuation",
+        scope: "CORE",
         title: "Hire Business Valuation Expert",
         description: "If the estate includes an ongoing business, a professional valuation is required for tax and distribution purposes.",
         estimatedTime: "2-4 weeks",
@@ -2055,6 +2160,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "freeze_accounts",
+        scope: "CORE",
         title: "Coordinate with Financial Institutions",
         description: "Provide notice of your fiduciary authority to banks, brokerages, and insurance companies to secure accounts.",
         estimatedTime: "2-4 weeks",
@@ -2069,6 +2175,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "get_dod_values",
+        scope: "CORE",
         title: "Obtain Date-of-Death Values",
         description: "Request official DOD statements from every financial institution.",
         estimatedTime: "2-4 weeks",
@@ -2082,6 +2189,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "hire_appraiser",
+        scope: "CORE",
         title: "Hire Probate Referee for Real Property",
         description: "Court-appointed appraiser must value real estate, business interests, and collectibles.",
         estimatedTime: "2-3 weeks",
@@ -2096,6 +2204,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "complete_inventory",
+        scope: "CORE",
         title: "Complete Inventory & Appraisal",
         description: "List ALL assets with DOD values and attach appraisal reports.",
         estimatedTime: "1-2 weeks",
@@ -2118,6 +2227,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
 
       {
         id: "file_inventory",
+        scope: "CORE",
         title: "File Inventory with Court",
         description: "Submit the Inventory Form to court and serve copies on all heirs.",
         estimatedTime: "1 day",
@@ -2132,6 +2242,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "oh_certificate_of_transfer",
+        scope: "US-OH",
         title: "Apply for Certificate of Transfer (ORC §2113.61)",
         description: "Probate Court issues Certificate of Transfer to transfer real property and documented interests from the decedent to heirs or beneficiaries as recorded in the county where property is located.",
         estimatedTime: "2-4 weeks",
@@ -2150,6 +2261,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       // ── NJ-Specific Inventory Tasks ─────────────────────────────────────
       {
         id: "nj_inventory_90_day_deadline",
+        scope: "US-NJ",
         title: "File NJ Inventory (90-Day Deadline)",
         description: "Under N.J.S.A. § 3B:15-1, the inventory must be filed with the County Surrogate within 90 days of appointment. Missing this deadline can result in court sanctions.",
         estimatedTime: "1-2 weeks",
@@ -2169,6 +2281,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "nj_inventory_extension",
+        scope: "US-NJ",
         title: "Request Inventory Extension (NJ)",
         description: "If additional time is needed to complete the inventory, file a request for extension with the Surrogate's Court BEFORE the 90-day deadline expires.",
         estimatedTime: "1-2 days",
@@ -2189,6 +2302,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       // International Mode - Tax
       {
         id: "tax_withholding_review",
+        scope: "CORE",
         title: "International Tax Withholding Review",
         description: "Identify beneficiary residency and citizenship to determine if 30% withholding applies.",
         estimatedTime: "1-2 weeks",
@@ -2202,6 +2316,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "coordinate_with_guardian",
+        scope: "CORE",
         title: "Coordinate with Guardian Ad Litem",
         description: "Keep guardian informed of all estate actions. Obtain guardian's approval before major decisions affecting minors.",
         estimatedTime: "Ongoing",
@@ -2224,6 +2339,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
     tasks: [
       {
         id: "debt_priority_risk",
+        scope: "CORE",
         title: "FIDUCIARY RISK: Statutory Debt Priority",
         description: "Assess creditor claims and potential debts under the statutory priority rules applicable in your state (often including administration expenses and taxes before unsecured debts).",
         isAttorneyReviewNode: true,
@@ -2254,6 +2370,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "publish_notice",
+        scope: "CORE",
         title: "Publish Notice to Creditors (If Required)",
         description: "If required or strategically beneficial in your state, publish a notice to creditors using the court-approved or locally accepted format. Publication rules, timing, and whether it affects creditor deadlines vary by state and county.",
         estimatedTime: "State-specific (often 1–2 weeks)",
@@ -2372,6 +2489,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "mail_notice",
+        scope: "CORE",
         title: "Notify Known Creditors",
         description: "Notify known creditors as appropriate and document your outreach (e.g., banks, credit cards, medical providers). Requirements and best practices vary by state.",
         estimatedTime: "1–3 hours",
@@ -2412,6 +2530,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "intl_w8_assessment",
+        scope: "CORE",
         title: "International Fiduciary: W-8BEN/W-8CE Assessment",
         description: "For non-resident executors or beneficiaries, determine U.S. tax withholding requirements and treaty eligibility.",
         applicability: {
@@ -2427,6 +2546,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "itin_acquisition_protocol",
+        scope: "CORE",
         title: "International Fiduciary: ITIN Acquisition Protocol",
         description: "Identify foreign beneficiaries without a SSN/ITIN. Coordinate acquisition of U.S. Individual Taxpayer Identification Numbers to avoid maximum backup withholding on distributions.",
         applicability: {
@@ -2440,6 +2560,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "evaluate_solvency",
+        scope: "CORE",
         title: "Evaluate Estate Solvency",
         description: "Compare total estate assets to total liabilities, taxes, and administration/funeral expenses to determine whether the estate appears solvent or insolvent.",
         estimatedTime: "2–3 hours",
@@ -2453,6 +2574,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "wait_claim_period",
+        scope: "CORE",
         title: "Monitor State-Specific Creditor Exposure Period",
         description: "Monitor the creditor exposure timeline applicable in your state. The trigger event and timing vary by state and case type. Avoid final distributions until creditor risk is appropriately managed (often by holding reserves and documenting claim handling).",
         utility: "Helps reduce personal fiduciary liability by managing creditor exposure before final distributions.",
@@ -2472,6 +2594,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "tx_publish_creditor_notice",
+        scope: "US-TX",
         title: "Publish Notice to Creditors (Optional but Recommended)",
         description: "Texas allows optional publication of notice to creditors. While not required, publication starts the 4-month claim period and provides protection against late claims.",
         estimatedTime: "1-2 weeks",
@@ -2494,6 +2617,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "tx_personal_creditor_notice",
+        scope: "US-TX",
         title: "Mail Notice to Known Creditors (TX)",
         description: "Texas requires actual notice to known creditors. Mail notice by certified mail, return receipt requested, to trigger the 4-month claim period for each creditor.",
         estimatedTime: "1-3 hours",
@@ -2515,6 +2639,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "tx_medicaid_recovery_check",
+        scope: "US-TX",
         title: "Check for Texas Medicaid Estate Recovery (MERP)",
         description: "Texas Medicaid Estate Recovery Program (MERP) may have claims against the estate for benefits paid. Check MERP status before distributing assets or filing Muniment of Title.",
         estimatedTime: "1-2 weeks",
@@ -2538,6 +2663,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "monitor_creditor_claim_period",
+        scope: "CORE",
         title: "Monitor Creditor Claim Period",
         description: "Monitor the creditor claim period applicable in your state. The timing and trigger events vary by state. This task provides state-specific guidance for creditor claim monitoring.",
         isLongHorizon: true,
@@ -2634,6 +2760,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "review_claims",
+        scope: "CORE",
         title: "Review Submitted Claims",
         description: "Examine each creditor claim for validity, amount, and supporting documentation.",
         estimatedTime: "1-2 weeks",
@@ -2662,6 +2789,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "tod_creditor_review",
+        scope: "CORE",
         title: "⚠️ Non-Probate Creditor Exposure Assessment",
         description: "Risk assessment: Evaluate whether creditors may pursue non-probate transfers (e.g., TOD/POD beneficiaries) when the probate estate is insufficient. This is not the standard probate claims workflow; it assesses potential statutory recovery mechanisms that vary by state.",
         estimatedTime: "State-specific (often 1–2 weeks)",
@@ -2681,6 +2809,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "evaluate_and_document_claims",
+        scope: "CORE",
         title: "Document Claim Evaluation & Decision",
         description: "Evaluate each creditor claim and document your decision (allowed, partially allowed, disputed/rejected) with supporting rationale and evidence. Claims handling procedures vary by state and case type.",
         isAttorneyReviewNode: true,
@@ -2705,6 +2834,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "reject_invalid",
+        scope: "CORE",
         title: "Dispute or Reject Claims (If Applicable)",
         description: "If a claim is incorrect, unsupported, or disputed, follow your state's procedure to dispute, reject, or negotiate the claim. Keep written documentation of the basis and supporting evidence.",
         estimatedTime: "State-specific (often 1–2 weeks)",
@@ -2744,6 +2874,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "pay_approved",
+        scope: "CORE",
         title: "Pay Approved Claims (By Statutory Priority)",
         description: "Pay valid debts in the statutory priority order (commonly including administration costs, taxes, secured debts, then unsecured claims). Document each payment and retain receipts.",
         estimatedTime: "State/case dependent (often 2–6 weeks)",
@@ -2766,6 +2897,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "file_proof",
+        scope: "CORE",
         title: "Document Proof of Creditor Notice (If Applicable)",
         description: "If your state requires proof of creditor notice (publication and/or direct notice), retain and submit the required proof in the format your court or process expects. Even when not required to file, maintaining proof supports a defensible administration record.",
         estimatedTime: "State-specific (often 1–3 days)",
@@ -2812,6 +2944,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
     tasks: [
       {
         id: "minor_beneficiary_court_approval",
+        scope: "CORE",
         title: "Obtain Court Approval for Minor Distributions",
         description: "Distributions to minors usually require a guardianship or court order to be placed in a blocked account.",
         estimatedTime: "4-8 weeks",
@@ -2827,6 +2960,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "present_letters",
+        scope: "CORE",
         title: "Present Letters to All Institutions",
         description: "Submit certified Letters of Authority to every bank, brokerage, and insurance company.",
         estimatedTime: "2-4 weeks",
@@ -2840,6 +2974,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "transfer_accounts",
+        scope: "CORE",
         title: "Transfer Financial Accounts",
         description: "Move stocks, bonds, and cash to estate account or directly to beneficiaries.",
         estimatedTime: "4-8 weeks",
@@ -2853,6 +2988,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "prepare_notice_proposed_action",
+        scope: "US-CA",
         title: "Prepare Notice of Proposed Action",
         description: "If you have independent administration authority, you must notify heirs of your intent to sell real property.",
         estimatedTime: "1 week",
@@ -2872,6 +3008,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "wait_proposed_action_period",
+        scope: "US-CA",
         title: "Wait for 15-Day Objection Period",
         description: "Mandatory waiting period after serving Notice of Proposed Action to allow heirs to respond or object.",
         estimatedTime: "15 days",
@@ -2883,6 +3020,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "petition_confirm_sale",
+        scope: "US-CA",
         title: "File Petition to Confirm Sale",
         description: "If you do NOT have independent administration authority, or if someone objects, you must petition the court to confirm the sale of real property.",
         estimatedTime: "2-4 hours",
@@ -2904,6 +3042,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "obtain_sale_confirmation_order",
+        scope: "US-CA",
         title: "Obtain Sale Confirmation Order",
         description: "Receive signed court order confirming the real estate sale and allowing the close of escrow.",
         estimatedTime: "1-2 weeks after hearing",
@@ -2918,6 +3057,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "sell_property",
+        scope: "CORE",
         title: "Complete Property Sale & Transfer",
         description: "If the estate owns real property and a sale is needed, confirm that the fiduciary has the appropriate legal authority in the target state. before signing a contract. Complete closing, deposit proceeds into the estate account, and retain all closing and tax documents.",
         estimatedTime: "4-8 weeks",
@@ -2965,6 +3105,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       // ── GA Deed of Assent Task ──────────────────────────────────
       {
         id: "ga_deed_of_assent",
+        scope: "US-GA",
         title: "Execute and Record Deed of Assent (O.C.G.A. §53-8-15)",
         description: "Transfer title to real property from the estate to heirs or beneficiaries by executing and recording a Deed of Assent. This is Georgia's standard method for transferring estate real property.",
         estimatedTime: "1-2 hours",
@@ -2993,6 +3134,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "file_form_1041",
+        scope: "CORE",
         title: "File Form 1041 (Fiduciary Income Tax)",
         description: "Report income, deductions, and credits for a trust or estate that has gross income of $600 or more in a tax year.",
         estimatedTime: "4-8 hours",
@@ -3008,6 +3150,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "issue_k1",
+        scope: "CORE",
         title: "Issue Schedule K-1 to Beneficiaries",
         description: "Provide beneficiaries with their share of income, deductions, and credits to report on their individual tax returns.",
         estimatedTime: "2-3 hours",
@@ -3018,6 +3161,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "pay_taxes",
+        scope: "CORE",
         title: "Pay Final Taxes",
         description: "File final individual 1040, estate 1041, and any estate tax returns.",
         utility: "Clears your personal liability with the IRS.",
@@ -3035,6 +3179,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "prepare_accounting",
+        scope: "CORE",
         title: "Prepare Final Accounting",
         description: "Document all income, expenses, and distributions for court review.",
         utility: "Required to prove you didn't miss any funds.",
@@ -3059,6 +3204,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
     tasks: [
       {
         id: "guardian_distribution_approval",
+        scope: "CORE",
         title: "Obtain Guardian Approval for Distribution",
         description: "Present final distribution plan to guardian ad litem for review and approval before court hearing.",
         estimatedTime: "1-2 weeks",
@@ -3071,6 +3217,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "blocked_account_minors",
+        scope: "CORE",
         title: "Setup Blocked Accounts for Minors",
         description: "Ensure funds for minor beneficiaries are placed in court-approved blocked accounts.",
         estimatedTime: "2 weeks",
@@ -3082,6 +3229,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "file_final_petition",
+        scope: "CORE",
         title: "File Petition for Final Distribution",
         description: "Request court approval to distribute remaining assets to heirs.",
         stateOverrides: {
@@ -3103,6 +3251,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "attend_final_hearing",
+        scope: "CORE",
         title: "Attend Final Hearing",
         description: "Appear in court for approval of final accounting and distribution.",
         estimatedTime: "1-2 hours",
@@ -3116,6 +3265,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "distribute_assets",
+        scope: "CORE",
         title: "Distribute Assets to Heirs",
         description: "Transfer remaining assets according to Will and court order.",
         estimatedTime: "2-4 weeks",
@@ -3130,6 +3280,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "file_final_accounting",
+        scope: "CORE",
         title: "File Final Accounting with Court",
         description: "Submit final report showing all transactions and distributions.",
         estimatedTime: "1 day",
@@ -3144,6 +3295,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       // International Mode - Distribution
       {
         id: "international_distribution_prep",
+        scope: "CORE",
         title: "Prepare International Distribution",
         description: "Collect exact beneficiary bank details, Swift codes, and pre-validate wire requirements.",
         estimatedTime: "2-3 weeks",
@@ -3159,6 +3311,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       // ── NJ-Specific Inheritance Tax Tasks (Expanded) ─────────────────────────────
       {
         id: "nj_inheritance_tax_classify_beneficiaries",
+        scope: "US-NJ",
         title: "Classify Beneficiaries for NJ Inheritance Tax",
         description: "Classify each beneficiary according to NJ inheritance tax classes. Class A (spouse, children, parents, grandparents) = FULLY EXEMPT. Class C (siblings, sons/daughters-in-law) = $25,000 exemption then tiered tax. Class D (all others) = no exemption, 15-16% tax. Class E (charities) = exempt.",
         estimatedTime: "2-4 hours",
@@ -3184,6 +3337,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "nj_inheritance_tax_determine_residency",
+        scope: "US-NJ",
         title: "Determine Decedent's Domicile for Tax Purposes",
         description: "Determine if the decedent was a NJ resident or non-resident. This determines which form to file: IT-R (Resident) for NJ domiciled decedents, or IT-NR (Non-Resident) for non-residents with NJ assets.",
         estimatedTime: "1-2 hours",
@@ -3206,6 +3360,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "nj_inheritance_tax_return",
+        scope: "US-NJ",
         title: "File NJ Inheritance Tax Return",
         description: "File Form IT-R (resident decedent) or IT-NR (non-resident decedent) within 8 months of death. Even if all beneficiaries are Class A (exempt), filing may still be required to obtain waivers for real estate transfers.",
         estimatedTime: "4-8 hours",
@@ -3231,6 +3386,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "nj_inheritance_tax_payment",
+        scope: "US-NJ",
         title: "Pay NJ Inheritance Tax (If Due)",
         description: "If inheritance tax is owed (non-Class A beneficiaries), remit payment with the return or request a payment plan. Tax is due 8 months after death regardless of when the estate closes.",
         estimatedTime: "1-2 hours",
@@ -3254,6 +3410,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "nj_inheritance_tax_waiver",
+        scope: "US-NJ",
         title: "Obtain NJ Inheritance Tax Waiver (Tax Clearance)",
         description: "Request tax waivers (Form C9700) from the NJ Division of Taxation. Waivers are REQUIRED to transfer NJ real estate and certain financial accounts. Class A beneficiaries (spouse, children, parents) receive waivers shortly after filing the return — no tax payment required. Class C and D beneficiaries must pay tax before waivers are issued.",
         estimatedTime: "2-12 weeks (Class A: 2-4 weeks; Class C/D: after tax payment)",
@@ -3280,6 +3437,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "nj_distribution_block_until_clearance",
+        scope: "US-NJ",
         title: "HOLD: Do Not Distribute to Class C/D Beneficiaries Until Waiver Received",
         description: "NJ requires tax clearance before distributing assets to non-exempt (Class C or D) beneficiaries. Do not transfer real estate or make final distributions to Class C/D beneficiaries until the Inheritance Tax Waiver (Form C9700) is received from the NJ Division of Taxation. Class A distributions (spouse, children, parents) may proceed after the return is filed.",
         estimatedTime: "Ongoing until waiver received",
@@ -3308,6 +3466,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       // ── State-Specific Final Distribution Tasks ───────────────────────
       {
         id: "fl_homestead_petition",
+        scope: "US-FL",
         title: "File Homestead Property Petition (FL)",
         description: "Florida homestead property has special constitutional protections. File a petition to determine homestead status and transfer the property to the surviving spouse or heirs per FL Stat. §732.401.",
         estimatedTime: "2-4 hours",
@@ -3325,6 +3484,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       // ── End State-Specific Final Distribution Tasks ───────────────────
       {
         id: "close_estate",
+        scope: "CORE",
         title: "Close Estate",
         description: "File final discharge and close estate bank account.",
         estimatedTime: "1-2 weeks",
@@ -3352,6 +3512,7 @@ export const MODIFIER_PHASE_TASKS: PhaseTaskList[] = [
     tasks: [
       {
         id: "identify_out_of_state_assets",
+        scope: "CORE",
         title: "Identify Out-of-State Assets",
         description: "Verify all real property and titled assets located outside of the primary probate state.",
         estimatedTime: "2-4 hours",
@@ -3359,6 +3520,7 @@ export const MODIFIER_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "confirm_ancillary_requirements",
+        scope: "CORE",
         title: "Confirm Ancillary Requirements",
         description: "Consult with a local attorney in the secondary state to determine if formal ancillary probate or a simplified affidavit is required.",
         estimatedTime: "1-2 weeks",
@@ -3366,6 +3528,7 @@ export const MODIFIER_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "ancillary_filing",
+        scope: "CORE",
         title: "File Ancillary Probate",
         description: "File certified copies of the primary Letters and Will in the secondary state or court to obtain local authority.",
         estimatedTime: "2-4 weeks",
@@ -3383,6 +3546,7 @@ export const MODIFIER_PHASE_TASKS: PhaseTaskList[] = [
     tasks: [
       {
         id: "preserve_litigation_evidence",
+        scope: "CORE",
         title: "Preserve Evidence",
         description: "Secure original copies of the Will/Trust, key communications (emails, letters), and relevant financial records.",
         estimatedTime: "2-4 hours",
@@ -3390,6 +3554,7 @@ export const MODIFIER_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "engage_litigation_counsel",
+        scope: "CORE",
         title: "Engage Probate Litigation Counsel",
         description: "Hire specialized litigation counsel to represent the estate's interests in the dispute.",
         estimatedTime: "1-2 weeks",
@@ -3397,6 +3562,7 @@ export const MODIFIER_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "mediation_strategy",
+        scope: "CORE",
         title: "Consider Mediation/Settlement Strategy",
         description: "Evaluate the costs and risks of litigation versus the benefits of a settlement agreement.",
         estimatedTime: "2-4 weeks",
@@ -3404,6 +3570,7 @@ export const MODIFIER_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "freeze_distributions_litigation",
+        scope: "CORE",
         title: "Freeze Distributions until Resolution",
         description: "Mandatory: Do not distribute any contested portions of the estate until a final court order or written settlement is reached.",
         alerts: [{ type: "caution", message: "Fiduciary Risk: Premature distribution during litigation can lead to personal liability and surcharge." }]
@@ -3420,6 +3587,7 @@ export const MODIFIER_PHASE_TASKS: PhaseTaskList[] = [
     tasks: [
       {
         id: "stop_insolvent_distributions",
+        scope: "CORE",
         title: "Stop All Distributions",
         description: "Cease all payments to beneficiaries until a final insolvency plan is approved by the court.",
         estimatedTime: "Immediate",
@@ -3427,6 +3595,7 @@ export const MODIFIER_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "prioritize_claims_statutory",
+        scope: "CORE",
         title: "Prioritize Claims per Statutory Order",
         description: "Rank all known debts according to their legal priority (e.g., admin costs, funeral, taxes, then general creditors).",
         estimatedTime: "1-2 weeks",
@@ -3434,6 +3603,7 @@ export const MODIFIER_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "negotiate_insolvency_settlements",
+        scope: "CORE",
         title: "Negotiate Structured Payoffs",
         description: "Contact creditors to negotiate pro-rata payments or settlements based on available estate funds.",
         estimatedTime: "4-8 weeks",
@@ -3441,6 +3611,7 @@ export const MODIFIER_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "close_insolvent_accounting",
+        scope: "CORE",
         title: "Close with Insolvency Accounting",
         description: "Submit a final accounting to the court that explicitly documents the estate's insolvency and the pro-rata distribution to creditors.",
         estimatedTime: "2-4 weeks",
@@ -3470,6 +3641,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
     tasks: [
       {
         id: "locate_trust",
+        scope: "CORE",
         title: "Locate Trust Document & All Amendments",
         description: "Find the original signed trust document and any amendments. This is your primary legal authority.",
         estimatedTime: "1-2 days",
@@ -3481,6 +3653,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "identify_successor_trustee",
+        scope: "CORE",
         title: "Confirm Successor Trustee Designation",
         description: "Verify your appointment as successor trustee per the trust terms.",
         estimatedTime: "30 minutes",
@@ -3491,6 +3664,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "sign_trustee_acceptance",
+        scope: "CORE",
         title: "Sign Trustee Acceptance / Affidavit",
         description: "Formally accept your role as successor trustee by signing an acceptance document.",
         estimatedTime: "1 hour",
@@ -3503,6 +3677,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "prepare_certification_of_trust",
+        scope: "CORE",
         title: "Prepare Certification of Trust",
         description: "Create a Certification of Trust (abstract of trust) to prove your authority to banks and institutions without revealing full trust terms.",
         estimatedTime: "2-4 hours",
@@ -3515,6 +3690,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "obtain_ein_trust",
+        scope: "CORE",
         title: "Obtain EIN for Trust/Estate",
         description: "Apply for an Employer Identification Number from the IRS. Required for opening trust bank accounts and filing tax returns.",
         estimatedTime: "30 minutes",
@@ -3530,6 +3706,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "file_irs_form_56",
+        scope: "CORE",
         title: "File IRS Form 56",
         description: "Formally notify the IRS of your fiduciary relationship as successor trustee. This ensures tax notices are sent to you directly.",
         estimatedTime: "1 hour",
@@ -3542,6 +3719,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "secure_trust_property",
+        scope: "CORE",
         title: "Secure Trust Property",
         description: "Change locks on real property, forward mail, secure valuables, and ensure insurance coverage remains active.",
         estimatedTime: "1-2 days",
@@ -3563,6 +3741,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
     tasks: [
       {
         id: "identify_all_beneficiaries",
+        scope: "CORE",
         title: "Identify All Trust Beneficiaries",
         description: "Review the trust to identify all current and remainder beneficiaries. Include contingent beneficiaries.",
         estimatedTime: "1-2 hours",
@@ -3574,6 +3753,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "send_statutory_notice",
+        scope: "CORE",
         title: "Send Statutory Notice to Beneficiaries",
         description: "State law typically requires formal notice to beneficiaries and heirs within a specific timeframe (e.g., 30–90 days).",
         estimatedTime: "2-4 hours",
@@ -3591,6 +3771,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "notify_state_agencies_health",
+        scope: "CORE",
         title: "Notify State Health Agencies",
         description: "The trustee must notify the state Department of Health or Medicaid recovery agency to allow for potential recovery claims.",
         estimatedTime: "1 hour",
@@ -3603,6 +3784,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "handle_trust_copy_requests",
+        scope: "CORE",
         title: "Respond to Trust Copy Requests",
         description: "Beneficiaries have the right to request a copy of the trust. Respond within the timeframe specified by state law.",
         estimatedTime: "Ongoing",
@@ -3613,6 +3795,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "identify_minor_trust_beneficiaries",
+        scope: "CORE",
         title: "Flag Minor Beneficiaries",
         description: "Identify any beneficiaries under age 18. Distributions to minors require special handling.",
         estimatedTime: "30 minutes",
@@ -3625,6 +3808,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "wait_contest_period",
+        scope: "CORE",
         title: "Monitor Statutory Contest Period",
         description: "Wait for the statutory contest period to expire before making final distributions. Document any contests or concerns raised.",
         estimatedTime: "120 days",
@@ -3646,6 +3830,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
     tasks: [
       {
         id: "inventory_trust_assets",
+        scope: "CORE",
         title: "Create Trust Asset Inventory",
         description: "List all assets titled in the trust's name. This is an internal document, not filed with court.",
         estimatedTime: "1-2 weeks",
@@ -3657,6 +3842,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "verify_trust_titling",
+        scope: "CORE",
         title: "Verify Trust Titling on All Assets",
         description: "Check each asset to confirm it is properly titled in the trust's name. Assets not in the trust may require probate.",
         estimatedTime: "2-4 hours per asset",
@@ -3667,6 +3853,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "obtain_dod_valuations",
+        scope: "CORE",
         title: "Obtain Date-of-Death Valuations",
         description: "Request statements and appraisals as of the date of death for tax basis and accounting purposes.",
         estimatedTime: "2-4 weeks",
@@ -3678,6 +3865,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "check_out_of_trust_assets",
+        scope: "CORE",
         title: "Identify Out-of-Trust Assets",
         description: "Review for assets that were never funded into the trust. For each: Does it have a POD/TOD? Is it joint tenancy? Or does it require probate?",
         estimatedTime: "2-4 hours",
@@ -3688,6 +3876,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "probate_escalation_check",
+        scope: "CORE",
         title: "Probate Escalation Decision Point",
         description: "If solely-owned assets exist outside the trust with no beneficiary designation, determine if formal probate or small estate affidavit is needed.",
         estimatedTime: "1-2 hours",
@@ -3702,6 +3891,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "notify_financial_institutions",
+        scope: "CORE",
         title: "Notify Financial Institutions",
         description: "Present your Certification of Trust and death certificate to banks, brokerages, and insurance companies.",
         estimatedTime: "2-4 weeks",
@@ -3723,6 +3913,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
     tasks: [
       {
         id: "trust_creditor_assessment",
+        scope: "CORE",
         title: "Creditor Exposure Assessment",
         description: "Review known debts and potential claims against the trust estate. This is a silent legal check, not formal probate publication.",
         estimatedTime: "2-4 hours",
@@ -3735,6 +3926,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "pay_funeral_last_illness",
+        scope: "CORE",
         title: "Pay Funeral & Last Illness Expenses",
         description: "These are typically the first obligations to pay from trust assets.",
         estimatedTime: "1-2 weeks",
@@ -3746,6 +3938,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "pay_ongoing_expenses",
+        scope: "CORE",
         title: "Pay Ongoing Property Expenses",
         description: "Maintain trust property by paying mortgage, property taxes, insurance, and utilities from trust accounts.",
         estimatedTime: "Ongoing",
@@ -3756,6 +3949,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "evaluate_trust_solvency",
+        scope: "CORE",
         title: "Evaluate Trust Solvency",
         description: "Compare total trust assets against all known and potential liabilities to determine solvency status.",
         estimatedTime: "1-2 hours",
@@ -3766,6 +3960,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "pay_trust_debts",
+        scope: "CORE",
         title: "Pay Valid Debts",
         description: "Pay legitimate debts from trust accounts according to trust terms and state priority rules.",
         estimatedTime: "2-4 weeks",
@@ -3786,6 +3981,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
     tasks: [
       {
         id: "file_final_1040",
+        scope: "CORE",
         title: "File Decedent's Final Form 1040",
         description: "File the decedent's final individual income tax return for the year of death.",
         estimatedTime: "2-4 weeks",
@@ -3797,6 +3993,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "determine_trust_tax_posture",
+        scope: "CORE",
         title: "Determine Post-Death Tax Posture",
         description: "A revocable trust becomes irrevocable at death. Determine whether it's now a grantor trust, complex trust, or simple trust for tax purposes.",
         estimatedTime: "1-2 hours",
@@ -3809,6 +4006,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "file_form_1041",
+        scope: "CORE",
         title: "File Trust/Estate Income Tax Return (Form 1041)",
         description: "File Form 1041 for trust income earned after death. Issue K-1s to beneficiaries for their share of income.",
         estimatedTime: "2-4 weeks",
@@ -3820,6 +4018,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "evaluate_form_706",
+        scope: "CORE",
         title: "Evaluate Estate Tax Return Requirement",
         description: "Determine if Form 706 is required based on total estate value, including trust assets.",
         estimatedTime: "2-4 hours",
@@ -3833,6 +4032,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "obtain_tax_clearance",
+        scope: "CORE",
         title: "Obtain Tax Clearances",
         description: "Confirm all taxes are paid before making final distributions to beneficiaries.",
         estimatedTime: "2-4 weeks",
@@ -3843,6 +4043,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "prepare_trust_accounting",
+        scope: "CORE",
         title: "Prepare Trust Accounting",
         description: "Create a comprehensive accounting of all receipts, disbursements, and distributions for beneficiaries.",
         estimatedTime: "1-2 weeks",
@@ -3864,6 +4065,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
     tasks: [
       {
         id: "prepare_distribution_schedule",
+        scope: "CORE",
         title: "Prepare Distribution Schedule",
         description: "Calculate each beneficiary's share according to the trust terms. Document all calculations.",
         estimatedTime: "2-4 hours",
@@ -3875,6 +4077,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "reserve_policy",
+        scope: "CORE",
         title: "Establish Reserve for Unknown Liabilities",
         description: "Hold back a reasonable reserve for potential taxes, unknown bills, or administrative costs before final distribution.",
         estimatedTime: "1-2 hours",
@@ -3885,6 +4088,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "distribute_assets_to_beneficiaries",
+        scope: "CORE",
         title: "Distribute Assets to Beneficiaries",
         description: "Transfer assets to beneficiaries per the trust terms. Real property may require new deeds.",
         estimatedTime: "2-8 weeks",
@@ -3896,6 +4100,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "obtain_beneficiary_receipts",
+        scope: "CORE",
         title: "Obtain Receipts & Global Releases",
         description: "Have each beneficiary sign a receipt acknowledging their distribution and a GLOBAL RELEASE waiving the right to sue the trustee for past actions.",
         estimatedTime: "1-2 weeks",
@@ -3910,6 +4115,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "send_final_accounting",
+        scope: "CORE",
         title: "Send Final Accounting to Beneficiaries",
         description: "Provide each beneficiary with a complete accounting showing all transactions during the administration.",
         estimatedTime: "1-2 days",
@@ -3921,6 +4127,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "close_trust_accounts",
+        scope: "CORE",
         title: "Close Trust Bank Accounts",
         description: "After all distributions are complete, close the trust bank and brokerage accounts.",
         estimatedTime: "1-2 weeks",
@@ -3931,6 +4138,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "complete_trust_administration",
+        scope: "CORE",
         title: "Complete Trust Administration",
         description: "The trust administration is complete. Retain records for at least 7 years.",
         estimatedTime: "N/A",
@@ -3956,6 +4164,7 @@ export const PROBATE_ESCALATION_PHASE: PhaseTaskList = {
   tasks: [
     {
       id: "escalation_evaluate_path",
+      scope: "CORE",
       title: "Evaluate Probate Path",
       description: "Determine whether small estate affidavit or formal probate is needed for out-of-trust assets.",
       estimatedTime: "1-2 hours",
@@ -3968,6 +4177,7 @@ export const PROBATE_ESCALATION_PHASE: PhaseTaskList = {
     },
     {
       id: "escalation_file_petition",
+      scope: "CORE",
       title: "File Probate Petition",
       description: "If formal probate is required for out-of-trust assets, file petition with the appropriate Probate Court.",
       category: "probate",
@@ -3980,6 +4190,7 @@ export const PROBATE_ESCALATION_PHASE: PhaseTaskList = {
     },
     {
       id: "escalation_obtain_letters",
+      scope: "CORE",
       title: "Obtain Letters Testamentary",
       description: "Attend hearing and obtain court-issued authority for probate assets only.",
       category: "court-issued",
@@ -3992,6 +4203,7 @@ export const PROBATE_ESCALATION_PHASE: PhaseTaskList = {
     },
     {
       id: "escalation_transfer_to_trust",
+      scope: "CORE",
       title: "Transfer Probate Assets to Trust",
       description: "After probate closes, pour-over will or court order transfers probate assets into the trust for unified distribution.",
       estimatedTime: "2-4 weeks",
