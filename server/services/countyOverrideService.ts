@@ -1,14 +1,6 @@
-import { Prisma } from "@prisma/client";
 import { prisma as db } from "../db.js";
 import { PhaseTask } from "../../src/config/settlementPhases.js";
 import { logger } from "../lib/logger.js";
-
-const isMissingCountyOverridesTableError = (error: unknown): boolean => {
-    return (
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === "P2021"
-    );
-};
 
 /**
  * CountyOverrideService
@@ -26,7 +18,7 @@ export class CountyOverrideService {
         countyName: string,
         tasks: PhaseTask[]
     ): Promise<PhaseTask[]> {
-        if (!countyName) return tasks;
+        if (!countyName || countyName.trim() === "") return tasks;
 
         let overrides: Awaited<ReturnType<typeof db.countyOverride.findMany>> = [];
 
@@ -45,17 +37,9 @@ export class CountyOverrideService {
                 }
             });
         } catch (error: unknown) {
-            if (isMissingCountyOverridesTableError(error)) {
-                logger.warn(
-                    { error, stateCode, countyName },
-                    "County overrides table missing - using default tasks"
-                );
-                return tasks;
-            }
-
             logger.error(
                 { error, stateCode, countyName },
-                "Failed to load county overrides - using default tasks"
+                "County override lookup failed"
             );
             return tasks;
         }
@@ -92,7 +76,7 @@ export class CountyOverrideService {
      * Generates a hash of the current county overrides for pinning.
      */
     static async getOverrideHash(stateCode: string, countyName: string): Promise<string | null> {
-        if (!countyName) return null;
+        if (!countyName || countyName.trim() === "") return null;
 
         let overrides: Array<{ taskId: string; updatedAt: Date }> = [];
 
@@ -103,17 +87,9 @@ export class CountyOverrideService {
                 select: { taskId: true, updatedAt: true }
             });
         } catch (error: unknown) {
-            if (isMissingCountyOverridesTableError(error)) {
-                logger.warn(
-                    { error, stateCode, countyName },
-                    "County overrides table missing - returning null hash"
-                );
-                return null;
-            }
-
             logger.error(
                 { error, stateCode, countyName },
-                "Failed to get county override hash - returning null"
+                "Failed to get county override hash"
             );
             return null;
         }
