@@ -215,13 +215,13 @@ async function getTasksForAuthorityType(stateCode: string, estateAuthorityType: 
   const allTasks = SETTLEMENT_PHASE_TASKS.flatMap(phase => phase.tasks);
 
   // Apply jurisdiction filter
-  const { kept: jurisdictionFiltered } = filterPhasesByJurisdiction(
+  const { phases: jurisdictionFiltered } = filterPhasesByJurisdiction(
     SETTLEMENT_PHASE_TASKS.map(p => ({ phase: p.phase, tasks: p.tasks })),
     stateCode
   );
 
   // Apply authority scope filter
-  const { kept: authorityFiltered } = filterPhasesByAuthorityScope(
+  const { phases: authorityFiltered } = filterPhasesByAuthorityScope(
     jurisdictionFiltered as PhaseLike<PhaseTask>[],
     estateAuthorityType
   );

@@ -151,7 +151,7 @@ export async function runDiagnosticsForProfiles(
 /**
  * Calculate aggregate health score for a state
  */
-export async function calculateHealthScore(stateCode: string): Promise<number> {
+export async function calculateHealthScoreForState(stateCode: string): Promise<number> {
   const report = await runDiagnostics(stateCode);
   return report.healthScore;
 }
@@ -175,7 +175,7 @@ export async function persistDiagnosticRun(
       criticalCount: report.totalViolations.CRITICAL,
       warningCount: report.totalViolations.WARNING,
       infoCount: report.totalViolations.INFO,
-      resultsJson: report as unknown as Record<string, unknown>,
+      resultsJson: report as any,
       triggeredBy,
       commitSha: options.commitSha,
       branchName: options.branchName,

@@ -5,14 +5,14 @@
  * Used by both CI Roadmap Compliance Harness and Admin Jurisdiction Health Dashboard.
  */
 
-export * from './types';
+export * from './types.js';
 
 // Policy validators
-export { validateCrossStateStatuteLeak } from './policies/crossStateStatuteLeak';
-export { validateAuthorityLeakage } from './policies/authorityLeakage';
-export { validatePlaceholderIntegrity } from './policies/placeholderIntegrity';
-export { validateStateBlacklist } from './policies/stateBlacklist';
-export { validateStructuralInvariants } from './policies/structuralInvariants';
+export { validateCrossStateStatuteLeak } from './policies/crossStateStatuteLeak.js';
+export { validateAuthorityLeakage } from './policies/authorityLeakage.js';
+export { validatePlaceholderIntegrity } from './policies/placeholderIntegrity.js';
+export { validateStateBlacklist } from './policies/stateBlacklist.js';
+export { validateStructuralInvariants } from './policies/structuralInvariants.js';
 
 import type {
   DiagnosticResult,
@@ -20,13 +20,13 @@ import type {
   DiagnosticTask,
   JurisdictionDiagnosticReport,
   PolicyValidator,
-} from './types';
+} from './types.js';
 
-import { validateCrossStateStatuteLeak } from './policies/crossStateStatuteLeak';
-import { validateAuthorityLeakage } from './policies/authorityLeakage';
-import { validatePlaceholderIntegrity } from './policies/placeholderIntegrity';
-import { validateStateBlacklist } from './policies/stateBlacklist';
-import { validateStructuralInvariants } from './policies/structuralInvariants';
+import { validateCrossStateStatuteLeak } from './policies/crossStateStatuteLeak.js';
+import { validateAuthorityLeakage } from './policies/authorityLeakage.js';
+import { validatePlaceholderIntegrity } from './policies/placeholderIntegrity.js';
+import { validateStateBlacklist } from './policies/stateBlacklist.js';
+import { validateStructuralInvariants } from './policies/structuralInvariants.js';
 
 /**
  * All available policy validators
