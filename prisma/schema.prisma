@@ -1182,13 +1182,45 @@ model CountyOverride {
   formNames       String[] @map("form_names")
   attachments     Json?    // Array of { label: string, url: string }
   
+  // Approval workflow
+  status          String   @default("DRAFT") @map("status") // DRAFT | PENDING_REVIEW | APPROVED | REJECTED
+  submittedBy     String?  @map("submitted_by")
+  submittedAt     DateTime? @map("submitted_at")
+  reviewedBy      String?  @map("reviewed_by")
+  reviewedAt      DateTime? @map("reviewed_at")
+  reviewNotes     String?  @map("review_notes")
+  
   // Internal tracking
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
   publishedAt     DateTime? @map("published_at")
   
   @@unique([stateCode, countyName, taskId])
+  @@index([status])
+  @@index([stateCode, status])
   @@map("county_overrides")
+}
+
+// Diagnostic Run - Stores jurisdiction health check results
+model DiagnosticRun {
+  id              String   @id @default(uuid())
+  stateCode       String   @map("state_code")
+  overallStatus   String   @map("overall_status") // PASS | FAIL
+  healthScore     Int      @map("health_score")
+  criticalCount   Int      @default(0) @map("critical_count")
+  warningCount    Int      @default(0) @map("warning_count")
+  infoCount       Int      @default(0) @map("info_count")
+  resultsJson     Json     @map("results_json")
+  triggeredBy     String   @map("triggered_by")
+  commitSha       String?  @map("commit_sha")
+  branchName      String?  @map("branch_name")
+  durationMs      Int      @map("duration_ms")
+  createdAt       DateTime @default(now()) @map("created_at")
+  
+  @@index([stateCode])
+  @@index([stateCode, createdAt])
+  @@index([overallStatus])
+  @@map("diagnostic_runs")
 }
 
 // Authority Change Event - Audit trail for authority type changes

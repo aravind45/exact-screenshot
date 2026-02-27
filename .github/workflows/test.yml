@@ -39,6 +39,9 @@ jobs:
     - name: Run tests with coverage
       run: npm run test:coverage
     
+    - name: Run roadmap compliance harness
+      run: npm run test:roadmap-harness
+    
     - name: Upload coverage reports
       uses: codecov/codecov-action@v4
       with:

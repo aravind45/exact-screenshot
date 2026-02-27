@@ -1,0 +1,11 @@
+# Snapshots Directory
+
+This directory contains baseline snapshots for the roadmap compliance harness.
+
+Snapshots are JSON files that capture the expected task list for each estate profile.
+They are generated automatically on first run and should be committed to version control.
+
+To update snapshots after intentional changes:
+```bash
+npm run test:roadmap-harness:update
+```

@@ -1,0 +1,19 @@
+{
+  "id": "ohio_trust",
+  "name": "Ohio Trust Estate",
+  "stateCode": "OH",
+  "county": "Hamilton",
+  "authorityType": "TRUST",
+  "hasRealProperty": true,
+  "estateValue": 500000,
+  "hasWill": false,
+  "characteristics": {
+    "isSmallEstate": false,
+    "hasMinorBeneficiaries": true,
+    "hasContest": false,
+    "isInternational": false,
+    "hasTODDeed": false,
+    "hasOutOfStateProperty": false,
+    "isSurvivingSpouse": true
+  }
+}

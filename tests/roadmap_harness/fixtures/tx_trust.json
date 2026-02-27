@@ -1,0 +1,19 @@
+{
+  "id": "tx_trust",
+  "name": "Texas Trust Estate",
+  "stateCode": "TX",
+  "county": "Travis",
+  "authorityType": "TRUST",
+  "hasRealProperty": true,
+  "estateValue": 800000,
+  "hasWill": false,
+  "characteristics": {
+    "isSmallEstate": false,
+    "hasMinorBeneficiaries": false,
+    "hasContest": false,
+    "isInternational": false,
+    "hasTODDeed": true,
+    "hasOutOfStateProperty": true,
+    "isSurvivingSpouse": true
+  }
+}
