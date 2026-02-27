@@ -16,6 +16,10 @@ export interface Estate {
     deceasedFirstName: string;
     deceasedLastName: string;
     deceasedState: string;
+    deceasedDateOfBirth?: string;
+    deceasedDateOfDeath?: string;
+    deceasedSsn?: string;
+    probateCounty?: string;
     probateStatus: string;
     courtCaseNumber?: string;
     estateType?: string;
@@ -56,7 +60,19 @@ export interface Estate {
     bondAmount?: number;
     bondWaived?: boolean;
 
+    // Estate Assessment
+    isSurvivingSpouse?: boolean;
+    hasTODDeed?: boolean;
+    hasOutOfStateProperty?: boolean;
+    hasUnknownHeirs?: boolean;
+    isTrustRevocable?: boolean | null;
+    hasContest?: boolean;
+
+    // Financials continued
+    estimatedLiabilities?: number;
+
     // Custom
+    userRole?: string;
     user?: {
         fullName: string;
         state: string;
