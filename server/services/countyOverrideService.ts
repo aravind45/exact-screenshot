@@ -94,7 +94,7 @@ export class CountyOverrideService {
     static async getOverrideHash(stateCode: string, countyName: string): Promise<string | null> {
         if (!countyName) return null;
 
-        let overrides: Awaited<ReturnType<typeof db.countyOverride.findMany>> = [];
+        let overrides: Array<{ taskId: string; updatedAt: Date }> = [];
 
         try {
             overrides = await db.countyOverride.findMany({
