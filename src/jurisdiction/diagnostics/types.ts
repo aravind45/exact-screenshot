@@ -3,7 +3,7 @@
  * Shared types for the governance system - used by both CI harness and Admin Dashboard
  */
 
-import type { AuthorityScope } from "@/types/authorityScope";
+import type { AuthorityScope } from "../../types/authorityScope.js";
 
 /**
  * Severity levels for diagnostic violations
@@ -131,6 +131,7 @@ export interface DiagnosticTask {
   primaryActionUrl?: string;
   links?: Array<{ label: string; url: string }>;
   tags?: string[];
+  dependencies?: string[];
 }
 
 /**

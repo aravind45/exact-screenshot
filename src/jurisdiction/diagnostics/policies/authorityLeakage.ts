@@ -8,7 +8,7 @@
  * but unknown scope values are dropped.
  */
 
-import type { DiagnosticResult, EstateProfile, DiagnosticTask, Violation } from "../types";
+import type { DiagnosticResult, EstateProfile, DiagnosticTask, Violation } from "../types.js";
 
 // Valid authority scopes
 const VALID_AUTHORITY_SCOPES = ['PROBATE', 'TRUST', 'BOTH'] as const;

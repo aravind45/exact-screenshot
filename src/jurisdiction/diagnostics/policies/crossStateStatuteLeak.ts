@@ -7,7 +7,7 @@
  * This is a CRITICAL violation as it could mislead users about applicable law.
  */
 
-import type { DiagnosticResult, EstateProfile, DiagnosticTask, Violation } from "../types";
+import type { DiagnosticResult, EstateProfile, DiagnosticTask, Violation } from "../types.js";
 
 /**
  * State statute patterns - maps state codes to their citation formats

@@ -7,7 +7,7 @@
  * Placeholders indicate incomplete content and should be resolved before deployment.
  */
 
-import type { DiagnosticResult, EstateProfile, DiagnosticTask, Violation } from "../types";
+import type { DiagnosticResult, EstateProfile, DiagnosticTask, Violation } from "../types.js";
 
 /**
  * Placeholder patterns to detect

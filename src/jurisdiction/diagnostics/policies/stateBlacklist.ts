@@ -10,7 +10,7 @@
  * - Required task IDs (must be present for the state)
  */
 
-import type { DiagnosticResult, EstateProfile, DiagnosticTask, Violation } from "../types";
+import type { DiagnosticResult, EstateProfile, DiagnosticTask, Violation } from "../types.js";
 
 /**
  * State-specific blacklist configuration

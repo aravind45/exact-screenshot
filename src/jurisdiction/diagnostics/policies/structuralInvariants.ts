@@ -9,7 +9,7 @@
  * - No orphaned dependencies
  */
 
-import type { DiagnosticResult, EstateProfile, DiagnosticTask, Violation } from "../types";
+import type { DiagnosticResult, EstateProfile, DiagnosticTask, Violation } from "../types.js";
 
 /**
  * Required task categories for different estate profiles
