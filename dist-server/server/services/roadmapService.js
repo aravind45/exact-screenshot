@@ -5,7 +5,9 @@ import { calculateAuthorityRecommendation } from "../../src/lib/authorityEngine.
 import { getLettersTerm, getStateRule } from "../../src/lib/stateRules.js";
 import { logger } from "../lib/logger.js";
 import { CountyOverrideService } from "./countyOverrideService.js";
-import { filterPhasesByJurisdiction } from "../../src/shared/filterByJurisdiction.js";
+import { filterPhasesByJurisdiction, filterPhasesByAuthorityScope } from "../../src/shared/filterByJurisdiction.js";
+import { deriveEstateAuthorityType } from "../../src/types/authorityScope.js";
+import { computeAuthorityRecommendation, checkAuthorityChangePending, } from "./authorityChangeService.js";
 const FOLLOW_UP_SPAWN_RULES = {
     // ── Creditor Notices ──────────────────────────────────────────────────────
     send_creditor_notices: { institutionName: "General Creditors", subject: "Creditor claim period — awaiting responses", responseWindowDays: 60 },
@@ -487,6 +489,8 @@ export async function analyzeEstateProfile(estateId) {
     const isMD = stateCode === "MD";
     const isNC = stateCode === "NC";
     const isSC = stateCode === "SC";
+    // Compute estateAuthorityType from activeEngines
+    const estateAuthorityType = deriveEstateAuthorityType(rec.activeEngines);
     return {
         id: estate.id,
         hasMinorBeneficiaries: rec.modifiers?.includes("MINOR_HEIRS") || false,
@@ -501,6 +505,7 @@ export async function analyzeEstateProfile(estateId) {
         procedureType: rec.procedureType,
         distributionModel: rec.distributionModel,
         activeEngines: rec.activeEngines,
+        estateAuthorityType, // Computed from activeEngines for authority scope filtering
         hasWill: estate.hasWill,
         hasUnknownHeirs: estate.hasUnknownHeirs,
         has_foreign_beneficiary: estate.internationalReasons?.includes("FOREIGN_BENEFICIARY") || estate.internationalReasons?.includes("FOREIGN_BENEFICIARIES") || false,
@@ -814,10 +819,21 @@ export async function getRoadmapFromDatabase(estateId, profile, completedTaskIds
     const injected = ensurePreFilingCompliance(phases, profile);
     const filtered = filterTasksForEstate(injected, profile, completedTaskIds);
     // Apply unified jurisdiction filter (fail-closed scope check)
-    const { phases: scopeFiltered } = filterPhasesByJurisdiction(filtered, profile.state);
+    const { phases: scopeFiltered, dropped: jurisdictionDropped } = filterPhasesByJurisdiction(filtered, profile.state);
+    // Apply authorityScope filtering (ROOT-CAUSE filter for trust/probate module leakage)
+    const { phases: authorityFiltered, dropped: authorityDropped } = filterPhasesByAuthorityScope(scopeFiltered, profile.estateAuthorityType);
+    // Log dropped tasks for audit trail
+    if (authorityDropped.length > 0) {
+        logger.info({
+            estateId: profile.id,
+            estateAuthorityType: profile.estateAuthorityType,
+            droppedTasks: authorityDropped.map(d => d.id),
+            reasons: authorityDropped.map(d => d.reason)
+        }, "Authority scope filtering applied");
+    }
     // Apply county overrides with pinning awareness
-    let finalizedPhases = scopeFiltered;
-    if (estate.probateCounty) {
+    let finalizedPhases = authorityFiltered;
+    if (estate.probateCounty && estate.probateCounty.trim() !== "") {
         // Check if overrides have drifted if pinned
         let shouldApply = true;
         if (estate.countyOverrideHash) {
@@ -848,11 +864,35 @@ export async function getEstateRoadmap(estateId) {
     const filteredPhases = await getRoadmapFromDatabase(estateId, profile, completedTaskIds);
     // Development-time contamination check: warn if CA tokens leaked into non-CA state
     validateNoStateContamination(filteredPhases, profile.state);
-    // Get estate for version info
+    // Get estate for version info and authority status
     const estate = await db.estate.findUnique({
         where: { id: estateId },
-        select: { roadmapVersion: true, roadmapPinnedAt: true }
+        select: {
+            roadmapVersion: true,
+            roadmapPinnedAt: true,
+            authorityPinnedAt: true,
+            authorityChangePending: true,
+            recommendedAuthorityType: true,
+            recommendedAuthorityReason: true,
+        }
     });
+    // Check if authority change is pending (if estate is pinned)
+    let authorityChangePending = estate?.authorityChangePending ?? false;
+    let requiresRepin = false;
+    let recommendedAuthorityType;
+    let recommendedEstateAuthorityType;
+    if (estate?.authorityPinnedAt) {
+        // Check if recommendation has drifted
+        const hasChanged = await checkAuthorityChangePending(estateId);
+        authorityChangePending = hasChanged;
+        requiresRepin = hasChanged;
+        if (hasChanged) {
+            // Fetch the recommendation details
+            const recommendation = await computeAuthorityRecommendation(estateId);
+            recommendedAuthorityType = recommendation.recommendedAuthorityType;
+            recommendedEstateAuthorityType = recommendation.recommendedEstateAuthorityType;
+        }
+    }
     // Return roadmap with triggers
     return {
         estateId,
@@ -870,11 +910,17 @@ export async function getEstateRoadmap(estateId) {
         // Include version info for client awareness
         version: estate?.roadmapVersion || 'latest',
         pinnedAt: estate?.roadmapPinnedAt,
+        // Authority change policy fields
+        authorityChangePending,
+        requiresRepin,
+        recommendedAuthorityType,
+        recommendedEstateAuthorityType,
     };
 }
 /**
  * Pin roadmap for an estate
  * Sets all hashes and version to freeze the current roadmap.
+ * Also pins the authority type for stability.
  */
 export async function pinEstateRoadmap(estateId, userId) {
     const estate = await db.estate.findUnique({
@@ -910,6 +956,9 @@ export async function pinEstateRoadmap(estateId, userId) {
     const countyOverrideHash = estate.probateCounty
         ? await CountyOverrideService.getOverrideHash(estate.deceasedState, estate.probateCounty)
         : null;
+    // 3. Determine authority type to pin
+    const authorityType = profile.activeEngines.includes("TRUST") ? "TRUST_ADMIN_REVOCABLE" : profile.procedureType;
+    const estateAuthorityType = profile.estateAuthorityType;
     await db.estate.update({
         where: { id: estateId },
         data: {
@@ -917,7 +966,14 @@ export async function pinEstateRoadmap(estateId, userId) {
             roadmapPinnedAt: pinnedAt,
             stateRulesetHash,
             countyOverrideHash,
-            authorityType: profile.activeEngines.includes("TRUST") ? "TRUST" : "PROBATE" // Pinning authority context
+            // Pin authority type for stability
+            authorityType,
+            estateAuthorityType,
+            authorityTypeSource: "PINNED",
+            authorityPinnedAt: pinnedAt,
+            authorityChangePending: false,
+            recommendedAuthorityType: null,
+            recommendedAuthorityReason: null,
         }
     });
     // Log activity
@@ -927,13 +983,14 @@ export async function pinEstateRoadmap(estateId, userId) {
             userId,
             type: "ROADMAP",
             action: "PINNED",
-            notes: `Roadmap pinned to version ${version} (Ruleset: ${stateRulesetHash?.substring(0, 8)})`
+            notes: `Roadmap pinned to version ${version} (Ruleset: ${stateRulesetHash?.substring(0, 8)}, Authority: ${authorityType})`
         }
     });
     return { success: true, version, pinnedAt };
 }
 /**
  * Repin roadmap version for an estate with safety checks
+ * Integrates with authority change service for explicit confirmation workflow
  */
 export async function repinEstateRoadmap(estateId, userId, force = false) {
     const estate = await db.estate.findUnique({
@@ -950,8 +1007,20 @@ export async function repinEstateRoadmap(estateId, userId, force = false) {
     if (estate.taskCompletions.length > 0 && !force) {
         throw new Error("REPIN_BLOCKED_COMPLETED_TASKS");
     }
-    // TODO: Future - implement migration map for tasks if forced repin
-    // For now, we just perform a fresh pin which might shift task IDs
+    // Import repin functions from authority change service
+    const { repinAuthorityType, getRepinPreview } = await import("./authorityChangeService.js");
+    // Get preview of what would change
+    const preview = await getRepinPreview(estateId);
+    // If authority change requires confirmation and we're not forcing, check
+    if (preview.requiresConfirmation && !force) {
+        throw new Error("REPIN_REQUIRES_CONFIRMATION");
+    }
+    // Perform the repin
+    const repinResult = await repinAuthorityType(estateId, userId, force);
+    if (!repinResult.success && repinResult.requiresConfirmation) {
+        throw new Error("REPIN_REQUIRES_CONFIRMATION");
+    }
+    // Also repin the roadmap version
     return pinEstateRoadmap(estateId, userId);
 }
 /**

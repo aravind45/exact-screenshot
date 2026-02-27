@@ -579,4 +579,355 @@ router.get("/marketing/events", isAdmin, async (req, res) => {
         res.status(500).json({ error: "Failed to fetch marketing events" });
     }
 });
+// ═══════════════════════════════════════════════════════════════════════════
+// JURISDICTION HEALTH DASHBOARD ENDPOINTS
+// ═══════════════════════════════════════════════════════════════════════════
+import * as JurisdictionDiagnosticsService from "../services/jurisdictionDiagnosticsService.js";
+/**
+ * GET /api/admin/jurisdictions/health
+ * Get health summary for all jurisdictions
+ */
+router.get("/jurisdictions/health", isAdmin, async (req, res) => {
+    try {
+        const summaries = await JurisdictionDiagnosticsService.getAllJurisdictionHealth();
+        res.json({
+            data: summaries,
+            total: summaries.length,
+            generatedAt: new Date().toISOString(),
+        });
+    }
+    catch (error) {
+        logger.error("Failed to fetch jurisdiction health:", error.message);
+        res.status(500).json({ error: "Failed to fetch jurisdiction health" });
+    }
+});
+/**
+ * GET /api/admin/jurisdictions/:stateCode/diagnostics
+ * Get detailed diagnostics for a specific state
+ */
+router.get("/jurisdictions/:stateCode/diagnostics", isAdmin, async (req, res) => {
+    try {
+        const { stateCode } = req.params;
+        const { useCache } = req.query;
+        const report = await JurisdictionDiagnosticsService.runDiagnostics(stateCode, {
+            useCache: useCache !== 'false',
+        });
+        res.json(report);
+    }
+    catch (error) {
+        logger.error({ stateCode: req.params.stateCode }, "Failed to run diagnostics:");
+        res.status(500).json({ error: "Failed to run diagnostics" });
+    }
+});
+/**
+ * GET /api/admin/jurisdictions/:stateCode/history
+ * Get diagnostic history for a state
+ */
+router.get("/jurisdictions/:stateCode/history", isAdmin, async (req, res) => {
+    try {
+        const { stateCode } = req.params;
+        const limit = parseInt(req.query.limit) || 50;
+        const history = await JurisdictionDiagnosticsService.getDiagnosticHistory(stateCode, { limit });
+        res.json({
+            stateCode,
+            data: history,
+            total: history.length,
+        });
+    }
+    catch (error) {
+        logger.error({ stateCode: req.params.stateCode }, "Failed to fetch diagnostic history:");
+        res.status(500).json({ error: "Failed to fetch diagnostic history" });
+    }
+});
+/**
+ * GET /api/admin/jurisdictions/:stateCode/trend
+ * Get health trend for a state
+ */
+router.get("/jurisdictions/:stateCode/trend", isAdmin, async (req, res) => {
+    try {
+        const { stateCode } = req.params;
+        const days = parseInt(req.query.days) || 30;
+        const trend = await JurisdictionDiagnosticsService.getHealthTrend(stateCode, days);
+        res.json({
+            stateCode,
+            days,
+            data: trend,
+        });
+    }
+    catch (error) {
+        logger.error({ stateCode: req.params.stateCode }, "Failed to fetch health trend:");
+        res.status(500).json({ error: "Failed to fetch health trend" });
+    }
+});
+/**
+ * POST /api/admin/jurisdictions/preview-roadmap
+ * Preview roadmap for an estate profile
+ */
+const previewRoadmapSchema = z.object({
+    stateCode: z.string().length(2),
+    authorityType: z.enum(['PROBATE', 'TRUST', 'BOTH']),
+    hasRealProperty: z.boolean(),
+    estateValue: z.number().min(0),
+    hasWill: z.boolean(),
+    county: z.string().optional(),
+    characteristics: z.object({
+        isSmallEstate: z.boolean().optional(),
+        hasMinorBeneficiaries: z.boolean().optional(),
+        hasContest: z.boolean().optional(),
+        isInternational: z.boolean().optional(),
+        hasTODDeed: z.boolean().optional(),
+        hasOutOfStateProperty: z.boolean().optional(),
+        isSurvivingSpouse: z.boolean().optional(),
+    }).optional(),
+});
+router.post("/jurisdictions/preview-roadmap", isAdmin, async (req, res) => {
+    try {
+        const validated = previewRoadmapSchema.parse(req.body);
+        const profile = {
+            id: `preview_${Date.now()}`,
+            name: `Preview ${validated.stateCode} ${validated.authorityType}`,
+            stateCode: validated.stateCode,
+            county: validated.county,
+            authorityType: validated.authorityType,
+            hasRealProperty: validated.hasRealProperty,
+            estateValue: validated.estateValue,
+            hasWill: validated.hasWill,
+            characteristics: validated.characteristics || {},
+        };
+        const roadmap = await JurisdictionDiagnosticsService.previewRoadmap(profile);
+        res.json({
+            profile,
+            roadmap,
+        });
+    }
+    catch (error) {
+        if (error instanceof z.ZodError) {
+            return res.status(400).json({ error: "Invalid preview parameters", details: error.errors });
+        }
+        logger.error("Failed to preview roadmap:", error.message);
+        res.status(500).json({ error: "Failed to preview roadmap" });
+    }
+});
+/**
+ * POST /api/admin/jurisdictions/:stateCode/run-diagnostics
+ * Manually trigger diagnostic run for a state
+ */
+router.post("/jurisdictions/:stateCode/run-diagnostics", isAdmin, async (req, res) => {
+    try {
+        const { stateCode } = req.params;
+        const report = await JurisdictionDiagnosticsService.runDiagnostics(stateCode, {
+            useCache: false,
+        });
+        // Persist the run
+        await JurisdictionDiagnosticsService.persistDiagnosticRun(report, req.user.id, {
+            commitSha: req.body.commitSha,
+            branchName: req.body.branchName,
+        });
+        res.json(report);
+    }
+    catch (error) {
+        logger.error({ stateCode: req.params.stateCode }, "Failed to run diagnostics:");
+        res.status(500).json({ error: "Failed to run diagnostics" });
+    }
+});
+// ═══════════════════════════════════════════════════════════════════════════
+// COUNTY OVERRIDE GOVERNANCE ENDPOINTS
+// ═══════════════════════════════════════════════════════════════════════════
+/**
+ * GET /api/admin/county-overrides/pending
+ * List pending county overrides awaiting approval
+ */
+router.get("/county-overrides/pending", isAdmin, async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 25;
+        const skip = (page - 1) * limit;
+        const [overrides, total] = await Promise.all([
+            prisma.countyOverride.findMany({
+                where: { status: 'PENDING_REVIEW' },
+                orderBy: { submittedAt: 'asc' },
+                skip,
+                take: limit,
+            }),
+            prisma.countyOverride.count({ where: { status: 'PENDING_REVIEW' } }),
+        ]);
+        res.json({
+            data: overrides,
+            total,
+            page,
+            limit,
+            totalPages: Math.ceil(total / limit),
+        });
+    }
+    catch (error) {
+        logger.error("Failed to fetch pending county overrides:", error.message);
+        res.status(500).json({ error: "Failed to fetch pending county overrides" });
+    }
+});
+/**
+ * GET /api/admin/county-overrides
+ * List all county overrides with filtering
+ */
+router.get("/county-overrides", isAdmin, async (req, res) => {
+    try {
+        const { stateCode, status, page = 1, limit = 25 } = req.query;
+        const skip = (parseInt(page) - 1) * parseInt(limit);
+        const where = {};
+        if (stateCode)
+            where.stateCode = stateCode;
+        if (status)
+            where.status = status;
+        const [overrides, total] = await Promise.all([
+            prisma.countyOverride.findMany({
+                where,
+                orderBy: { updatedAt: 'desc' },
+                skip,
+                take: parseInt(limit),
+            }),
+            prisma.countyOverride.count({ where }),
+        ]);
+        res.json({
+            data: overrides,
+            total,
+            page: parseInt(page),
+            limit: parseInt(limit),
+            totalPages: Math.ceil(total / parseInt(limit)),
+        });
+    }
+    catch (error) {
+        logger.error("Failed to fetch county overrides:", error.message);
+        res.status(500).json({ error: "Failed to fetch county overrides" });
+    }
+});
+/**
+ * POST /api/admin/county-overrides/:id/approve
+ * Approve a pending county override
+ */
+const approveOverrideSchema = z.object({
+    notes: z.string().optional(),
+});
+router.post("/county-overrides/:id/approve", isAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const validated = approveOverrideSchema.parse(req.body);
+        const override = await prisma.countyOverride.update({
+            where: { id },
+            data: {
+                status: 'APPROVED',
+                reviewedBy: req.user.id,
+                reviewedAt: new Date(),
+                reviewNotes: validated.notes,
+                publishedAt: new Date(),
+            },
+        });
+        // Invalidate diagnostics cache for this state
+        JurisdictionDiagnosticsService.invalidateStateCache(override.stateCode);
+        // Log admin action
+        await prisma.adminActionLog.create({
+            data: {
+                adminId: req.user.id,
+                action: 'APPROVE_COUNTY_OVERRIDE',
+                targetType: 'COUNTY_OVERRIDE',
+                targetId: id,
+                reason: validated.notes,
+                metadata: { stateCode: override.stateCode, countyName: override.countyName, taskId: override.taskId },
+            },
+        });
+        res.json({ success: true, override });
+    }
+    catch (error) {
+        if (error instanceof z.ZodError) {
+            return res.status(400).json({ error: "Invalid approval data", details: error.errors });
+        }
+        logger.error({ overrideId: req.params.id }, "Failed to approve county override:");
+        res.status(500).json({ error: "Failed to approve county override" });
+    }
+});
+/**
+ * POST /api/admin/county-overrides/:id/reject
+ * Reject a pending county override
+ */
+const rejectOverrideSchema = z.object({
+    reason: z.string().min(1, "Rejection reason is required"),
+});
+router.post("/county-overrides/:id/reject", isAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const validated = rejectOverrideSchema.parse(req.body);
+        const override = await prisma.countyOverride.update({
+            where: { id },
+            data: {
+                status: 'REJECTED',
+                reviewedBy: req.user.id,
+                reviewedAt: new Date(),
+                reviewNotes: validated.reason,
+            },
+        });
+        // Log admin action
+        await prisma.adminActionLog.create({
+            data: {
+                adminId: req.user.id,
+                action: 'REJECT_COUNTY_OVERRIDE',
+                targetType: 'COUNTY_OVERRIDE',
+                targetId: id,
+                reason: validated.reason,
+                metadata: { stateCode: override.stateCode, countyName: override.countyName, taskId: override.taskId },
+            },
+        });
+        res.json({ success: true, override });
+    }
+    catch (error) {
+        if (error instanceof z.ZodError) {
+            return res.status(400).json({ error: "Invalid rejection data", details: error.errors });
+        }
+        logger.error({ overrideId: req.params.id }, "Failed to reject county override:");
+        res.status(500).json({ error: "Failed to reject county override" });
+    }
+});
+/**
+ * GET /api/admin/county-overrides/:id/diff
+ * Get diff preview for a county override
+ */
+router.get("/county-overrides/:id/diff", isAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const override = await prisma.countyOverride.findUnique({
+            where: { id },
+        });
+        if (!override) {
+            return res.status(404).json({ error: "County override not found" });
+        }
+        // Get the original task data (from settlement phases config)
+        const { SETTLEMENT_PHASE_TASKS } = await import("../../src/config/settlementPhases.js");
+        let originalTask = null;
+        for (const phase of SETTLEMENT_PHASE_TASKS) {
+            const task = phase.tasks.find(t => t.id === override.taskId);
+            if (task) {
+                originalTask = task;
+                break;
+            }
+        }
+        res.json({
+            override,
+            originalTask: originalTask ? {
+                id: originalTask.id,
+                title: originalTask.title,
+                description: originalTask.description,
+                formNames: originalTask.formNames,
+                primaryActionUrl: originalTask.primaryActionUrl,
+            } : null,
+            diff: {
+                title: override.title !== originalTask?.title ? { from: originalTask?.title, to: override.title } : null,
+                description: override.description !== originalTask?.description ? { from: originalTask?.description, to: override.description } : null,
+                formNames: JSON.stringify(override.formNames) !== JSON.stringify(originalTask?.formNames) ? { from: originalTask?.formNames, to: override.formNames } : null,
+                primaryActionUrl: override.primaryActionUrl !== originalTask?.primaryActionUrl ? { from: originalTask?.primaryActionUrl, to: override.primaryActionUrl } : null,
+                feeAmount: override.feeAmount ? { from: null, to: override.feeAmount } : null,
+            },
+        });
+    }
+    catch (error) {
+        logger.error({ overrideId: req.params.id }, "Failed to get county override diff:");
+        res.status(500).json({ error: "Failed to get county override diff" });
+    }
+});
 export default router;
