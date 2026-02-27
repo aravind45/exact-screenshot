@@ -5,7 +5,7 @@ import { calculateAuthorityRecommendation } from "../../src/lib/authorityEngine.
 import { AuthoritySource, ProcedureType, DistributionModel, getLettersTerm, getStateRule } from "../../src/lib/stateRules.js";
 import { logger } from "../lib/logger.js";
 import { CountyOverrideService } from "./countyOverrideService.js";
-import { filterPhasesByJurisdiction } from "../../src/shared/filterByJurisdiction.js";
+import { filterPhasesByJurisdiction, type PhaseLike } from "../../src/shared/filterByJurisdiction.js";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Follow-Up Spawn Rules: tasks that auto-create a "waiting on them" entry
@@ -992,10 +992,10 @@ export async function getRoadmapFromDatabase(
   const filtered = filterTasksForEstate(injected, profile, completedTaskIds);
 
   // Apply unified jurisdiction filter (fail-closed scope check)
-  const { phases: scopeFiltered } = filterPhasesByJurisdiction(filtered, profile.state);
+  const { phases: scopeFiltered } = filterPhasesByJurisdiction(filtered as unknown as PhaseLike<PhaseTask>[], profile.state);
 
   // Apply county overrides with pinning awareness
-  let finalizedPhases = scopeFiltered as PhaseTaskList[];
+  let finalizedPhases = scopeFiltered as unknown as PhaseTaskList[];
   if (estate.probateCounty) {
     // Check if overrides have drifted if pinned
     let shouldApply = true;

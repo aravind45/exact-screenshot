@@ -4,6 +4,8 @@ import { prisma as db } from "../db.js";
 import { calculateAuthorityRecommendation } from "../../src/lib/authorityEngine.js";
 import { getLettersTerm, getStateRule } from "../../src/lib/stateRules.js";
 import { logger } from "../lib/logger.js";
+import { CountyOverrideService } from "./countyOverrideService.js";
+import { filterPhasesByJurisdiction } from "../../src/shared/filterByJurisdiction.js";
 const FOLLOW_UP_SPAWN_RULES = {
     // ── Creditor Notices ──────────────────────────────────────────────────────
     send_creditor_notices: { institutionName: "General Creditors", subject: "Creditor claim period — awaiting responses", responseWindowDays: 60 },
@@ -90,15 +92,40 @@ for (const phase of SETTLEMENT_PHASE_TASKS) {
 // Deterministic merge: no CA fallback, only state-specific override merges.
 // Base task remains neutral if no override exists.
 // ─────────────────────────────────────────────────────────────────────────────
-export function resolveTaskForState(task, stateCode) {
-    const base = { ...task };
-    // 1️⃣ Hard gate by applicability.states — return null (excluded) on mismatch
+export function resolveTaskForState(task, stateCode, county) {
+    // 1️⃣ Fail-Closed Scope Check — aligned with shared/filterByJurisdiction.ts
+    if (!task.scope || task.scope === "UNSCOPED") {
+        logger.error(`UNSCOPED task detected: ${task.id}. Excluding.`);
+        return null;
+    }
+    const isCore = task.scope === "CORE";
+    const isThisState = task.scope === `US-${stateCode}`;
+    const isAllowedState = task.allowedStates?.includes(stateCode) ?? false;
+    if (isCore) {
+        // CORE tasks with applicability.states: secondary gate (defense-in-depth)
+        if (task.applicability?.states?.length) {
+            if (!task.applicability.states.includes(stateCode)) {
+                return null;
+            }
+        }
+    }
+    else if (!isThisState && !isAllowedState) {
+        return null; // Strict isolation
+    }
+    // 2️⃣ Optional Additive County Filter
+    if (task.allowedCounties && task.allowedCounties.length > 0) {
+        if (!county || !task.allowedCounties.includes(county)) {
+            return null;
+        }
+    }
+    // 3️⃣ Legacy Hard gate by applicability.states (for safety/gradual migration)
     if (task.applicability?.states && task.applicability.states.length > 0) {
         if (!task.applicability.states.includes(stateCode)) {
             return null;
         }
     }
-    // 2️⃣ Apply stateOverrides if present (inline first, then static lookup for DB tasks)
+    const base = { ...task };
+    // 4️⃣ Apply stateOverrides if present
     const override = task.stateOverrides?.[stateCode]
         || HARDCODED_STATE_OVERRIDES_MAP.get(task.id)?.[stateCode];
     if (override) {
@@ -113,7 +140,6 @@ export function resolveTaskForState(task, stateCode) {
             dependencies: merged.dependencies ?? base.dependencies,
         };
     }
-    // 3️⃣ If no override, return neutral base
     return base;
 }
 /**
@@ -131,9 +157,9 @@ export function resolveTaskForStateStrict(task, stateCode) {
  * Full task normalization: resolveTaskForState() merge + text normalization + CA dep cleanup.
  * Returns null if task is excluded for this state.
  */
-function normalizeTaskForState(task, state) {
+function normalizeTaskForState(task, state, county) {
     // Resolve state override merge (state-neutral first pattern)
-    const mergedTask = resolveTaskForState(task, state);
+    const mergedTask = resolveTaskForState(task, state, county);
     if (mergedTask === null)
         return null; // Task excluded for this state
     // Clean CA-only dependencies for non-CA states
@@ -663,7 +689,14 @@ export async function getRoadmapFromDatabase(estateId, profile, completedTaskIds
     // Get estate to determine settlement type and version pinning
     const estate = await db.estate.findUnique({
         where: { id: estateId },
-        select: { estateType: true, settlementPath: true, roadmapVersion: true, roadmapPinnedAt: true },
+        select: {
+            estateType: true,
+            settlementPath: true,
+            roadmapVersion: true,
+            roadmapPinnedAt: true,
+            probateCounty: true,
+            countyOverrideHash: true
+        },
     });
     if (!estate)
         throw new Error(`Estate ${estateId} not found`);
@@ -777,7 +810,27 @@ export async function getRoadmapFromDatabase(estateId, profile, completedTaskIds
     }));
     const injected = ensurePreFilingCompliance(phases, profile);
     const filtered = filterTasksForEstate(injected, profile, completedTaskIds);
-    const caGuarded = removeCAOnlyTasks(filtered, profile.state);
+    // Apply unified jurisdiction filter (fail-closed scope check)
+    const { phases: scopeFiltered } = filterPhasesByJurisdiction(filtered, profile.state);
+    // Apply county overrides with pinning awareness
+    let finalizedPhases = scopeFiltered;
+    if (estate.probateCounty) {
+        // Check if overrides have drifted if pinned
+        let shouldApply = true;
+        if (estate.countyOverrideHash) {
+            const currentHash = await CountyOverrideService.getOverrideHash(profile.state, estate.probateCounty);
+            if (currentHash !== estate.countyOverrideHash) {
+                logger.warn({ estateId, pinnedHash: estate.countyOverrideHash, currentHash }, "County overrides have drifted. Ignoring newer overrides for pinned roadmap.");
+                shouldApply = false;
+            }
+        }
+        if (shouldApply) {
+            for (const phase of finalizedPhases) {
+                phase.tasks = await CountyOverrideService.applyOverrides(profile.state, estate.probateCounty, phase.tasks);
+            }
+        }
+    }
+    const caGuarded = removeCAOnlyTasks(finalizedPhases, profile.state);
     return normalizePhasesForState(caGuarded, profile.state);
 }
 /**
@@ -817,23 +870,51 @@ export async function getEstateRoadmap(estateId) {
     };
 }
 /**
- * Pin roadmap version for an estate
- * Once pinned, the estate will use that specific version forever
+ * Pin roadmap for an estate
+ * Sets all hashes and version to freeze the current roadmap.
  */
-export async function pinRoadmapVersion(estateId, version, userId) {
+export async function pinEstateRoadmap(estateId, userId) {
     const estate = await db.estate.findUnique({
         where: { id: estateId },
-        select: { id: true }
+        select: {
+            id: true,
+            deceasedState: true,
+            probateCounty: true,
+            estateType: true,
+            settlementPath: true
+        }
     });
     if (!estate) {
         throw new Error(`Estate ${estateId} not found`);
     }
+    if (!estate.deceasedState) {
+        throw new Error("STATE_REQUIRED");
+    }
+    const profile = await analyzeEstateProfile(estateId);
+    // Determine settlement type logic similar to getRoadmapFromDatabase
+    const settlementTypeCode = profile.procedureType !== "UNSET"
+        ? profile.procedureType
+        : (estate.settlementPath || estate.estateType || 'FORMAL_PROBATE');
+    const version = await getLatestPublishedVersion(settlementTypeCode) || '1.0.0';
     const pinnedAt = new Date();
+    // 1. Get State Roadmap Hash (representing the core + state rules)
+    // For now, we can use the version's schemaHash or derive one
+    const roadmapVersionRecord = await db.roadmapVersion.findUnique({
+        where: { version_settlementTypeCode: { version, settlementTypeCode } }
+    });
+    const stateRulesetHash = roadmapVersionRecord?.schemaHash || `ruleset-${version}`;
+    // 2. Get County Override Hash
+    const countyOverrideHash = estate.probateCounty
+        ? await CountyOverrideService.getOverrideHash(estate.deceasedState, estate.probateCounty)
+        : null;
     await db.estate.update({
         where: { id: estateId },
         data: {
             roadmapVersion: version,
-            roadmapPinnedAt: pinnedAt
+            roadmapPinnedAt: pinnedAt,
+            stateRulesetHash,
+            countyOverrideHash,
+            authorityType: profile.activeEngines.includes("TRUST") ? "TRUST" : "PROBATE" // Pinning authority context
         }
     });
     // Log activity
@@ -842,11 +923,33 @@ export async function pinRoadmapVersion(estateId, version, userId) {
             estateId,
             userId,
             type: "ROADMAP",
-            action: "VERSION_PINNED",
-            notes: `Roadmap pinned to version ${version}`
+            action: "PINNED",
+            notes: `Roadmap pinned to version ${version} (Ruleset: ${stateRulesetHash?.substring(0, 8)})`
         }
     });
     return { success: true, version, pinnedAt };
+}
+/**
+ * Repin roadmap version for an estate with safety checks
+ */
+export async function repinEstateRoadmap(estateId, userId, force = false) {
+    const estate = await db.estate.findUnique({
+        where: { id: estateId },
+        include: {
+            taskCompletions: {
+                where: { completed: true }
+            }
+        }
+    });
+    if (!estate)
+        throw new Error(`Estate ${estateId} not found`);
+    // SAFETY CHECK: If tasks are completed, block repin unless forced
+    if (estate.taskCompletions.length > 0 && !force) {
+        throw new Error("REPIN_BLOCKED_COMPLETED_TASKS");
+    }
+    // TODO: Future - implement migration map for tasks if forced repin
+    // For now, we just perform a fresh pin which might shift task IDs
+    return pinEstateRoadmap(estateId, userId);
 }
 /**
  * Unpin roadmap version for an estate

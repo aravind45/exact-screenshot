@@ -188,6 +188,31 @@ export function calculateAuthorityRecommendation(assets, state, metadata) {
             procedureType = "SMALL_ESTATE_AFFIDAVIT";
         type = "SMALL_ESTATE";
     }
+    else if (trustAssets.length > 0) {
+        // Trust administration bypasses standard intestacy/probate logic as it is governed by the trust instrument.
+        procedureType = "TRUST_ADMINISTRATION";
+        type = metadata?.isTrustRevocable ? "TRUST_ADMIN_REVOCABLE" : "TRUST_ADMIN_IRREVOCABLE";
+    }
+    else if (metadata?.isSpouse) {
+        // Spousal petitions (e.g. CA Prob. Code 13500) bypass standard probate for property passing to spouse.
+        // NJ-specific: Check spouse small estate threshold BEFORE general eligibility
+        if (state === "NJ") {
+            const njRule = rule;
+            const spouseThreshold = njRule?.smallEstateSpouseThreshold || 50000;
+            if (probateTotal <= spouseThreshold) {
+                procedureType = "SMALL_ESTATE_AFFIDAVIT";
+                type = "SMALL_ESTATE";
+            }
+            else {
+                procedureType = "SPOUSAL_PETITION";
+                type = "SPOUSAL_PETITION";
+            }
+        }
+        else {
+            procedureType = "SPOUSAL_PETITION";
+            type = "SPOUSAL_PETITION";
+        }
+    }
     else if (metadata?.hasWill) {
         if (state === "MA") {
             // MA-specific: Use Informal Probate for uncontested estates, Formal for contested
@@ -229,26 +254,6 @@ export function calculateAuthorityRecommendation(assets, state, metadata) {
             type = "FORMAL_PROBATE";
         }
     }
-    else if (metadata?.isSpouse) {
-        // NJ-specific: Check spouse small estate threshold BEFORE general eligibility
-        // This ensures spouse threshold ($50k) is reachable for small estates
-        if (state === "NJ") {
-            const njRule = rule;
-            const spouseThreshold = njRule?.smallEstateSpouseThreshold || 50000;
-            if (probateTotal <= spouseThreshold) {
-                procedureType = "SMALL_ESTATE_AFFIDAVIT";
-                type = "SMALL_ESTATE";
-            }
-            else {
-                procedureType = "SPOUSAL_PETITION";
-                type = "SPOUSAL_PETITION";
-            }
-        }
-        else {
-            procedureType = "SPOUSAL_PETITION";
-            type = "SPOUSAL_PETITION";
-        }
-    }
     else if (probateTotal > threshold) {
         type = "INTESTATE";
         if (rule.isUPC) {
@@ -261,10 +266,6 @@ export function calculateAuthorityRecommendation(assets, state, metadata) {
     else if (activeEngines.includes("TOD_DEED") || activeEngines.includes("POD_TOD_ACCOUNTS")) {
         procedureType = "DIRECT_TRANSFER";
         type = metadata?.hasTODDeed ? "TOD_DEED" : "POD_TOD_TRANSFER";
-    }
-    else if (trustAssets.length > 0) {
-        procedureType = "TRUST_ADMINISTRATION";
-        type = metadata?.isTrustRevocable ? "TRUST_ADMIN_REVOCABLE" : "TRUST_ADMIN_IRREVOCABLE";
     }
     // DISTRIBUTION MODEL
     if (metadata?.hasWill && trustAssets.length > 0 && probateTotal > 0) {
