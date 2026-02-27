@@ -126,7 +126,15 @@ model Estate {
   countyOverrideId          String?              @map("county_override_id")
   countyOverrideHash        String?              @map("county_override_hash")
   
+  // Authority Type Change Policy
+  authorityTypeSource       String?              @map("authority_type_source") // "ENGINE" | "MANUAL" | "PINNED"
+  authorityPinnedAt         DateTime?            @map("authority_pinned_at")
+  authorityChangePending    Boolean              @default(false) @map("authority_change_pending")
+  recommendedAuthorityType  String?              @map("recommended_authority_type")
+  recommendedAuthorityReason Json?               @map("recommended_authority_reason")
+  
   assets                    Asset[]
+  authorityChangeEvents     AuthorityChangeEvent[]
   authorityDecisions        AuthorityDecision[]
   bookings                  Booking[]
   communications            Communication[]
@@ -1181,4 +1189,35 @@ model CountyOverride {
   
   @@unique([stateCode, countyName, taskId])
   @@map("county_overrides")
+}
+
+// Authority Change Event - Audit trail for authority type changes
+model AuthorityChangeEvent {
+  id                String    @id @default(uuid())
+  estateId          String    @map("estate_id")
+  
+  // Change tracking
+  previousType      String?   @map("previous_type")
+  newType           String    @map("new_type")
+  changeSource      String    @map("change_source") // "ENGINE" | "MANUAL" | "REPIN" | "INITIAL_PIN"
+  triggeredBy       String?   @map("triggered_by") // userId who triggered
+  
+  // Timing
+  computedAt        DateTime  @map("computed_at") @default(now())
+  appliedAt         DateTime? @map("applied_at")
+  
+  // Impact analysis
+  diffSummary       Json?     @map("diff_summary") // { tasksAdded: [], tasksRemoved: [], affectedTasks: number }
+  migrationNotes    String?   @map("migration_notes")
+  
+  // Revert tracking
+  revertedAt        DateTime? @map("reverted_at")
+  revertReason      String?   @map("revert_reason")
+  
+  // Relations
+  estate            Estate    @relation(fields: [estateId], references: [id], onDelete: Cascade)
+  
+  @@index([estateId])
+  @@index([estateId, computedAt])
+  @@map("authority_change_events")
 }
