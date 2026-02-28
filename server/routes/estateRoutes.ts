@@ -948,6 +948,8 @@ import {
     repinEstateRoadmap
 } from "../services/roadmapService.js";
 
+const VALID_STATE_CODE = /^[A-Z]{2}$/;
+
 // GET /:id/roadmap - Get personalized roadmap (requires subscription)
 router.get("/:id/roadmap", requireSubscription, async (req: any, res: Response) => {
     try {
@@ -961,11 +963,27 @@ router.get("/:id/roadmap", requireSubscription, async (req: any, res: Response) 
                     { userId: req.user.id },
                     { grants: { some: { userId: req.user.id } } }
                 ]
+            },
+            select: {
+                id: true,
+                deceasedState: true,
+                userId: true,
             }
         });
 
         if (!estate) {
             return res.status(404).json({ error: "Estate not found or access denied" });
+        }
+
+        // Validate deceasedState before handing off to roadmap generation
+        const rawState = estate.deceasedState;
+        if (!rawState || !VALID_STATE_CODE.test(rawState.trim().toUpperCase())) {
+            logger.warn({ estateId: id, deceasedState: rawState }, "Roadmap requested for estate with invalid or missing state code");
+            return res.status(400).json({
+                error: "State not selected",
+                code: "STATE_REQUIRED",
+                message: "Please select a valid state before generating a roadmap."
+            });
         }
 
         // Get personalized roadmap
@@ -979,7 +997,7 @@ router.get("/:id/roadmap", requireSubscription, async (req: any, res: Response) 
                 message: "Please select a state before generating a roadmap."
             });
         }
-        console.error("Error fetching roadmap:", error);
+        logger.error({ estateId: req.params.id, error: error.message, stack: error.stack }, "Error fetching roadmap");
         res.status(500).json({ error: "Failed to fetch roadmap", message: error.message });
     }
 });

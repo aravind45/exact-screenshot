@@ -800,12 +800,14 @@ export async function analyzeEstateProfile(estateId: string): Promise<EstateProf
     throw new Error(`Estate ${estateId} not found`);
   }
 
-  if (!estate.deceasedState) {
+  const normalizedState = typeof estate.deceasedState === "string" ? estate.deceasedState.trim().toUpperCase() : "";
+  if (!normalizedState || !/^[A-Z]{2}$/.test(normalizedState)) {
+    logger.warn({ estateId, deceasedState: estate.deceasedState }, "Estate has missing or invalid state code — STATE_REQUIRED");
     throw new Error("STATE_REQUIRED");
   }
 
   // Fetch state-specific rules from DB
-  const stateRule = await getJurisdictionRule(estate.deceasedState);
+  const stateRule = await getJurisdictionRule(normalizedState);
 
   // Calculate insolvency FIRST so it is passed INTO calculateAuthorityRecommendation.
   // Previously insolvency was calculated AFTER the engine call, which meant
@@ -824,7 +826,7 @@ export async function analyzeEstateProfile(estateId: string): Promise<EstateProf
   // Calculate recommendation using the multi-dimensional engine.
   // All 7 XLSX dimensions must be passed here:
   //   hasWill, isTrustRevocable, hasTODDeed, hasContest, isSpouse, isOutOfState, hasInsolvencyRisk
-  const rec = calculateAuthorityRecommendation(estate.assets, estate.deceasedState, {
+  const rec = calculateAuthorityRecommendation(estate.assets, normalizedState, {
     hasWill: estate.hasWill,
     // isTrustRevocable: schema field (nullable Boolean). undefined = no trust / not known.
     isTrustRevocable: estate.isTrustRevocable ?? undefined,
@@ -847,7 +849,7 @@ export async function analyzeEstateProfile(estateId: string): Promise<EstateProf
   }
 
   // Compute state-specific predicates for task filtering
-  const stateCode = estate.deceasedState;
+  const stateCode = normalizedState;
   const isNJ = stateCode === "NJ";
   const isOH = stateCode === "OH";
   const isGA = stateCode === "GA";
@@ -885,7 +887,7 @@ export async function analyzeEstateProfile(estateId: string): Promise<EstateProf
     isSmallEstate: rec.isEligibleForSmallEstate,
     isPrimaryResidence: estate.hasPrimaryResidence || estate.assets.some(a => a.assetType === "real_estate"),
     isContested: rec.modifiers?.includes("CONTESTED") || false,
-    state: estate.deceasedState,
+    state: normalizedState,
     estimatedValue: rec.probateTotal,
     totalDebts,
     solvencyRatio,
@@ -1359,14 +1361,30 @@ export async function getRoadmapFromDatabase(
  * Get personalized roadmap for an estate
  */
 export async function getEstateRoadmap(estateId: string): Promise<RoadmapResponse> {
+  logger.info({ estateId }, "Generating estate roadmap");
+
   // Analyze estate profile
-  const profile = await analyzeEstateProfile(estateId);
+  let profile: EstateProfile;
+  try {
+    profile = await analyzeEstateProfile(estateId);
+    logger.info({ estateId, state: profile.state, procedureType: profile.procedureType }, "Estate profile analyzed");
+  } catch (error) {
+    logger.error({ estateId, error: error instanceof Error ? error.message : String(error), stack: error instanceof Error ? error.stack : undefined }, "Failed to analyze estate profile for roadmap");
+    throw error;
+  }
 
   // Get current progress
   const { completedTaskIds } = await getTaskCompletions(estateId);
 
   // Get roadmap from database (with fallback to hardcoded tasks)
-  const filteredPhases = await getRoadmapFromDatabase(estateId, profile, completedTaskIds);
+  let filteredPhases: PhaseTaskList[];
+  try {
+    filteredPhases = await getRoadmapFromDatabase(estateId, profile, completedTaskIds);
+    logger.info({ estateId, phaseCount: filteredPhases.length }, "Roadmap phases resolved from database");
+  } catch (error) {
+    logger.error({ estateId, state: profile.state, procedureType: profile.procedureType, error: error instanceof Error ? error.message : String(error), stack: error instanceof Error ? error.stack : undefined }, "Failed to get roadmap from database");
+    throw error;
+  }
 
   // Development-time contamination check: warn if CA tokens leaked into non-CA state
   validateNoStateContamination(filteredPhases, profile.state);

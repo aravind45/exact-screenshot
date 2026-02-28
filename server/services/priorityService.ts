@@ -68,14 +68,14 @@ export class PriorityService {
     /**
      * Get the priority options for a dropdown based on state
      */
-    static getPriorityOptions(state: string) {
+    static getPriorityOptions(state: string | null | undefined) {
         return PriorityFactory.getAllRules(state);
     }
 
     /**
      * Get the priority system for a state
      */
-    static getPrioritySystem(state: string) {
+    static getPrioritySystem(state: string | null | undefined) {
         return PriorityFactory.getSystem(state);
     }
 }
