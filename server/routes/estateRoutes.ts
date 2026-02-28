@@ -1211,6 +1211,7 @@ router.post("/:id/select-track", authenticate, requireEstateAccess, async (req: 
 
         // Validate request body
         const validated = trackSelectionSchema.parse(req.body);
+        const assistedDecisionAnswers = validated.assistedDecisionAnswers as Prisma.InputJsonValue | undefined;
 
         // Update estate with track selection
         const updatedEstate = await prisma.estate.update({
@@ -1221,7 +1222,7 @@ router.post("/:id/select-track", authenticate, requireEstateAccess, async (req: 
                 hasProbateAssets: validated.hasProbateAssets,
                 hasTrustAssets: validated.hasTrustAssets,
                 hasBeneficiaryAssets: validated.hasBeneficiaryAssets,
-                assistedDecisionAnswers: validated.assistedDecisionAnswers,
+                assistedDecisionAnswers,
             }
         });
 

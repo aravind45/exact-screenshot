@@ -398,6 +398,55 @@ function ensurePreFilingCompliance(phases, profile) {
     return next;
 }
 /**
+ * Determine effective authority with governance layers
+ * Priority:
+ * 1. User selection (highest)
+ * 2. High-confidence engine recommendation (>= 70)
+ * 3. Low-confidence engine recommendation (< 70)
+ * 4. Fail-closed to PROBATE (default)
+ */
+export function determineEffectiveAuthority(estate, engineRec, confidence, confidenceSignals) {
+    // Priority 1: User selection
+    if (estate.userSelectedEstateAuthorityType) {
+        return {
+            estateAuthorityType: estate.userSelectedEstateAuthorityType,
+            confidence: 100,
+            source: "USER_SELECTION",
+            recommendation: "User explicitly selected this track",
+            userSelection: estate.userSelectedEstateAuthorityType,
+            confidenceSignals,
+        };
+    }
+    // Priority 2: High-confidence engine recommendation
+    if (confidence >= 70) {
+        return {
+            estateAuthorityType: engineRec.estateAuthorityType || deriveEstateAuthorityType(engineRec.activeEngines),
+            confidence,
+            source: "ENGINE_HIGH_CONFIDENCE",
+            recommendation: engineRec.reason,
+            confidenceSignals,
+        };
+    }
+    // Priority 3: Low-confidence engine recommendation
+    if (confidence > 0) {
+        return {
+            estateAuthorityType: engineRec.estateAuthorityType || deriveEstateAuthorityType(engineRec.activeEngines),
+            confidence,
+            source: "ENGINE_LOW_CONFIDENCE",
+            recommendation: engineRec.reason,
+            confidenceSignals,
+        };
+    }
+    // Priority 4: Fail-closed to PROBATE
+    return {
+        estateAuthorityType: "PROBATE",
+        confidence: 0,
+        source: "DEFAULT_FAIL_CLOSED",
+        recommendation: "Low confidence in automatic detection - defaulting to PROBATE for safety",
+        confidenceSignals,
+    };
+}
+/**
  * Fetch jurisdiction rules from database with fallback to hardcoded defaults
  */
 async function getJurisdictionRule(stateCode) {
@@ -414,7 +463,7 @@ async function getJurisdictionRule(stateCode) {
  * Analyze estate to determine which optional tasks should be shown
  */
 export async function analyzeEstateProfile(estateId) {
-    // Fetch estate with related data
+    // Fetch estate with related data - defensive query to handle missing columns
     const estate = await db.estate.findUnique({
         where: { id: estateId },
         include: {
@@ -491,6 +540,8 @@ export async function analyzeEstateProfile(estateId) {
     const isSC = stateCode === "SC";
     // Compute estateAuthorityType from activeEngines
     const estateAuthorityType = deriveEstateAuthorityType(rec.activeEngines);
+    // Determine effective authority with governance
+    const effectiveAuthority = determineEffectiveAuthority(estate, rec, rec.confidence || 0, rec.confidenceSignals);
     return {
         id: estate.id,
         hasMinorBeneficiaries: rec.modifiers?.includes("MINOR_HEIRS") || false,
@@ -530,6 +581,8 @@ export async function analyzeEstateProfile(estateId) {
         isMD,
         isNC,
         isSC,
+        // Effective authority governance
+        effectiveAuthority,
     };
 }
 /**
@@ -723,23 +776,38 @@ export async function getRoadmapFromDatabase(estateId, profile, completedTaskIds
     // If pinned to a specific version, we'd need to match against roadmap_versions
     // For now, we use the settlementType and assume version consistency
     // The version pinning is primarily for the estate record itself
-    // Fetch roadmap from database
-    const settlementType = await db.settlementType.findUnique({
-        where: whereClause,
-        include: {
-            phases: {
-                orderBy: { orderIndex: 'asc' },
-                include: {
-                    tasks: {
-                        orderBy: { orderIndex: 'asc' },
-                        /* include: {
-                          stateOverrides: true,
-                        } */
+    // Fetch roadmap from database - defensive: handle missing authorityScope column
+    let settlementType;
+    try {
+        settlementType = await db.settlementType.findUnique({
+            where: whereClause,
+            include: {
+                phases: {
+                    orderBy: { orderIndex: 'asc' },
+                    include: {
+                        tasks: {
+                            orderBy: { orderIndex: 'asc' },
+                            /* include: {
+                              stateOverrides: true,
+                            } */
+                        },
                     },
                 },
             },
-        },
-    });
+        });
+    }
+    catch (error) {
+        logger.warn({
+            estateId,
+            settlementTypeCode,
+            error: error instanceof Error ? error.message : String(error)
+        }, "Failed to fetch settlement type - likely due to missing migration. Falling back to hardcoded tasks.");
+        // Fallback to hardcoded tasks if query fails
+        const injected = ensurePreFilingCompliance(SETTLEMENT_PHASE_TASKS, profile);
+        const filtered = filterTasksForEstate(injected, profile, completedTaskIds);
+        const caGuarded = removeCAOnlyTasks(filtered, profile.state);
+        return normalizePhasesForState(caGuarded, profile.state);
+    }
     if (!settlementType) {
         logger.warn(`Settlement type ${settlementTypeCode} not found in database, falling back to hardcoded SETTLEMENT_PHASE_TASKS`);
         // Fallback to hardcoded tasks if type not found
@@ -769,6 +837,7 @@ export async function getRoadmapFromDatabase(estateId, profile, completedTaskIds
                 scope: task.scope || 'CORE',
                 allowedStates: task.applicableStates && task.applicableStates.length > 0 ? task.applicableStates : undefined,
                 allowedCounties: task.allowedCounties && task.allowedCounties.length > 0 ? task.allowedCounties : undefined,
+                authorityScope: task.authorityScope, // May be undefined if migration not applied
                 title: stateOverride?.title || task.title,
                 description: stateOverride?.description || task.description || task.title,
                 estimatedTime: task.estimatedTime || undefined,
@@ -821,15 +890,32 @@ export async function getRoadmapFromDatabase(estateId, profile, completedTaskIds
     // Apply unified jurisdiction filter (fail-closed scope check)
     const { phases: scopeFiltered, dropped: jurisdictionDropped } = filterPhasesByJurisdiction(filtered, profile.state);
     // Apply authorityScope filtering (ROOT-CAUSE filter for trust/probate module leakage)
-    const { phases: authorityFiltered, dropped: authorityDropped } = filterPhasesByAuthorityScope(scopeFiltered, profile.estateAuthorityType);
-    // Log dropped tasks for audit trail
-    if (authorityDropped.length > 0) {
-        logger.info({
+    // Defensive: wrap in try-catch to handle missing migration gracefully
+    let authorityFiltered = scopeFiltered;
+    let authorityDropped = [];
+    try {
+        const filterResult = filterPhasesByAuthorityScope(scopeFiltered, profile.estateAuthorityType);
+        authorityFiltered = filterResult.phases;
+        authorityDropped = filterResult.dropped;
+        // Log dropped tasks for audit trail
+        if (authorityDropped.length > 0) {
+            logger.info({
+                estateId: profile.id,
+                estateAuthorityType: profile.estateAuthorityType,
+                droppedTasks: authorityDropped.map(d => d.id),
+                reasons: authorityDropped.map(d => d.reason)
+            }, "Authority scope filtering applied");
+        }
+    }
+    catch (error) {
+        // Fallback: if authorityScope filtering fails (e.g., migration not applied), use unfiltered phases
+        logger.warn({
             estateId: profile.id,
             estateAuthorityType: profile.estateAuthorityType,
-            droppedTasks: authorityDropped.map(d => d.id),
-            reasons: authorityDropped.map(d => d.reason)
-        }, "Authority scope filtering applied");
+            error: error instanceof Error ? error.message : String(error)
+        }, "AuthorityScope filtering disabled - migration may be pending. Using unfiltered phases.");
+        authorityFiltered = scopeFiltered;
+        authorityDropped = [];
     }
     // Apply county overrides with pinning awareness
     let finalizedPhases = authorityFiltered;
@@ -894,6 +980,7 @@ export async function getEstateRoadmap(estateId) {
         }
     }
     // Return roadmap with triggers
+    const effectiveAuthority = profile.effectiveAuthority;
     return {
         estateId,
         phases: filteredPhases,
@@ -915,6 +1002,13 @@ export async function getEstateRoadmap(estateId) {
         requiresRepin,
         recommendedAuthorityType,
         recommendedEstateAuthorityType,
+        // Track selection governance fields
+        estateAuthorityType: effectiveAuthority.estateAuthorityType,
+        authorityConfidence: effectiveAuthority.confidence,
+        authoritySource: effectiveAuthority.source,
+        authorityRecommendation: effectiveAuthority.recommendation,
+        userSelectedAuthorityType: effectiveAuthority.userSelection,
+        requiresTrackSelection: effectiveAuthority.source === "DEFAULT_FAIL_CLOSED" || effectiveAuthority.source === "ENGINE_LOW_CONFIDENCE",
     };
 }
 /**
@@ -959,23 +1053,49 @@ export async function pinEstateRoadmap(estateId, userId) {
     // 3. Determine authority type to pin
     const authorityType = profile.activeEngines.includes("TRUST") ? "TRUST_ADMIN_REVOCABLE" : profile.procedureType;
     const estateAuthorityType = profile.estateAuthorityType;
-    await db.estate.update({
-        where: { id: estateId },
-        data: {
-            roadmapVersion: version,
-            roadmapPinnedAt: pinnedAt,
-            stateRulesetHash,
-            countyOverrideHash,
-            // Pin authority type for stability
-            authorityType,
-            estateAuthorityType,
-            authorityTypeSource: "PINNED",
-            authorityPinnedAt: pinnedAt,
-            authorityChangePending: false,
-            recommendedAuthorityType: null,
-            recommendedAuthorityReason: null,
-        }
-    });
+    // Defensive: try to update with estateAuthorityType, fall back if column doesn't exist
+    try {
+        await db.estate.update({
+            where: { id: estateId },
+            data: {
+                roadmapVersion: version,
+                roadmapPinnedAt: pinnedAt,
+                stateRulesetHash,
+                countyOverrideHash,
+                // Pin authority type for stability
+                authorityType,
+                estateAuthorityType,
+                authorityTypeSource: "PINNED",
+                authorityPinnedAt: pinnedAt,
+                authorityChangePending: false,
+                recommendedAuthorityType: null,
+                recommendedAuthorityReason: null,
+            }
+        });
+    }
+    catch (error) {
+        // Fallback: if estateAuthorityType column doesn't exist, try without it
+        logger.warn({
+            estateId,
+            error: error instanceof Error ? error.message : String(error)
+        }, "Failed to update estateAuthorityType - migration may be pending. Retrying without estateAuthorityType.");
+        await db.estate.update({
+            where: { id: estateId },
+            data: {
+                roadmapVersion: version,
+                roadmapPinnedAt: pinnedAt,
+                stateRulesetHash,
+                countyOverrideHash,
+                // Pin authority type for stability (without estateAuthorityType column)
+                authorityType,
+                authorityTypeSource: "PINNED",
+                authorityPinnedAt: pinnedAt,
+                authorityChangePending: false,
+                recommendedAuthorityType: null,
+                recommendedAuthorityReason: null,
+            }
+        });
+    }
     // Log activity
     await db.settlementActivity.create({
         data: {

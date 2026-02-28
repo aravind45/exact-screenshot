@@ -10,9 +10,9 @@
  * - If TRUST only → "TRUST"
  * - If PROBATE only → "PROBATE"
  * - If both → "BOTH"
- * - If neither (shouldn't happen) → defaults to "BOTH" (fail-safe)
+ * - If neither (shouldn't happen) → defaults to "PROBATE" (fail-closed)
  */
-export function deriveEstateAuthorityType(activeEngines) {
+export function deriveEstateAuthorityType(activeEngines, options) {
     const hasTrust = activeEngines.includes("TRUST");
     const hasProbate = activeEngines.includes("PROBATE") || activeEngines.includes("AFFIDAVIT");
     if (hasTrust && !hasProbate)
@@ -21,8 +21,8 @@ export function deriveEstateAuthorityType(activeEngines) {
         return "PROBATE";
     if (hasTrust && hasProbate)
         return "BOTH";
-    // Fail-safe default - shouldn't happen but prevents undefined errors
-    return "BOTH";
+    // Fail-closed default - PROBATE is safer than BOTH
+    return options?.failClosedDefault ?? "PROBATE";
 }
 /**
  * Checks if a task's authorityScope is compatible with the estate's authorityType

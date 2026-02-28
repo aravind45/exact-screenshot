@@ -1059,3 +1059,64 @@ router.delete("/:id/tasks/:taskId/complete", requireSubscription, requireEstateA
         res.status(500).json({ error: "Failed to uncomplete task" });
     }
 });
+// Track Selection Onboarding Endpoint
+const trackSelectionSchema = z.object({
+    estateAuthorityType: z.enum(["PROBATE", "TRUST", "BOTH"]),
+    hasProbateAssets: z.boolean().optional(),
+    hasTrustAssets: z.boolean().optional(),
+    hasBeneficiaryAssets: z.boolean().optional(),
+    assistedDecisionAnswers: z.record(z.unknown()).optional(),
+});
+router.post("/:id/select-track", authenticate, requireEstateAccess, async (req, res) => {
+    try {
+        const { id } = req.params;
+        // Verify user has access to this estate
+        const estate = await prisma.estate.findFirst({
+            where: {
+                id,
+                OR: [
+                    { userId: req.user.id },
+                    { grants: { some: { userId: req.user.id } } }
+                ]
+            }
+        });
+        if (!estate) {
+            return res.status(404).json({ error: "Estate not found or access denied" });
+        }
+        // Validate request body
+        const validated = trackSelectionSchema.parse(req.body);
+        const assistedDecisionAnswers = validated.assistedDecisionAnswers;
+        // Update estate with track selection
+        const updatedEstate = await prisma.estate.update({
+            where: { id },
+            data: {
+                userSelectedEstateAuthorityType: validated.estateAuthorityType,
+                userSelectedAuthorityAt: new Date(),
+                hasProbateAssets: validated.hasProbateAssets,
+                hasTrustAssets: validated.hasTrustAssets,
+                hasBeneficiaryAssets: validated.hasBeneficiaryAssets,
+                assistedDecisionAnswers,
+            }
+        });
+        // Log activity
+        await AuditService.logActivity(id, req.user.id, "TRACK_SELECTION", "SELECTED", `User selected track: ${validated.estateAuthorityType}`);
+        logger.info({
+            estateId: id,
+            userId: req.user.id,
+            selectedTrack: validated.estateAuthorityType,
+        }, "Track selection recorded");
+        res.json({
+            success: true,
+            estateId: id,
+            selectedTrack: validated.estateAuthorityType,
+            selectedAt: updatedEstate.userSelectedAuthorityAt,
+        });
+    }
+    catch (error) {
+        logger.error("Error selecting track:", error.message);
+        if (error.name === 'ZodError') {
+            return res.status(400).json({ error: "Invalid request data", details: error.errors });
+        }
+        res.status(500).json({ error: "Failed to select track", message: error.message });
+    }
+});
