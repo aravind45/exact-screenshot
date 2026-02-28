@@ -662,11 +662,19 @@ export interface RoadmapResponse {
  * Fetch jurisdiction rules from database with fallback to hardcoded defaults
  */
 async function getJurisdictionRule(stateCode: string): Promise<any> {
-  const dbRule = await (db as any).jurisdictionRule.findUnique({
-    where: { stateCode }
-  });
+  try {
+    const dbRule = await (db as any).jurisdictionRule.findUnique({
+      where: { stateCode }
+    });
 
-  if (dbRule) return dbRule;
+    if (dbRule) return dbRule;
+  } catch (error) {
+    logger.warn({
+      stateCode,
+      message: error instanceof Error ? error.message : String(error),
+      ...getPrismaErrorDetails(error)
+    }, "Jurisdiction rule query failed. Falling back to static state rules.");
+  }
 
   // Fallback to hardcoded defaults from stateRules.ts
   const { STATE_RULES } = await import("../../src/lib/stateRules.js");

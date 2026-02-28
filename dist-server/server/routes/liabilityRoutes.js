@@ -24,6 +24,21 @@ const liabilitySchema = z.object({
 });
 const router = Router();
 router.use(requireSubscription);
+const safeDecrypt = (value) => {
+    if (!value)
+        return value;
+    try {
+        return decrypt(value);
+    }
+    catch {
+        // Backward compatibility: legacy rows may contain plaintext/unexpected values
+        return value;
+    }
+};
+const resolveEstateState = (state) => {
+    const normalized = typeof state === "string" ? state.trim().toUpperCase() : "";
+    return normalized || "CA";
+};
 // Middleware to get estateId for the current user
 const getEstateId = async (userId) => {
     const grant = await prisma.estateGrant.findFirst({
@@ -45,7 +60,7 @@ router.get("/", async (req, res) => {
         // Decrypt account numbers
         const decryptedLiabilities = liabilities.map(l => ({
             ...l,
-            accountNumber: l.accountNumber ? decrypt(l.accountNumber) : l.accountNumber
+            accountNumber: safeDecrypt(l.accountNumber)
         }));
         res.json(decryptedLiabilities);
     }
@@ -59,7 +74,7 @@ router.get("/priority-options", async (req, res) => {
         const estateId = await getEstateId(req.user.id);
         // Default to CA if no estate exists yet (new users in onboarding)
         const state = estateId
-            ? (await prisma.estate.findUnique({ where: { id: estateId }, select: { deceasedState: true } }))?.deceasedState || ""
+            ? resolveEstateState((await prisma.estate.findUnique({ where: { id: estateId }, select: { deceasedState: true } }))?.deceasedState)
             : "CA";
         const system = PriorityService.getPrioritySystem(state);
         const options = PriorityService.getPriorityOptions(state);
@@ -197,9 +212,7 @@ router.post("/", async (req, res) => {
             }
         });
         // Return decrypted
-        if (liability.accountNumber) {
-            liability.accountNumber = decrypt(liability.accountNumber);
-        }
+        liability.accountNumber = safeDecrypt(liability.accountNumber);
         res.json(liability);
     }
     catch (e) {
@@ -251,9 +264,7 @@ router.put("/:id", requireEstateAccess, requireAuthorityStatus({
             await AuditService.logActivity(estateId, req.user.id, "LIABILITY", "UPDATED", `Paid liability: ${liability.name}`);
         }
         // Return decrypted
-        if (liability.accountNumber) {
-            liability.accountNumber = decrypt(liability.accountNumber);
-        }
+        liability.accountNumber = safeDecrypt(liability.accountNumber);
         res.json(liability);
     }
     catch (e) {

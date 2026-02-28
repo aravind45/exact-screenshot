@@ -452,11 +452,20 @@ export function determineEffectiveAuthority(estate, engineRec, confidence, confi
  * Fetch jurisdiction rules from database with fallback to hardcoded defaults
  */
 async function getJurisdictionRule(stateCode) {
-    const dbRule = await db.jurisdictionRule.findUnique({
-        where: { stateCode }
-    });
-    if (dbRule)
-        return dbRule;
+    try {
+        const dbRule = await db.jurisdictionRule.findUnique({
+            where: { stateCode }
+        });
+        if (dbRule)
+            return dbRule;
+    }
+    catch (error) {
+        logger.warn({
+            stateCode,
+            message: error instanceof Error ? error.message : String(error),
+            ...getPrismaErrorDetails(error)
+        }, "Jurisdiction rule query failed. Falling back to static state rules.");
+    }
     // Fallback to hardcoded defaults from stateRules.ts
     const { STATE_RULES } = await import("../../src/lib/stateRules.js");
     return STATE_RULES[stateCode] || STATE_RULES["CA"];
@@ -465,10 +474,47 @@ const fetchEstateWithRelations = async (estateId) => {
     try {
         return await db.estate.findUnique({
             where: { id: estateId },
-            include: {
-                heirs: true,
-                assets: true,
-                liabilities: true,
+            select: {
+                id: true,
+                deceasedState: true,
+                hasWill: true,
+                hasMinorBeneficiaries: true,
+                hasContest: true,
+                isTrustRevocable: true,
+                isOutOfState: true,
+                isSurvivingSpouse: true,
+                hasTODDeed: true,
+                estimatedPersonalProperty: true,
+                estimatedRealProperty: true,
+                hasUnknownHeirs: true,
+                internationalReasons: true,
+                hasPrimaryResidence: true,
+                userSelectedEstateAuthorityType: true,
+                heirs: {
+                    select: {
+                        id: true,
+                        name: true,
+                        relationship: true,
+                        isAdult: true,
+                        address: true,
+                        email: true,
+                        phone: true,
+                    },
+                },
+                assets: {
+                    select: {
+                        id: true,
+                        assetType: true,
+                        value: true,
+                        todDeedRecorded: true,
+                    },
+                },
+                liabilities: {
+                    select: {
+                        id: true,
+                        amount: true,
+                    },
+                },
             },
         });
     }
@@ -490,10 +536,32 @@ const fetchEstateWithRelations = async (estateId) => {
             db.liability.findMany({ where: { estateId } })
         ]);
         return {
-            ...fallbackEstate,
-            heirs,
-            assets,
-            liabilities
+            id: typeof fallbackEstate.id === "string" ? fallbackEstate.id : estateId,
+            deceasedState: typeof fallbackEstate.deceasedState === "string" ? fallbackEstate.deceasedState : null,
+            hasWill: typeof fallbackEstate.hasWill === "boolean" ? fallbackEstate.hasWill : false,
+            hasMinorBeneficiaries: typeof fallbackEstate.hasMinorBeneficiaries === "boolean" ? fallbackEstate.hasMinorBeneficiaries : false,
+            hasContest: typeof fallbackEstate.hasContest === "boolean" ? fallbackEstate.hasContest : false,
+            hasPrimaryResidence: typeof fallbackEstate.hasPrimaryResidence === "boolean" ? fallbackEstate.hasPrimaryResidence : false,
+            hasUnknownHeirs: typeof fallbackEstate.hasUnknownHeirs === "boolean" ? fallbackEstate.hasUnknownHeirs : false,
+            internationalReasons: Array.isArray(fallbackEstate.internationalReasons)
+                ? fallbackEstate.internationalReasons
+                : [],
+            isTrustRevocable: typeof fallbackEstate.isTrustRevocable === "boolean" ? fallbackEstate.isTrustRevocable : null,
+            isOutOfState: typeof fallbackEstate.isOutOfState === "boolean" ? fallbackEstate.isOutOfState : false,
+            isSurvivingSpouse: typeof fallbackEstate.isSurvivingSpouse === "boolean" ? fallbackEstate.isSurvivingSpouse : false,
+            hasTODDeed: typeof fallbackEstate.hasTODDeed === "boolean" ? fallbackEstate.hasTODDeed : false,
+            userSelectedEstateAuthorityType: typeof fallbackEstate.userSelectedEstateAuthorityType === "string"
+                ? fallbackEstate.userSelectedEstateAuthorityType
+                : null,
+            estimatedPersonalProperty: fallbackEstate.estimatedPersonalProperty ?? null,
+            estimatedRealProperty: fallbackEstate.estimatedRealProperty ?? null,
+            heirs: heirs.map(h => ({ isAdult: !!h.isAdult })),
+            assets: assets.map(a => ({
+                value: a.value,
+                todDeedRecorded: !!a.todDeedRecorded,
+                assetType: a.assetType ?? "",
+            })),
+            liabilities: liabilities.map(l => ({ amount: l.amount })),
         };
     }
 };
@@ -535,7 +603,7 @@ export async function analyzeEstateProfile(estateId) {
         isSpouse: estate.isSurvivingSpouse ?? false,
         hasMinors: estate.hasMinorBeneficiaries || estate.heirs.some(h => !h.isAdult),
         hasContest: estate.hasContest,
-        hasTODDeed: estate.hasTODDeed ?? estate.assets.some((a) => a.todDeedRecorded),
+        hasTODDeed: estate.hasTODDeed ?? estate.assets.some(a => a.todDeedRecorded),
         // Pass pre-calculated insolvency risk so the engine sets type=INSOLVENT_ESTATE correctly
         hasInsolvencyRisk,
         // Pass registration-time estimate so engine can pick a procedure even with 0 assets
@@ -1194,11 +1262,17 @@ export async function pinEstateRoadmap(estateId, userId) {
 export async function repinEstateRoadmap(estateId, userId, force = false) {
     const estate = await db.estate.findUnique({
         where: { id: estateId },
-        include: {
+        select: {
+            id: true,
             taskCompletions: {
-                where: { completed: true }
-            }
-        }
+                where: { completed: true },
+                select: {
+                    id: true,
+                    taskId: true,
+                    completed: true,
+                },
+            },
+        },
     });
     if (!estate)
         throw new Error(`Estate ${estateId} not found`);
