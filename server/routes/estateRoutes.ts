@@ -1222,11 +1222,7 @@ router.post("/:id/select-track", authenticate, requireEstateAccess, async (req: 
                 hasProbateAssets: validated.hasProbateAssets,
                 hasTrustAssets: validated.hasTrustAssets,
                 hasBeneficiaryAssets: validated.hasBeneficiaryAssets,
-<<<<<<< HEAD
                 assistedDecisionAnswers,
-=======
-                assistedDecisionAnswers: validated.assistedDecisionAnswers as unknown as Prisma.InputJsonValue,
->>>>>>> c554564e9bc81bae9ed415e8102aa1c8a49d01fd
             }
         });
 
