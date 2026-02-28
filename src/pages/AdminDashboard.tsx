@@ -25,6 +25,8 @@ import {
     BookOpen,
     Trash2,
     TrendingUp,
+    Activity,
+    Map,
     ChevronLeft,
     ChevronRight,
 } from "lucide-react";
@@ -228,6 +230,20 @@ export default function AdminDashboard() {
                                 <CardTitle className="text-3xl font-bold">
                                     {statsLoading ? "..." : stats?.leads || 0}
                                 </CardTitle>
+                            </CardHeader>
+                        </Card>
+                        <Card className="card-elevated border-none bg-gradient-to-br from-emerald-500 to-teal-600 text-white cursor-pointer hover:shadow-lg transition-shadow"
+                              onClick={() => navigate('/admin/jurisdiction-health')}>
+                            <CardHeader className="pb-2">
+                                <CardDescription className="flex items-center gap-2 text-emerald-100">
+                                    <Activity className="w-4 h-4" /> Jurisdiction Health
+                                </CardDescription>
+                                <CardTitle className="text-xl font-bold">
+                                    Health Dashboard
+                                </CardTitle>
+                                <p className="text-sm text-emerald-100 mt-2">
+                                    Monitor roadmap compliance and county overrides
+                                </p>
                             </CardHeader>
                         </Card>
                     </div>

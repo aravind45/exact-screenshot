@@ -314,7 +314,7 @@ router.put("/my/roadmap", requireSubscription, async (req: any, res: Response) =
             roadmapProgress: {
                 completedTaskIds,
                 completedPhases
-            }
+            } as Prisma.InputJsonValue
         };
 
         // Sync high-level status if it's a phase completion
@@ -963,13 +963,47 @@ router.post("/:id/pin", requireSubscription, async (req: any, res: Response) => 
 });
 
 /**
+ * GET /:id/repinPreview - Preview what would change if repinned
+ * Returns diff of tasks added/removed and impact on completed tasks
+ */
+router.get("/:id/repinPreview", requireSubscription, async (req: any, res: Response) => {
+    try {
+        const { id } = req.params;
+        
+        // Verify user has access to this estate
+        const estate = await prisma.estate.findFirst({
+            where: {
+                id,
+                OR: [
+                    { userId: req.user.id },
+                    { grants: { some: { userId: req.user.id } } }
+                ]
+            }
+        });
+
+        if (!estate) {
+            return res.status(404).json({ error: "Estate not found or access denied" });
+        }
+
+        const { getRepinPreview } = await import("../services/authorityChangeService.js");
+        const preview = await getRepinPreview(id);
+        
+        res.json(preview);
+    } catch (error: any) {
+        logger.error("Error getting repin preview:", error);
+        res.status(500).json({ error: "Failed to get repin preview", message: error.message });
+    }
+});
+
+/**
  * POST /:id/repin - Update frozen roadmap to latest
+ * Requires confirmation if completed tasks would be affected
  */
 router.post("/:id/repin", requireSubscription, async (req: any, res: Response) => {
     try {
         const { id } = req.params;
-        const { force } = req.body;
-        const result = await repinEstateRoadmap(id, req.user.id, !!force);
+        const { force, confirm } = req.body;
+        const result = await repinEstateRoadmap(id, req.user.id, !!(force || confirm));
         res.json(result);
     } catch (error: any) {
         if (error.message === "REPIN_BLOCKED_COMPLETED_TASKS") {
@@ -979,8 +1013,47 @@ router.post("/:id/repin", requireSubscription, async (req: any, res: Response) =
                 message: "This estate has completed tasks. Repinning will lose progress mapping unless forced."
             });
         }
+        if (error.message === "REPIN_REQUIRES_CONFIRMATION") {
+            return res.status(409).json({
+                error: "Repin Requires Confirmation",
+                code: "REPIN_REQUIRES_CONFIRMATION",
+                message: "This repin would affect completed tasks or remove tasks. Please confirm or use force=true."
+            });
+        }
         logger.error("Error repinning roadmap:", error);
         res.status(500).json({ error: "Failed to repin roadmap", message: error.message });
+    }
+});
+
+/**
+ * GET /:id/authorityHistory - Get authority change history for audit
+ */
+router.get("/:id/authorityHistory", requireSubscription, async (req: any, res: Response) => {
+    try {
+        const { id } = req.params;
+        
+        // Verify user has access to this estate
+        const estate = await prisma.estate.findFirst({
+            where: {
+                id,
+                OR: [
+                    { userId: req.user.id },
+                    { grants: { some: { userId: req.user.id } } }
+                ]
+            }
+        });
+
+        if (!estate) {
+            return res.status(404).json({ error: "Estate not found or access denied" });
+        }
+
+        const { getAuthorityChangeHistory } = await import("../services/authorityChangeService.js");
+        const history = await getAuthorityChangeHistory(id);
+        
+        res.json(history);
+    } catch (error: any) {
+        logger.error("Error getting authority history:", error);
+        res.status(500).json({ error: "Failed to get authority history", message: error.message });
     }
 });
 
@@ -1105,5 +1178,80 @@ router.delete("/:id/tasks/:taskId/complete", requireSubscription, requireEstateA
     } catch (error: any) {
         logger.error("Error uncompleting task:", error.message);
         res.status(500).json({ error: "Failed to uncomplete task" });
+    }
+});
+
+// Track Selection Onboarding Endpoint
+const trackSelectionSchema = z.object({
+    estateAuthorityType: z.enum(["PROBATE", "TRUST", "BOTH"]),
+    hasProbateAssets: z.boolean().optional(),
+    hasTrustAssets: z.boolean().optional(),
+    hasBeneficiaryAssets: z.boolean().optional(),
+    assistedDecisionAnswers: z.record(z.unknown()).optional(),
+});
+
+router.post("/:id/select-track", authenticate, requireEstateAccess, async (req: any, res: Response) => {
+    try {
+        const { id } = req.params;
+
+        // Verify user has access to this estate
+        const estate = await prisma.estate.findFirst({
+            where: {
+                id,
+                OR: [
+                    { userId: req.user.id },
+                    { grants: { some: { userId: req.user.id } } }
+                ]
+            }
+        });
+
+        if (!estate) {
+            return res.status(404).json({ error: "Estate not found or access denied" });
+        }
+
+        // Validate request body
+        const validated = trackSelectionSchema.parse(req.body);
+        const assistedDecisionAnswers = validated.assistedDecisionAnswers as Prisma.InputJsonValue | undefined;
+
+        // Update estate with track selection
+        const updatedEstate = await prisma.estate.update({
+            where: { id },
+            data: {
+                userSelectedEstateAuthorityType: validated.estateAuthorityType,
+                userSelectedAuthorityAt: new Date(),
+                hasProbateAssets: validated.hasProbateAssets,
+                hasTrustAssets: validated.hasTrustAssets,
+                hasBeneficiaryAssets: validated.hasBeneficiaryAssets,
+                assistedDecisionAnswers,
+            }
+        });
+
+        // Log activity
+        await AuditService.logActivity(
+            id,
+            req.user.id,
+            "TRACK_SELECTION",
+            "SELECTED",
+            `User selected track: ${validated.estateAuthorityType}`
+        );
+
+        logger.info({
+            estateId: id,
+            userId: req.user.id,
+            selectedTrack: validated.estateAuthorityType,
+        }, "Track selection recorded");
+
+        res.json({
+            success: true,
+            estateId: id,
+            selectedTrack: validated.estateAuthorityType,
+            selectedAt: updatedEstate.userSelectedAuthorityAt,
+        });
+    } catch (error: any) {
+        logger.error("Error selecting track:", error.message);
+        if (error.name === 'ZodError') {
+            return res.status(400).json({ error: "Invalid request data", details: error.errors });
+        }
+        res.status(500).json({ error: "Failed to select track", message: error.message });
     }
 });

@@ -575,3 +575,77 @@ describe('Multi-Track Detection', () => {
     expect(result.activeEngines).toContain('AFFIDAVIT');
   });
 });
+
+describe('TRUST Engine Activation Logic - Regression Tests', () => {
+  it('Should NOT activate TRUST engine when isTrustRevocable is false without trust assets', () => {
+    // Regression test for bug where `isTrustRevocable !== undefined` incorrectly activated TRUST engine
+    const assets = [
+      { value: 100000, ownershipType: 'INDIVIDUAL', assetType: 'CHECKING', category: 'financial' },
+    ];
+
+    const result = calculateAuthorityRecommendation(assets, 'WA', {
+      hasWill: true,
+      isTrustRevocable: false, // Explicit false - should NOT activate TRUST engine
+    });
+
+    expect(result.activeEngines).not.toContain('TRUST');
+    expect(result.activeEngines).toContain('PROBATE');
+  });
+
+  it('Should activate TRUST engine when isTrustRevocable is true', () => {
+    const assets = [];
+
+    const result = calculateAuthorityRecommendation(assets, 'WA', {
+      hasWill: true,
+      isTrustRevocable: true, // Explicit true - should activate TRUST engine
+    });
+
+    expect(result.activeEngines).toContain('TRUST');
+  });
+
+  it('Should NOT activate TRUST engine when isTrustRevocable is undefined without trust assets', () => {
+    const assets = [
+      { value: 100000, ownershipType: 'INDIVIDUAL', assetType: 'CHECKING', category: 'financial' },
+    ];
+
+    const result = calculateAuthorityRecommendation(assets, 'WA', {
+      hasWill: true,
+      // isTrustRevocable is undefined - should NOT activate TRUST engine
+    });
+
+    expect(result.activeEngines).not.toContain('TRUST');
+    expect(result.activeEngines).toContain('PROBATE');
+  });
+
+  it('Should activate TRUST engine when trust assets exist regardless of isTrustRevocable', () => {
+    const assets = [
+      { value: 100000, ownershipType: 'TRUST', assetType: 'CHECKING', category: 'financial' },
+    ];
+
+    const result = calculateAuthorityRecommendation(assets, 'WA', {
+      hasWill: true,
+      isTrustRevocable: false, // Even if false, trust assets should activate TRUST engine
+    });
+
+    expect(result.activeEngines).toContain('TRUST');
+  });
+
+  it('WA probate estate with isTrustRevocable=false should not return BOTH authority type', () => {
+    // Specific regression test for WA probate estates that were incorrectly classified as BOTH
+    const assets = [
+      { value: 150000, ownershipType: 'INDIVIDUAL', assetType: 'REAL_ESTATE', category: 'real_estate' },
+    ];
+
+    const result = calculateAuthorityRecommendation(assets, 'WA', {
+      hasWill: true,
+      isTrustRevocable: false,
+    });
+
+    // Should only have PROBATE engine, not TRUST
+    expect(result.activeEngines).toContain('PROBATE');
+    expect(result.activeEngines).not.toContain('TRUST');
+
+    // Authority type should be INFORMAL_PROBATE (WA is UPC state)
+    expect(result.type).toBe('INFORMAL_PROBATE');
+  });
+});

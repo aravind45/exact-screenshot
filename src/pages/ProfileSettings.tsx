@@ -12,9 +12,10 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/lib/api";
-import { ArrowLeft, Save, User, UserCircle, Briefcase, MapPin, Mail, Loader2, ShieldCheck, Share2, Copy, Check, CreditCard, ExternalLink } from "lucide-react";
+import { ArrowLeft, Save, User, UserCircle, Briefcase, MapPin, Mail, Loader2, ShieldCheck, Share2, Copy, Check, CreditCard, ExternalLink, AlertCircle, Info, DollarSign, Calendar } from "lucide-react";
 import { motion } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Sidebar } from "@/components/Sidebar";
@@ -38,6 +39,24 @@ export default function ProfileSettings() {
         personalEmail: "",
     });
     const [portalLoading, setPortalLoading] = useState(false);
+
+    // Estate form state
+    const [estateFormData, setEstateFormData] = useState({
+        deceasedFirstName: "",
+        deceasedLastName: "",
+        dateOfDeath: "",
+        deceasedState: "",
+        probateCounty: "",
+        estimatedPersonalProperty: "",
+        estimatedLiabilities: "",
+        hasWill: null as boolean | null,
+        isSurvivingSpouse: null as boolean | null,
+        hasTODDeed: null as boolean | null,
+        hasOutOfStateProperty: null as boolean | null,
+        hasUnknownHeirs: null as boolean | null,
+        isTrustRevocable: null as boolean | null,
+        hasContest: null as boolean | null,
+    });
 
     const { data: profile, isLoading } = useQuery({
         queryKey: ["profile"],
@@ -65,6 +84,28 @@ export default function ProfileSettings() {
         }
     }, [profile]);
 
+    // Populate estate form data
+    useEffect(() => {
+        if (estate) {
+            setEstateFormData({
+                deceasedFirstName: estate.deceasedFirstName || "",
+                deceasedLastName: estate.deceasedLastName || "",
+                dateOfDeath: estate.deceasedDateOfDeath ? new Date(estate.deceasedDateOfDeath).toISOString().split('T')[0] : "",
+                deceasedState: estate.deceasedState || "",
+                probateCounty: estate.probateCounty || "",
+                estimatedPersonalProperty: estate.estimatedPersonalProperty?.toString() || "",
+                estimatedLiabilities: estate.estimatedLiabilities?.toString() || "",
+                hasWill: estate.hasWill ?? null,
+                isSurvivingSpouse: estate.isSurvivingSpouse ?? null,
+                hasTODDeed: estate.hasTODDeed ?? null,
+                hasOutOfStateProperty: estate.hasOutOfStateProperty ?? null,
+                hasUnknownHeirs: estate.hasUnknownHeirs ?? null,
+                isTrustRevocable: estate.isTrustRevocable ?? null,
+                hasContest: estate.hasContest ?? null,
+            });
+        }
+    }, [estate]);
+
     const updateMutation = useMutation({
         mutationFn: (data: any) => api.updateProfile(data),
         onSuccess: () => {
@@ -75,6 +116,43 @@ export default function ProfileSettings() {
             toast({ variant: "destructive", title: "Update Failed", description: err.message });
         },
     });
+
+    // Estate update mutation
+    const updateEstateMutation = useMutation({
+        mutationFn: (data: any) => api.updateMyEstate(data),
+        onSuccess: () => {
+            toast({ title: "Estate Details Updated", description: "Estate information has been saved. Your roadmap may have been updated." });
+            queryClient.invalidateQueries({ queryKey: ["my-estate"] });
+            queryClient.invalidateQueries({ queryKey: ["roadmap"] });
+        },
+        onError: (err: any) => {
+            toast({ variant: "destructive", title: "Update Failed", description: err.message });
+        },
+    });
+
+    const handleSaveEstate = () => {
+        updateEstateMutation.mutate({
+            deceasedFirstName: estateFormData.deceasedFirstName,
+            deceasedLastName: estateFormData.deceasedLastName,
+            deceasedDateOfDeath: estateFormData.dateOfDeath ? new Date(estateFormData.dateOfDeath) : null,
+            deceasedState: estateFormData.deceasedState,
+            probateCounty: estateFormData.probateCounty || null,
+            estimatedPersonalProperty: parseFloat(estateFormData.estimatedPersonalProperty) || 0,
+            estimatedLiabilities: parseFloat(estateFormData.estimatedLiabilities) || 0,
+            hasWill: estateFormData.hasWill,
+            isSurvivingSpouse: estateFormData.isSurvivingSpouse,
+            hasTODDeed: estateFormData.hasTODDeed,
+            hasOutOfStateProperty: estateFormData.hasOutOfStateProperty,
+            hasUnknownHeirs: estateFormData.hasUnknownHeirs,
+            isTrustRevocable: estateFormData.isTrustRevocable,
+            hasContest: estateFormData.hasContest,
+        });
+    };
+
+    // Helper function to update tri-state fields
+    const updateTriState = (field: keyof typeof estateFormData, value: boolean | null) => {
+        setEstateFormData(prev => ({ ...prev, [field]: value }));
+    };
 
     const handleSave = () => {
         updateMutation.mutate(formData);
@@ -342,6 +420,226 @@ export default function ProfileSettings() {
                                     </CardContent>
                                 </Card>
                             </motion.div>
+
+                            {/* Estate Details Section */}
+                            {!isEstateLoading && estate && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.02 }}
+                                >
+                                    <Card className="card-elevated border-none">
+                                        <CardHeader>
+                                            <CardTitle className="flex items-center gap-2">
+                                                <UserCircle className="w-5 h-5 text-primary" />
+                                                Estate Details
+                                            </CardTitle>
+                                            <CardDescription>
+                                                Information about the deceased and estate. These details determine your settlement roadmap.
+                                            </CardDescription>
+                                        </CardHeader>
+                                        <CardContent className="space-y-6">
+                                            {/* Warning about roadmap changes */}
+                                            <Alert variant="warning" className="mb-4">
+                                                <AlertCircle className="h-4 w-4" />
+                                                <AlertDescription>
+                                                    Changing key details like state or will status may regenerate your settlement roadmap and affect your task list.
+                                                </AlertDescription>
+                                            </Alert>
+
+                                            {/* Deceased Information */}
+                                            <div className="space-y-4">
+                                                <h3 className="font-semibold text-sm text-foreground">Deceased Information</h3>
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    <div className="space-y-2">
+                                                        <Label htmlFor="deceasedFirstName">Deceased First Name</Label>
+                                                        <Input
+                                                            id="deceasedFirstName"
+                                                            value={estateFormData.deceasedFirstName}
+                                                            onChange={(e) => setEstateFormData({ ...estateFormData, deceasedFirstName: e.target.value })}
+                                                            placeholder="First name"
+                                                        />
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        <Label htmlFor="deceasedLastName">Deceased Last Name</Label>
+                                                        <Input
+                                                            id="deceasedLastName"
+                                                            value={estateFormData.deceasedLastName}
+                                                            onChange={(e) => setEstateFormData({ ...estateFormData, deceasedLastName: e.target.value })}
+                                                            placeholder="Last name"
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    <div className="space-y-2">
+                                                        <Label htmlFor="dateOfDeath">Date of Death</Label>
+                                                        <div className="relative">
+                                                            <Calendar className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                                                            <Input
+                                                                id="dateOfDeath"
+                                                                type="date"
+                                                                className="pl-9"
+                                                                value={estateFormData.dateOfDeath}
+                                                                onChange={(e) => setEstateFormData({ ...estateFormData, dateOfDeath: e.target.value })}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        <Label htmlFor="deceasedState">State of Residence</Label>
+                                                        <div className="relative">
+                                                            <MapPin className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground z-10" />
+                                                            <Select
+                                                                value={estateFormData.deceasedState}
+                                                                onValueChange={(val) => setEstateFormData({ ...estateFormData, deceasedState: val })}
+                                                            >
+                                                                <SelectTrigger className="pl-9">
+                                                                    <SelectValue placeholder="Select State" />
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                    {US_STATES.map((state) => (
+                                                                        <SelectItem key={state.abbr} value={state.abbr}>
+                                                                            {state.name}
+                                                                        </SelectItem>
+                                                                    ))}
+                                                                </SelectContent>
+                                                            </Select>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="probateCounty">
+                                                        County
+                                                        <span className="text-[10px] text-muted-foreground font-normal ml-1">(Optional)</span>
+                                                    </Label>
+                                                    <Input
+                                                        id="probateCounty"
+                                                        value={estateFormData.probateCounty}
+                                                        onChange={(e) => setEstateFormData({ ...estateFormData, probateCounty: e.target.value })}
+                                                        placeholder="e.g. Los Angeles, Cook, Harris"
+                                                    />
+                                                    {!estateFormData.probateCounty && (
+                                                        <Alert variant="info" className="mt-2 py-2">
+                                                            <Info className="h-3 w-3" />
+                                                            <AlertDescription className="text-xs">
+                                                                County not specified - some location-specific forms may not be shown.
+                                                            </AlertDescription>
+                                                        </Alert>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            {/* Financial Information */}
+                                            <div className="space-y-4 pt-4 border-t">
+                                                <h3 className="font-semibold text-sm text-foreground">Financial Estimates</h3>
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    <div className="space-y-2">
+                                                        <Label htmlFor="estimatedPersonalProperty">Estimated Estate Value</Label>
+                                                        <div className="relative">
+                                                            <DollarSign className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                                                            <Input
+                                                                id="estimatedPersonalProperty"
+                                                                type="number"
+                                                                className="pl-9"
+                                                                value={estateFormData.estimatedPersonalProperty}
+                                                                onChange={(e) => setEstateFormData({ ...estateFormData, estimatedPersonalProperty: e.target.value })}
+                                                                placeholder="e.g. 250000"
+                                                            />
+                                                        </div>
+                                                        <p className="text-[10px] text-muted-foreground">Banks, investments, real estate, etc.</p>
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        <Label htmlFor="estimatedLiabilities">Estimated Debts</Label>
+                                                        <div className="relative">
+                                                            <DollarSign className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                                                            <Input
+                                                                id="estimatedLiabilities"
+                                                                type="number"
+                                                                className="pl-9"
+                                                                value={estateFormData.estimatedLiabilities}
+                                                                onChange={(e) => setEstateFormData({ ...estateFormData, estimatedLiabilities: e.target.value })}
+                                                                placeholder="e.g. 50000"
+                                                            />
+                                                        </div>
+                                                        <p className="text-[10px] text-muted-foreground">Mortgages, loans, credit cards, etc.</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Estate Assessment Questions */}
+                                            <div className="space-y-4 pt-4 border-t">
+                                                <h3 className="font-semibold text-sm text-foreground">Estate Assessment</h3>
+                                                <p className="text-xs text-muted-foreground">These answers help determine the correct probate path and required forms.</p>
+
+                                                <TriStateToggle
+                                                    label="Has Will"
+                                                    description="Did the deceased leave a valid will?"
+                                                    value={estateFormData.hasWill}
+                                                    onChange={(val) => updateTriState("hasWill", val)}
+                                                />
+
+                                                <TriStateToggle
+                                                    label="Is Surviving Spouse"
+                                                    description="Are you the surviving spouse of the deceased?"
+                                                    value={estateFormData.isSurvivingSpouse}
+                                                    onChange={(val) => updateTriState("isSurvivingSpouse", val)}
+                                                />
+
+                                                <TriStateToggle
+                                                    label="Has TOD Deed"
+                                                    description="Is there a Transfer-on-Death deed for real property?"
+                                                    value={estateFormData.hasTODDeed}
+                                                    onChange={(val) => updateTriState("hasTODDeed", val)}
+                                                />
+
+                                                <TriStateToggle
+                                                    label="Has Out-of-State Property"
+                                                    description="Does the estate include real property in another state?"
+                                                    value={estateFormData.hasOutOfStateProperty}
+                                                    onChange={(val) => updateTriState("hasOutOfStateProperty", val)}
+                                                />
+
+                                                <TriStateToggle
+                                                    label="Has Unknown Heirs"
+                                                    description="Are there any heirs whose identity or location is unknown?"
+                                                    value={estateFormData.hasUnknownHeirs}
+                                                    onChange={(val) => updateTriState("hasUnknownHeirs", val)}
+                                                />
+
+                                                <TriStateToggle
+                                                    label="Has Revocable Trust"
+                                                    description="Did the deceased create a revocable living trust?"
+                                                    value={estateFormData.isTrustRevocable}
+                                                    onChange={(val) => updateTriState("isTrustRevocable", val)}
+                                                />
+
+                                                <TriStateToggle
+                                                    label="Has Contest"
+                                                    description="Is there any dispute or contest regarding the estate?"
+                                                    value={estateFormData.hasContest}
+                                                    onChange={(val) => updateTriState("hasContest", val)}
+                                                />
+                                            </div>
+
+                                            <div className="pt-4 border-t flex justify-end">
+                                                <Button
+                                                    onClick={handleSaveEstate}
+                                                    disabled={updateEstateMutation.isPending}
+                                                    className="gap-2"
+                                                >
+                                                    {updateEstateMutation.isPending ? (
+                                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                                    ) : (
+                                                        <Save className="w-4 h-4" />
+                                                    )}
+                                                    Save Estate Details
+                                                </Button>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                </motion.div>
+                            )}
 
                             {/* Estate Case Configuration Section */}
                             {!isEstateLoading && estate && (
@@ -644,5 +942,53 @@ function ReferralCopyButton({ referralLink }: { referralLink: string }) {
                 </>
             )}
         </Button>
+    );
+}
+
+function TriStateToggle({ label, description, value, onChange }: {
+    label: string;
+    description: string;
+    value: boolean | null;
+    onChange: (value: boolean | null) => void;
+}) {
+    return (
+        <div className="flex items-start justify-between gap-4 py-2">
+            <div className="space-y-0.5 flex-1">
+                <Label className="text-sm font-bold">{label}</Label>
+                <p className="text-xs text-muted-foreground">{description}</p>
+            </div>
+            <div className="flex bg-muted p-1 rounded-lg shrink-0">
+                <button
+                    type="button"
+                    onClick={() => onChange(true)}
+                    className={cn(
+                        "px-3 py-1.5 text-xs font-bold rounded-md transition-all",
+                        value === true ? "bg-white shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"
+                    )}
+                >
+                    Yes
+                </button>
+                <button
+                    type="button"
+                    onClick={() => onChange(false)}
+                    className={cn(
+                        "px-3 py-1.5 text-xs font-bold rounded-md transition-all",
+                        value === false ? "bg-white shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"
+                    )}
+                >
+                    No
+                </button>
+                <button
+                    type="button"
+                    onClick={() => onChange(null)}
+                    className={cn(
+                        "px-3 py-1.5 text-xs font-bold rounded-md transition-all",
+                        value === null ? "bg-white shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"
+                    )}
+                >
+                    Not Sure
+                </button>
+            </div>
+        </div>
     );
 }

@@ -1,0 +1,19 @@
+{
+  "id": "ca_probate_real",
+  "name": "California Probate Estate with Real Property",
+  "stateCode": "CA",
+  "county": "Los Angeles",
+  "authorityType": "PROBATE",
+  "hasRealProperty": true,
+  "estateValue": 750000,
+  "hasWill": true,
+  "characteristics": {
+    "isSmallEstate": false,
+    "hasMinorBeneficiaries": false,
+    "hasContest": false,
+    "isInternational": false,
+    "hasTODDeed": false,
+    "hasOutOfStateProperty": true,
+    "isSurvivingSpouse": true
+  }
+}

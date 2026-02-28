@@ -1,0 +1,19 @@
+{
+  "id": "ca_probate_no_real",
+  "name": "California Probate Estate without Real Property",
+  "stateCode": "CA",
+  "county": "San Francisco",
+  "authorityType": "PROBATE",
+  "hasRealProperty": false,
+  "estateValue": 150000,
+  "hasWill": true,
+  "characteristics": {
+    "isSmallEstate": true,
+    "hasMinorBeneficiaries": false,
+    "hasContest": false,
+    "isInternational": false,
+    "hasTODDeed": false,
+    "hasOutOfStateProperty": false,
+    "isSurvivingSpouse": false
+  }
+}

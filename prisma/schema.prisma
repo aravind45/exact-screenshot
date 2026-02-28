@@ -69,6 +69,7 @@ model Estate {
   deceasedState             String               @map("deceased_state")
   estateType                String?              @map("estate_type")
   authorityType             String               @default("UNSET") @map("authority_type")
+  estateAuthorityType      String?              @map("estate_authority_type")
   authorityStatus           String               @default("NOT_STARTED") @map("authority_status")
   certifiedCopies           Int                  @default(0) @map("certified_copies")
   authorityEffectiveDate    DateTime?            @map("authority_effective_date")
@@ -125,7 +126,25 @@ model Estate {
   countyOverrideId          String?              @map("county_override_id")
   countyOverrideHash        String?              @map("county_override_hash")
   
+  // Authority Type Change Policy
+  authorityTypeSource       String?              @map("authority_type_source") // "ENGINE" | "MANUAL" | "PINNED"
+  authorityPinnedAt         DateTime?            @map("authority_pinned_at")
+  authorityChangePending    Boolean              @default(false) @map("authority_change_pending")
+  recommendedAuthorityType  String?              @map("recommended_authority_type")
+  recommendedAuthorityReason Json?               @map("recommended_authority_reason")
+
+  // Track Selection Onboarding
+  userSelectedEstateAuthorityType String?  @map("user_selected_estate_authority_type") // "PROBATE" | "TRUST" | "BOTH"
+  userSelectedAuthorityAt     DateTime? @map("user_selected_authority_at")
+  hasProbateAssets          Boolean?   @map("has_probate_assets") // User answer: has probate assets
+  hasTrustAssets            Boolean?   @map("has_trust_assets") // User answer: has trust assets
+  hasBeneficiaryAssets      Boolean?   @map("has_beneficiary_assets") // User answer: has POD/TOD/beneficiary assets
+  assistedDecisionAnswers    Json?      @map("assisted_decision_answers") // Store "help me decide" question answers
+  authorityConfidenceScore  Int?       @map("authority_confidence_score") // 0-100 confidence score
+  authorityDeterminationSource String?   @map("authority_determination_source") // "USER_SELECTION" | "ENGINE_HIGH_CONFIDENCE" | "ENGINE_LOW_CONFIDENCE" | "DEFAULT_FAIL_CLOSED"
+
   assets                    Asset[]
+  authorityChangeEvents     AuthorityChangeEvent[]
   authorityDecisions        AuthorityDecision[]
   bookings                  Booking[]
   communications            Communication[]
@@ -650,6 +669,7 @@ model RoadmapTask {
   excludePredicates           String[]     @map("exclude_predicates")
   requiredProfileFields       String[]     @map("required_profile_fields")
   outputs                     String[]
+  authorityScope              String?      @map("authority_scope")
   scope                       String       @default("CORE")
   allowedCounties             String[]     @map("allowed_counties")
   createdAt                   DateTime     @default(now()) @map("created_at")
@@ -1172,11 +1192,74 @@ model CountyOverride {
   formNames       String[] @map("form_names")
   attachments     Json?    // Array of { label: string, url: string }
   
+  // Approval workflow
+  status          String   @default("DRAFT") @map("status") // DRAFT | PENDING_REVIEW | APPROVED | REJECTED
+  submittedBy     String?  @map("submitted_by")
+  submittedAt     DateTime? @map("submitted_at")
+  reviewedBy      String?  @map("reviewed_by")
+  reviewedAt      DateTime? @map("reviewed_at")
+  reviewNotes     String?  @map("review_notes")
+  
   // Internal tracking
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
   publishedAt     DateTime? @map("published_at")
   
   @@unique([stateCode, countyName, taskId])
+  @@index([status])
+  @@index([stateCode, status])
   @@map("county_overrides")
+}
+
+// Diagnostic Run - Stores jurisdiction health check results
+model DiagnosticRun {
+  id              String   @id @default(uuid())
+  stateCode       String   @map("state_code")
+  overallStatus   String   @map("overall_status") // PASS | FAIL
+  healthScore     Int      @map("health_score")
+  criticalCount   Int      @default(0) @map("critical_count")
+  warningCount    Int      @default(0) @map("warning_count")
+  infoCount       Int      @default(0) @map("info_count")
+  resultsJson     Json     @map("results_json")
+  triggeredBy     String   @map("triggered_by")
+  commitSha       String?  @map("commit_sha")
+  branchName      String?  @map("branch_name")
+  durationMs      Int      @map("duration_ms")
+  createdAt       DateTime @default(now()) @map("created_at")
+  
+  @@index([stateCode])
+  @@index([stateCode, createdAt])
+  @@index([overallStatus])
+  @@map("diagnostic_runs")
+}
+
+// Authority Change Event - Audit trail for authority type changes
+model AuthorityChangeEvent {
+  id                String    @id @default(uuid())
+  estateId          String    @map("estate_id")
+  
+  // Change tracking
+  previousType      String?   @map("previous_type")
+  newType           String    @map("new_type")
+  changeSource      String    @map("change_source") // "ENGINE" | "MANUAL" | "REPIN" | "INITIAL_PIN"
+  triggeredBy       String?   @map("triggered_by") // userId who triggered
+  
+  // Timing
+  computedAt        DateTime  @map("computed_at") @default(now())
+  appliedAt         DateTime? @map("applied_at")
+  
+  // Impact analysis
+  diffSummary       Json?     @map("diff_summary") // { tasksAdded: [], tasksRemoved: [], affectedTasks: number }
+  migrationNotes    String?   @map("migration_notes")
+  
+  // Revert tracking
+  revertedAt        DateTime? @map("reverted_at")
+  revertReason      String?   @map("revert_reason")
+  
+  // Relations
+  estate            Estate    @relation(fields: [estateId], references: [id], onDelete: Cascade)
+  
+  @@index([estateId])
+  @@index([estateId, computedAt])
+  @@map("authority_change_events")
 }

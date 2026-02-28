@@ -1,0 +1,100 @@
+# Global Jurisdiction Compliance Audit — Walkthrough
+
+## Summary
+
+| Metric | Value |
+|---|---|
+| States Audited | **51** (all 50 + DC) |
+| Roadmaps Generated | **153** (3 per state) |
+| States Passing (≥9.5) | **0** |
+| States Failing (<9.5) | **51** |
+| Authority Leaks | **0** ✅ |
+| Cross-State Leaks | **9** (NY only) |
+
+---
+
+## Methodology
+
+Used the **canonical server-side pipeline** (no client generator):
+
+1. [resolveTaskForState()](file:///c:/Users/aravi/Documents/AI_LLM/projects/exact-screenshot/server/services/roadmapService.ts#180-246) — state override merge + scope check
+2. [filterTasksForState()](file:///c:/Users/aravi/Documents/AI_LLM/projects/exact-screenshot/server/services/roadmapService.ts#363-399) — CA-only / GA-only hard gates
+3. [filterPhasesByJurisdiction()](file:///c:/Users/aravi/Documents/AI_LLM/projects/exact-screenshot/src/shared/filterByJurisdiction.ts#168-183) — CORE / US-XX scope filter
+4. [filterPhasesByAuthorityScope()](file:///c:/Users/aravi/Documents/AI_LLM/projects/exact-screenshot/src/shared/filterByJurisdiction.ts#184-202) — PROBATE / TRUST / BOTH filter
+
+For each state, 3 roadmaps were generated:
+- PROBATE with real property
+- PROBATE without real property
+- TRUST
+
+### Validation Rules Applied
+1. **Cross-State Leakage** — statute signatures from other states
+2. **Authority Leakage** — TRUST tasks in PROBATE roadmaps and vice versa
+3. **Placeholder / Template Integrity** — `{{`, `}}`, `TBD`, `varies by state`
+4. **Structural Invariants** — real property transfer, creditor deadlines
+5. **Scope Integrity** — missing `authorityScope`, CORE tasks with state statutes
+6. **County Override Safety** — forbidden keys in overrides
+
+Test file: [global_jurisdiction_audit.test.ts](file:///c:/Users/aravi/Documents/AI_LLM/projects/exact-screenshot/tests/global_jurisdiction_audit.test.ts)
+
+---
+
+## Top 5 Highest-Risk States
+
+| Rank | State | Score | Risk Level | Key Issue |
+|---|---|---|---|---|
+| 1 | **NY** | 0.0 | HIGH RISK | 9 cross-state leaks (CA IAEA/Notice of Proposed Action patterns) + placeholders + missing scopes |
+| 2 | **CA** | 4.6 | HIGH RISK | Placeholders `{{`/`}}` in `file_affidavit` + 22 scope integrity issues |
+| 3 | **IL** | 5.0 | HIGH RISK | `755 ILCS` scope leak in CORE task + placeholders + missing scopes |
+| 4 | **GA** | 5.7 | HIGH RISK | Placeholders + missing scopes (no cross-state leaks) |
+| 5 | **MN** | 5.7 | HIGH RISK | Placeholders + missing scopes (no cross-state leaks) |
+
+---
+
+## Top 5 Systemic Patterns (Platform-Wide)
+
+| # | Pattern | Occurrences |
+|---|---|---|
+| 1 | **Missing `authorityScope`** | 459 |
+| 2 | **Placeholder `{{` in task text** | 102 |
+| 3 | **Placeholder `}}` in task text** | 102 |
+| 4 | **`varies by state` in task text** | 94 |
+| 5 | **CORE task contains NY `SCPA` reference** | 22 |
+
+---
+
+## Key Findings
+
+### ✅ Authority Leakage: ZERO violations
+The `authorityScope` backfill and [filterPhasesByAuthorityScope()](file:///c:/Users/aravi/Documents/AI_LLM/projects/exact-screenshot/src/shared/filterByJurisdiction.ts#184-202) pipeline are working correctly. No TRUST tasks leak into PROBATE roadmaps and no PROBATE tasks leak into TRUST roadmaps across any state.
+
+### ⚠️ 3 Tasks Still Missing `authorityScope`
+These 3 tasks appear across every state and lack explicit `authorityScope`:
+
+| Task ID | Impact |
+|---|---|
+| `validate_venue_authority` | 153 violations across all states |
+| `screen_fiduciary_eligibility` | 153 violations across all states |
+| `identify_protected_persons_and_representation` | 153 violations across all states |
+
+### ⚠️ `file_affidavit` Has Unresolved Template Tokens
+The `file_affidavit` task contains raw `{{smallEstateThreshold}}` / `{{smallEstateTerm}}` template tokens that are not being resolved at the hardcoded-task level. They are resolved at render time by [applyStateRuleTokens()](file:///c:/Users/aravi/Documents/AI_LLM/projects/exact-screenshot/server/services/roadmapService.ts#121-128) in the DB path, but the static audit catches them pre-render.
+
+### ⚠️ `monitor_creditor_claim_period` Contains Generic Wording
+The task `monitor_creditor_claim_period` includes the phrase `"varies by state"` in 47 of 51 states. States with explicit creditor windows (GA, MN, NJ, OH) have state-specific overrides that suppress this.
+
+### ⚠️ NY Cross-State Contamination
+NY roadmaps contain 9 instances of CA-specific patterns (`IAEA`, `Notice of Proposed Action`, `Sale Confirmation Order`) leaking through `sell_property` and related tasks. These likely come from task `stateOverrides` that aren't fully stripping CA terminology for NY.
+
+---
+
+## Recommended Single Architectural Fix
+
+> **Implement a centralized `StatuteBindingService`** that resolves all state-specific text at render time from the structured `STATE_RULES` registry, eliminating hardcoded statute references in task definitions. Combined with **making `authorityScope` required (non-optional)** on [PhaseTask](file:///c:/Users/aravi/Documents/AI_LLM/projects/exact-screenshot/src/config/settlementPhases.ts#13-112), this would eliminate the two largest violation classes (~60% reduction).
+
+---
+
+## Artifacts Produced
+
+- [global_jurisdiction_audit_report.json](file:///c:/Users/aravi/Documents/AI_LLM/projects/exact-screenshot/global_jurisdiction_audit_report.json) — Full JSON report (209 KB, 5764 lines)
+- [global_jurisdiction_audit.test.ts](file:///c:/Users/aravi/Documents/AI_LLM/projects/exact-screenshot/tests/global_jurisdiction_audit.test.ts) — Vitest audit test

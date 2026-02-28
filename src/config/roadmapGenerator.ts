@@ -27,6 +27,32 @@ const GA_ONLY_TASK_IDS = new Set([
 ]);
 
 // ─────────────────────────────────────────────────────────────────────────────
+// NY-only task IDs that must NEVER appear for non-NY states.
+// New York Surrogate's Court specific tasks
+// ─────────────────────────────────────────────────────────────────────────────
+const NY_ONLY_TASK_IDS = new Set([
+    "ny_probate_petition",
+    "ny_admin_petition",
+    "ny_voluntary_admin",
+    "ny_ancillary_petition",
+    "ny_small_estate_affidavit",
+    "ny_surrogate_appointment",
+    "ny_accounting",
+]);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TX-only task IDs that must NEVER appear for non-TX states.
+// Texas-specific probate tasks
+// ─────────────────────────────────────────────────────────────────────────────
+const TX_ONLY_TASK_IDS = new Set([
+    "tx_muniment_title",
+    "tx_independent_administration",
+    "tx_dependent_administration",
+    "tx_heirship_proceeding",
+    "tx_posting_requirement",
+]);
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Tasks to EXCLUDE for specific states (State Isolation)
 // ─────────────────────────────────────────────────────────────────────────────
 const GA_EXCLUDED_TASK_IDS = new Set([
@@ -48,6 +74,21 @@ const OH_EXCLUDED_TASK_IDS = new Set([
     "obtain_succession_order",
 ]);
 
+const NY_EXCLUDED_TASK_IDS = new Set([
+    // NY doesn't have spousal succession - use different process
+    "file_spousal_petition",
+    "give_spousal_notice",
+    "obtain_spousal_order",
+]);
+
+const TX_EXCLUDED_TASK_IDS = new Set([
+    // TX has unique administration types - exclude generic ones
+    "file_administration_petition",
+]);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// State-specific title patterns to exclude (contamination prevention)
+// ─────────────────────────────────────────────────────────────────────────────
 const CA_ONLY_TITLE_PATTERNS = [
     /\bNotice of Proposed Action\b/i,
     /\b15-Day Objection Period\b/i,
@@ -57,25 +98,42 @@ const CA_ONLY_TITLE_PATTERNS = [
     /\bIndependent Administration\b/i,
 ];
 
+const NY_ONLY_TITLE_PATTERNS = [
+    /\bSurrogate'?s?\s+Court\b/i,
+    /\bSCPA\b/i,
+    /\bVoluntary Administration\b/i,
+    /\bLetters of Authority\b/i,
+];
+
+const TX_ONLY_TITLE_PATTERNS = [
+    /\bMuniment of Title\b/i,
+    /\bIndependent Administration\b/i,
+    /\bEstates Code\b/i,
+];
+
 // ─────────────────────────────────────────────────────────────────────────────
 // (Overrides and Neutral milestones now imported from roadmapMetadata)
 // ─────────────────────────────────────────────────────────────────────────────
 
 function normalizeTextForState(text: string | undefined, state: string): string | undefined {
     if (!text) return text;
+    // Don't normalize for CA - it has its own specific terminology
     if (state === "CA") return text;
 
     const lettersTerm = getLettersTerm(state);
     let out = text;
 
+    // Generic letter terminology normalization
     out = out.replace(/\bCertified Letters\s*\(DE-\d+\)/gi, `Certified ${lettersTerm}`);
     out = out.replace(/\bLetters Testamentary\s*\(DE-\d+\)/gi, lettersTerm);
     out = out.replace(/\bLetters of Authority\s*\(DE-\d+\)/gi, lettersTerm);
     out = out.replace(/\bLetters\s*\(DE-\d+\)/gi, lettersTerm);
 
+    // Remove form reference numbers
     out = out.replace(/\s*\(DE-\d+\)/gi, "");
     out = out.replace(/\bDE-\d+\b/gi, "");
 
+    // CA-specific replacements (for contamination cleanup)
     out = out.replace(/\bMedi-Cal\b/gi, "Medicaid");
     out = out.replace(/\bDHCS\b/gi, "Medicaid");
     out = out.replace(/\bCalifornia Probate Code\b/gi, "State probate code");
@@ -84,6 +142,17 @@ function normalizeTextForState(text: string | undefined, state: string): string 
     out = out.replace(/\bCalifornia\b/gi, "state");
     out = out.replace(/\bCA\b/g, "state");
 
+    // NY-specific replacements (for contamination cleanup)
+    out = out.replace(/\bSurrogate'?s?\s+Court\b/gi, "Probate Court");
+    out = out.replace(/\bSCPA\b/gi, "State probate code");
+    out = out.replace(/\bNY Surrogate\b/gi, "Probate Court");
+    out = out.replace(/\bNew York\s+Probate\b/gi, "State probate");
+
+    // TX-specific replacements
+    out = out.replace(/\bEstates Code\b/gi, "State Estates Code");
+    out = out.replace(/\bTexas\s+Probate\b/gi, "State probate");
+
+    // Generic state replacements
     out = out.replace(/\s{2,}/g, " ").trim();
     return out;
 }
@@ -145,9 +214,17 @@ function removeStateExcludedTasks(phases: PhaseTaskList[], state: string): Phase
             if (state === "GA" && GA_EXCLUDED_TASK_IDS.has(task.id)) return false;
             // OH-excluded tasks (CA module removals)
             if (state === "OH" && OH_EXCLUDED_TASK_IDS.has(task.id)) return false;
+            // NY-excluded tasks (NY has different process)
+            if (state === "NY" && NY_EXCLUDED_TASK_IDS.has(task.id)) return false;
+            // TX-excluded tasks (TX has unique administration)
+            if (state === "TX" && TX_EXCLUDED_TASK_IDS.has(task.id)) return false;
 
             // GA-only tasks should ONLY show for GA state
             if (GA_ONLY_TASK_IDS.has(task.id)) return state === "GA";
+            // NY-only tasks should ONLY show for NY state
+            if (NY_ONLY_TASK_IDS.has(task.id)) return state === "NY";
+            // TX-only tasks should ONLY show for TX state
+            if (TX_ONLY_TASK_IDS.has(task.id)) return state === "TX";
 
             return true;
         }),
@@ -155,16 +232,26 @@ function removeStateExcludedTasks(phases: PhaseTaskList[], state: string): Phase
 }
 
 function isTaskExcludedForState(task: PhaseTask, state: string): boolean {
-    if (state === "CA") return false;
-
+    // State-specific exclusions
     if (state === "GA" && GA_EXCLUDED_TASK_IDS.has(task.id)) return true;
     if (state === "OH" && OH_EXCLUDED_TASK_IDS.has(task.id)) return true;
+    if (state === "NY" && NY_EXCLUDED_TASK_IDS.has(task.id)) return true;
+    if (state === "TX" && TX_EXCLUDED_TASK_IDS.has(task.id)) return true;
 
+    // State-only tasks should only appear for their specific state
     if (state !== "CA" && CA_ONLY_TASK_IDS.has(task.id)) return true;
     if (state !== "GA" && GA_ONLY_TASK_IDS.has(task.id)) return true;
+    if (state !== "NY" && NY_ONLY_TASK_IDS.has(task.id)) return true;
+    if (state !== "TX" && TX_ONLY_TASK_IDS.has(task.id)) return true;
 
-    // Reject generic CA-specific titles for other states
+    // Reject generic state-specific titles for other states
     if (state !== "CA" && CA_ONLY_TITLE_PATTERNS.some(p => p.test(task.title))) {
+        return true;
+    }
+    if (state !== "NY" && NY_ONLY_TITLE_PATTERNS.some(p => p.test(task.title))) {
+        return true;
+    }
+    if (state !== "TX" && TX_ONLY_TITLE_PATTERNS.some(p => p.test(task.title))) {
         return true;
     }
 
@@ -195,7 +282,7 @@ function normalizePhasesForState(phases: PhaseTaskList[], state: string): PhaseT
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// State contamination validator: flags CA-specific tokens in non-CA roadmaps.
+// State contamination validator: flags state-specific tokens in non-matching roadmaps.
 // Called at the end of generateRoadmap() in development to catch any leaks.
 // ─────────────────────────────────────────────────────────────────────────────
 const CA_CONTAMINATION_TOKENS = [
@@ -207,23 +294,49 @@ const CA_CONTAMINATION_TOKENS = [
     "IAEA",
 ];
 
+const NY_CONTAMINATION_TOKENS = [
+    "Surrogate's Court",
+    "SCPA",
+    "Voluntary Administration",
+    "Letters of Authority",
+    "Surrogate",
+];
+
+const TX_CONTAMINATION_TOKENS = [
+    "Muniment of Title",
+    "Independent Administration",
+    "Estates Code",
+    "10-Day Posting",
+];
+
 function validateNoStateContamination(phases: PhaseTaskList[], state: string): void {
-    if (state === "CA") return;
+    // Get the appropriate token list for this state
+    const getTokensForState = (s: string): string[] => {
+        switch (s) {
+            case "CA": return [];
+            case "NY": return NY_CONTAMINATION_TOKENS;
+            case "TX": return TX_CONTAMINATION_TOKENS;
+            default: return [...CA_CONTAMINATION_TOKENS, ...NY_CONTAMINATION_TOKENS, ...TX_CONTAMINATION_TOKENS];
+        }
+    };
+    
+    const stateSpecificTokens = getTokensForState(state);
     const warnings: string[] = [];
+    
     for (const phase of phases) {
         // Check phase-level metadata
-        for (const token of CA_CONTAMINATION_TOKENS) {
+        for (const token of stateSpecificTokens) {
             if (phase.milestone?.includes(token) || phase.subtitle?.includes(token)) {
-                warnings.push(`[PHASE "${phase.phase}"] CA token "${token}" found in milestone/subtitle`);
+                warnings.push(`[PHASE "${phase.phase}"] ${state} token "${token}" found in milestone/subtitle`);
             }
         }
         // Check task-level content
         for (const task of phase.tasks) {
-            for (const token of CA_CONTAMINATION_TOKENS) {
+            for (const token of stateSpecificTokens) {
                 const fields = [task.title, task.description, task.utility, task.rationale];
                 for (const field of fields) {
                     if (field?.includes(token)) {
-                        warnings.push(`[TASK "${task.id}"] CA token "${token}" found in field content`);
+                        warnings.push(`[TASK "${task.id}"] ${state} token "${token}" found in field content`);
                     }
                 }
             }

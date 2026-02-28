@@ -1,0 +1,53 @@
+
+[1m[46m RUN [49m[22m [36mv3.2.4 [39m[90mC:/Users/aravi/Documents/AI_LLM/projects/exact-screenshot[39m
+
+ [31mΓ¥»[39m src/tests/roadmap/scope_audit.test.ts [2m([22m[2m13 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[32m 8[2mms[22m[39m
+   [32mΓ£ô[39m Scope Audit ΓÇö Zero UNSCOPED Tasks[2m > [22m0 tasks with scope 'UNSCOPED'[32m 1[2mms[22m[39m
+   [32mΓ£ô[39m Scope Audit ΓÇö Zero UNSCOPED Tasks[2m > [22m0 tasks with missing scope[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Scope Audit ΓÇö Zero UNSCOPED Tasks[2m > [22mevery scope is CORE or US-{XX}[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Scope Audit ΓÇö No CORE Abuse[2m > [22m0 CORE tasks with applicability.states[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Scope Audit ΓÇö No CORE Abuse[2m > [22m0 CORE tasks with state-coded IDs[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Scope Audit ΓÇö No CORE Abuse[2m > [22m0 CORE tasks with state statute references in title/description[32m 1[2mms[22m[39m
+   [32mΓ£ô[39m Scope Audit ΓÇö State Tasks Have Correct Scope[2m > [22mevery task with applicability.states is NOT CORE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Scope Audit ΓÇö State Tasks Have Correct Scope[2m > [22mstate-prefixed tasks have matching scope[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Authority Scope Audit ΓÇö Task Coverage[2m > [22mevery task with trackCompatibility=TRUST has authorityScope defined[32m 0[2mms[22m[39m
+[31m   [31m├ù[31m Authority Scope Audit ΓÇö Task Coverage[2m > [22mevery task with trackCompatibility=PROBATE has authorityScope defined[39m[32m 4[2mms[22m[39m
+[31m     ΓåÆ expected [ 'tx_homestead_protection', ΓÇª(3) ] to deeply equal [][39m
+   [32mΓ£ô[39m Authority Scope Audit ΓÇö Task Coverage[2m > [22mtasks with authorityScope=TRUST must not have trackCompatibility=PROBATE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Authority Scope Audit ΓÇö Task Coverage[2m > [22mtasks with authorityScope=PROBATE must not have trackCompatibility=TRUST[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Authority Scope Audit ΓÇö Task Coverage[2m > [22mall tasks have valid authorityScope values[32m 0[2mms[22m[39m
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 1 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  src/tests/roadmap/scope_audit.test.ts > Authority Scope Audit ΓÇö Task Coverage > every task with trackCompatibility=PROBATE has authorityScope defined
+AssertionError: expected [ 'tx_homestead_protection', ΓÇª(3) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "tx_homestead_protection",
++   "tx_exempt_property",
++   "tx_small_estate_affidavit",
++   "tx_bond_determination",
++ ]
+
+ Γ¥» src/tests/roadmap/scope_audit.test.ts:160:57
+    158|             t.authorityScope === undefined
+    159|         );
+    160|         expect(probateTasksWithoutScope.map(t => t.id)).toEqual([]);
+       |                                                         ^
+    161|     });
+    162| 
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/1]ΓÄ»
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m12 passed[39m[22m[90m (13)[39m
+[2m   Start at [22m 20:26:00
+[2m   Duration [22m 1.33s[2m (transform 105ms, setup 256ms, collect 105ms, tests 8ms, environment 575ms, prepare 117ms)[22m
+
+[1m[7m[35m HTML [39m[27m[22m [35mReport is generated[39m
+[2m       You can run [22m[1mnpx vite preview --outDir test-results[22m[2m to see the test results.[22m

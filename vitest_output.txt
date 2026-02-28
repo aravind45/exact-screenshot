@@ -1,0 +1,68 @@
+
+[1m[46m RUN [49m[22m [36mv3.2.4 [39m[90mC:/Users/aravi/Documents/AI_LLM/projects/exact-screenshot[39m
+
+ [31mΓ¥»[39m src/tests/roadmap/authority_leak_regression.test.ts [2m([22m[2m31 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[32m 9[2mms[22m[39m
+   [32mΓ£ô[39m Authority Scope Leak Regression Tests[2m > [22mTRUST-Only Tasks[2m > [22mlocate_trust has authorityScope=TRUST[32m 1[2mms[22m[39m
+   [32mΓ£ô[39m Authority Scope Leak Regression Tests[2m > [22mTRUST-Only Tasks[2m > [22midentify_successor_trustee has authorityScope=TRUST[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Authority Scope Leak Regression Tests[2m > [22mTRUST-Only Tasks[2m > [22msign_trustee_acceptance has authorityScope=TRUST[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Authority Scope Leak Regression Tests[2m > [22mTRUST-Only Tasks[2m > [22mprepare_certification_of_trust has authorityScope=TRUST[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Authority Scope Leak Regression Tests[2m > [22mTRUST-Only Tasks[2m > [22midentify_all_beneficiaries (trust version) has authorityScope=TRUST[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Authority Scope Leak Regression Tests[2m > [22mTRUST-Only Tasks[2m > [22mwait_contest_period (trust contest period) has authorityScope=TRUST[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Authority Scope Leak Regression Tests[2m > [22mTRUST-Only Tasks[2m > [22minventory_trust_assets has authorityScope=TRUST[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Authority Scope Leak Regression Tests[2m > [22mTRUST-Only Tasks[2m > [22mverify_trust_titling has authorityScope=TRUST[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Authority Scope Leak Regression Tests[2m > [22mTRUST-Only Tasks[2m > [22mtrust_creditor_assessment has authorityScope=TRUST[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Authority Scope Leak Regression Tests[2m > [22mTRUST-Only Tasks[2m > [22mprepare_trust_accounting has authorityScope=TRUST[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Authority Scope Leak Regression Tests[2m > [22mTRUST-Only Tasks[2m > [22mdistribute_assets_to_beneficiaries (trust version) has authorityScope=TRUST[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Authority Scope Leak Regression Tests[2m > [22mTRUST-Only Tasks[2m > [22mobtain_beneficiary_receipts (trust version) has authorityScope=TRUST[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Authority Scope Leak Regression Tests[2m > [22mTRUST-Only Tasks[2m > [22mcomplete_trust_administration has authorityScope=TRUST[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Authority Scope Leak Regression Tests[2m > [22mPROBATE-Only Tasks[2m > [22mfile_probate_petition has authorityScope=PROBATE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Authority Scope Leak Regression Tests[2m > [22mPROBATE-Only Tasks[2m > [22mfile_administration_petition has authorityScope=PROBATE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Authority Scope Leak Regression Tests[2m > [22mPROBATE-Only Tasks[2m > [22mattend_probate_hearing has authorityScope=PROBATE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Authority Scope Leak Regression Tests[2m > [22mPROBATE-Only Tasks[2m > [22mattend_administration_hearing has authorityScope=PROBATE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Authority Scope Leak Regression Tests[2m > [22mPROBATE-Only Tasks[2m > [22mreceive_letters_testamentary has authorityScope=PROBATE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Authority Scope Leak Regression Tests[2m > [22mPROBATE-Only Tasks[2m > [22mreceive_letters_administration has authorityScope=PROBATE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Authority Scope Leak Regression Tests[2m > [22mPROBATE-Only Tasks[2m > [22mpublish_notice (probate creditor notice) has authorityScope=PROBATE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Authority Scope Leak Regression Tests[2m > [22mPROBATE-Only Tasks[2m > [22mfile_inventory has authorityScope=PROBATE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Authority Scope Leak Regression Tests[2m > [22mPROBATE-Only Tasks[2m > [22mprepare_notice_proposed_action has authorityScope=PROBATE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Authority Scope Leak Regression Tests[2m > [22mPROBATE-Only Tasks[2m > [22mpetition_confirm_sale has authorityScope=PROBATE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Authority Scope Leak Regression Tests[2m > [22mBOTH Tasks (shared infrastructure)[2m > [22mobtain_ein_probate / obtain_ein_trust has authorityScope=BOTH[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Authority Scope Leak Regression Tests[2m > [22mBOTH Tasks (shared infrastructure)[2m > [22mpay_taxes has authorityScope=BOTH[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Authority Scope Leak Regression Tests[2m > [22mBOTH Tasks (shared infrastructure)[2m > [22mfile_form_1041 has authorityScope=BOTH[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Authority Scope Leak Regression Tests[2m > [22mBOTH Tasks (shared infrastructure)[2m > [22mdebt_priority_risk has authorityScope=BOTH[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Authority Scope Leak Regression Tests[2m > [22mProbate Escalation Phase[2m > [22mPROBATE_ESCALATION_PHASE has tasks with authorityScope=PROBATE[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Authority Scope Leak Regression Tests[2m > [22mAuthority Scope Coverage[2m > [22mall tasks have valid authorityScope values[32m 0[2mms[22m[39m
+   [32mΓ£ô[39m Authority Scope Leak Regression Tests[2m > [22mAuthority Scope Coverage[2m > [22mtrust tasks should NOT have authorityScope=PROBATE[32m 0[2mms[22m[39m
+[31m   [31m├ù[31m Authority Scope Leak Regression Tests[2m > [22mAuthority Scope Coverage[2m > [22mprobate tasks should NOT have authorityScope=TRUST[39m[32m 3[2mms[22m[39m
+[31m     ΓåÆ expected [ 'issue_cert_trust' ] to deeply equal [][39m
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 1 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  src/tests/roadmap/authority_leak_regression.test.ts > Authority Scope Leak Regression Tests > Authority Scope Coverage > probate tasks should NOT have authorityScope=TRUST
+AssertionError: expected [ 'issue_cert_trust' ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "issue_cert_trust",
++ ]
+
+ Γ¥» src/tests/roadmap/authority_leak_regression.test.ts:239:60
+    237|             const probateTasks = SETTLEMENT_PHASE_TASKS.flatMap(p => pΓÇª
+    238|             const trustScopedProbateTasks = probateTasks.filter(t => tΓÇª
+    239|             expect(trustScopedProbateTasks.map(t => t.id)).toEqual([]);
+       |                                                            ^
+    240|         });
+    241|     });
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/1]ΓÄ»
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m30 passed[39m[22m[90m (31)[39m
+[2m   Start at [22m 06:17:24
+[2m   Duration [22m 1.41s[2m (transform 115ms, setup 264ms, collect 114ms, tests 9ms, environment 600ms, prepare 128ms)[22m
+
+[1m[7m[35m HTML [39m[27m[22m [35mReport is generated[39m
+[2m       You can run [22m[1mnpx vite preview --outDir test-results[22m[2m to see the test results.[22m

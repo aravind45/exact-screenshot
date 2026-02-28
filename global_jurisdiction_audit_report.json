@@ -1,0 +1,1415 @@
+{
+  "summary": {
+    "totalStates": 51,
+    "totalRoadmapsTested": 153,
+    "statesPassing": 51,
+    "statesFailing": 0
+  },
+  "ranking": [
+    {
+      "state": "GA",
+      "score": 10,
+      "riskLevel": "Production Ready",
+      "majorIssues": [],
+      "minorIssues": []
+    },
+    {
+      "state": "MN",
+      "score": 10,
+      "riskLevel": "Production Ready",
+      "majorIssues": [],
+      "minorIssues": []
+    },
+    {
+      "state": "NJ",
+      "score": 10,
+      "riskLevel": "Production Ready",
+      "majorIssues": [],
+      "minorIssues": []
+    },
+    {
+      "state": "OH",
+      "score": 10,
+      "riskLevel": "Production Ready",
+      "majorIssues": [],
+      "minorIssues": []
+    },
+    {
+      "state": "AL",
+      "score": 9.5,
+      "riskLevel": "Production Ready",
+      "majorIssues": [],
+      "minorIssues": [
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found",
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found"
+      ]
+    },
+    {
+      "state": "AK",
+      "score": 9.5,
+      "riskLevel": "Production Ready",
+      "majorIssues": [],
+      "minorIssues": [
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found",
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found"
+      ]
+    },
+    {
+      "state": "AZ",
+      "score": 9.5,
+      "riskLevel": "Production Ready",
+      "majorIssues": [],
+      "minorIssues": [
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found",
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found"
+      ]
+    },
+    {
+      "state": "AR",
+      "score": 9.5,
+      "riskLevel": "Production Ready",
+      "majorIssues": [],
+      "minorIssues": [
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found",
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found"
+      ]
+    },
+    {
+      "state": "CA",
+      "score": 9.5,
+      "riskLevel": "Production Ready",
+      "majorIssues": [],
+      "minorIssues": [
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found",
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found"
+      ]
+    },
+    {
+      "state": "CO",
+      "score": 9.5,
+      "riskLevel": "Production Ready",
+      "majorIssues": [],
+      "minorIssues": [
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found",
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found"
+      ]
+    },
+    {
+      "state": "CT",
+      "score": 9.5,
+      "riskLevel": "Production Ready",
+      "majorIssues": [],
+      "minorIssues": [
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found",
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found"
+      ]
+    },
+    {
+      "state": "DE",
+      "score": 9.5,
+      "riskLevel": "Production Ready",
+      "majorIssues": [],
+      "minorIssues": [
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found",
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found"
+      ]
+    },
+    {
+      "state": "DC",
+      "score": 9.5,
+      "riskLevel": "Production Ready",
+      "majorIssues": [],
+      "minorIssues": [
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found",
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found"
+      ]
+    },
+    {
+      "state": "FL",
+      "score": 9.5,
+      "riskLevel": "Production Ready",
+      "majorIssues": [],
+      "minorIssues": [
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found",
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found"
+      ]
+    },
+    {
+      "state": "HI",
+      "score": 9.5,
+      "riskLevel": "Production Ready",
+      "majorIssues": [],
+      "minorIssues": [
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found",
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found"
+      ]
+    },
+    {
+      "state": "ID",
+      "score": 9.5,
+      "riskLevel": "Production Ready",
+      "majorIssues": [],
+      "minorIssues": [
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found",
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found"
+      ]
+    },
+    {
+      "state": "IL",
+      "score": 9.5,
+      "riskLevel": "Production Ready",
+      "majorIssues": [],
+      "minorIssues": [
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found",
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found"
+      ]
+    },
+    {
+      "state": "IN",
+      "score": 9.5,
+      "riskLevel": "Production Ready",
+      "majorIssues": [],
+      "minorIssues": [
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found",
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found"
+      ]
+    },
+    {
+      "state": "IA",
+      "score": 9.5,
+      "riskLevel": "Production Ready",
+      "majorIssues": [],
+      "minorIssues": [
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found",
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found"
+      ]
+    },
+    {
+      "state": "KS",
+      "score": 9.5,
+      "riskLevel": "Production Ready",
+      "majorIssues": [],
+      "minorIssues": [
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found",
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found"
+      ]
+    },
+    {
+      "state": "KY",
+      "score": 9.5,
+      "riskLevel": "Production Ready",
+      "majorIssues": [],
+      "minorIssues": [
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found",
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found"
+      ]
+    },
+    {
+      "state": "LA",
+      "score": 9.5,
+      "riskLevel": "Production Ready",
+      "majorIssues": [],
+      "minorIssues": [
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found",
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found"
+      ]
+    },
+    {
+      "state": "ME",
+      "score": 9.5,
+      "riskLevel": "Production Ready",
+      "majorIssues": [],
+      "minorIssues": [
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found",
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found"
+      ]
+    },
+    {
+      "state": "MD",
+      "score": 9.5,
+      "riskLevel": "Production Ready",
+      "majorIssues": [],
+      "minorIssues": [
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found",
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found"
+      ]
+    },
+    {
+      "state": "MA",
+      "score": 9.5,
+      "riskLevel": "Production Ready",
+      "majorIssues": [],
+      "minorIssues": [
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found",
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found"
+      ]
+    },
+    {
+      "state": "MI",
+      "score": 9.5,
+      "riskLevel": "Production Ready",
+      "majorIssues": [],
+      "minorIssues": [
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found",
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found"
+      ]
+    },
+    {
+      "state": "MS",
+      "score": 9.5,
+      "riskLevel": "Production Ready",
+      "majorIssues": [],
+      "minorIssues": [
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found",
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found"
+      ]
+    },
+    {
+      "state": "MO",
+      "score": 9.5,
+      "riskLevel": "Production Ready",
+      "majorIssues": [],
+      "minorIssues": [
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found",
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found"
+      ]
+    },
+    {
+      "state": "MT",
+      "score": 9.5,
+      "riskLevel": "Production Ready",
+      "majorIssues": [],
+      "minorIssues": [
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found",
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found"
+      ]
+    },
+    {
+      "state": "NE",
+      "score": 9.5,
+      "riskLevel": "Production Ready",
+      "majorIssues": [],
+      "minorIssues": [
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found",
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found"
+      ]
+    },
+    {
+      "state": "NV",
+      "score": 9.5,
+      "riskLevel": "Production Ready",
+      "majorIssues": [],
+      "minorIssues": [
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found",
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found"
+      ]
+    },
+    {
+      "state": "NH",
+      "score": 9.5,
+      "riskLevel": "Production Ready",
+      "majorIssues": [],
+      "minorIssues": [
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found",
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found"
+      ]
+    },
+    {
+      "state": "NM",
+      "score": 9.5,
+      "riskLevel": "Production Ready",
+      "majorIssues": [],
+      "minorIssues": [
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found",
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found"
+      ]
+    },
+    {
+      "state": "NY",
+      "score": 9.5,
+      "riskLevel": "Production Ready",
+      "majorIssues": [],
+      "minorIssues": [
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found",
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found"
+      ]
+    },
+    {
+      "state": "NC",
+      "score": 9.5,
+      "riskLevel": "Production Ready",
+      "majorIssues": [],
+      "minorIssues": [
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found",
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found"
+      ]
+    },
+    {
+      "state": "ND",
+      "score": 9.5,
+      "riskLevel": "Production Ready",
+      "majorIssues": [],
+      "minorIssues": [
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found",
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found"
+      ]
+    },
+    {
+      "state": "OK",
+      "score": 9.5,
+      "riskLevel": "Production Ready",
+      "majorIssues": [],
+      "minorIssues": [
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found",
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found"
+      ]
+    },
+    {
+      "state": "OR",
+      "score": 9.5,
+      "riskLevel": "Production Ready",
+      "majorIssues": [],
+      "minorIssues": [
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found",
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found"
+      ]
+    },
+    {
+      "state": "PA",
+      "score": 9.5,
+      "riskLevel": "Production Ready",
+      "majorIssues": [],
+      "minorIssues": [
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found",
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found"
+      ]
+    },
+    {
+      "state": "RI",
+      "score": 9.5,
+      "riskLevel": "Production Ready",
+      "majorIssues": [],
+      "minorIssues": [
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found",
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found"
+      ]
+    },
+    {
+      "state": "SC",
+      "score": 9.5,
+      "riskLevel": "Production Ready",
+      "majorIssues": [],
+      "minorIssues": [
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found",
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found"
+      ]
+    },
+    {
+      "state": "SD",
+      "score": 9.5,
+      "riskLevel": "Production Ready",
+      "majorIssues": [],
+      "minorIssues": [
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found",
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found"
+      ]
+    },
+    {
+      "state": "TN",
+      "score": 9.5,
+      "riskLevel": "Production Ready",
+      "majorIssues": [],
+      "minorIssues": [
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found",
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found"
+      ]
+    },
+    {
+      "state": "TX",
+      "score": 9.5,
+      "riskLevel": "Production Ready",
+      "majorIssues": [],
+      "minorIssues": [
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found",
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found"
+      ]
+    },
+    {
+      "state": "UT",
+      "score": 9.5,
+      "riskLevel": "Production Ready",
+      "majorIssues": [],
+      "minorIssues": [
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found",
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found"
+      ]
+    },
+    {
+      "state": "VT",
+      "score": 9.5,
+      "riskLevel": "Production Ready",
+      "majorIssues": [],
+      "minorIssues": [
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found",
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found"
+      ]
+    },
+    {
+      "state": "VA",
+      "score": 9.5,
+      "riskLevel": "Production Ready",
+      "majorIssues": [],
+      "minorIssues": [
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found",
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found"
+      ]
+    },
+    {
+      "state": "WA",
+      "score": 9.5,
+      "riskLevel": "Production Ready",
+      "majorIssues": [],
+      "minorIssues": [
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found",
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found"
+      ]
+    },
+    {
+      "state": "WV",
+      "score": 9.5,
+      "riskLevel": "Production Ready",
+      "majorIssues": [],
+      "minorIssues": [
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found",
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found"
+      ]
+    },
+    {
+      "state": "WI",
+      "score": 9.5,
+      "riskLevel": "Production Ready",
+      "majorIssues": [],
+      "minorIssues": [
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found",
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found"
+      ]
+    },
+    {
+      "state": "WY",
+      "score": 9.5,
+      "riskLevel": "Production Ready",
+      "majorIssues": [],
+      "minorIssues": [
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found",
+        "monitor_creditor_claim_period: Placeholder \"varies by state\" found"
+      ]
+    }
+  ],
+  "violationsByState": {
+    "AL": {
+      "crossStateLeaks": [],
+      "authorityLeaks": [],
+      "placeholders": [
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "AL:PROBATE w/ real property"
+        },
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "AL:PROBATE w/o real property"
+        }
+      ],
+      "invariantFailures": [],
+      "scopeIntegrity": []
+    },
+    "AK": {
+      "crossStateLeaks": [],
+      "authorityLeaks": [],
+      "placeholders": [
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "AK:PROBATE w/ real property"
+        },
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "AK:PROBATE w/o real property"
+        }
+      ],
+      "invariantFailures": [],
+      "scopeIntegrity": []
+    },
+    "AZ": {
+      "crossStateLeaks": [],
+      "authorityLeaks": [],
+      "placeholders": [
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "AZ:PROBATE w/ real property"
+        },
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "AZ:PROBATE w/o real property"
+        }
+      ],
+      "invariantFailures": [],
+      "scopeIntegrity": []
+    },
+    "AR": {
+      "crossStateLeaks": [],
+      "authorityLeaks": [],
+      "placeholders": [
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "AR:PROBATE w/ real property"
+        },
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "AR:PROBATE w/o real property"
+        }
+      ],
+      "invariantFailures": [],
+      "scopeIntegrity": []
+    },
+    "CA": {
+      "crossStateLeaks": [],
+      "authorityLeaks": [],
+      "placeholders": [
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "CA:PROBATE w/ real property"
+        },
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "CA:PROBATE w/o real property"
+        }
+      ],
+      "invariantFailures": [],
+      "scopeIntegrity": []
+    },
+    "CO": {
+      "crossStateLeaks": [],
+      "authorityLeaks": [],
+      "placeholders": [
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "CO:PROBATE w/ real property"
+        },
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "CO:PROBATE w/o real property"
+        }
+      ],
+      "invariantFailures": [],
+      "scopeIntegrity": []
+    },
+    "CT": {
+      "crossStateLeaks": [],
+      "authorityLeaks": [],
+      "placeholders": [
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "CT:PROBATE w/ real property"
+        },
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "CT:PROBATE w/o real property"
+        }
+      ],
+      "invariantFailures": [],
+      "scopeIntegrity": []
+    },
+    "DE": {
+      "crossStateLeaks": [],
+      "authorityLeaks": [],
+      "placeholders": [
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "DE:PROBATE w/ real property"
+        },
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "DE:PROBATE w/o real property"
+        }
+      ],
+      "invariantFailures": [],
+      "scopeIntegrity": []
+    },
+    "DC": {
+      "crossStateLeaks": [],
+      "authorityLeaks": [],
+      "placeholders": [
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "DC:PROBATE w/ real property"
+        },
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "DC:PROBATE w/o real property"
+        }
+      ],
+      "invariantFailures": [],
+      "scopeIntegrity": []
+    },
+    "FL": {
+      "crossStateLeaks": [],
+      "authorityLeaks": [],
+      "placeholders": [
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "FL:PROBATE w/ real property"
+        },
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "FL:PROBATE w/o real property"
+        }
+      ],
+      "invariantFailures": [],
+      "scopeIntegrity": []
+    },
+    "GA": {
+      "crossStateLeaks": [],
+      "authorityLeaks": [],
+      "placeholders": [],
+      "invariantFailures": [],
+      "scopeIntegrity": []
+    },
+    "HI": {
+      "crossStateLeaks": [],
+      "authorityLeaks": [],
+      "placeholders": [
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "HI:PROBATE w/ real property"
+        },
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "HI:PROBATE w/o real property"
+        }
+      ],
+      "invariantFailures": [],
+      "scopeIntegrity": []
+    },
+    "ID": {
+      "crossStateLeaks": [],
+      "authorityLeaks": [],
+      "placeholders": [
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "ID:PROBATE w/ real property"
+        },
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "ID:PROBATE w/o real property"
+        }
+      ],
+      "invariantFailures": [],
+      "scopeIntegrity": []
+    },
+    "IL": {
+      "crossStateLeaks": [],
+      "authorityLeaks": [],
+      "placeholders": [
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "IL:PROBATE w/ real property"
+        },
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "IL:PROBATE w/o real property"
+        }
+      ],
+      "invariantFailures": [],
+      "scopeIntegrity": []
+    },
+    "IN": {
+      "crossStateLeaks": [],
+      "authorityLeaks": [],
+      "placeholders": [
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "IN:PROBATE w/ real property"
+        },
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "IN:PROBATE w/o real property"
+        }
+      ],
+      "invariantFailures": [],
+      "scopeIntegrity": []
+    },
+    "IA": {
+      "crossStateLeaks": [],
+      "authorityLeaks": [],
+      "placeholders": [
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "IA:PROBATE w/ real property"
+        },
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "IA:PROBATE w/o real property"
+        }
+      ],
+      "invariantFailures": [],
+      "scopeIntegrity": []
+    },
+    "KS": {
+      "crossStateLeaks": [],
+      "authorityLeaks": [],
+      "placeholders": [
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "KS:PROBATE w/ real property"
+        },
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "KS:PROBATE w/o real property"
+        }
+      ],
+      "invariantFailures": [],
+      "scopeIntegrity": []
+    },
+    "KY": {
+      "crossStateLeaks": [],
+      "authorityLeaks": [],
+      "placeholders": [
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "KY:PROBATE w/ real property"
+        },
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "KY:PROBATE w/o real property"
+        }
+      ],
+      "invariantFailures": [],
+      "scopeIntegrity": []
+    },
+    "LA": {
+      "crossStateLeaks": [],
+      "authorityLeaks": [],
+      "placeholders": [
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "LA:PROBATE w/ real property"
+        },
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "LA:PROBATE w/o real property"
+        }
+      ],
+      "invariantFailures": [],
+      "scopeIntegrity": []
+    },
+    "ME": {
+      "crossStateLeaks": [],
+      "authorityLeaks": [],
+      "placeholders": [
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "ME:PROBATE w/ real property"
+        },
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "ME:PROBATE w/o real property"
+        }
+      ],
+      "invariantFailures": [],
+      "scopeIntegrity": []
+    },
+    "MD": {
+      "crossStateLeaks": [],
+      "authorityLeaks": [],
+      "placeholders": [
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "MD:PROBATE w/ real property"
+        },
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "MD:PROBATE w/o real property"
+        }
+      ],
+      "invariantFailures": [],
+      "scopeIntegrity": []
+    },
+    "MA": {
+      "crossStateLeaks": [],
+      "authorityLeaks": [],
+      "placeholders": [
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "MA:PROBATE w/ real property"
+        },
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "MA:PROBATE w/o real property"
+        }
+      ],
+      "invariantFailures": [],
+      "scopeIntegrity": []
+    },
+    "MI": {
+      "crossStateLeaks": [],
+      "authorityLeaks": [],
+      "placeholders": [
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "MI:PROBATE w/ real property"
+        },
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "MI:PROBATE w/o real property"
+        }
+      ],
+      "invariantFailures": [],
+      "scopeIntegrity": []
+    },
+    "MN": {
+      "crossStateLeaks": [],
+      "authorityLeaks": [],
+      "placeholders": [],
+      "invariantFailures": [],
+      "scopeIntegrity": []
+    },
+    "MS": {
+      "crossStateLeaks": [],
+      "authorityLeaks": [],
+      "placeholders": [
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "MS:PROBATE w/ real property"
+        },
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "MS:PROBATE w/o real property"
+        }
+      ],
+      "invariantFailures": [],
+      "scopeIntegrity": []
+    },
+    "MO": {
+      "crossStateLeaks": [],
+      "authorityLeaks": [],
+      "placeholders": [
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "MO:PROBATE w/ real property"
+        },
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "MO:PROBATE w/o real property"
+        }
+      ],
+      "invariantFailures": [],
+      "scopeIntegrity": []
+    },
+    "MT": {
+      "crossStateLeaks": [],
+      "authorityLeaks": [],
+      "placeholders": [
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "MT:PROBATE w/ real property"
+        },
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "MT:PROBATE w/o real property"
+        }
+      ],
+      "invariantFailures": [],
+      "scopeIntegrity": []
+    },
+    "NE": {
+      "crossStateLeaks": [],
+      "authorityLeaks": [],
+      "placeholders": [
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "NE:PROBATE w/ real property"
+        },
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "NE:PROBATE w/o real property"
+        }
+      ],
+      "invariantFailures": [],
+      "scopeIntegrity": []
+    },
+    "NV": {
+      "crossStateLeaks": [],
+      "authorityLeaks": [],
+      "placeholders": [
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "NV:PROBATE w/ real property"
+        },
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "NV:PROBATE w/o real property"
+        }
+      ],
+      "invariantFailures": [],
+      "scopeIntegrity": []
+    },
+    "NH": {
+      "crossStateLeaks": [],
+      "authorityLeaks": [],
+      "placeholders": [
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "NH:PROBATE w/ real property"
+        },
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "NH:PROBATE w/o real property"
+        }
+      ],
+      "invariantFailures": [],
+      "scopeIntegrity": []
+    },
+    "NJ": {
+      "crossStateLeaks": [],
+      "authorityLeaks": [],
+      "placeholders": [],
+      "invariantFailures": [],
+      "scopeIntegrity": []
+    },
+    "NM": {
+      "crossStateLeaks": [],
+      "authorityLeaks": [],
+      "placeholders": [
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "NM:PROBATE w/ real property"
+        },
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "NM:PROBATE w/o real property"
+        }
+      ],
+      "invariantFailures": [],
+      "scopeIntegrity": []
+    },
+    "NY": {
+      "crossStateLeaks": [],
+      "authorityLeaks": [],
+      "placeholders": [
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "NY:PROBATE w/ real property"
+        },
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "NY:PROBATE w/o real property"
+        }
+      ],
+      "invariantFailures": [],
+      "scopeIntegrity": []
+    },
+    "NC": {
+      "crossStateLeaks": [],
+      "authorityLeaks": [],
+      "placeholders": [
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "NC:PROBATE w/ real property"
+        },
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "NC:PROBATE w/o real property"
+        }
+      ],
+      "invariantFailures": [],
+      "scopeIntegrity": []
+    },
+    "ND": {
+      "crossStateLeaks": [],
+      "authorityLeaks": [],
+      "placeholders": [
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "ND:PROBATE w/ real property"
+        },
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "ND:PROBATE w/o real property"
+        }
+      ],
+      "invariantFailures": [],
+      "scopeIntegrity": []
+    },
+    "OH": {
+      "crossStateLeaks": [],
+      "authorityLeaks": [],
+      "placeholders": [],
+      "invariantFailures": [],
+      "scopeIntegrity": []
+    },
+    "OK": {
+      "crossStateLeaks": [],
+      "authorityLeaks": [],
+      "placeholders": [
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "OK:PROBATE w/ real property"
+        },
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "OK:PROBATE w/o real property"
+        }
+      ],
+      "invariantFailures": [],
+      "scopeIntegrity": []
+    },
+    "OR": {
+      "crossStateLeaks": [],
+      "authorityLeaks": [],
+      "placeholders": [
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "OR:PROBATE w/ real property"
+        },
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "OR:PROBATE w/o real property"
+        }
+      ],
+      "invariantFailures": [],
+      "scopeIntegrity": []
+    },
+    "PA": {
+      "crossStateLeaks": [],
+      "authorityLeaks": [],
+      "placeholders": [
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "PA:PROBATE w/ real property"
+        },
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "PA:PROBATE w/o real property"
+        }
+      ],
+      "invariantFailures": [],
+      "scopeIntegrity": []
+    },
+    "RI": {
+      "crossStateLeaks": [],
+      "authorityLeaks": [],
+      "placeholders": [
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "RI:PROBATE w/ real property"
+        },
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "RI:PROBATE w/o real property"
+        }
+      ],
+      "invariantFailures": [],
+      "scopeIntegrity": []
+    },
+    "SC": {
+      "crossStateLeaks": [],
+      "authorityLeaks": [],
+      "placeholders": [
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "SC:PROBATE w/ real property"
+        },
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "SC:PROBATE w/o real property"
+        }
+      ],
+      "invariantFailures": [],
+      "scopeIntegrity": []
+    },
+    "SD": {
+      "crossStateLeaks": [],
+      "authorityLeaks": [],
+      "placeholders": [
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "SD:PROBATE w/ real property"
+        },
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "SD:PROBATE w/o real property"
+        }
+      ],
+      "invariantFailures": [],
+      "scopeIntegrity": []
+    },
+    "TN": {
+      "crossStateLeaks": [],
+      "authorityLeaks": [],
+      "placeholders": [
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "TN:PROBATE w/ real property"
+        },
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "TN:PROBATE w/o real property"
+        }
+      ],
+      "invariantFailures": [],
+      "scopeIntegrity": []
+    },
+    "TX": {
+      "crossStateLeaks": [],
+      "authorityLeaks": [],
+      "placeholders": [
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "TX:PROBATE w/ real property"
+        },
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "TX:PROBATE w/o real property"
+        }
+      ],
+      "invariantFailures": [],
+      "scopeIntegrity": []
+    },
+    "UT": {
+      "crossStateLeaks": [],
+      "authorityLeaks": [],
+      "placeholders": [
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "UT:PROBATE w/ real property"
+        },
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "UT:PROBATE w/o real property"
+        }
+      ],
+      "invariantFailures": [],
+      "scopeIntegrity": []
+    },
+    "VT": {
+      "crossStateLeaks": [],
+      "authorityLeaks": [],
+      "placeholders": [
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "VT:PROBATE w/ real property"
+        },
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "VT:PROBATE w/o real property"
+        }
+      ],
+      "invariantFailures": [],
+      "scopeIntegrity": []
+    },
+    "VA": {
+      "crossStateLeaks": [],
+      "authorityLeaks": [],
+      "placeholders": [
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "VA:PROBATE w/ real property"
+        },
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "VA:PROBATE w/o real property"
+        }
+      ],
+      "invariantFailures": [],
+      "scopeIntegrity": []
+    },
+    "WA": {
+      "crossStateLeaks": [],
+      "authorityLeaks": [],
+      "placeholders": [
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "WA:PROBATE w/ real property"
+        },
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "WA:PROBATE w/o real property"
+        }
+      ],
+      "invariantFailures": [],
+      "scopeIntegrity": []
+    },
+    "WV": {
+      "crossStateLeaks": [],
+      "authorityLeaks": [],
+      "placeholders": [
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "WV:PROBATE w/ real property"
+        },
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "WV:PROBATE w/o real property"
+        }
+      ],
+      "invariantFailures": [],
+      "scopeIntegrity": []
+    },
+    "WI": {
+      "crossStateLeaks": [],
+      "authorityLeaks": [],
+      "placeholders": [
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "WI:PROBATE w/ real property"
+        },
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "WI:PROBATE w/o real property"
+        }
+      ],
+      "invariantFailures": [],
+      "scopeIntegrity": []
+    },
+    "WY": {
+      "crossStateLeaks": [],
+      "authorityLeaks": [],
+      "placeholders": [
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "WY:PROBATE w/ real property"
+        },
+        {
+          "taskId": "monitor_creditor_claim_period",
+          "keyword": "Placeholder \"varies by state\" found",
+          "testCase": "WY:PROBATE w/o real property"
+        }
+      ],
+      "invariantFailures": [],
+      "scopeIntegrity": []
+    }
+  },
+  "top5HighestRiskStates": [
+    {
+      "state": "AL",
+      "score": 9.5,
+      "riskLevel": "Production Ready"
+    },
+    {
+      "state": "AK",
+      "score": 9.5,
+      "riskLevel": "Production Ready"
+    },
+    {
+      "state": "AZ",
+      "score": 9.5,
+      "riskLevel": "Production Ready"
+    },
+    {
+      "state": "AR",
+      "score": 9.5,
+      "riskLevel": "Production Ready"
+    },
+    {
+      "state": "CA",
+      "score": 9.5,
+      "riskLevel": "Production Ready"
+    }
+  ],
+  "top5SystemicPatterns": [
+    "Placeholder: Placeholder \"varies by state\" found (94 occurrences)"
+  ],
+  "recommendedArchitecturalFix": "Implement a centralized StatuteBindingService that resolves all state-specific text at render time from a structured stateRules registry, eliminating hardcoded statute references in task definitions. This would eliminate cross-state leaks, placeholder residuals, and standardize invariant injection (thresholds, deadlines, citations) across all phase tasks globally. Combined with enforcing authorityScope on every task at the PhaseTask type level (removing the optional '?'), this would eliminate the largest class of violations (~60% estimated reduction)."
+}

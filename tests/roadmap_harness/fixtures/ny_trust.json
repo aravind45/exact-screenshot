@@ -1,0 +1,19 @@
+{
+  "id": "ny_trust",
+  "name": "New York Trust Estate",
+  "stateCode": "NY",
+  "county": "Westchester",
+  "authorityType": "TRUST",
+  "hasRealProperty": true,
+  "estateValue": 2500000,
+  "hasWill": false,
+  "characteristics": {
+    "isSmallEstate": false,
+    "hasMinorBeneficiaries": true,
+    "hasContest": false,
+    "isInternational": false,
+    "hasTODDeed": false,
+    "hasOutOfStateProperty": true,
+    "isSurvivingSpouse": true
+  }
+}

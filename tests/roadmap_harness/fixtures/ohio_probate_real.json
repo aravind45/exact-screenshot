@@ -1,0 +1,19 @@
+{
+  "id": "ohio_probate_real",
+  "name": "Ohio Probate Estate with Real Property",
+  "stateCode": "OH",
+  "county": "Franklin",
+  "authorityType": "PROBATE",
+  "hasRealProperty": true,
+  "estateValue": 250000,
+  "hasWill": true,
+  "characteristics": {
+    "isSmallEstate": false,
+    "hasMinorBeneficiaries": false,
+    "hasContest": false,
+    "isInternational": false,
+    "hasTODDeed": false,
+    "hasOutOfStateProperty": false,
+    "isSurvivingSpouse": true
+  }
+}

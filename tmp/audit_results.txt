@@ -1,0 +1,3 @@
+Tasks with trackCompatibility=TRUST missing authorityScope:
+
+Tasks with trackCompatibility=PROBATE missing authorityScope:

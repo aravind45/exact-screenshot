@@ -1,0 +1,4 @@
+# Ignore generated snapshot files
+# Keep this directory and .gitkeep
+*.json
+!.gitkeep

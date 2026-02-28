@@ -76,7 +76,9 @@ export class CountyOverrideService {
         countyName: string,
         tasks: PhaseTask[]
     ): Promise<PhaseTask[]> {
-        if (!countyName) return tasks;
+        if (!countyName || countyName.trim() === "") return tasks;
+
+        let overrides: Awaited<ReturnType<typeof db.countyOverride.findMany>> = [];
 
         const overrides = await safeQuery(() => 
             db.countyOverride.findMany({
@@ -84,7 +86,7 @@ export class CountyOverrideService {
                     stateCode,
                     countyName: {
                         equals: countyName,
-                        mode: 'insensitive'
+                        mode: "insensitive"
                     },
                     taskId: {
                         in: tasks.map(t => t.id)
@@ -126,12 +128,14 @@ export class CountyOverrideService {
      * Returns null if the table doesn't exist or any error occurs.
      */
     static async getOverrideHash(stateCode: string, countyName: string): Promise<string | null> {
-        if (!countyName) return null;
+        if (!countyName || countyName.trim() === "") return null;
+
+        let overrides: Array<{ taskId: string; updatedAt: Date }> = [];
 
         const overrides = await safeQuery(() =>
             db.countyOverride.findMany({
                 where: { stateCode, countyName },
-                orderBy: { taskId: 'asc' },
+                orderBy: { taskId: "asc" },
                 select: { taskId: true, updatedAt: true }
             })
         );
