@@ -778,3 +778,1539 @@ AssertionError: expected [ 'intl_w8_assessment', ΓÇª(1) ] to deeply equal []
        You can run npx vite preview --outDir test-results to see the test results.
  PASS  Waiting for file changes...
        press h to show help, press q to quit
+c[3J RERUN  src/tests/roadmap/authority_leak_regression.test.ts x8 
+        Filename pattern: tests/roadmap/scope_audit.test.ts
+
+ Γ¥» src/tests/roadmap/scope_audit.test.ts (13 tests | 2 failed) 16ms
+   Γ£ô Scope Audit ΓÇö Zero UNSCOPED Tasks > 0 tasks with scope 'UNSCOPED' 2ms
+   Γ£ô Scope Audit ΓÇö Zero UNSCOPED Tasks > 0 tasks with missing scope 0ms
+   Γ£ô Scope Audit ΓÇö Zero UNSCOPED Tasks > every scope is CORE or US-{XX} 0ms
+   Γ£ô Scope Audit ΓÇö No CORE Abuse > 0 CORE tasks with applicability.states 0ms
+   Γ£ô Scope Audit ΓÇö No CORE Abuse > 0 CORE tasks with state-coded IDs 0ms
+   Γ£ô Scope Audit ΓÇö No CORE Abuse > 0 CORE tasks with state statute references in title/description 1ms
+   Γ£ô Scope Audit ΓÇö State Tasks Have Correct Scope > every task with applicability.states is NOT CORE 0ms
+   Γ£ô Scope Audit ΓÇö State Tasks Have Correct Scope > state-prefixed tasks have matching scope 1ms
+   ├ù Authority Scope Audit ΓÇö Task Coverage > every task with trackCompatibility=TRUST has authorityScope defined 7ms
+     ΓåÆ expected [ 'preliminary_asset_scan', ΓÇª(9) ] to deeply equal []
+   ├ù Authority Scope Audit ΓÇö Task Coverage > every task with trackCompatibility=PROBATE has authorityScope defined 2ms
+     ΓåÆ expected [ 'preliminary_asset_scan', ΓÇª(59) ] to deeply equal []
+   Γ£ô Authority Scope Audit ΓÇö Task Coverage > tasks with authorityScope=TRUST must not have trackCompatibility=PROBATE 0ms
+   Γ£ô Authority Scope Audit ΓÇö Task Coverage > tasks with authorityScope=PROBATE must not have trackCompatibility=TRUST 0ms
+   Γ£ô Authority Scope Audit ΓÇö Task Coverage > all tasks have valid authorityScope values 0ms
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 2 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  src/tests/roadmap/scope_audit.test.ts > Authority Scope Audit ΓÇö Task Coverage > every task with trackCompatibility=TRUST has authorityScope defined
+AssertionError: expected [ 'preliminary_asset_scan', ΓÇª(9) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "preliminary_asset_scan",
++   "intl_w8_assessment",
++   "itin_acquisition_protocol",
++   "evaluate_and_document_claims",
++   "nj_inheritance_tax_classify_beneficiaries",
++   "nj_inheritance_tax_determine_residency",
++   "nj_inheritance_tax_return",
++   "nj_inheritance_tax_payment",
++   "nj_inheritance_tax_waiver",
++   "nj_distribution_block_until_clearance",
++ ]
+
+ Γ¥» src/tests/roadmap/scope_audit.test.ts:150:55
+    148|             t.authorityScope === undefined
+    149|         );
+    150|         expect(trustTasksWithoutScope.map(t => t.id)).toEqual([]);
+       |                                                       ^
+    151|     });
+    152| 
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/2]ΓÄ»
+
+ FAIL  src/tests/roadmap/scope_audit.test.ts > Authority Scope Audit ΓÇö Task Coverage > every task with trackCompatibility=PROBATE has authorityScope defined
+AssertionError: expected [ 'preliminary_asset_scan', ΓÇª(59) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "preliminary_asset_scan",
++   "identify_minor_beneficiaries",
++   "check_primary_residence_succession",
++   "file_irs_form_56_probate",
++   "file_tx_independent_admin",
++   "file_tx_muniment_of_title",
++   "tx_muniment_compliance_check",
++   "file_tx_dependent_admin",
++   "tx_admin_type_branching",
++   "tx_ten_day_posting",
++   "file_tx_heirship_proceeding",
++   "tx_homestead_protection",
++   "tx_exempt_property",
++   "tx_small_estate_affidavit",
++   "tx_bond_determination",
++   "tx_filing_fee_calculation",
++   "tx_citation_issuance",
++   "oh_certificate_of_transfer",
++   "oh_family_allowance",
++   "file_fl_disposition_without_admin",
++   "file_ny_surrogate_probate",
++   "file_ny_ancillary_probate",
++   "file_ga_petition",
++   "file_ga_no_admin",
++   "ga_years_support_petition",
++   "ga_years_support_citation",
++   "ga_years_support_order",
++   "file_ma_informal_probate",
++   "file_ma_voluntary_admin",
++   "file_nj_surrogate_probate",
++   "file_nj_administration",
++   "file_nj_small_estate_affidavit",
++   "nj_bond_calculation",
++   "nj_elective_share_claim",
++   "nj_real_property_transfer",
++   "nj_bond_determination",
++   "nj_bond_waiver_affidavit",
++   "nj_bond_obtain_surety",
++   "nj_bond_without_surety",
++   "nj_contested_probate_escalation",
++   "nj_real_estate_power_of_sale",
++   "pay_filing_fee",
++   "submit_oath_designation",
++   "obtain_citation",
++   "serve_citation",
++   "nj_inventory_90_day_deadline",
++   "nj_inventory_extension",
++   "intl_w8_assessment",
++   "itin_acquisition_protocol",
++   "tx_publish_creditor_notice",
++   "tx_personal_creditor_notice",
++   "tx_medicaid_recovery_check",
++   "evaluate_and_document_claims",
++   "ga_deed_of_assent",
++   "nj_inheritance_tax_classify_beneficiaries",
++   "nj_inheritance_tax_determine_residency",
++   "nj_inheritance_tax_return",
++   "nj_inheritance_tax_payment",
++   "nj_inheritance_tax_waiver",
++   "nj_distribution_block_until_clearance",
++ ]
+
+ Γ¥» src/tests/roadmap/scope_audit.test.ts:160:57
+    158|             t.authorityScope === undefined
+    159|         );
+    160|         expect(probateTasksWithoutScope.map(t => t.id)).toEqual([]);
+       |                                                         ^
+    161|     });
+    162| 
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[2/2]ΓÄ»
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 11 passed (13)
+   Start at  20:10:12
+   Duration  761ms
+
+ HTML  Report is generated
+       You can run npx vite preview --outDir test-results to see the test results.
+ FAIL  Tests failed. Watching for file changes...
+       press h to show help, press q to quit
+c[3J RERUN  src/config/settlementPhases.ts x9 
+        Filename pattern: tests/roadmap/scope_audit.test.ts
+
+ Γ¥» src/tests/roadmap/scope_audit.test.ts (13 tests | 2 failed) 18ms
+   Γ£ô Scope Audit ΓÇö Zero UNSCOPED Tasks > 0 tasks with scope 'UNSCOPED' 2ms
+   Γ£ô Scope Audit ΓÇö Zero UNSCOPED Tasks > 0 tasks with missing scope 1ms
+   Γ£ô Scope Audit ΓÇö Zero UNSCOPED Tasks > every scope is CORE or US-{XX} 0ms
+   Γ£ô Scope Audit ΓÇö No CORE Abuse > 0 CORE tasks with applicability.states 0ms
+   Γ£ô Scope Audit ΓÇö No CORE Abuse > 0 CORE tasks with state-coded IDs 0ms
+   Γ£ô Scope Audit ΓÇö No CORE Abuse > 0 CORE tasks with state statute references in title/description 1ms
+   Γ£ô Scope Audit ΓÇö State Tasks Have Correct Scope > every task with applicability.states is NOT CORE 0ms
+   Γ£ô Scope Audit ΓÇö State Tasks Have Correct Scope > state-prefixed tasks have matching scope 1ms
+   ├ù Authority Scope Audit ΓÇö Task Coverage > every task with trackCompatibility=TRUST has authorityScope defined 8ms
+     ΓåÆ expected [ 'preliminary_asset_scan', ΓÇª(9) ] to deeply equal []
+   ├ù Authority Scope Audit ΓÇö Task Coverage > every task with trackCompatibility=PROBATE has authorityScope defined 2ms
+     ΓåÆ expected [ 'preliminary_asset_scan', ΓÇª(59) ] to deeply equal []
+   Γ£ô Authority Scope Audit ΓÇö Task Coverage > tasks with authorityScope=TRUST must not have trackCompatibility=PROBATE 0ms
+   Γ£ô Authority Scope Audit ΓÇö Task Coverage > tasks with authorityScope=PROBATE must not have trackCompatibility=TRUST 0ms
+   Γ£ô Authority Scope Audit ΓÇö Task Coverage > all tasks have valid authorityScope values 0ms
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 2 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  src/tests/roadmap/scope_audit.test.ts > Authority Scope Audit ΓÇö Task Coverage > every task with trackCompatibility=TRUST has authorityScope defined
+AssertionError: expected [ 'preliminary_asset_scan', ΓÇª(9) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "preliminary_asset_scan",
++   "intl_w8_assessment",
++   "itin_acquisition_protocol",
++   "evaluate_and_document_claims",
++   "nj_inheritance_tax_classify_beneficiaries",
++   "nj_inheritance_tax_determine_residency",
++   "nj_inheritance_tax_return",
++   "nj_inheritance_tax_payment",
++   "nj_inheritance_tax_waiver",
++   "nj_distribution_block_until_clearance",
++ ]
+
+ Γ¥» src/tests/roadmap/scope_audit.test.ts:150:55
+    148|             t.authorityScope === undefined
+    149|         );
+    150|         expect(trustTasksWithoutScope.map(t => t.id)).toEqual([]);
+       |                                                       ^
+    151|     });
+    152| 
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/2]ΓÄ»
+
+ FAIL  src/tests/roadmap/scope_audit.test.ts > Authority Scope Audit ΓÇö Task Coverage > every task with trackCompatibility=PROBATE has authorityScope defined
+AssertionError: expected [ 'preliminary_asset_scan', ΓÇª(59) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "preliminary_asset_scan",
++   "identify_minor_beneficiaries",
++   "check_primary_residence_succession",
++   "file_irs_form_56_probate",
++   "file_tx_independent_admin",
++   "file_tx_muniment_of_title",
++   "tx_muniment_compliance_check",
++   "file_tx_dependent_admin",
++   "tx_admin_type_branching",
++   "tx_ten_day_posting",
++   "file_tx_heirship_proceeding",
++   "tx_homestead_protection",
++   "tx_exempt_property",
++   "tx_small_estate_affidavit",
++   "tx_bond_determination",
++   "tx_filing_fee_calculation",
++   "tx_citation_issuance",
++   "oh_certificate_of_transfer",
++   "oh_family_allowance",
++   "file_fl_disposition_without_admin",
++   "file_ny_surrogate_probate",
++   "file_ny_ancillary_probate",
++   "file_ga_petition",
++   "file_ga_no_admin",
++   "ga_years_support_petition",
++   "ga_years_support_citation",
++   "ga_years_support_order",
++   "file_ma_informal_probate",
++   "file_ma_voluntary_admin",
++   "file_nj_surrogate_probate",
++   "file_nj_administration",
++   "file_nj_small_estate_affidavit",
++   "nj_bond_calculation",
++   "nj_elective_share_claim",
++   "nj_real_property_transfer",
++   "nj_bond_determination",
++   "nj_bond_waiver_affidavit",
++   "nj_bond_obtain_surety",
++   "nj_bond_without_surety",
++   "nj_contested_probate_escalation",
++   "nj_real_estate_power_of_sale",
++   "pay_filing_fee",
++   "submit_oath_designation",
++   "obtain_citation",
++   "serve_citation",
++   "nj_inventory_90_day_deadline",
++   "nj_inventory_extension",
++   "intl_w8_assessment",
++   "itin_acquisition_protocol",
++   "tx_publish_creditor_notice",
++   "tx_personal_creditor_notice",
++   "tx_medicaid_recovery_check",
++   "evaluate_and_document_claims",
++   "ga_deed_of_assent",
++   "nj_inheritance_tax_classify_beneficiaries",
++   "nj_inheritance_tax_determine_residency",
++   "nj_inheritance_tax_return",
++   "nj_inheritance_tax_payment",
++   "nj_inheritance_tax_waiver",
++   "nj_distribution_block_until_clearance",
++ ]
+
+ Γ¥» src/tests/roadmap/scope_audit.test.ts:160:57
+    158|             t.authorityScope === undefined
+    159|         );
+    160|         expect(probateTasksWithoutScope.map(t => t.id)).toEqual([]);
+       |                                                         ^
+    161|     });
+    162| 
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[2/2]ΓÄ»
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 11 passed (13)
+   Start at  20:14:21
+   Duration  776ms
+
+ HTML  Report is generated
+       You can run npx vite preview --outDir test-results to see the test results.
+ FAIL  Tests failed. Watching for file changes...
+       press h to show help, press q to quit
+c[3J RERUN  src/config/settlementPhases.ts x10 
+        Filename pattern: tests/roadmap/scope_audit.test.ts
+
+ Γ¥» src/tests/roadmap/scope_audit.test.ts (13 tests | 2 failed) 24ms
+   Γ£ô Scope Audit ΓÇö Zero UNSCOPED Tasks > 0 tasks with scope 'UNSCOPED' 1ms
+   Γ£ô Scope Audit ΓÇö Zero UNSCOPED Tasks > 0 tasks with missing scope 0ms
+   Γ£ô Scope Audit ΓÇö Zero UNSCOPED Tasks > every scope is CORE or US-{XX} 0ms
+   Γ£ô Scope Audit ΓÇö No CORE Abuse > 0 CORE tasks with applicability.states 0ms
+   Γ£ô Scope Audit ΓÇö No CORE Abuse > 0 CORE tasks with state-coded IDs 0ms
+   Γ£ô Scope Audit ΓÇö No CORE Abuse > 0 CORE tasks with state statute references in title/description 1ms
+   Γ£ô Scope Audit ΓÇö State Tasks Have Correct Scope > every task with applicability.states is NOT CORE 0ms
+   Γ£ô Scope Audit ΓÇö State Tasks Have Correct Scope > state-prefixed tasks have matching scope 1ms
+   ├ù Authority Scope Audit ΓÇö Task Coverage > every task with trackCompatibility=TRUST has authorityScope defined 14ms
+     ΓåÆ expected [ 'preliminary_asset_scan', ΓÇª(9) ] to deeply equal []
+   ├ù Authority Scope Audit ΓÇö Task Coverage > every task with trackCompatibility=PROBATE has authorityScope defined 3ms
+     ΓåÆ expected [ 'preliminary_asset_scan', ΓÇª(59) ] to deeply equal []
+   Γ£ô Authority Scope Audit ΓÇö Task Coverage > tasks with authorityScope=TRUST must not have trackCompatibility=PROBATE 0ms
+   Γ£ô Authority Scope Audit ΓÇö Task Coverage > tasks with authorityScope=PROBATE must not have trackCompatibility=TRUST 0ms
+   Γ£ô Authority Scope Audit ΓÇö Task Coverage > all tasks have valid authorityScope values 0ms
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 2 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  src/tests/roadmap/scope_audit.test.ts > Authority Scope Audit ΓÇö Task Coverage > every task with trackCompatibility=TRUST has authorityScope defined
+AssertionError: expected [ 'preliminary_asset_scan', ΓÇª(9) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "preliminary_asset_scan",
++   "intl_w8_assessment",
++   "itin_acquisition_protocol",
++   "evaluate_and_document_claims",
++   "nj_inheritance_tax_classify_beneficiaries",
++   "nj_inheritance_tax_determine_residency",
++   "nj_inheritance_tax_return",
++   "nj_inheritance_tax_payment",
++   "nj_inheritance_tax_waiver",
++   "nj_distribution_block_until_clearance",
++ ]
+
+ Γ¥» src/tests/roadmap/scope_audit.test.ts:150:55
+    148|             t.authorityScope === undefined
+    149|         );
+    150|         expect(trustTasksWithoutScope.map(t => t.id)).toEqual([]);
+       |                                                       ^
+    151|     });
+    152| 
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/2]ΓÄ»
+
+ FAIL  src/tests/roadmap/scope_audit.test.ts > Authority Scope Audit ΓÇö Task Coverage > every task with trackCompatibility=PROBATE has authorityScope defined
+AssertionError: expected [ 'preliminary_asset_scan', ΓÇª(59) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "preliminary_asset_scan",
++   "identify_minor_beneficiaries",
++   "check_primary_residence_succession",
++   "file_irs_form_56_probate",
++   "file_tx_independent_admin",
++   "file_tx_muniment_of_title",
++   "tx_muniment_compliance_check",
++   "file_tx_dependent_admin",
++   "tx_admin_type_branching",
++   "tx_ten_day_posting",
++   "file_tx_heirship_proceeding",
++   "tx_homestead_protection",
++   "tx_exempt_property",
++   "tx_small_estate_affidavit",
++   "tx_bond_determination",
++   "tx_filing_fee_calculation",
++   "tx_citation_issuance",
++   "oh_certificate_of_transfer",
++   "oh_family_allowance",
++   "file_fl_disposition_without_admin",
++   "file_ny_surrogate_probate",
++   "file_ny_ancillary_probate",
++   "file_ga_petition",
++   "file_ga_no_admin",
++   "ga_years_support_petition",
++   "ga_years_support_citation",
++   "ga_years_support_order",
++   "file_ma_informal_probate",
++   "file_ma_voluntary_admin",
++   "file_nj_surrogate_probate",
++   "file_nj_administration",
++   "file_nj_small_estate_affidavit",
++   "nj_bond_calculation",
++   "nj_elective_share_claim",
++   "nj_real_property_transfer",
++   "nj_bond_determination",
++   "nj_bond_waiver_affidavit",
++   "nj_bond_obtain_surety",
++   "nj_bond_without_surety",
++   "nj_contested_probate_escalation",
++   "nj_real_estate_power_of_sale",
++   "pay_filing_fee",
++   "submit_oath_designation",
++   "obtain_citation",
++   "serve_citation",
++   "nj_inventory_90_day_deadline",
++   "nj_inventory_extension",
++   "intl_w8_assessment",
++   "itin_acquisition_protocol",
++   "tx_publish_creditor_notice",
++   "tx_personal_creditor_notice",
++   "tx_medicaid_recovery_check",
++   "evaluate_and_document_claims",
++   "ga_deed_of_assent",
++   "nj_inheritance_tax_classify_beneficiaries",
++   "nj_inheritance_tax_determine_residency",
++   "nj_inheritance_tax_return",
++   "nj_inheritance_tax_payment",
++   "nj_inheritance_tax_waiver",
++   "nj_distribution_block_until_clearance",
++ ]
+
+ Γ¥» src/tests/roadmap/scope_audit.test.ts:160:57
+    158|             t.authorityScope === undefined
+    159|         );
+    160|         expect(probateTasksWithoutScope.map(t => t.id)).toEqual([]);
+       |                                                         ^
+    161|     });
+    162| 
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[2/2]ΓÄ»
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 11 passed (13)
+   Start at  20:14:42
+   Duration  729ms
+
+ HTML  Report is generated
+       You can run npx vite preview --outDir test-results to see the test results.
+ FAIL  Tests failed. Watching for file changes...
+       press h to show help, press q to quit
+c[3J RERUN  src/config/settlementPhases.ts x11 
+        Filename pattern: tests/roadmap/scope_audit.test.ts
+
+ Γ¥» src/tests/roadmap/scope_audit.test.ts (13 tests | 2 failed) 14ms
+   Γ£ô Scope Audit ΓÇö Zero UNSCOPED Tasks > 0 tasks with scope 'UNSCOPED' 1ms
+   Γ£ô Scope Audit ΓÇö Zero UNSCOPED Tasks > 0 tasks with missing scope 0ms
+   Γ£ô Scope Audit ΓÇö Zero UNSCOPED Tasks > every scope is CORE or US-{XX} 0ms
+   Γ£ô Scope Audit ΓÇö No CORE Abuse > 0 CORE tasks with applicability.states 0ms
+   Γ£ô Scope Audit ΓÇö No CORE Abuse > 0 CORE tasks with state-coded IDs 0ms
+   Γ£ô Scope Audit ΓÇö No CORE Abuse > 0 CORE tasks with state statute references in title/description 1ms
+   Γ£ô Scope Audit ΓÇö State Tasks Have Correct Scope > every task with applicability.states is NOT CORE 0ms
+   Γ£ô Scope Audit ΓÇö State Tasks Have Correct Scope > state-prefixed tasks have matching scope 1ms
+   ├ù Authority Scope Audit ΓÇö Task Coverage > every task with trackCompatibility=TRUST has authorityScope defined 6ms
+     ΓåÆ expected [ 'preliminary_asset_scan', ΓÇª(9) ] to deeply equal []
+   ├ù Authority Scope Audit ΓÇö Task Coverage > every task with trackCompatibility=PROBATE has authorityScope defined 2ms
+     ΓåÆ expected [ 'preliminary_asset_scan', ΓÇª(59) ] to deeply equal []
+   Γ£ô Authority Scope Audit ΓÇö Task Coverage > tasks with authorityScope=TRUST must not have trackCompatibility=PROBATE 0ms
+   Γ£ô Authority Scope Audit ΓÇö Task Coverage > tasks with authorityScope=PROBATE must not have trackCompatibility=TRUST 0ms
+   Γ£ô Authority Scope Audit ΓÇö Task Coverage > all tasks have valid authorityScope values 0ms
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 2 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  src/tests/roadmap/scope_audit.test.ts > Authority Scope Audit ΓÇö Task Coverage > every task with trackCompatibility=TRUST has authorityScope defined
+AssertionError: expected [ 'preliminary_asset_scan', ΓÇª(9) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "preliminary_asset_scan",
++   "intl_w8_assessment",
++   "itin_acquisition_protocol",
++   "evaluate_and_document_claims",
++   "nj_inheritance_tax_classify_beneficiaries",
++   "nj_inheritance_tax_determine_residency",
++   "nj_inheritance_tax_return",
++   "nj_inheritance_tax_payment",
++   "nj_inheritance_tax_waiver",
++   "nj_distribution_block_until_clearance",
++ ]
+
+ Γ¥» src/tests/roadmap/scope_audit.test.ts:150:55
+    148|             t.authorityScope === undefined
+    149|         );
+    150|         expect(trustTasksWithoutScope.map(t => t.id)).toEqual([]);
+       |                                                       ^
+    151|     });
+    152| 
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/2]ΓÄ»
+
+ FAIL  src/tests/roadmap/scope_audit.test.ts > Authority Scope Audit ΓÇö Task Coverage > every task with trackCompatibility=PROBATE has authorityScope defined
+AssertionError: expected [ 'preliminary_asset_scan', ΓÇª(59) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "preliminary_asset_scan",
++   "identify_minor_beneficiaries",
++   "check_primary_residence_succession",
++   "file_irs_form_56_probate",
++   "file_tx_independent_admin",
++   "file_tx_muniment_of_title",
++   "tx_muniment_compliance_check",
++   "file_tx_dependent_admin",
++   "tx_admin_type_branching",
++   "tx_ten_day_posting",
++   "file_tx_heirship_proceeding",
++   "tx_homestead_protection",
++   "tx_exempt_property",
++   "tx_small_estate_affidavit",
++   "tx_bond_determination",
++   "tx_filing_fee_calculation",
++   "tx_citation_issuance",
++   "oh_certificate_of_transfer",
++   "oh_family_allowance",
++   "file_fl_disposition_without_admin",
++   "file_ny_surrogate_probate",
++   "file_ny_ancillary_probate",
++   "file_ga_petition",
++   "file_ga_no_admin",
++   "ga_years_support_petition",
++   "ga_years_support_citation",
++   "ga_years_support_order",
++   "file_ma_informal_probate",
++   "file_ma_voluntary_admin",
++   "file_nj_surrogate_probate",
++   "file_nj_administration",
++   "file_nj_small_estate_affidavit",
++   "nj_bond_calculation",
++   "nj_elective_share_claim",
++   "nj_real_property_transfer",
++   "nj_bond_determination",
++   "nj_bond_waiver_affidavit",
++   "nj_bond_obtain_surety",
++   "nj_bond_without_surety",
++   "nj_contested_probate_escalation",
++   "nj_real_estate_power_of_sale",
++   "pay_filing_fee",
++   "submit_oath_designation",
++   "obtain_citation",
++   "serve_citation",
++   "nj_inventory_90_day_deadline",
++   "nj_inventory_extension",
++   "intl_w8_assessment",
++   "itin_acquisition_protocol",
++   "tx_publish_creditor_notice",
++   "tx_personal_creditor_notice",
++   "tx_medicaid_recovery_check",
++   "evaluate_and_document_claims",
++   "ga_deed_of_assent",
++   "nj_inheritance_tax_classify_beneficiaries",
++   "nj_inheritance_tax_determine_residency",
++   "nj_inheritance_tax_return",
++   "nj_inheritance_tax_payment",
++   "nj_inheritance_tax_waiver",
++   "nj_distribution_block_until_clearance",
++ ]
+
+ Γ¥» src/tests/roadmap/scope_audit.test.ts:160:57
+    158|             t.authorityScope === undefined
+    159|         );
+    160|         expect(probateTasksWithoutScope.map(t => t.id)).toEqual([]);
+       |                                                         ^
+    161|     });
+    162| 
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[2/2]ΓÄ»
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 11 passed (13)
+   Start at  20:15:15
+   Duration  723ms
+
+ HTML  Report is generated
+       You can run npx vite preview --outDir test-results to see the test results.
+ FAIL  Tests failed. Watching for file changes...
+       press h to show help, press q to quit
+c[3J RERUN  src/config/settlementPhases.ts x12 
+        Filename pattern: tests/roadmap/scope_audit.test.ts
+
+ Γ¥» src/tests/roadmap/scope_audit.test.ts (13 tests | 2 failed) 10ms
+   Γ£ô Scope Audit ΓÇö Zero UNSCOPED Tasks > 0 tasks with scope 'UNSCOPED' 1ms
+   Γ£ô Scope Audit ΓÇö Zero UNSCOPED Tasks > 0 tasks with missing scope 0ms
+   Γ£ô Scope Audit ΓÇö Zero UNSCOPED Tasks > every scope is CORE or US-{XX} 0ms
+   Γ£ô Scope Audit ΓÇö No CORE Abuse > 0 CORE tasks with applicability.states 0ms
+   Γ£ô Scope Audit ΓÇö No CORE Abuse > 0 CORE tasks with state-coded IDs 0ms
+   Γ£ô Scope Audit ΓÇö No CORE Abuse > 0 CORE tasks with state statute references in title/description 1ms
+   Γ£ô Scope Audit ΓÇö State Tasks Have Correct Scope > every task with applicability.states is NOT CORE 0ms
+   Γ£ô Scope Audit ΓÇö State Tasks Have Correct Scope > state-prefixed tasks have matching scope 1ms
+   ├ù Authority Scope Audit ΓÇö Task Coverage > every task with trackCompatibility=TRUST has authorityScope defined 4ms
+     ΓåÆ expected [ 'preliminary_asset_scan', ΓÇª(9) ] to deeply equal []
+   ├ù Authority Scope Audit ΓÇö Task Coverage > every task with trackCompatibility=PROBATE has authorityScope defined 1ms
+     ΓåÆ expected [ 'preliminary_asset_scan', ΓÇª(59) ] to deeply equal []
+   Γ£ô Authority Scope Audit ΓÇö Task Coverage > tasks with authorityScope=TRUST must not have trackCompatibility=PROBATE 0ms
+   Γ£ô Authority Scope Audit ΓÇö Task Coverage > tasks with authorityScope=PROBATE must not have trackCompatibility=TRUST 0ms
+   Γ£ô Authority Scope Audit ΓÇö Task Coverage > all tasks have valid authorityScope values 0ms
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 2 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  src/tests/roadmap/scope_audit.test.ts > Authority Scope Audit ΓÇö Task Coverage > every task with trackCompatibility=TRUST has authorityScope defined
+AssertionError: expected [ 'preliminary_asset_scan', ΓÇª(9) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "preliminary_asset_scan",
++   "intl_w8_assessment",
++   "itin_acquisition_protocol",
++   "evaluate_and_document_claims",
++   "nj_inheritance_tax_classify_beneficiaries",
++   "nj_inheritance_tax_determine_residency",
++   "nj_inheritance_tax_return",
++   "nj_inheritance_tax_payment",
++   "nj_inheritance_tax_waiver",
++   "nj_distribution_block_until_clearance",
++ ]
+
+ Γ¥» src/tests/roadmap/scope_audit.test.ts:150:55
+    148|             t.authorityScope === undefined
+    149|         );
+    150|         expect(trustTasksWithoutScope.map(t => t.id)).toEqual([]);
+       |                                                       ^
+    151|     });
+    152| 
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/2]ΓÄ»
+
+ FAIL  src/tests/roadmap/scope_audit.test.ts > Authority Scope Audit ΓÇö Task Coverage > every task with trackCompatibility=PROBATE has authorityScope defined
+AssertionError: expected [ 'preliminary_asset_scan', ΓÇª(59) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "preliminary_asset_scan",
++   "identify_minor_beneficiaries",
++   "check_primary_residence_succession",
++   "file_irs_form_56_probate",
++   "file_tx_independent_admin",
++   "file_tx_muniment_of_title",
++   "tx_muniment_compliance_check",
++   "file_tx_dependent_admin",
++   "tx_admin_type_branching",
++   "tx_ten_day_posting",
++   "file_tx_heirship_proceeding",
++   "tx_homestead_protection",
++   "tx_exempt_property",
++   "tx_small_estate_affidavit",
++   "tx_bond_determination",
++   "tx_filing_fee_calculation",
++   "tx_citation_issuance",
++   "oh_certificate_of_transfer",
++   "oh_family_allowance",
++   "file_fl_disposition_without_admin",
++   "file_ny_surrogate_probate",
++   "file_ny_ancillary_probate",
++   "file_ga_petition",
++   "file_ga_no_admin",
++   "ga_years_support_petition",
++   "ga_years_support_citation",
++   "ga_years_support_order",
++   "file_ma_informal_probate",
++   "file_ma_voluntary_admin",
++   "file_nj_surrogate_probate",
++   "file_nj_administration",
++   "file_nj_small_estate_affidavit",
++   "nj_bond_calculation",
++   "nj_elective_share_claim",
++   "nj_real_property_transfer",
++   "nj_bond_determination",
++   "nj_bond_waiver_affidavit",
++   "nj_bond_obtain_surety",
++   "nj_bond_without_surety",
++   "nj_contested_probate_escalation",
++   "nj_real_estate_power_of_sale",
++   "pay_filing_fee",
++   "submit_oath_designation",
++   "obtain_citation",
++   "serve_citation",
++   "nj_inventory_90_day_deadline",
++   "nj_inventory_extension",
++   "intl_w8_assessment",
++   "itin_acquisition_protocol",
++   "tx_publish_creditor_notice",
++   "tx_personal_creditor_notice",
++   "tx_medicaid_recovery_check",
++   "evaluate_and_document_claims",
++   "ga_deed_of_assent",
++   "nj_inheritance_tax_classify_beneficiaries",
++   "nj_inheritance_tax_determine_residency",
++   "nj_inheritance_tax_return",
++   "nj_inheritance_tax_payment",
++   "nj_inheritance_tax_waiver",
++   "nj_distribution_block_until_clearance",
++ ]
+
+ Γ¥» src/tests/roadmap/scope_audit.test.ts:160:57
+    158|             t.authorityScope === undefined
+    159|         );
+    160|         expect(probateTasksWithoutScope.map(t => t.id)).toEqual([]);
+       |                                                         ^
+    161|     });
+    162| 
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[2/2]ΓÄ»
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 11 passed (13)
+   Start at  20:15:38
+   Duration  342ms
+
+ HTML  Report is generated
+       You can run npx vite preview --outDir test-results to see the test results.
+ FAIL  Tests failed. Watching for file changes...
+       press h to show help, press q to quit
+c[3J RERUN  src/config/settlementPhases.ts x13 
+        Filename pattern: tests/roadmap/scope_audit.test.ts
+
+ Γ¥» src/tests/roadmap/scope_audit.test.ts (13 tests | 2 failed) 9ms
+   Γ£ô Scope Audit ΓÇö Zero UNSCOPED Tasks > 0 tasks with scope 'UNSCOPED' 1ms
+   Γ£ô Scope Audit ΓÇö Zero UNSCOPED Tasks > 0 tasks with missing scope 0ms
+   Γ£ô Scope Audit ΓÇö Zero UNSCOPED Tasks > every scope is CORE or US-{XX} 0ms
+   Γ£ô Scope Audit ΓÇö No CORE Abuse > 0 CORE tasks with applicability.states 0ms
+   Γ£ô Scope Audit ΓÇö No CORE Abuse > 0 CORE tasks with state-coded IDs 0ms
+   Γ£ô Scope Audit ΓÇö No CORE Abuse > 0 CORE tasks with state statute references in title/description 1ms
+   Γ£ô Scope Audit ΓÇö State Tasks Have Correct Scope > every task with applicability.states is NOT CORE 0ms
+   Γ£ô Scope Audit ΓÇö State Tasks Have Correct Scope > state-prefixed tasks have matching scope 0ms
+   ├ù Authority Scope Audit ΓÇö Task Coverage > every task with trackCompatibility=TRUST has authorityScope defined 4ms
+     ΓåÆ expected [ 'preliminary_asset_scan', ΓÇª(9) ] to deeply equal []
+   ├ù Authority Scope Audit ΓÇö Task Coverage > every task with trackCompatibility=PROBATE has authorityScope defined 1ms
+     ΓåÆ expected [ 'preliminary_asset_scan', ΓÇª(58) ] to deeply equal []
+   Γ£ô Authority Scope Audit ΓÇö Task Coverage > tasks with authorityScope=TRUST must not have trackCompatibility=PROBATE 0ms
+   Γ£ô Authority Scope Audit ΓÇö Task Coverage > tasks with authorityScope=PROBATE must not have trackCompatibility=TRUST 0ms
+   Γ£ô Authority Scope Audit ΓÇö Task Coverage > all tasks have valid authorityScope values 0ms
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 2 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  src/tests/roadmap/scope_audit.test.ts > Authority Scope Audit ΓÇö Task Coverage > every task with trackCompatibility=TRUST has authorityScope defined
+AssertionError: expected [ 'preliminary_asset_scan', ΓÇª(9) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "preliminary_asset_scan",
++   "intl_w8_assessment",
++   "itin_acquisition_protocol",
++   "evaluate_and_document_claims",
++   "nj_inheritance_tax_classify_beneficiaries",
++   "nj_inheritance_tax_determine_residency",
++   "nj_inheritance_tax_return",
++   "nj_inheritance_tax_payment",
++   "nj_inheritance_tax_waiver",
++   "nj_distribution_block_until_clearance",
++ ]
+
+ Γ¥» src/tests/roadmap/scope_audit.test.ts:150:55
+    148|             t.authorityScope === undefined
+    149|         );
+    150|         expect(trustTasksWithoutScope.map(t => t.id)).toEqual([]);
+       |                                                       ^
+    151|     });
+    152| 
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/2]ΓÄ»
+
+ FAIL  src/tests/roadmap/scope_audit.test.ts > Authority Scope Audit ΓÇö Task Coverage > every task with trackCompatibility=PROBATE has authorityScope defined
+AssertionError: expected [ 'preliminary_asset_scan', ΓÇª(58) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "preliminary_asset_scan",
++   "identify_minor_beneficiaries",
++   "check_primary_residence_succession",
++   "file_irs_form_56_probate",
++   "file_tx_independent_admin",
++   "file_tx_muniment_of_title",
++   "tx_muniment_compliance_check",
++   "file_tx_dependent_admin",
++   "tx_admin_type_branching",
++   "tx_ten_day_posting",
++   "file_tx_heirship_proceeding",
++   "tx_homestead_protection",
++   "tx_exempt_property",
++   "tx_small_estate_affidavit",
++   "tx_bond_determination",
++   "tx_filing_fee_calculation",
++   "tx_citation_issuance",
++   "oh_certificate_of_transfer",
++   "file_fl_disposition_without_admin",
++   "file_ny_surrogate_probate",
++   "file_ny_ancillary_probate",
++   "file_ga_petition",
++   "file_ga_no_admin",
++   "ga_years_support_petition",
++   "ga_years_support_citation",
++   "ga_years_support_order",
++   "file_ma_informal_probate",
++   "file_ma_voluntary_admin",
++   "file_nj_surrogate_probate",
++   "file_nj_administration",
++   "file_nj_small_estate_affidavit",
++   "nj_bond_calculation",
++   "nj_elective_share_claim",
++   "nj_real_property_transfer",
++   "nj_bond_determination",
++   "nj_bond_waiver_affidavit",
++   "nj_bond_obtain_surety",
++   "nj_bond_without_surety",
++   "nj_contested_probate_escalation",
++   "nj_real_estate_power_of_sale",
++   "pay_filing_fee",
++   "submit_oath_designation",
++   "obtain_citation",
++   "serve_citation",
++   "nj_inventory_90_day_deadline",
++   "nj_inventory_extension",
++   "intl_w8_assessment",
++   "itin_acquisition_protocol",
++   "tx_publish_creditor_notice",
++   "tx_personal_creditor_notice",
++   "tx_medicaid_recovery_check",
++   "evaluate_and_document_claims",
++   "ga_deed_of_assent",
++   "nj_inheritance_tax_classify_beneficiaries",
++   "nj_inheritance_tax_determine_residency",
++   "nj_inheritance_tax_return",
++   "nj_inheritance_tax_payment",
++   "nj_inheritance_tax_waiver",
++   "nj_distribution_block_until_clearance",
++ ]
+
+ Γ¥» src/tests/roadmap/scope_audit.test.ts:160:57
+    158|             t.authorityScope === undefined
+    159|         );
+    160|         expect(probateTasksWithoutScope.map(t => t.id)).toEqual([]);
+       |                                                         ^
+    161|     });
+    162| 
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[2/2]ΓÄ»
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 11 passed (13)
+   Start at  20:15:40
+   Duration  337ms
+
+ HTML  Report is generated
+       You can run npx vite preview --outDir test-results to see the test results.
+ FAIL  Tests failed. Watching for file changes...
+       press h to show help, press q to quit
+c[3J RERUN  src/config/settlementPhases.ts x14 
+        Filename pattern: tests/roadmap/scope_audit.test.ts
+
+ Γ¥» src/tests/roadmap/scope_audit.test.ts (13 tests | 2 failed) 10ms
+   Γ£ô Scope Audit ΓÇö Zero UNSCOPED Tasks > 0 tasks with scope 'UNSCOPED' 1ms
+   Γ£ô Scope Audit ΓÇö Zero UNSCOPED Tasks > 0 tasks with missing scope 0ms
+   Γ£ô Scope Audit ΓÇö Zero UNSCOPED Tasks > every scope is CORE or US-{XX} 0ms
+   Γ£ô Scope Audit ΓÇö No CORE Abuse > 0 CORE tasks with applicability.states 0ms
+   Γ£ô Scope Audit ΓÇö No CORE Abuse > 0 CORE tasks with state-coded IDs 0ms
+   Γ£ô Scope Audit ΓÇö No CORE Abuse > 0 CORE tasks with state statute references in title/description 1ms
+   Γ£ô Scope Audit ΓÇö State Tasks Have Correct Scope > every task with applicability.states is NOT CORE 0ms
+   Γ£ô Scope Audit ΓÇö State Tasks Have Correct Scope > state-prefixed tasks have matching scope 0ms
+   ├ù Authority Scope Audit ΓÇö Task Coverage > every task with trackCompatibility=TRUST has authorityScope defined 4ms
+     ΓåÆ expected [ ΓÇª(6) ] to deeply equal []
+   ├ù Authority Scope Audit ΓÇö Task Coverage > every task with trackCompatibility=PROBATE has authorityScope defined 1ms
+     ΓåÆ expected [ 'file_tx_independent_admin', ΓÇª(47) ] to deeply equal []
+   Γ£ô Authority Scope Audit ΓÇö Task Coverage > tasks with authorityScope=TRUST must not have trackCompatibility=PROBATE 0ms
+   Γ£ô Authority Scope Audit ΓÇö Task Coverage > tasks with authorityScope=PROBATE must not have trackCompatibility=TRUST 0ms
+   Γ£ô Authority Scope Audit ΓÇö Task Coverage > all tasks have valid authorityScope values 0ms
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 2 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  src/tests/roadmap/scope_audit.test.ts > Authority Scope Audit ΓÇö Task Coverage > every task with trackCompatibility=TRUST has authorityScope defined
+AssertionError: expected [ ΓÇª(6) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "nj_inheritance_tax_classify_beneficiaries",
++   "nj_inheritance_tax_determine_residency",
++   "nj_inheritance_tax_return",
++   "nj_inheritance_tax_payment",
++   "nj_inheritance_tax_waiver",
++   "nj_distribution_block_until_clearance",
++ ]
+
+ Γ¥» src/tests/roadmap/scope_audit.test.ts:150:55
+    148|             t.authorityScope === undefined
+    149|         );
+    150|         expect(trustTasksWithoutScope.map(t => t.id)).toEqual([]);
+       |                                                       ^
+    151|     });
+    152| 
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/2]ΓÄ»
+
+ FAIL  src/tests/roadmap/scope_audit.test.ts > Authority Scope Audit ΓÇö Task Coverage > every task with trackCompatibility=PROBATE has authorityScope defined
+AssertionError: expected [ 'file_tx_independent_admin', ΓÇª(47) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "file_tx_independent_admin",
++   "file_tx_muniment_of_title",
++   "tx_muniment_compliance_check",
++   "file_tx_dependent_admin",
++   "tx_admin_type_branching",
++   "tx_ten_day_posting",
++   "file_tx_heirship_proceeding",
++   "tx_homestead_protection",
++   "tx_exempt_property",
++   "tx_small_estate_affidavit",
++   "tx_bond_determination",
++   "tx_filing_fee_calculation",
++   "tx_citation_issuance",
++   "oh_certificate_of_transfer",
++   "file_fl_disposition_without_admin",
++   "file_ny_surrogate_probate",
++   "file_ny_ancillary_probate",
++   "file_ga_petition",
++   "file_ga_no_admin",
++   "ga_years_support_petition",
++   "ga_years_support_citation",
++   "ga_years_support_order",
++   "file_ma_informal_probate",
++   "file_ma_voluntary_admin",
++   "file_nj_surrogate_probate",
++   "file_nj_administration",
++   "file_nj_small_estate_affidavit",
++   "nj_bond_calculation",
++   "nj_elective_share_claim",
++   "nj_real_property_transfer",
++   "nj_bond_determination",
++   "nj_bond_waiver_affidavit",
++   "nj_bond_obtain_surety",
++   "nj_bond_without_surety",
++   "nj_contested_probate_escalation",
++   "nj_real_estate_power_of_sale",
++   "nj_inventory_90_day_deadline",
++   "nj_inventory_extension",
++   "tx_publish_creditor_notice",
++   "tx_personal_creditor_notice",
++   "tx_medicaid_recovery_check",
++   "ga_deed_of_assent",
++   "nj_inheritance_tax_classify_beneficiaries",
++   "nj_inheritance_tax_determine_residency",
++   "nj_inheritance_tax_return",
++   "nj_inheritance_tax_payment",
++   "nj_inheritance_tax_waiver",
++   "nj_distribution_block_until_clearance",
++ ]
+
+ Γ¥» src/tests/roadmap/scope_audit.test.ts:160:57
+    158|             t.authorityScope === undefined
+    159|         );
+    160|         expect(probateTasksWithoutScope.map(t => t.id)).toEqual([]);
+       |                                                         ^
+    161|     });
+    162| 
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[2/2]ΓÄ»
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 11 passed (13)
+   Start at  20:20:17
+   Duration  379ms
+
+ HTML  Report is generated
+       You can run npx vite preview --outDir test-results to see the test results.
+ FAIL  Tests failed. Watching for file changes...
+       press h to show help, press q to quit
+c[3J RERUN  src/config/settlementPhases.ts x15 
+        Filename pattern: tests/roadmap/scope_audit.test.ts
+
+ Γ¥» src/tests/roadmap/scope_audit.test.ts (13 tests | 2 failed) 10ms
+   Γ£ô Scope Audit ΓÇö Zero UNSCOPED Tasks > 0 tasks with scope 'UNSCOPED' 1ms
+   Γ£ô Scope Audit ΓÇö Zero UNSCOPED Tasks > 0 tasks with missing scope 0ms
+   Γ£ô Scope Audit ΓÇö Zero UNSCOPED Tasks > every scope is CORE or US-{XX} 0ms
+   Γ£ô Scope Audit ΓÇö No CORE Abuse > 0 CORE tasks with applicability.states 0ms
+   Γ£ô Scope Audit ΓÇö No CORE Abuse > 0 CORE tasks with state-coded IDs 0ms
+   Γ£ô Scope Audit ΓÇö No CORE Abuse > 0 CORE tasks with state statute references in title/description 1ms
+   Γ£ô Scope Audit ΓÇö State Tasks Have Correct Scope > every task with applicability.states is NOT CORE 0ms
+   Γ£ô Scope Audit ΓÇö State Tasks Have Correct Scope > state-prefixed tasks have matching scope 1ms
+   ├ù Authority Scope Audit ΓÇö Task Coverage > every task with trackCompatibility=TRUST has authorityScope defined 4ms
+     ΓåÆ expected [ ΓÇª(6) ] to deeply equal []
+   ├ù Authority Scope Audit ΓÇö Task Coverage > every task with trackCompatibility=PROBATE has authorityScope defined 1ms
+     ΓåÆ expected [ 'tx_homestead_protection', ΓÇª(35) ] to deeply equal []
+   Γ£ô Authority Scope Audit ΓÇö Task Coverage > tasks with authorityScope=TRUST must not have trackCompatibility=PROBATE 0ms
+   Γ£ô Authority Scope Audit ΓÇö Task Coverage > tasks with authorityScope=PROBATE must not have trackCompatibility=TRUST 0ms
+   Γ£ô Authority Scope Audit ΓÇö Task Coverage > all tasks have valid authorityScope values 0ms
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 2 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  src/tests/roadmap/scope_audit.test.ts > Authority Scope Audit ΓÇö Task Coverage > every task with trackCompatibility=TRUST has authorityScope defined
+AssertionError: expected [ ΓÇª(6) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "nj_inheritance_tax_classify_beneficiaries",
++   "nj_inheritance_tax_determine_residency",
++   "nj_inheritance_tax_return",
++   "nj_inheritance_tax_payment",
++   "nj_inheritance_tax_waiver",
++   "nj_distribution_block_until_clearance",
++ ]
+
+ Γ¥» src/tests/roadmap/scope_audit.test.ts:150:55
+    148|             t.authorityScope === undefined
+    149|         );
+    150|         expect(trustTasksWithoutScope.map(t => t.id)).toEqual([]);
+       |                                                       ^
+    151|     });
+    152| 
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/2]ΓÄ»
+
+ FAIL  src/tests/roadmap/scope_audit.test.ts > Authority Scope Audit ΓÇö Task Coverage > every task with trackCompatibility=PROBATE has authorityScope defined
+AssertionError: expected [ 'tx_homestead_protection', ΓÇª(35) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "tx_homestead_protection",
++   "tx_exempt_property",
++   "tx_small_estate_affidavit",
++   "tx_bond_determination",
++   "oh_certificate_of_transfer",
++   "file_fl_disposition_without_admin",
++   "file_ny_surrogate_probate",
++   "file_ny_ancillary_probate",
++   "file_ga_petition",
++   "file_ga_no_admin",
++   "ga_years_support_petition",
++   "ga_years_support_citation",
++   "ga_years_support_order",
++   "file_ma_informal_probate",
++   "file_ma_voluntary_admin",
++   "file_nj_surrogate_probate",
++   "file_nj_administration",
++   "file_nj_small_estate_affidavit",
++   "nj_bond_calculation",
++   "nj_elective_share_claim",
++   "nj_real_property_transfer",
++   "nj_bond_determination",
++   "nj_bond_waiver_affidavit",
++   "nj_bond_obtain_surety",
++   "nj_bond_without_surety",
++   "nj_contested_probate_escalation",
++   "nj_real_estate_power_of_sale",
++   "nj_inventory_90_day_deadline",
++   "nj_inventory_extension",
++   "ga_deed_of_assent",
++   "nj_inheritance_tax_classify_beneficiaries",
++   "nj_inheritance_tax_determine_residency",
++   "nj_inheritance_tax_return",
++   "nj_inheritance_tax_payment",
++   "nj_inheritance_tax_waiver",
++   "nj_distribution_block_until_clearance",
++ ]
+
+ Γ¥» src/tests/roadmap/scope_audit.test.ts:160:57
+    158|             t.authorityScope === undefined
+    159|         );
+    160|         expect(probateTasksWithoutScope.map(t => t.id)).toEqual([]);
+       |                                                         ^
+    161|     });
+    162| 
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[2/2]ΓÄ»
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 11 passed (13)
+   Start at  20:20:29
+   Duration  352ms
+
+ HTML  Report is generated
+       You can run npx vite preview --outDir test-results to see the test results.
+ FAIL  Tests failed. Watching for file changes...
+       press h to show help, press q to quit
+c[3J RERUN  src/config/settlementPhases.ts x16 
+        Filename pattern: tests/roadmap/scope_audit.test.ts
+
+ Γ¥» src/tests/roadmap/scope_audit.test.ts (13 tests | 2 failed) 9ms
+   Γ£ô Scope Audit ΓÇö Zero UNSCOPED Tasks > 0 tasks with scope 'UNSCOPED' 1ms
+   Γ£ô Scope Audit ΓÇö Zero UNSCOPED Tasks > 0 tasks with missing scope 0ms
+   Γ£ô Scope Audit ΓÇö Zero UNSCOPED Tasks > every scope is CORE or US-{XX} 0ms
+   Γ£ô Scope Audit ΓÇö No CORE Abuse > 0 CORE tasks with applicability.states 0ms
+   Γ£ô Scope Audit ΓÇö No CORE Abuse > 0 CORE tasks with state-coded IDs 0ms
+   Γ£ô Scope Audit ΓÇö No CORE Abuse > 0 CORE tasks with state statute references in title/description 1ms
+   Γ£ô Scope Audit ΓÇö State Tasks Have Correct Scope > every task with applicability.states is NOT CORE 0ms
+   Γ£ô Scope Audit ΓÇö State Tasks Have Correct Scope > state-prefixed tasks have matching scope 0ms
+   ├ù Authority Scope Audit ΓÇö Task Coverage > every task with trackCompatibility=TRUST has authorityScope defined 4ms
+     ΓåÆ expected [ ΓÇª(6) ] to deeply equal []
+   ├ù Authority Scope Audit ΓÇö Task Coverage > every task with trackCompatibility=PROBATE has authorityScope defined 1ms
+     ΓåÆ expected [ 'tx_homestead_protection', ΓÇª(21) ] to deeply equal []
+   Γ£ô Authority Scope Audit ΓÇö Task Coverage > tasks with authorityScope=TRUST must not have trackCompatibility=PROBATE 0ms
+   Γ£ô Authority Scope Audit ΓÇö Task Coverage > tasks with authorityScope=PROBATE must not have trackCompatibility=TRUST 0ms
+   Γ£ô Authority Scope Audit ΓÇö Task Coverage > all tasks have valid authorityScope values 0ms
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 2 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  src/tests/roadmap/scope_audit.test.ts > Authority Scope Audit ΓÇö Task Coverage > every task with trackCompatibility=TRUST has authorityScope defined
+AssertionError: expected [ ΓÇª(6) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "nj_inheritance_tax_classify_beneficiaries",
++   "nj_inheritance_tax_determine_residency",
++   "nj_inheritance_tax_return",
++   "nj_inheritance_tax_payment",
++   "nj_inheritance_tax_waiver",
++   "nj_distribution_block_until_clearance",
++ ]
+
+ Γ¥» src/tests/roadmap/scope_audit.test.ts:150:55
+    148|             t.authorityScope === undefined
+    149|         );
+    150|         expect(trustTasksWithoutScope.map(t => t.id)).toEqual([]);
+       |                                                       ^
+    151|     });
+    152| 
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/2]ΓÄ»
+
+ FAIL  src/tests/roadmap/scope_audit.test.ts > Authority Scope Audit ΓÇö Task Coverage > every task with trackCompatibility=PROBATE has authorityScope defined
+AssertionError: expected [ 'tx_homestead_protection', ΓÇª(21) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "tx_homestead_protection",
++   "tx_exempt_property",
++   "tx_small_estate_affidavit",
++   "tx_bond_determination",
++   "oh_certificate_of_transfer",
++   "file_fl_disposition_without_admin",
++   "file_ny_surrogate_probate",
++   "file_ny_ancillary_probate",
++   "file_ga_petition",
++   "file_ga_no_admin",
++   "ga_years_support_petition",
++   "ga_years_support_citation",
++   "ga_years_support_order",
++   "file_ma_informal_probate",
++   "file_ma_voluntary_admin",
++   "ga_deed_of_assent",
++   "nj_inheritance_tax_classify_beneficiaries",
++   "nj_inheritance_tax_determine_residency",
++   "nj_inheritance_tax_return",
++   "nj_inheritance_tax_payment",
++   "nj_inheritance_tax_waiver",
++   "nj_distribution_block_until_clearance",
++ ]
+
+ Γ¥» src/tests/roadmap/scope_audit.test.ts:160:57
+    158|             t.authorityScope === undefined
+    159|         );
+    160|         expect(probateTasksWithoutScope.map(t => t.id)).toEqual([]);
+       |                                                         ^
+    161|     });
+    162| 
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[2/2]ΓÄ»
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 11 passed (13)
+   Start at  20:20:42
+   Duration  327ms
+
+ HTML  Report is generated
+       You can run npx vite preview --outDir test-results to see the test results.
+ FAIL  Tests failed. Watching for file changes...
+       press h to show help, press q to quit
+c[3J RERUN  src/config/settlementPhases.ts x17 
+        Filename pattern: tests/roadmap/scope_audit.test.ts
+
+ Γ¥» src/tests/roadmap/scope_audit.test.ts (13 tests | 2 failed) 9ms
+   Γ£ô Scope Audit ΓÇö Zero UNSCOPED Tasks > 0 tasks with scope 'UNSCOPED' 1ms
+   Γ£ô Scope Audit ΓÇö Zero UNSCOPED Tasks > 0 tasks with missing scope 0ms
+   Γ£ô Scope Audit ΓÇö Zero UNSCOPED Tasks > every scope is CORE or US-{XX} 0ms
+   Γ£ô Scope Audit ΓÇö No CORE Abuse > 0 CORE tasks with applicability.states 0ms
+   Γ£ô Scope Audit ΓÇö No CORE Abuse > 0 CORE tasks with state-coded IDs 0ms
+   Γ£ô Scope Audit ΓÇö No CORE Abuse > 0 CORE tasks with state statute references in title/description 1ms
+   Γ£ô Scope Audit ΓÇö State Tasks Have Correct Scope > every task with applicability.states is NOT CORE 0ms
+   Γ£ô Scope Audit ΓÇö State Tasks Have Correct Scope > state-prefixed tasks have matching scope 1ms
+   ├ù Authority Scope Audit ΓÇö Task Coverage > every task with trackCompatibility=TRUST has authorityScope defined 4ms
+     ΓåÆ expected [ 'nj_inheritance_tax_return', ΓÇª(3) ] to deeply equal []
+   ├ù Authority Scope Audit ΓÇö Task Coverage > every task with trackCompatibility=PROBATE has authorityScope defined 1ms
+     ΓåÆ expected [ 'tx_homestead_protection', ΓÇª(19) ] to deeply equal []
+   Γ£ô Authority Scope Audit ΓÇö Task Coverage > tasks with authorityScope=TRUST must not have trackCompatibility=PROBATE 0ms
+   Γ£ô Authority Scope Audit ΓÇö Task Coverage > tasks with authorityScope=PROBATE must not have trackCompatibility=TRUST 0ms
+   Γ£ô Authority Scope Audit ΓÇö Task Coverage > all tasks have valid authorityScope values 0ms
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 2 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  src/tests/roadmap/scope_audit.test.ts > Authority Scope Audit ΓÇö Task Coverage > every task with trackCompatibility=TRUST has authorityScope defined
+AssertionError: expected [ 'nj_inheritance_tax_return', ΓÇª(3) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "nj_inheritance_tax_return",
++   "nj_inheritance_tax_payment",
++   "nj_inheritance_tax_waiver",
++   "nj_distribution_block_until_clearance",
++ ]
+
+ Γ¥» src/tests/roadmap/scope_audit.test.ts:150:55
+    148|             t.authorityScope === undefined
+    149|         );
+    150|         expect(trustTasksWithoutScope.map(t => t.id)).toEqual([]);
+       |                                                       ^
+    151|     });
+    152| 
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/2]ΓÄ»
+
+ FAIL  src/tests/roadmap/scope_audit.test.ts > Authority Scope Audit ΓÇö Task Coverage > every task with trackCompatibility=PROBATE has authorityScope defined
+AssertionError: expected [ 'tx_homestead_protection', ΓÇª(19) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "tx_homestead_protection",
++   "tx_exempt_property",
++   "tx_small_estate_affidavit",
++   "tx_bond_determination",
++   "oh_certificate_of_transfer",
++   "file_fl_disposition_without_admin",
++   "file_ny_surrogate_probate",
++   "file_ny_ancillary_probate",
++   "file_ga_petition",
++   "file_ga_no_admin",
++   "ga_years_support_petition",
++   "ga_years_support_citation",
++   "ga_years_support_order",
++   "file_ma_informal_probate",
++   "file_ma_voluntary_admin",
++   "ga_deed_of_assent",
++   "nj_inheritance_tax_return",
++   "nj_inheritance_tax_payment",
++   "nj_inheritance_tax_waiver",
++   "nj_distribution_block_until_clearance",
++ ]
+
+ Γ¥» src/tests/roadmap/scope_audit.test.ts:160:57
+    158|             t.authorityScope === undefined
+    159|         );
+    160|         expect(probateTasksWithoutScope.map(t => t.id)).toEqual([]);
+       |                                                         ^
+    161|     });
+    162| 
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[2/2]ΓÄ»
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 11 passed (13)
+   Start at  20:21:02
+   Duration  329ms
+
+ HTML  Report is generated
+       You can run npx vite preview --outDir test-results to see the test results.
+ FAIL  Tests failed. Watching for file changes...
+       press h to show help, press q to quit
+c[3J RERUN  src/config/settlementPhases.ts x18 
+        Filename pattern: tests/roadmap/scope_audit.test.ts
+
+ Γ¥» src/tests/roadmap/scope_audit.test.ts (13 tests | 1 failed) 9ms
+   Γ£ô Scope Audit ΓÇö Zero UNSCOPED Tasks > 0 tasks with scope 'UNSCOPED' 1ms
+   Γ£ô Scope Audit ΓÇö Zero UNSCOPED Tasks > 0 tasks with missing scope 0ms
+   Γ£ô Scope Audit ΓÇö Zero UNSCOPED Tasks > every scope is CORE or US-{XX} 0ms
+   Γ£ô Scope Audit ΓÇö No CORE Abuse > 0 CORE tasks with applicability.states 0ms
+   Γ£ô Scope Audit ΓÇö No CORE Abuse > 0 CORE tasks with state-coded IDs 0ms
+   Γ£ô Scope Audit ΓÇö No CORE Abuse > 0 CORE tasks with state statute references in title/description 1ms
+   Γ£ô Scope Audit ΓÇö State Tasks Have Correct Scope > every task with applicability.states is NOT CORE 0ms
+   Γ£ô Scope Audit ΓÇö State Tasks Have Correct Scope > state-prefixed tasks have matching scope 1ms
+   Γ£ô Authority Scope Audit ΓÇö Task Coverage > every task with trackCompatibility=TRUST has authorityScope defined 0ms
+   ├ù Authority Scope Audit ΓÇö Task Coverage > every task with trackCompatibility=PROBATE has authorityScope defined 4ms
+     ΓåÆ expected [ 'tx_homestead_protection', ΓÇª(15) ] to deeply equal []
+   Γ£ô Authority Scope Audit ΓÇö Task Coverage > tasks with authorityScope=TRUST must not have trackCompatibility=PROBATE 0ms
+   Γ£ô Authority Scope Audit ΓÇö Task Coverage > tasks with authorityScope=PROBATE must not have trackCompatibility=TRUST 0ms
+   Γ£ô Authority Scope Audit ΓÇö Task Coverage > all tasks have valid authorityScope values 0ms
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 1 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  src/tests/roadmap/scope_audit.test.ts > Authority Scope Audit ΓÇö Task Coverage > every task with trackCompatibility=PROBATE has authorityScope defined
+AssertionError: expected [ 'tx_homestead_protection', ΓÇª(15) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "tx_homestead_protection",
++   "tx_exempt_property",
++   "tx_small_estate_affidavit",
++   "tx_bond_determination",
++   "oh_certificate_of_transfer",
++   "file_fl_disposition_without_admin",
++   "file_ny_surrogate_probate",
++   "file_ny_ancillary_probate",
++   "file_ga_petition",
++   "file_ga_no_admin",
++   "ga_years_support_petition",
++   "ga_years_support_citation",
++   "ga_years_support_order",
++   "file_ma_informal_probate",
++   "file_ma_voluntary_admin",
++   "ga_deed_of_assent",
++ ]
+
+ Γ¥» src/tests/roadmap/scope_audit.test.ts:160:57
+    158|             t.authorityScope === undefined
+    159|         );
+    160|         expect(probateTasksWithoutScope.map(t => t.id)).toEqual([]);
+       |                                                         ^
+    161|     });
+    162| 
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/1]ΓÄ»
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 12 passed (13)
+   Start at  20:21:09
+   Duration  329ms
+
+ HTML  Report is generated
+       You can run npx vite preview --outDir test-results to see the test results.
+ FAIL  Tests failed. Watching for file changes...
+       press h to show help, press q to quit
+c[3J RERUN  src/config/settlementPhases.ts x19 
+        Filename pattern: tests/roadmap/scope_audit.test.ts
+
+ Γ¥» src/tests/roadmap/scope_audit.test.ts (13 tests | 1 failed) 9ms
+   Γ£ô Scope Audit ΓÇö Zero UNSCOPED Tasks > 0 tasks with scope 'UNSCOPED' 1ms
+   Γ£ô Scope Audit ΓÇö Zero UNSCOPED Tasks > 0 tasks with missing scope 0ms
+   Γ£ô Scope Audit ΓÇö Zero UNSCOPED Tasks > every scope is CORE or US-{XX} 0ms
+   Γ£ô Scope Audit ΓÇö No CORE Abuse > 0 CORE tasks with applicability.states 0ms
+   Γ£ô Scope Audit ΓÇö No CORE Abuse > 0 CORE tasks with state-coded IDs 0ms
+   Γ£ô Scope Audit ΓÇö No CORE Abuse > 0 CORE tasks with state statute references in title/description 1ms
+   Γ£ô Scope Audit ΓÇö State Tasks Have Correct Scope > every task with applicability.states is NOT CORE 0ms
+   Γ£ô Scope Audit ΓÇö State Tasks Have Correct Scope > state-prefixed tasks have matching scope 1ms
+   Γ£ô Authority Scope Audit ΓÇö Task Coverage > every task with trackCompatibility=TRUST has authorityScope defined 0ms
+   ├ù Authority Scope Audit ΓÇö Task Coverage > every task with trackCompatibility=PROBATE has authorityScope defined 4ms
+     ΓåÆ expected [ 'tx_homestead_protection', ΓÇª(5) ] to deeply equal []
+   Γ£ô Authority Scope Audit ΓÇö Task Coverage > tasks with authorityScope=TRUST must not have trackCompatibility=PROBATE 0ms
+   Γ£ô Authority Scope Audit ΓÇö Task Coverage > tasks with authorityScope=PROBATE must not have trackCompatibility=TRUST 0ms
+   Γ£ô Authority Scope Audit ΓÇö Task Coverage > all tasks have valid authorityScope values 0ms
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 1 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  src/tests/roadmap/scope_audit.test.ts > Authority Scope Audit ΓÇö Task Coverage > every task with trackCompatibility=PROBATE has authorityScope defined
+AssertionError: expected [ 'tx_homestead_protection', ΓÇª(5) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "tx_homestead_protection",
++   "tx_exempt_property",
++   "tx_small_estate_affidavit",
++   "tx_bond_determination",
++   "oh_certificate_of_transfer",
++   "ga_deed_of_assent",
++ ]
+
+ Γ¥» src/tests/roadmap/scope_audit.test.ts:160:57
+    158|             t.authorityScope === undefined
+    159|         );
+    160|         expect(probateTasksWithoutScope.map(t => t.id)).toEqual([]);
+       |                                                         ^
+    161|     });
+    162| 
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/1]ΓÄ»
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 12 passed (13)
+   Start at  20:21:26
+   Duration  333ms
+
+ HTML  Report is generated
+       You can run npx vite preview --outDir test-results to see the test results.
+ FAIL  Tests failed. Watching for file changes...
+       press h to show help, press q to quit
+c[3J RERUN  src/config/settlementPhases.ts x20 
+        Filename pattern: tests/roadmap/scope_audit.test.ts
+
+ Γ¥» src/tests/roadmap/scope_audit.test.ts (13 tests | 1 failed) 8ms
+   Γ£ô Scope Audit ΓÇö Zero UNSCOPED Tasks > 0 tasks with scope 'UNSCOPED' 1ms
+   Γ£ô Scope Audit ΓÇö Zero UNSCOPED Tasks > 0 tasks with missing scope 0ms
+   Γ£ô Scope Audit ΓÇö Zero UNSCOPED Tasks > every scope is CORE or US-{XX} 0ms
+   Γ£ô Scope Audit ΓÇö No CORE Abuse > 0 CORE tasks with applicability.states 0ms
+   Γ£ô Scope Audit ΓÇö No CORE Abuse > 0 CORE tasks with state-coded IDs 0ms
+   Γ£ô Scope Audit ΓÇö No CORE Abuse > 0 CORE tasks with state statute references in title/description 1ms
+   Γ£ô Scope Audit ΓÇö State Tasks Have Correct Scope > every task with applicability.states is NOT CORE 0ms
+   Γ£ô Scope Audit ΓÇö State Tasks Have Correct Scope > state-prefixed tasks have matching scope 0ms
+   Γ£ô Authority Scope Audit ΓÇö Task Coverage > every task with trackCompatibility=TRUST has authorityScope defined 0ms
+   ├ù Authority Scope Audit ΓÇö Task Coverage > every task with trackCompatibility=PROBATE has authorityScope defined 4ms
+     ΓåÆ expected [ 'tx_homestead_protection', ΓÇª(4) ] to deeply equal []
+   Γ£ô Authority Scope Audit ΓÇö Task Coverage > tasks with authorityScope=TRUST must not have trackCompatibility=PROBATE 0ms
+   Γ£ô Authority Scope Audit ΓÇö Task Coverage > tasks with authorityScope=PROBATE must not have trackCompatibility=TRUST 0ms
+   Γ£ô Authority Scope Audit ΓÇö Task Coverage > all tasks have valid authorityScope values 0ms
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 1 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  src/tests/roadmap/scope_audit.test.ts > Authority Scope Audit ΓÇö Task Coverage > every task with trackCompatibility=PROBATE has authorityScope defined
+AssertionError: expected [ 'tx_homestead_protection', ΓÇª(4) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "tx_homestead_protection",
++   "tx_exempt_property",
++   "tx_small_estate_affidavit",
++   "tx_bond_determination",
++   "oh_certificate_of_transfer",
++ ]
+
+ Γ¥» src/tests/roadmap/scope_audit.test.ts:160:57
+    158|             t.authorityScope === undefined
+    159|         );
+    160|         expect(probateTasksWithoutScope.map(t => t.id)).toEqual([]);
+       |                                                         ^
+    161|     });
+    162| 
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/1]ΓÄ»
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 12 passed (13)
+   Start at  20:23:33
+   Duration  396ms
+
+ HTML  Report is generated
+       You can run npx vite preview --outDir test-results to see the test results.
+ FAIL  Tests failed. Watching for file changes...
+       press h to show help, press q to quit
+c[3J RERUN  src/config/settlementPhases.ts x21 
+        Filename pattern: tests/roadmap/scope_audit.test.ts
+
+ Γ¥» src/tests/roadmap/scope_audit.test.ts (13 tests | 1 failed) 10ms
+   Γ£ô Scope Audit ΓÇö Zero UNSCOPED Tasks > 0 tasks with scope 'UNSCOPED' 1ms
+   Γ£ô Scope Audit ΓÇö Zero UNSCOPED Tasks > 0 tasks with missing scope 0ms
+   Γ£ô Scope Audit ΓÇö Zero UNSCOPED Tasks > every scope is CORE or US-{XX} 0ms
+   Γ£ô Scope Audit ΓÇö No CORE Abuse > 0 CORE tasks with applicability.states 0ms
+   Γ£ô Scope Audit ΓÇö No CORE Abuse > 0 CORE tasks with state-coded IDs 0ms
+   Γ£ô Scope Audit ΓÇö No CORE Abuse > 0 CORE tasks with state statute references in title/description 1ms
+   Γ£ô Scope Audit ΓÇö State Tasks Have Correct Scope > every task with applicability.states is NOT CORE 0ms
+   Γ£ô Scope Audit ΓÇö State Tasks Have Correct Scope > state-prefixed tasks have matching scope 1ms
+   Γ£ô Authority Scope Audit ΓÇö Task Coverage > every task with trackCompatibility=TRUST has authorityScope defined 0ms
+   ├ù Authority Scope Audit ΓÇö Task Coverage > every task with trackCompatibility=PROBATE has authorityScope defined 5ms
+     ΓåÆ expected [ 'tx_homestead_protection', ΓÇª(3) ] to deeply equal []
+   Γ£ô Authority Scope Audit ΓÇö Task Coverage > tasks with authorityScope=TRUST must not have trackCompatibility=PROBATE 0ms
+   Γ£ô Authority Scope Audit ΓÇö Task Coverage > tasks with authorityScope=PROBATE must not have trackCompatibility=TRUST 0ms
+   Γ£ô Authority Scope Audit ΓÇö Task Coverage > all tasks have valid authorityScope values 0ms
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 1 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  src/tests/roadmap/scope_audit.test.ts > Authority Scope Audit ΓÇö Task Coverage > every task with trackCompatibility=PROBATE has authorityScope defined
+AssertionError: expected [ 'tx_homestead_protection', ΓÇª(3) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "tx_homestead_protection",
++   "tx_exempt_property",
++   "tx_small_estate_affidavit",
++   "tx_bond_determination",
++ ]
+
+ Γ¥» src/tests/roadmap/scope_audit.test.ts:160:57
+    158|             t.authorityScope === undefined
+    159|         );
+    160|         expect(probateTasksWithoutScope.map(t => t.id)).toEqual([]);
+       |                                                         ^
+    161|     });
+    162| 
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/1]ΓÄ»
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 12 passed (13)
+   Start at  20:23:56
+   Duration  362ms
+
+ HTML  Report is generated
+       You can run npx vite preview --outDir test-results to see the test results.
+ FAIL  Tests failed. Watching for file changes...
+       press h to show help, press q to quit
+c[3J RERUN  src/config/settlementPhases.ts x22 
+        Filename pattern: tests/roadmap/scope_audit.test.ts
+
+ Γ£ô src/tests/roadmap/scope_audit.test.ts (13 tests) 8ms
+
+ Test Files  1 passed (1)
+      Tests  13 passed (13)
+   Start at  20:27:07
+   Duration  801ms
+
+ HTML  Report is generated
+       You can run npx vite preview --outDir test-results to see the test results.
+ PASS  Waiting for file changes...
+       press h to show help, press q to quit
