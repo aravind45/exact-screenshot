@@ -381,5 +381,5 @@ export function getValidatedStateRule(stateCode: string): StateRule {
  * Export all jurisdictions for display
  */
 export function getJurisdictionList(): Array<{ code: string; name: string }> {
-  return US_STATES;
+  return US_STATES.map(s => ({ code: s.abbr, name: s.name }));
 }
