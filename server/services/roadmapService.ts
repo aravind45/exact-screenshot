@@ -43,6 +43,9 @@ type AnalyzeEstateProfileEstate = {
   userSelectedEstateAuthorityType: string | null;
   estimatedPersonalProperty: unknown;
   estimatedRealProperty: unknown;
+  authorityType: string | null;
+  estateAuthorityType: string | null;
+  authorityPinnedAt: Date | null;
   heirs: Array<{ isAdult: boolean }>;
   assets: Array<{ value: unknown; todDeedRecorded: boolean; assetType: string }>;
   liabilities: Array<{ amount: unknown }>;
@@ -701,6 +704,9 @@ const fetchEstateWithRelations = async (estateId: string): Promise<AnalyzeEstate
         internationalReasons: true,
         hasPrimaryResidence: true,
         userSelectedEstateAuthorityType: true,
+        authorityType: true,
+        estateAuthorityType: true,
+        authorityPinnedAt: true,
         heirs: {
           select: {
             id: true,
@@ -769,6 +775,9 @@ const fetchEstateWithRelations = async (estateId: string): Promise<AnalyzeEstate
           : null,
       estimatedPersonalProperty: fallbackEstate.estimatedPersonalProperty ?? null,
       estimatedRealProperty: fallbackEstate.estimatedRealProperty ?? null,
+      authorityType: typeof fallbackEstate.authorityType === "string" ? fallbackEstate.authorityType : null,
+      estateAuthorityType: typeof (fallbackEstate as any).estateAuthorityType === "string" ? (fallbackEstate as any).estateAuthorityType : null,
+      authorityPinnedAt: fallbackEstate.authorityPinnedAt instanceof Date ? fallbackEstate.authorityPinnedAt : null,
       heirs: heirs.map(h => ({ isAdult: !!h.isAdult })),
       assets: assets.map(a => ({
         value: a.value,
