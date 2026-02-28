@@ -18,6 +18,8 @@ import { deriveEstateAuthorityType } from "../types/authorityScope.js";
 // Minimal task shape required for filtering — both PhaseTask and DB-mapped tasks conform
 export interface ScopedTask {
     id: string;
+    title?: string;
+    description?: string;
     scope?: string;
     authorityScope?: AuthorityScope;
     allowedStates?: string[];

@@ -115,7 +115,7 @@ export interface EstateProfile {
  */
 export interface DiagnosticTask {
   id: string;
-  title: string;
+  title?: string;
   description?: string;
   scope?: string;
   authorityScope?: AuthorityScope;
