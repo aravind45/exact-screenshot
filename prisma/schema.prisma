@@ -132,7 +132,17 @@ model Estate {
   authorityChangePending    Boolean              @default(false) @map("authority_change_pending")
   recommendedAuthorityType  String?              @map("recommended_authority_type")
   recommendedAuthorityReason Json?               @map("recommended_authority_reason")
-  
+
+  // Track Selection Onboarding
+  userSelectedEstateAuthorityType String?  @map("user_selected_estate_authority_type") // "PROBATE" | "TRUST" | "BOTH"
+  userSelectedAuthorityAt     DateTime? @map("user_selected_authority_at")
+  hasProbateAssets          Boolean?   @map("has_probate_assets") // User answer: has probate assets
+  hasTrustAssets            Boolean?   @map("has_trust_assets") // User answer: has trust assets
+  hasBeneficiaryAssets      Boolean?   @map("has_beneficiary_assets") // User answer: has POD/TOD/beneficiary assets
+  assistedDecisionAnswers    Json?      @map("assisted_decision_answers") // Store "help me decide" question answers
+  authorityConfidenceScore  Int?       @map("authority_confidence_score") // 0-100 confidence score
+  authorityDeterminationSource String?   @map("authority_determination_source") // "USER_SELECTION" | "ENGINE_HIGH_CONFIDENCE" | "ENGINE_LOW_CONFIDENCE" | "DEFAULT_FAIL_CLOSED"
+
   assets                    Asset[]
   authorityChangeEvents     AuthorityChangeEvent[]
   authorityDecisions        AuthorityDecision[]
