@@ -523,6 +523,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
     tasks: [
       {
         id: "validate_venue_authority",
+        authorityScope: "BOTH",
         scope: "CORE",
         title: "Validate Venue and Court Filing Authority",
         description: "Confirm the decedent's legal domicile and county residency to ensure the application is filed in the legally appropriate court.",
@@ -554,6 +555,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "screen_fiduciary_eligibility",
+        authorityScope: "BOTH",
         scope: "CORE",
         title: "Screen Fiduciary Eligibility",
         description: "Verify that the proposed executor or administrator meets all state-specific legal requirements to serve.",
@@ -619,6 +621,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "identify_protected_persons_and_representation",
+        authorityScope: "BOTH",
         scope: "CORE",
         title: "Identify Protected Persons representation",
         description: "Screen the interested party list for minors, incapacitated adults, or unknown heirs that require a court-appointed Guardian ad Litem (GAL).",
@@ -2795,7 +2798,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         authorityScope: "PROBATE",
         scope: "CORE",
         title: "Monitor Creditor Claim Period",
-        description: "Monitor the creditor claim period applicable in your state. The timing and trigger events vary by state. This task provides state-specific guidance for creditor claim monitoring.",
+        description: "Monitor the creditor claim period applicable in your state. The timing and trigger events are governed by state-specific statutes. See the guidance below for your state's claim period rules.",
         isLongHorizon: true,
         estimatedTime: "State-specific",
         stateOverrides: {
@@ -3227,7 +3230,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
           },
           NY: {
             title: "Complete Property Sale & Transfer",
-            description: "Finalize the sale of real estate. If court authorization was required, ensure Surrogate's Court approval is obtained before closing. NY does not use the CA Independent Administration of Estates Act (IAEA) process.",
+            description: "Finalize the sale of real estate. If court authorization was required, ensure Surrogate's Court approval is obtained before closing. New York does not use California-style independent administration procedures.",
             dependencies: [],
             alerts: [
               {
@@ -3240,7 +3243,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
               },
               {
                 type: "caution",
-                message: "CA-specific procedures (Notice of Proposed Action, IAEA, Petition to Confirm Sale) do NOT apply in New York."
+                message: "New York does not use California-style independent administration procedures. Court authorization may be required for property sales depending on the Will terms and fiduciary authority."
               }
             ]
           },
