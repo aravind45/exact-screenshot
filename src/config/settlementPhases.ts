@@ -202,6 +202,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "check_tod_recordation",
+        authorityScope: "BOTH",
         scope: "CORE",
         title: "Verify TOD Deed Recordation Date",
         description: "Statutory Rule: A TOD deed must be recorded before the owner's death to be legally valid. Confirm the 'Date Filed' on the deed.",
@@ -214,6 +215,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "check_tod_revocation",
+        authorityScope: "BOTH",
         scope: "CORE",
         title: "Confirm No Subsequent Revocation",
         description: "Check for any subsequently recorded 'Revocation of TOD Deed' or a newer TOD deed that might override the current one.",
@@ -224,6 +226,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "check_beneficiary_survival",
+        authorityScope: "BOTH",
         scope: "CORE",
         title: "Confirm Beneficiary Survival Status",
         description: "Verify the named TOD beneficiary survived the transferor. If the beneficiary predeceased, the TOD deed typically fails unless 'Anti-Lapse' rules apply.",
@@ -236,6 +239,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "check_joint_tenancy_override",
+        authorityScope: "BOTH",
         scope: "CORE",
         title: "Check for Joint Tenancy Override",
         description: "Verify the property was not held in Joint Tenancy at the time of death. In many states, Joint Tenancy survivorship overrides a TOD deed.",
@@ -246,6 +250,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "prepare_beneficiary_authority_packet",
+        authorityScope: "BOTH",
         scope: "CORE",
         title: "Establish Beneficiary Transfer Authority",
         description: "Instead of 'Letters Testamentary', the TOD beneficiary uses a 'Transfer Packet' to claim title.",
@@ -259,6 +264,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "escalate_to_probate_trigger",
+        authorityScope: "PROBATE",
         scope: "CORE",
         title: "PROBATE ESCALATION: Deed Issue Detected",
         description: "If any of the validation checks failed (unrecorded deed, predeceased beneficiary, joint tenancy conflict), you must pivot to a formal probate petition.",
@@ -273,6 +279,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "notify_ssa",
+        authorityScope: "BOTH",
         scope: "CORE",
         title: "Notify Social Security Administration",
         description: "Report the death to stop benefit payments and prevent overpayment recovery.",
@@ -293,6 +300,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "record_affidavit_of_death",
+        authorityScope: "BOTH",
         scope: "CORE",
         title: "Record Affidavit of Death (TOD)",
         description: "Prepare and record an Affidavit of Death of Transferor to formally transfer title to the TOD beneficiary.",
@@ -306,6 +314,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "notify_recorder_assessor",
+        authorityScope: "BOTH",
         scope: "CORE",
         title: "Notify County Recorder & Assessor",
         description: "Submit Change in Ownership Statement to the county to update tax records and prevent penalties.",
@@ -626,6 +635,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "prepare_required_notices_and_waivers",
+        authorityScope: "PROBATE",
         scope: "CORE",
         title: "Prepare Required Notices and Waivers",
         description: "Generate the formal notice plan to serve interested parties, or gather Signed Waivers and Consents to expedite the process.",
@@ -646,6 +656,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "request_temporary_authority",
+        authorityScope: "PROBATE",
         scope: "CORE",
         title: "Evaluate Need for Temporary Authority",
         description: "Determine if preliminary letters or special administration is necessary to protect assets or run a business while formal probate is pending.",
@@ -659,6 +670,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "calculate_filing_fees",
+        authorityScope: "PROBATE",
         scope: "CORE",
         title: "Calculate Court Filing Fees",
         description: "Determine the exact statutory filing fee based on the estimated gross value of the probate estate.",
@@ -679,6 +691,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "compile_required_form_pack",
+        authorityScope: "PROBATE",
         scope: "CORE",
         title: "Compile Required Court Form Packet",
         description: "Synthesize the official local forms and procedural filing notes required by your specific court into a ready-to-file package.",
@@ -703,6 +716,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "petition_guardian_ad_litem",
+        authorityScope: "PROBATE",
         scope: "CORE",
         title: "File Petition for Guardian Ad Litem",
         description: "Request court appointment of a guardian ad litem to represent minor beneficiaries' interests throughout probate.",
@@ -724,6 +738,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "obtain_guardian_order",
+        authorityScope: "PROBATE",
         scope: "CORE",
         title: "Obtain Guardian Ad Litem Order",
         description: "Receive court order appointing guardian ad litem. Provide guardian with all estate information.",
@@ -1910,6 +1925,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "give_spousal_notice",
+        authorityScope: "PROBATE",
         scope: "US-CA",
         title: "Give Notice of Hearing",
         description: "Notify all interested parties about the court hearing date for the petition.",
@@ -1928,6 +1944,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "obtain_spousal_order",
+        authorityScope: "PROBATE",
         scope: "US-CA",
         title: "Obtain Spousal Property Order",
         description: "Receive signed court order confirming property ownership transfer to spouse. Record with county recorder if real estate is involved.",
@@ -1946,6 +1963,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "issue_cert_trust",
+        authorityScope: "BOTH",
         scope: "CORE",
         title: "Issue Certificate of Trust",
         description: "Formalize successor trustee authority for trust-held assets.",
@@ -1957,6 +1975,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "manage_business_authority",
+        authorityScope: "BOTH",
         scope: "CORE",
         title: "Obtain Business Operating Authority",
         description: "If the decedent owned a business, you may need a court order to continue operations and pay employees.",
@@ -1970,6 +1989,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "file_succession_petition",
+        authorityScope: "PROBATE",
         scope: "CORE",
         allowedStates: ["CA", "MN"],
         title: "File Petition to Determine Succession to Real Property",
@@ -2010,6 +2030,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "give_succession_notice",
+        authorityScope: "PROBATE",
         scope: "CORE",
         allowedStates: ["CA", "MN"],
         title: "Give Notice of Hearing",
@@ -2051,6 +2072,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "obtain_succession_order",
+        authorityScope: "PROBATE",
         scope: "CORE",
         allowedStates: ["CA", "MN"],
         title: "Obtain Order Determining Succession to Real Property",
@@ -2096,6 +2118,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "track_special_notice_requests",
+        authorityScope: "PROBATE",
         scope: "CORE",
         title: "Track Special Notice Requests",
         description: "Maintain list of all parties who have requested special notice. You must serve them copies of ALL court filings.",
@@ -2116,6 +2139,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "serve_special_notice_parties",
+        authorityScope: "PROBATE",
         scope: "CORE",
         title: "Serve All Special Notice Recipients",
         description: "Each time you file a document with the court, serve copies by mail on all parties who requested special notice.",
@@ -2130,6 +2154,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "handle_bond_waivers",
+        authorityScope: "PROBATE",
         scope: "CORE",
         title: "Avoid Bond Cost",
         description: "Obtain signatures from all heirs to waive the bond requirement, then file the completed waiver with the court.",
@@ -2151,6 +2176,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "obtain_bond_waiver_order",
+        authorityScope: "PROBATE",
         scope: "CORE",
         title: "Obtain Order Waiving Bond",
         description: "Verify that the court has officially waived the bond requirement, typically reflected in a separate Order or the Order for Probate.",
@@ -2166,6 +2192,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "respond_to_objections",
+        authorityScope: "PROBATE",
         scope: "CORE",
         title: "Respond to Objections",
         description: "If someone files an objection to the petition or will, you must respond formally and prepare for contest hearing.",
@@ -2185,6 +2212,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "attend_contest_hearing",
+        authorityScope: "PROBATE",
         scope: "CORE",
         title: "Attend Will Contest Hearing",
         description: "Appear in court for hearing on objection. Be prepared to present evidence supporting will validity.",
@@ -2198,6 +2226,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "resolve_contest",
+        authorityScope: "PROBATE",
         scope: "CORE",
         title: "Resolve Will Contest",
         description: "Obtain court ruling on objection. If will is upheld, proceed with probate. If invalidated, estate becomes intestate. Contested probate can extend the timeline by 6-24 months.",
@@ -2221,6 +2250,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
     tasks: [
       {
         id: "check_unclaimed_property",
+        authorityScope: "BOTH",
         scope: "CORE",
         title: "Search State Unclaimed Property",
         description: "Check state databases for dormant accounts, uncashed checks, or forgotten insurance policies.",
@@ -2230,6 +2260,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "business_valuation",
+        authorityScope: "BOTH",
         scope: "CORE",
         title: "Hire Business Valuation Expert",
         description: "If the estate includes an ongoing business, a professional valuation is required for tax and distribution purposes.",
@@ -2238,6 +2269,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "freeze_accounts",
+        authorityScope: "BOTH",
         scope: "CORE",
         title: "Coordinate with Financial Institutions",
         description: "Provide notice of your fiduciary authority to banks, brokerages, and insurance companies to secure accounts.",
@@ -2253,6 +2285,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "get_dod_values",
+        authorityScope: "BOTH",
         scope: "CORE",
         title: "Obtain Date-of-Death Values",
         description: "Request official DOD statements from every financial institution.",
@@ -2267,6 +2300,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "hire_appraiser",
+        authorityScope: "BOTH",
         scope: "CORE",
         title: "Hire Probate Referee for Real Property",
         description: "Court-appointed appraiser must value real estate, business interests, and collectibles.",
@@ -2282,6 +2316,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "complete_inventory",
+        authorityScope: "BOTH",
         scope: "CORE",
         title: "Complete Inventory & Appraisal",
         description: "List ALL assets with DOD values and attach appraisal reports.",
@@ -2384,6 +2419,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       // International Mode - Tax
       {
         id: "tax_withholding_review",
+        authorityScope: "BOTH",
         scope: "CORE",
         title: "International Tax Withholding Review",
         description: "Identify beneficiary residency and citizenship to determine if 30% withholding applies.",
@@ -2398,6 +2434,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "coordinate_with_guardian",
+        authorityScope: "PROBATE",
         scope: "CORE",
         title: "Coordinate with Guardian Ad Litem",
         description: "Keep guardian informed of all estate actions. Obtain guardian's approval before major decisions affecting minors.",
@@ -2647,6 +2684,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "evaluate_solvency",
+        authorityScope: "BOTH",
         scope: "CORE",
         title: "Evaluate Estate Solvency",
         description: "Compare total estate assets to total liabilities, taxes, and administration/funeral expenses to determine whether the estate appears solvent or insolvent.",
@@ -2661,6 +2699,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "wait_claim_period",
+        authorityScope: "PROBATE",
         scope: "CORE",
         title: "Monitor State-Specific Creditor Exposure Period",
         description: "Monitor the creditor exposure timeline applicable in your state. The trigger event and timing vary by state and case type. Avoid final distributions until creditor risk is appropriately managed (often by holding reserves and documenting claim handling).",
@@ -2753,6 +2792,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "monitor_creditor_claim_period",
+        authorityScope: "PROBATE",
         scope: "CORE",
         title: "Monitor Creditor Claim Period",
         description: "Monitor the creditor claim period applicable in your state. The timing and trigger events vary by state. This task provides state-specific guidance for creditor claim monitoring.",
@@ -2880,6 +2920,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "tod_creditor_review",
+        authorityScope: "BOTH",
         scope: "CORE",
         title: "⚠️ Non-Probate Creditor Exposure Assessment",
         description: "Risk assessment: Evaluate whether creditors may pursue non-probate transfers (e.g., TOD/POD beneficiaries) when the probate estate is insufficient. This is not the standard probate claims workflow; it assesses potential statutory recovery mechanisms that vary by state.",
@@ -3039,6 +3080,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
     tasks: [
       {
         id: "minor_beneficiary_court_approval",
+        authorityScope: "PROBATE",
         scope: "CORE",
         title: "Obtain Court Approval for Minor Distributions",
         description: "Distributions to minors usually require a guardianship or court order to be placed in a blocked account.",
@@ -3055,6 +3097,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "present_letters",
+        authorityScope: "PROBATE",
         scope: "CORE",
         title: "Present Letters to All Institutions",
         description: "Submit certified Letters of Authority to every bank, brokerage, and insurance company.",
@@ -3069,6 +3112,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "transfer_accounts",
+        authorityScope: "BOTH",
         scope: "CORE",
         title: "Transfer Financial Accounts",
         description: "Move stocks, bonds, and cash to estate account or directly to beneficiaries.",
@@ -3104,6 +3148,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "wait_proposed_action_period",
+        authorityScope: "PROBATE",
         scope: "US-CA",
         title: "Wait for 15-Day Objection Period",
         description: "Mandatory waiting period after serving Notice of Proposed Action to allow heirs to respond or object.",
@@ -3139,6 +3184,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "obtain_sale_confirmation_order",
+        authorityScope: "PROBATE",
         scope: "US-CA",
         title: "Obtain Sale Confirmation Order",
         description: "Receive signed court order confirming the real estate sale and allowing the close of escrow.",
@@ -3154,6 +3200,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "sell_property",
+        authorityScope: "BOTH",
         scope: "CORE",
         title: "Complete Property Sale & Transfer",
         description: "If the estate owns real property and a sale is needed, confirm that the fiduciary has the appropriate legal authority in the target state. before signing a contract. Complete closing, deposit proceeds into the estate account, and retain all closing and tax documents.",
@@ -3249,6 +3296,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "issue_k1",
+        authorityScope: "BOTH",
         scope: "CORE",
         title: "Issue Schedule K-1 to Beneficiaries",
         description: "Provide beneficiaries with their share of income, deductions, and credits to report on their individual tax returns.",
@@ -3279,6 +3327,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "prepare_accounting",
+        authorityScope: "BOTH",
         scope: "CORE",
         title: "Prepare Final Accounting",
         description: "Document all income, expenses, and distributions for court review.",
@@ -3304,6 +3353,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
     tasks: [
       {
         id: "guardian_distribution_approval",
+        authorityScope: "PROBATE",
         scope: "CORE",
         title: "Obtain Guardian Approval for Distribution",
         description: "Present final distribution plan to guardian ad litem for review and approval before court hearing.",
@@ -3317,6 +3367,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "blocked_account_minors",
+        authorityScope: "PROBATE",
         scope: "CORE",
         title: "Setup Blocked Accounts for Minors",
         description: "Ensure funds for minor beneficiaries are placed in court-approved blocked accounts.",
@@ -3329,6 +3380,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "file_final_petition",
+        authorityScope: "PROBATE",
         scope: "CORE",
         title: "File Petition for Final Distribution",
         description: "Request court approval to distribute remaining assets to heirs.",
@@ -3351,6 +3403,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "attend_final_hearing",
+        authorityScope: "PROBATE",
         scope: "CORE",
         title: "Attend Final Hearing",
         description: "Appear in court for approval of final accounting and distribution.",
@@ -3365,6 +3418,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "distribute_assets",
+        authorityScope: "BOTH",
         scope: "CORE",
         title: "Distribute Assets to Heirs",
         description: "Transfer remaining assets according to Will and court order.",
@@ -3380,6 +3434,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "file_final_accounting",
+        authorityScope: "PROBATE",
         scope: "CORE",
         title: "File Final Accounting with Court",
         description: "Submit final report showing all transactions and distributions.",
@@ -3395,6 +3450,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       // International Mode - Distribution
       {
         id: "international_distribution_prep",
+        authorityScope: "BOTH",
         scope: "CORE",
         title: "Prepare International Distribution",
         description: "Collect exact beneficiary bank details, Swift codes, and pre-validate wire requirements.",
@@ -3620,6 +3676,7 @@ export const MODIFIER_PHASE_TASKS: PhaseTaskList[] = [
     tasks: [
       {
         id: "identify_out_of_state_assets",
+        authorityScope: "BOTH",
         scope: "CORE",
         title: "Identify Out-of-State Assets",
         description: "Verify all real property and titled assets located outside of the primary probate state.",
@@ -3628,6 +3685,7 @@ export const MODIFIER_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "confirm_ancillary_requirements",
+        authorityScope: "BOTH",
         scope: "CORE",
         title: "Confirm Ancillary Requirements",
         description: "Consult with a local attorney in the secondary state to determine if formal ancillary probate or a simplified affidavit is required.",
@@ -3636,6 +3694,7 @@ export const MODIFIER_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "ancillary_filing",
+        authorityScope: "PROBATE",
         scope: "CORE",
         title: "File Ancillary Probate",
         description: "File certified copies of the primary Letters and Will in the secondary state or court to obtain local authority.",
@@ -3654,6 +3713,7 @@ export const MODIFIER_PHASE_TASKS: PhaseTaskList[] = [
     tasks: [
       {
         id: "preserve_litigation_evidence",
+        authorityScope: "BOTH",
         scope: "CORE",
         title: "Preserve Evidence",
         description: "Secure original copies of the Will/Trust, key communications (emails, letters), and relevant financial records.",
@@ -3662,6 +3722,7 @@ export const MODIFIER_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "engage_litigation_counsel",
+        authorityScope: "BOTH",
         scope: "CORE",
         title: "Engage Probate Litigation Counsel",
         description: "Hire specialized litigation counsel to represent the estate's interests in the dispute.",
@@ -3670,6 +3731,7 @@ export const MODIFIER_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "mediation_strategy",
+        authorityScope: "BOTH",
         scope: "CORE",
         title: "Consider Mediation/Settlement Strategy",
         description: "Evaluate the costs and risks of litigation versus the benefits of a settlement agreement.",
@@ -3678,6 +3740,7 @@ export const MODIFIER_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "freeze_distributions_litigation",
+        authorityScope: "BOTH",
         scope: "CORE",
         title: "Freeze Distributions until Resolution",
         description: "Mandatory: Do not distribute any contested portions of the estate until a final court order or written settlement is reached.",
@@ -3695,6 +3758,7 @@ export const MODIFIER_PHASE_TASKS: PhaseTaskList[] = [
     tasks: [
       {
         id: "stop_insolvent_distributions",
+        authorityScope: "BOTH",
         scope: "CORE",
         title: "Stop All Distributions",
         description: "Cease all payments to beneficiaries until a final insolvency plan is approved by the court.",
@@ -3703,6 +3767,7 @@ export const MODIFIER_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "prioritize_claims_statutory",
+        authorityScope: "BOTH",
         scope: "CORE",
         title: "Prioritize Claims per Statutory Order",
         description: "Rank all known debts according to their legal priority (e.g., admin costs, funeral, taxes, then general creditors).",
@@ -3711,6 +3776,7 @@ export const MODIFIER_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "negotiate_insolvency_settlements",
+        authorityScope: "BOTH",
         scope: "CORE",
         title: "Negotiate Structured Payoffs",
         description: "Contact creditors to negotiate pro-rata payments or settlements based on available estate funds.",
@@ -3719,6 +3785,7 @@ export const MODIFIER_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "close_insolvent_accounting",
+        authorityScope: "BOTH",
         scope: "CORE",
         title: "Close with Insolvency Accounting",
         description: "Submit a final accounting to the court that explicitly documents the estate's insolvency and the pro-rata distribution to creditors.",
@@ -3819,6 +3886,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "file_irs_form_56",
+        authorityScope: "TRUST",
         scope: "CORE",
         title: "File IRS Form 56",
         description: "Formally notify the IRS of your fiduciary relationship as successor trustee. This ensures tax notices are sent to you directly.",
@@ -3832,6 +3900,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "secure_trust_property",
+        authorityScope: "TRUST",
         scope: "CORE",
         title: "Secure Trust Property",
         description: "Change locks on real property, forward mail, secure valuables, and ensure insurance coverage remains active.",
@@ -3900,6 +3969,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "handle_trust_copy_requests",
+        authorityScope: "TRUST",
         scope: "CORE",
         title: "Respond to Trust Copy Requests",
         description: "Beneficiaries have the right to request a copy of the trust. Respond within the timeframe specified by state law.",
@@ -3911,6 +3981,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "identify_minor_trust_beneficiaries",
+        authorityScope: "TRUST",
         scope: "CORE",
         title: "Flag Minor Beneficiaries",
         description: "Identify any beneficiaries under age 18. Distributions to minors require special handling.",
@@ -3972,6 +4043,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "obtain_dod_valuations",
+        authorityScope: "BOTH",
         scope: "CORE",
         title: "Obtain Date-of-Death Valuations",
         description: "Request statements and appraisals as of the date of death for tax basis and accounting purposes.",
@@ -3984,6 +4056,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "check_out_of_trust_assets",
+        authorityScope: "TRUST",
         scope: "CORE",
         title: "Identify Out-of-Trust Assets",
         description: "Review for assets that were never funded into the trust. For each: Does it have a POD/TOD? Is it joint tenancy? Or does it require probate?",
@@ -3995,6 +4068,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "probate_escalation_check",
+        authorityScope: "TRUST",
         scope: "CORE",
         title: "Probate Escalation Decision Point",
         description: "If solely-owned assets exist outside the trust with no beneficiary designation, determine if formal probate or small estate affidavit is needed.",
@@ -4010,6 +4084,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "notify_financial_institutions",
+        authorityScope: "BOTH",
         scope: "CORE",
         title: "Notify Financial Institutions",
         description: "Present your Certification of Trust and death certificate to banks, brokerages, and insurance companies.",
@@ -4046,6 +4121,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "pay_funeral_last_illness",
+        authorityScope: "BOTH",
         scope: "CORE",
         title: "Pay Funeral & Last Illness Expenses",
         description: "These are typically the first obligations to pay from trust assets.",
@@ -4058,6 +4134,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "pay_ongoing_expenses",
+        authorityScope: "BOTH",
         scope: "CORE",
         title: "Pay Ongoing Property Expenses",
         description: "Maintain trust property by paying mortgage, property taxes, insurance, and utilities from trust accounts.",
@@ -4069,6 +4146,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "evaluate_trust_solvency",
+        authorityScope: "TRUST",
         scope: "CORE",
         title: "Evaluate Trust Solvency",
         description: "Compare total trust assets against all known and potential liabilities to determine solvency status.",
@@ -4080,6 +4158,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "pay_trust_debts",
+        authorityScope: "TRUST",
         scope: "CORE",
         title: "Pay Valid Debts",
         description: "Pay legitimate debts from trust accounts according to trust terms and state priority rules.",
@@ -4101,6 +4180,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
     tasks: [
       {
         id: "file_final_1040",
+        authorityScope: "BOTH",
         scope: "CORE",
         title: "File Decedent's Final Form 1040",
         description: "File the decedent's final individual income tax return for the year of death.",
@@ -4113,6 +4193,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "determine_trust_tax_posture",
+        authorityScope: "TRUST",
         scope: "CORE",
         title: "Determine Post-Death Tax Posture",
         description: "A revocable trust becomes irrevocable at death. Determine whether it's now a grantor trust, complex trust, or simple trust for tax purposes.",
@@ -4139,6 +4220,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "evaluate_form_706",
+        authorityScope: "BOTH",
         scope: "CORE",
         title: "Evaluate Estate Tax Return Requirement",
         description: "Determine if Form 706 is required based on total estate value, including trust assets.",
@@ -4188,6 +4270,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
     tasks: [
       {
         id: "prepare_distribution_schedule",
+        authorityScope: "BOTH",
         scope: "CORE",
         title: "Prepare Distribution Schedule",
         description: "Calculate each beneficiary's share according to the trust terms. Document all calculations.",
@@ -4200,6 +4283,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "reserve_policy",
+        authorityScope: "BOTH",
         scope: "CORE",
         title: "Establish Reserve for Unknown Liabilities",
         description: "Hold back a reasonable reserve for potential taxes, unknown bills, or administrative costs before final distribution.",
@@ -4240,6 +4324,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "send_final_accounting",
+        authorityScope: "BOTH",
         scope: "CORE",
         title: "Send Final Accounting to Beneficiaries",
         description: "Provide each beneficiary with a complete accounting showing all transactions during the administration.",
@@ -4252,6 +4337,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "close_trust_accounts",
+        authorityScope: "TRUST",
         scope: "CORE",
         title: "Close Trust Bank Accounts",
         description: "After all distributions are complete, close the trust bank and brokerage accounts.",
