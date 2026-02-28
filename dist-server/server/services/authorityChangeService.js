@@ -22,7 +22,20 @@ import { SETTLEMENT_PHASE_TASKS } from "../../src/config/settlementPhases.js";
 export async function computeAuthorityRecommendation(estateId) {
     const estate = await prisma.estate.findUnique({
         where: { id: estateId },
-        include: {
+        select: {
+            id: true,
+            deceasedState: true,
+            authorityType: true,
+            estateAuthorityType: true,
+            authorityPinnedAt: true,
+            hasWill: true,
+            isTrustRevocable: true,
+            isOutOfState: true,
+            isSurvivingSpouse: true,
+            hasMinorBeneficiaries: true,
+            hasContest: true,
+            estimatedPersonalProperty: true,
+            estimatedRealProperty: true,
             heirs: true,
             assets: true,
             liabilities: true,
@@ -86,13 +99,13 @@ export async function computeAuthorityRecommendation(estateId) {
 export async function getRepinPreview(estateId) {
     const estate = await prisma.estate.findUnique({
         where: { id: estateId },
-        include: {
-            heirs: true,
-            assets: true,
-            liabilities: true,
+        select: {
+            deceasedState: true,
+            estateAuthorityType: true,
             taskCompletions: {
-                where: { completed: true }
-            }
+                where: { completed: true },
+                select: { taskId: true },
+            },
         },
     });
     if (!estate) {

@@ -17,6 +17,31 @@ import { deriveEstateAuthorityType, type EstateAuthorityType } from "../../src/t
 import { filterPhasesByAuthorityScope, filterPhasesByJurisdiction, type PhaseLike } from "../../src/shared/filterByJurisdiction.js";
 import { SETTLEMENT_PHASE_TASKS, type PhaseTask, type PhaseTaskList } from "../../src/config/settlementPhases.js";
 
+type AuthorityRecommendationEstate = {
+  id: string;
+  deceasedState: string | null;
+  authorityType: string | null;
+  estateAuthorityType: string | null;
+  authorityPinnedAt: Date | null;
+  hasWill: boolean;
+  isTrustRevocable: boolean | null;
+  isOutOfState: boolean;
+  isSurvivingSpouse: boolean;
+  hasMinorBeneficiaries: boolean;
+  hasContest: boolean;
+  estimatedPersonalProperty: unknown;
+  estimatedRealProperty: unknown;
+  heirs: Array<{ isAdult: boolean }>;
+  assets: any[];
+  liabilities: Array<{ amount: unknown }>;
+};
+
+type RepinPreviewEstate = {
+  deceasedState: string | null;
+  estateAuthorityType: string | null;
+  taskCompletions: Array<{ taskId: string }>;
+};
+
 export type AuthorityChangeSource = "ENGINE" | "MANUAL" | "REPIN" | "INITIAL_PIN";
 
 export interface AuthorityRecommendationResult {
@@ -57,12 +82,25 @@ export interface RepinPreviewResult {
 export async function computeAuthorityRecommendation(estateId: string): Promise<AuthorityRecommendationResult> {
   const estate = await prisma.estate.findUnique({
     where: { id: estateId },
-    include: {
+    select: {
+      id: true,
+      deceasedState: true,
+      authorityType: true,
+      estateAuthorityType: true,
+      authorityPinnedAt: true,
+      hasWill: true,
+      isTrustRevocable: true,
+      isOutOfState: true,
+      isSurvivingSpouse: true,
+      hasMinorBeneficiaries: true,
+      hasContest: true,
+      estimatedPersonalProperty: true,
+      estimatedRealProperty: true,
       heirs: true,
       assets: true,
       liabilities: true,
     },
-  });
+  }) as AuthorityRecommendationEstate | null;
 
   if (!estate) {
     throw new Error(`Estate ${estateId} not found`);
@@ -130,15 +168,15 @@ export async function computeAuthorityRecommendation(estateId: string): Promise<
 export async function getRepinPreview(estateId: string): Promise<RepinPreviewResult> {
   const estate = await prisma.estate.findUnique({
     where: { id: estateId },
-    include: {
-      heirs: true,
-      assets: true,
-      liabilities: true,
+    select: {
+      deceasedState: true,
+      estateAuthorityType: true,
       taskCompletions: {
-        where: { completed: true }
-      }
+        where: { completed: true },
+        select: { taskId: true },
+      },
     },
-  });
+  }) as RepinPreviewEstate | null;
 
   if (!estate) {
     throw new Error(`Estate ${estateId} not found`);

@@ -25,6 +25,27 @@ export interface EffectiveAuthorityResult {
   confidenceSignals?: any;
 }
 
+type AnalyzeEstateProfileEstate = {
+  id: string;
+  deceasedState: string | null;
+  hasWill: boolean;
+  hasMinorBeneficiaries: boolean;
+  hasContest: boolean;
+  hasPrimaryResidence: boolean;
+  hasUnknownHeirs: boolean;
+  internationalReasons: string[];
+  isTrustRevocable: boolean | null;
+  isOutOfState: boolean;
+  isSurvivingSpouse: boolean;
+  hasTODDeed: boolean;
+  userSelectedEstateAuthorityType: string | null;
+  estimatedPersonalProperty: unknown;
+  estimatedRealProperty: unknown;
+  heirs: Array<{ isAdult: boolean }>;
+  assets: Array<{ value: unknown; todDeedRecorded: boolean; assetType: string }>;
+  liabilities: Array<{ amount: unknown }>;
+};
+
 // ─────────────────────────────────────────────────────────────────────────────
 // DEFENSIVE PROGRAMMING: Migration Compatibility
 // ─────────────────────────────────────────────────────────────────────────────
@@ -657,12 +678,37 @@ export async function analyzeEstateProfile(estateId: string): Promise<EstateProf
   // Fetch estate with related data - defensive query to handle missing columns
   const estate = await db.estate.findUnique({
     where: { id: estateId },
-    include: {
-      heirs: true,
-      assets: true,
-      liabilities: true,
+    select: {
+      id: true,
+      deceasedState: true,
+      hasWill: true,
+      hasMinorBeneficiaries: true,
+      hasContest: true,
+      hasPrimaryResidence: true,
+      hasUnknownHeirs: true,
+      internationalReasons: true,
+      isTrustRevocable: true,
+      isOutOfState: true,
+      isSurvivingSpouse: true,
+      hasTODDeed: true,
+      userSelectedEstateAuthorityType: true,
+      estimatedPersonalProperty: true,
+      estimatedRealProperty: true,
+      heirs: {
+        select: { isAdult: true }
+      },
+      assets: {
+        select: {
+          value: true,
+          todDeedRecorded: true,
+          assetType: true,
+        }
+      },
+      liabilities: {
+        select: { amount: true }
+      },
     },
-  });
+  }) as AnalyzeEstateProfileEstate | null;
 
   if (!estate) {
     throw new Error(`Estate ${estateId} not found`);
@@ -695,13 +741,13 @@ export async function analyzeEstateProfile(estateId: string): Promise<EstateProf
   const rec = calculateAuthorityRecommendation(estate.assets, estate.deceasedState, {
     hasWill: estate.hasWill,
     // isTrustRevocable: schema field (nullable Boolean). undefined = no trust / not known.
-    isTrustRevocable: (estate as any).isTrustRevocable ?? undefined,
-    isOutOfState: (estate as any).isOutOfState ?? false,
+    isTrustRevocable: estate.isTrustRevocable ?? undefined,
+    isOutOfState: estate.isOutOfState ?? false,
     // isSurvivingSpouse: used for spousal petition routing
-    isSpouse: (estate as any).isSurvivingSpouse ?? false,
+    isSpouse: estate.isSurvivingSpouse ?? false,
     hasMinors: estate.hasMinorBeneficiaries || estate.heirs.some(h => !h.isAdult),
     hasContest: estate.hasContest,
-    hasTODDeed: (estate as any).hasTODDeed ?? estate.assets.some((a: any) => a.todDeedRecorded),
+    hasTODDeed: estate.hasTODDeed ?? estate.assets.some(a => a.todDeedRecorded),
     // Pass pre-calculated insolvency risk so the engine sets type=INSOLVENT_ESTATE correctly
     hasInsolvencyRisk,
     // Pass registration-time estimate so engine can pick a procedure even with 0 assets
