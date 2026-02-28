@@ -119,7 +119,28 @@ const fetchEstateWithRelations = async (estateId: string, includeTaskCompletions
  * This is a read-only operation that returns what the authority would be
  */
 export async function computeAuthorityRecommendation(estateId: string): Promise<AuthorityRecommendationResult> {
-  const estate = await fetchEstateWithRelations(estateId);
+  const estate = await prisma.estate.findUnique({
+    where: { id: estateId },
+    select: {
+      id: true,
+      deceasedState: true,
+      authorityType: true,
+      estateAuthorityType: true,
+      hasWill: true,
+      estimatedPersonalProperty: true,
+      estimatedRealProperty: true,
+      hasMinorBeneficiaries: true,
+      hasContest: true,
+      authorityPinnedAt: true,
+      isTrustRevocable: true,
+      isOutOfState: true,
+      isSurvivingSpouse: true,
+      hasTODDeed: true,
+      heirs: true,
+      assets: true,
+      liabilities: true,
+    },
+  });
 
   if (!estate) {
     throw new Error(`Estate ${estateId} not found`);
@@ -185,7 +206,31 @@ export async function computeAuthorityRecommendation(estateId: string): Promise<
  * Generate a preview of what would change if we repinned
  */
 export async function getRepinPreview(estateId: string): Promise<RepinPreviewResult> {
-  const estate = await fetchEstateWithRelations(estateId, true);
+  const estate = await prisma.estate.findUnique({
+    where: { id: estateId },
+    select: {
+      id: true,
+      deceasedState: true,
+      authorityType: true,
+      estateAuthorityType: true,
+      hasWill: true,
+      estimatedPersonalProperty: true,
+      estimatedRealProperty: true,
+      hasMinorBeneficiaries: true,
+      hasContest: true,
+      authorityPinnedAt: true,
+      isTrustRevocable: true,
+      isOutOfState: true,
+      isSurvivingSpouse: true,
+      hasTODDeed: true,
+      heirs: true,
+      assets: true,
+      liabilities: true,
+      taskCompletions: {
+        where: { completed: true }
+      }
+    },
+  });
 
   if (!estate) {
     throw new Error(`Estate ${estateId} not found`);
