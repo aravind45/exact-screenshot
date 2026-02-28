@@ -11,6 +11,8 @@ import { z } from "zod";
 import { logger } from "../lib/logger.js";
 import { requireSubscription } from "../middleware/subscription.js";
 import { authenticate } from "../middleware/auth.js";
+import { fetchEstateRowForUser } from "../utils/estateFallback.js";
+import { getPrismaErrorDetails, isMissingColumnError } from "../utils/prismaErrors.js";
 
 
 const estateUpdateSchema = z.object({
