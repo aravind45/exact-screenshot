@@ -56,7 +56,21 @@ const fetchEstateWithRelations = async (estateId: string, includeTaskCompletions
   try {
     return await prisma.estate.findUnique({
       where: { id: estateId },
-      include: {
+      select: {
+        id: true,
+        deceasedState: true,
+        estimatedPersonalProperty: true,
+        estimatedRealProperty: true,
+        hasWill: true,
+        hasMinorBeneficiaries: true,
+        hasContest: true,
+        authorityType: true,
+        estateAuthorityType: true,
+        authorityPinnedAt: true,
+        isTrustRevocable: true,
+        isOutOfState: true,
+        isSurvivingSpouse: true,
+        hasTODDeed: true,
         heirs: true,
         assets: true,
         liabilities: true,
@@ -127,12 +141,12 @@ export async function computeAuthorityRecommendation(estateId: string): Promise<
 
   const rec = calculateAuthorityRecommendation(estate.assets, estate.deceasedState, {
     hasWill: estate.hasWill,
-    isTrustRevocable: (estate as any).isTrustRevocable ?? undefined,
-    isOutOfState: (estate as any).isOutOfState ?? false,
-    isSpouse: (estate as any).isSurvivingSpouse ?? false,
+    isTrustRevocable: estate.isTrustRevocable ?? undefined,
+    isOutOfState: estate.isOutOfState ?? false,
+    isSpouse: estate.isSurvivingSpouse ?? false,
     hasMinors: estate.hasMinorBeneficiaries || estate.heirs.some(h => !h.isAdult),
     hasContest: estate.hasContest,
-    hasTODDeed: (estate as any).hasTODDeed ?? estate.assets.some((a: any) => a.todDeedRecorded),
+    hasTODDeed: estate.hasTODDeed ?? estate.assets.some((a: any) => a.todDeedRecorded),
     hasInsolvencyRisk,
     estimatedValue: registrationEstimate > 0 ? registrationEstimate : undefined
   });
