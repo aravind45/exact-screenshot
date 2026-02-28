@@ -3,12 +3,12 @@
 
 -- Create function to update updated_at timestamp (idempotent)
 CREATE OR REPLACE FUNCTION public.update_updated_at_column()
-RETURNS TRIGGER AS $
+RETURNS TRIGGER AS $$
 BEGIN
   NEW.updated_at = now();
   RETURN NEW;
 END;
-$ LANGUAGE plpgsql SET search_path = public;
+$$ LANGUAGE plpgsql;
 
 -- Create county_overrides table (idempotent)
 CREATE TABLE IF NOT EXISTS public.county_overrides (
@@ -41,17 +41,17 @@ CREATE INDEX IF NOT EXISTS idx_county_overrides_state_county ON public.county_ov
 CREATE INDEX IF NOT EXISTS idx_county_overrides_task ON public.county_overrides(task_id);
 
 -- Create trigger to update updated_at timestamp (idempotent)
-DO $ 
+DO $$
 BEGIN
   IF NOT EXISTS (
-    SELECT 1 FROM information_schema.triggers 
+    SELECT 1 FROM information_schema.triggers
     WHERE trigger_name = 'update_county_overrides_updated_at'
   ) THEN
     CREATE TRIGGER update_county_overrides_updated_at
       BEFORE UPDATE ON public.county_overrides
       FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
   END IF;
-END $;
+END $$;
 
 -- Add comment (idempotent)
-COMMENT ON TABLE IF EXISTS public.county_overrides IS 'County-specific overrides for roadmap tasks. Allows customization of task titles, descriptions, fees, forms, and attachments at the county level.';
+COMMENT ON TABLE public.county_overrides IS 'County-specific overrides for roadmap tasks. Allows customization of task titles, descriptions, fees, forms, and attachments at the county level.';

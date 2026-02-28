@@ -5,6 +5,8 @@ import { calculateAuthorityRecommendation } from "../../src/lib/authorityEngine.
 import { AuthoritySource, ProcedureType, DistributionModel, getLettersTerm, getStateRule } from "../../src/lib/stateRules.js";
 import { logger } from "../lib/logger.js";
 import { CountyOverrideService } from "./countyOverrideService.js";
+import { fetchEstateRowById } from "../utils/estateFallback.js";
+import { getPrismaErrorDetails, isMissingColumnError } from "../utils/prismaErrors.js";
 import { filterPhasesByJurisdiction, filterPhasesByAuthorityScope, filterTasksByAuthorityScope, type PhaseLike } from "../../src/shared/filterByJurisdiction.js";
 import { deriveEstateAuthorityType, type EstateAuthorityType } from "../../src/types/authorityScope.js";
 import {
@@ -671,44 +673,111 @@ async function getJurisdictionRule(stateCode: string): Promise<any> {
   return STATE_RULES[stateCode] || STATE_RULES["CA"];
 }
 
+const fetchEstateWithRelations = async (estateId: string): Promise<AnalyzeEstateProfileEstate | null> => {
+  try {
+    return await db.estate.findUnique({
+      where: { id: estateId },
+      select: {
+        id: true,
+        deceasedState: true,
+        hasWill: true,
+        hasMinorBeneficiaries: true,
+        hasContest: true,
+        isTrustRevocable: true,
+        isOutOfState: true,
+        isSurvivingSpouse: true,
+        hasTODDeed: true,
+        estimatedPersonalProperty: true,
+        estimatedRealProperty: true,
+        hasUnknownHeirs: true,
+        internationalReasons: true,
+        hasPrimaryResidence: true,
+        userSelectedEstateAuthorityType: true,
+        heirs: {
+          select: {
+            id: true,
+            name: true,
+            relationship: true,
+            isAdult: true,
+            address: true,
+            email: true,
+            phone: true,
+          },
+        },
+        assets: {
+          select: {
+            id: true,
+            assetType: true,
+            value: true,
+            todDeedRecorded: true,
+          },
+        },
+        liabilities: {
+          select: {
+            id: true,
+            amount: true,
+          },
+        },
+      },
+    }) as AnalyzeEstateProfileEstate | null;
+  } catch (error) {
+    if (!isMissingColumnError(error)) {
+      throw error;
+    }
+
+    logger.warn({
+      estateId,
+      message: error instanceof Error ? error.message : String(error),
+      ...getPrismaErrorDetails(error)
+    }, "Estate profile query failed due to missing columns. Using fallback estate fetch.");
+
+    const fallbackEstate = await fetchEstateRowById(db, estateId);
+    if (!fallbackEstate) return null;
+
+    const [heirs, assets, liabilities] = await Promise.all([
+      db.heir.findMany({ where: { estateId } }),
+      db.asset.findMany({ where: { estateId } }),
+      db.liability.findMany({ where: { estateId } })
+    ]);
+
+    return {
+      id: typeof fallbackEstate.id === "string" ? fallbackEstate.id : estateId,
+      deceasedState: typeof fallbackEstate.deceasedState === "string" ? fallbackEstate.deceasedState : null,
+      hasWill: typeof fallbackEstate.hasWill === "boolean" ? fallbackEstate.hasWill : false,
+      hasMinorBeneficiaries: typeof fallbackEstate.hasMinorBeneficiaries === "boolean" ? fallbackEstate.hasMinorBeneficiaries : false,
+      hasContest: typeof fallbackEstate.hasContest === "boolean" ? fallbackEstate.hasContest : false,
+      hasPrimaryResidence: typeof fallbackEstate.hasPrimaryResidence === "boolean" ? fallbackEstate.hasPrimaryResidence : false,
+      hasUnknownHeirs: typeof fallbackEstate.hasUnknownHeirs === "boolean" ? fallbackEstate.hasUnknownHeirs : false,
+      internationalReasons: Array.isArray(fallbackEstate.internationalReasons)
+        ? (fallbackEstate.internationalReasons as string[])
+        : [],
+      isTrustRevocable: typeof fallbackEstate.isTrustRevocable === "boolean" ? fallbackEstate.isTrustRevocable : null,
+      isOutOfState: typeof fallbackEstate.isOutOfState === "boolean" ? fallbackEstate.isOutOfState : false,
+      isSurvivingSpouse: typeof fallbackEstate.isSurvivingSpouse === "boolean" ? fallbackEstate.isSurvivingSpouse : false,
+      hasTODDeed: typeof fallbackEstate.hasTODDeed === "boolean" ? fallbackEstate.hasTODDeed : false,
+      userSelectedEstateAuthorityType:
+        typeof fallbackEstate.userSelectedEstateAuthorityType === "string"
+          ? fallbackEstate.userSelectedEstateAuthorityType
+          : null,
+      estimatedPersonalProperty: fallbackEstate.estimatedPersonalProperty ?? null,
+      estimatedRealProperty: fallbackEstate.estimatedRealProperty ?? null,
+      heirs: heirs.map(h => ({ isAdult: !!h.isAdult })),
+      assets: assets.map(a => ({
+        value: a.value,
+        todDeedRecorded: !!a.todDeedRecorded,
+        assetType: a.assetType ?? "",
+      })),
+      liabilities: liabilities.map(l => ({ amount: l.amount })),
+    };
+  }
+};
+
 /**
  * Analyze estate to determine which optional tasks should be shown
  */
 export async function analyzeEstateProfile(estateId: string): Promise<EstateProfile> {
   // Fetch estate with related data - defensive query to handle missing columns
-  const estate = await db.estate.findUnique({
-    where: { id: estateId },
-    select: {
-      id: true,
-      deceasedState: true,
-      hasWill: true,
-      hasMinorBeneficiaries: true,
-      hasContest: true,
-      hasPrimaryResidence: true,
-      hasUnknownHeirs: true,
-      internationalReasons: true,
-      isTrustRevocable: true,
-      isOutOfState: true,
-      isSurvivingSpouse: true,
-      hasTODDeed: true,
-      userSelectedEstateAuthorityType: true,
-      estimatedPersonalProperty: true,
-      estimatedRealProperty: true,
-      heirs: {
-        select: { isAdult: true }
-      },
-      assets: {
-        select: {
-          value: true,
-          todDeedRecorded: true,
-          assetType: true,
-        }
-      },
-      liabilities: {
-        select: { amount: true }
-      },
-    },
-  }) as AnalyzeEstateProfileEstate | null;
+  const estate = await fetchEstateWithRelations(estateId);
 
   if (!estate) {
     throw new Error(`Estate ${estateId} not found`);
@@ -1023,17 +1092,43 @@ export async function getRoadmapFromDatabase(
   completedTaskIds: string[]
 ): Promise<PhaseTaskList[]> {
   // Get estate to determine settlement type and version pinning
-  const estate = await db.estate.findUnique({
-    where: { id: estateId },
-    select: {
-      estateType: true,
-      settlementPath: true,
-      roadmapVersion: true,
-      roadmapPinnedAt: true,
-      probateCounty: true,
-      countyOverrideHash: true
-    },
-  });
+  let estate: any = null;
+
+  try {
+    estate = await db.estate.findUnique({
+      where: { id: estateId },
+      select: {
+        estateType: true,
+        settlementPath: true,
+        roadmapVersion: true,
+        roadmapPinnedAt: true,
+        probateCounty: true,
+        countyOverrideHash: true
+      },
+    });
+  } catch (error) {
+    if (!isMissingColumnError(error)) {
+      throw error;
+    }
+
+    logger.warn({
+      estateId,
+      message: error instanceof Error ? error.message : String(error),
+      ...getPrismaErrorDetails(error)
+    }, "Roadmap metadata query failed due to missing columns. Using fallback estate data.");
+
+    const fallbackEstate = await fetchEstateRowById(db, estateId);
+    estate = fallbackEstate
+      ? {
+        estateType: fallbackEstate.estateType ?? null,
+        settlementPath: fallbackEstate.settlementPath ?? null,
+        roadmapVersion: fallbackEstate.roadmapVersion ?? null,
+        roadmapPinnedAt: fallbackEstate.roadmapPinnedAt ?? null,
+        probateCounty: fallbackEstate.probateCounty ?? null,
+        countyOverrideHash: fallbackEstate.countyOverrideHash ?? null
+      }
+      : null;
+  }
 
   if (!estate) throw new Error(`Estate ${estateId} not found`);
 
@@ -1260,17 +1355,43 @@ export async function getEstateRoadmap(estateId: string): Promise<RoadmapRespons
   validateNoStateContamination(filteredPhases, profile.state);
 
   // Get estate for version info and authority status
-  const estate = await db.estate.findUnique({
-    where: { id: estateId },
-    select: { 
-      roadmapVersion: true, 
-      roadmapPinnedAt: true,
-      authorityPinnedAt: true,
-      authorityChangePending: true,
-      recommendedAuthorityType: true,
-      recommendedAuthorityReason: true,
+  let estate: any = null;
+
+  try {
+    estate = await db.estate.findUnique({
+      where: { id: estateId },
+      select: { 
+        roadmapVersion: true, 
+        roadmapPinnedAt: true,
+        authorityPinnedAt: true,
+        authorityChangePending: true,
+        recommendedAuthorityType: true,
+        recommendedAuthorityReason: true,
+      }
+    });
+  } catch (error) {
+    if (!isMissingColumnError(error)) {
+      throw error;
     }
-  });
+
+    logger.warn({
+      estateId,
+      message: error instanceof Error ? error.message : String(error),
+      ...getPrismaErrorDetails(error)
+    }, "Estate roadmap metadata query failed due to missing columns. Using fallback values.");
+
+    const fallbackEstate = await fetchEstateRowById(db, estateId);
+    estate = fallbackEstate
+      ? {
+        roadmapVersion: fallbackEstate.roadmapVersion ?? null,
+        roadmapPinnedAt: fallbackEstate.roadmapPinnedAt ?? null,
+        authorityPinnedAt: fallbackEstate.authorityPinnedAt ?? null,
+        authorityChangePending: fallbackEstate.authorityChangePending ?? null,
+        recommendedAuthorityType: fallbackEstate.recommendedAuthorityType ?? null,
+        recommendedAuthorityReason: fallbackEstate.recommendedAuthorityReason ?? null
+      }
+      : null;
+  }
 
   // Check if authority change is pending (if estate is pinned)
   let authorityChangePending = estate?.authorityChangePending ?? false;
@@ -1449,11 +1570,17 @@ export async function repinEstateRoadmap(
 ): Promise<{ success: boolean; version: string; pinnedAt: Date }> {
   const estate = await db.estate.findUnique({
     where: { id: estateId },
-    include: {
+    select: {
+      id: true,
       taskCompletions: {
-        where: { completed: true }
-      }
-    }
+        where: { completed: true },
+        select: {
+          id: true,
+          taskId: true,
+          completed: true,
+        },
+      },
+    },
   });
 
   if (!estate) throw new Error(`Estate ${estateId} not found`);

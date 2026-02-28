@@ -11,10 +11,71 @@
  */
 import { prisma } from "../db.js";
 import { logger } from "../lib/logger.js";
+import { fetchEstateRowById } from "../utils/estateFallback.js";
+import { getPrismaErrorDetails, isMissingColumnError } from "../utils/prismaErrors.js";
 import { calculateAuthorityRecommendation } from "../../src/lib/authorityEngine.js";
 import { deriveEstateAuthorityType } from "../../src/types/authorityScope.js";
 import { filterPhasesByAuthorityScope, filterPhasesByJurisdiction } from "../../src/shared/filterByJurisdiction.js";
 import { SETTLEMENT_PHASE_TASKS } from "../../src/config/settlementPhases.js";
+const fetchEstateWithRelations = async (estateId, includeTaskCompletions = false) => {
+    try {
+        return await prisma.estate.findUnique({
+            where: { id: estateId },
+            select: {
+                id: true,
+                deceasedState: true,
+                estimatedPersonalProperty: true,
+                estimatedRealProperty: true,
+                hasWill: true,
+                hasMinorBeneficiaries: true,
+                hasContest: true,
+                authorityType: true,
+                estateAuthorityType: true,
+                authorityPinnedAt: true,
+                isTrustRevocable: true,
+                isOutOfState: true,
+                isSurvivingSpouse: true,
+                hasTODDeed: true,
+                heirs: true,
+                assets: true,
+                liabilities: true,
+                ...(includeTaskCompletions && {
+                    taskCompletions: {
+                        where: { completed: true }
+                    }
+                })
+            },
+        });
+    }
+    catch (error) {
+        if (!isMissingColumnError(error)) {
+            throw error;
+        }
+        logger.warn({
+            estateId,
+            message: error instanceof Error ? error.message : String(error),
+            ...getPrismaErrorDetails(error)
+        }, "Authority change query failed due to missing columns. Using fallback estate fetch.");
+        const fallbackEstate = await fetchEstateRowById(prisma, estateId);
+        if (!fallbackEstate)
+            return null;
+        const [heirs, assets, liabilities, taskCompletions] = await Promise.all([
+            prisma.heir.findMany({ where: { estateId } }),
+            prisma.asset.findMany({ where: { estateId } }),
+            prisma.liability.findMany({ where: { estateId } }),
+            includeTaskCompletions
+                ? prisma.taskCompletion.findMany({ where: { estateId, completed: true } })
+                : Promise.resolve([])
+        ]);
+        return {
+            ...fallbackEstate,
+            heirs,
+            assets,
+            liabilities,
+            ...(includeTaskCompletions ? { taskCompletions } : {})
+        };
+    }
+};
 /**
  * Compute authority recommendation without mutating estate
  * This is a read-only operation that returns what the authority would be
@@ -36,6 +97,7 @@ export async function computeAuthorityRecommendation(estateId) {
             hasContest: true,
             estimatedPersonalProperty: true,
             estimatedRealProperty: true,
+            hasTODDeed: true,
             heirs: true,
             assets: true,
             liabilities: true,
