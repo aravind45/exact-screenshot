@@ -655,14 +655,28 @@ async function getJurisdictionRule(stateCode: string): Promise<any> {
  */
 export async function analyzeEstateProfile(estateId: string): Promise<EstateProfile> {
   // Fetch estate with related data - defensive query to handle missing columns
-  const estate = await db.estate.findUnique({
-    where: { id: estateId },
-    include: {
-      heirs: true,
-      assets: true,
-      liabilities: true,
-    },
-  });
+  let estate;
+  try {
+    estate = await db.estate.findUnique({
+      where: { id: estateId },
+      include: {
+        heirs: true,
+        assets: true,
+        liabilities: true,
+      },
+    });
+  } catch (error: any) {
+    const errorMessage = error.message || '';
+    if (errorMessage.includes('column') && (errorMessage.includes('does not exist') || errorMessage.includes('Unknown column'))) {
+      logger.error({
+        estateId,
+        error: errorMessage
+      }, "CRITICAL: Database schema mismatch in analyzeEstateProfile - missing column");
+      // Return a minimal profile that allows the app to function
+      throw new Error("SCHEMA_MIGRATION_REQUIRED");
+    }
+    throw error;
+  }
 
   if (!estate) {
     throw new Error(`Estate ${estateId} not found`);
@@ -1202,7 +1216,17 @@ export async function getRoadmapFromDatabase(
  */
 export async function getEstateRoadmap(estateId: string): Promise<RoadmapResponse> {
   // Analyze estate profile
-  const profile = await analyzeEstateProfile(estateId);
+  let profile;
+  try {
+    profile = await analyzeEstateProfile(estateId);
+  } catch (error: any) {
+    if (error.message === 'SCHEMA_MIGRATION_REQUIRED') {
+      logger.error({ estateId }, "Cannot generate roadmap - schema migration required");
+      // Return a minimal response that indicates migration is needed
+      throw new Error("SCHEMA_MIGRATION_REQUIRED");
+    }
+    throw error;
+  }
 
   // Get current progress
   const { completedTaskIds } = await getTaskCompletions(estateId);
@@ -1214,17 +1238,28 @@ export async function getEstateRoadmap(estateId: string): Promise<RoadmapRespons
   validateNoStateContamination(filteredPhases, profile.state);
 
   // Get estate for version info and authority status
-  const estate = await db.estate.findUnique({
-    where: { id: estateId },
-    select: { 
-      roadmapVersion: true, 
-      roadmapPinnedAt: true,
-      authorityPinnedAt: true,
-      authorityChangePending: true,
-      recommendedAuthorityType: true,
-      recommendedAuthorityReason: true,
+  let estate;
+  try {
+    estate = await db.estate.findUnique({
+      where: { id: estateId },
+      select: { 
+        roadmapVersion: true, 
+        roadmapPinnedAt: true,
+        authorityPinnedAt: true,
+        authorityChangePending: true,
+        recommendedAuthorityType: true,
+        recommendedAuthorityReason: true,
+      }
+    });
+  } catch (error: any) {
+    const errorMessage = error.message || '';
+    if (errorMessage.includes('column') && (errorMessage.includes('does not exist') || errorMessage.includes('Unknown column'))) {
+      logger.warn({ estateId, error: errorMessage }, "Missing columns when fetching estate for roadmap - using defaults");
+      estate = null;
+    } else {
+      throw error;
     }
-  });
+  }
 
   // Check if authority change is pending (if estate is pinned)
   let authorityChangePending = estate?.authorityChangePending ?? false;
