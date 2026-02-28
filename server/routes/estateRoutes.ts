@@ -314,7 +314,7 @@ router.put("/my/roadmap", requireSubscription, async (req: any, res: Response) =
             roadmapProgress: {
                 completedTaskIds,
                 completedPhases
-            }
+            } as Prisma.InputJsonValue
         };
 
         // Sync high-level status if it's a phase completion
