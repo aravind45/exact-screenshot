@@ -20,12 +20,12 @@ const SYSTEMS: Record<string, StatePrioritySystem> = {
 };
 
 export class PriorityFactory {
-    static getSystem(state: string): StatePrioritySystem {
-        // Use mapping, or fallback to UPC (most generic) then CA
-        return SYSTEMS[state] || UPCPrioritySystem || CaliforniaPrioritySystem;
+    static getSystem(state: string | null | undefined): StatePrioritySystem {
+        const normalized = typeof state === "string" ? state.trim().toUpperCase() : "";
+        return SYSTEMS[normalized] || UPCPrioritySystem;
     }
 
-    static getAllRules(state: string) {
+    static getAllRules(state: string | null | undefined) {
         return this.getSystem(state).rules;
     }
 }
