@@ -1,36 +1,16 @@
 import { prisma } from "./server/db.js";
-import crypto from 'crypto';
 
 async function test() {
     try {
-        console.log("Testing prisma.ragChunk.create...");
+        console.log("Testing prisma.diagnosticRun.count...");
+        // @ts-ignore - checking if it exists at runtime
+        const runCount = await prisma.diagnosticRun.count();
+        console.log("Success! DiagnosticRun count:", runCount);
 
-        // Ensure a document exists to link to
-        let doc = await prisma.ragDocument.findFirst();
-        if (!doc) {
-            console.log("Creating dummy document...");
-            doc = await prisma.ragDocument.create({
-                data: {
-                    title: "Test Doc",
-                    docType: 'OTHER'
-                }
-            });
-        }
-
-        console.log("Creating chunk...");
-        const chunk = await prisma.ragChunk.create({
-            data: {
-                documentId: doc.id,
-                text: "Test text",
-                tokenCount: 1,
-                contentHash: crypto.randomUUID(),
-            }
-        });
-        console.log("Success! Chunk ID:", chunk.id);
-
-        // Clean up
-        await prisma.ragChunk.delete({ where: { id: chunk.id } });
-        console.log("Cleaned up.");
+        console.log("Testing prisma.countyOverride.count...");
+        // @ts-ignore - checking if it exists at runtime
+        const overrideCount = await prisma.countyOverride.count();
+        console.log("Success! CountyOverride count:", overrideCount);
     } catch (error) {
         console.error("FAILED:", error);
     } finally {
