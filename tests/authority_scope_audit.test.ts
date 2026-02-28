@@ -32,8 +32,27 @@ describe('AuthorityScope Filtering', () => {
       expect(deriveEstateAuthorityType(['TRUST', 'PROBATE', 'AFFIDAVIT'])).toBe('BOTH');
     });
 
-    it('should return BOTH as fallback for empty engines', () => {
-      expect(deriveEstateAuthorityType([])).toBe('BOTH');
+    it('should return PROBATE as fail-closed fallback for empty engines', () => {
+      expect(deriveEstateAuthorityType([])).toBe('PROBATE');
+    });
+
+    it('should return PROBATE when isTrustRevocable is false without trust assets', () => {
+      // isTrustRevocable=false should NOT activate TRUST engine
+      // This ensures estates with explicit "no revocable trust" don't get BOTH authority
+      const engines = ['PROBATE'];
+      expect(deriveEstateAuthorityType(engines)).toBe('PROBATE');
+    });
+
+    it('should return TRUST when isTrustRevocable is true with only trust assets', () => {
+      // isTrustRevocable=true should activate TRUST engine
+      const engines = ['TRUST'];
+      expect(deriveEstateAuthorityType(engines)).toBe('TRUST');
+    });
+
+    it('should return BOTH only when both engines are truly active', () => {
+      // BOTH should only occur when both PROBATE and TRUST engines are present
+      const engines = ['PROBATE', 'TRUST'];
+      expect(deriveEstateAuthorityType(engines)).toBe('BOTH');
     });
   });
 

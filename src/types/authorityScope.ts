@@ -19,7 +19,7 @@ export type EstateAuthorityType = "PROBATE" | "TRUST" | "BOTH";
  * - If TRUST only → "TRUST"
  * - If PROBATE only → "PROBATE"
  * - If both → "BOTH"
- * - If neither (shouldn't happen) → defaults to "BOTH" (fail-safe)
+ * - If neither (shouldn't happen) → defaults to "PROBATE" (fail-closed)
  */
 export function deriveEstateAuthorityType(activeEngines: string[]): EstateAuthorityType {
   const hasTrust = activeEngines.includes("TRUST");
@@ -29,8 +29,8 @@ export function deriveEstateAuthorityType(activeEngines: string[]): EstateAuthor
   if (hasProbate && !hasTrust) return "PROBATE";
   if (hasTrust && hasProbate) return "BOTH";
 
-  // Fail-safe default - shouldn't happen but prevents undefined errors
-  return "BOTH";
+  // Fail-closed default - shouldn't happen but prevents undefined errors
+  return "PROBATE";
 }
 
 /**
