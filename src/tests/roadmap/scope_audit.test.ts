@@ -147,6 +147,9 @@ describe("Authority Scope Audit — Task Coverage", () => {
         const trustTasksWithoutScope = trustTasks.filter(t =>
             t.authorityScope === undefined
         );
+        if (trustTasksWithoutScope.length > 0) {
+            console.log("TRUST tasks missing authorityScope:", trustTasksWithoutScope.map(t => t.id));
+        }
         expect(trustTasksWithoutScope.map(t => t.id)).toEqual([]);
     });
 
@@ -157,6 +160,9 @@ describe("Authority Scope Audit — Task Coverage", () => {
         const probateTasksWithoutScope = probateTasks.filter(t =>
             t.authorityScope === undefined
         );
+        if (probateTasksWithoutScope.length > 0) {
+            console.log("PROBATE tasks missing authorityScope:", probateTasksWithoutScope.map(t => t.id));
+        }
         expect(probateTasksWithoutScope.map(t => t.id)).toEqual([]);
     });
 
@@ -167,6 +173,9 @@ describe("Authority Scope Audit — Task Coverage", () => {
         const bad = trustOnlyTasks.filter(t =>
             t.trackCompatibility?.includes("PROBATE") || t.trackCompatibility?.includes("AFFIDAVIT")
         );
+        if (bad.length > 0) {
+            console.log("Mismatched TRUST scope tasks:", bad.map(t => t.id));
+        }
         expect(bad.map(t => `${t.id}: authorityScope=${t.authorityScope} but trackCompatibility=${t.trackCompatibility}`)).toEqual([]);
     });
 
@@ -177,6 +186,9 @@ describe("Authority Scope Audit — Task Coverage", () => {
         const bad = probateOnlyTasks.filter(t =>
             t.trackCompatibility?.includes("TRUST")
         );
+        if (bad.length > 0) {
+            console.log("Mismatched PROBATE scope tasks:", bad.map(t => t.id));
+        }
         expect(bad.map(t => `${t.id}: authorityScope=${t.authorityScope} but trackCompatibility=${t.trackCompatibility}`)).toEqual([]);
     });
 
@@ -186,6 +198,6 @@ describe("Authority Scope Audit — Task Coverage", () => {
             if (!task.authorityScope) return false; // Backward compatibility allowed
             return !validScopes.includes(task.authorityScope);
         });
-        expect(tasksWithInvalidScope.map(t => `${t.id}: ${task.authorityScope}`)).toEqual([]);
+        expect(tasksWithInvalidScope.map(t => `${t.id}: ${t.authorityScope}`)).toEqual([]);
     });
 });

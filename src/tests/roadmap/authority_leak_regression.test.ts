@@ -139,14 +139,14 @@ describe("Authority Scope Leak Regression Tests", () => {
             expect(task?.authorityScope).toBe("PROBATE");
         });
 
-        it("receive_letters_testamentary has authorityScope=PROBATE", () => {
-            const task = tasks.find(t => t.id === "receive_letters_testamentary");
+        it("obtain_letters_testamentary has authorityScope=PROBATE", () => {
+            const task = tasks.find(t => t.id === "obtain_letters_testamentary");
             expect(task).toBeDefined();
             expect(task?.authorityScope).toBe("PROBATE");
         });
 
-        it("receive_letters_administration has authorityScope=PROBATE", () => {
-            const task = tasks.find(t => t.id === "receive_letters_administration");
+        it("obtain_letters_of_administration has authorityScope=PROBATE", () => {
+            const task = tasks.find(t => t.id === "obtain_letters_of_administration");
             expect(task).toBeDefined();
             expect(task?.authorityScope).toBe("PROBATE");
         });
