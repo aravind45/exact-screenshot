@@ -57,17 +57,21 @@ describe('AuthorityScope Filtering', () => {
   });
 
   describe('filterTasksByAuthorityScope', () => {
-    const createTask = (id: string, authorityScope?: 'PROBATE' | 'TRUST' | 'BOTH'): ScopedTask => ({
+    const createTask = (id: string, authorityScope: 'PROBATE' | 'TRUST' | 'BOTH'): ScopedTask => ({
       id,
       scope: 'CORE',
       authorityScope,
     });
 
-    it('should keep tasks without authorityScope (backward compatibility)', () => {
-      const tasks = [createTask('task1'), createTask('task2')];
+    it('should DROP tasks without authorityScope (fail-closed)', () => {
+      const tasks = [
+        { id: 'task1', scope: 'CORE', authorityScope: undefined as unknown as 'PROBATE' },
+        { id: 'task2', scope: 'CORE', authorityScope: '' as unknown as 'PROBATE' },
+      ] as ScopedTask[];
       const result = filterTasksByAuthorityScope(tasks, 'PROBATE');
-      expect(result.kept).toHaveLength(2);
-      expect(result.dropped).toHaveLength(0);
+      expect(result.kept).toHaveLength(0);
+      expect(result.dropped).toHaveLength(2);
+      expect(result.dropped[0].reason).toContain('FAIL-CLOSED');
     });
 
     it('should keep BOTH tasks for any estate type', () => {
