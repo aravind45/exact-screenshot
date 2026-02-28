@@ -20,6 +20,7 @@
     "test:roadmap-harness": "vitest run tests/roadmap_harness",
     "test:roadmap-harness:watch": "vitest tests/roadmap_harness",
     "test:roadmap-harness:update": "vitest run tests/roadmap_harness --update",
+    "test:verify-authority-integrity": "tsx server/scripts/ci/verify-authority-integrity.ts",
     "seed": "tsx prisma/seed.ts",
     "seed-forms": "tsx scripts/seed-forms.ts",
     "download-forms": "tsx scripts/download-forms.ts",

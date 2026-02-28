@@ -107,6 +107,7 @@ async function main() {
                         excludePredicates: t.applicability?.excludePredicates || [],
                         requiredProfileFields: t.requiredProfileFields || [],
                         outputs: t.outputs || [],
+                        authorityScope: (t.authorityScope as any) || 'PROBATE',
                     },
                     create: {
                         phaseId: phase.id,
@@ -145,6 +146,7 @@ async function main() {
                         excludePredicates: t.applicability?.excludePredicates || [],
                         requiredProfileFields: t.requiredProfileFields || [],
                         outputs: t.outputs || [],
+                        authorityScope: (t.authorityScope as any) || 'PROBATE',
                     },
                 });
 
