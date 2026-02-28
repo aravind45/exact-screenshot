@@ -12,6 +12,19 @@ import {
   checkAuthorityChangePending,
 } from "./authorityChangeService.js";
 
+/**
+ * Effective Authority Result
+ * Represents the final authority determination with governance information
+ */
+export interface EffectiveAuthorityResult {
+  estateAuthorityType: EstateAuthorityType;
+  confidence: number;
+  source: "USER_SELECTION" | "ENGINE_HIGH_CONFIDENCE" | "ENGINE_LOW_CONFIDENCE" | "DEFAULT_FAIL_CLOSED";
+  recommendation: string;
+  userSelection?: EstateAuthorityType;
+  confidenceSignals?: any;
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // DEFENSIVE PROGRAMMING: Migration Compatibility
 // ─────────────────────────────────────────────────────────────────────────────
@@ -114,6 +127,9 @@ interface EstateProfile {
   isMD: boolean;
   isNC: boolean;
   isSC: boolean;
+
+  // Effective authority governance
+  effectiveAuthority?: EffectiveAuthorityResult;
 }
 
 const formatCurrency = (value: number) => `$${value.toLocaleString()}`;
@@ -530,6 +546,64 @@ function ensurePreFilingCompliance(phases: PhaseTaskList[], profile: EstateProfi
 }
 
 /**
+ * Determine effective authority with governance layers
+ * Priority:
+ * 1. User selection (highest)
+ * 2. High-confidence engine recommendation (>= 70)
+ * 3. Low-confidence engine recommendation (< 70)
+ * 4. Fail-closed to PROBATE (default)
+ */
+export function determineEffectiveAuthority(
+  estate: any,
+  engineRec: any,
+  confidence: number,
+  confidenceSignals: any
+): EffectiveAuthorityResult {
+  // Priority 1: User selection
+  if (estate.userSelectedEstateAuthorityType) {
+    return {
+      estateAuthorityType: estate.userSelectedEstateAuthorityType as EstateAuthorityType,
+      confidence: 100,
+      source: "USER_SELECTION",
+      recommendation: "User explicitly selected this track",
+      userSelection: estate.userSelectedEstateAuthorityType as EstateAuthorityType,
+      confidenceSignals,
+    };
+  }
+
+  // Priority 2: High-confidence engine recommendation
+  if (confidence >= 70) {
+    return {
+      estateAuthorityType: engineRec.estateAuthorityType || deriveEstateAuthorityType(engineRec.activeEngines),
+      confidence,
+      source: "ENGINE_HIGH_CONFIDENCE",
+      recommendation: engineRec.reason,
+      confidenceSignals,
+    };
+  }
+
+  // Priority 3: Low-confidence engine recommendation
+  if (confidence > 0) {
+    return {
+      estateAuthorityType: engineRec.estateAuthorityType || deriveEstateAuthorityType(engineRec.activeEngines),
+      confidence,
+      source: "ENGINE_LOW_CONFIDENCE",
+      recommendation: engineRec.reason,
+      confidenceSignals,
+    };
+  }
+
+  // Priority 4: Fail-closed to PROBATE
+  return {
+    estateAuthorityType: "PROBATE",
+    confidence: 0,
+    source: "DEFAULT_FAIL_CLOSED",
+    recommendation: "Low confidence in automatic detection - defaulting to PROBATE for safety",
+    confidenceSignals,
+  };
+}
+
+/**
  * Roadmap Response with Filtered Tasks
  */
 export interface RoadmapResponse {
@@ -552,6 +626,13 @@ export interface RoadmapResponse {
   requiresRepin?: boolean;
   recommendedAuthorityType?: string;
   recommendedEstateAuthorityType?: EstateAuthorityType;
+  // Track selection governance fields
+  estateAuthorityType: EstateAuthorityType;
+  authorityConfidence: number;
+  authoritySource: string;
+  authorityRecommendation: string;
+  userSelectedAuthorityType?: EstateAuthorityType;
+  requiresTrackSelection?: boolean; // Banner flag for DEFAULT_FAIL_CLOSED mode
 }
 
 /**
@@ -658,6 +739,14 @@ export async function analyzeEstateProfile(estateId: string): Promise<EstateProf
   // Compute estateAuthorityType from activeEngines
   const estateAuthorityType = deriveEstateAuthorityType(rec.activeEngines);
 
+  // Determine effective authority with governance
+  const effectiveAuthority = determineEffectiveAuthority(
+    estate,
+    rec,
+    rec.confidence || 0,
+    rec.confidenceSignals
+  );
+
   return {
     id: estate.id,
     hasMinorBeneficiaries: rec.modifiers?.includes("MINOR_HEIRS") || false,
@@ -697,6 +786,8 @@ export async function analyzeEstateProfile(estateId: string): Promise<EstateProf
     isMD,
     isNC,
     isSC,
+    // Effective authority governance
+    effectiveAuthority,
   };
 }
 
@@ -1156,6 +1247,8 @@ export async function getEstateRoadmap(estateId: string): Promise<RoadmapRespons
   }
 
   // Return roadmap with triggers
+  const effectiveAuthority = (profile as any).effectiveAuthority;
+
   return {
     estateId,
     phases: filteredPhases,
@@ -1177,6 +1270,13 @@ export async function getEstateRoadmap(estateId: string): Promise<RoadmapRespons
     requiresRepin,
     recommendedAuthorityType,
     recommendedEstateAuthorityType,
+    // Track selection governance fields
+    estateAuthorityType: effectiveAuthority.estateAuthorityType,
+    authorityConfidence: effectiveAuthority.confidence,
+    authoritySource: effectiveAuthority.source,
+    authorityRecommendation: effectiveAuthority.recommendation,
+    userSelectedAuthorityType: effectiveAuthority.userSelection,
+    requiresTrackSelection: effectiveAuthority.source === "DEFAULT_FAIL_CLOSED" || effectiveAuthority.source === "ENGINE_LOW_CONFIDENCE",
   };
 }
 

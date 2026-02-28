@@ -72,6 +72,24 @@ export interface AuthorityRecommendation {
     legalTerm?: string;
     citations?: string[];
     modifiers?: string[]; // e.g. "INSOLVENT", "MINOR_HEIRS"
+
+    // Confidence scoring
+    confidence?: number; // 0-100 confidence score
+    confidenceSignals?: ConfidenceSignals;
+}
+
+/**
+ * Confidence signals for authority determination
+ */
+export interface ConfidenceSignals {
+    probateAssetsPresent: boolean;
+    trustAssetsPresent: boolean;
+    beneficiaryAssetsPresent: boolean;
+    hasWill?: boolean;
+    isTrustRevocable?: boolean;
+    hasProbateTotal: boolean;
+    assetCount: number;
+    totalAssetValue: number;
 }
 
 export function getMasterMode(type: AuthorityType): MasterMode {
@@ -340,6 +358,9 @@ export function calculateAuthorityRecommendation(
     let citations = rule.probateCitation;
     let reason = `Multi-track active: ${activeEngines.join(", ")}. Primary Source: ${authoritySource}.`;
 
+    // Calculate confidence score and signals
+    const { confidence, confidenceSignals } = calculateAuthorityConfidence(assets, probateTotal, metadata);
+
     return {
         type,
         masterMode: getMasterMode(type),
@@ -353,8 +374,79 @@ export function calculateAuthorityRecommendation(
         reason,
         legalTerm,
         citations,
-        modifiers
+        modifiers,
+        confidence,
+        confidenceSignals,
     };
+}
+
+/**
+ * Calculate confidence score for authority recommendation
+ * Returns a score from 0-100 based on signal strength
+ *
+ * Scoring Logic:
+ * - High confidence (70-100): Clear signals present (assets, will, trust info)
+ * - Low confidence (0-69): Missing or weak signals
+ * - Fail-closed: Default to PROBATE when confidence is low
+ */
+function calculateAuthorityConfidence(
+    assets: any[],
+    probateTotal: number,
+    metadata?: {
+        hasWill?: boolean;
+        isTrustRevocable?: boolean;
+        hasInsolvencyRisk?: boolean;
+        hasContest?: boolean;
+        estimatedValue?: number;
+    }
+): { confidence: number; confidenceSignals: ConfidenceSignals } {
+    const signals: ConfidenceSignals = {
+        probateAssetsPresent: assets.some(a =>
+            a.ownershipType === "INDIVIDUAL" &&
+            !a.beneficiaryDesignation &&
+            !a.todDeedRecorded &&
+            !a.inTrust
+        ),
+        trustAssetsPresent: assets.some(a => a.ownershipType === "TRUST" || a.inTrust),
+        beneficiaryAssetsPresent: assets.some(a =>
+            a.ownershipType === "BENEFICIARY" ||
+            a.beneficiaryDesignation ||
+            a.todDeedRecorded ||
+            a.ownershipType === "JOINT"
+        ),
+        hasWill: metadata?.hasWill,
+        isTrustRevocable: metadata?.isTrustRevocable,
+        hasProbateTotal: probateTotal > 0,
+        assetCount: assets.length,
+        totalAssetValue: assets.reduce((sum, a) => sum + (Number(a.value) || 0), 0),
+    };
+
+    // Weighted scoring
+    let score = 0;
+    let maxScore = 0;
+
+    // 1. Asset presence signals (highest weight: 40 points)
+    maxScore += 40;
+    if (signals.probateAssetsPresent) score += 20;
+    if (signals.trustAssetsPresent) score += 20;
+
+    // 2. Will/trust information (medium weight: 30 points)
+    maxScore += 30;
+    if (signals.hasWill !== undefined) score += 15;
+    if (signals.isTrustRevocable !== undefined) score += 15;
+
+    // 3. Beneficiary asset presence (low weight: 10 points)
+    maxScore += 10;
+    if (signals.beneficiaryAssetsPresent) score += 10;
+
+    // 4. Total value confirmation (medium weight: 20 points)
+    maxScore += 20;
+    if (signals.totalAssetValue > 0) score += 20;
+
+    // Normalize to 0-100
+    const confidence = maxScore > 0 ? Math.round((score / maxScore) * 100) : 0;
+
+    return { confidence, confidenceSignals: signals };
 }
 
 // Institution-specific authority requirements
