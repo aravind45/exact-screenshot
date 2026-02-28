@@ -669,7 +669,7 @@ model RoadmapTask {
   excludePredicates           String[]     @map("exclude_predicates")
   requiredProfileFields       String[]     @map("required_profile_fields")
   outputs                     String[]
-  authorityScope              String?      @map("authority_scope")
+  authorityScope              AuthorityScope @map("authority_scope") @default(PROBATE)
   scope                       String       @default("CORE")
   allowedCounties             String[]     @map("allowed_counties")
   createdAt                   DateTime     @default(now()) @map("created_at")
@@ -1176,6 +1176,12 @@ enum UserRole {
   ATTORNEY
   EXECUTOR
   HEIR
+}
+
+enum AuthorityScope {
+  PROBATE
+  TRUST
+  BOTH
 }
 
 model CountyOverride {

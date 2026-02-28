@@ -52,20 +52,12 @@ type AnalyzeEstateProfileEstate = {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// DEFENSIVE PROGRAMMING: Migration Compatibility
+// AUTHORITY SCOPE: Hard invariant (NOT NULL + CHECK constraint enforced in DB)
 // ─────────────────────────────────────────────────────────────────────────────
-// This service includes defensive error handling for database migrations that
-// may not yet be applied to production:
-//
-// 1. authority_scope column on roadmap_tasks table
-// 2. estate_authority_type column on estates table
-//
-// If these columns don't exist, the code:
-// - Falls back to hardcoded tasks from SETTLEMENT_PHASE_TASKS
-// - Skips authorityScope filtering (shows all tasks)
-// - Logs clear warning messages for monitoring
-//
-// Once the migration is applied, full functionality resumes automatically.
+// authority_scope is a required field on roadmap_tasks. The schema migration
+// (20260228100000_authority_scope_hardening) enforces NOT NULL + CHECK constraint.
+// Backfill has eliminated all 684 previously NULL rows.
+// Fail-closed: tasks without a valid authorityScope are dropped by the filter.
 // ─────────────────────────────────────────────────────────────────────────────
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1174,7 +1166,7 @@ export async function getRoadmapFromDatabase(
   // For now, we use the settlementType and assume version consistency
   // The version pinning is primarily for the estate record itself
 
-  // Fetch roadmap from database - defensive: handle missing authorityScope column
+  // Fetch roadmap from database
   let settlementType: any;
   try {
     settlementType = await (db.settlementType as any).findUnique({
@@ -1241,7 +1233,7 @@ export async function getRoadmapFromDatabase(
         scope: task.scope || 'CORE',
         allowedStates: task.applicableStates && task.applicableStates.length > 0 ? task.applicableStates : undefined,
         allowedCounties: task.allowedCounties && task.allowedCounties.length > 0 ? task.allowedCounties : undefined,
-        authorityScope: task.authorityScope, // May be undefined if migration not applied
+        authorityScope: task.authorityScope,
         title: stateOverride?.title || task.title,
         description: stateOverride?.description || task.description || task.title,
         estimatedTime: task.estimatedTime || undefined,
@@ -1297,36 +1289,18 @@ export async function getRoadmapFromDatabase(
   const { phases: scopeFiltered, dropped: jurisdictionDropped } = filterPhasesByJurisdiction(filtered as unknown as PhaseLike<PhaseTask>[], profile.state);
 
   // Apply authorityScope filtering (ROOT-CAUSE filter for trust/probate module leakage)
-  // Defensive: wrap in try-catch to handle missing migration gracefully
-  let authorityFiltered = scopeFiltered as unknown as PhaseLike<PhaseTask>[];
-  let authorityDropped: Array<{ id: string; reason: string }> = [];
+  const { phases: authorityFiltered, dropped: authorityDropped } = filterPhasesByAuthorityScope(
+    scopeFiltered as unknown as PhaseLike<PhaseTask>[],
+    profile.estateAuthorityType
+  );
 
-  try {
-    const filterResult = filterPhasesByAuthorityScope(
-      scopeFiltered as unknown as PhaseLike<PhaseTask>[],
-      profile.estateAuthorityType
-    );
-    authorityFiltered = filterResult.phases;
-    authorityDropped = filterResult.dropped;
-
-    // Log dropped tasks for audit trail
-    if (authorityDropped.length > 0) {
-      logger.info({
-        estateId: profile.id,
-        estateAuthorityType: profile.estateAuthorityType,
-        droppedTasks: authorityDropped.map(d => d.id),
-        reasons: authorityDropped.map(d => d.reason)
-      }, "Authority scope filtering applied");
-    }
-  } catch (error) {
-    // Fallback: if authorityScope filtering fails (e.g., migration not applied), use unfiltered phases
-    logger.warn({
+  if (authorityDropped.length > 0) {
+    logger.info({
       estateId: profile.id,
       estateAuthorityType: profile.estateAuthorityType,
-      error: error instanceof Error ? error.message : String(error)
-    }, "AuthorityScope filtering disabled - migration may be pending. Using unfiltered phases.");
-    authorityFiltered = scopeFiltered as unknown as PhaseLike<PhaseTask>[];
-    authorityDropped = [];
+      droppedTasks: authorityDropped.map(d => d.id),
+      reasons: authorityDropped.map(d => d.reason)
+    }, "Authority scope filtering applied");
   }
 
   // Apply county overrides with pinning awareness

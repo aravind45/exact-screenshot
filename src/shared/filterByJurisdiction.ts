@@ -1,6 +1,8 @@
 import type { AuthorityScope, EstateAuthorityType } from "../types/authorityScope.js";
 import { deriveEstateAuthorityType } from "../types/authorityScope.js";
 
+const VALID_AUTHORITY_SCOPES: ReadonlySet<string> = new Set(["PROBATE", "TRUST", "BOTH"]);
+
 /**
  * Unified Jurisdiction Filter — Single Source of Truth
  *
@@ -106,11 +108,11 @@ export function filterTasksByJurisdiction<T extends ScopedTask>(
  * This is the ROOT-CAUSE filter that prevents trust/probate module leakage.
  *
  * Fail-closed rules:
- * 1. Tasks without authorityScope → default to "BOTH" (backward compatibility)
- * 2. authorityScope = "BOTH" → always visible
- * 3. authorityScope = "PROBATE" → visible only if estateAuthorityType is "PROBATE" or "BOTH"
- * 4. authorityScope = "TRUST" → visible only if estateAuthorityType is "TRUST" or "BOTH"
- * 5. Unknown authorityScope values → DROP (fail-closed)
+ * 1. Tasks without authorityScope → DROP (fail-closed, schema now enforces NOT NULL)
+ * 2. Invalid authorityScope values → DROP (fail-closed)
+ * 3. authorityScope = "BOTH" → always visible
+ * 4. estateAuthorityType = "BOTH" → show all tasks
+ * 5. Exact match required for PROBATE or TRUST; mismatch → DROP
  */
 export function filterTasksByAuthorityScope<T extends ScopedTask>(
     tasks: T[],
@@ -120,34 +122,39 @@ export function filterTasksByAuthorityScope<T extends ScopedTask>(
     const dropped: { id: string; reason: string }[] = [];
 
     for (const task of tasks) {
-        // Backward compatibility: tasks without authorityScope default to BOTH
         const taskScope = task.authorityScope;
 
-        // No authorityScope = visible to all (backward compatibility)
         if (!taskScope) {
-            kept.push(task);
+            dropped.push({
+                id: task.id,
+                reason: `authorityScope is missing (FAIL-CLOSED)`
+            });
             continue;
         }
 
-        // BOTH tasks are always visible
+        if (!VALID_AUTHORITY_SCOPES.has(taskScope)) {
+            dropped.push({
+                id: task.id,
+                reason: `Invalid authorityScope="${taskScope}" (FAIL-CLOSED)`
+            });
+            continue;
+        }
+
         if (taskScope === "BOTH") {
             kept.push(task);
             continue;
         }
 
-        // Estate is BOTH: show all tasks
         if (estateAuthorityType === "BOTH") {
             kept.push(task);
             continue;
         }
 
-        // Exact match required for PROBATE or TRUST
         if (taskScope === estateAuthorityType) {
             kept.push(task);
             continue;
         }
 
-        // Mismatch → DROP (fail-closed)
         dropped.push({
             id: task.id,
             reason: `authorityScope="${taskScope}" does not match estateAuthorityType="${estateAuthorityType}"`
