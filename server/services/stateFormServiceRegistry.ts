@@ -10,17 +10,17 @@
  * - GenericFormService: Fallback for states without dedicated services
  */
 
-import { logger } from "../lib/logger";
+import { logger } from "../lib/logger.js";
 
 // Import state-specific form services (if available)
-import { NYFormService } from "./nyFormService";
-import { TXFormService } from "./txFormService";
-import { CAFormService } from "./caFormService";
-import { FLFormService } from "./flFormService";
-import { NJFormService } from "./njFormService";
+import { NYFormService } from "./nyFormService.js";
+import { TXFormService } from "./txFormService.js";
+import { CAFormService } from "./caFormService.js";
+import { FLFormService } from "./flFormService.js";
+import { NJFormService } from "./njFormService.js";
 
 // Import generic form service
-import { GenericFormService } from "./genericFormService";
+import { GenericFormService } from "./genericFormService.js";
 
 /**
  * Form service interface
@@ -284,11 +284,11 @@ export interface PriorityService {
 const statePriorityServices: Map<string, { service: PriorityService | null; serviceName: string }> = new Map();
 
 // Import priority services
-import { CaliforniaPriorityService } from "./priority/california";
-import { TexasPriorityService } from "./priority/texas";
-import { FloridaPriorityService } from "./priority/florida";
-import { NewYorkPriorityService } from "./priority/newyork";
-import { UPCPriorityService } from "./priority/upc";
+import { CaliforniaPriorityService } from "./priority/california.js";
+import { TexasPriorityService } from "./priority/texas.js";
+import { FloridaPriorityService } from "./priority/florida.js";
+import { NewYorkPriorityService } from "./priority/newyork.js";
+import { UPCPriorityService } from "./priority/upc.js";
 
 function initializePriorityRegistry(): void {
   // Register state-specific priority services
