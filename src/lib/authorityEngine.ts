@@ -189,7 +189,7 @@ export function calculateAuthorityRecommendation(
         activeEngines.push("POD_TOD_ACCOUNTS");
         if (!activeEngines.includes("NON_PROBATE")) activeEngines.push("NON_PROBATE");
     }
-    if (trustAssets.length > 0 || metadata?.isTrustRevocable !== undefined) {
+    if (trustAssets.length > 0 || metadata?.isTrustRevocable === true) {
         activeEngines.push("TRUST");
     }
     if (probateTotal > 0 || metadata?.isOutOfState) {
