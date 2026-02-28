@@ -656,10 +656,47 @@ const fetchEstateWithRelations = async (estateId: string) => {
   try {
     return await db.estate.findUnique({
       where: { id: estateId },
-      include: {
-        heirs: true,
-        assets: true,
-        liabilities: true,
+      select: {
+        id: true,
+        deceasedState: true,
+        hasWill: true,
+        hasMinorBeneficiaries: true,
+        hasContest: true,
+        isTrustRevocable: true,
+        isOutOfState: true,
+        isSurvivingSpouse: true,
+        hasTODDeed: true,
+        estimatedPersonalProperty: true,
+        estimatedRealProperty: true,
+        hasUnknownHeirs: true,
+        internationalReasons: true,
+        hasPrimaryResidence: true,
+        userSelectedEstateAuthorityType: true,
+        heirs: {
+          select: {
+            id: true,
+            name: true,
+            relationship: true,
+            isAdult: true,
+            address: true,
+            email: true,
+            phone: true,
+          },
+        },
+        assets: {
+          select: {
+            id: true,
+            assetType: true,
+            value: true,
+            todDeedRecorded: true,
+          },
+        },
+        liabilities: {
+          select: {
+            id: true,
+            amount: true,
+          },
+        },
       },
     });
   } catch (error) {
@@ -1489,11 +1526,17 @@ export async function repinEstateRoadmap(
 ): Promise<{ success: boolean; version: string; pinnedAt: Date }> {
   const estate = await db.estate.findUnique({
     where: { id: estateId },
-    include: {
+    select: {
+      id: true,
       taskCompletions: {
-        where: { completed: true }
-      }
-    }
+        where: { completed: true },
+        select: {
+          id: true,
+          taskId: true,
+          completed: true,
+        },
+      },
+    },
   });
 
   if (!estate) throw new Error(`Estate ${estateId} not found`);
