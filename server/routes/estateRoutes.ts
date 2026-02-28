@@ -11,6 +11,8 @@ import { z } from "zod";
 import { logger } from "../lib/logger.js";
 import { requireSubscription } from "../middleware/subscription.js";
 import { authenticate } from "../middleware/auth.js";
+import { fetchEstateRowForUser } from "../utils/estateFallback.js";
+import { getPrismaErrorDetails, isMissingColumnError } from "../utils/prismaErrors.js";
 
 
 const estateUpdateSchema = z.object({
@@ -131,7 +133,44 @@ router.get("/my", async (req: any, res: Response) => {
         }
         res.json(estate);
     } catch (error: any) {
-        logger.error("CRITICAL Estate Fetch Error:", error.message);
+        if (isMissingColumnError(error)) {
+            logger.error("Estate fetch failed due to missing columns.", {
+                userId: req.user.id,
+                message: error instanceof Error ? error.message : String(error),
+                ...getPrismaErrorDetails(error)
+            });
+
+            const fallbackEstate = await fetchEstateRowForUser(prisma, req.user.id);
+            if (!fallbackEstate) {
+                return res.status(503).json({
+                    error: "Estate data temporarily unavailable",
+                    message: "Database migration is pending. Please try again shortly."
+                });
+            }
+
+            try {
+                await EmailService.ensureEstateHandle(fallbackEstate.id as string);
+            } catch (handleErr) {
+                logger.warn("Failed to ensure estate handle during fallback (non-fatal):", handleErr);
+            }
+
+            const refreshedEstate = await fetchEstateRowForUser(prisma, req.user.id);
+            const estateToReturn = (refreshedEstate || fallbackEstate) as any;
+
+            if (estateToReturn.deceasedSsn) {
+                estateToReturn.deceasedSsn = decrypt(estateToReturn.deceasedSsn);
+            }
+
+            if (estateToReturn.userId) {
+                estateToReturn.user = await prisma.user.findUnique({
+                    where: { id: estateToReturn.userId }
+                });
+            }
+
+            return res.json(estateToReturn);
+        }
+
+        logger.error("CRITICAL Estate Fetch Error:", error.message, getPrismaErrorDetails(error));
         res.status(500).json({ error: "Failed to fetch estate", message: error.message });
     }
 });
