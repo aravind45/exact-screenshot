@@ -6,8 +6,8 @@
  */
 
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
-import { getStateRule } from "../../src/lib/stateRules";
-import { logger } from "../lib/logger";
+import { getStateRule } from "../../src/lib/stateRules.js";
+import { logger } from "../lib/logger.js";
 
 export interface GenericFormInput {
   formId: string;

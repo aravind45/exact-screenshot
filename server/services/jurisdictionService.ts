@@ -10,8 +10,8 @@
  * - CitationFormatter: Formats legal citations by state
  */
 
-import { US_STATES, STATE_RULES, getStateRule, type StateRule } from "../../src/lib/stateRules";
-import { AuthorityScope, type EstateAuthorityType } from "../../src/types/authorityScope";
+import { US_STATES, STATE_RULES, getStateRule, type StateRule } from "../../src/lib/stateRules.js";
+import { AuthorityScope, type EstateAuthorityType } from "../../src/types/authorityScope.js";
 
 /**
  * Supported jurisdictions (50 states + DC)
