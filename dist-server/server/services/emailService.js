@@ -21,7 +21,10 @@ export class EmailService {
      * Generates a unique handle for an estate if none exists.
      */
     static async ensureEstateHandle(estateId) {
-        const estate = await prisma.estate.findUnique({ where: { id: estateId } });
+        const estate = await prisma.estate.findUnique({
+            where: { id: estateId },
+            select: { id: true, handle: true }
+        });
         if (!estate)
             throw new Error("Estate not found");
         if (estate.handle)

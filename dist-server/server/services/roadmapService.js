@@ -5,6 +5,8 @@ import { calculateAuthorityRecommendation } from "../../src/lib/authorityEngine.
 import { getLettersTerm, getStateRule } from "../../src/lib/stateRules.js";
 import { logger } from "../lib/logger.js";
 import { CountyOverrideService } from "./countyOverrideService.js";
+import { fetchEstateRowById } from "../utils/estateFallback.js";
+import { getPrismaErrorDetails, isMissingColumnError } from "../utils/prismaErrors.js";
 import { filterPhasesByJurisdiction, filterPhasesByAuthorityScope } from "../../src/shared/filterByJurisdiction.js";
 import { deriveEstateAuthorityType } from "../../src/types/authorityScope.js";
 import { computeAuthorityRecommendation, checkAuthorityChangePending, } from "./authorityChangeService.js";
@@ -459,19 +461,48 @@ async function getJurisdictionRule(stateCode) {
     const { STATE_RULES } = await import("../../src/lib/stateRules.js");
     return STATE_RULES[stateCode] || STATE_RULES["CA"];
 }
+const fetchEstateWithRelations = async (estateId) => {
+    try {
+        return await db.estate.findUnique({
+            where: { id: estateId },
+            include: {
+                heirs: true,
+                assets: true,
+                liabilities: true,
+            },
+        });
+    }
+    catch (error) {
+        if (!isMissingColumnError(error)) {
+            throw error;
+        }
+        logger.warn({
+            estateId,
+            message: error instanceof Error ? error.message : String(error),
+            ...getPrismaErrorDetails(error)
+        }, "Estate profile query failed due to missing columns. Using fallback estate fetch.");
+        const fallbackEstate = await fetchEstateRowById(db, estateId);
+        if (!fallbackEstate)
+            return null;
+        const [heirs, assets, liabilities] = await Promise.all([
+            db.heir.findMany({ where: { estateId } }),
+            db.asset.findMany({ where: { estateId } }),
+            db.liability.findMany({ where: { estateId } })
+        ]);
+        return {
+            ...fallbackEstate,
+            heirs,
+            assets,
+            liabilities
+        };
+    }
+};
 /**
  * Analyze estate to determine which optional tasks should be shown
  */
 export async function analyzeEstateProfile(estateId) {
     // Fetch estate with related data - defensive query to handle missing columns
-    const estate = await db.estate.findUnique({
-        where: { id: estateId },
-        include: {
-            heirs: true,
-            assets: true,
-            liabilities: true,
-        },
-    });
+    const estate = await fetchEstateWithRelations(estateId);
     if (!estate) {
         throw new Error(`Estate ${estateId} not found`);
     }
@@ -745,17 +776,41 @@ async function getLatestPublishedVersion(settlementTypeCode) {
  */
 export async function getRoadmapFromDatabase(estateId, profile, completedTaskIds) {
     // Get estate to determine settlement type and version pinning
-    const estate = await db.estate.findUnique({
-        where: { id: estateId },
-        select: {
-            estateType: true,
-            settlementPath: true,
-            roadmapVersion: true,
-            roadmapPinnedAt: true,
-            probateCounty: true,
-            countyOverrideHash: true
-        },
-    });
+    let estate = null;
+    try {
+        estate = await db.estate.findUnique({
+            where: { id: estateId },
+            select: {
+                estateType: true,
+                settlementPath: true,
+                roadmapVersion: true,
+                roadmapPinnedAt: true,
+                probateCounty: true,
+                countyOverrideHash: true
+            },
+        });
+    }
+    catch (error) {
+        if (!isMissingColumnError(error)) {
+            throw error;
+        }
+        logger.warn({
+            estateId,
+            message: error instanceof Error ? error.message : String(error),
+            ...getPrismaErrorDetails(error)
+        }, "Roadmap metadata query failed due to missing columns. Using fallback estate data.");
+        const fallbackEstate = await fetchEstateRowById(db, estateId);
+        estate = fallbackEstate
+            ? {
+                estateType: fallbackEstate.estateType ?? null,
+                settlementPath: fallbackEstate.settlementPath ?? null,
+                roadmapVersion: fallbackEstate.roadmapVersion ?? null,
+                roadmapPinnedAt: fallbackEstate.roadmapPinnedAt ?? null,
+                probateCounty: fallbackEstate.probateCounty ?? null,
+                countyOverrideHash: fallbackEstate.countyOverrideHash ?? null
+            }
+            : null;
+    }
     if (!estate)
         throw new Error(`Estate ${estateId} not found`);
     // Determine which settlement type to use
@@ -951,17 +1006,41 @@ export async function getEstateRoadmap(estateId) {
     // Development-time contamination check: warn if CA tokens leaked into non-CA state
     validateNoStateContamination(filteredPhases, profile.state);
     // Get estate for version info and authority status
-    const estate = await db.estate.findUnique({
-        where: { id: estateId },
-        select: {
-            roadmapVersion: true,
-            roadmapPinnedAt: true,
-            authorityPinnedAt: true,
-            authorityChangePending: true,
-            recommendedAuthorityType: true,
-            recommendedAuthorityReason: true,
+    let estate = null;
+    try {
+        estate = await db.estate.findUnique({
+            where: { id: estateId },
+            select: {
+                roadmapVersion: true,
+                roadmapPinnedAt: true,
+                authorityPinnedAt: true,
+                authorityChangePending: true,
+                recommendedAuthorityType: true,
+                recommendedAuthorityReason: true,
+            }
+        });
+    }
+    catch (error) {
+        if (!isMissingColumnError(error)) {
+            throw error;
         }
-    });
+        logger.warn({
+            estateId,
+            message: error instanceof Error ? error.message : String(error),
+            ...getPrismaErrorDetails(error)
+        }, "Estate roadmap metadata query failed due to missing columns. Using fallback values.");
+        const fallbackEstate = await fetchEstateRowById(db, estateId);
+        estate = fallbackEstate
+            ? {
+                roadmapVersion: fallbackEstate.roadmapVersion ?? null,
+                roadmapPinnedAt: fallbackEstate.roadmapPinnedAt ?? null,
+                authorityPinnedAt: fallbackEstate.authorityPinnedAt ?? null,
+                authorityChangePending: fallbackEstate.authorityChangePending ?? null,
+                recommendedAuthorityType: fallbackEstate.recommendedAuthorityType ?? null,
+                recommendedAuthorityReason: fallbackEstate.recommendedAuthorityReason ?? null
+            }
+            : null;
+    }
     // Check if authority change is pending (if estate is pinned)
     let authorityChangePending = estate?.authorityChangePending ?? false;
     let requiresRepin = false;
