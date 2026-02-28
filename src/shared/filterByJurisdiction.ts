@@ -106,11 +106,11 @@ export function filterTasksByJurisdiction<T extends ScopedTask>(
  * This is the ROOT-CAUSE filter that prevents trust/probate module leakage.
  *
  * Fail-closed rules:
- * 1. Tasks without authorityScope → default to "BOTH" (backward compatibility)
- * 2. authorityScope = "BOTH" → always visible
- * 3. authorityScope = "PROBATE" → visible only if estateAuthorityType is "PROBATE" or "BOTH"
- * 4. authorityScope = "TRUST" → visible only if estateAuthorityType is "TRUST" or "BOTH"
- * 5. Unknown authorityScope values → DROP (fail-closed)
+ * 1. Tasks without authorityScope → DROPPED (fail-closed, no backward compatibility leak)
+ * 2. Invalid authorityScope values → DROPPED (fail-closed)
+ * 3. authorityScope = "BOTH" → always visible
+ * 4. Estate is BOTH → all tasks visible
+ * 5. Exact match required for PROBATE or TRUST → mismatch DROPS
  */
 export function filterTasksByAuthorityScope<T extends ScopedTask>(
     tasks: T[],
@@ -118,14 +118,24 @@ export function filterTasksByAuthorityScope<T extends ScopedTask>(
 ): AuthorityScopeFilterResult<T> {
     const kept: T[] = [];
     const dropped: { id: string; reason: string }[] = [];
+    const VALID_SCOPES = ["PROBATE", "TRUST", "BOTH"] as const;
 
     for (const task of tasks) {
-        // Backward compatibility: tasks without authorityScope default to BOTH
         const taskScope = task.authorityScope;
 
-        // No authorityScope = visible to all (backward compatibility)
         if (!taskScope) {
-            kept.push(task);
+            dropped.push({
+                id: task.id,
+                reason: `authorityScope is missing (FAIL-CLOSED)`
+            });
+            continue;
+        }
+
+        if (!VALID_SCOPES.includes(taskScope as typeof VALID_SCOPES[number])) {
+            dropped.push({
+                id: task.id,
+                reason: `Invalid authorityScope="${taskScope}" (FAIL-CLOSED)`
+            });
             continue;
         }
 

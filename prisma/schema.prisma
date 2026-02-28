@@ -669,7 +669,7 @@ model RoadmapTask {
   excludePredicates           String[]     @map("exclude_predicates")
   requiredProfileFields       String[]     @map("required_profile_fields")
   outputs                     String[]
-  authorityScope              String?      @map("authority_scope")
+  authorityScope              AuthorityScope @default(PROBATE) @map("authority_scope")
   scope                       String       @default("CORE")
   allowedCounties             String[]     @map("allowed_counties")
   createdAt                   DateTime     @default(now()) @map("created_at")
@@ -1118,6 +1118,12 @@ model TokenBlacklist {
   @@index([token])
   @@index([expiresAt])
   @@map("token_blacklist")
+}
+
+enum AuthorityScope {
+  PROBATE
+  TRUST
+  BOTH
 }
 
 enum DocType {
