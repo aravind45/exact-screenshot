@@ -22,6 +22,14 @@ import { NJFormService } from "./njFormService.js";
 // Import generic form service
 import { GenericFormService } from "./genericFormService.js";
 
+// Import priority services
+import { StatePrioritySystem } from "./priority/types.js";
+import { CaliforniaPrioritySystem } from "./priority/california.js";
+import { TexasPrioritySystem } from "./priority/texas.js";
+import { FloridaPrioritySystem } from "./priority/florida.js";
+import { NewYorkPrioritySystem } from "./priority/newyork.js";
+import { UPCPrioritySystem } from "./priority/upc.js";
+
 /**
  * Form service interface
  */
@@ -276,19 +284,8 @@ export const StateFormServiceRegistry = {
  * Priority Service Registry
  * Similar registry for priority/deadline services
  */
-export interface PriorityService {
-  getPriorityTasks(estate: any): Promise<any[]>;
-  getDeadlines(estate: any): Promise<any[]>;
-}
 
-const statePriorityServices: Map<string, { service: PriorityService | null; serviceName: string }> = new Map();
-
-// Import priority services
-import { CaliforniaPrioritySystem } from "./priority/california.js";
-import { TexasPrioritySystem } from "./priority/texas.js";
-import { FloridaPrioritySystem } from "./priority/florida.js";
-import { NewYorkPrioritySystem } from "./priority/newyork.js";
-import { UPCPrioritySystem } from "./priority/upc.js";
+const statePriorityServices: Map<string, { service: StatePrioritySystem | null; serviceName: string }> = new Map();
 
 function initializePriorityRegistry(): void {
   // Register state-specific priority services
@@ -324,7 +321,7 @@ export const StatePriorityServiceRegistry = {
   /**
    * Get priority service for a state
    */
-  getService(stateCode: string): PriorityService | null {
+  getService(stateCode: string): StatePrioritySystem | null {
     const config = statePriorityServices.get(stateCode);
     return config?.service || null;
   },
