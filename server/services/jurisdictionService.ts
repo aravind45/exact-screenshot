@@ -10,7 +10,8 @@
  * - CitationFormatter: Formats legal citations by state
  */
 
-import { US_STATES, STATE_RULES, getStateRule, type StateRule } from "../../src/lib/stateRules.js";
+import { US_STATES } from "../../src/lib/states.js";
+import { STATE_RULES, getStateRule, type StateRule } from "../../src/lib/stateRules.js";
 import { AuthorityScope, type EstateAuthorityType } from "../../src/types/authorityScope.js";
 
 /**

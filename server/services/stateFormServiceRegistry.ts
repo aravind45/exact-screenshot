@@ -284,24 +284,24 @@ export interface PriorityService {
 const statePriorityServices: Map<string, { service: PriorityService | null; serviceName: string }> = new Map();
 
 // Import priority services
-import { CaliforniaPriorityService } from "./priority/california.js";
-import { TexasPriorityService } from "./priority/texas.js";
-import { FloridaPriorityService } from "./priority/florida.js";
-import { NewYorkPriorityService } from "./priority/newyork.js";
-import { UPCPriorityService } from "./priority/upc.js";
+import { CaliforniaPrioritySystem } from "./priority/california.js";
+import { TexasPrioritySystem } from "./priority/texas.js";
+import { FloridaPrioritySystem } from "./priority/florida.js";
+import { NewYorkPrioritySystem } from "./priority/newyork.js";
+import { UPCPrioritySystem } from "./priority/upc.js";
 
 function initializePriorityRegistry(): void {
   // Register state-specific priority services
-  statePriorityServices.set("CA", { service: CaliforniaPriorityService, serviceName: "CaliforniaPriorityService" });
-  statePriorityServices.set("TX", { service: TexasPriorityService, serviceName: "TexasPriorityService" });
-  statePriorityServices.set("FL", { service: FloridaPriorityService, serviceName: "FloridaPriorityService" });
-  statePriorityServices.set("NY", { service: NewYorkPriorityService, serviceName: "NewYorkPriorityService" });
+  statePriorityServices.set("CA", { service: CaliforniaPrioritySystem, serviceName: "CaliforniaPrioritySystem" });
+  statePriorityServices.set("TX", { service: TexasPrioritySystem, serviceName: "TexasPrioritySystem" });
+  statePriorityServices.set("FL", { service: FloridaPrioritySystem, serviceName: "FloridaPrioritySystem" });
+  statePriorityServices.set("NY", { service: NewYorkPrioritySystem, serviceName: "NewYorkPrioritySystem" });
 
   // Register UPC states with the UPC service
   const upcStates = ["AK", "AZ", "CO", "HI", "ID", "ME", "MA", "MI", "MN", "MT", "NE", "NM", "ND", "SC", "SD", "UT"];
   for (const state of upcStates) {
     if (!statePriorityServices.has(state)) {
-      statePriorityServices.set(state, { service: UPCPriorityService, serviceName: "UPCPriorityService" });
+      statePriorityServices.set(state, { service: UPCPrioritySystem, serviceName: "UPCPrioritySystem" });
     }
   }
 
