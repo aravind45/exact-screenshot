@@ -1966,13 +1966,13 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "issue_cert_trust",
-        authorityScope: "BOTH",
+        authorityScope: "TRUST",
         scope: "CORE",
         title: "Issue Certificate of Trust",
         description: "Formalize successor trustee authority for trust-held assets.",
         estimatedTime: "1 week",
         category: "court-issued",
-        isOptional: true, // Only if trust
+        isOptional: true,
         helpArticleId: "trust-administration",
         requiredDocs: ["Trust Agreement"]
       },

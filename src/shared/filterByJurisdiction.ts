@@ -104,7 +104,7 @@ export function filterTasksByJurisdiction<T extends ScopedTask>(
  * This is the ROOT-CAUSE filter that prevents trust/probate module leakage.
  *
  * Fail-closed rules:
- * 1. Tasks without authorityScope → default to "BOTH" (backward compatibility)
+ * 1. Tasks without authorityScope (null/undefined) → DROP (fail-closed, prevents leakage)
  * 2. authorityScope = "BOTH" → always visible
  * 3. authorityScope = "PROBATE" → visible only if estateAuthorityType is "PROBATE" or "BOTH"
  * 4. authorityScope = "TRUST" → visible only if estateAuthorityType is "TRUST" or "BOTH"
@@ -118,12 +118,12 @@ export function filterTasksByAuthorityScope<T extends ScopedTask>(
     const dropped: { id: string; reason: string }[] = [];
 
     for (const task of tasks) {
-        // Backward compatibility: tasks without authorityScope default to BOTH
         const taskScope = task.authorityScope;
 
-        // No authorityScope = visible to all (backward compatibility)
+        // Fail-closed: tasks without authorityScope are dropped to prevent leakage
         if (!taskScope) {
-            kept.push(task);
+            console.warn(`[filterTasksByAuthorityScope] DROP task "${task.id}": authorityScope is null/undefined`);
+            dropped.push({ id: task.id, reason: `authorityScope is null/undefined — dropped (fail-closed)` });
             continue;
         }
 

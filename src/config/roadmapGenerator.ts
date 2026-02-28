@@ -611,6 +611,7 @@ function generateFiduciaryRoadmap(type: AuthorityType, state: string, modifiers:
         if (p.phase === "immediate_actions") {
             tasks.push({
                 scope: "CORE",
+                authorityScope: "TRUST",
                 id: "issue_cert_trust_gen",
                 title: "Issue Certificate of Trust",
                 description: "Prepare and notarize a Certificate of Trust to present successor trustee authority to banks.",

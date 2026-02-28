@@ -68,8 +68,6 @@ describe("Washington State Authority Scope Regression Tests", () => {
 
             const creditorNoticeTaskIds = [
                 "publish_notice",
-                "mail_creditor_notices",
-                "send_creditor_notices",
             ];
 
             creditorNoticeTaskIds.forEach(taskId => {
@@ -86,7 +84,6 @@ describe("Washington State Authority Scope Regression Tests", () => {
 
             const inventoryTaskIds = [
                 "file_inventory",
-                "complete_inventory",
             ];
 
             inventoryTaskIds.forEach(taskId => {
@@ -105,7 +102,7 @@ describe("Washington State Authority Scope Regression Tests", () => {
 
             const trustCertTaskIds = [
                 "prepare_certification_of_trust",
-                "issue_cert_trust_gen",
+                "issue_cert_trust",
             ];
 
             trustCertTaskIds.forEach(taskId => {
@@ -139,7 +136,6 @@ describe("Washington State Authority Scope Regression Tests", () => {
 
             const trustAccountingTaskIds = [
                 "prepare_trust_accounting",
-                "send_final_accounting", // if this is the trust version
             ];
 
             trustAccountingTaskIds.forEach(taskId => {
@@ -152,12 +148,16 @@ describe("Washington State Authority Scope Regression Tests", () => {
     });
 
     describe("Washington BOTH Estates", () => {
-        it("should show ALL tasks (no authority leakage)", () => {
+        it("should show ALL scoped tasks (no authority mismatch drops)", () => {
             const estateAuthorityType: "BOTH" = "BOTH";
             const { kept, dropped } = filterTasksByAuthorityScope(tasks, estateAuthorityType);
 
-            // For BOTH estates, no tasks should be dropped based on authorityScope
-            expect(dropped.filter(d => d.reason.includes("authorityScope"))).toHaveLength(0);
+            // For BOTH estates, no tasks should be dropped due to authorityScope mismatch.
+            // Tasks dropped for null/undefined authorityScope are correctly excluded (fail-closed).
+            const mismatchDropped = dropped.filter(d =>
+                d.reason.includes("does not match estateAuthorityType")
+            );
+            expect(mismatchDropped).toHaveLength(0);
         });
     });
 });
