@@ -419,6 +419,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       {
         id: "obtain_ein_probate",
         scope: "CORE",
+        authorityScope: "BOTH",
         title: "Obtain EIN for the Estate",
         description: "Apply for an Employer Identification Number from the IRS. This unique ID is required to open an estate bank account and for all tax filings.",
         estimatedTime: "30 minutes",
@@ -1516,6 +1517,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       // ── End State-Specific Court Filing Tasks ──────────────────────────
       {
         id: "file_probate_petition",
+        authorityScope: "PROBATE",
         scope: "CORE",
         title: "File Petition for Probate",
         description: "Submit the probate petition and original Will to the court to open the estate case and request appointment as Executor.",
@@ -1553,6 +1555,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "file_administration_petition",
+        authorityScope: "PROBATE",
         scope: "CORE",
         title: "File Petition for Administration",
         description: "Submit the administration petition to the court to open the estate case and request appointment as Administrator (since there is no Will).",
@@ -1664,6 +1667,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
 
       {
         id: "attend_probate_hearing",
+        authorityScope: "PROBATE",
         scope: "CORE",
         title: "Attend Probate Hearing",
         description: "Appear in court for the probate hearing (typically 30-60 days after filing) to confirm the Will and your appointment.",
@@ -1697,6 +1701,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "attend_administration_hearing",
+        authorityScope: "PROBATE",
         scope: "CORE",
         title: "Attend Administration Hearing",
         description: "Appear in court for the administration hearing. Since there is no Will, the court will confirm heirs and appointing you as Administrator.",
@@ -1726,6 +1731,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "receive_letters_testamentary",
+        authorityScope: "PROBATE",
         scope: "CORE",
         title: "Obtain Letters Testamentary",
         description: "Once the Will is admitted to probate, obtain certified copies of your Letters Testamentary.",
@@ -1756,6 +1762,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "receive_letters_administration",
+        authorityScope: "PROBATE",
         scope: "CORE",
         title: "Obtain Letters of Administration",
         description: "Once the court approves the petition, obtain certified copies of your Letters of Administration.",
@@ -2237,6 +2244,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
 
       {
         id: "file_inventory",
+        authorityScope: "PROBATE",
         scope: "CORE",
         title: "File Inventory with Court",
         description: "Submit the Inventory Form to court and serve copies on all heirs.",
@@ -2349,6 +2357,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
     tasks: [
       {
         id: "debt_priority_risk",
+        authorityScope: "BOTH",
         scope: "CORE",
         title: "FIDUCIARY RISK: Statutory Debt Priority",
         description: "Assess creditor claims and potential debts under the statutory priority rules applicable in your state (often including administration expenses and taxes before unsecured debts).",
@@ -2380,6 +2389,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "publish_notice",
+        authorityScope: "PROBATE",
         scope: "CORE",
         title: "Publish Notice to Creditors (If Required)",
         description: "If required or strategically beneficial in your state, publish a notice to creditors using the court-approved or locally accepted format. Publication rules, timing, and whether it affects creditor deadlines vary by state and county.",
@@ -2998,6 +3008,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "prepare_notice_proposed_action",
+        authorityScope: "PROBATE",
         scope: "US-CA",
         title: "Prepare Notice of Proposed Action",
         description: "If you have independent administration authority, you must notify heirs of your intent to sell real property.",
@@ -3030,6 +3041,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "petition_confirm_sale",
+        authorityScope: "PROBATE",
         scope: "US-CA",
         title: "File Petition to Confirm Sale",
         description: "If you do NOT have independent administration authority, or if someone objects, you must petition the court to confirm the sale of real property.",
@@ -3144,6 +3156,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "file_form_1041",
+        authorityScope: "BOTH",
         scope: "CORE",
         title: "File Form 1041 (Fiduciary Income Tax)",
         description: "Report income, deductions, and credits for a trust or estate that has gross income of $600 or more in a tax year.",
@@ -3171,6 +3184,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "pay_taxes",
+        authorityScope: "BOTH",
         scope: "CORE",
         title: "Pay Final Taxes",
         description: "File final individual 1040, estate 1041, and any estate tax returns.",
@@ -3651,6 +3665,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
     tasks: [
       {
         id: "locate_trust",
+        authorityScope: "TRUST",
         scope: "CORE",
         title: "Locate Trust Document & All Amendments",
         description: "Find the original signed trust document and any amendments. This is your primary legal authority.",
@@ -3663,6 +3678,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "identify_successor_trustee",
+        authorityScope: "TRUST",
         scope: "CORE",
         title: "Confirm Successor Trustee Designation",
         description: "Verify your appointment as successor trustee per the trust terms.",
@@ -3674,6 +3690,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "sign_trustee_acceptance",
+        authorityScope: "TRUST",
         scope: "CORE",
         title: "Sign Trustee Acceptance / Affidavit",
         description: "Formally accept your role as successor trustee by signing an acceptance document.",
@@ -3687,6 +3704,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "prepare_certification_of_trust",
+        authorityScope: "TRUST",
         scope: "CORE",
         title: "Prepare Certification of Trust",
         description: "Create a Certification of Trust (abstract of trust) to prove your authority to banks and institutions without revealing full trust terms.",
@@ -3700,6 +3718,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "obtain_ein_trust",
+        authorityScope: "BOTH",
         scope: "CORE",
         title: "Obtain EIN for Trust/Estate",
         description: "Apply for an Employer Identification Number from the IRS. Required for opening trust bank accounts and filing tax returns.",
@@ -3751,6 +3770,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
     tasks: [
       {
         id: "identify_all_beneficiaries",
+        authorityScope: "TRUST",
         scope: "CORE",
         title: "Identify All Trust Beneficiaries",
         description: "Review the trust to identify all current and remainder beneficiaries. Include contingent beneficiaries.",
@@ -3763,6 +3783,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "send_statutory_notice",
+        authorityScope: "TRUST",
         scope: "CORE",
         title: "Send Statutory Notice to Beneficiaries",
         description: "State law typically requires formal notice to beneficiaries and heirs within a specific timeframe (e.g., 30–90 days).",
@@ -3781,6 +3802,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "notify_state_agencies_health",
+        authorityScope: "TRUST",
         scope: "CORE",
         title: "Notify State Health Agencies",
         description: "The trustee must notify the state Department of Health or Medicaid recovery agency to allow for potential recovery claims.",
@@ -3818,6 +3840,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "wait_contest_period",
+        authorityScope: "TRUST",
         scope: "CORE",
         title: "Monitor Statutory Contest Period",
         description: "Wait for the statutory contest period to expire before making final distributions. Document any contests or concerns raised.",
@@ -3840,6 +3863,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
     tasks: [
       {
         id: "inventory_trust_assets",
+        authorityScope: "TRUST",
         scope: "CORE",
         title: "Create Trust Asset Inventory",
         description: "List all assets titled in the trust's name. This is an internal document, not filed with court.",
@@ -3852,6 +3876,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "verify_trust_titling",
+        authorityScope: "TRUST",
         scope: "CORE",
         title: "Verify Trust Titling on All Assets",
         description: "Check each asset to confirm it is properly titled in the trust's name. Assets not in the trust may require probate.",
@@ -3923,6 +3948,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
     tasks: [
       {
         id: "trust_creditor_assessment",
+        authorityScope: "TRUST",
         scope: "CORE",
         title: "Creditor Exposure Assessment",
         description: "Review known debts and potential claims against the trust estate. This is a silent legal check, not formal probate publication.",
@@ -4016,6 +4042,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "file_form_1041",
+        authorityScope: "BOTH",
         scope: "CORE",
         title: "File Trust/Estate Income Tax Return (Form 1041)",
         description: "File Form 1041 for trust income earned after death. Issue K-1s to beneficiaries for their share of income.",
@@ -4042,6 +4069,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "obtain_tax_clearance",
+        authorityScope: "BOTH",
         scope: "CORE",
         title: "Obtain Tax Clearances",
         description: "Confirm all taxes are paid before making final distributions to beneficiaries.",
@@ -4053,6 +4081,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "prepare_trust_accounting",
+        authorityScope: "TRUST",
         scope: "CORE",
         title: "Prepare Trust Accounting",
         description: "Create a comprehensive accounting of all receipts, disbursements, and distributions for beneficiaries.",
@@ -4098,6 +4127,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "distribute_assets_to_beneficiaries",
+        authorityScope: "TRUST",
         scope: "CORE",
         title: "Distribute Assets to Beneficiaries",
         description: "Transfer assets to beneficiaries per the trust terms. Real property may require new deeds.",
@@ -4110,6 +4140,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "obtain_beneficiary_receipts",
+        authorityScope: "TRUST",
         scope: "CORE",
         title: "Obtain Receipts & Global Releases",
         description: "Have each beneficiary sign a receipt acknowledging their distribution and a GLOBAL RELEASE waiving the right to sue the trustee for past actions.",
@@ -4148,6 +4179,7 @@ export const TRUST_PHASE_TASKS: PhaseTaskList[] = [
       },
       {
         id: "complete_trust_administration",
+        authorityScope: "TRUST",
         scope: "CORE",
         title: "Complete Trust Administration",
         description: "The trust administration is complete. Retain records for at least 7 years.",
@@ -4174,6 +4206,7 @@ export const PROBATE_ESCALATION_PHASE: PhaseTaskList = {
   tasks: [
     {
       id: "escalation_evaluate_path",
+      authorityScope: "PROBATE",
       scope: "CORE",
       title: "Evaluate Probate Path",
       description: "Determine whether small estate affidavit or formal probate is needed for out-of-trust assets.",
@@ -4187,6 +4220,7 @@ export const PROBATE_ESCALATION_PHASE: PhaseTaskList = {
     },
     {
       id: "escalation_file_petition",
+      authorityScope: "PROBATE",
       scope: "CORE",
       title: "File Probate Petition",
       description: "If formal probate is required for out-of-trust assets, file petition with the appropriate Probate Court.",
@@ -4200,6 +4234,7 @@ export const PROBATE_ESCALATION_PHASE: PhaseTaskList = {
     },
     {
       id: "escalation_obtain_letters",
+      authorityScope: "PROBATE",
       scope: "CORE",
       title: "Obtain Letters Testamentary",
       description: "Attend hearing and obtain court-issued authority for probate assets only.",
@@ -4213,6 +4248,7 @@ export const PROBATE_ESCALATION_PHASE: PhaseTaskList = {
     },
     {
       id: "escalation_transfer_to_trust",
+      authorityScope: "PROBATE",
       scope: "CORE",
       title: "Transfer Probate Assets to Trust",
       description: "After probate closes, pour-over will or court order transfers probate assets into the trust for unified distribution.",
