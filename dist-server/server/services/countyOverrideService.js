@@ -70,7 +70,6 @@ export class CountyOverrideService {
     static async applyOverrides(stateCode, countyName, tasks) {
         if (!countyName || countyName.trim() === "")
             return tasks;
-        let overrides = [];
         const overrides = await safeQuery(() => db.countyOverride.findMany({
             where: {
                 stateCode,
@@ -115,7 +114,6 @@ export class CountyOverrideService {
     static async getOverrideHash(stateCode, countyName) {
         if (!countyName || countyName.trim() === "")
             return null;
-        let overrides = [];
         const overrides = await safeQuery(() => db.countyOverride.findMany({
             where: { stateCode, countyName },
             orderBy: { taskId: "asc" },

@@ -78,8 +78,6 @@ export class CountyOverrideService {
     ): Promise<PhaseTask[]> {
         if (!countyName || countyName.trim() === "") return tasks;
 
-        let overrides: Awaited<ReturnType<typeof db.countyOverride.findMany>> = [];
-
         const overrides = await safeQuery(() => 
             db.countyOverride.findMany({
                 where: {
@@ -129,8 +127,6 @@ export class CountyOverrideService {
      */
     static async getOverrideHash(stateCode: string, countyName: string): Promise<string | null> {
         if (!countyName || countyName.trim() === "") return null;
-
-        let overrides: Array<{ taskId: string; updatedAt: Date }> = [];
 
         const overrides = await safeQuery(() =>
             db.countyOverride.findMany({
