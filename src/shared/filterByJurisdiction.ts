@@ -23,7 +23,7 @@ export interface ScopedTask {
     title?: string;
     description?: string;
     scope?: string;
-    authorityScope?: AuthorityScope;
+    authorityScope: AuthorityScope;
     allowedStates?: string[];
     allowedCounties?: string[];
     applicability?: {
@@ -107,12 +107,12 @@ export function filterTasksByJurisdiction<T extends ScopedTask>(
  * Filter tasks by authorityScope (PROBATE, TRUST, BOTH).
  * This is the ROOT-CAUSE filter that prevents trust/probate module leakage.
  *
- * Fail-closed rules:
- * 1. Tasks without authorityScope → DROP (fail-closed, schema now enforces NOT NULL)
- * 2. Invalid authorityScope values → DROP (fail-closed)
+ * Fail-closed rules (NO backward-compat exceptions):
+ * 1. Tasks without authorityScope → DROPPED (fail-closed)
+ * 2. Tasks with invalid authorityScope → DROPPED (fail-closed)
  * 3. authorityScope = "BOTH" → always visible
- * 4. estateAuthorityType = "BOTH" → show all tasks
- * 5. Exact match required for PROBATE or TRUST; mismatch → DROP
+ * 4. estateAuthorityType = "BOTH" → all valid tasks visible
+ * 5. Exact match required for PROBATE or TRUST → mismatch DROPPED
  */
 export function filterTasksByAuthorityScope<T extends ScopedTask>(
     tasks: T[],
@@ -120,8 +120,6 @@ export function filterTasksByAuthorityScope<T extends ScopedTask>(
 ): AuthorityScopeFilterResult<T> {
     const kept: T[] = [];
     const dropped: { id: string; reason: string }[] = [];
-    const VALID_SCOPES = ["PROBATE", "TRUST", "BOTH"] as const;
-
     for (const task of tasks) {
         const taskScope = task.authorityScope;
 

@@ -670,7 +670,7 @@ model RoadmapTask {
   excludePredicates           String[]     @map("exclude_predicates")
   requiredProfileFields       String[]     @map("required_profile_fields")
   outputs                     String[]
-  authorityScope              AuthorityScope @map("authority_scope") @default(PROBATE)
+  authorityScope              AuthorityScope   @default(PROBATE) @map("authority_scope")
   scope                       String       @default("CORE")
   allowedCounties             String[]     @map("allowed_counties")
   createdAt                   DateTime     @default(now()) @map("created_at")
@@ -1275,4 +1275,10 @@ model AuthorityChangeEvent {
   @@index([estateId])
   @@index([estateId, computedAt])
   @@map("authority_change_events")
+}
+
+enum AuthorityScope {
+  PROBATE
+  TRUST
+  BOTH
 }

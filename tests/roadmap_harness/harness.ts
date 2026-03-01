@@ -66,8 +66,8 @@ function saveSnapshot(snapshot: EstateSnapshot): void {
 /**
  * Get tasks for a state from the settlement phases config
  */
-function getTasksForState(stateCode: string): Array<{ id: string; title: string; description?: string; scope: string; authorityScope?: 'PROBATE' | 'TRUST' | 'BOTH'; [key: string]: unknown }> {
-  const tasks: Array<{ id: string; title: string; description?: string; scope: string; authorityScope?: 'PROBATE' | 'TRUST' | 'BOTH'; [key: string]: unknown }> = [];
+function getTasksForState(stateCode: string): Array<{ id: string; title: string; description?: string; scope: string; authorityScope: 'PROBATE' | 'TRUST' | 'BOTH'; [key: string]: unknown }> {
+  const tasks: Array<{ id: string; title: string; description?: string; scope: string; authorityScope: 'PROBATE' | 'TRUST' | 'BOTH'; [key: string]: unknown }> = [];
   
   for (const phaseList of SETTLEMENT_PHASE_TASKS) {
     for (const task of phaseList.tasks) {
@@ -89,7 +89,7 @@ function getTasksForState(stateCode: string): Array<{ id: string; title: string;
  * Filter tasks for an estate profile
  */
 function filterTasksForProfile(
-  tasks: Array<{ id: string; title: string; description?: string; scope: string; authorityScope?: 'PROBATE' | 'TRUST' | 'BOTH' }>,
+  tasks: Array<{ id: string; title: string; description?: string; scope: string; authorityScope: 'PROBATE' | 'TRUST' | 'BOTH' }>,
   profile: EstateProfile
 ): typeof tasks {
   // First filter by jurisdiction (state)

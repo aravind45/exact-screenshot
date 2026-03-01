@@ -107,8 +107,7 @@ export interface PhaseTask {
   // "PROBATE" = Only shows for probate estates (file_probate_petition, attend_probate_hearing, etc.)
   // "TRUST" = Only shows for trust estates (locate_trust, identify_successor_trustee, etc.)
   // "BOTH" = Shows for both probate and trust estates (secure_property, pay_taxes, etc.)
-  // undefined = defaults to BOTH for backward compatibility
-  authorityScope?: "PROBATE" | "TRUST" | "BOTH";
+  authorityScope: "PROBATE" | "TRUST" | "BOTH";
 }
 
 export interface PhaseTaskList {

@@ -39,11 +39,12 @@ export function deriveEstateAuthorityType(
 
 /**
  * Checks if a task's authorityScope is compatible with the estate's authorityType.
+ * Fail-closed: tasks without a valid authorityScope are REJECTED.
  * Returns true if task should be visible, false if it should be filtered out.
  * Fail-closed: tasks without authorityScope or with invalid scope are NOT visible.
  */
 export function isAuthorityScopeCompatible(
-  taskScope: AuthorityScope | undefined,
+  taskScope: AuthorityScope | undefined | null,
   estateAuthorityType: EstateAuthorityType
 ): boolean {
   if (!taskScope) return false;
