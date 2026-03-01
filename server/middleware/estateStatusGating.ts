@@ -59,7 +59,36 @@ export const ESTATE_GATES = {
     wizardStep: "TRACK_SELECTION",
     customMessage: "Complete estate setup to view this information",
   },
+  // Task completion - requires MINIMUM_READY but with allowlist restrictions
+  TASK_COMPLETION: {
+    requiredStatus: "MINIMUM_READY" as EstateStatus,
+    wizardStep: "TRACK_SELECTION",
+    customMessage: "Complete estate setup to mark tasks complete",
+  },
 };
+
+/**
+ * Safe task IDs that can be completed when estate is in MINIMUM_READY status.
+ * These are preparatory tasks that don't require legal authority to be established.
+ */
+export const SAFE_TASK_IDS_FOR_MINIMUM_READY = new Set([
+  // Document gathering
+  "preliminary_asset_scan",
+  "locate_will",
+  "locate_docs_no_will",
+  // Property securing
+  "secure_property",
+  "secure_property_2",
+  // Notifications (safe preparatory)
+  "notify_ssa",
+  "cancel_cards",
+  "manage_utilities",
+  // Preparatory steps that don't require authority
+  "obtain_ein_probate",
+  // Other safe tasks
+  "genealogical_search",
+  "check_small_estate",
+]);
 
 /**
  * Check if an estate status meets the required gate
@@ -111,29 +140,29 @@ export async function resolveEstateStatusGate(
   // For legacy estates (null estateStatus), we need to check if they're actually set up
   // Only treat as DRAFT if explicitly set to DRAFT, otherwise check other indicators
   const explicitStatus = (estate as any).estateStatus as EstateStatus | null;
-  const currentStatus = explicitStatus ?? "DRAFT";
 
   // For legacy estates without estateStatus, check if they have minimum setup
-  // If they have state and authority type, treat them as MINIMUM_READY
+  // TIGHTENED: MINIMUM_READY now requires actual authority type selection,
+  // not just completenessLevel fallback (prevents misleading progress on provisional roadmaps)
   const isLegacyEstate = explicitStatus === null;
   const hasMinimumSetup = Boolean(
     estate.deceasedState &&
-    (
-      estate.userSelectedEstateAuthorityType ||
-      estate.estateAuthorityType ||
-      estate.completenessLevel === "MINIMUM_READY" ||
-      estate.completenessLevel === "PROFILE_READY"
-    )
+    (estate.userSelectedEstateAuthorityType || estate.estateAuthorityType)
   );
 
-  // Determine if gate is open
-  let isOpen: boolean;
-  if (isLegacyEstate && hasMinimumSetup) {
-    // Legacy estates with minimum setup should pass MINIMUM_READY gates
-    isOpen = config.requiredStatus === "MINIMUM_READY" || config.requiredStatus === "DRAFT";
+  // Determine effective current status
+  let currentStatus: EstateStatus;
+  if (explicitStatus !== null) {
+    currentStatus = explicitStatus;
+  } else if (isLegacyEstate && hasMinimumSetup) {
+    // Legacy estates with minimum setup are treated as MINIMUM_READY
+    currentStatus = "MINIMUM_READY";
   } else {
-    isOpen = checkEstateStatusGate(currentStatus, config.requiredStatus);
+    currentStatus = "DRAFT";
   }
+
+  // Determine if gate is open
+  const isOpen = checkEstateStatusGate(currentStatus, config.requiredStatus);
 
   // Determine appropriate wizard step based on missing requirements
   let wizardStep = config.wizardStep;
@@ -282,6 +311,53 @@ export function requireOpenEstate(req: Request, res: Response, next: NextFunctio
 }
 
 /**
+ * Middleware factory to check if a task is allowed to be completed given the estate status.
+ * For MINIMUM_READY estates, only safe preparatory tasks can be completed.
+ * ACTIVE estates can complete any task.
+ */
+export function requireTaskCompletionAllowed(taskIdParam: string = "taskId") {
+  return async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const taskId = req.params[taskIdParam];
+      const estateGate = (req as any).estateGate;
+
+      if (!estateGate?.isOpen) {
+        return res.status(409).json({
+          error: "Estate setup incomplete",
+          code: "INCOMPLETE_ESTATE",
+          requiredStep: estateGate?.wizardStep || "TRACK_SELECTION",
+        });
+      }
+
+      // If estate is ACTIVE or higher, allow all tasks
+      if (checkEstateStatusGate(estateGate.currentStatus, "ACTIVE")) {
+        return next();
+      }
+
+      // For MINIMUM_READY, only allow safe tasks
+      if (estateGate.currentStatus === "MINIMUM_READY") {
+        if (!SAFE_TASK_IDS_FOR_MINIMUM_READY.has(taskId)) {
+          return res.status(409).json({
+            error: "This task requires legal authority to be established",
+            code: "AUTHORITY_REQUIRED",
+            taskId,
+            requiredStep: "AUTHORITY_SETUP",
+          });
+        }
+      }
+
+      next();
+    } catch (error: any) {
+      logger.error("[requireTaskCompletionAllowed] Middleware error:", error.message);
+      return res.status(500).json({
+        error: "Internal Server Error",
+        message: "Task completion check failed",
+      });
+    }
+  };
+}
+
+/**
  * Get estate status for API response helper
  */
 export async function getEstateStatus(estateId: string): Promise<{
@@ -318,14 +394,10 @@ export async function getEstateStatus(estateId: string): Promise<{
     status = explicitStatus;
   } else {
     // Legacy estate - determine status based on setup
+    // TIGHTENED: MINIMUM_READY requires actual authority type selection
     const hasMinimumSetup = Boolean(
       estate.deceasedState &&
-      (
-        estate.userSelectedEstateAuthorityType ||
-        estate.estateAuthorityType ||
-        estate.completenessLevel === "MINIMUM_READY" ||
-        estate.completenessLevel === "PROFILE_READY"
-      )
+      (estate.userSelectedEstateAuthorityType || estate.estateAuthorityType)
     );
     status = hasMinimumSetup ? "MINIMUM_READY" : "DRAFT";
   }

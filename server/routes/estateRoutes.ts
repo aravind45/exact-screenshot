@@ -7,7 +7,7 @@ import { AuditService } from "../services/auditService.js";
 import { requireRole } from "../middleware/rbac.js";
 import { requireEstateAccess } from "../middleware/estateAuth.js";
 import { requireAuthorityStatus } from "../middleware/authorityGating.js";
-import { requireEstateStatus, ESTATE_GATES } from "../middleware/estateStatusGating.js";
+import { requireEstateStatus, ESTATE_GATES, requireTaskCompletionAllowed } from "../middleware/estateStatusGating.js";
 import { z } from "zod";
 import { logger } from "../lib/logger.js";
 import { requireSubscription } from "../middleware/subscription.js";
@@ -1357,7 +1357,7 @@ router.get("/:id/tasks", requireSubscription, async (req: any, res: Response) =>
     }
 });
 
-router.post("/:id/tasks/:taskId/complete", requireSubscription, requireEstateStatus(ESTATE_GATES.ROADMAP), async (req: any, res: Response) => {
+router.post("/:id/tasks/:taskId/complete", requireSubscription, requireEstateStatus(ESTATE_GATES.ROADMAP), requireTaskCompletionAllowed("taskId"), async (req: any, res: Response) => {
     try {
         const { id, taskId } = req.params;
         const { notes } = req.body;

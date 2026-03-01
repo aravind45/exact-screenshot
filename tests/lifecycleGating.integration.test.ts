@@ -18,7 +18,9 @@ import {
     checkEstateStatusGate,
     resolveEstateStatusGate,
     requireEstateStatus,
+    requireTaskCompletionAllowed,
     ESTATE_GATES,
+    SAFE_TASK_IDS_FOR_MINIMUM_READY,
     type EstateStatus,
     type EstateGateConfig,
 } from "../server/middleware/estateStatusGating";
@@ -382,4 +384,287 @@ describe("Middleware application evidence", () => {
      *   → NO estate status gating applied
      *   → Assets are accessible regardless of estate status
      */
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TEST SUITE 7:  MINIMUM_READY safety - tightened hasMinimumSetup
+// ═══════════════════════════════════════════════════════════════════════════
+describe("Integration: MINIMUM_READY safety - hasMinimumSetup", () => {
+    beforeEach(() => {
+        (prisma as any).__setMockEstates({});
+    });
+
+    it("legacy estate with completenessLevel='MINIMUM_READY' but no authority type → treated as DRAFT", async () => {
+        const legacyEstateWithCompletenessOnly = {
+            id: "estate-legacy-001",
+            userId: "test-user-id",
+            estateStatus: null, // legacy estate
+            deceasedState: "OH",
+            userSelectedEstateAuthorityType: null,
+            estateAuthorityType: null,
+            completenessLevel: "MINIMUM_READY",
+        };
+
+        (prisma as any).__setMockEstates({
+            [legacyEstateWithCompletenessOnly.id]: legacyEstateWithCompletenessOnly,
+        });
+
+        const result = await resolveEstateStatusGate(legacyEstateWithCompletenessOnly.id, ESTATE_GATES.ROADMAP);
+        // TIGHTENED: should NOT be treated as MINIMUM_READY since no authority type selected
+        expect(result.isOpen).toBe(false);
+        expect(result.currentStatus).toBe("DRAFT");
+    });
+
+    it("legacy estate with completenessLevel='PROFILE_READY' but no authority type → treated as DRAFT", async () => {
+        const legacyEstateProfileReady = {
+            id: "estate-legacy-002",
+            userId: "test-user-id",
+            estateStatus: null,
+            deceasedState: "OH",
+            userSelectedEstateAuthorityType: null,
+            estateAuthorityType: null,
+            completenessLevel: "PROFILE_READY",
+        };
+
+        (prisma as any).__setMockEstates({
+            [legacyEstateProfileReady.id]: legacyEstateProfileReady,
+        });
+
+        const result = await resolveEstateStatusGate(legacyEstateProfileReady.id, ESTATE_GATES.ROADMAP);
+        expect(result.isOpen).toBe(false);
+        expect(result.currentStatus).toBe("DRAFT");
+    });
+
+    it("legacy estate with state AND authority type → treated as MINIMUM_READY", async () => {
+        const legacyEstateWithAuthority = {
+            id: "estate-legacy-003",
+            userId: "test-user-id",
+            estateStatus: null,
+            deceasedState: "OH",
+            userSelectedEstateAuthorityType: "PROBATE",
+            estateAuthorityType: "PROBATE",
+            completenessLevel: "UNSET",
+        };
+
+        (prisma as any).__setMockEstates({
+            [legacyEstateWithAuthority.id]: legacyEstateWithAuthority,
+        });
+
+        const result = await resolveEstateStatusGate(legacyEstateWithAuthority.id, ESTATE_GATES.ROADMAP);
+        expect(result.isOpen).toBe(true);
+        expect(result.currentStatus).toBe("MINIMUM_READY");
+    });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TEST SUITE 8:  Task completion allowlist for MINIMUM_READY estates
+// ═══════════════════════════════════════════════════════════════════════════
+describe("Integration: Task completion allowlist for MINIMUM_READY estates", () => {
+    const MINIMUM_READY_ESTATE_NO_AUTH = {
+        id: "estate-min-001",
+        userId: "test-user-id",
+        estateStatus: "MINIMUM_READY",
+        deceasedState: "OH",
+        userSelectedEstateAuthorityType: "PROBATE",
+        estateAuthorityType: null,
+        completenessLevel: "MINIMUM_READY",
+    };
+
+    beforeEach(() => {
+        (prisma as any).__setMockEstates({
+            [MINIMUM_READY_ESTATE_NO_AUTH.id]: MINIMUM_READY_ESTATE_NO_AUTH,
+        });
+    });
+
+    it("MINIMUM_READY estate CAN complete allowlisted tasks (preliminary_asset_scan)", async () => {
+        // Simulate the estateGate being attached by requireEstateStatus middleware
+        const estateGate = await resolveEstateStatusGate(MINIMUM_READY_ESTATE_NO_AUTH.id, ESTATE_GATES.ROADMAP);
+        expect(estateGate.isOpen).toBe(true);
+
+        const middleware = requireTaskCompletionAllowed("taskId");
+        const req = mockReq({
+            params: { taskId: "preliminary_asset_scan" },
+            estateGate,
+        });
+        const res = mockRes();
+        const next = vi.fn();
+
+        await middleware(req, res, next);
+
+        expect(next).toHaveBeenCalled();
+        expect(res.statusCode).toBe(0);
+    });
+
+    it("MINIMUM_READY estate CAN complete allowlisted tasks (secure_property)", async () => {
+        const estateGate = await resolveEstateStatusGate(MINIMUM_READY_ESTATE_NO_AUTH.id, ESTATE_GATES.ROADMAP);
+        const middleware = requireTaskCompletionAllowed("taskId");
+        const req = mockReq({
+            params: { taskId: "secure_property" },
+            estateGate,
+        });
+        const res = mockRes();
+        const next = vi.fn();
+
+        await middleware(req, res, next);
+
+        expect(next).toHaveBeenCalled();
+    });
+
+    it("MINIMUM_READY estate CANNOT complete non-allowlisted tasks (file_probate_petition)", async () => {
+        const estateGate = await resolveEstateStatusGate(MINIMUM_READY_ESTATE_NO_AUTH.id, ESTATE_GATES.ROADMAP);
+        const middleware = requireTaskCompletionAllowed("taskId");
+        const req = mockReq({
+            params: { taskId: "file_probate_petition" },
+            estateGate,
+        });
+        const res = mockRes();
+        const next = vi.fn();
+
+        await middleware(req, res, next);
+
+        expect(next).not.toHaveBeenCalled();
+        expect(res.statusCode).toBe(409);
+        expect(res.body).toMatchObject({
+            error: "This task requires legal authority to be established",
+            code: "AUTHORITY_REQUIRED",
+            taskId: "file_probate_petition",
+            requiredStep: "AUTHORITY_SETUP",
+        });
+    });
+
+    it("MINIMUM_READY estate CANNOT complete non-allowlisted tasks (open_estate_account)", async () => {
+        const estateGate = await resolveEstateStatusGate(MINIMUM_READY_ESTATE_NO_AUTH.id, ESTATE_GATES.ROADMAP);
+        const middleware = requireTaskCompletionAllowed("taskId");
+        const req = mockReq({
+            params: { taskId: "open_estate_account" },
+            estateGate,
+        });
+        const res = mockRes();
+        const next = vi.fn();
+
+        await middleware(req, res, next);
+
+        expect(next).not.toHaveBeenCalled();
+        expect(res.statusCode).toBe(409);
+        expect(res.body.code).toBe("AUTHORITY_REQUIRED");
+    });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TEST SUITE 9:  ACTIVE estate can complete any task
+// ═══════════════════════════════════════════════════════════════════════════
+describe("Integration: ACTIVE estate can complete any task", () => {
+    beforeEach(() => {
+        (prisma as any).__setMockEstates({
+            [ACTIVE_ESTATE.id]: ACTIVE_ESTATE,
+        });
+    });
+
+    it("ACTIVE estate can complete allowlisted tasks", async () => {
+        const estateGate = await resolveEstateStatusGate(ACTIVE_ESTATE.id, ESTATE_GATES.ROADMAP);
+        expect(estateGate.currentStatus).toBe("ACTIVE");
+
+        const middleware = requireTaskCompletionAllowed("taskId");
+        const req = mockReq({
+            params: { taskId: "preliminary_asset_scan" },
+            estateGate,
+        });
+        const res = mockRes();
+        const next = vi.fn();
+
+        await middleware(req, res, next);
+
+        expect(next).toHaveBeenCalled();
+    });
+
+    it("ACTIVE estate can complete non-allowlisted tasks (file_probate_petition)", async () => {
+        const estateGate = await resolveEstateStatusGate(ACTIVE_ESTATE.id, ESTATE_GATES.ROADMAP);
+        const middleware = requireTaskCompletionAllowed("taskId");
+        const req = mockReq({
+            params: { taskId: "file_probate_petition" },
+            estateGate,
+        });
+        const res = mockRes();
+        const next = vi.fn();
+
+        await middleware(req, res, next);
+
+        expect(next).toHaveBeenCalled();
+        expect(res.statusCode).toBe(0);
+    });
+
+    it("ACTIVE estate can complete any task (receive_letters_testamentary)", async () => {
+        const estateGate = await resolveEstateStatusGate(ACTIVE_ESTATE.id, ESTATE_GATES.ROADMAP);
+        const middleware = requireTaskCompletionAllowed("taskId");
+        const req = mockReq({
+            params: { taskId: "receive_letters_testamentary" },
+            estateGate,
+        });
+        const res = mockRes();
+        const next = vi.fn();
+
+        await middleware(req, res, next);
+
+        expect(next).toHaveBeenCalled();
+    });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TEST SUITE 10:  Safe task allowlist constants
+// ═══════════════════════════════════════════════════════════════════════════
+describe("Integration: Safe task allowlist constants", () => {
+    it("SAFE_TASK_IDS_FOR_MINIMUM_READY contains expected safe tasks", () => {
+        expect(SAFE_TASK_IDS_FOR_MINIMUM_READY.has("preliminary_asset_scan")).toBe(true);
+        expect(SAFE_TASK_IDS_FOR_MINIMUM_READY.has("locate_will")).toBe(true);
+        expect(SAFE_TASK_IDS_FOR_MINIMUM_READY.has("secure_property")).toBe(true);
+        expect(SAFE_TASK_IDS_FOR_MINIMUM_READY.has("notify_ssa")).toBe(true);
+        expect(SAFE_TASK_IDS_FOR_MINIMUM_READY.has("cancel_cards")).toBe(true);
+        expect(SAFE_TASK_IDS_FOR_MINIMUM_READY.has("check_small_estate")).toBe(true);
+    });
+
+    it("SAFE_TASK_IDS_FOR_MINIMUM_READY does NOT contain authority-requiring tasks", () => {
+        expect(SAFE_TASK_IDS_FOR_MINIMUM_READY.has("file_probate_petition")).toBe(false);
+        expect(SAFE_TASK_IDS_FOR_MINIMUM_READY.has("open_estate_account")).toBe(false);
+        expect(SAFE_TASK_IDS_FOR_MINIMUM_READY.has("receive_letters_testamentary")).toBe(false);
+        expect(SAFE_TASK_IDS_FOR_MINIMUM_READY.has("distribute_assets")).toBe(false);
+    });
+
+    it("ESTATE_GATES.TASK_COMPLETION exists and requires MINIMUM_READY", () => {
+        expect(ESTATE_GATES.TASK_COMPLETION).toBeDefined();
+        expect(ESTATE_GATES.TASK_COMPLETION.requiredStatus).toBe("MINIMUM_READY");
+    });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TEST SUITE 11:  requireTaskCompletionAllowed without estateGate
+// ═══════════════════════════════════════════════════════════════════════════
+describe("Integration: requireTaskCompletionAllowed edge cases", () => {
+    it("returns 409 if estateGate is not present on request", async () => {
+        const middleware = requireTaskCompletionAllowed("taskId");
+        const req = mockReq({ params: { taskId: "some_task" } }); // No estateGate
+        const res = mockRes();
+        const next = vi.fn();
+
+        await middleware(req, res, next);
+
+        expect(next).not.toHaveBeenCalled();
+        expect(res.statusCode).toBe(409);
+        expect(res.body.code).toBe("INCOMPLETE_ESTATE");
+    });
+
+    it("returns 409 if estateGate.isOpen is false", async () => {
+        const middleware = requireTaskCompletionAllowed("taskId");
+        const req = mockReq({
+            params: { taskId: "some_task" },
+            estateGate: { isOpen: false, wizardStep: "TRACK_SELECTION" },
+        });
+        const res = mockRes();
+        const next = vi.fn();
+
+        await middleware(req, res, next);
+
+        expect(next).not.toHaveBeenCalled();
+        expect(res.statusCode).toBe(409);
+        expect(res.body.requiredStep).toBe("TRACK_SELECTION");
+    });
 });
