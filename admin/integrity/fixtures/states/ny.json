@@ -1,0 +1,19 @@
+{
+  "id": "ny_probate_standard",
+  "name": "New York - Standard Probate Estate",
+  "stateCode": "NY",
+  "county": "New York",
+  "authorityType": "PROBATE",
+  "hasRealProperty": true,
+  "estateValue": 1200000,
+  "hasWill": true,
+  "characteristics": {
+    "isSmallEstate": false,
+    "hasMinorBeneficiaries": false,
+    "hasContest": false,
+    "isInternational": false,
+    "hasTODDeed": false,
+    "hasOutOfStateProperty": false,
+    "isSurvivingSpouse": false
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "id": "nj_probate_standard",
+  "name": "New Jersey - Standard Probate Estate",
+  "stateCode": "NJ",
+  "county": "Bergen",
+  "authorityType": "PROBATE",
+  "hasRealProperty": true,
+  "estateValue": 650000,
+  "hasWill": true,
+  "characteristics": {
+    "isSmallEstate": false,
+    "hasMinorBeneficiaries": false,
+    "hasContest": false,
+    "isInternational": false,
+    "hasTODDeed": false,
+    "hasOutOfStateProperty": false,
+    "isSurvivingSpouse": false
+  }
+}

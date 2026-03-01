@@ -1278,3 +1278,66 @@ enum EstateStatus {
   ACTIVE
   CLOSED
 }
+
+// Integrity Scan Run - Stores roadmap integrity check results
+model IntegrityScanRun {
+  id              String   @id @default(uuid())
+  stateCode       String?  @map("state_code")
+  scanType        String   @map("scan_type") // "FULL" | "STATE" | "CUSTOM"
+  overallStatus   String   @map("overall_status") // "PASSED" | "FAILED" | "IN_PROGRESS"
+  totalChecks     Int      @default(0) @map("total_checks")
+  passedChecks    Int      @default(0) @map("passed_checks")
+  failedChecks    Int      @default(0) @map("failed_checks")
+  blockerCount    Int      @default(0) @map("blocker_count")
+  criticalCount   Int      @default(0) @map("critical_count")
+  warningCount    Int      @default(0) @map("warning_count")
+  infoCount       Int      @default(0) @map("info_count")
+  triggeredBy     String   @map("triggered_by")
+  triggeredByUser String?  @map("triggered_by_user")
+  scanOptions     Json?    @map("scan_options")
+  commitSha       String?  @map("commit_sha")
+  branchName      String?  @map("branch_name")
+  durationMs      Int      @map("duration_ms")
+  errorMessage     String?  @map("error_message")
+  createdAt       DateTime @default(now()) @map("created_at")
+  completedAt     DateTime? @map("completed_at")
+  findings        IntegrityFinding[]
+
+  @@index([stateCode])
+  @@index([overallStatus])
+  @@index([createdAt(sort: Desc)])
+  @@index([triggeredBy])
+  @@map("integrity_scan_runs")
+}
+
+// Integrity Finding - Individual findings from integrity checks
+model IntegrityFinding {
+  id          String           @id @default(uuid())
+  scanRunId   String           @map("scan_run_id")
+  checkId     String           @map("check_id") // "crossStateStatuteLeak" | "authorityScopeLeak" etc.
+  checkName   String           @map("check_name") // Human-readable name
+  stateCode   String?          @map("state_code")
+  severity    FindingSeverity  // "BLOCKER" | "CRITICAL" | "WARNING" | "INFO"
+  code        String           // Unique violation code
+  message     String           // Human-readable message
+  taskId      String?          @map("task_id")
+  context     Json?            // Additional context
+  suggestion  String?          // Suggested fix
+  remediation Json?            // Structured remediation hints
+  createdAt   DateTime         @default(now()) @map("created_at")
+  scanRun     IntegrityScanRun @relation(fields: [scanRunId], references: [id], onDelete: Cascade)
+
+  @@index([scanRunId])
+  @@index([checkId])
+  @@index([stateCode])
+  @@index([severity])
+  @@index([code])
+  @@map("integrity_findings")
+}
+
+enum FindingSeverity {
+  BLOCKER
+  CRITICAL
+  WARNING
+  INFO
+}

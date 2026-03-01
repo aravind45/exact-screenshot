@@ -1,0 +1,19 @@
+{
+  "id": "ma_probate_standard",
+  "name": "Massachusetts - Standard Probate Estate",
+  "stateCode": "MA",
+  "county": "Suffolk",
+  "authorityType": "PROBATE",
+  "hasRealProperty": true,
+  "estateValue": 750000,
+  "hasWill": true,
+  "characteristics": {
+    "isSmallEstate": false,
+    "hasMinorBeneficiaries": false,
+    "hasContest": false,
+    "isInternational": false,
+    "hasTODDeed": false,
+    "hasOutOfStateProperty": false,
+    "isSurvivingSpouse": false
+  }
+}

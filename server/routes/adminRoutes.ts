@@ -1195,4 +1195,134 @@ router.get("/verification-health", isAdmin, async (req: any, res: Response) => {
     }
 });
 
+// ═══════════════════════════════════════════════════════════════════════════
+// INTEGRITY SCAN DASHBOARD ENDPOINTS
+// ═══════════════════════════════════════════════════════════════════════════
+
+import * as IntegrityScanService from "../services/integrityScanService.js";
+
+/**
+ * POST /api/admin/integrity/run
+ * Start a new integrity scan (full or single-state)
+ */
+const runIntegrityScanSchema = z.object({
+    stateCode: z.string().length(2).optional(),
+    checkIds: z.array(z.string()).optional(),
+    profiles: z.array(z.any()).optional(),
+    skipCache: z.boolean().optional(),
+    commitSha: z.string().optional(),
+    branchName: z.string().optional(),
+});
+
+router.post("/integrity/run", isAdmin, async (req: any, res: Response) => {
+    try {
+        const validated = runIntegrityScanSchema.parse(req.body);
+
+        const scanOptions: any = {
+            stateCode: validated.stateCode || null,
+            checkIds: validated.checkIds || null,
+            profiles: validated.profiles || undefined,
+            skipCache: validated.skipCache || false,
+        };
+
+        const report = await IntegrityScanService.runFullScan(scanOptions);
+
+        // Persist the scan run
+        await IntegrityScanService.persistScanRun(report, req.user.id, {
+            triggeredByUser: req.user.email,
+            commitSha: validated.commitSha,
+            branchName: validated.branchName,
+        });
+
+        res.json({
+            success: true,
+            report,
+            persisted: true,
+        });
+    } catch (error: any) {
+        if (error instanceof z.ZodError) {
+            return res.status(400).json({ error: "Invalid scan parameters", details: error.errors });
+        }
+        logger.error("Failed to run integrity scan:", error.message);
+        res.status(500).json({ error: "Failed to run integrity scan" });
+    }
+});
+
+/**
+ * GET /api/admin/integrity/runs
+ * List recent integrity scan runs
+ */
+router.get("/integrity/runs", isAdmin, async (req: any, res: Response) => {
+    try {
+        const limit = parseInt(req.query.limit as string) || 20;
+        const runs = await IntegrityScanService.getLatestScanRuns(limit);
+
+        res.json({
+            data: runs,
+            total: runs.length,
+        });
+    } catch (error: any) {
+        logger.error("Failed to fetch integrity scan runs:", error.message);
+        res.status(500).json({ error: "Failed to fetch scan runs" });
+    }
+});
+
+/**
+ * GET /api/admin/integrity/runs/:id
+ * Get detailed scan run with findings
+ */
+router.get("/integrity/runs/:id", isAdmin, async (req: any, res: Response) => {
+    try {
+        const { id } = req.params;
+        const result = await IntegrityScanService.getScanRun(id);
+
+        res.json(result);
+    } catch (error: any) {
+        logger.error({ scanRunId: req.params.id }, "Failed to fetch scan run:");
+        res.status(500).json({ error: "Failed to fetch scan run" });
+    }
+});
+
+/**
+ * GET /api/admin/integrity/state/:stateCode/latest
+ * Get latest scan status for a specific state
+ */
+router.get("/integrity/state/:stateCode/latest", isAdmin, async (req: any, res: Response) => {
+    try {
+        const { stateCode } = req.params;
+        const status = await IntegrityScanService.getStateLatestStatus(stateCode);
+
+        if (!status) {
+            return res.status(404).json({ 
+                error: "No scan runs found for this state",
+                stateCode,
+                status: "NEVER_RUN",
+            });
+        }
+
+        res.json(status);
+    } catch (error: any) {
+        logger.error({ stateCode: req.params.stateCode }, "Failed to fetch state latest status:");
+        res.status(500).json({ error: "Failed to fetch state status" });
+    }
+});
+
+/**
+ * POST /api/admin/integrity/clear-cache
+ * Clear the integrity scan cache
+ */
+router.post("/integrity/clear-cache", isAdmin, async (req: any, res: Response) => {
+    try {
+        IntegrityScanService.clearScanCache();
+        
+        res.json({ 
+            success: true, 
+            message: "Integrity scan cache cleared" 
+        });
+    } catch (error: any) {
+        logger.error("Failed to clear scan cache:", error.message);
+        res.status(500).json({ error: "Failed to clear cache" });
+    }
+});
+
 export default router;
