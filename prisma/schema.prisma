@@ -1186,13 +1186,6 @@ enum UserRole {
   HEIR
 }
 
-enum EstateStatus {
-  DRAFT
-  MINIMUM_READY
-  ACTIVE
-  CLOSED
-}
-
 model CountyOverride {
   id              String   @id @default(uuid())
   stateCode       String   @map("state_code")
@@ -1277,4 +1270,11 @@ model AuthorityChangeEvent {
   @@index([estateId])
   @@index([estateId, computedAt])
   @@map("authority_change_events")
+}
+
+enum EstateStatus {
+  DRAFT
+  MINIMUM_READY
+  ACTIVE
+  CLOSED
 }

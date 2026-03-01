@@ -25,6 +25,7 @@ const estateUpdateSchema = z.object({
     deceasedState: z.string().optional(),
     estateType: z.string().optional(),
     authorityType: z.string().optional(),
+    userSelectedEstateAuthorityType: z.string().optional(),
     authorityStatus: z.string().optional(),
     certifiedCopies: z.coerce.number().optional().nullable(),
     authorityEffectiveDate: z.string().optional().nullable(),
@@ -349,9 +350,10 @@ router.put("/my", authenticate, async (req: any, res: Response) => {
             }
 
             // Check if we should advance estateStatus to MINIMUM_READY
-            // This happens when authorityType is being set for the first time
+            // This happens when authority type selection is being set for the first time
             const currentStatus = (estate as any).estateStatus || "DRAFT";
-            if (currentStatus === "DRAFT" && updateData.authorityType && updateData.authorityType !== "UNSET") {
+            const selectedAuthorityType = updateData.authorityType ?? updateData.userSelectedEstateAuthorityType;
+            if (currentStatus === "DRAFT" && selectedAuthorityType && selectedAuthorityType !== "UNSET") {
                 updateData.estateStatus = "MINIMUM_READY";
                 logger.info(`✅ [ESTATE] Advancing estate ${estate.id} from DRAFT to MINIMUM_READY`);
             }
@@ -1120,26 +1122,29 @@ router.get("/:id/roadmap", requireSubscription, async (req: any, res: Response) 
             });
         }
 
-        // 🚨 MINIMUM INTAKE GATE: Prevent misleading roadmaps for incomplete estates
-        const { estateAuthorityType, completenessLevel } = estate;
-        if (completenessLevel !== "MINIMUM_READY" && completenessLevel !== "PROFILE_READY") {
-            logger.warn({ estateId: id, completenessLevel, estateAuthorityType }, "Roadmap blocked — minimum intake not complete");
-            return res.status(409).json({
-                code: "MINIMUM_INTAKE_REQUIRED",
-                error: "Estate requires authority type selection before generating roadmap",
-                requiredFields: ["estateAuthorityType"],
-                wizardStep: "TRACK_SELECTION"
-            });
-        }
+        const shouldFallbackToCompleteness = explicitEstateStatus == null;
+        if (shouldFallbackToCompleteness) {
+            // 🚨 MINIMUM INTAKE GATE: Prevent misleading roadmaps for incomplete legacy estates
+            const { estateAuthorityType, completenessLevel } = estate;
+            if (completenessLevel !== "MINIMUM_READY" && completenessLevel !== "PROFILE_READY") {
+                logger.warn({ estateId: id, completenessLevel, estateAuthorityType }, "Roadmap blocked — minimum intake not complete");
+                return res.status(409).json({
+                    code: "MINIMUM_INTAKE_REQUIRED",
+                    error: "Estate requires authority type selection before generating roadmap",
+                    requiredFields: ["estateAuthorityType"],
+                    wizardStep: "TRACK_SELECTION"
+                });
+            }
 
-        if (!estateAuthorityType || estateAuthorityType === "UNSET") {
-            logger.warn({ estateId: id, estateAuthorityType }, "Roadmap blocked — authority type is UNSET");
-            return res.status(409).json({
-                code: "MINIMUM_INTAKE_REQUIRED",
-                error: "Estate requires authority type selection before generating roadmap",
-                requiredFields: ["estateAuthorityType"],
-                wizardStep: "TRACK_SELECTION"
-            });
+            if (!estateAuthorityType || estateAuthorityType === "UNSET") {
+                logger.warn({ estateId: id, estateAuthorityType }, "Roadmap blocked — authority type is UNSET");
+                return res.status(409).json({
+                    code: "MINIMUM_INTAKE_REQUIRED",
+                    error: "Estate requires authority type selection before generating roadmap",
+                    requiredFields: ["estateAuthorityType"],
+                    wizardStep: "TRACK_SELECTION"
+                });
+            }
         }
 
         const hasDeceasedName = (estate.deceasedFirstName && estate.deceasedFirstName.trim().length > 0) ||
@@ -1390,13 +1395,16 @@ router.post("/:id/tasks/:taskId/complete", requireSubscription, async (req: any,
             });
         }
 
-        // 🚨 MINIMUM INTAKE GATE: Block task completion until setup is complete
-        if (estate.completenessLevel !== "MINIMUM_READY" && estate.completenessLevel !== "PROFILE_READY") {
-            return res.status(409).json({
-                code: "MINIMUM_INTAKE_REQUIRED",
-                error: "Complete estate setup before marking tasks complete",
-                wizardStep: "TRACK_SELECTION"
-            });
+        const shouldFallbackToCompleteness = explicitEstateStatus == null;
+        if (shouldFallbackToCompleteness) {
+            // 🚨 MINIMUM INTAKE GATE: Block task completion until setup is complete
+            if (estate.completenessLevel !== "MINIMUM_READY" && estate.completenessLevel !== "PROFILE_READY") {
+                return res.status(409).json({
+                    code: "MINIMUM_INTAKE_REQUIRED",
+                    error: "Complete estate setup before marking tasks complete",
+                    wizardStep: "TRACK_SELECTION"
+                });
+            }
         }
 
         // Complete task
