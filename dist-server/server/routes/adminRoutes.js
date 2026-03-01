@@ -930,4 +930,60 @@ router.get("/county-overrides/:id/diff", isAdmin, async (req, res) => {
         res.status(500).json({ error: "Failed to get county override diff" });
     }
 });
+router.get("/authority-scope-health", async (req, res) => {
+    try {
+        const { SETTLEMENT_PHASE_TASKS } = await import("../../src/config/settlementPhases.js");
+        const VALID_SCOPES = new Set(["PROBATE", "TRUST", "BOTH"]);
+        const distribution = { PROBATE: 0, TRUST: 0, BOTH: 0 };
+        const missingScope = [];
+        const invalidScope = [];
+        for (const phase of SETTLEMENT_PHASE_TASKS) {
+            for (const task of phase.tasks) {
+                const scope = task.authorityScope;
+                if (!scope) {
+                    missingScope.push(task.id);
+                }
+                else if (!VALID_SCOPES.has(scope)) {
+                    invalidScope.push({ taskId: task.id, value: scope });
+                }
+                else {
+                    distribution[scope]++;
+                }
+            }
+        }
+        const totalTasks = SETTLEMENT_PHASE_TASKS.reduce((sum, p) => sum + p.tasks.length, 0);
+        const healthyTasks = distribution.PROBATE + distribution.TRUST + distribution.BOTH;
+        const healthPercent = totalTasks > 0 ? Math.round((healthyTasks / totalTasks) * 100) : 100;
+        let dbNullCount = 0;
+        try {
+            const result = await prisma.$queryRaw `
+                SELECT COUNT(*) as count FROM roadmap_tasks WHERE authority_scope IS NULL
+            `;
+            dbNullCount = Number(result[0]?.count ?? 0);
+        }
+        catch {
+            dbNullCount = -1;
+        }
+        res.json({
+            health: {
+                percent: healthPercent,
+                status: healthPercent === 100 && dbNullCount === 0 ? "healthy" : "degraded",
+            },
+            configStats: {
+                totalTasks,
+                distribution,
+                missingScope,
+                invalidScope,
+            },
+            dbStats: {
+                nullAuthorityScope: dbNullCount,
+                status: dbNullCount === 0 ? "ok" : dbNullCount < 0 ? "unavailable" : "violations",
+            },
+        });
+    }
+    catch (error) {
+        logger.error(error, "Failed to compute authority scope health");
+        res.status(500).json({ error: "Failed to compute authority scope health" });
+    }
+});
 export default router;

@@ -18,8 +18,8 @@ const SYSTEMS = {
 };
 export class PriorityFactory {
     static getSystem(state) {
-        // Use mapping, or fallback to UPC (most generic) then CA
-        return SYSTEMS[state] || UPCPrioritySystem || CaliforniaPrioritySystem;
+        const normalized = typeof state === "string" ? state.trim().toUpperCase() : "";
+        return SYSTEMS[normalized] || UPCPrioritySystem;
     }
     static getAllRules(state) {
         return this.getSystem(state).rules;

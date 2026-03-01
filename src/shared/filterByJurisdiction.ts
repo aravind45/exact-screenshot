@@ -23,7 +23,7 @@ export interface ScopedTask {
     title?: string;
     description?: string;
     scope?: string;
-    authorityScope: AuthorityScope;
+    authorityScope?: AuthorityScope;
     allowedStates?: string[];
     allowedCounties?: string[];
     applicability?: {

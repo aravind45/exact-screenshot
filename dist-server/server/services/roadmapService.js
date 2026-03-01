@@ -576,15 +576,39 @@ const fetchEstateWithRelations = async (estateId) => {
  */
 export async function analyzeEstateProfile(estateId) {
     // Fetch estate with related data - defensive query to handle missing columns
-    const estate = await fetchEstateWithRelations(estateId);
+    let estate;
+    try {
+        estate = await db.estate.findUnique({
+            where: { id: estateId },
+            include: {
+                heirs: true,
+                assets: true,
+                liabilities: true,
+            },
+        });
+    }
+    catch (error) {
+        const errorMessage = error.message || '';
+        if (errorMessage.includes('column') && (errorMessage.includes('does not exist') || errorMessage.includes('Unknown column'))) {
+            logger.error({
+                estateId,
+                error: errorMessage
+            }, "CRITICAL: Database schema mismatch in analyzeEstateProfile - missing column");
+            // Return a minimal profile that allows the app to function
+            throw new Error("SCHEMA_MIGRATION_REQUIRED");
+        }
+        throw error;
+    }
     if (!estate) {
         throw new Error(`Estate ${estateId} not found`);
     }
-    if (!estate.deceasedState) {
+    const normalizedState = typeof estate.deceasedState === "string" ? estate.deceasedState.trim().toUpperCase() : "";
+    if (!normalizedState || !/^[A-Z]{2}$/.test(normalizedState)) {
+        logger.warn({ estateId, deceasedState: estate.deceasedState }, "Estate has missing or invalid state code — STATE_REQUIRED");
         throw new Error("STATE_REQUIRED");
     }
     // Fetch state-specific rules from DB
-    const stateRule = await getJurisdictionRule(estate.deceasedState);
+    const stateRule = await getJurisdictionRule(normalizedState);
     // Calculate insolvency FIRST so it is passed INTO calculateAuthorityRecommendation.
     // Previously insolvency was calculated AFTER the engine call, which meant
     // type was never set to INSOLVENT_ESTATE and the roadmap was incorrect for
@@ -600,7 +624,7 @@ export async function analyzeEstateProfile(estateId) {
     // Calculate recommendation using the multi-dimensional engine.
     // All 7 XLSX dimensions must be passed here:
     //   hasWill, isTrustRevocable, hasTODDeed, hasContest, isSpouse, isOutOfState, hasInsolvencyRisk
-    const rec = calculateAuthorityRecommendation(estate.assets, estate.deceasedState, {
+    const rec = calculateAuthorityRecommendation(estate.assets, normalizedState, {
         hasWill: estate.hasWill,
         // isTrustRevocable: schema field (nullable Boolean). undefined = no trust / not known.
         isTrustRevocable: estate.isTrustRevocable ?? undefined,
@@ -623,7 +647,7 @@ export async function analyzeEstateProfile(estateId) {
             rec.activeEngines.push("PROBATE");
     }
     // Compute state-specific predicates for task filtering
-    const stateCode = estate.deceasedState;
+    const stateCode = normalizedState;
     const isNJ = stateCode === "NJ";
     const isOH = stateCode === "OH";
     const isGA = stateCode === "GA";
@@ -653,7 +677,7 @@ export async function analyzeEstateProfile(estateId) {
         isSmallEstate: rec.isEligibleForSmallEstate,
         isPrimaryResidence: estate.hasPrimaryResidence || estate.assets.some(a => a.assetType === "real_estate"),
         isContested: rec.modifiers?.includes("CONTESTED") || false,
-        state: estate.deceasedState,
+        state: normalizedState,
         estimatedValue: rec.probateTotal,
         totalDebts,
         solvencyRatio,
@@ -905,7 +929,7 @@ export async function getRoadmapFromDatabase(estateId, profile, completedTaskIds
     // If pinned to a specific version, we'd need to match against roadmap_versions
     // For now, we use the settlementType and assume version consistency
     // The version pinning is primarily for the estate record itself
-    // Fetch roadmap from database - defensive: handle missing authorityScope column
+    // Fetch roadmap from database
     let settlementType;
     try {
         settlementType = await db.settlementType.findUnique({
@@ -966,7 +990,7 @@ export async function getRoadmapFromDatabase(estateId, profile, completedTaskIds
                 scope: task.scope || 'CORE',
                 allowedStates: task.applicableStates && task.applicableStates.length > 0 ? task.applicableStates : undefined,
                 allowedCounties: task.allowedCounties && task.allowedCounties.length > 0 ? task.allowedCounties : undefined,
-                authorityScope: task.authorityScope, // May be undefined if migration not applied
+                authorityScope: task.authorityScope,
                 title: stateOverride?.title || task.title,
                 description: stateOverride?.description || task.description || task.title,
                 estimatedTime: task.estimatedTime || undefined,
@@ -1019,32 +1043,14 @@ export async function getRoadmapFromDatabase(estateId, profile, completedTaskIds
     // Apply unified jurisdiction filter (fail-closed scope check)
     const { phases: scopeFiltered, dropped: jurisdictionDropped } = filterPhasesByJurisdiction(filtered, profile.state);
     // Apply authorityScope filtering (ROOT-CAUSE filter for trust/probate module leakage)
-    // Defensive: wrap in try-catch to handle missing migration gracefully
-    let authorityFiltered = scopeFiltered;
-    let authorityDropped = [];
-    try {
-        const filterResult = filterPhasesByAuthorityScope(scopeFiltered, profile.estateAuthorityType);
-        authorityFiltered = filterResult.phases;
-        authorityDropped = filterResult.dropped;
-        // Log dropped tasks for audit trail
-        if (authorityDropped.length > 0) {
-            logger.info({
-                estateId: profile.id,
-                estateAuthorityType: profile.estateAuthorityType,
-                droppedTasks: authorityDropped.map(d => d.id),
-                reasons: authorityDropped.map(d => d.reason)
-            }, "Authority scope filtering applied");
-        }
-    }
-    catch (error) {
-        // Fallback: if authorityScope filtering fails (e.g., migration not applied), use unfiltered phases
-        logger.warn({
+    const { phases: authorityFiltered, dropped: authorityDropped } = filterPhasesByAuthorityScope(scopeFiltered, profile.estateAuthorityType);
+    if (authorityDropped.length > 0) {
+        logger.info({
             estateId: profile.id,
             estateAuthorityType: profile.estateAuthorityType,
-            error: error instanceof Error ? error.message : String(error)
-        }, "AuthorityScope filtering disabled - migration may be pending. Using unfiltered phases.");
-        authorityFiltered = scopeFiltered;
-        authorityDropped = [];
+            droppedTasks: authorityDropped.map(d => d.id),
+            reasons: authorityDropped.map(d => d.reason)
+        }, "Authority scope filtering applied");
     }
     // Apply county overrides with pinning awareness
     let finalizedPhases = authorityFiltered;
@@ -1071,16 +1077,38 @@ export async function getRoadmapFromDatabase(estateId, profile, completedTaskIds
  * Get personalized roadmap for an estate
  */
 export async function getEstateRoadmap(estateId) {
+    logger.info({ estateId }, "Generating estate roadmap");
     // Analyze estate profile
-    const profile = await analyzeEstateProfile(estateId);
+    let profile;
+    try {
+        profile = await analyzeEstateProfile(estateId);
+        logger.info({ estateId, state: profile.state, procedureType: profile.procedureType }, "Estate profile analyzed");
+    }
+    catch (error) {
+        if (error.message === 'SCHEMA_MIGRATION_REQUIRED') {
+            logger.error({ estateId }, "Cannot generate roadmap - schema migration required");
+            // Return a minimal response that indicates migration is needed
+            throw new Error("SCHEMA_MIGRATION_REQUIRED");
+        }
+        logger.error({ estateId, error: error instanceof Error ? error.message : String(error), stack: error instanceof Error ? error.stack : undefined }, "Failed to analyze estate profile for roadmap");
+        throw error;
+    }
     // Get current progress
     const { completedTaskIds } = await getTaskCompletions(estateId);
     // Get roadmap from database (with fallback to hardcoded tasks)
-    const filteredPhases = await getRoadmapFromDatabase(estateId, profile, completedTaskIds);
+    let filteredPhases;
+    try {
+        filteredPhases = await getRoadmapFromDatabase(estateId, profile, completedTaskIds);
+        logger.info({ estateId, phaseCount: filteredPhases.length }, "Roadmap phases resolved from database");
+    }
+    catch (error) {
+        logger.error({ estateId, state: profile.state, procedureType: profile.procedureType, error: error instanceof Error ? error.message : String(error), stack: error instanceof Error ? error.stack : undefined }, "Failed to get roadmap from database");
+        throw error;
+    }
     // Development-time contamination check: warn if CA tokens leaked into non-CA state
     validateNoStateContamination(filteredPhases, profile.state);
     // Get estate for version info and authority status
-    let estate = null;
+    let estate;
     try {
         estate = await db.estate.findUnique({
             where: { id: estateId },
@@ -1095,25 +1123,14 @@ export async function getEstateRoadmap(estateId) {
         });
     }
     catch (error) {
-        if (!isMissingColumnError(error)) {
+        const errorMessage = error.message || '';
+        if (errorMessage.includes('column') && (errorMessage.includes('does not exist') || errorMessage.includes('Unknown column'))) {
+            logger.warn({ estateId, error: errorMessage }, "Missing columns when fetching estate for roadmap - using defaults");
+            estate = null;
+        }
+        else {
             throw error;
         }
-        logger.warn({
-            estateId,
-            message: error instanceof Error ? error.message : String(error),
-            ...getPrismaErrorDetails(error)
-        }, "Estate roadmap metadata query failed due to missing columns. Using fallback values.");
-        const fallbackEstate = await fetchEstateRowById(db, estateId);
-        estate = fallbackEstate
-            ? {
-                roadmapVersion: fallbackEstate.roadmapVersion ?? null,
-                roadmapPinnedAt: fallbackEstate.roadmapPinnedAt ?? null,
-                authorityPinnedAt: fallbackEstate.authorityPinnedAt ?? null,
-                authorityChangePending: fallbackEstate.authorityChangePending ?? null,
-                recommendedAuthorityType: fallbackEstate.recommendedAuthorityType ?? null,
-                recommendedAuthorityReason: fallbackEstate.recommendedAuthorityReason ?? null
-            }
-            : null;
     }
     // Check if authority change is pending (if estate is pinned)
     let authorityChangePending = estate?.authorityChangePending ?? false;

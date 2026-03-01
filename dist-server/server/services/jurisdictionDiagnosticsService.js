@@ -25,7 +25,9 @@ function getTasksForState(stateCode) {
                 description: task.description,
                 scope: task.scope,
                 authorityScope: task.authorityScope,
-                ...task,
+                allowedStates: task.allowedStates,
+                allowedCounties: task.allowedCounties,
+                applicability: task.applicability,
             });
         }
     }

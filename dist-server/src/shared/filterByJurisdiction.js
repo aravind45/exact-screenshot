@@ -1,3 +1,4 @@
+const VALID_AUTHORITY_SCOPES = new Set(["PROBATE", "TRUST", "BOTH"]);
 /**
  * Filter a flat array of tasks by jurisdiction scope.
  *
@@ -53,40 +54,44 @@ export function filterTasksByJurisdiction(tasks, stateCode, county) {
  * Filter tasks by authorityScope (PROBATE, TRUST, BOTH).
  * This is the ROOT-CAUSE filter that prevents trust/probate module leakage.
  *
- * Fail-closed rules:
- * 1. Tasks without authorityScope → default to "BOTH" (backward compatibility)
- * 2. authorityScope = "BOTH" → always visible
- * 3. authorityScope = "PROBATE" → visible only if estateAuthorityType is "PROBATE" or "BOTH"
- * 4. authorityScope = "TRUST" → visible only if estateAuthorityType is "TRUST" or "BOTH"
- * 5. Unknown authorityScope values → DROP (fail-closed)
+ * Fail-closed rules (NO backward-compat exceptions):
+ * 1. Tasks without authorityScope → DROPPED (fail-closed)
+ * 2. Tasks with invalid authorityScope → DROPPED (fail-closed)
+ * 3. authorityScope = "BOTH" → always visible
+ * 4. estateAuthorityType = "BOTH" → all valid tasks visible
+ * 5. Exact match required for PROBATE or TRUST → mismatch DROPPED
  */
 export function filterTasksByAuthorityScope(tasks, estateAuthorityType) {
     const kept = [];
     const dropped = [];
     for (const task of tasks) {
-        // Backward compatibility: tasks without authorityScope default to BOTH
         const taskScope = task.authorityScope;
-        // No authorityScope = visible to all (backward compatibility)
         if (!taskScope) {
-            kept.push(task);
+            dropped.push({
+                id: task.id,
+                reason: `authorityScope is missing (FAIL-CLOSED)`
+            });
             continue;
         }
-        // BOTH tasks are always visible
+        if (!VALID_AUTHORITY_SCOPES.has(taskScope)) {
+            dropped.push({
+                id: task.id,
+                reason: `Invalid authorityScope="${taskScope}" (FAIL-CLOSED)`
+            });
+            continue;
+        }
         if (taskScope === "BOTH") {
             kept.push(task);
             continue;
         }
-        // Estate is BOTH: show all tasks
         if (estateAuthorityType === "BOTH") {
             kept.push(task);
             continue;
         }
-        // Exact match required for PROBATE or TRUST
         if (taskScope === estateAuthorityType) {
             kept.push(task);
             continue;
         }
-        // Mismatch → DROP (fail-closed)
         dropped.push({
             id: task.id,
             reason: `authorityScope="${taskScope}" does not match estateAuthorityType="${estateAuthorityType}"`

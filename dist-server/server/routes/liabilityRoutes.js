@@ -83,7 +83,8 @@ router.get("/", async (req, res) => {
         res.json(decryptedLiabilities);
     }
     catch (e) {
-        res.status(500).json({ error: e.message });
+        logger.error("Error fetching liabilities:", e.message, { stack: e.stack });
+        res.status(500).json({ error: "Failed to fetch liabilities" });
     }
 });
 // GET /api/liabilities/priority-options - Get state-specific options
@@ -99,11 +100,12 @@ router.get("/priority-options", async (req, res) => {
         res.json({
             state,
             options,
-            creditorNoticePeriodDays: system.creditorNoticePeriodDays
+            creditorNoticePeriodDays: system?.creditorNoticePeriodDays ?? 120
         });
     }
     catch (e) {
-        res.status(500).json({ error: e.message });
+        logger.error("Error fetching priority options:", e.message, { stack: e.stack });
+        res.status(500).json({ error: "Failed to fetch priority options" });
     }
 });
 // GET /api/liabilities/stats - Summary stats
@@ -168,8 +170,8 @@ router.get("/solvency", async (req, res) => {
         const isSolvent = totalLiquidAssets >= totalDebt;
         const ratio = totalDebt > 0 ? (totalLiquidAssets / totalDebt) : 1;
         // Creditor Notice Period Logic (CA default 120 days)
-        const system = PriorityService.getPrioritySystem(estate?.deceasedState || "");
-        const noticePeriodDays = system.creditorNoticePeriodDays;
+        const system = PriorityService.getPrioritySystem(estate?.deceasedState);
+        const noticePeriodDays = system?.creditorNoticePeriodDays ?? 120;
         let noticePeriodStatus = 'NOT_STARTED';
         let daysRemaining = noticePeriodDays;
         if (estate?.appointedDate) {

@@ -1185,12 +1185,6 @@ enum UserRole {
   HEIR
 }
 
-enum AuthorityScope {
-  PROBATE
-  TRUST
-  BOTH
-}
-
 model CountyOverride {
   id              String   @id @default(uuid())
   stateCode       String   @map("state_code")
@@ -1275,10 +1269,4 @@ model AuthorityChangeEvent {
   @@index([estateId])
   @@index([estateId, computedAt])
   @@map("authority_change_events")
-}
-
-enum AuthorityScope {
-  PROBATE
-  TRUST
-  BOTH
 }

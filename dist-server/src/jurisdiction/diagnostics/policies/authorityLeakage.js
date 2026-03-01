@@ -4,8 +4,8 @@
  * Ensures PROBATE estates don't see TRUST tasks and vice versa.
  * This is the root-cause filter that prevents trust/probate module leakage.
  *
- * Uses fail-closed approach: tasks without authorityScope default to BOTH (backward compatible)
- * but unknown scope values are dropped.
+ * Fail-closed: tasks without authorityScope are treated as violations,
+ * and unknown scope values are also violations.
  */
 // Valid authority scopes
 const VALID_AUTHORITY_SCOPES = ['PROBATE', 'TRUST', 'BOTH'];
@@ -18,33 +18,31 @@ function isValidAuthorityScope(scope) {
     return VALID_AUTHORITY_SCOPES.includes(scope);
 }
 /**
- * Determines if a task's authorityScope is compatible with the estate's authority type
+ * Determines if a task's authorityScope is compatible with the estate's authority type.
+ * Fail-closed: tasks without authorityScope are NOT compatible.
  */
 function isTaskCompatible(taskScope, estateAuthorityType) {
-    // Tasks without authorityScope default to BOTH (backward compatibility)
     if (!taskScope) {
-        return { compatible: true };
+        return {
+            compatible: false,
+            reason: `authorityScope is missing — task must have explicit PROBATE, TRUST, or BOTH scope (FAIL-CLOSED)`,
+        };
     }
-    // Validate scope value
     if (!isValidAuthorityScope(taskScope)) {
         return {
             compatible: false,
             reason: `Invalid authorityScope "${taskScope}" - must be PROBATE, TRUST, or BOTH`,
         };
     }
-    // BOTH tasks are always visible
     if (taskScope === 'BOTH') {
         return { compatible: true };
     }
-    // Estate is BOTH: show all tasks
     if (estateAuthorityType === 'BOTH') {
         return { compatible: true };
     }
-    // Exact match required for PROBATE or TRUST
     if (taskScope === estateAuthorityType) {
         return { compatible: true };
     }
-    // Mismatch
     return {
         compatible: false,
         reason: `authorityScope "${taskScope}" does not match estateAuthorityType "${estateAuthorityType}"`,
@@ -71,7 +69,7 @@ export function validateAuthorityLeakage(_stateCode, estateProfile, tasks) {
                     reason: compatibility.reason,
                 },
                 suggestion: task.authorityScope === undefined
-                    ? 'Add explicit authorityScope property to the task'
+                    ? 'Add explicit authorityScope: "PROBATE" | "TRUST" | "BOTH" to the task (required)'
                     : `Change authorityScope to "BOTH" or match estate type "${estateAuthorityType}"`,
             });
         }

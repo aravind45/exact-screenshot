@@ -96,15 +96,35 @@ router.get("/", async (req, res) => {
 });
 router.get("/my", async (req, res) => {
     try {
-        const estate = await prisma.estate.findFirst({
-            where: {
-                OR: [
-                    { userId: req.user.id },
-                    { grants: { some: { userId: req.user.id } } }
-                ]
-            },
-            include: { user: true }
-        });
+        let estate;
+        try {
+            estate = await prisma.estate.findFirst({
+                where: {
+                    OR: [
+                        { userId: req.user.id },
+                        { grants: { some: { userId: req.user.id } } }
+                    ]
+                },
+                include: { user: true }
+            });
+        }
+        catch (dbError) {
+            // Check if this is a missing column error
+            const errorMessage = dbError.message || '';
+            if (errorMessage.includes('column') && (errorMessage.includes('does not exist') || errorMessage.includes('Unknown column'))) {
+                logger.error("CRITICAL: Database schema mismatch - missing column detected in /my endpoint", {
+                    error: dbError.message,
+                    stack: dbError.stack,
+                    userId: req.user.id
+                });
+                return res.status(503).json({
+                    error: "Service temporarily unavailable",
+                    message: "The system is undergoing maintenance. Please try again in a few minutes.",
+                    code: "SCHEMA_MIGRATION_PENDING"
+                });
+            }
+            throw dbError; // Re-throw if not a column error
+        }
         if (estate) {
             try {
                 await EmailService.ensureEstateHandle(estate.id);
@@ -113,10 +133,37 @@ router.get("/my", async (req, res) => {
                 logger.warn("Failed to ensure estate handle (non-fatal):", handleErr);
             }
             // Re-fetch to get the new handle/email if it was just created
-            const updatedEstate = await prisma.estate.findUnique({
-                where: { id: estate.id },
-                include: { user: true }
-            });
+            let updatedEstate;
+            try {
+                updatedEstate = await prisma.estate.findUnique({
+                    where: { id: estate.id },
+                    include: { user: true }
+                });
+            }
+            catch (dbError) {
+                // Check if this is a missing column error
+                const errorMessage = dbError.message || '';
+                if (errorMessage.includes('column') && (errorMessage.includes('does not exist') || errorMessage.includes('Unknown column'))) {
+                    logger.error("CRITICAL: Database schema mismatch - missing column in re-fetch", {
+                        error: dbError.message,
+                        stack: dbError.stack,
+                        estateId: estate.id
+                    });
+                    // Return the original estate data if re-fetch fails due to missing columns
+                    // Decrypt SSN for display if available
+                    if (estate.deceasedSsn) {
+                        try {
+                            estate.deceasedSsn = decrypt(estate.deceasedSsn);
+                        }
+                        catch (decryptErr) {
+                            logger.warn("Failed to decrypt SSN:", decryptErr);
+                            estate.deceasedSsn = undefined;
+                        }
+                    }
+                    return res.json(estate);
+                }
+                throw dbError;
+            }
             if (updatedEstate) {
                 // Decrypt SSN for display
                 updatedEstate.deceasedSsn = updatedEstate.deceasedSsn ? decrypt(updatedEstate.deceasedSsn) : updatedEstate.deceasedSsn;
@@ -127,17 +174,14 @@ router.get("/my", async (req, res) => {
     }
     catch (error) {
         if (isMissingColumnError(error)) {
-            logger.error("Estate fetch failed due to missing columns.", {
+            logger.warn("Estate fetch failed due to missing columns — using fallback query.", {
                 userId: req.user.id,
                 message: error instanceof Error ? error.message : String(error),
                 ...getPrismaErrorDetails(error)
             });
             const fallbackEstate = await fetchEstateRowForUser(prisma, req.user.id);
             if (!fallbackEstate) {
-                return res.status(503).json({
-                    error: "Estate data temporarily unavailable",
-                    message: "Database migration is pending. Please try again shortly."
-                });
+                return res.json(null);
             }
             try {
                 await EmailService.ensureEstateHandle(fallbackEstate.id);
@@ -157,7 +201,7 @@ router.get("/my", async (req, res) => {
             }
             return res.json(estateToReturn);
         }
-        logger.error("CRITICAL Estate Fetch Error:", error.message, getPrismaErrorDetails(error));
+        logger.error("Estate Fetch Error:", error.message);
         res.status(500).json({ error: "Failed to fetch estate", message: error.message });
     }
 });
@@ -165,14 +209,32 @@ router.put("/my", authenticate, async (req, res) => {
     try {
         const userId = req.user.id;
         // Find or Create Estate (Upsert pattern for onboarding resilience)
-        let estate = await prisma.estate.findFirst({
-            where: {
-                OR: [
-                    { userId: userId },
-                    { grants: { some: { userId: userId } } }
-                ]
+        let estate;
+        try {
+            estate = await prisma.estate.findFirst({
+                where: {
+                    OR: [
+                        { userId: userId },
+                        { grants: { some: { userId: userId } } }
+                    ]
+                }
+            });
+        }
+        catch (dbError) {
+            const errorMessage = dbError.message || '';
+            if (errorMessage.includes('column') && (errorMessage.includes('does not exist') || errorMessage.includes('Unknown column'))) {
+                logger.error("CRITICAL: Database schema mismatch in PUT /my - missing column", {
+                    error: dbError.message,
+                    userId
+                });
+                return res.status(503).json({
+                    error: "Service temporarily unavailable",
+                    message: "The system is undergoing maintenance. Please try again in a few minutes.",
+                    code: "SCHEMA_MIGRATION_PENDING"
+                });
             }
-        });
+            throw dbError;
+        }
         // Whitelist allowed fields and parse dates
         const validated = estateUpdateSchema.parse(req.body);
         const updateData = {};
@@ -303,6 +365,25 @@ router.put("/my", authenticate, async (req, res) => {
         if (error instanceof z.ZodError) {
             return res.status(400).json({ error: "Validation failed", details: error.errors });
         }
+        // Check if this is a Prisma missing column error
+        const errorMessage = error.message || '';
+        const isMissingColumnError = errorMessage.includes('column') &&
+            (errorMessage.includes('does not exist') ||
+                errorMessage.includes('Unknown column') ||
+                errorMessage.includes('Invalid column'));
+        if (isMissingColumnError) {
+            logger.error("CRITICAL Database Migration Error in PUT /my:", {
+                message: error.message,
+                code: error.code,
+                stack: error.stack,
+                userId: req.user?.id
+            });
+            return res.status(503).json({
+                error: "Service temporarily unavailable",
+                message: "The system is undergoing maintenance. Please try again in a few minutes.",
+                code: "SCHEMA_MIGRATION_PENDING"
+            });
+        }
         logger.error("Estate Update Error:", error.message);
         res.status(500).json({ error: "Failed to update estate", message: error.message });
     }
@@ -362,6 +443,20 @@ router.put("/my/roadmap", requireSubscription, async (req, res) => {
     catch (e) {
         if (e instanceof z.ZodError) {
             return res.status(400).json({ error: "Validation failed", details: e.errors });
+        }
+        // Check for missing column errors
+        const errorMessage = e.message || '';
+        const isMissingColumnError = errorMessage.includes('column') &&
+            (errorMessage.includes('does not exist') ||
+                errorMessage.includes('Unknown column') ||
+                errorMessage.includes('Invalid column'));
+        if (isMissingColumnError) {
+            logger.error("CRITICAL Database Migration Error in PUT /my/roadmap:", e.message);
+            return res.status(503).json({
+                error: "Service temporarily unavailable",
+                message: "The system is undergoing maintenance.",
+                code: "SCHEMA_MIGRATION_PENDING"
+            });
         }
         logger.error("Roadmap update error:", e.message);
         res.status(500).json({ error: "Failed to update roadmap" });
@@ -849,6 +944,7 @@ router.post("/my/distribution-activity", async (req, res) => {
 export default router;
 // Roadmap endpoints
 import { getEstateRoadmap, completeTask, uncompleteTask, getTaskCompletions, pinEstateRoadmap, repinEstateRoadmap } from "../services/roadmapService.js";
+const VALID_STATE_CODE = /^[A-Z]{2}$/;
 // GET /:id/roadmap - Get personalized roadmap (requires subscription)
 router.get("/:id/roadmap", requireSubscription, async (req, res) => {
     try {
@@ -861,10 +957,61 @@ router.get("/:id/roadmap", requireSubscription, async (req, res) => {
                     { userId: req.user.id },
                     { grants: { some: { userId: req.user.id } } }
                 ]
+            },
+            select: {
+                id: true,
+                deceasedState: true,
+                estateAuthorityType: true,
+                completenessLevel: true,
+                deceasedFirstName: true,
+                deceasedLastName: true,
+                userId: true,
             }
         });
         if (!estate) {
             return res.status(404).json({ error: "Estate not found or access denied" });
+        }
+        // Minimum intake gate: require state + deceased name before roadmap generation
+        const rawState = estate.deceasedState;
+        if (!rawState || !VALID_STATE_CODE.test(rawState.trim().toUpperCase())) {
+            logger.warn({ estateId: id, deceasedState: rawState }, "Roadmap requested for estate with invalid or missing state code");
+            return res.status(409).json({
+                code: "MINIMUM_INTAKE_REQUIRED",
+                error: "State information required",
+                requiredFields: ["deceasedState"],
+                wizardStep: "TRACK_SELECTION"
+            });
+        }
+        // 🚨 MINIMUM INTAKE GATE: Prevent misleading roadmaps for incomplete estates
+        const { estateAuthorityType, completenessLevel } = estate;
+        if (completenessLevel !== "MINIMUM_READY" && completenessLevel !== "PROFILE_READY") {
+            logger.warn({ estateId: id, completenessLevel, estateAuthorityType }, "Roadmap blocked — minimum intake not complete");
+            return res.status(409).json({
+                code: "MINIMUM_INTAKE_REQUIRED",
+                error: "Estate requires authority type selection before generating roadmap",
+                requiredFields: ["estateAuthorityType"],
+                wizardStep: "TRACK_SELECTION"
+            });
+        }
+        if (!estateAuthorityType || estateAuthorityType === "UNSET") {
+            logger.warn({ estateId: id, estateAuthorityType }, "Roadmap blocked — authority type is UNSET");
+            return res.status(409).json({
+                code: "MINIMUM_INTAKE_REQUIRED",
+                error: "Estate requires authority type selection before generating roadmap",
+                requiredFields: ["estateAuthorityType"],
+                wizardStep: "TRACK_SELECTION"
+            });
+        }
+        const hasDeceasedName = (estate.deceasedFirstName && estate.deceasedFirstName.trim().length > 0) ||
+            (estate.deceasedLastName && estate.deceasedLastName.trim().length > 0);
+        if (!hasDeceasedName) {
+            logger.warn({ estateId: id }, "Roadmap requested without deceased name");
+            return res.status(400).json({
+                error: "Incomplete estate profile",
+                code: "INTAKE_INCOMPLETE",
+                message: "Please enter the deceased's name before generating a roadmap.",
+                missingFields: ["deceasedFirstName"]
+            });
         }
         // Get personalized roadmap
         const roadmap = await getEstateRoadmap(id);
@@ -872,13 +1019,25 @@ router.get("/:id/roadmap", requireSubscription, async (req, res) => {
     }
     catch (error) {
         if (error.message === 'STATE_REQUIRED') {
-            return res.status(400).json({
+            return res.status(409).json({
+                code: "MINIMUM_INTAKE_REQUIRED",
                 error: "State not selected",
-                code: "STATE_REQUIRED",
-                message: "Please select a state before generating a roadmap."
+                requiredFields: ["deceasedState"],
+                wizardStep: "TRACK_SELECTION"
             });
         }
-        console.error("Error fetching roadmap:", error);
+        if (error.message === 'SCHEMA_MIGRATION_REQUIRED') {
+            logger.error("Roadmap unavailable due to schema migration required", {
+                estateId: req.params.id,
+                userId: req.user?.id
+            });
+            return res.status(503).json({
+                error: "Service temporarily unavailable",
+                message: "The system is undergoing maintenance. Please try again in a few minutes.",
+                code: "SCHEMA_MIGRATION_PENDING"
+            });
+        }
+        logger.error({ estateId: req.params.id, error: error.message, stack: error.stack }, "Error fetching roadmap");
         res.status(500).json({ error: "Failed to fetch roadmap", message: error.message });
     }
 });
@@ -1048,10 +1207,23 @@ router.post("/:id/tasks/:taskId/complete", requireSubscription, async (req, res)
                     { userId: req.user.id },
                     { grants: { some: { userId: req.user.id } } }
                 ]
+            },
+            select: {
+                id: true,
+                completenessLevel: true,
+                userId: true,
             }
         });
         if (!estate) {
             return res.status(404).json({ error: "Estate not found or access denied" });
+        }
+        // 🚨 MINIMUM INTAKE GATE: Block task completion until setup is complete
+        if (estate.completenessLevel !== "MINIMUM_READY" && estate.completenessLevel !== "PROFILE_READY") {
+            return res.status(409).json({
+                code: "MINIMUM_INTAKE_REQUIRED",
+                error: "Complete estate setup before marking tasks complete",
+                wizardStep: "TRACK_SELECTION"
+            });
         }
         // Complete task
         const result = await completeTask(id, taskId, req.user.id, notes);
@@ -1119,7 +1291,7 @@ router.post("/:id/select-track", authenticate, requireEstateAccess, async (req, 
         // Validate request body
         const validated = trackSelectionSchema.parse(req.body);
         const assistedDecisionAnswers = validated.assistedDecisionAnswers;
-        // Update estate with track selection
+        // Update estate with track selection and advance completeness level
         const updatedEstate = await prisma.estate.update({
             where: { id },
             data: {
@@ -1129,6 +1301,9 @@ router.post("/:id/select-track", authenticate, requireEstateAccess, async (req, 
                 hasTrustAssets: validated.hasTrustAssets,
                 hasBeneficiaryAssets: validated.hasBeneficiaryAssets,
                 assistedDecisionAnswers,
+                // Advance to MINIMUM_READY once user has selected a track.
+                // deceasedState is required at estate creation so it is always present here.
+                completenessLevel: "MINIMUM_READY",
             }
         });
         // Log activity
