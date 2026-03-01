@@ -1,0 +1,19 @@
+{
+  "id": "ca_trust_standard",
+  "name": "California - Trust Administration",
+  "stateCode": "CA",
+  "county": "San Francisco",
+  "authorityType": "TRUST",
+  "hasRealProperty": true,
+  "estateValue": 2500000,
+  "hasWill": false,
+  "characteristics": {
+    "isSmallEstate": false,
+    "hasMinorBeneficiaries": true,
+    "hasContest": false,
+    "isInternational": false,
+    "hasTODDeed": true,
+    "hasOutOfStateProperty": true,
+    "isSurvivingSpouse": false
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "id": "tx_probate_standard",
+  "name": "Texas - Standard Probate Estate",
+  "stateCode": "TX",
+  "county": "Harris",
+  "authorityType": "PROBATE",
+  "hasRealProperty": true,
+  "estateValue": 500000,
+  "hasWill": true,
+  "characteristics": {
+    "isSmallEstate": false,
+    "hasMinorBeneficiaries": false,
+    "hasContest": false,
+    "isInternational": false,
+    "hasTODDeed": false,
+    "hasOutOfStateProperty": false,
+    "isSurvivingSpouse": false
+  }
+}

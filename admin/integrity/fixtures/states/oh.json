@@ -1,0 +1,19 @@
+{
+  "id": "oh_probate_standard",
+  "name": "Ohio - Standard Probate Estate",
+  "stateCode": "OH",
+  "county": "Cuyahoga",
+  "authorityType": "PROBATE",
+  "hasRealProperty": true,
+  "estateValue": 400000,
+  "hasWill": true,
+  "characteristics": {
+    "isSmallEstate": false,
+    "hasMinorBeneficiaries": false,
+    "hasContest": false,
+    "isInternational": false,
+    "hasTODDeed": false,
+    "hasOutOfStateProperty": false,
+    "isSurvivingSpouse": false
+  }
+}
