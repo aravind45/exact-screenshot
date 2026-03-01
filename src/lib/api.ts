@@ -330,7 +330,7 @@ const parseResponse = async (response: Response) => {
                         const currentPath = window.location.pathname;
                         // Only redirect if not already on onboarding pages
                         if (!currentPath.includes("/onboarding") && !currentPath.includes("/welcome")) {
-                            const redirectUrl = `/onboarding/${step.toLowerCase()}`;
+                            const redirectUrl = `/onboarding?step=${step.toLowerCase()}`;
                             console.warn(`[EstateGating] Redirecting to ${redirectUrl} due to incomplete estate`);
                             window.location.href = redirectUrl;
                         }
@@ -2315,89 +2315,89 @@ export const api = {
             },
         },
 
-            // ── Jurisdiction Health & Diagnostics ─────────────────────────────────
-            getJurisdictionHealth: async () => {
-                const response = await fetch(`${API_URL}/admin/jurisdictions/health`, { headers: getHeaders() });
-                return parseResponse(response);
-            },
-            getStateDiagnostics: async (stateCode: string) => {
-                const response = await fetch(`${API_URL}/admin/jurisdictions/${stateCode}/diagnostics`, { headers: getHeaders() });
-                return parseResponse(response);
-            },
-            getStateDiagnosticHistory: async (stateCode: string, limit?: number) => {
-                const qs = limit ? `?limit=${limit}` : "";
-                const response = await fetch(`${API_URL}/admin/jurisdictions/${stateCode}/history${qs}`, { headers: getHeaders() });
-                return parseResponse(response);
-            },
-            getStateHealthTrend: async (stateCode: string, days?: number) => {
-                const qs = days ? `?days=${days}` : "";
-                const response = await fetch(`${API_URL}/admin/jurisdictions/${stateCode}/trend${qs}`, { headers: getHeaders() });
-                return parseResponse(response);
-            },
-            previewRoadmap: async (profile: {
-                stateCode: string;
-                authorityType: 'PROBATE' | 'TRUST' | 'BOTH';
-                hasRealProperty: boolean;
-                estateValue: number;
-                hasWill: boolean;
-                county?: string;
-                characteristics?: Record<string, boolean>;
-            }) => {
-                const response = await fetch(`${API_URL}/admin/jurisdictions/preview-roadmap`, {
-                    method: "POST",
-                    headers: getHeaders(),
-                    body: JSON.stringify(profile),
-                });
-                return parseResponse(response);
-            },
-            runStateDiagnostics: async (stateCode: string, options?: { commitSha?: string; branchName?: string }) => {
-                const response = await fetch(`${API_URL}/admin/jurisdictions/${stateCode}/run-diagnostics`, {
-                    method: "POST",
-                    headers: getHeaders(),
-                    body: JSON.stringify(options || {}),
-                });
-                return parseResponse(response);
-            },
+        // ── Jurisdiction Health & Diagnostics ─────────────────────────────────
+        getJurisdictionHealth: async () => {
+            const response = await fetch(`${API_URL}/admin/jurisdictions/health`, { headers: getHeaders() });
+            return parseResponse(response);
+        },
+        getStateDiagnostics: async (stateCode: string) => {
+            const response = await fetch(`${API_URL}/admin/jurisdictions/${stateCode}/diagnostics`, { headers: getHeaders() });
+            return parseResponse(response);
+        },
+        getStateDiagnosticHistory: async (stateCode: string, limit?: number) => {
+            const qs = limit ? `?limit=${limit}` : "";
+            const response = await fetch(`${API_URL}/admin/jurisdictions/${stateCode}/history${qs}`, { headers: getHeaders() });
+            return parseResponse(response);
+        },
+        getStateHealthTrend: async (stateCode: string, days?: number) => {
+            const qs = days ? `?days=${days}` : "";
+            const response = await fetch(`${API_URL}/admin/jurisdictions/${stateCode}/trend${qs}`, { headers: getHeaders() });
+            return parseResponse(response);
+        },
+        previewRoadmap: async (profile: {
+            stateCode: string;
+            authorityType: 'PROBATE' | 'TRUST' | 'BOTH';
+            hasRealProperty: boolean;
+            estateValue: number;
+            hasWill: boolean;
+            county?: string;
+            characteristics?: Record<string, boolean>;
+        }) => {
+            const response = await fetch(`${API_URL}/admin/jurisdictions/preview-roadmap`, {
+                method: "POST",
+                headers: getHeaders(),
+                body: JSON.stringify(profile),
+            });
+            return parseResponse(response);
+        },
+        runStateDiagnostics: async (stateCode: string, options?: { commitSha?: string; branchName?: string }) => {
+            const response = await fetch(`${API_URL}/admin/jurisdictions/${stateCode}/run-diagnostics`, {
+                method: "POST",
+                headers: getHeaders(),
+                body: JSON.stringify(options || {}),
+            });
+            return parseResponse(response);
+        },
 
-            // ── County Override Governance ────────────────────────────────────────
-            getPendingCountyOverrides: async (params?: { page?: number; limit?: number }) => {
-                const q = new URLSearchParams();
-                if (params?.page) q.set("page", params.page.toString());
-                if (params?.limit) q.set("limit", params.limit.toString());
-                const qs = q.toString() ? `?${q.toString()}` : "";
-                const response = await fetch(`${API_URL}/admin/county-overrides/pending${qs}`, { headers: getHeaders() });
-                return parseResponse(response);
-            },
-            getCountyOverrides: async (params?: { stateCode?: string; status?: string; page?: number; limit?: number }) => {
-                const q = new URLSearchParams();
-                if (params?.stateCode) q.set("stateCode", params.stateCode);
-                if (params?.status) q.set("status", params.status);
-                if (params?.page) q.set("page", params.page.toString());
-                if (params?.limit) q.set("limit", params.limit.toString());
-                const qs = q.toString() ? `?${q.toString()}` : "";
-                const response = await fetch(`${API_URL}/admin/county-overrides${qs}`, { headers: getHeaders() });
-                return parseResponse(response);
-            },
-            approveCountyOverride: async (id: string, notes?: string) => {
-                const response = await fetch(`${API_URL}/admin/county-overrides/${id}/approve`, {
-                    method: "POST",
-                    headers: getHeaders(),
-                    body: JSON.stringify({ notes }),
-                });
-                return parseResponse(response);
-            },
-            rejectCountyOverride: async (id: string, reason: string) => {
-                const response = await fetch(`${API_URL}/admin/county-overrides/${id}/reject`, {
-                    method: "POST",
-                    headers: getHeaders(),
-                    body: JSON.stringify({ reason }),
-                });
-                return parseResponse(response);
-            },
-            getCountyOverrideDiff: async (id: string) => {
-                const response = await fetch(`${API_URL}/admin/county-overrides/${id}/diff`, { headers: getHeaders() });
-                return parseResponse(response);
-            },
+        // ── County Override Governance ────────────────────────────────────────
+        getPendingCountyOverrides: async (params?: { page?: number; limit?: number }) => {
+            const q = new URLSearchParams();
+            if (params?.page) q.set("page", params.page.toString());
+            if (params?.limit) q.set("limit", params.limit.toString());
+            const qs = q.toString() ? `?${q.toString()}` : "";
+            const response = await fetch(`${API_URL}/admin/county-overrides/pending${qs}`, { headers: getHeaders() });
+            return parseResponse(response);
+        },
+        getCountyOverrides: async (params?: { stateCode?: string; status?: string; page?: number; limit?: number }) => {
+            const q = new URLSearchParams();
+            if (params?.stateCode) q.set("stateCode", params.stateCode);
+            if (params?.status) q.set("status", params.status);
+            if (params?.page) q.set("page", params.page.toString());
+            if (params?.limit) q.set("limit", params.limit.toString());
+            const qs = q.toString() ? `?${q.toString()}` : "";
+            const response = await fetch(`${API_URL}/admin/county-overrides${qs}`, { headers: getHeaders() });
+            return parseResponse(response);
+        },
+        approveCountyOverride: async (id: string, notes?: string) => {
+            const response = await fetch(`${API_URL}/admin/county-overrides/${id}/approve`, {
+                method: "POST",
+                headers: getHeaders(),
+                body: JSON.stringify({ notes }),
+            });
+            return parseResponse(response);
+        },
+        rejectCountyOverride: async (id: string, reason: string) => {
+            const response = await fetch(`${API_URL}/admin/county-overrides/${id}/reject`, {
+                method: "POST",
+                headers: getHeaders(),
+                body: JSON.stringify({ reason }),
+            });
+            return parseResponse(response);
+        },
+        getCountyOverrideDiff: async (id: string) => {
+            const response = await fetch(`${API_URL}/admin/county-overrides/${id}/diff`, { headers: getHeaders() });
+            return parseResponse(response);
+        },
     },
 
     /**

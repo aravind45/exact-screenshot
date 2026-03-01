@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
@@ -84,6 +84,7 @@ const STEPS = [
 
 export default function OnboardingGuidedWizard() {
     const navigate = useNavigate();
+    const location = useLocation();
     const queryClient = useQueryClient();
     const { toast } = useToast();
     const { trackEvent } = useTracking();
@@ -133,8 +134,22 @@ export default function OnboardingGuidedWizard() {
             navigate('/advisor/dashboard');
             return;
         }
-        // If user already registered as EXECUTOR, skip the role question (step 0)
-        if (user?.role === 'EXECUTOR' || user?.userType === 'EXECUTOR') {
+
+        // Handle direct navigation to steps via query parameter
+        const params = new URLSearchParams(location.search);
+        const targetStep = params.get('step');
+
+        if (targetStep) {
+            console.log(`[Onboarding] Targeted step from URL: ${targetStep}`);
+            if (targetStep === 'track_selection' || targetStep === 'authority_setup') {
+                setCurrentStep(3); // Track Scout
+                setRole('executor');
+            } else if (targetStep === 'state_selection') {
+                setCurrentStep(1); // Estate Info
+                setRole('executor');
+            }
+        } else if (user?.role === 'EXECUTOR' || user?.userType === 'EXECUTOR') {
+            // If user already registered as EXECUTOR, skip the role question (step 0)
             if (!role) {
                 setRole('executor');
             }
@@ -143,13 +158,14 @@ export default function OnboardingGuidedWizard() {
                 setCurrentStep(1);
             }
         }
+
         // If user registered as HEIR, set role accordingly
         if (user?.role === 'HEIR' || user?.userType === 'HEIR') {
             if (!role) {
                 setRole('heir');
             }
         }
-    }, [user, navigate]);
+    }, [user, navigate, location.search]);
 
     // Populate data from existing estate
     useEffect(() => {
