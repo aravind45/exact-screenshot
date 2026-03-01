@@ -1214,6 +1214,8 @@ export default function OnboardingGuidedWizard() {
                                             <input
                                                 type="file"
                                                 accept=".pdf,image/*"
+                                                title="Upload document"
+                                                aria-label="Upload document"
                                                 className="absolute inset-0 opacity-0 cursor-pointer z-10 w-full h-full"
                                                 onChange={e => setUploadedFile(e.target.files?.[0] || null)}
                                             />
@@ -1235,15 +1237,10 @@ export default function OnboardingGuidedWizard() {
                                         </div>
 
                                         <div className="flex flex-col gap-3">
-                                            <Button
-                                                size="lg"
-                                                onClick={handleNext}
-                                                disabled={!uploadedFile || isLoading}
-                                                className="w-full rounded-2xl h-12 font-bold"
-                                            >
+                                            <Button title="Sync and continue" size="lg" onClick={handleNext} disabled={!uploadedFile || isLoading} className="w-full rounded-2xl h-12 font-bold">
                                                 {isLoading ? "Uploading..." : "Sync & Continue"}
                                             </Button>
-                                            <Button variant="ghost" onClick={() => setCurrentStep(prev => prev + 1)} className="text-slate-400 text-xs">
+                                            <Button title="Skip for now" variant="ghost" onClick={() => setCurrentStep(prev => prev + 1)} className="text-slate-400 text-xs">
                                                 I don't have it yet, skip for now
                                             </Button>
                                         </div>
@@ -1328,6 +1325,7 @@ export default function OnboardingGuidedWizard() {
                                         </div>
 
                                         <Button
+                                            title="Continue to team setup"
                                             size="lg"
                                             onClick={handleNext}
                                             disabled={assets.every(a => !a.name) || isLoading}

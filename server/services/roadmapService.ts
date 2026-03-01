@@ -1508,7 +1508,8 @@ export async function pinEstateRoadmap(
   }
 
   if (!estate.deceasedState) {
-    throw new Error("STATE_REQUIRED");
+    logger.warn({}, `Skipping pin for estate ${estateId} because deceasedState is missing`);
+    return { success: false, version: '0.0.0', pinnedAt: new Date() };
   }
 
   const profile = await analyzeEstateProfile(estateId);

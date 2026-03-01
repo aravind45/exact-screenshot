@@ -33,7 +33,7 @@ const estateUpdateSchema = z.object({
     appointedDate: z.string().optional().nullable(),
     probateStatus: z.string().optional(),
     courtCaseNumber: z.string().optional(),
-    probateCounty: z.string().optional(),
+    probateCounty: z.string().optional().nullable(),
     status: z.string().optional(),
     petitionerPhone: z.string().optional(),
     petitionerIsAttorney: z.boolean().optional(),
@@ -278,7 +278,17 @@ router.put("/my", authenticate, async (req: any, res: Response) => {
             }
         }
 
+        // Map authorityType to Prisma schema field estateAuthorityType
+        if ('authorityType' in updateData) {
+            updateData.estateAuthorityType = updateData.authorityType;
+            delete updateData.authorityType;
+        }
 
+        // Map estateType to Prisma schema field administrationType
+        if ('estateType' in updateData) {
+            updateData.administrationType = updateData.estateType;
+            delete updateData.estateType;
+        }
 
         // International Executor Mode Trigger (Overlay)
         const US_STATES = [
