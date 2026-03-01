@@ -9,6 +9,8 @@ import { requireEstateAccess } from "../middleware/estateAuth.js";
 import { z } from "zod";
 import { logger } from "../lib/logger.js";
 import { requireSubscription } from "../middleware/subscription.js";
+import { fetchEstateRowForUser } from "../utils/estateFallback.js";
+import { isMissingColumnError } from "../utils/prismaErrors.js";
 const liabilitySchema = z.object({
     name: z.string().min(1),
     amount: z.coerce.number().positive(),
@@ -41,11 +43,27 @@ const resolveEstateState = (state) => {
 };
 // Middleware to get estateId for the current user
 const getEstateId = async (userId) => {
-    const grant = await prisma.estateGrant.findFirst({
-        where: { userId },
-        include: { estate: true }
-    });
-    return grant?.estateId || (await prisma.estate.findFirst({ where: { userId } }))?.id;
+    try {
+        const grant = await prisma.estateGrant.findFirst({
+            where: { userId },
+            select: { estateId: true }
+        });
+        if (grant?.estateId) {
+            return grant.estateId;
+        }
+        const ownedEstate = await prisma.estate.findFirst({
+            where: { userId },
+            select: { id: true }
+        });
+        return ownedEstate?.id;
+    }
+    catch (error) {
+        if (!isMissingColumnError(error)) {
+            throw error;
+        }
+        const fallbackEstate = await fetchEstateRowForUser(prisma, userId);
+        return fallbackEstate?.id || undefined;
+    }
 };
 // GET /api/liabilities - List all
 router.get("/", async (req, res) => {

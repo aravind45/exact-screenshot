@@ -490,6 +490,9 @@ const fetchEstateWithRelations = async (estateId) => {
                 internationalReasons: true,
                 hasPrimaryResidence: true,
                 userSelectedEstateAuthorityType: true,
+                authorityType: true,
+                estateAuthorityType: true,
+                authorityPinnedAt: true,
                 heirs: {
                     select: {
                         id: true,
@@ -555,6 +558,9 @@ const fetchEstateWithRelations = async (estateId) => {
                 : null,
             estimatedPersonalProperty: fallbackEstate.estimatedPersonalProperty ?? null,
             estimatedRealProperty: fallbackEstate.estimatedRealProperty ?? null,
+            authorityType: typeof fallbackEstate.authorityType === "string" ? fallbackEstate.authorityType : null,
+            estateAuthorityType: typeof fallbackEstate.estateAuthorityType === "string" ? fallbackEstate.estateAuthorityType : null,
+            authorityPinnedAt: fallbackEstate.authorityPinnedAt instanceof Date ? fallbackEstate.authorityPinnedAt : null,
             heirs: heirs.map(h => ({ isAdult: !!h.isAdult })),
             assets: assets.map(a => ({
                 value: a.value,
