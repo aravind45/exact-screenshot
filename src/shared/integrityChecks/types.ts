@@ -7,6 +7,9 @@
 
 import type { EstateProfile, DiagnosticTask } from '../../jurisdiction/diagnostics/types.js';
 
+// Re-export types used by integrity checks
+export type { EstateProfile, DiagnosticTask } from '../../jurisdiction/diagnostics/types.js';
+
 /**
  * Severity levels for integrity findings
  */
