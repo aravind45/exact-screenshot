@@ -413,7 +413,16 @@ router.put("/my", authenticate, async (req: any, res: Response) => {
         res.json(finalEstate);
     } catch (error: any) {
         if (error instanceof z.ZodError) {
-            return res.status(400).json({ error: "Validation failed", details: error.errors });
+            logger.error("❌ [ESTATE] Validation failed for PUT /my:", {
+                errors: error.errors,
+                payload: req.body,
+                userId: req.user?.id
+            });
+            return res.status(400).json({
+                error: "Validation failed",
+                details: error.errors,
+                message: "Please ensure all required fields are correctly formatted."
+            });
         }
 
         // Check if this is a Prisma missing column error
@@ -1366,7 +1375,7 @@ router.get("/:id/tasks", requireSubscription, async (req: any, res: Response) =>
     }
 });
 
-router.post("/:id/tasks/:taskId/complete", requireSubscription, requireEstateStatus(ESTATE_GATES.ACTIVE_FEATURES), async (req: any, res: Response) => {
+router.post("/:id/tasks/:taskId/complete", requireSubscription, requireEstateStatus(ESTATE_GATES.ROADMAP), async (req: any, res: Response) => {
     try {
         const { id, taskId } = req.params;
         const { notes } = req.body;

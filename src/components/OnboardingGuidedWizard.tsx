@@ -252,10 +252,13 @@ export default function OnboardingGuidedWizard() {
                 const firstName = nameParts[0] || "";
                 const lastName = nameParts.slice(1).join(" ") || "Estate";
 
+                const dod = formData.dateOfDeath ? new Date(formData.dateOfDeath) : null;
+                const validatedDod = dod && !isNaN(dod.getTime()) ? dod.toISOString() : null;
+
                 estate = await api.updateMyEstate({
                     deceasedFirstName: firstName,
                     deceasedLastName: lastName,
-                    deceasedDateOfDeath: new Date(formData.dateOfDeath),
+                    deceasedDateOfDeath: validatedDod,
                     deceasedState: formData.location,
                     probateCounty: formData.probateCounty || null,
                     estimatedPersonalProperty: parseFloat(formData.estimatedValue) || 0,
