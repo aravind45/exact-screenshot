@@ -335,17 +335,17 @@ function normalizeTaskForState(task: PhaseTask, state: string, county?: string):
     utility: normalizeTextForState(mergedTask.utility, state),
     rationale: normalizeTextForState(mergedTask.rationale, state),
     conditionalRequirementLabel: normalizeTextForState(mergedTask.conditionalRequirementLabel, state) || mergedTask.conditionalRequirementLabel,
-    requiredDocs: mergedTask.requiredDocs?.map(doc => normalizeTextForState(doc, state) || doc),
-    alerts: mergedTask.alerts?.map(alert => ({
+    requiredDocs: Array.isArray(mergedTask.requiredDocs) ? mergedTask.requiredDocs.map(doc => normalizeTextForState(doc, state) || doc) : mergedTask.requiredDocs,
+    alerts: Array.isArray(mergedTask.alerts) ? mergedTask.alerts.map(alert => ({
       ...alert,
       message: normalizeTextForState(alert.message, state) || alert.message
-    })),
-    links: mergedTask.links?.map(link => ({
+    })) : undefined,
+    links: Array.isArray(mergedTask.links) ? mergedTask.links.map(link => ({
       ...link,
       label: normalizeTextForState(link.label, state) || link.label
-    })),
+    })) : mergedTask.links,
     primaryActionLabel: normalizeTextForState(mergedTask.primaryActionLabel, state),
-    formNames: mergedTask.formNames?.map(f => normalizeTextForState(f, state) || f)
+    formNames: Array.isArray(mergedTask.formNames) ? mergedTask.formNames.map(f => normalizeTextForState(f, state) || f) : mergedTask.formNames
   };
 }
 

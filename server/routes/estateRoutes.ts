@@ -1127,6 +1127,15 @@ router.get("/:id/roadmap", requireSubscription, requireEstateStatus(ESTATE_GATES
         const roadmap = await getEstateRoadmap(id);
         res.json(roadmap);
     } catch (error: any) {
+        if (error.code === 'INCOMPLETE_ESTATE' || error.name === 'IncompleteEstateError') {
+            return res.status(409).json({
+                code: "INCOMPLETE_ESTATE",
+                error: error.message || "Estate setup incomplete",
+                requiredStep: error.requiredStep || "TRACK_SELECTION",
+                currentStatus: error.currentStatus,
+            });
+        }
+
         if (error.message === 'STATE_REQUIRED') {
             return res.status(409).json({
                 code: "INCOMPLETE_ESTATE",
