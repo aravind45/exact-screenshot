@@ -96,6 +96,14 @@ router.get("/", async (req: any, res: Response) => {
         res.json(decryptedLiabilities);
     } catch (e: any) {
         logger.error("Error fetching liabilities:", e.message, { stack: e.stack });
+        // Defensive: return 409 instead of 500 for estate setup issues to prevent misleading error codes
+        if (e.message?.includes("estate") || e.message?.includes("ESTATE")) {
+            return res.status(409).json({
+                error: "Estate setup incomplete",
+                code: "INCOMPLETE_ESTATE",
+                requiredStep: "TRACK_SELECTION"
+            });
+        }
         res.status(500).json({ error: "Failed to fetch liabilities" });
     }
 });
