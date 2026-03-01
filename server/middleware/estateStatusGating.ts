@@ -112,7 +112,7 @@ export async function resolveEstateStatusGate(
   // Only treat as DRAFT if explicitly set to DRAFT, otherwise check other indicators
   const explicitStatus = (estate as any).estateStatus as EstateStatus | null;
   const currentStatus = explicitStatus ?? "DRAFT";
-  
+
   // For legacy estates without estateStatus, check if they have minimum setup
   // If they have state and authority type, treat them as MINIMUM_READY
   const isLegacyEstate = explicitStatus === null;
@@ -125,7 +125,7 @@ export async function resolveEstateStatusGate(
       estate.completenessLevel === "PROFILE_READY"
     )
   );
-  
+
   // Determine if gate is open
   let isOpen: boolean;
   if (isLegacyEstate && hasMinimumSetup) {
@@ -234,14 +234,14 @@ export function requireEstateStatus(config: EstateGateConfig) {
       if (!gateResult.isOpen) {
         logger.warn(
           `[EstateStatusGating] Blocked access to estate ${estateId} by user ${userId}. ` +
-            `Required: ${config.requiredStatus}, Current: ${gateResult.currentStatus}`
+          `Required: ${config.requiredStatus}, Current: ${gateResult.currentStatus}`
         );
         return res.status(409).json({
           error: gateResult.message,
           code: "INCOMPLETE_ESTATE",
           currentStatus: gateResult.currentStatus,
           requiredStatus: gateResult.requiredStatus,
-          requiredStep: "TRACK_SELECTION",
+          requiredStep: gateResult.wizardStep || "TRACK_SELECTION",
         });
       }
 
@@ -313,7 +313,7 @@ export async function getEstateStatus(estateId: string): Promise<{
   // For legacy estates, determine status based on setup
   const explicitStatus = (estate as any).estateStatus as EstateStatus | null;
   let status: EstateStatus;
-  
+
   if (explicitStatus !== null) {
     status = explicitStatus;
   } else {

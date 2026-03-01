@@ -6,9 +6,12 @@ import { DiscoveryIntelligenceService } from '../services/discoveryIntelligenceS
 import { z } from 'zod';
 import { logger } from '../lib/logger.js';
 import { requireSubscription } from '../middleware/subscription.js';
+import { requireEstateStatus, ESTATE_GATES } from '../middleware/estateStatusGating.js';
 
 const router = Router();
 router.use(requireSubscription);
+// Discovery requires ACTIVE estate authority
+router.use(requireEstateStatus(ESTATE_GATES.ACTIVE_FEATURES));
 const upload = multer({ storage: multer.memoryStorage() });
 
 const categoryUpdateSchema = z.object({

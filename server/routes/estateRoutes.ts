@@ -415,13 +415,13 @@ router.put("/my", authenticate, async (req: any, res: Response) => {
         if (error instanceof z.ZodError) {
             return res.status(400).json({ error: "Validation failed", details: error.errors });
         }
-        
+
         // Check if this is a Prisma missing column error
         const errorMessage = error.message || '';
-        const isMissingColumnError = errorMessage.includes('column') && 
-            (errorMessage.includes('does not exist') || 
-             errorMessage.includes('Unknown column') || 
-             errorMessage.includes('Invalid column'));
+        const isMissingColumnError = errorMessage.includes('column') &&
+            (errorMessage.includes('does not exist') ||
+                errorMessage.includes('Unknown column') ||
+                errorMessage.includes('Invalid column'));
 
         if (isMissingColumnError) {
             logger.error("CRITICAL Database Migration Error in PUT /my:", {
@@ -436,7 +436,7 @@ router.put("/my", authenticate, async (req: any, res: Response) => {
                 code: "SCHEMA_MIGRATION_PENDING"
             });
         }
-        
+
         logger.error("Estate Update Error:", error.message);
         res.status(500).json({ error: "Failed to update estate", message: error.message });
     }
@@ -503,13 +503,13 @@ router.put("/my/roadmap", requireSubscription, requireEstateStatus(ESTATE_GATES.
         if (e instanceof z.ZodError) {
             return res.status(400).json({ error: "Validation failed", details: e.errors });
         }
-        
+
         // Check for missing column errors
         const errorMessage = e.message || '';
-        const isMissingColumnError = errorMessage.includes('column') && 
-            (errorMessage.includes('does not exist') || 
-             errorMessage.includes('Unknown column') || 
-             errorMessage.includes('Invalid column'));
+        const isMissingColumnError = errorMessage.includes('column') &&
+            (errorMessage.includes('does not exist') ||
+                errorMessage.includes('Unknown column') ||
+                errorMessage.includes('Invalid column'));
 
         if (isMissingColumnError) {
             logger.error("CRITICAL Database Migration Error in PUT /my/roadmap:", e.message);
@@ -519,7 +519,7 @@ router.put("/my/roadmap", requireSubscription, requireEstateStatus(ESTATE_GATES.
                 code: "SCHEMA_MIGRATION_PENDING"
             });
         }
-        
+
         logger.error("Roadmap update error:", e.message);
         res.status(500).json({ error: "Failed to update roadmap" });
     }
@@ -1075,7 +1075,8 @@ import {
     uncompleteTask,
     getTaskCompletions,
     pinEstateRoadmap,
-    repinEstateRoadmap
+    repinEstateRoadmap,
+    IncompleteEstateError
 } from "../services/roadmapService.js";
 
 const VALID_STATE_CODE = /^[A-Z]{2}$/;
@@ -1223,7 +1224,7 @@ router.post("/:id/pin", requireSubscription, async (req: any, res: Response) => 
 router.get("/:id/repinPreview", requireSubscription, async (req: any, res: Response) => {
     try {
         const { id } = req.params;
-        
+
         // Verify user has access to this estate
         const estate = await prisma.estate.findFirst({
             where: {
@@ -1241,7 +1242,7 @@ router.get("/:id/repinPreview", requireSubscription, async (req: any, res: Respo
 
         const { getRepinPreview } = await import("../services/authorityChangeService.js");
         const preview = await getRepinPreview(id);
-        
+
         res.json(preview);
     } catch (error: any) {
         logger.error("Error getting repin preview:", error);
@@ -1285,7 +1286,7 @@ router.post("/:id/repin", requireSubscription, async (req: any, res: Response) =
 router.get("/:id/authorityHistory", requireSubscription, async (req: any, res: Response) => {
     try {
         const { id } = req.params;
-        
+
         // Verify user has access to this estate
         const estate = await prisma.estate.findFirst({
             where: {
@@ -1303,7 +1304,7 @@ router.get("/:id/authorityHistory", requireSubscription, async (req: any, res: R
 
         const { getAuthorityChangeHistory } = await import("../services/authorityChangeService.js");
         const history = await getAuthorityChangeHistory(id);
-        
+
         res.json(history);
     } catch (error: any) {
         logger.error("Error getting authority history:", error);

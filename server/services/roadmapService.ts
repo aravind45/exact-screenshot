@@ -15,6 +15,22 @@ import {
 } from "./authorityChangeService.js";
 
 /**
+ * Custom error for incomplete estate data during roadmap generation
+ */
+export class IncompleteEstateError extends Error {
+  code = "INCOMPLETE_ESTATE";
+  requiredStep: string;
+  currentStatus?: string;
+
+  constructor(message: string, requiredStep: string, currentStatus?: string) {
+    super(message);
+    this.name = "IncompleteEstateError";
+    this.requiredStep = requiredStep;
+    this.currentStatus = currentStatus;
+  }
+}
+
+/**
  * Effective Authority Result
  * Represents the final authority determination with governance information
  */
@@ -816,7 +832,7 @@ export async function analyzeEstateProfile(estateId: string): Promise<EstateProf
   const normalizedState = typeof estate.deceasedState === "string" ? estate.deceasedState.trim().toUpperCase() : "";
   if (!normalizedState || !/^[A-Z]{2}$/.test(normalizedState)) {
     logger.warn({ estateId, deceasedState: estate.deceasedState }, "Estate has missing or invalid state code — STATE_REQUIRED");
-    throw new Error("STATE_REQUIRED");
+    throw new IncompleteEstateError("Estate state selection is required", "STATE_SELECTION", (estate as any).estateStatus);
   }
 
   // Fetch state-specific rules from DB
@@ -1394,8 +1410,8 @@ export async function getEstateRoadmap(estateId: string): Promise<RoadmapRespons
   try {
     estate = await db.estate.findUnique({
       where: { id: estateId },
-      select: { 
-        roadmapVersion: true, 
+      select: {
+        roadmapVersion: true,
         roadmapPinnedAt: true,
         authorityPinnedAt: true,
         authorityChangePending: true,
@@ -1623,7 +1639,7 @@ export async function repinEstateRoadmap(
 
   // Perform the repin
   const repinResult = await repinAuthorityType(estateId, userId, force);
-  
+
   if (!repinResult.success && repinResult.requiresConfirmation) {
     throw new Error("REPIN_REQUIRES_CONFIRMATION");
   }
