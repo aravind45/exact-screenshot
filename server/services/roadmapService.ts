@@ -786,7 +786,28 @@ const fetchEstateWithRelations = async (estateId: string): Promise<AnalyzeEstate
  */
 export async function analyzeEstateProfile(estateId: string): Promise<EstateProfile> {
   // Fetch estate with related data - defensive query to handle missing columns
-  const estate = await fetchEstateWithRelations(estateId);
+  let estate;
+  try {
+    estate = await db.estate.findUnique({
+      where: { id: estateId },
+      include: {
+        heirs: true,
+        assets: true,
+        liabilities: true,
+      },
+    });
+  } catch (error: any) {
+    const errorMessage = error.message || '';
+    if (errorMessage.includes('column') && (errorMessage.includes('does not exist') || errorMessage.includes('Unknown column'))) {
+      logger.error({
+        estateId,
+        error: errorMessage
+      }, "CRITICAL: Database schema mismatch in analyzeEstateProfile - missing column");
+      // Return a minimal profile that allows the app to function
+      throw new Error("SCHEMA_MIGRATION_REQUIRED");
+    }
+    throw error;
+  }
 
   if (!estate) {
     throw new Error(`Estate ${estateId} not found`);
@@ -1342,7 +1363,12 @@ export async function getEstateRoadmap(estateId: string): Promise<RoadmapRespons
   try {
     profile = await analyzeEstateProfile(estateId);
     logger.info({ estateId, state: profile.state, procedureType: profile.procedureType }, "Estate profile analyzed");
-  } catch (error) {
+  } catch (error: any) {
+    if (error.message === 'SCHEMA_MIGRATION_REQUIRED') {
+      logger.error({ estateId }, "Cannot generate roadmap - schema migration required");
+      // Return a minimal response that indicates migration is needed
+      throw new Error("SCHEMA_MIGRATION_REQUIRED");
+    }
     logger.error({ estateId, error: error instanceof Error ? error.message : String(error), stack: error instanceof Error ? error.stack : undefined }, "Failed to analyze estate profile for roadmap");
     throw error;
   }
@@ -1364,8 +1390,7 @@ export async function getEstateRoadmap(estateId: string): Promise<RoadmapRespons
   validateNoStateContamination(filteredPhases, profile.state);
 
   // Get estate for version info and authority status
-  let estate: any = null;
-
+  let estate;
   try {
     estate = await db.estate.findUnique({
       where: { id: estateId },
@@ -1378,28 +1403,14 @@ export async function getEstateRoadmap(estateId: string): Promise<RoadmapRespons
         recommendedAuthorityReason: true,
       }
     });
-  } catch (error) {
-    if (!isMissingColumnError(error)) {
+  } catch (error: any) {
+    const errorMessage = error.message || '';
+    if (errorMessage.includes('column') && (errorMessage.includes('does not exist') || errorMessage.includes('Unknown column'))) {
+      logger.warn({ estateId, error: errorMessage }, "Missing columns when fetching estate for roadmap - using defaults");
+      estate = null;
+    } else {
       throw error;
     }
-
-    logger.warn({
-      estateId,
-      message: error instanceof Error ? error.message : String(error),
-      ...getPrismaErrorDetails(error)
-    }, "Estate roadmap metadata query failed due to missing columns. Using fallback values.");
-
-    const fallbackEstate = await fetchEstateRowById(db, estateId);
-    estate = fallbackEstate
-      ? {
-        roadmapVersion: fallbackEstate.roadmapVersion ?? null,
-        roadmapPinnedAt: fallbackEstate.roadmapPinnedAt ?? null,
-        authorityPinnedAt: fallbackEstate.authorityPinnedAt ?? null,
-        authorityChangePending: fallbackEstate.authorityChangePending ?? null,
-        recommendedAuthorityType: fallbackEstate.recommendedAuthorityType ?? null,
-        recommendedAuthorityReason: fallbackEstate.recommendedAuthorityReason ?? null
-      }
-      : null;
   }
 
   // Check if authority change is pending (if estate is pinned)

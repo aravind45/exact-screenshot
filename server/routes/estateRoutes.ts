@@ -103,26 +103,71 @@ router.get("/", async (req: any, res: Response) => {
 
 router.get("/my", async (req: any, res: Response) => {
     try {
-        const estate = await prisma.estate.findFirst({
-            where: {
-                OR: [
-                    { userId: req.user.id },
-                    { grants: { some: { userId: req.user.id } } }
-                ]
-            },
-            include: { user: true }
-        });
+        let estate;
+        try {
+            estate = await prisma.estate.findFirst({
+                where: {
+                    OR: [
+                        { userId: req.user.id },
+                        { grants: { some: { userId: req.user.id } } }
+                    ]
+                },
+                include: { user: true }
+            });
+        } catch (dbError: any) {
+            // Check if this is a missing column error
+            const errorMessage = dbError.message || '';
+            if (errorMessage.includes('column') && (errorMessage.includes('does not exist') || errorMessage.includes('Unknown column'))) {
+                logger.error("CRITICAL: Database schema mismatch - missing column detected in /my endpoint", {
+                    error: dbError.message,
+                    stack: dbError.stack,
+                    userId: req.user.id
+                });
+                return res.status(503).json({
+                    error: "Service temporarily unavailable",
+                    message: "The system is undergoing maintenance. Please try again in a few minutes.",
+                    code: "SCHEMA_MIGRATION_PENDING"
+                });
+            }
+            throw dbError; // Re-throw if not a column error
+        }
+
         if (estate) {
             try {
                 await EmailService.ensureEstateHandle(estate.id);
-            } catch (handleErr) {
+            } catch (handleErr: any) {
                 logger.warn("Failed to ensure estate handle (non-fatal):", handleErr);
             }
             // Re-fetch to get the new handle/email if it was just created
-            const updatedEstate = await prisma.estate.findUnique({
-                where: { id: estate.id },
-                include: { user: true }
-            });
+            let updatedEstate;
+            try {
+                updatedEstate = await prisma.estate.findUnique({
+                    where: { id: estate.id },
+                    include: { user: true }
+                });
+            } catch (dbError: any) {
+                // Check if this is a missing column error
+                const errorMessage = dbError.message || '';
+                if (errorMessage.includes('column') && (errorMessage.includes('does not exist') || errorMessage.includes('Unknown column'))) {
+                    logger.error("CRITICAL: Database schema mismatch - missing column in re-fetch", {
+                        error: dbError.message,
+                        stack: dbError.stack,
+                        estateId: estate.id
+                    });
+                    // Return the original estate data if re-fetch fails due to missing columns
+                    // Decrypt SSN for display if available
+                    if (estate.deceasedSsn) {
+                        try {
+                            estate.deceasedSsn = decrypt(estate.deceasedSsn);
+                        } catch (decryptErr) {
+                            logger.warn("Failed to decrypt SSN:", decryptErr);
+                            estate.deceasedSsn = undefined;
+                        }
+                    }
+                    return res.json(estate);
+                }
+                throw dbError;
+            }
 
             if (updatedEstate) {
                 // Decrypt SSN for display
@@ -133,44 +178,28 @@ router.get("/my", async (req: any, res: Response) => {
         }
         res.json(estate);
     } catch (error: any) {
-        if (isMissingColumnError(error)) {
-            logger.error("Estate fetch failed due to missing columns.", {
-                userId: req.user.id,
-                message: error instanceof Error ? error.message : String(error),
-                ...getPrismaErrorDetails(error)
+        // Check if this is a Prisma missing column error
+        const errorMessage = error.message || '';
+        const isMissingColumnError = errorMessage.includes('column') && 
+            (errorMessage.includes('does not exist') || 
+             errorMessage.includes('Unknown column') || 
+             errorMessage.includes('Invalid column'));
+
+        if (isMissingColumnError) {
+            logger.error("CRITICAL Database Migration Error in /my endpoint:", {
+                message: error.message,
+                code: error.code,
+                stack: error.stack,
+                userId: req.user?.id
             });
-
-            const fallbackEstate = await fetchEstateRowForUser(prisma, req.user.id);
-            if (!fallbackEstate) {
-                return res.status(503).json({
-                    error: "Estate data temporarily unavailable",
-                    message: "Database migration is pending. Please try again shortly."
-                });
-            }
-
-            try {
-                await EmailService.ensureEstateHandle(fallbackEstate.id as string);
-            } catch (handleErr) {
-                logger.warn("Failed to ensure estate handle during fallback (non-fatal):", handleErr);
-            }
-
-            const refreshedEstate = await fetchEstateRowForUser(prisma, req.user.id);
-            const estateToReturn = (refreshedEstate || fallbackEstate) as any;
-
-            if (estateToReturn.deceasedSsn) {
-                estateToReturn.deceasedSsn = decrypt(estateToReturn.deceasedSsn);
-            }
-
-            if (estateToReturn.userId) {
-                estateToReturn.user = await prisma.user.findUnique({
-                    where: { id: estateToReturn.userId }
-                });
-            }
-
-            return res.json(estateToReturn);
+            return res.status(503).json({
+                error: "Service temporarily unavailable",
+                message: "The system is undergoing maintenance. Please try again in a few minutes.",
+                code: "SCHEMA_MIGRATION_PENDING"
+            });
         }
 
-        logger.error("CRITICAL Estate Fetch Error:", error.message, getPrismaErrorDetails(error));
+        logger.error("Estate Fetch Error:", error.message);
         res.status(500).json({ error: "Failed to fetch estate", message: error.message });
     }
 });
@@ -180,14 +209,31 @@ router.put("/my", authenticate, async (req: any, res: Response) => {
         const userId = req.user.id;
 
         // Find or Create Estate (Upsert pattern for onboarding resilience)
-        let estate = await prisma.estate.findFirst({
-            where: {
-                OR: [
-                    { userId: userId },
-                    { grants: { some: { userId: userId } } }
-                ]
+        let estate;
+        try {
+            estate = await prisma.estate.findFirst({
+                where: {
+                    OR: [
+                        { userId: userId },
+                        { grants: { some: { userId: userId } } }
+                    ]
+                }
+            });
+        } catch (dbError: any) {
+            const errorMessage = dbError.message || '';
+            if (errorMessage.includes('column') && (errorMessage.includes('does not exist') || errorMessage.includes('Unknown column'))) {
+                logger.error("CRITICAL: Database schema mismatch in PUT /my - missing column", {
+                    error: dbError.message,
+                    userId
+                });
+                return res.status(503).json({
+                    error: "Service temporarily unavailable",
+                    message: "The system is undergoing maintenance. Please try again in a few minutes.",
+                    code: "SCHEMA_MIGRATION_PENDING"
+                });
             }
-        });
+            throw dbError;
+        }
 
         // Whitelist allowed fields and parse dates
         const validated = estateUpdateSchema.parse(req.body);
@@ -328,6 +374,28 @@ router.put("/my", authenticate, async (req: any, res: Response) => {
         if (error instanceof z.ZodError) {
             return res.status(400).json({ error: "Validation failed", details: error.errors });
         }
+        
+        // Check if this is a Prisma missing column error
+        const errorMessage = error.message || '';
+        const isMissingColumnError = errorMessage.includes('column') && 
+            (errorMessage.includes('does not exist') || 
+             errorMessage.includes('Unknown column') || 
+             errorMessage.includes('Invalid column'));
+
+        if (isMissingColumnError) {
+            logger.error("CRITICAL Database Migration Error in PUT /my:", {
+                message: error.message,
+                code: error.code,
+                stack: error.stack,
+                userId: req.user?.id
+            });
+            return res.status(503).json({
+                error: "Service temporarily unavailable",
+                message: "The system is undergoing maintenance. Please try again in a few minutes.",
+                code: "SCHEMA_MIGRATION_PENDING"
+            });
+        }
+        
         logger.error("Estate Update Error:", error.message);
         res.status(500).json({ error: "Failed to update estate", message: error.message });
     }
@@ -394,6 +462,23 @@ router.put("/my/roadmap", requireSubscription, async (req: any, res: Response) =
         if (e instanceof z.ZodError) {
             return res.status(400).json({ error: "Validation failed", details: e.errors });
         }
+        
+        // Check for missing column errors
+        const errorMessage = e.message || '';
+        const isMissingColumnError = errorMessage.includes('column') && 
+            (errorMessage.includes('does not exist') || 
+             errorMessage.includes('Unknown column') || 
+             errorMessage.includes('Invalid column'));
+
+        if (isMissingColumnError) {
+            logger.error("CRITICAL Database Migration Error in PUT /my/roadmap:", e.message);
+            return res.status(503).json({
+                error: "Service temporarily unavailable",
+                message: "The system is undergoing maintenance.",
+                code: "SCHEMA_MIGRATION_PENDING"
+            });
+        }
+        
         logger.error("Roadmap update error:", e.message);
         res.status(500).json({ error: "Failed to update roadmap" });
     }
@@ -995,6 +1080,18 @@ router.get("/:id/roadmap", requireSubscription, async (req: any, res: Response) 
                 error: "State not selected",
                 code: "STATE_REQUIRED",
                 message: "Please select a state before generating a roadmap."
+            });
+        }
+
+        if (error.message === 'SCHEMA_MIGRATION_REQUIRED') {
+            logger.error("Roadmap unavailable due to schema migration required", {
+                estateId: req.params.id,
+                userId: req.user?.id
+            });
+            return res.status(503).json({
+                error: "Service temporarily unavailable",
+                message: "The system is undergoing maintenance. Please try again in a few minutes.",
+                code: "SCHEMA_MIGRATION_PENDING"
             });
         }
         logger.error({ estateId: req.params.id, error: error.message, stack: error.stack }, "Error fetching roadmap");
