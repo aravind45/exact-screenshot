@@ -63,11 +63,12 @@ describe('AuthorityScope Filtering', () => {
       authorityScope,
     });
 
-    it('should keep tasks without authorityScope (backward compatibility)', () => {
+    it('should DROP tasks without authorityScope (fail-closed — no NULL leakage)', () => {
       const tasks = [createTask('task1'), createTask('task2')];
       const result = filterTasksByAuthorityScope(tasks, 'PROBATE');
-      expect(result.kept).toHaveLength(2);
-      expect(result.dropped).toHaveLength(0);
+      expect(result.kept).toHaveLength(0);
+      expect(result.dropped).toHaveLength(2);
+      expect(result.dropped[0].reason).toContain('FAIL-CLOSED');
     });
 
     it('should keep BOTH tasks for any estate type', () => {

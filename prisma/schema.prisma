@@ -1121,6 +1121,12 @@ model TokenBlacklist {
   @@map("token_blacklist")
 }
 
+enum AuthorityScope {
+  PROBATE
+  TRUST
+  BOTH
+}
+
 enum DocType {
   STATUTE
   POLICY

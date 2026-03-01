@@ -59,6 +59,12 @@ describe("Authority Scope Leak Regression Tests", () => {
             expect(task?.authorityScope).toBe("TRUST");
         });
 
+        it("issue_cert_trust has authorityScope=TRUST (regression: was BOTH, leaked into PROBATE roadmaps)", () => {
+            const task = tasks.find(t => t.id === "issue_cert_trust");
+            expect(task).toBeDefined();
+            expect(task?.authorityScope).toBe("TRUST");
+        });
+
         it("identify_all_beneficiaries (trust version) has authorityScope=TRUST", () => {
             const task = tasks.find(t => t.id === "identify_all_beneficiaries");
             expect(task).toBeDefined();
@@ -229,9 +235,12 @@ describe("Authority Scope Leak Regression Tests", () => {
             expect(probateScopedTrustTasks.map(t => t.id)).toEqual([]);
         });
 
-        it("probate tasks should NOT have authorityScope=TRUST", () => {
+        it("probate tasks should NOT have authorityScope=TRUST (except intentional TRUST-scoped tasks in shared phases)", () => {
+            const INTENTIONAL_TRUST_IN_SETTLEMENT = new Set(["issue_cert_trust"]);
             const probateTasks = SETTLEMENT_PHASE_TASKS.flatMap(p => p.tasks);
-            const trustScopedProbateTasks = probateTasks.filter(t => t.authorityScope === "TRUST");
+            const trustScopedProbateTasks = probateTasks.filter(t =>
+                t.authorityScope === "TRUST" && !INTENTIONAL_TRUST_IN_SETTLEMENT.has(t.id)
+            );
             expect(trustScopedProbateTasks.map(t => t.id)).toEqual([]);
         });
     });

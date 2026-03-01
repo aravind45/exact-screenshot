@@ -120,6 +120,7 @@ export function filterTasksByAuthorityScope<T extends ScopedTask>(
 ): AuthorityScopeFilterResult<T> {
     const kept: T[] = [];
     const dropped: { id: string; reason: string }[] = [];
+    const VALID_SCOPES = ["PROBATE", "TRUST", "BOTH"] as const;
 
     for (const task of tasks) {
         const taskScope = task.authorityScope;
