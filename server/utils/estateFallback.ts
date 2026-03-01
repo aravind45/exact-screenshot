@@ -1,64 +1,33 @@
-import { Prisma, PrismaClient } from "@prisma/client";
-
-let estateColumnCache: string[] | null = null;
-
-type QueryRawClient = Pick<PrismaClient, "$queryRaw">;
-
-const toCamelCase = (value: string) => value.replace(/_([a-z])/g, (_, letter: string) => letter.toUpperCase());
-
-const mapRowToEstate = (row: Record<string, unknown>) =>
-  Object.fromEntries(Object.entries(row).map(([key, value]) => [toCamelCase(key), value]));
-
-const getEstateColumns = async (client: QueryRawClient): Promise<string[]> => {
-  if (estateColumnCache) return estateColumnCache;
-
-  const columns = await client.$queryRaw<{ column_name: string }[]>`
-    SELECT column_name
-    FROM information_schema.columns
-    WHERE table_schema = 'public' AND table_name = 'estates'
-  `;
-
-  estateColumnCache = columns.map((column) => column.column_name);
-  return estateColumnCache;
-};
+import { PrismaClient } from "@prisma/client";
 
 export const fetchEstateRowById = async (
-  client: QueryRawClient,
+  client: PrismaClient,
   estateId: string
 ): Promise<Record<string, unknown> | null> => {
-  const columns = await getEstateColumns(client);
-  if (columns.length === 0) return null;
+  const estate = await client.estate.findUnique({
+    where: { id: estateId }
+  });
 
-  const selectFields = columns.map((column) => Prisma.raw(`e."${column}"`));
-  const rows = await client.$queryRaw<Record<string, unknown>[]>`
-    SELECT ${Prisma.join(selectFields, ", ")}
-    FROM "estates" e
-    WHERE e.id = ${estateId}
-    LIMIT 1
-  `;
+  if (!estate) return null;
 
-  if (!rows?.length) return null;
-  return mapRowToEstate(rows[0]);
+  return estate as unknown as Record<string, unknown>;
 };
 
 export const fetchEstateRowForUser = async (
-  client: QueryRawClient,
+  client: PrismaClient,
   userId: string
 ): Promise<Record<string, unknown> | null> => {
-  const columns = await getEstateColumns(client);
-  if (columns.length === 0) return null;
+  const estate = await client.estate.findFirst({
+    where: {
+      OR: [
+        { userId: userId },
+        { grants: { some: { userId: userId } } }
+      ]
+    },
+    orderBy: { createdAt: "desc" }
+  });
 
-  const selectFields = columns.map((column) => Prisma.raw(`e."${column}"`));
-  const rows = await client.$queryRaw<Record<string, unknown>[]>`
-    SELECT ${Prisma.join(selectFields, ", ")}
-    FROM "estates" e
-    LEFT JOIN "estate_grants" g
-      ON g.estate_id = e.id AND g.user_id = ${userId}
-    WHERE e.user_id = ${userId} OR g.user_id = ${userId}
-    ORDER BY e.created_at DESC
-    LIMIT 1
-  `;
+  if (!estate) return null;
 
-  if (!rows?.length) return null;
-  return mapRowToEstate(rows[0]);
+  return estate as unknown as Record<string, unknown>;
 };
