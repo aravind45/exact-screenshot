@@ -80,6 +80,7 @@ export interface Estate {
 
     // Completeness
     completenessLevel?: string;
+    estateStatus?: 'DRAFT' | 'MINIMUM_READY' | 'ACTIVE' | 'CLOSED';
 
     // Paths
     authorityType?: string;
@@ -313,6 +314,31 @@ const parseResponse = async (response: Response) => {
         const error = new Error(errorMessage);
         (error as any).status = response.status;
         (error as any).data = data;
+
+        // ESTATE LIFECYCLE GATING: Handle incomplete estate errors
+        if (response.status === 409 && (data?.code === "INCOMPLETE_ESTATE" || data?.code === "MINIMUM_INTAKE_REQUIRED")) {
+            (error as any).isEstateError = true;
+            (error as any).requiredStep = data?.requiredStep || data?.wizardStep;
+            (error as any).errorCode = data?.code;
+
+            // Redirect to appropriate onboarding step if in browser context
+            if (typeof window !== "undefined") {
+                const step = data?.requiredStep || data?.wizardStep;
+                if (step) {
+                    // Use setTimeout to avoid navigation during render/sync operations
+                    setTimeout(() => {
+                        const currentPath = window.location.pathname;
+                        // Only redirect if not already on onboarding pages
+                        if (!currentPath.includes("/onboarding") && !currentPath.includes("/welcome")) {
+                            const redirectUrl = `/onboarding/${step.toLowerCase()}`;
+                            console.warn(`[EstateGating] Redirecting to ${redirectUrl} due to incomplete estate`);
+                            window.location.href = redirectUrl;
+                        }
+                    }, 0);
+                }
+            }
+        }
+
         throw error;
     }
 

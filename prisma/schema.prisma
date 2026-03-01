@@ -119,7 +119,8 @@ model Estate {
   isSurvivingSpouse         Boolean              @default(false) @map("is_surviving_spouse")
   isTrustRevocable          Boolean?             @map("is_trust_revocable")
   administrationType        String?              @map("administration_type")
-  
+  estateStatus              EstateStatus         @default(DRAFT) @map("estate_status")
+
   // Roadmap versioning for SSOT pinning
   roadmapVersion            String?              @map("roadmap_version")
   roadmapPinnedAt           DateTime?            @map("roadmap_pinned_at")
@@ -1183,6 +1184,13 @@ enum UserRole {
   ATTORNEY
   EXECUTOR
   HEIR
+}
+
+enum EstateStatus {
+  DRAFT
+  MINIMUM_READY
+  ACTIVE
+  CLOSED
 }
 
 model CountyOverride {
