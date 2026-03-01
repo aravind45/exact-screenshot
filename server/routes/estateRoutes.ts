@@ -349,9 +349,9 @@ router.put("/my", authenticate, async (req: any, res: Response) => {
             }
 
             // Check if we should advance estateStatus to MINIMUM_READY
-            // This happens when userSelectedEstateAuthorityType is being set for the first time
+            // This happens when authorityType is being set for the first time
             const currentStatus = (estate as any).estateStatus || "DRAFT";
-            if (currentStatus === "DRAFT" && updateData.userSelectedEstateAuthorityType) {
+            if (currentStatus === "DRAFT" && updateData.authorityType && updateData.authorityType !== "UNSET") {
                 updateData.estateStatus = "MINIMUM_READY";
                 logger.info(`✅ [ESTATE] Advancing estate ${estate.id} from DRAFT to MINIMUM_READY`);
             }
@@ -1094,13 +1094,15 @@ router.get("/:id/roadmap", requireSubscription, async (req: any, res: Response) 
         }
 
         // 🚨 ESTATE STATUS GATE: Check new estateStatus field first
-        const currentEstateStatus = (estate as any).estateStatus || "DRAFT";
-        if (currentEstateStatus === "DRAFT") {
-            logger.warn({ estateId: id, estateStatus: currentEstateStatus }, "Roadmap blocked — estate is in DRAFT status");
+        // Only gate if estateStatus is explicitly "DRAFT" - legacy estates (null/undefined) 
+        // fall back to completenessLevel check below
+        const explicitEstateStatus = (estate as any).estateStatus;
+        if (explicitEstateStatus === "DRAFT") {
+            logger.warn({ estateId: id, estateStatus: explicitEstateStatus }, "Roadmap blocked — estate is in DRAFT status");
             return res.status(409).json({
                 code: "INCOMPLETE_ESTATE",
                 error: "Estate setup incomplete",
-                currentStatus: currentEstateStatus,
+                currentStatus: explicitEstateStatus,
                 requiredStatus: "MINIMUM_READY",
                 requiredStep: "TRACK_SELECTION"
             });
@@ -1374,13 +1376,15 @@ router.post("/:id/tasks/:taskId/complete", requireSubscription, async (req: any,
         }
 
         // 🚨 ESTATE STATUS GATE: Check new estateStatus field first
-        const currentEstateStatus = (estate as any).estateStatus || "DRAFT";
-        if (currentEstateStatus === "DRAFT") {
-            logger.warn({ estateId: id, estateStatus: currentEstateStatus, taskId }, "Task completion blocked — estate is in DRAFT status");
+        // Only gate if estateStatus is explicitly "DRAFT" - legacy estates (null/undefined) 
+        // fall back to completenessLevel check below
+        const explicitEstateStatus = (estate as any).estateStatus;
+        if (explicitEstateStatus === "DRAFT") {
+            logger.warn({ estateId: id, estateStatus: explicitEstateStatus, taskId }, "Task completion blocked — estate is in DRAFT status");
             return res.status(409).json({
                 code: "INCOMPLETE_ESTATE",
                 error: "Complete estate setup before marking tasks complete",
-                currentStatus: currentEstateStatus,
+                currentStatus: explicitEstateStatus,
                 requiredStatus: "MINIMUM_READY",
                 requiredStep: "TRACK_SELECTION"
             });

@@ -106,8 +106,24 @@ export async function resolveEstateStatusGate(
     };
   }
 
-  const currentStatus = (estate.estateStatus as EstateStatus) || "DRAFT";
-  const isOpen = checkEstateStatusGate(currentStatus, config.requiredStatus);
+  // For legacy estates (null estateStatus), we need to check if they're actually set up
+  // Only treat as DRAFT if explicitly set to DRAFT, otherwise check other indicators
+  const explicitStatus = estate.estateStatus as EstateStatus | null;
+  const currentStatus = explicitStatus ?? "DRAFT";
+  
+  // For legacy estates without estateStatus, check if they have minimum setup
+  // If they have state and authority type, treat them as MINIMUM_READY
+  const isLegacyEstate = explicitStatus === null;
+  const hasMinimumSetup = estate.deceasedState && estate.userSelectedEstateAuthorityType;
+  
+  // Determine if gate is open
+  let isOpen: boolean;
+  if (isLegacyEstate && hasMinimumSetup) {
+    // Legacy estates with minimum setup should pass MINIMUM_READY gates
+    isOpen = config.requiredStatus === "MINIMUM_READY" || config.requiredStatus === "DRAFT";
+  } else {
+    isOpen = checkEstateStatusGate(currentStatus, config.requiredStatus);
+  }
 
   // Determine appropriate wizard step based on missing requirements
   let wizardStep = config.wizardStep;
@@ -168,17 +184,18 @@ export function requireEstateStatus(config: EstateGateConfig) {
           select: { estateStatus: true },
         });
 
-        const currentStatus = (estate?.estateStatus as EstateStatus) || "DRAFT";
-
-        if (config.blockedStatuses.includes(currentStatus)) {
+        // Only block if estateStatus is explicitly set to a blocked status
+        // Legacy estates (null estateStatus) should not be blocked by default
+        const explicitStatus = estate?.estateStatus as EstateStatus | null;
+        if (explicitStatus !== null && config.blockedStatuses.includes(explicitStatus)) {
           logger.warn(
-            `[EstateStatusGating] Blocked access - estate ${estateId} has blocked status: ${currentStatus}`
+            `[EstateStatusGating] Blocked access - estate ${estateId} has blocked status: ${explicitStatus}`
           );
           return res.status(409).json({
             error: "Estate Access Blocked",
             code: "ESTATE_BLOCKED",
-            currentStatus,
-            message: `This operation is not allowed for estates with status: ${currentStatus}`,
+            currentStatus: explicitStatus,
+            message: `This operation is not allowed for estates with status: ${explicitStatus}`,
           });
         }
       }
@@ -266,7 +283,17 @@ export async function getEstateStatus(estateId: string): Promise<{
     };
   }
 
-  const status = (estate.estateStatus as EstateStatus) || "DRAFT";
+  // For legacy estates, determine status based on setup
+  const explicitStatus = estate.estateStatus as EstateStatus | null;
+  let status: EstateStatus;
+  
+  if (explicitStatus !== null) {
+    status = explicitStatus;
+  } else {
+    // Legacy estate - determine status based on setup
+    const hasMinimumSetup = estate.deceasedState && estate.userSelectedEstateAuthorityType;
+    status = hasMinimumSetup ? "MINIMUM_READY" : "DRAFT";
+  }
 
   // Determine next step
   let nextStep: string | null = null;
