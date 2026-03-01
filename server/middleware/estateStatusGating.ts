@@ -44,13 +44,13 @@ export const ESTATE_GATES = {
   // Active estate features - requires ACTIVE status
   ACTIVE_FEATURES: {
     requiredStatus: "ACTIVE" as EstateStatus,
-    wizardStep: "AUTHORITY_SETUP",
+    wizardStep: "TRACK_SELECTION",
     customMessage: "Estate authority must be established to access this feature",
   },
   // Full administration - requires ACTIVE status
   FULL_ADMINISTRATION: {
     requiredStatus: "ACTIVE" as EstateStatus,
-    wizardStep: "AUTHORITY_SETUP",
+    wizardStep: "TRACK_SELECTION",
     customMessage: "Complete authority setup to perform this action",
   },
   // Read-only access - any non-DRAFT status
@@ -85,15 +85,17 @@ export async function resolveEstateStatusGate(
   estateId: string,
   config: EstateGateConfig
 ): Promise<EstateStatusGateResult> {
-  const estate = await prisma.estate.findUnique({
+  const estate: any = await prisma.estate.findUnique({
     where: { id: estateId },
     select: {
       id: true,
       estateStatus: true,
       deceasedState: true,
       userSelectedEstateAuthorityType: true,
-    },
-  });
+      estateAuthorityType: true,
+      completenessLevel: true,
+    } as any,
+  } as any);
 
   if (!estate) {
     return {
@@ -108,13 +110,21 @@ export async function resolveEstateStatusGate(
 
   // For legacy estates (null estateStatus), we need to check if they're actually set up
   // Only treat as DRAFT if explicitly set to DRAFT, otherwise check other indicators
-  const explicitStatus = estate.estateStatus as EstateStatus | null;
+  const explicitStatus = (estate as any).estateStatus as EstateStatus | null;
   const currentStatus = explicitStatus ?? "DRAFT";
   
   // For legacy estates without estateStatus, check if they have minimum setup
   // If they have state and authority type, treat them as MINIMUM_READY
   const isLegacyEstate = explicitStatus === null;
-  const hasMinimumSetup = estate.deceasedState && estate.userSelectedEstateAuthorityType;
+  const hasMinimumSetup = Boolean(
+    estate.deceasedState &&
+    (
+      estate.userSelectedEstateAuthorityType ||
+      estate.estateAuthorityType ||
+      estate.completenessLevel === "MINIMUM_READY" ||
+      estate.completenessLevel === "PROFILE_READY"
+    )
+  );
   
   // Determine if gate is open
   let isOpen: boolean;
@@ -156,18 +166,10 @@ export async function resolveEstateStatusGate(
 export function requireEstateStatus(config: EstateGateConfig) {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const estateId =
+      let estateId =
         (req as any).estateId ||
         (req as any).params?.estateId ||
         (req as any).params?.id;
-
-      if (!estateId) {
-        logger.error("[EstateStatusGating] No estateId found in request");
-        return res.status(400).json({
-          error: "Bad Request",
-          message: "Estate ID is required for status check",
-        });
-      }
 
       const userId = (req as any).user?.id;
       if (!userId) {
@@ -177,16 +179,39 @@ export function requireEstateStatus(config: EstateGateConfig) {
         });
       }
 
+      // Fallback for routes without estateId params (e.g. /api/liabilities, /estates/my/*)
+      if (!estateId) {
+        const estate = await prisma.estate.findFirst({
+          where: {
+            OR: [
+              { userId },
+              { grants: { some: { userId } } }
+            ]
+          },
+          select: { id: true }
+        });
+        estateId = estate?.id;
+      }
+
+      if (!estateId) {
+        logger.warn("[EstateStatusGating] No estate found for user during status check", { userId });
+        return res.status(409).json({
+          error: "Estate setup incomplete",
+          code: "INCOMPLETE_ESTATE",
+          requiredStep: "TRACK_SELECTION",
+        });
+      }
+
       // Check blocked statuses
       if (config.blockedStatuses) {
-        const estate = await prisma.estate.findUnique({
+        const estate: any = await prisma.estate.findUnique({
           where: { id: estateId },
           select: { estateStatus: true },
-        });
+        } as any);
 
         // Only block if estateStatus is explicitly set to a blocked status
         // Legacy estates (null estateStatus) should not be blocked by default
-        const explicitStatus = estate?.estateStatus as EstateStatus | null;
+        const explicitStatus = (estate as any)?.estateStatus as EstateStatus | null;
         if (explicitStatus !== null && config.blockedStatuses.includes(explicitStatus)) {
           logger.warn(
             `[EstateStatusGating] Blocked access - estate ${estateId} has blocked status: ${explicitStatus}`
@@ -216,7 +241,7 @@ export function requireEstateStatus(config: EstateGateConfig) {
           code: "INCOMPLETE_ESTATE",
           currentStatus: gateResult.currentStatus,
           requiredStatus: gateResult.requiredStatus,
-          requiredStep: gateResult.wizardStep,
+          requiredStep: "TRACK_SELECTION",
         });
       }
 
@@ -265,14 +290,16 @@ export async function getEstateStatus(estateId: string): Promise<{
   canAccessActiveFeatures: boolean;
   nextStep: string | null;
 }> {
-  const estate = await prisma.estate.findUnique({
+  const estate: any = await prisma.estate.findUnique({
     where: { id: estateId },
     select: {
       estateStatus: true,
       deceasedState: true,
       userSelectedEstateAuthorityType: true,
-    },
-  });
+      estateAuthorityType: true,
+      completenessLevel: true,
+    } as any,
+  } as any);
 
   if (!estate) {
     return {
@@ -284,14 +311,22 @@ export async function getEstateStatus(estateId: string): Promise<{
   }
 
   // For legacy estates, determine status based on setup
-  const explicitStatus = estate.estateStatus as EstateStatus | null;
+  const explicitStatus = (estate as any).estateStatus as EstateStatus | null;
   let status: EstateStatus;
   
   if (explicitStatus !== null) {
     status = explicitStatus;
   } else {
     // Legacy estate - determine status based on setup
-    const hasMinimumSetup = estate.deceasedState && estate.userSelectedEstateAuthorityType;
+    const hasMinimumSetup = Boolean(
+      estate.deceasedState &&
+      (
+        estate.userSelectedEstateAuthorityType ||
+        estate.estateAuthorityType ||
+        estate.completenessLevel === "MINIMUM_READY" ||
+        estate.completenessLevel === "PROFILE_READY"
+      )
+    );
     status = hasMinimumSetup ? "MINIMUM_READY" : "DRAFT";
   }
 
@@ -299,7 +334,7 @@ export async function getEstateStatus(estateId: string): Promise<{
   let nextStep: string | null = null;
   if (!estate.deceasedState) {
     nextStep = "STATE_SELECTION";
-  } else if (!estate.userSelectedEstateAuthorityType) {
+  } else if (!estate.userSelectedEstateAuthorityType && !estate.estateAuthorityType) {
     nextStep = "TRACK_SELECTION";
   } else if (status === "MINIMUM_READY") {
     nextStep = "AUTHORITY_SETUP";
@@ -324,8 +359,8 @@ export async function updateEstateStatus(
 ): Promise<void> {
   const estate = await prisma.estate.update({
     where: { id: estateId },
-    data: { estateStatus: newStatus },
-  });
+    data: { estateStatus: newStatus } as any,
+  } as any);
 
   // Log the status change
   await prisma.settlementActivity.create({

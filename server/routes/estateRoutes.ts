@@ -358,6 +358,21 @@ router.put("/my", authenticate, async (req: any, res: Response) => {
                 logger.info(`✅ [ESTATE] Advancing estate ${estate.id} from DRAFT to MINIMUM_READY`);
             }
 
+            // Advance to ACTIVE when legal authority is established
+            // (letters issued / granted / executor appointed)
+            const resolvedAuthorityStatus = String(updateData.authorityStatus ?? (estate as any).authorityStatus ?? "").toUpperCase();
+            const resolvedProbateStatus = String(updateData.probateStatus ?? (estate as any).probateStatus ?? "").toUpperCase();
+            const hasActiveAuthority =
+                resolvedAuthorityStatus === "GRANTED" ||
+                resolvedAuthorityStatus === "LETTERS_ISSUED" ||
+                resolvedProbateStatus === "EXECUTOR_APPOINTED";
+
+            const resolvedEstateStatus = (updateData.estateStatus ?? currentStatus) as string;
+            if (hasActiveAuthority && resolvedEstateStatus !== "ACTIVE" && resolvedEstateStatus !== "CLOSED") {
+                updateData.estateStatus = "ACTIVE";
+                logger.info(`✅ [ESTATE] Advancing estate ${estate.id} to ACTIVE (authority established)`);
+            }
+
             finalEstate = await prisma.estate.update({
                 where: { id: estate.id },
                 data: {
@@ -428,7 +443,7 @@ router.put("/my", authenticate, async (req: any, res: Response) => {
 });
 
 // Roadmap Persistence
-router.put("/my/roadmap", requireSubscription, async (req: any, res: Response) => {
+router.put("/my/roadmap", requireSubscription, requireEstateStatus(ESTATE_GATES.ROADMAP), async (req: any, res: Response) => {
     try {
         const estate = await prisma.estate.findFirst({
             where: {
@@ -971,7 +986,7 @@ import { AccountingService } from "../services/accountingService.js";
 router.get("/my/accounting-readiness", requireEstateStatus({
     requiredStatus: "ACTIVE",
     customMessage: "Accounting features require active estate status",
-    wizardStep: "AUTHORITY_SETUP"
+    wizardStep: "TRACK_SELECTION"
 }), async (req: any, res: Response) => {
     try {
         const estate = await prisma.estate.findFirst({ where: { userId: req.user.id } });
@@ -1066,12 +1081,12 @@ import {
 const VALID_STATE_CODE = /^[A-Z]{2}$/;
 
 // GET /:id/roadmap - Get personalized roadmap (requires subscription)
-router.get("/:id/roadmap", requireSubscription, async (req: any, res: Response) => {
+router.get("/:id/roadmap", requireSubscription, requireEstateStatus(ESTATE_GATES.ROADMAP), async (req: any, res: Response) => {
     try {
         const { id } = req.params;
 
         // Verify user has access to this estate
-        const estate = await prisma.estate.findFirst({
+        const estate: any = await prisma.estate.findFirst({
             where: {
                 id,
                 OR: [
@@ -1088,26 +1103,11 @@ router.get("/:id/roadmap", requireSubscription, async (req: any, res: Response) 
                 deceasedLastName: true,
                 userId: true,
                 estateStatus: true,
-            }
-        });
+            } as any
+        } as any);
 
         if (!estate) {
             return res.status(404).json({ error: "Estate not found or access denied" });
-        }
-
-        // 🚨 ESTATE STATUS GATE: Check new estateStatus field first
-        // Only gate if estateStatus is explicitly "DRAFT" - legacy estates (null/undefined) 
-        // fall back to completenessLevel check below
-        const explicitEstateStatus = (estate as any).estateStatus;
-        if (explicitEstateStatus === "DRAFT") {
-            logger.warn({ estateId: id, estateStatus: explicitEstateStatus }, "Roadmap blocked — estate is in DRAFT status");
-            return res.status(409).json({
-                code: "INCOMPLETE_ESTATE",
-                error: "Estate setup incomplete",
-                currentStatus: explicitEstateStatus,
-                requiredStatus: "MINIMUM_READY",
-                requiredStep: "TRACK_SELECTION"
-            });
         }
 
         // Minimum intake gate: require state + deceased name before roadmap generation
@@ -1115,48 +1115,60 @@ router.get("/:id/roadmap", requireSubscription, async (req: any, res: Response) 
         if (!rawState || !VALID_STATE_CODE.test(rawState.trim().toUpperCase())) {
             logger.warn({ estateId: id, deceasedState: rawState }, "Roadmap requested for estate with invalid or missing state code");
             return res.status(409).json({
-                code: "MINIMUM_INTAKE_REQUIRED",
-                error: "State information required",
-                requiredFields: ["deceasedState"],
-                wizardStep: "TRACK_SELECTION"
+                code: "INCOMPLETE_ESTATE",
+                error: "Estate setup incomplete",
+                requiredStep: "TRACK_SELECTION"
             });
         }
 
-        const shouldFallbackToCompleteness = explicitEstateStatus == null;
-        if (shouldFallbackToCompleteness) {
-            // 🚨 MINIMUM INTAKE GATE: Prevent misleading roadmaps for incomplete legacy estates
-            const { estateAuthorityType, completenessLevel } = estate;
-            if (completenessLevel !== "MINIMUM_READY" && completenessLevel !== "PROFILE_READY") {
-                logger.warn({ estateId: id, completenessLevel, estateAuthorityType }, "Roadmap blocked — minimum intake not complete");
-                return res.status(409).json({
-                    code: "MINIMUM_INTAKE_REQUIRED",
-                    error: "Estate requires authority type selection before generating roadmap",
-                    requiredFields: ["estateAuthorityType"],
-                    wizardStep: "TRACK_SELECTION"
-                });
-            }
-
-            if (!estateAuthorityType || estateAuthorityType === "UNSET") {
-                logger.warn({ estateId: id, estateAuthorityType }, "Roadmap blocked — authority type is UNSET");
-                return res.status(409).json({
-                    code: "MINIMUM_INTAKE_REQUIRED",
-                    error: "Estate requires authority type selection before generating roadmap",
-                    requiredFields: ["estateAuthorityType"],
-                    wizardStep: "TRACK_SELECTION"
-                });
-            }
+        if (!estate.estateAuthorityType || estate.estateAuthorityType === "UNSET") {
+            logger.warn({ estateId: id, estateAuthorityType: estate.estateAuthorityType }, "Roadmap blocked — authority type is UNSET");
+            return res.status(409).json({
+                code: "INCOMPLETE_ESTATE",
+                error: "Estate setup incomplete",
+                requiredStep: "TRACK_SELECTION"
+            });
         }
 
-        const hasDeceasedName = (estate.deceasedFirstName && estate.deceasedFirstName.trim().length > 0) ||
-            (estate.deceasedLastName && estate.deceasedLastName.trim().length > 0);
-        if (!hasDeceasedName) {
-            logger.warn({ estateId: id }, "Roadmap requested without deceased name");
-            return res.status(400).json({
-                error: "Incomplete estate profile",
-                code: "INTAKE_INCOMPLETE",
-                message: "Please enter the deceased's name before generating a roadmap.",
-                missingFields: ["deceasedFirstName"]
+        if (!estate.deceasedFirstName?.trim() && !estate.deceasedLastName?.trim()) {
+            logger.warn({ estateId: id }, "Roadmap blocked — deceased name missing");
+            return res.status(409).json({
+                code: "INCOMPLETE_ESTATE",
+                error: "Estate setup incomplete",
+                requiredStep: "TRACK_SELECTION"
             });
+        }
+
+        if (estate.estateStatus === "DRAFT") {
+            logger.warn({ estateId: id, estateStatus: estate.estateStatus }, "Roadmap blocked — estate is in DRAFT status");
+            return res.status(409).json({
+                code: "INCOMPLETE_ESTATE",
+                error: "Estate setup incomplete",
+                currentStatus: estate.estateStatus,
+                requiredStatus: "MINIMUM_READY",
+                requiredStep: "TRACK_SELECTION"
+            });
+        }
+
+        if ((estate as any).completenessLevel === "UNSET") {
+            logger.warn({ estateId: id, completenessLevel: (estate as any).completenessLevel }, "Roadmap blocked — completeness is UNSET");
+            return res.status(409).json({
+                code: "INCOMPLETE_ESTATE",
+                error: "Estate setup incomplete",
+                requiredStep: "TRACK_SELECTION"
+            });
+        }
+
+        if ((estate as any).estateStatus == null) {
+            const legacyReady = (estate as any).completenessLevel === "MINIMUM_READY" || (estate as any).completenessLevel === "PROFILE_READY";
+            if (!legacyReady) {
+                logger.warn({ estateId: id, completenessLevel: (estate as any).completenessLevel }, "Roadmap blocked — legacy estate minimum intake not complete");
+                return res.status(409).json({
+                    code: "INCOMPLETE_ESTATE",
+                    error: "Estate setup incomplete",
+                    requiredStep: "TRACK_SELECTION"
+                });
+            }
         }
 
         // Get personalized roadmap
@@ -1165,10 +1177,9 @@ router.get("/:id/roadmap", requireSubscription, async (req: any, res: Response) 
     } catch (error: any) {
         if (error.message === 'STATE_REQUIRED') {
             return res.status(409).json({
-                code: "MINIMUM_INTAKE_REQUIRED",
-                error: "State not selected",
-                requiredFields: ["deceasedState"],
-                wizardStep: "TRACK_SELECTION"
+                code: "INCOMPLETE_ESTATE",
+                error: "Estate setup incomplete",
+                requiredStep: "TRACK_SELECTION"
             });
         }
 
@@ -1354,13 +1365,13 @@ router.get("/:id/tasks", requireSubscription, async (req: any, res: Response) =>
     }
 });
 
-router.post("/:id/tasks/:taskId/complete", requireSubscription, async (req: any, res: Response) => {
+router.post("/:id/tasks/:taskId/complete", requireSubscription, requireEstateStatus(ESTATE_GATES.ACTIVE_FEATURES), async (req: any, res: Response) => {
     try {
         const { id, taskId } = req.params;
         const { notes } = req.body;
 
         // Verify user has access to this estate
-        const estate = await prisma.estate.findFirst({
+        const estate: any = await prisma.estate.findFirst({
             where: {
                 id,
                 OR: [
@@ -1373,38 +1384,11 @@ router.post("/:id/tasks/:taskId/complete", requireSubscription, async (req: any,
                 completenessLevel: true,
                 userId: true,
                 estateStatus: true,
-            }
-        });
+            } as any
+        } as any);
 
         if (!estate) {
             return res.status(404).json({ error: "Estate not found or access denied" });
-        }
-
-        // 🚨 ESTATE STATUS GATE: Check new estateStatus field first
-        // Only gate if estateStatus is explicitly "DRAFT" - legacy estates (null/undefined) 
-        // fall back to completenessLevel check below
-        const explicitEstateStatus = (estate as any).estateStatus;
-        if (explicitEstateStatus === "DRAFT") {
-            logger.warn({ estateId: id, estateStatus: explicitEstateStatus, taskId }, "Task completion blocked — estate is in DRAFT status");
-            return res.status(409).json({
-                code: "INCOMPLETE_ESTATE",
-                error: "Complete estate setup before marking tasks complete",
-                currentStatus: explicitEstateStatus,
-                requiredStatus: "MINIMUM_READY",
-                requiredStep: "TRACK_SELECTION"
-            });
-        }
-
-        const shouldFallbackToCompleteness = explicitEstateStatus == null;
-        if (shouldFallbackToCompleteness) {
-            // 🚨 MINIMUM INTAKE GATE: Block task completion until setup is complete
-            if (estate.completenessLevel !== "MINIMUM_READY" && estate.completenessLevel !== "PROFILE_READY") {
-                return res.status(409).json({
-                    code: "MINIMUM_INTAKE_REQUIRED",
-                    error: "Complete estate setup before marking tasks complete",
-                    wizardStep: "TRACK_SELECTION"
-                });
-            }
         }
 
         // Complete task
@@ -1416,7 +1400,7 @@ router.post("/:id/tasks/:taskId/complete", requireSubscription, async (req: any,
     }
 });
 
-router.delete("/:id/tasks/:taskId/complete", requireSubscription, requireEstateAccess, requireAuthorityStatus({
+router.delete("/:id/tasks/:taskId/complete", requireSubscription, requireEstateAccess, requireEstateStatus(ESTATE_GATES.ACTIVE_FEATURES), requireAuthorityStatus({
     operation: "estate:amend",
     customMessage: "Modifying task completions requires legal authority"
 }), async (req: any, res: Response) => {
@@ -1504,8 +1488,8 @@ router.post("/:id/select-track", authenticate, requireEstateAccess, async (req: 
                 completenessLevel: "MINIMUM_READY",
                 // Also update estateStatus for lifecycle gating
                 estateStatus: "MINIMUM_READY",
-            }
-        });
+            } as any
+        } as any);
 
         // Log activity
         await AuditService.logActivity(
