@@ -318,7 +318,7 @@ export function requireOpenEstate(req: Request, res: Response, next: NextFunctio
 export function requireTaskCompletionAllowed(taskIdParam: string = "taskId") {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const taskId = req.params[taskIdParam];
+      const taskId = String(req.params[taskIdParam]);
       const estateGate = (req as any).estateGate;
 
       if (!estateGate?.isOpen) {
