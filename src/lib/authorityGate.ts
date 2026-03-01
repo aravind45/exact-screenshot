@@ -174,7 +174,12 @@ export const TRACK_AUTHORITY_MODEL: Record<SettlementTrack, {
         requiresCourtAuthority: false,
         authorityDocument: 'None (Discovery Phase)',
         authorityMilestone: 'complete_discovery'
-    }
+    },
+    VOLUNTARY_ADMINISTRATION: {
+        requiresCourtAuthority: false,
+        authorityDocument: 'Voluntary Administration Filing',
+        authorityMilestone: 'file_voluntary_admin'
+    },
 };
 
 export interface AuthorityStatus {

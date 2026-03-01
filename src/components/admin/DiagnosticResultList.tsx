@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { AlertTriangle, XCircle, Info, Lightbulb, Search, Filter } from "lucide-react";
+import { AlertTriangle, XCircle, Info, Lightbulb, Search, Filter, CheckCircle2 } from "lucide-react";
 import type { Violation, DiagnosticResult } from "@/jurisdiction/diagnostics/types";
 
 interface DiagnosticResultListProps {
