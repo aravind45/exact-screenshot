@@ -13,9 +13,9 @@ import type {
   IntegrityScanReport,
   IntegrityScanOptions,
   FindingSeverity,
-  EstateProfile,
-  DiagnosticTask,
+  IntegrityFinding,
 } from './types.js';
+import type { EstateProfile, DiagnosticTask } from '../../jurisdiction/diagnostics/types.js';
 import { validateCrossStateStatuteLeak } from './checks/crossStateStatuteLeak.js';
 import { validateAuthorityScopeLeak } from './checks/authorityScopeLeak.js';
 import { validatePlaceholderDetection } from './checks/placeholderDetection.js';
@@ -59,7 +59,7 @@ export const ALL_INTEGRITY_CHECKS: Array<{
 /**
  * Check IDs for reference
  */
-export const CHECK_IDS = ALL_INTEGRITY_CHECKS.map(c => c.id) as const;
+export const CHECK_IDS = ['crossStateStatuteLeak', 'authorityScopeLeak', 'placeholderDetection', 'dbIntegrityInvariants'] as const;
 export type CheckId = typeof CHECK_IDS[number];
 
 /**
@@ -128,24 +128,21 @@ export async function runIntegrityCheck(
     const result = await checkDef.check(stateCode, estateProfile, tasks);
 
     // Normalize result format
-    let findings: Array<{
-      checkId: string;
-      checkName: string;
-      stateCode: string;
-      severity: FindingSeverity;
-      code: string;
-      message: string;
-      taskId?: string;
-      context?: Record<string, unknown>;
-      suggestion?: string;
-    }>;
+    let findings: IntegrityFinding[];
 
-    if ('findings' in result) {
+    if ('findings' in result && Array.isArray(result.findings)) {
       // Already in IntegrityCheckResult format
-      findings = result.findings;
-    } else if ('violations' in result) {
+      findings = result.findings as IntegrityFinding[];
+    } else if ('violations' in result && Array.isArray(result.violations)) {
       // Convert from DiagnosticResult format
-      findings = convertViolationsToFindings(checkId, checkDef.name, stateCode, result.violations);
+      findings = convertViolationsToFindings(checkId, checkDef.name, stateCode, result.violations as Array<{
+        code: string;
+        message: string;
+        severity: 'CRITICAL' | 'WARNING' | 'INFO';
+        taskId?: string;
+        context?: Record<string, unknown>;
+        suggestion?: string;
+      }>) as IntegrityFinding[];
     } else {
       findings = [];
     }
