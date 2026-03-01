@@ -178,25 +178,38 @@ router.get("/my", async (req: any, res: Response) => {
         }
         res.json(estate);
     } catch (error: any) {
-        // Check if this is a Prisma missing column error
-        const errorMessage = error.message || '';
-        const isMissingColumnError = errorMessage.includes('column') && 
-            (errorMessage.includes('does not exist') || 
-             errorMessage.includes('Unknown column') || 
-             errorMessage.includes('Invalid column'));
+        if (isMissingColumnError(error)) {
+            logger.warn("Estate fetch failed due to missing columns — using fallback query.", {
+                userId: req.user.id,
+                message: error instanceof Error ? error.message : String(error),
+                ...getPrismaErrorDetails(error)
+            });
 
-        if (isMissingColumnError) {
-            logger.error("CRITICAL Database Migration Error in /my endpoint:", {
-                message: error.message,
-                code: error.code,
-                stack: error.stack,
-                userId: req.user?.id
-            });
-            return res.status(503).json({
-                error: "Service temporarily unavailable",
-                message: "The system is undergoing maintenance. Please try again in a few minutes.",
-                code: "SCHEMA_MIGRATION_PENDING"
-            });
+            const fallbackEstate = await fetchEstateRowForUser(prisma, req.user.id);
+            if (!fallbackEstate) {
+                return res.json(null);
+            }
+
+            try {
+                await EmailService.ensureEstateHandle(fallbackEstate.id as string);
+            } catch (handleErr) {
+                logger.warn("Failed to ensure estate handle during fallback (non-fatal):", handleErr);
+            }
+
+            const refreshedEstate = await fetchEstateRowForUser(prisma, req.user.id);
+            const estateToReturn = (refreshedEstate || fallbackEstate) as any;
+
+            if (estateToReturn.deceasedSsn) {
+                estateToReturn.deceasedSsn = decrypt(estateToReturn.deceasedSsn);
+            }
+
+            if (estateToReturn.userId) {
+                estateToReturn.user = await prisma.user.findUnique({
+                    where: { id: estateToReturn.userId }
+                });
+            }
+
+            return res.json(estateToReturn);
         }
 
         logger.error("Estate Fetch Error:", error.message);
@@ -1054,6 +1067,8 @@ router.get("/:id/roadmap", requireSubscription, async (req: any, res: Response) 
                 deceasedState: true,
                 estateAuthorityType: true,
                 completenessLevel: true,
+                deceasedFirstName: true,
+                deceasedLastName: true,
                 userId: true,
             }
         });
@@ -1062,7 +1077,7 @@ router.get("/:id/roadmap", requireSubscription, async (req: any, res: Response) 
             return res.status(404).json({ error: "Estate not found or access denied" });
         }
 
-        // Validate deceasedState before handing off to roadmap generation
+        // Minimum intake gate: require state + deceased name before roadmap generation
         const rawState = estate.deceasedState;
         if (!rawState || !VALID_STATE_CODE.test(rawState.trim().toUpperCase())) {
             logger.warn({ estateId: id, deceasedState: rawState }, "Roadmap requested for estate with invalid or missing state code");
@@ -1093,6 +1108,18 @@ router.get("/:id/roadmap", requireSubscription, async (req: any, res: Response) 
                 error: "Estate requires authority type selection before generating roadmap",
                 requiredFields: ["estateAuthorityType"],
                 wizardStep: "TRACK_SELECTION"
+            });
+        }
+
+        const hasDeceasedName = (estate.deceasedFirstName && estate.deceasedFirstName.trim().length > 0) ||
+            (estate.deceasedLastName && estate.deceasedLastName.trim().length > 0);
+        if (!hasDeceasedName) {
+            logger.warn({ estateId: id }, "Roadmap requested without deceased name");
+            return res.status(400).json({
+                error: "Incomplete estate profile",
+                code: "INTAKE_INCOMPLETE",
+                message: "Please enter the deceased's name before generating a roadmap.",
+                missingFields: ["deceasedFirstName"]
             });
         }
 
