@@ -532,6 +532,7 @@ function generateTransferOnlyRoadmap(type: AuthorityType, state: string, modifie
             if (type === "SMALL_ESTATE" && p.phase === "immediate_actions") {
                 tasks.push({
                     scope: "CORE",
+                    authorityScope: "PROBATE",
                     id: "prepare_affidavit",
                     title: "Prepare Small Estate Affidavit",
                     description: `Draft the ${state} Small Estate Affidavit to transfer assets without court.`,
@@ -543,6 +544,7 @@ function generateTransferOnlyRoadmap(type: AuthorityType, state: string, modifie
             if (type === "JOINT_TRANSFER" && p.phase === "immediate_actions") {
                 tasks.push({
                     scope: "CORE",
+                    authorityScope: "BOTH",
                     id: "transfer_joint_assets",
                     title: "Transfer Jointly Owned Assets",
                     description: "Submit death certificates to financial institutions to remove decedent from joint accounts.",
@@ -607,20 +609,10 @@ function generateFiduciaryRoadmap(type: AuthorityType, state: string, modifiers:
             (!t.applicability?.excludePredicates?.includes(`is${state}`))
         );
 
-        // Phase-specific additions and overrides
-        if (p.phase === "immediate_actions") {
-            tasks.push({
-                scope: "CORE",
-                id: "issue_cert_trust_gen",
-                title: "Issue Certificate of Trust",
-                description: "Prepare and notarize a Certificate of Trust to present successor trustee authority to banks.",
-                estimatedTime: "1 hour"
-            });
-        }
-
         if (modifiers.includes("INSOLVENT")) {
             tasks.push({
                 scope: "CORE",
+                authorityScope: "BOTH",
                 id: "insolvency_prioritization",
                 title: "Statutory Priority Assessment",
                 description: "Estate liabilities may exceed assets. The fiduciary must strictly follow statutory payment priority to avoid personal liability.",
@@ -633,6 +625,7 @@ function generateFiduciaryRoadmap(type: AuthorityType, state: string, modifiers:
             if (p.phase === "immediate_actions") {
                 tasks.push({
                     scope: "CORE",
+                    authorityScope: "BOTH",
                     id: "business_operating_authority",
                     title: "Establish Business Operating Authority",
                     description: "Confirm legal authority to continue business operations to avoid loss of value.",
@@ -642,6 +635,7 @@ function generateFiduciaryRoadmap(type: AuthorityType, state: string, modifiers:
             if (p.phase === "asset_discovery") {
                 tasks.push({
                     scope: "CORE",
+                    authorityScope: "BOTH",
                     id: "business_valuation",
                     title: "Order Professional Business Valuation",
                     description: "Obtain a formal appraisal of the business interest as of the date of death.",
@@ -654,6 +648,7 @@ function generateFiduciaryRoadmap(type: AuthorityType, state: string, modifiers:
             if (p.phase === "final_distribution") {
                 tasks.push({
                     scope: "CORE",
+                    authorityScope: "BOTH",
                     id: "minor_distribution_block",
                     title: "Establish Blocked Accounts for Minors",
                     description: "Distributions to minors must be held in court-approved blocked accounts or trusts.",
@@ -665,6 +660,7 @@ function generateFiduciaryRoadmap(type: AuthorityType, state: string, modifiers:
         if (modifiers.includes("UNCLAIMED_PROPERTY") && p.phase === "asset_discovery") {
             tasks.push({
                 scope: "CORE",
+                authorityScope: "BOTH",
                 id: "search_state_unclaimed",
                 title: "Search State Unclaimed Property",
                 description: "Check state controller databases for forgotten accounts or safe deposit boxes.",
@@ -675,6 +671,7 @@ function generateFiduciaryRoadmap(type: AuthorityType, state: string, modifiers:
         if (modifiers.includes("CONTESTED")) {
             tasks.unshift({
                 scope: "CORE",
+                authorityScope: "BOTH",
                 id: "litigation_hold",
                 title: "LITIGATION HOLD: Distribution Freeze",
                 description: "Estate is contested. Do not distribute any assets or pay non-essential claims without court order.",
@@ -743,6 +740,7 @@ function generateProbateRoadmap(type: AuthorityType, state: string, modifiers: s
             if (p.phase === "immediate_actions") {
                 tasks.push({
                     scope: "CORE",
+                    authorityScope: "PROBATE",
                     id: "file_summary_petition",
                     title: "File Petition for Summary Administration",
                     description: "For FL estates < $75k, file this petition to bypass full formal probate.",
@@ -758,6 +756,7 @@ function generateProbateRoadmap(type: AuthorityType, state: string, modifiers: s
         if (courtFilingPhase) {
             courtFilingPhase.tasks.unshift({
                 scope: "CORE",
+                authorityScope: "PROBATE",
                 id: "ancillary_filing",
                 title: "File Ancillary Probate in " + state,
                 description: "Open a secondary probate case in the state where the real property is located.",
@@ -778,6 +777,7 @@ function generateProbateRoadmap(type: AuthorityType, state: string, modifiers: s
             const isCA = state === "CA";
             creditorPhase.tasks.unshift({
                 scope: "CORE",
+                authorityScope: "PROBATE",
                 id: "verify_spousal_creditor_exemption",
                 title: "Verify Creditor Notice Exemption",
                 description: "Surviving spouses may be exempt from standard creditor notice if they assume personal liability for decedent's debts.",
@@ -823,6 +823,7 @@ function generateProbateRoadmap(type: AuthorityType, state: string, modifiers: s
         if (modifiers.includes("INSOLVENT") && p.phase === "creditor_claims") {
             tasks.unshift({
                 scope: "CORE",
+                authorityScope: "PROBATE",
                 id: "insolvency_freeze",
                 title: "Insolvency ALERT: Freeze Distributions",
                 description: "Estate liabilities exceed assets. DO NOT pay any debts or distribute any assets.",
@@ -834,6 +835,7 @@ function generateProbateRoadmap(type: AuthorityType, state: string, modifiers: s
             if (p.phase === "court_filing") {
                 tasks.push({
                     scope: "CORE",
+                    authorityScope: "PROBATE",
                     id: "petition_operating_orders",
                     title: "Petition for Business Operating Orders",
                     description: "Ask the court for explicit permission to continue decedent's business operations.",
@@ -843,6 +845,7 @@ function generateProbateRoadmap(type: AuthorityType, state: string, modifiers: s
             if (p.phase === "asset_discovery") {
                 tasks.push({
                     scope: "CORE",
+                    authorityScope: "PROBATE",
                     id: "business_appraisal",
                     title: "Conduct Business Valuation",
                     description: "Engage a certified appraiser to determine the value of decedent's business stake.",
@@ -854,6 +857,7 @@ function generateProbateRoadmap(type: AuthorityType, state: string, modifiers: s
         if (modifiers.includes("MINOR_HEIRS") && p.phase === "final_distribution") {
             tasks.unshift({
                 scope: "CORE",
+                authorityScope: "PROBATE",
                 id: "minor_distribution_petition",
                 title: "Petition for Minor Distribution Approval",
                 description: "File to have the court approve the guardian or trustee for minor's inheritance.",
@@ -864,6 +868,7 @@ function generateProbateRoadmap(type: AuthorityType, state: string, modifiers: s
         if (modifiers.includes("CONTESTED")) {
             tasks.unshift({
                 scope: "CORE",
+                authorityScope: "PROBATE",
                 id: "litigation_hold_probate",
                 title: "LITIGATION HOLD: Freeze Distributions",
                 description: "Will contest or heirship dispute detected. Assets must remain in the estate account until resolved.",
@@ -874,6 +879,7 @@ function generateProbateRoadmap(type: AuthorityType, state: string, modifiers: s
         if (modifiers.includes("ELECTIVE_SHARE") && p.phase === "creditor_claims") {
             tasks.push({
                 scope: "CORE",
+                authorityScope: "PROBATE",
                 id: "elective_share_calc",
                 title: "Spousal Elective Share Calculation",
                 description: "A spouse has asserted an elective share claim. Recalculate distribution priorities accordingly.",
@@ -884,6 +890,7 @@ function generateProbateRoadmap(type: AuthorityType, state: string, modifiers: s
         if (modifiers.includes("UNCLAIMED_PROPERTY") && p.phase === "asset_discovery") {
             tasks.push({
                 scope: "CORE",
+                authorityScope: "PROBATE",
                 id: "search_state_unclaimed_probate",
                 title: "Search State Unclaimed Property",
                 description: "Check state controller databases for dormant accounts or forgotten insurance policies.",
@@ -938,6 +945,7 @@ function generateDiscoveryRoadmap(type: AuthorityType, state: string, hasWill?: 
         if (p.phase === "immediate_actions") {
             tasks.unshift({
                 scope: "CORE",
+                authorityScope: "BOTH",
                 id: "initial_search_protocol",
                 title: "Initialize Forensic Discovery Protocol",
                 description: "Estate track is unknown. Begin systematic asset search to calibrate the correct legal path.",

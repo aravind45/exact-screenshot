@@ -134,7 +134,7 @@ router.get("/my", async (req: any, res: Response) => {
         res.json(estate);
     } catch (error: any) {
         if (isMissingColumnError(error)) {
-            logger.error("Estate fetch failed due to missing columns.", {
+            logger.warn("Estate fetch failed due to missing columns — using fallback query.", {
                 userId: req.user.id,
                 message: error instanceof Error ? error.message : String(error),
                 ...getPrismaErrorDetails(error)
@@ -142,10 +142,7 @@ router.get("/my", async (req: any, res: Response) => {
 
             const fallbackEstate = await fetchEstateRowForUser(prisma, req.user.id);
             if (!fallbackEstate) {
-                return res.status(503).json({
-                    error: "Estate data temporarily unavailable",
-                    message: "Database migration is pending. Please try again shortly."
-                });
+                return res.json(null);
             }
 
             try {
@@ -967,6 +964,8 @@ router.get("/:id/roadmap", requireSubscription, async (req: any, res: Response) 
             select: {
                 id: true,
                 deceasedState: true,
+                deceasedFirstName: true,
+                deceasedLastName: true,
                 userId: true,
             }
         });
@@ -975,7 +974,7 @@ router.get("/:id/roadmap", requireSubscription, async (req: any, res: Response) 
             return res.status(404).json({ error: "Estate not found or access denied" });
         }
 
-        // Validate deceasedState before handing off to roadmap generation
+        // Minimum intake gate: require state + deceased name before roadmap generation
         const rawState = estate.deceasedState;
         if (!rawState || !VALID_STATE_CODE.test(rawState.trim().toUpperCase())) {
             logger.warn({ estateId: id, deceasedState: rawState }, "Roadmap requested for estate with invalid or missing state code");
@@ -983,6 +982,18 @@ router.get("/:id/roadmap", requireSubscription, async (req: any, res: Response) 
                 error: "State not selected",
                 code: "STATE_REQUIRED",
                 message: "Please select a valid state before generating a roadmap."
+            });
+        }
+
+        const hasDeceasedName = (estate.deceasedFirstName && estate.deceasedFirstName.trim().length > 0) ||
+            (estate.deceasedLastName && estate.deceasedLastName.trim().length > 0);
+        if (!hasDeceasedName) {
+            logger.warn({ estateId: id }, "Roadmap requested without deceased name");
+            return res.status(400).json({
+                error: "Incomplete estate profile",
+                code: "INTAKE_INCOMPLETE",
+                message: "Please enter the deceased's name before generating a roadmap.",
+                missingFields: ["deceasedFirstName"]
             });
         }
 

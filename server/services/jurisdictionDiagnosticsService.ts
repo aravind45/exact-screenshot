@@ -15,7 +15,7 @@ import type {
   DiagnosticTask,
 } from '../../src/jurisdiction/diagnostics/types.js';
 import { runAllValidators, calculateHealthScore } from '../../src/jurisdiction/diagnostics/index.js';
-import { filterTasksByJurisdiction, filterTasksByAuthorityScope, type ScopedTask } from '../../src/shared/filterByJurisdiction.js';
+import { filterTasksByJurisdiction, filterTasksByAuthorityScope } from '../../src/shared/filterByJurisdiction.js';
 import { SETTLEMENT_PHASE_TASKS } from '../../src/config/settlementPhases.js';
 import { logger } from '../lib/logger.js';
 
@@ -26,15 +26,20 @@ const CACHE_TTL_MS = 5 * 60 * 1000;
 /**
  * Get tasks for a state from the settlement phases config
  */
-function getTasksForState(stateCode: string): ScopedTask[] {
-  const tasks: ScopedTask[] = [];
+function getTasksForState(stateCode: string): DiagnosticTask[] {
+  const tasks: DiagnosticTask[] = [];
 
   for (const phaseList of SETTLEMENT_PHASE_TASKS) {
     for (const task of phaseList.tasks) {
       tasks.push({
         id: task.id,
+        title: task.title,
+        description: task.description,
         scope: task.scope,
         authorityScope: task.authorityScope,
+        allowedStates: task.allowedStates,
+        allowedCounties: task.allowedCounties,
+        applicability: task.applicability,
       });
     }
   }
@@ -46,9 +51,9 @@ function getTasksForState(stateCode: string): ScopedTask[] {
  * Filter tasks for an estate profile
  */
 function filterTasksForProfile(
-  tasks: ScopedTask[],
+  tasks: DiagnosticTask[],
   profile: EstateProfile
-): ScopedTask[] {
+): DiagnosticTask[] {
   // First filter by jurisdiction (state)
   const jurisdictionResult = filterTasksByJurisdiction(tasks, profile.stateCode, profile.county);
   let filtered = jurisdictionResult.kept;
