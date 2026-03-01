@@ -4,4 +4,4 @@
 
 UPDATE roadmap_tasks
 SET authority_scope = 'TRUST'
-WHERE task_code = 'issue_cert_trust';
+WHERE "taskCode" = 'issue_cert_trust';

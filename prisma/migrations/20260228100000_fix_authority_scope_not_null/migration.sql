@@ -14,12 +14,32 @@ EXCEPTION
   WHEN duplicate_object THEN NULL;
 END $$;
 
+-- Drop any legacy check constraints touching authority_scope before type changes.
+-- Some environments may have differently named constraints that compare enum/text.
+DO $$
+DECLARE
+  r RECORD;
+BEGIN
+  FOR r IN
+    SELECT con.conname
+    FROM pg_constraint con
+    JOIN pg_class rel ON rel.oid = con.conrelid
+    JOIN pg_namespace nsp ON nsp.oid = con.connamespace
+    WHERE rel.relname = 'roadmap_tasks'
+      AND nsp.nspname = 'public'
+      AND con.contype = 'c'
+      AND pg_get_constraintdef(con.oid) ILIKE '%authority_scope%'
+  LOOP
+    EXECUTE format('ALTER TABLE "roadmap_tasks" DROP CONSTRAINT IF EXISTS %I', r.conname);
+  END LOOP;
+END $$;
+
 -- Step 2: Backfill NULL authority_scope values deterministically
 -- (a) Trust-only taskCodes → TRUST
 UPDATE "roadmap_tasks"
 SET authority_scope = 'TRUST'
 WHERE authority_scope IS NULL
-  AND task_code IN (
+  AND "taskCode" IN (
     'issue_cert_trust',
     'trustee_acceptance',
     'sign_trustee_acceptance',
@@ -46,7 +66,7 @@ WHERE authority_scope IS NULL
 UPDATE "roadmap_tasks"
 SET authority_scope = 'PROBATE'
 WHERE authority_scope IS NULL
-  AND task_code IN (
+  AND "taskCode" IN (
     'file_petition',
     'file_probate_petition',
     'file_administration_petition',
@@ -81,7 +101,7 @@ WHERE authority_scope IS NULL
 UPDATE "roadmap_tasks"
 SET authority_scope = 'BOTH'
 WHERE authority_scope IS NULL
-  AND task_code IN (
+  AND "taskCode" IN (
     'general_executor_duties',
     'notify_beneficiaries',
     'maintain_records',
@@ -129,6 +149,9 @@ WHERE authority_scope IS NULL;
 
 -- Step 3: Alter column to use enum type and enforce NOT NULL
 ALTER TABLE "roadmap_tasks"
+  ALTER COLUMN "authority_scope" DROP DEFAULT;
+
+ALTER TABLE "roadmap_tasks"
   ALTER COLUMN "authority_scope" TYPE "AuthorityScope"
     USING "authority_scope"::"AuthorityScope",
   ALTER COLUMN "authority_scope" SET NOT NULL,
@@ -136,11 +159,8 @@ ALTER TABLE "roadmap_tasks"
 
 -- Step 4: Add check constraint as belt-and-suspenders (belt over the enum enforcement)
 ALTER TABLE "roadmap_tasks"
-  DROP CONSTRAINT IF EXISTS "roadmap_tasks_authority_scope_check";
-
-ALTER TABLE "roadmap_tasks"
   ADD CONSTRAINT "roadmap_tasks_authority_scope_check"
-    CHECK ("authority_scope" IN ('PROBATE', 'TRUST', 'BOTH'));
+    CHECK ("authority_scope" IN ('PROBATE'::"AuthorityScope", 'TRUST'::"AuthorityScope", 'BOTH'::"AuthorityScope"));
 
 -- Step 5: Ensure index exists (idempotent)
 CREATE INDEX IF NOT EXISTS "roadmap_tasks_authority_scope_idx"
