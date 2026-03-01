@@ -101,6 +101,7 @@ model Estate {
   probateNotes              String?              @map("probate_notes")
   isInternational           Boolean              @default(false) @map("is_international")
   internationalReasons      String[]             @map("international_reasons")
+  completenessLevel         String               @default("UNSET") @map("completeness_level")
   roadmapProgress           Json?                @map("roadmap_progress")
   authorityDecision         Json?                @map("authority_decision")
   hasMinorBeneficiaries     Boolean              @default(false) @map("has_minor_beneficiaries")

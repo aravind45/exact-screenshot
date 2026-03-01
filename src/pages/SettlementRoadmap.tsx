@@ -30,6 +30,7 @@ import { cn } from "@/lib/utils";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { calculateAuthorityRecommendation } from "@/lib/authorityEngine";
+import { MinimumIntakeGate } from "@/components/MinimumIntakeGate";
 
 export default function SettlementRoadmap() {
   const navigate = useNavigate();
@@ -76,11 +77,18 @@ export default function SettlementRoadmap() {
     return assets.some((a: any) => a.authorityType === "LITIGATION_HOLD" || a.status === "contested");
   }, [assets]);
 
-  const { data: roadmapData, isLoading: isLoadingRoadmap } = useQuery({
+  const { data: roadmapData, isLoading: isLoadingRoadmap, error: roadmapError } = useQuery({
     queryKey: ['roadmap', estate?.id],
     queryFn: () => api.getEstateRoadmap(estate!.id),
     enabled: !!estate?.id,
+    retry: (failureCount, error: any) => {
+      if (error?.status === 409) return false;
+      return failureCount < 3;
+    },
   });
+
+  const isMinimumIntakeRequired = (roadmapError as any)?.status === 409 &&
+    (roadmapError as any)?.data?.code === 'MINIMUM_INTAKE_REQUIRED';
 
   // State-aware fallback: if API data isn't available yet, apply client-side
   // filtering to prevent CA-specific content from showing for non-CA states.
@@ -244,6 +252,16 @@ export default function SettlementRoadmap() {
         <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
           <div className="w-12 h-12 rounded-2xl border-4 border-indigo-600 border-t-transparent animate-spin" />
           <p className="text-sm font-bold text-slate-600">Generating your custom Action Plan...</p>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (isMinimumIntakeRequired) {
+    return (
+      <DashboardLayout maxWidth="max-w-[1240px]">
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <MinimumIntakeGate estateId={estate?.id} />
         </div>
       </DashboardLayout>
     );

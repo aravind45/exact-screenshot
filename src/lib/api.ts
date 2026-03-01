@@ -78,10 +78,15 @@ export interface Estate {
         state: string;
     };
 
+    // Completeness
+    completenessLevel?: string;
+
     // Paths
     authorityType?: string;
+    estateAuthorityType?: string;
     authorityDecision?: any;
     settlementPath?: string;
+    userSelectedEstateAuthorityType?: string;
 }
 
 export interface Communication {

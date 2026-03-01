@@ -11,6 +11,7 @@ import { SEO } from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { getLettersTerm } from "@/lib/stateRules";
+import { MinimumIntakeGate } from "@/components/MinimumIntakeGate";
 
 export default function SettlementRoadmapNew() {
   const queryClient = useQueryClient();
@@ -22,11 +23,18 @@ export default function SettlementRoadmapNew() {
     queryFn: api.getMyEstate
   });
 
-  const { data: roadmapData } = useQuery({
+  const { data: roadmapData, error: roadmapError } = useQuery({
     queryKey: ['roadmap', estate?.id],
     queryFn: () => api.getEstateRoadmap(estate!.id),
     enabled: !!estate?.id,
+    retry: (failureCount, error: any) => {
+      if (error?.status === 409) return false;
+      return failureCount < 3;
+    },
   });
+
+  const isMinimumIntakeRequired = (roadmapError as any)?.status === 409 &&
+    (roadmapError as any)?.data?.code === 'MINIMUM_INTAKE_REQUIRED';
 
   // Primary: server-side roadmap. Fallback: client-side generated roadmap.
   const dynamicRoadmap = (roadmapData?.phases && roadmapData.phases.length > 0)
@@ -68,6 +76,21 @@ export default function SettlementRoadmapNew() {
   // Mock logic for Authority Banner (In real app, check if assets require authority and if authority is granted)
   // For now, we assume if we are in phase 1 or 2, we show it if there are assets.
   const showAuthorityBanner = assets.length > 0 && !completedPhases.includes('court_filing');
+
+  if (isMinimumIntakeRequired) {
+    return (
+      <div className="flex min-h-screen bg-[#F8FAFC]">
+        <SEO
+          title="Complete Setup — Action Plan"
+          description="Finish your estate setup to generate your personalized settlement roadmap."
+        />
+        <Sidebar />
+        <div className="flex-1 ml-64 flex items-center justify-center p-10">
+          <MinimumIntakeGate estateId={estate?.id} />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen bg-[#F8FAFC]">

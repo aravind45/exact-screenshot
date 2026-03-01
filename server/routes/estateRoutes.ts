@@ -967,6 +967,8 @@ router.get("/:id/roadmap", requireSubscription, async (req: any, res: Response) 
             select: {
                 id: true,
                 deceasedState: true,
+                estateAuthorityType: true,
+                completenessLevel: true,
                 userId: true,
             }
         });
@@ -979,10 +981,33 @@ router.get("/:id/roadmap", requireSubscription, async (req: any, res: Response) 
         const rawState = estate.deceasedState;
         if (!rawState || !VALID_STATE_CODE.test(rawState.trim().toUpperCase())) {
             logger.warn({ estateId: id, deceasedState: rawState }, "Roadmap requested for estate with invalid or missing state code");
-            return res.status(400).json({
-                error: "State not selected",
-                code: "STATE_REQUIRED",
-                message: "Please select a valid state before generating a roadmap."
+            return res.status(409).json({
+                code: "MINIMUM_INTAKE_REQUIRED",
+                error: "State information required",
+                requiredFields: ["deceasedState"],
+                wizardStep: "TRACK_SELECTION"
+            });
+        }
+
+        // 🚨 MINIMUM INTAKE GATE: Prevent misleading roadmaps for incomplete estates
+        const { estateAuthorityType, completenessLevel } = estate;
+        if (completenessLevel !== "MINIMUM_READY" && completenessLevel !== "PROFILE_READY") {
+            logger.warn({ estateId: id, completenessLevel, estateAuthorityType }, "Roadmap blocked — minimum intake not complete");
+            return res.status(409).json({
+                code: "MINIMUM_INTAKE_REQUIRED",
+                error: "Estate requires authority type selection before generating roadmap",
+                requiredFields: ["estateAuthorityType"],
+                wizardStep: "TRACK_SELECTION"
+            });
+        }
+
+        if (!estateAuthorityType || estateAuthorityType === "UNSET") {
+            logger.warn({ estateId: id, estateAuthorityType }, "Roadmap blocked — authority type is UNSET");
+            return res.status(409).json({
+                code: "MINIMUM_INTAKE_REQUIRED",
+                error: "Estate requires authority type selection before generating roadmap",
+                requiredFields: ["estateAuthorityType"],
+                wizardStep: "TRACK_SELECTION"
             });
         }
 
@@ -991,10 +1016,11 @@ router.get("/:id/roadmap", requireSubscription, async (req: any, res: Response) 
         res.json(roadmap);
     } catch (error: any) {
         if (error.message === 'STATE_REQUIRED') {
-            return res.status(400).json({
+            return res.status(409).json({
+                code: "MINIMUM_INTAKE_REQUIRED",
                 error: "State not selected",
-                code: "STATE_REQUIRED",
-                message: "Please select a state before generating a roadmap."
+                requiredFields: ["deceasedState"],
+                wizardStep: "TRACK_SELECTION"
             });
         }
         logger.error({ estateId: req.params.id, error: error.message, stack: error.stack }, "Error fetching roadmap");
@@ -1181,11 +1207,25 @@ router.post("/:id/tasks/:taskId/complete", requireSubscription, async (req: any,
                     { userId: req.user.id },
                     { grants: { some: { userId: req.user.id } } }
                 ]
+            },
+            select: {
+                id: true,
+                completenessLevel: true,
+                userId: true,
             }
         });
 
         if (!estate) {
             return res.status(404).json({ error: "Estate not found or access denied" });
+        }
+
+        // 🚨 MINIMUM INTAKE GATE: Block task completion until setup is complete
+        if (estate.completenessLevel !== "MINIMUM_READY" && estate.completenessLevel !== "PROFILE_READY") {
+            return res.status(409).json({
+                code: "MINIMUM_INTAKE_REQUIRED",
+                error: "Complete estate setup before marking tasks complete",
+                wizardStep: "TRACK_SELECTION"
+            });
         }
 
         // Complete task
@@ -1270,7 +1310,7 @@ router.post("/:id/select-track", authenticate, requireEstateAccess, async (req: 
         const validated = trackSelectionSchema.parse(req.body);
         const assistedDecisionAnswers = validated.assistedDecisionAnswers as Prisma.InputJsonValue | undefined;
 
-        // Update estate with track selection
+        // Update estate with track selection and advance completeness level
         const updatedEstate = await prisma.estate.update({
             where: { id },
             data: {
@@ -1280,6 +1320,9 @@ router.post("/:id/select-track", authenticate, requireEstateAccess, async (req: 
                 hasTrustAssets: validated.hasTrustAssets,
                 hasBeneficiaryAssets: validated.hasBeneficiaryAssets,
                 assistedDecisionAnswers,
+                // Advance to MINIMUM_READY once user has selected a track.
+                // deceasedState is required at estate creation so it is always present here.
+                completenessLevel: "MINIMUM_READY",
             }
         });
 
