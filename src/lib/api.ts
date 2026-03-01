@@ -335,7 +335,7 @@ export const api = {
         return data;
     },
 
-    register: async (data: { email: string, password: string, fullName: string, state?: string, role?: string, userType?: "EXECUTOR" | "ADVISOR" }) => {
+    register: async (data: { email: string, password: string, fullName: string, state?: string, role?: string, userType?: "EXECUTOR" | "ADVISOR", deceasedName?: string, estimatedValue?: string }) => {
         const response = await fetch(`${API_URL}/auth/register`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -499,7 +499,55 @@ export const api = {
             const queryString = query.toString() ? `?${query.toString()}` : "";
             const response = await fetch(`${API_URL}/admin/marketing/events${queryString}`, { headers: getHeaders() });
             return parseResponse(response);
-        }
+        },
+        getJurisdictionHealth: async () => {
+            const response = await fetch(`${API_URL}/admin/jurisdiction/health`, { headers: getHeaders() });
+            return parseResponse(response);
+        },
+        getStateDiagnostics: async (stateCode: string) => {
+            const response = await fetch(`${API_URL}/admin/jurisdiction/${stateCode}/diagnostics`, { headers: getHeaders() });
+            return parseResponse(response);
+        },
+        getStateDiagnosticHistory: async (stateCode: string) => {
+            const response = await fetch(`${API_URL}/admin/jurisdiction/${stateCode}/history`, { headers: getHeaders() });
+            return parseResponse(response);
+        },
+        getPendingCountyOverrides: async () => {
+            const response = await fetch(`${API_URL}/admin/county-overrides/pending`, { headers: getHeaders() });
+            return parseResponse(response);
+        },
+        getCountyOverrides: async () => {
+            const response = await fetch(`${API_URL}/admin/county-overrides`, { headers: getHeaders() });
+            return parseResponse(response);
+        },
+        getCountyOverrideDiff: async (id: string) => {
+            const response = await fetch(`${API_URL}/admin/county-overrides/${id}/diff`, { headers: getHeaders() });
+            return parseResponse(response);
+        },
+        approveCountyOverride: async (id: string, notes?: string) => {
+            const response = await fetch(`${API_URL}/admin/county-overrides/${id}/approve`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify({ notes }),
+            });
+            return parseResponse(response);
+        },
+        rejectCountyOverride: async (id: string, reason: string) => {
+            const response = await fetch(`${API_URL}/admin/county-overrides/${id}/reject`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify({ reason }),
+            });
+            return parseResponse(response);
+        },
+        previewRoadmap: async (profile: any) => {
+            const response = await fetch(`${API_URL}/admin/jurisdiction/preview-roadmap`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify(profile),
+            });
+            return parseResponse(response);
+        },
     },
 
     /**

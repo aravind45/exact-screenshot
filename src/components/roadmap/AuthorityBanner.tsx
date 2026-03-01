@@ -84,7 +84,6 @@ export function AuthorityBanner({
               <button
                 onClick={onCompleteTrackSelection}
                 className="mt-4 px-6 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors font-medium"
-              selection
               >
                 Review Track Selection
               </button>
