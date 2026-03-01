@@ -1120,66 +1120,8 @@ router.get("/:id/roadmap", requireSubscription, requireEstateStatus(ESTATE_GATES
             return res.status(404).json({ error: "Estate not found or access denied" });
         }
 
-        // Minimum intake gate: require state + deceased name before roadmap generation
-        const rawState = estate.deceasedState;
-        if (!rawState || !VALID_STATE_CODE.test(rawState.trim().toUpperCase())) {
-            logger.warn({ estateId: id, deceasedState: rawState }, "Roadmap requested for estate with invalid or missing state code");
-            return res.status(409).json({
-                code: "INCOMPLETE_ESTATE",
-                error: "Estate setup incomplete",
-                requiredStep: "TRACK_SELECTION"
-            });
-        }
-
-        if (!estate.estateAuthorityType || estate.estateAuthorityType === "UNSET") {
-            logger.warn({ estateId: id, estateAuthorityType: estate.estateAuthorityType }, "Roadmap blocked — authority type is UNSET");
-            return res.status(409).json({
-                code: "INCOMPLETE_ESTATE",
-                error: "Estate setup incomplete",
-                requiredStep: "TRACK_SELECTION"
-            });
-        }
-
-        if (!estate.deceasedFirstName?.trim() && !estate.deceasedLastName?.trim()) {
-            logger.warn({ estateId: id }, "Roadmap blocked — deceased name missing");
-            return res.status(409).json({
-                code: "INCOMPLETE_ESTATE",
-                error: "Estate setup incomplete",
-                requiredStep: "TRACK_SELECTION"
-            });
-        }
-
-        if (estate.estateStatus === "DRAFT") {
-            logger.warn({ estateId: id, estateStatus: estate.estateStatus }, "Roadmap blocked — estate is in DRAFT status");
-            return res.status(409).json({
-                code: "INCOMPLETE_ESTATE",
-                error: "Estate setup incomplete",
-                currentStatus: estate.estateStatus,
-                requiredStatus: "MINIMUM_READY",
-                requiredStep: "TRACK_SELECTION"
-            });
-        }
-
-        if ((estate as any).completenessLevel === "UNSET") {
-            logger.warn({ estateId: id, completenessLevel: (estate as any).completenessLevel }, "Roadmap blocked — completeness is UNSET");
-            return res.status(409).json({
-                code: "INCOMPLETE_ESTATE",
-                error: "Estate setup incomplete",
-                requiredStep: "TRACK_SELECTION"
-            });
-        }
-
-        if ((estate as any).estateStatus == null) {
-            const legacyReady = (estate as any).completenessLevel === "MINIMUM_READY" || (estate as any).completenessLevel === "PROFILE_READY";
-            if (!legacyReady) {
-                logger.warn({ estateId: id, completenessLevel: (estate as any).completenessLevel }, "Roadmap blocked — legacy estate minimum intake not complete");
-                return res.status(409).json({
-                    code: "INCOMPLETE_ESTATE",
-                    error: "Estate setup incomplete",
-                    requiredStep: "TRACK_SELECTION"
-                });
-            }
-        }
+        // Lifecycle gating is handled by requireEstateStatus(ESTATE_GATES.ROADMAP) middleware above.
+        // No additional inline checks needed — the middleware already ensures MINIMUM_READY status.
 
         // Get personalized roadmap
         const roadmap = await getEstateRoadmap(id);
