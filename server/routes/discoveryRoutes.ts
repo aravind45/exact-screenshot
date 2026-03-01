@@ -10,8 +10,8 @@ import { requireEstateStatus, ESTATE_GATES } from '../middleware/estateStatusGat
 
 const router = Router();
 router.use(requireSubscription);
-// Discovery requires ACTIVE estate authority
-router.use(requireEstateStatus(ESTATE_GATES.ACTIVE_FEATURES));
+// Discovery requires at least MINIMUM_READY estate status
+router.use(requireEstateStatus(ESTATE_GATES.ROADMAP));
 const upload = multer({ storage: multer.memoryStorage() });
 
 const categoryUpdateSchema = z.object({

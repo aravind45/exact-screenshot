@@ -993,8 +993,8 @@ router.get("/my/dossier/download", async (req: any, res: Response) => {
 import { AccountingService } from "../services/accountingService.js";
 
 router.get("/my/accounting-readiness", requireEstateStatus({
-    requiredStatus: "ACTIVE",
-    customMessage: "Accounting features require active estate status",
+    requiredStatus: "MINIMUM_READY",
+    customMessage: "Complete estate setup to view accounting readiness",
     wizardStep: "TRACK_SELECTION"
 }), async (req: any, res: Response) => {
     try {

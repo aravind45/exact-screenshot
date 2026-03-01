@@ -30,8 +30,8 @@ const liabilitySchema = z.object({
 
 const router = Router();
 router.use(requireSubscription);
-// Estate lifecycle gate: liabilities APIs require ACTIVE estate
-router.use(requireEstateStatus(ESTATE_GATES.ACTIVE_FEATURES));
+// Estate lifecycle gate: liabilities APIs require at least MINIMUM_READY status
+router.use(requireEstateStatus(ESTATE_GATES.ROADMAP));
 
 const safeDecrypt = (value: string | null | undefined): string | null | undefined => {
     if (!value) return value;
