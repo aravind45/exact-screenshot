@@ -1090,6 +1090,37 @@ import {
 
 const VALID_STATE_CODE = /^[A-Z]{2}$/;
 
+// GET /:id/deadlines - Proxy for /api/deadlines/:estateId (frontend calls this path)
+router.get("/:id/deadlines", requireSubscription, async (req: any, res: Response) => {
+    try {
+        const { id } = req.params;
+
+        // Verify user has access to this estate
+        const estate = await prisma.estate.findFirst({
+            where: {
+                id,
+                OR: [
+                    { userId: req.user.id },
+                    { grants: { some: { userId: req.user.id } } }
+                ]
+            },
+            select: { id: true }
+        });
+
+        if (!estate) {
+            return res.status(404).json({ error: "Estate not found or access denied" });
+        }
+
+        const { DeadlineService } = await import("../services/deadlineService.js");
+        const deadlineService = new DeadlineService();
+        const deadlines = await deadlineService.getDeadlines(id);
+        res.json(deadlines);
+    } catch (error: any) {
+        logger.error({ estateId: req.params.id, error: error.message }, "Error fetching deadlines");
+        res.status(500).json({ error: "Failed to fetch deadlines", message: error.message });
+    }
+});
+
 // GET /:id/roadmap - Get personalized roadmap (requires subscription)
 router.get("/:id/roadmap", requireSubscription, requireEstateStatus(ESTATE_GATES.ROADMAP), async (req: any, res: Response) => {
     try {

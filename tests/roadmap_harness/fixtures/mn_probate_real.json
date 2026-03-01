@@ -1,0 +1,19 @@
+{
+    "id": "mn_probate_real",
+    "name": "Minnesota Probate Estate with Real Property",
+    "stateCode": "MN",
+    "county": "Hennepin",
+    "authorityType": "PROBATE",
+    "hasRealProperty": true,
+    "estateValue": 350000,
+    "hasWill": true,
+    "characteristics": {
+        "isSmallEstate": false,
+        "hasMinorBeneficiaries": false,
+        "hasContest": false,
+        "isInternational": false,
+        "hasTODDeed": false,
+        "hasOutOfStateProperty": false,
+        "isSurvivingSpouse": false
+    }
+}

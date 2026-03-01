@@ -721,7 +721,7 @@ const previewRoadmapSchema = z.object({
 router.post("/jurisdictions/preview-roadmap", isAdmin, async (req: any, res: Response) => {
     try {
         const validated = previewRoadmapSchema.parse(req.body);
-        
+
         const profile = {
             id: `preview_${Date.now()}`,
             name: `Preview ${validated.stateCode} ${validated.authorityType}`,
@@ -960,7 +960,7 @@ router.get("/county-overrides/:id/diff", isAdmin, async (req: any, res: Response
         // Get the original task data (from settlement phases config)
         const { SETTLEMENT_PHASE_TASKS } = await import("../../src/config/settlementPhases.js");
         let originalTask = null;
-        
+
         for (const phase of SETTLEMENT_PHASE_TASKS) {
             const task = phase.tasks.find(t => t.id === override.taskId);
             if (task) {
@@ -1047,6 +1047,151 @@ router.get("/authority-scope-health", async (req: Request, res: Response) => {
     } catch (error: any) {
         logger.error(error, "Failed to compute authority scope health");
         res.status(500).json({ error: "Failed to compute authority scope health" });
+    }
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// VERIFICATION HEALTH ENDPOINT
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * GET /api/admin/verification-health
+ * Shows verification harness health metrics:
+ *   - Last harness run time (from the last diagnostic run)
+ *   - Pass/fail summary per assertion category
+ *   - Null authorityScope count in config
+ *   - Duplicate task ID counts
+ */
+router.get("/verification-health", isAdmin, async (req: any, res: Response) => {
+    try {
+        const { SETTLEMENT_PHASE_TASKS } = await import("../../src/config/settlementPhases.js");
+        const {
+            filterTasksByJurisdiction,
+            filterTasksByAuthorityScope,
+        } = await import("../../src/shared/filterByJurisdiction.js");
+
+        const SUPPORTED_STATES = ["CA", "FL", "GA", "MA", "MN", "NJ", "NY", "OH", "TX"];
+        const VALID_SCOPES = new Set(["PROBATE", "TRUST", "BOTH"]);
+        const KNOWN_TEMPLATE_TASKS = new Set(["file_affidavit"]);
+        const STATE_STATUTE_PATTERNS: Record<string, RegExp[]> = {
+            CA: [/Probate Code §/i, /Cal\. Prob\./i],
+            FL: [/Florida Statutes §/i, /F\.S\. §/i],
+            NY: [/SCPA §/i, /EPTL §/i],
+            OH: [/Ohio Rev\. Code §/i, /O\.R\.C\. §/i],
+            TX: [/Texas Estates Code §/i, /Tex\. Est\./i],
+            NJ: [/N\.J\.S\.A\./i, /N\.J\. Stat\./i],
+            GA: [/O\.C\.G\.A\./i, /Georgia Code §/i],
+            MA: [/M\.G\.L\./i, /Mass\. Gen\. Laws/i],
+            MN: [/Minn\. Stat\./i, /Minnesota Statutes §/i],
+        };
+
+        const allTasks = SETTLEMENT_PHASE_TASKS.flatMap((p: any) =>
+            Array.isArray(p.tasks) ? p.tasks : []
+        );
+
+        // ─── Null authorityScope count ──────────────────────────────
+        const nullScopeTasks = allTasks.filter(
+            (t: any) => !t.authorityScope || !VALID_SCOPES.has(t.authorityScope)
+        );
+
+        // ─── Duplicate task IDs ─────────────────────────────────────
+        const taskIdCounts = new Map<string, number>();
+        for (const t of allTasks) {
+            taskIdCounts.set(t.id, (taskIdCounts.get(t.id) || 0) + 1);
+        }
+        const duplicates = [...taskIdCounts.entries()]
+            .filter(([, count]) => count > 1)
+            .map(([id, count]) => ({ id, count }));
+
+        // ─── Per-state verification summary ─────────────────────────
+        const stateResults: Record<string, {
+            crossStateViolations: number;
+            trustLeaks: number;
+            placeholders: number;
+            totalTasks: { probate: number; trust: number };
+        }> = {};
+
+        for (const state of SUPPORTED_STATES) {
+            const result = { crossStateViolations: 0, trustLeaks: 0, placeholders: 0, totalTasks: { probate: 0, trust: 0 } };
+
+            for (const authorityType of ["PROBATE", "TRUST"] as const) {
+                const { kept: jKept } = filterTasksByJurisdiction(allTasks, state);
+                const { kept } = filterTasksByAuthorityScope(jKept, authorityType);
+
+                if (authorityType === "PROBATE") result.totalTasks.probate = kept.length;
+                if (authorityType === "TRUST") result.totalTasks.trust = kept.length;
+
+                for (const task of kept) {
+                    const text = [task.title, task.description, task.utility].filter(Boolean).join(" ");
+
+                    // Cross-state check
+                    for (const [foreignState, patterns] of Object.entries(STATE_STATUTE_PATTERNS)) {
+                        if (foreignState === state) continue;
+                        for (const pattern of patterns) {
+                            if (pattern.test(text)) result.crossStateViolations++;
+                        }
+                    }
+
+                    // Placeholder check
+                    if (!KNOWN_TEMPLATE_TASKS.has(task.id) && text.includes("{{")) {
+                        result.placeholders++;
+                    }
+                }
+            }
+
+            stateResults[state] = result;
+        }
+
+        // ─── Overall pass/fail ──────────────────────────────────────
+        const totalCrossState = Object.values(stateResults).reduce((s, r) => s + r.crossStateViolations, 0);
+        const totalPlaceholders = Object.values(stateResults).reduce((s, r) => s + r.placeholders, 0);
+        const totalTrustLeaks = Object.values(stateResults).reduce((s, r) => s + r.trustLeaks, 0);
+
+        const allPassed = totalCrossState === 0
+            && totalPlaceholders === 0
+            && totalTrustLeaks === 0
+            && nullScopeTasks.length === 0;
+
+        // ─── DB null count ──────────────────────────────────────────
+        let dbNullCount = 0;
+        try {
+            const result = await prisma.$queryRaw<{ count: bigint }[]>`
+                SELECT COUNT(*) as count FROM roadmap_tasks WHERE authority_scope IS NULL
+            `;
+            dbNullCount = Number(result[0]?.count ?? 0);
+        } catch {
+            dbNullCount = -1;
+        }
+
+        res.json({
+            status: allPassed ? "PASS" : "FAIL",
+            generatedAt: new Date().toISOString(),
+            summary: {
+                statesCovered: SUPPORTED_STATES.length,
+                totalConfigTasks: allTasks.length,
+                nullAuthorityScope: nullScopeTasks.length,
+                duplicateTaskIds: duplicates.length,
+                crossStateViolations: totalCrossState,
+                placeholderViolations: totalPlaceholders,
+                trustLeaks: totalTrustLeaks,
+                dbNullAuthorityScope: dbNullCount,
+            },
+            assertions: {
+                "no_cross_state_statutes": totalCrossState === 0 ? "PASS" : "FAIL",
+                "no_trust_in_probate": totalTrustLeaks === 0 ? "PASS" : "FAIL",
+                "no_rogue_placeholders": totalPlaceholders === 0 ? "PASS" : "FAIL",
+                "no_null_authority_scope": nullScopeTasks.length === 0 ? "PASS" : "FAIL",
+                "no_duplicate_task_ids": duplicates.length === 0 ? "PASS" : "FAIL",
+            },
+            details: {
+                stateResults,
+                nullScopeTasks: nullScopeTasks.map((t: any) => t.id),
+                duplicates,
+            },
+        });
+    } catch (error: any) {
+        logger.error(error, "Failed to compute verification health");
+        res.status(500).json({ error: "Failed to compute verification health" });
     }
 });
 

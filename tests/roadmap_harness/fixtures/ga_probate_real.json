@@ -1,0 +1,19 @@
+{
+    "id": "ga_probate_real",
+    "name": "Georgia Probate Estate with Real Property",
+    "stateCode": "GA",
+    "county": "Fulton",
+    "authorityType": "PROBATE",
+    "hasRealProperty": true,
+    "estateValue": 450000,
+    "hasWill": true,
+    "characteristics": {
+        "isSmallEstate": false,
+        "hasMinorBeneficiaries": false,
+        "hasContest": false,
+        "isInternational": false,
+        "hasTODDeed": false,
+        "hasOutOfStateProperty": false,
+        "isSurvivingSpouse": false
+    }
+}

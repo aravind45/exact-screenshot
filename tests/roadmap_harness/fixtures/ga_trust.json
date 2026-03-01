@@ -1,0 +1,19 @@
+{
+    "id": "ga_trust",
+    "name": "Georgia Trust Estate",
+    "stateCode": "GA",
+    "county": "Fulton",
+    "authorityType": "TRUST",
+    "hasRealProperty": true,
+    "estateValue": 600000,
+    "hasWill": false,
+    "characteristics": {
+        "isSmallEstate": false,
+        "hasMinorBeneficiaries": false,
+        "hasContest": false,
+        "isInternational": false,
+        "hasTODDeed": false,
+        "hasOutOfStateProperty": false,
+        "isSurvivingSpouse": false
+    }
+}

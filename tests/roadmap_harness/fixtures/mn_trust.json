@@ -1,0 +1,19 @@
+{
+    "id": "mn_trust",
+    "name": "Minnesota Trust Estate",
+    "stateCode": "MN",
+    "county": "Hennepin",
+    "authorityType": "TRUST",
+    "hasRealProperty": true,
+    "estateValue": 500000,
+    "hasWill": false,
+    "characteristics": {
+        "isSmallEstate": false,
+        "hasMinorBeneficiaries": false,
+        "hasContest": false,
+        "isInternational": false,
+        "hasTODDeed": false,
+        "hasOutOfStateProperty": false,
+        "isSurvivingSpouse": false
+    }
+}

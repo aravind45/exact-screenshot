@@ -1,0 +1,19 @@
+{
+    "id": "nj_probate_real",
+    "name": "New Jersey Probate Estate with Real Property",
+    "stateCode": "NJ",
+    "county": "Essex",
+    "authorityType": "PROBATE",
+    "hasRealProperty": true,
+    "estateValue": 550000,
+    "hasWill": true,
+    "characteristics": {
+        "isSmallEstate": false,
+        "hasMinorBeneficiaries": false,
+        "hasContest": false,
+        "isInternational": false,
+        "hasTODDeed": false,
+        "hasOutOfStateProperty": false,
+        "isSurvivingSpouse": false
+    }
+}

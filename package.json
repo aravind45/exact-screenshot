@@ -18,6 +18,7 @@
     "test:coverage": "vitest run --coverage",
     "test:ui": "vitest --ui",
     "test:roadmap-harness": "vitest run tests/roadmap_harness",
+    "test:verification": "vitest run tests/roadmap_harness tests/lifecycleGating.integration.test.ts tests/authority_integrity.test.ts",
     "test:roadmap-harness:watch": "vitest tests/roadmap_harness",
     "test:roadmap-harness:update": "vitest run tests/roadmap_harness --update",
     "test:verify-authority-integrity": "tsx server/scripts/ci/verify-authority-integrity.ts",

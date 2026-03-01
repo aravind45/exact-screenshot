@@ -1,0 +1,19 @@
+{
+    "id": "mn_probate_no_real",
+    "name": "Minnesota Probate Estate without Real Property",
+    "stateCode": "MN",
+    "county": "Hennepin",
+    "authorityType": "PROBATE",
+    "hasRealProperty": false,
+    "estateValue": 75000,
+    "hasWill": true,
+    "characteristics": {
+        "isSmallEstate": true,
+        "hasMinorBeneficiaries": false,
+        "hasContest": false,
+        "isInternational": false,
+        "hasTODDeed": false,
+        "hasOutOfStateProperty": false,
+        "isSurvivingSpouse": false
+    }
+}

@@ -1,0 +1,19 @@
+{
+    "id": "nj_trust",
+    "name": "New Jersey Trust Estate",
+    "stateCode": "NJ",
+    "county": "Essex",
+    "authorityType": "TRUST",
+    "hasRealProperty": true,
+    "estateValue": 700000,
+    "hasWill": false,
+    "characteristics": {
+        "isSmallEstate": false,
+        "hasMinorBeneficiaries": false,
+        "hasContest": false,
+        "isInternational": false,
+        "hasTODDeed": false,
+        "hasOutOfStateProperty": false,
+        "isSurvivingSpouse": false
+    }
+}

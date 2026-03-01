@@ -1,0 +1,19 @@
+{
+    "id": "ma_probate_real",
+    "name": "Massachusetts Probate Estate with Real Property",
+    "stateCode": "MA",
+    "county": "Suffolk",
+    "authorityType": "PROBATE",
+    "hasRealProperty": true,
+    "estateValue": 500000,
+    "hasWill": true,
+    "characteristics": {
+        "isSmallEstate": false,
+        "hasMinorBeneficiaries": false,
+        "hasContest": false,
+        "isInternational": false,
+        "hasTODDeed": false,
+        "hasOutOfStateProperty": false,
+        "isSurvivingSpouse": false
+    }
+}

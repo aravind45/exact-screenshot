@@ -1,0 +1,19 @@
+{
+    "id": "ma_trust",
+    "name": "Massachusetts Trust Estate",
+    "stateCode": "MA",
+    "county": "Suffolk",
+    "authorityType": "TRUST",
+    "hasRealProperty": true,
+    "estateValue": 650000,
+    "hasWill": false,
+    "characteristics": {
+        "isSmallEstate": false,
+        "hasMinorBeneficiaries": false,
+        "hasContest": false,
+        "isInternational": false,
+        "hasTODDeed": false,
+        "hasOutOfStateProperty": false,
+        "isSurvivingSpouse": false
+    }
+}
