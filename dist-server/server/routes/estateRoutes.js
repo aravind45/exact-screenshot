@@ -6,6 +6,7 @@ import { encrypt, decrypt, encryptBuffer, decryptBuffer } from "../utils/encrypt
 import { AuditService } from "../services/auditService.js";
 import { requireEstateAccess } from "../middleware/estateAuth.js";
 import { requireAuthorityStatus } from "../middleware/authorityGating.js";
+import { requireEstateStatus } from "../middleware/estateStatusGating.js";
 import { z } from "zod";
 import { logger } from "../lib/logger.js";
 import { requireSubscription } from "../middleware/subscription.js";
@@ -302,12 +303,14 @@ router.put("/my", authenticate, async (req, res) => {
                     status: "active",
                     name: updateData.name || `${req.user.fullName}'s Estate`,
                     hasContest: updateData.hasContest === undefined ? false : Boolean(updateData.hasContest),
+                    // New estates start as DRAFT until minimum intake is complete
+                    estateStatus: "DRAFT",
                     ...(updateData.estimatedLiabilities !== undefined && {
                         estimatedLiabilities: updateData.estimatedLiabilities === "" || updateData.estimatedLiabilities === null ? null : new Prisma.Decimal(updateData.estimatedLiabilities)
                     })
                 }
             });
-            logger.info(`✅ [ESTATE] Upsert: Created new estate for user ${userId}`);
+            logger.info(`✅ [ESTATE] Upsert: Created new estate for user ${userId} with status: DRAFT`);
         }
         else {
             if (shouldEnableInternational) {
@@ -324,6 +327,26 @@ router.put("/my", authenticate, async (req, res) => {
                             notes: `INTERNATIONAL MODE ENABLED – Detected: ${newReasons.join(", ")}`
                         }
                     });
+                }
+            }
+            // Legacy compatibility: older onboarding flows write authorityType/estateType
+            // instead of userSelectedEstateAuthorityType. Treat those as valid track signals.
+            const currentStatus = estate.estateStatus || "DRAFT";
+            const currentCompletenessLevel = estate.completenessLevel || "UNSET";
+            const hasTrackSignal = hasTrackSelectionSignal({
+                userSelectedEstateAuthorityType: updateData.userSelectedEstateAuthorityType,
+                estateAuthorityType: updateData.estateAuthorityType,
+                authorityType: updateData.authorityType || updateData.estateType,
+            });
+            const effectiveState = (updateData.deceasedState ?? estate.deceasedState ?? "").toString().trim();
+            if (hasTrackSignal && effectiveState.length > 0) {
+                if (currentStatus === "DRAFT") {
+                    updateData.estateStatus = "MINIMUM_READY";
+                    logger.info(`✅ [ESTATE] Advancing estate ${estate.id} from DRAFT to MINIMUM_READY`);
+                }
+                if (!isMinimumIntakeReady(currentCompletenessLevel)) {
+                    updateData.completenessLevel = "MINIMUM_READY";
+                    logger.info(`✅ [ESTATE] Advancing estate ${estate.id} completeness to MINIMUM_READY`);
                 }
             }
             finalEstate = await prisma.estate.update({
@@ -873,7 +896,11 @@ router.get("/my/dossier/download", async (req, res) => {
     }
 });
 import { AccountingService } from "../services/accountingService.js";
-router.get("/my/accounting-readiness", async (req, res) => {
+router.get("/my/accounting-readiness", requireEstateStatus({
+    requiredStatus: "ACTIVE",
+    customMessage: "Accounting features require active estate status",
+    wizardStep: "AUTHORITY_SETUP"
+}), async (req, res) => {
     try {
         const estate = await prisma.estate.findFirst({ where: { userId: req.user.id } });
         if (!estate)
@@ -945,6 +972,14 @@ export default router;
 // Roadmap endpoints
 import { getEstateRoadmap, completeTask, uncompleteTask, getTaskCompletions, pinEstateRoadmap, repinEstateRoadmap } from "../services/roadmapService.js";
 const VALID_STATE_CODE = /^[A-Z]{2}$/;
+function hasTrackSelectionSignal(input) {
+    return Boolean(input.userSelectedEstateAuthorityType ||
+        (input.estateAuthorityType && input.estateAuthorityType !== "UNSET") ||
+        (input.authorityType && input.authorityType !== "UNSET"));
+}
+function isMinimumIntakeReady(completenessLevel) {
+    return completenessLevel === "MINIMUM_READY" || completenessLevel === "PROFILE_READY";
+}
 // GET /:id/roadmap - Get personalized roadmap (requires subscription)
 router.get("/:id/roadmap", requireSubscription, async (req, res) => {
     try {
@@ -962,14 +997,34 @@ router.get("/:id/roadmap", requireSubscription, async (req, res) => {
                 id: true,
                 deceasedState: true,
                 estateAuthorityType: true,
+                userSelectedEstateAuthorityType: true,
+                authorityType: true,
                 completenessLevel: true,
                 deceasedFirstName: true,
                 deceasedLastName: true,
                 userId: true,
+                estateStatus: true,
             }
         });
         if (!estate) {
             return res.status(404).json({ error: "Estate not found or access denied" });
+        }
+        const hasTrackSignal = hasTrackSelectionSignal({
+            userSelectedEstateAuthorityType: estate.userSelectedEstateAuthorityType,
+            estateAuthorityType: estate.estateAuthorityType,
+            authorityType: estate.authorityType,
+        });
+        // 🚨 ESTATE STATUS GATE: Check new estateStatus field first
+        const currentEstateStatus = estate.estateStatus || "DRAFT";
+        if (currentEstateStatus === "DRAFT" && !hasTrackSignal) {
+            logger.warn({ estateId: id, estateStatus: currentEstateStatus }, "Roadmap blocked — estate is in DRAFT status");
+            return res.status(409).json({
+                code: "INCOMPLETE_ESTATE",
+                error: "Estate setup incomplete",
+                currentStatus: currentEstateStatus,
+                requiredStatus: "MINIMUM_READY",
+                requiredStep: "TRACK_SELECTION"
+            });
         }
         // Minimum intake gate: require state + deceased name before roadmap generation
         const rawState = estate.deceasedState;
@@ -984,7 +1039,7 @@ router.get("/:id/roadmap", requireSubscription, async (req, res) => {
         }
         // 🚨 MINIMUM INTAKE GATE: Prevent misleading roadmaps for incomplete estates
         const { estateAuthorityType, completenessLevel } = estate;
-        if (completenessLevel !== "MINIMUM_READY" && completenessLevel !== "PROFILE_READY") {
+        if (!isMinimumIntakeReady(completenessLevel) && !hasTrackSignal) {
             logger.warn({ estateId: id, completenessLevel, estateAuthorityType }, "Roadmap blocked — minimum intake not complete");
             return res.status(409).json({
                 code: "MINIMUM_INTAKE_REQUIRED",
@@ -993,7 +1048,7 @@ router.get("/:id/roadmap", requireSubscription, async (req, res) => {
                 wizardStep: "TRACK_SELECTION"
             });
         }
-        if (!estateAuthorityType || estateAuthorityType === "UNSET") {
+        if ((!estateAuthorityType || estateAuthorityType === "UNSET") && !hasTrackSignal) {
             logger.warn({ estateId: id, estateAuthorityType }, "Roadmap blocked — authority type is UNSET");
             return res.status(409).json({
                 code: "MINIMUM_INTAKE_REQUIRED",
@@ -1212,13 +1267,34 @@ router.post("/:id/tasks/:taskId/complete", requireSubscription, async (req, res)
                 id: true,
                 completenessLevel: true,
                 userId: true,
+                estateStatus: true,
+                estateAuthorityType: true,
+                userSelectedEstateAuthorityType: true,
+                authorityType: true,
             }
         });
         if (!estate) {
             return res.status(404).json({ error: "Estate not found or access denied" });
         }
+        const hasTrackSignal = hasTrackSelectionSignal({
+            userSelectedEstateAuthorityType: estate.userSelectedEstateAuthorityType,
+            estateAuthorityType: estate.estateAuthorityType,
+            authorityType: estate.authorityType,
+        });
+        // 🚨 ESTATE STATUS GATE: Check new estateStatus field first
+        const currentEstateStatus = estate.estateStatus || "DRAFT";
+        if (currentEstateStatus === "DRAFT" && !hasTrackSignal) {
+            logger.warn({ estateId: id, estateStatus: currentEstateStatus, taskId }, "Task completion blocked — estate is in DRAFT status");
+            return res.status(409).json({
+                code: "INCOMPLETE_ESTATE",
+                error: "Complete estate setup before marking tasks complete",
+                currentStatus: currentEstateStatus,
+                requiredStatus: "MINIMUM_READY",
+                requiredStep: "TRACK_SELECTION"
+            });
+        }
         // 🚨 MINIMUM INTAKE GATE: Block task completion until setup is complete
-        if (estate.completenessLevel !== "MINIMUM_READY" && estate.completenessLevel !== "PROFILE_READY") {
+        if (!isMinimumIntakeReady(estate.completenessLevel) && !hasTrackSignal) {
             return res.status(409).json({
                 code: "MINIMUM_INTAKE_REQUIRED",
                 error: "Complete estate setup before marking tasks complete",
@@ -1304,6 +1380,8 @@ router.post("/:id/select-track", authenticate, requireEstateAccess, async (req, 
                 // Advance to MINIMUM_READY once user has selected a track.
                 // deceasedState is required at estate creation so it is always present here.
                 completenessLevel: "MINIMUM_READY",
+                // Also update estateStatus for lifecycle gating
+                estateStatus: "MINIMUM_READY",
             }
         });
         // Log activity

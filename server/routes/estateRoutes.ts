@@ -348,12 +348,26 @@ router.put("/my", authenticate, async (req: any, res: Response) => {
                 }
             }
 
-            // Check if we should advance estateStatus to MINIMUM_READY
-            // This happens when userSelectedEstateAuthorityType is being set for the first time
+            // Legacy compatibility: older onboarding flows write authorityType/estateType
+            // instead of userSelectedEstateAuthorityType. Treat those as valid track signals.
             const currentStatus = (estate as any).estateStatus || "DRAFT";
-            if (currentStatus === "DRAFT" && updateData.userSelectedEstateAuthorityType) {
-                updateData.estateStatus = "MINIMUM_READY";
-                logger.info(`✅ [ESTATE] Advancing estate ${estate.id} from DRAFT to MINIMUM_READY`);
+            const currentCompletenessLevel = (estate as any).completenessLevel || "UNSET";
+            const hasTrackSignal = hasTrackSelectionSignal({
+                userSelectedEstateAuthorityType: updateData.userSelectedEstateAuthorityType,
+                estateAuthorityType: updateData.estateAuthorityType,
+                authorityType: updateData.authorityType || updateData.estateType,
+            });
+            const effectiveState = (updateData.deceasedState ?? estate.deceasedState ?? "").toString().trim();
+
+            if (hasTrackSignal && effectiveState.length > 0) {
+                if (currentStatus === "DRAFT") {
+                    updateData.estateStatus = "MINIMUM_READY";
+                    logger.info(`✅ [ESTATE] Advancing estate ${estate.id} from DRAFT to MINIMUM_READY`);
+                }
+                if (!isMinimumIntakeReady(currentCompletenessLevel)) {
+                    updateData.completenessLevel = "MINIMUM_READY";
+                    logger.info(`✅ [ESTATE] Advancing estate ${estate.id} completeness to MINIMUM_READY`);
+                }
             }
 
             finalEstate = await prisma.estate.update({
@@ -1063,6 +1077,23 @@ import {
 
 const VALID_STATE_CODE = /^[A-Z]{2}$/;
 
+function hasTrackSelectionSignal(input: {
+    userSelectedEstateAuthorityType?: string | null;
+    estateAuthorityType?: string | null;
+    authorityType?: string | null;
+}): boolean {
+    return Boolean(
+        input.userSelectedEstateAuthorityType ||
+        (input.estateAuthorityType && input.estateAuthorityType !== "UNSET") ||
+        (input.authorityType && input.authorityType !== "UNSET")
+    );
+}
+
+function isMinimumIntakeReady(completenessLevel?: string | null): boolean {
+    return completenessLevel === "MINIMUM_READY" || completenessLevel === "PROFILE_READY";
+}
+
+
 // GET /:id/roadmap - Get personalized roadmap (requires subscription)
 router.get("/:id/roadmap", requireSubscription, async (req: any, res: Response) => {
     try {
@@ -1081,6 +1112,8 @@ router.get("/:id/roadmap", requireSubscription, async (req: any, res: Response) 
                 id: true,
                 deceasedState: true,
                 estateAuthorityType: true,
+                userSelectedEstateAuthorityType: true,
+                authorityType: true,
                 completenessLevel: true,
                 deceasedFirstName: true,
                 deceasedLastName: true,
@@ -1093,9 +1126,15 @@ router.get("/:id/roadmap", requireSubscription, async (req: any, res: Response) 
             return res.status(404).json({ error: "Estate not found or access denied" });
         }
 
+        const hasTrackSignal = hasTrackSelectionSignal({
+            userSelectedEstateAuthorityType: estate.userSelectedEstateAuthorityType,
+            estateAuthorityType: estate.estateAuthorityType,
+            authorityType: estate.authorityType,
+        });
+
         // 🚨 ESTATE STATUS GATE: Check new estateStatus field first
         const currentEstateStatus = (estate as any).estateStatus || "DRAFT";
-        if (currentEstateStatus === "DRAFT") {
+        if (currentEstateStatus === "DRAFT" && !hasTrackSignal) {
             logger.warn({ estateId: id, estateStatus: currentEstateStatus }, "Roadmap blocked — estate is in DRAFT status");
             return res.status(409).json({
                 code: "INCOMPLETE_ESTATE",
@@ -1120,7 +1159,7 @@ router.get("/:id/roadmap", requireSubscription, async (req: any, res: Response) 
 
         // 🚨 MINIMUM INTAKE GATE: Prevent misleading roadmaps for incomplete estates
         const { estateAuthorityType, completenessLevel } = estate;
-        if (completenessLevel !== "MINIMUM_READY" && completenessLevel !== "PROFILE_READY") {
+        if (!isMinimumIntakeReady(completenessLevel) && !hasTrackSignal) {
             logger.warn({ estateId: id, completenessLevel, estateAuthorityType }, "Roadmap blocked — minimum intake not complete");
             return res.status(409).json({
                 code: "MINIMUM_INTAKE_REQUIRED",
@@ -1130,7 +1169,7 @@ router.get("/:id/roadmap", requireSubscription, async (req: any, res: Response) 
             });
         }
 
-        if (!estateAuthorityType || estateAuthorityType === "UNSET") {
+        if ((!estateAuthorityType || estateAuthorityType === "UNSET") && !hasTrackSignal) {
             logger.warn({ estateId: id, estateAuthorityType }, "Roadmap blocked — authority type is UNSET");
             return res.status(409).json({
                 code: "MINIMUM_INTAKE_REQUIRED",
@@ -1366,6 +1405,9 @@ router.post("/:id/tasks/:taskId/complete", requireSubscription, async (req: any,
                 completenessLevel: true,
                 userId: true,
                 estateStatus: true,
+                estateAuthorityType: true,
+                userSelectedEstateAuthorityType: true,
+                authorityType: true,
             }
         });
 
@@ -1373,9 +1415,15 @@ router.post("/:id/tasks/:taskId/complete", requireSubscription, async (req: any,
             return res.status(404).json({ error: "Estate not found or access denied" });
         }
 
+        const hasTrackSignal = hasTrackSelectionSignal({
+            userSelectedEstateAuthorityType: estate.userSelectedEstateAuthorityType,
+            estateAuthorityType: estate.estateAuthorityType,
+            authorityType: estate.authorityType,
+        });
+
         // 🚨 ESTATE STATUS GATE: Check new estateStatus field first
         const currentEstateStatus = (estate as any).estateStatus || "DRAFT";
-        if (currentEstateStatus === "DRAFT") {
+        if (currentEstateStatus === "DRAFT" && !hasTrackSignal) {
             logger.warn({ estateId: id, estateStatus: currentEstateStatus, taskId }, "Task completion blocked — estate is in DRAFT status");
             return res.status(409).json({
                 code: "INCOMPLETE_ESTATE",
@@ -1387,7 +1435,7 @@ router.post("/:id/tasks/:taskId/complete", requireSubscription, async (req: any,
         }
 
         // 🚨 MINIMUM INTAKE GATE: Block task completion until setup is complete
-        if (estate.completenessLevel !== "MINIMUM_READY" && estate.completenessLevel !== "PROFILE_READY") {
+        if (!isMinimumIntakeReady(estate.completenessLevel) && !hasTrackSignal) {
             return res.status(409).json({
                 code: "MINIMUM_INTAKE_REQUIRED",
                 error: "Complete estate setup before marking tasks complete",
