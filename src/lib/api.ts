@@ -273,6 +273,17 @@ const API_URL = import.meta.env.VITE_API_URL || "/api";
 
 const getToken = () => localStorage.getItem("auth_token");
 
+const ONBOARDING_GATE_REDIRECTS: Record<string, string> = {
+    TRACK_SELECTION: "/onboarding",
+    STATE_SELECTION: "/onboarding",
+    AUTHORITY_SETUP: "/onboarding",
+};
+
+const getOnboardingGateRedirect = (step?: string): string => {
+    const normalizedStep = (step || "").toUpperCase();
+    return ONBOARDING_GATE_REDIRECTS[normalizedStep] || "/onboarding";
+};
+
 const getHeaders = () => {
     const token = getToken();
     return {
@@ -330,7 +341,7 @@ const parseResponse = async (response: Response) => {
                         const currentPath = window.location.pathname;
                         // Only redirect if not already on onboarding pages
                         if (!currentPath.includes("/onboarding") && !currentPath.includes("/welcome")) {
-                            const redirectUrl = `/onboarding/${step.toLowerCase()}`;
+                            const redirectUrl = getOnboardingGateRedirect(step);
                             console.warn(`[EstateGating] Redirecting to ${redirectUrl} due to incomplete estate`);
                             window.location.href = redirectUrl;
                         }

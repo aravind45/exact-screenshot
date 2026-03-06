@@ -220,6 +220,13 @@ const AppRoutes = () => {
             <Route path="/terms" element={<TermsOfService />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
 
+            {/* Legacy onboarding deep links */}
+            <Route path="/onboarding/track_selection" element={<Navigate to="/onboarding" replace />} />
+            <Route path="/onboarding/track-selection" element={<Navigate to="/onboarding" replace />} />
+            <Route path="/onboarding/state_selection" element={<Navigate to="/onboarding" replace />} />
+            <Route path="/onboarding/state-selection" element={<Navigate to="/onboarding" replace />} />
+            <Route path="/onboarding/authority_setup" element={<Navigate to="/onboarding" replace />} />
+            <Route path="/onboarding/authority-setup" element={<Navigate to="/onboarding" replace />} />
             <Route path="/onboarding" element={
               <RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}>
                 <OnboardingGuidedWizard />
