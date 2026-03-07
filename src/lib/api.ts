@@ -1779,6 +1779,14 @@ export const api = {
             });
             return parseResponse(response);
         },
+        contactSupport: async (subject: string, message: string, estateId?: string) => {
+            const response = await fetch(`${API_URL}/help/contact`, {
+                method: "POST",
+                headers: getHeaders(),
+                body: JSON.stringify({ subject, message, estateId }),
+            });
+            return parseResponse(response);
+        },
     },
 
     /**
@@ -2779,5 +2787,3 @@ export const api = {
         },
     },
 };
-
-

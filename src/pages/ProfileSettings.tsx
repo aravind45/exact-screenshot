@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
     Select,
     SelectContent,
@@ -15,13 +16,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/lib/api";
-import { ArrowLeft, Save, User, UserCircle, Briefcase, MapPin, Mail, Loader2, ShieldCheck, Share2, Copy, Check, CreditCard, ExternalLink, AlertCircle, Info, DollarSign, Calendar } from "lucide-react";
+import { ArrowLeft, Save, User, UserCircle, Briefcase, MapPin, Mail, Loader2, ShieldCheck, Share2, Copy, Check, CreditCard, ExternalLink, AlertCircle, Info, DollarSign, Calendar, Scale, Clock, AlertTriangle, HelpCircle, FileCheck, Landmark, Shield } from "lucide-react";
 import { motion } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Sidebar } from "@/components/Sidebar";
 import { US_STATES } from "@/lib/states";
 import { determinePath, UserAnswers } from "@/lib/pathEngine";
-import { Scale, Clock, AlertTriangle, HelpCircle, FileCheck, Landmark, Shield } from "lucide-react";
 
 export default function ProfileSettings() {
     const navigate = useNavigate();
@@ -39,6 +39,8 @@ export default function ProfileSettings() {
         personalEmail: "",
     });
     const [portalLoading, setPortalLoading] = useState(false);
+    const [refundLoading, setRefundLoading] = useState(false);
+    const [refundReason, setRefundReason] = useState("");
 
     // Estate form state
     const [estateFormData, setEstateFormData] = useState({
@@ -174,6 +176,48 @@ export default function ProfileSettings() {
         }
     };
 
+    const handleRequestRefund = async () => {
+        const reason = refundReason.trim();
+        if (!reason) {
+            toast({
+                variant: "destructive",
+                title: "Reason Required",
+                description: "Please describe why you are requesting a refund review."
+            });
+            return;
+        }
+
+        setRefundLoading(true);
+        try {
+            const subject = `Refund Request - ${profile?.fullName || profile?.email || "Executor"}`;
+            const message = [
+                "Refund request submitted from Billing & Subscription.",
+                "",
+                `User: ${profile?.fullName || "Unknown"} (${profile?.email || "Unknown"})`,
+                `Estate ID: ${estate?.id || "Not available"}`,
+                `Plan: ${billingStatus?.planName || profile?.subscriptionPlan || "Unknown"}`,
+                `Status: ${billingStatus?.status || profile?.subscriptionStatus || "Unknown"}`,
+                "",
+                "Reason:",
+                reason,
+            ].join("\n");
+
+            await api.help.contactSupport(subject, message, estate?.id);
+            toast({
+                title: "Refund Request Sent",
+                description: "Our billing team will review your request and follow up by email."
+            });
+            setRefundReason("");
+        } catch (error: any) {
+            toast({
+                variant: "destructive",
+                title: "Request Failed",
+                description: error.message || "Unable to send refund request"
+            });
+        } finally {
+            setRefundLoading(false);
+        }
+    };
     if (isLoading) return <div className="p-8">Loading profile...</div>;
 
     return (
@@ -814,6 +858,37 @@ export default function ProfileSettings() {
                                                 </>
                                             )}
                                         </Button>
+
+                                        <div className="mt-6 border-t border-border/50 pt-6 space-y-3">
+                                            <div className="space-y-1">
+                                                <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Refund Request</p>
+                                                <p className="text-sm text-muted-foreground">
+                                                    If you believe you were charged in error, submit a request and our billing team will review it.
+                                                </p>
+                                            </div>
+                                            <Textarea
+                                                value={refundReason}
+                                                onChange={(e) => setRefundReason(e.target.value)}
+                                                placeholder="Briefly explain why you are requesting a refund review"
+                                                className="min-h-[96px]"
+                                            />
+                                            <Button
+                                                variant="secondary"
+                                                className="w-full h-11 gap-2 font-semibold"
+                                                onClick={handleRequestRefund}
+                                                disabled={refundLoading || refundReason.trim().length === 0}
+                                            >
+                                                {refundLoading ? (
+                                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                                ) : (
+                                                    <>
+                                                        <DollarSign className="w-4 h-4" />
+                                                        Request Refund Review
+                                                    </>
+                                                )}
+                                            </Button>
+                                        </div>
+
                                     </CardContent>
                                 </Card>
                             </motion.div>
