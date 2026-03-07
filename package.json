@@ -43,7 +43,8 @@
     "e2e": "playwright test",
     "e2e:ui": "playwright test --ui",
     "e2e:debug": "playwright test --debug",
-    "test:verify-no-null-authority-scopes": "tsx server/scripts/verify-no-null-authority-scopes.ts"
+    "test:verify-no-null-authority-scopes": "tsx server/scripts/verify-no-null-authority-scopes.ts",
+    "test:roadmap:matrix": "vitest run src/tests/roadmap/roadmap_matrix_hardening.test.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
