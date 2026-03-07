@@ -14,6 +14,7 @@ import { requireSubscription } from "../middleware/subscription.js";
 import { authenticate } from "../middleware/auth.js";
 import { fetchEstateRowForUser } from "../utils/estateFallback.js";
 import { getPrismaErrorDetails, isMissingColumnError } from "../utils/prismaErrors.js";
+import { emitDomainEvent } from "../lib/domainEvents.js";
 
 
 const estateUpdateSchema = z.object({
@@ -412,11 +413,15 @@ router.put("/my", authenticate, async (req: any, res: Response) => {
                 }
             });
         }
-
-        // If status changed to EXECUTOR_APPOINTED, auto-sync assets
+        // Emit domain event when probate status transitions to EXECUTOR_APPOINTED.
+        // Asset module handles auto-sync via subscribed event handler.
         if (req.body.probateStatus === 'EXECUTOR_APPOINTED' && estate?.probateStatus !== 'EXECUTOR_APPOINTED' && finalEstate.id) {
-            const { AssetService } = await import("../services/assetService.js");
-            await AssetService.autoSyncAssetsForEstate(finalEstate.id);
+            emitDomainEvent("estate.status.changed", {
+                estateId: finalEstate.id,
+                previousProbateStatus: estate?.probateStatus,
+                nextProbateStatus: req.body.probateStatus,
+                triggeredByUserId: req.user.id,
+            });
         }
 
         res.json(finalEstate);
@@ -1767,6 +1772,8 @@ router.post("/:id/select-track", authenticate, requireEstateAccess, async (req: 
         res.status(500).json({ error: "Failed to select track", message: error.message });
     }
 });
+
+
 
 
 

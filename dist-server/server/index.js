@@ -37,6 +37,7 @@ import deadlineRoutes from "./routes/deadlineRoutes.js";
 import formRoutes from "./routes/formRoutes.js";
 import ssotRoutes from "./routes/ssotRoutes.js";
 import authorityRoutes from "./routes/authorityRoutes.js";
+import { registerAssetDomainEventHandlers } from "./services/assetDomainEvents.js";
 import { TENANTS, getTenantByHostname } from "../src/config/tenantConfig.js";
 const isServerless = process.env.VERCEL === '1' || process.env.NETLIFY === 'true' || !!process.env.AWS_EXECUTION_ENV || !!process.env.FUNCTION_NAME;
 const app = express();
@@ -54,6 +55,8 @@ logger.info(`🔌 Port: ${port}`);
 logger.info(`📁 Dist path: ${distPath}`);
 logger.info(`💾 Database URL: ${process.env.DATABASE_URL ? '✅ Set' : '❌ NOT SET'}`);
 logger.info(`🔍 Serverless detection: ${isServerless ? 'YES' : 'NO'}`);
+registerAssetDomainEventHandlers();
+logger.info("📡 Registered asset domain event handlers");
 // 1. Security Headers
 app.use(helmet({
     contentSecurityPolicy: {

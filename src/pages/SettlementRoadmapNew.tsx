@@ -1,12 +1,9 @@
 import { Sidebar } from "@/components/Sidebar";
-import { CollapsiblePhaseChevron } from "@/components/CollapsiblePhaseChevron";
 import { ProbateBlockerAlert } from "@/components/ProbateBlockerAlert";
 import { useWorkflow } from "@/contexts/WorkflowContext";
-import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { CheckCircle, AlertCircle, ArrowRight, FileText, MapPin, History } from "lucide-react";
-import { SettlementPhaseChevron } from "@/components/SettlementPhaseChevron";
-import { type SettlementPhase } from "@/config/settlementPhases";
 import { SEO } from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -15,7 +12,6 @@ import { MinimumIntakeGate } from "@/components/MinimumIntakeGate";
 import { RoadmapTimelineOverview } from "@/components/roadmap/RoadmapTimelineOverview";
 
 export default function SettlementRoadmapNew() {
-  const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { phaseProgress, probateBlockers, currentPhase, completedPhases, completedTaskIds, assets, isStateMissing, clientRoadmap } = useWorkflow();
 
@@ -52,30 +48,6 @@ export default function SettlementRoadmapNew() {
 
   const isViewer = (estate as any)?.userRole === 'VIEWER';
 
-  const roadmapMutation = useMutation({
-    mutationFn: api.updateRoadmap,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['estate'] });
-    }
-  });
-
-  const handleTaskToggle = (taskId: string, completed: boolean, taskTitle: string, phaseName: string) => {
-    const currentCompleted = estate?.roadmapProgress?.completedTaskIds || [];
-    const currentPhases = estate?.roadmapProgress?.completedPhases || [];
-
-    const newCompletedIds = completed
-      ? [...new Set([...currentCompleted, taskId])]
-      : currentCompleted.filter((id: string) => id !== taskId);
-
-    roadmapMutation.mutate({
-      completedTaskIds: newCompletedIds,
-      completedPhases: currentPhases,
-      taskId,
-      action: completed ? 'COMPLETED' : 'UNCOMPLETED',
-      taskTitle,
-      phaseName
-    });
-  };
 
   // Calculate overall progress
   const totalTasks = Object.values(phaseProgress).reduce((sum, p) => sum + p.total, 0);
@@ -265,32 +237,6 @@ export default function SettlementRoadmapNew() {
             </div>
           )}
 
-
-          {/* Horizontal Phase Progress — hidden when state is missing */}
-          {!isStateMissing && (
-            <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-              <SettlementPhaseChevron
-                currentPhase={currentPhase as SettlementPhase}
-                completedPhases={completedPhases as SettlementPhase[]}
-                phases={dynamicRoadmap.map(p => ({
-                  id: p.phase,
-                  title: p.title,
-                  subtitle: p.subtitle,
-                  milestone: p.milestone,
-                  isEscalationPath: p.isEscalationPath,
-                  color: "bg-indigo-500"
-                }))}
-              />
-            </div>
-          )}
-
-          {/* Collapsible Chevron (Task List) — hidden when state is missing */}
-          {!isStateMissing && (
-            <CollapsiblePhaseChevron
-              onTaskToggle={handleTaskToggle}
-              isViewer={isViewer}
-            />
-          )}
         </main>
       </div>
     </div>
