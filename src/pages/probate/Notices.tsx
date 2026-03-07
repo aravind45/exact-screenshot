@@ -45,6 +45,7 @@ export default function Notices() {
   const [pubDate, setPubDate] = useState("");
   const [pubNewspaper, setPubNewspaper] = useState("");
   const [proofUploaded, setProofUploaded] = useState(false);
+  const [noticePreviewUrl, setNoticePreviewUrl] = useState<string | null>(null);
   const [copiedTemplate, setCopiedTemplate] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     hearing: true,
@@ -82,7 +83,19 @@ export default function Notices() {
   const previewMutation = useMutation({
     mutationFn: () =>
       api.previewPetition({ ...estate, ...hearingData, formType: "NOTICE_OF_HEARING" }),
-    onError: (err: any) => toast.error("Preview failed: " + err.message),
+    onSuccess: (res: any) => {
+      if (!res?.pdfBase64) {
+        setNoticePreviewUrl(null);
+        toast.error("Notice preview is unavailable. Opening blank DE-121 form.");
+        window.open("https://www.courts.ca.gov/documents/de121.pdf", "_blank", "noopener,noreferrer");
+        return;
+      }
+      setNoticePreviewUrl(`data:application/pdf;base64,${res.pdfBase64}`);
+    },
+    onError: (err: any) => {
+      setNoticePreviewUrl(null);
+      toast.error("Preview failed: " + err.message);
+    },
   });
 
   if (!estate) return <div className="p-8">Loading...</div>;
@@ -351,17 +364,17 @@ Published in: ${pubNewspaper || "[NEWSPAPER NAME]"}`;
               </div>
               <Button
                 className="w-full bg-amber-500 hover:bg-amber-600 text-black font-black text-xs uppercase tracking-widest rounded-xl h-11"
-                onClick={() => { updateMutation.mutate(hearingData); previewMutation.mutate(); }}
-                disabled={!hearingData.hearingDate}
+                onClick={() => { setNoticePreviewUrl(null); updateMutation.mutate(hearingData); previewMutation.mutate(); }}
+                disabled={!hearingData.hearingDate || previewMutation.isPending}
               >
                 <Eye className="w-4 h-4 mr-2" />
-                Preview & Generate Notice Form
+                {previewMutation.isPending ? "Generating..." : "Preview & Generate Notice Form"}
               </Button>
             </CardContent>
           </Card>
         </div>
 
-        {previewMutation.isSuccess && (
+        {noticePreviewUrl && (
           <Card className="border-2 border-amber-200 rounded-2xl overflow-hidden mt-6">
             <CardHeader>
               <CardTitle className="text-base font-black">DE-121 Preview</CardTitle>
@@ -369,7 +382,7 @@ Published in: ${pubNewspaper || "[NEWSPAPER NAME]"}`;
             </CardHeader>
             <CardContent className="h-[600px] p-4">
               <iframe
-                src={`data:application/pdf;base64,${(previewMutation.data as any)?.pdfBase64}`}
+                src={noticePreviewUrl}
                 className="w-full h-full rounded-xl border"
                 title="Notice Form Preview"
               />
@@ -788,3 +801,4 @@ function PhaseSection({ id, title, icon, isExpanded, onToggle, status, children 
     </Card>
   );
 }
+

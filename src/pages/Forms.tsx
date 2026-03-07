@@ -189,10 +189,24 @@ const Forms = () => {
                 blob = await api.generateForm(formId, isPreview);
             }
 
+            if (!blob || blob.size === 0) {
+                throw new Error(`Generated file for ${formId} was empty`);
+            }
+
+            const normalizedType = (blob.type || "").toLowerCase();
+            if (normalizedType.includes("text/html")) {
+                throw new Error(`Server returned HTML instead of a PDF for ${formId}`);
+            }
+
             const url = window.URL.createObjectURL(blob);
 
             if (isPreview && !isBlank) {
-                window.open(url, '_blank');
+                const previewTab = window.open(url, "_blank", "noopener,noreferrer");
+                if (!previewTab) {
+                    window.URL.revokeObjectURL(url);
+                    throw new Error("Preview blocked by browser popup settings");
+                }
+                window.setTimeout(() => window.URL.revokeObjectURL(url), 60000);
             } else {
                 const link = document.createElement('a');
                 link.href = url;
@@ -200,11 +214,14 @@ const Forms = () => {
                 document.body.appendChild(link);
                 link.click();
                 link.remove();
+                window.setTimeout(() => window.URL.revokeObjectURL(url), 1000);
             }
+
             toast.success(isBlank ? "Blank template downloaded" : (isPreview ? "Preview layout ready" : "Form downloaded"));
         } catch (e: any) {
             console.error(e);
-            toast.error(`Failed to handle ${formId}: ${e.message}`);
+            const fallbackHint = isBlank ? "" : " Try the Blank button if auto-generation fails.";
+            toast.error(`Failed to handle ${formId}: ${e.message}${fallbackHint}`);
         } finally {
             setLoadingAction(null);
         }
@@ -575,3 +592,4 @@ const Forms = () => {
 };
 
 export default Forms;
+

@@ -733,7 +733,7 @@ export default function Auth() {
               </p>
               <p className="text-[10px] text-center text-slate-400 mt-4 leading-relaxed">
                 By continuing, you acknowledge that access is restricted to authorized fiduciaries.
-                Read our <a href="#" className="underline">Terms</a> and <a href="#" className="underline">Privacy Policy</a>.
+                Read our <a href="/terms" className="underline">Terms</a> and <a href="/privacy" className="underline">Privacy Policy</a>.
               </p>
             </div>
           </div>
@@ -742,3 +742,4 @@ export default function Auth() {
     </div>
   );
 }
+

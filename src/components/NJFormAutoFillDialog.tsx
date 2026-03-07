@@ -64,26 +64,46 @@ export function NJFormAutoFillDialog({ open, onOpenChange, formId, formTitle }: 
     }, [open]);
 
     const generateMutation = useMutation({
-        mutationFn: ({ isPreview }: { isPreview: boolean }) =>
-            api.generateNJForm(formId, isPreview, overrides),
-        onSuccess: (blob, { isPreview }) => {
-            const url = window.URL.createObjectURL(blob);
-            if (isPreview) {
-                window.open(url, '_blank');
-                toast.success('Preview opened in new tab');
-            } else {
-                const link = document.createElement('a');
-                link.href = url;
-                link.setAttribute('download', `${formId}.pdf`);
-                document.body.appendChild(link);
-                link.click();
-                link.remove();
-                window.URL.revokeObjectURL(url);
-                toast.success(`${formId} downloaded successfully`);
+        mutationFn: async ({ isPreview }: { isPreview: boolean }) => {
+            const blob = await api.generateNJForm(formId, isPreview, overrides);
+
+            if (!blob || blob.size === 0) {
+                throw new Error(`Generated ${formId} file was empty`);
             }
+
+            const normalizedType = (blob.type || "").toLowerCase();
+            if (normalizedType.includes("text/html")) {
+                throw new Error(`Server returned HTML instead of a PDF for ${formId}`);
+            }
+
+            return { blob, isPreview };
+        },
+        onSuccess: ({ blob, isPreview }) => {
+            const url = window.URL.createObjectURL(blob);
+
+            if (isPreview) {
+                const previewTab = window.open(url, "_blank", "noopener,noreferrer");
+                if (!previewTab) {
+                    window.URL.revokeObjectURL(url);
+                    toast.error("Preview blocked by browser popup settings");
+                    return;
+                }
+                window.setTimeout(() => window.URL.revokeObjectURL(url), 60000);
+                toast.success("Preview opened in new tab");
+                return;
+            }
+
+            const link = document.createElement("a");
+            link.href = url;
+            link.setAttribute("download", `${formId}.pdf`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.setTimeout(() => window.URL.revokeObjectURL(url), 1000);
+            toast.success(`${formId} downloaded successfully`);
         },
         onError: (e: any) => {
-            toast.error(`Failed to generate ${formId}: ${e.message}`);
+            toast.error(`Failed to generate ${formId}: ${e.message || "Use Blank form as fallback."}`);
         },
     });
 
@@ -301,7 +321,13 @@ export function NJFormAutoFillDialog({ open, onOpenChange, formId, formTitle }: 
                 </ScrollArea>
 
                 <DialogFooter className="px-6 py-4 border-t border-gray-100 bg-gray-50/50 flex-row gap-2">
-                    <Button variant="outline" size="sm" onClick={() => onOpenChange(false)} className="rounded-xl">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => onOpenChange(false)}
+                        className="rounded-xl"
+                        disabled={generateMutation.isPending}
+                    >
                         Cancel
                     </Button>
                     <div className="flex-1" />
@@ -309,9 +335,14 @@ export function NJFormAutoFillDialog({ open, onOpenChange, formId, formTitle }: 
                         variant="outline"
                         size="sm"
                         onClick={() => generateMutation.mutate({ isPreview: true })}
-                        disabled={generateMutation.isPending || schemaLoading}
+                        disabled={generateMutation.isPending || schemaLoading || !isReady}
                         className="rounded-xl"
                     >
+                        {generateMutation.isPending && generateMutation.variables?.isPreview ? (
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        ) : (
+                            <Eye className="w-4 h-4 mr-2" />
+                        )}
                         Preview
                     </Button>
                     <Button
@@ -320,6 +351,11 @@ export function NJFormAutoFillDialog({ open, onOpenChange, formId, formTitle }: 
                         disabled={generateMutation.isPending || schemaLoading || !isReady}
                         className="rounded-xl font-bold bg-indigo-600 hover:bg-indigo-700 text-white"
                     >
+                        {generateMutation.isPending && !generateMutation.variables?.isPreview ? (
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        ) : (
+                            <Download className="w-4 h-4 mr-2" />
+                        )}
                         Download Draft
                     </Button>
                 </DialogFooter>
@@ -327,3 +363,5 @@ export function NJFormAutoFillDialog({ open, onOpenChange, formId, formTitle }: 
         </Dialog>
     );
 }
+
+

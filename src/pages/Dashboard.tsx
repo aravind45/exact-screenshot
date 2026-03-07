@@ -633,7 +633,7 @@ export default function Dashboard() {
                     <Button
                       variant="link"
                       className="p-0 h-auto text-xs text-indigo-800 font-black uppercase mt-2 hover:no-underline hover:text-indigo-600"
-                      onClick={() => navigate('/probate')}
+                      onClick={() => navigate('/probate/petition')}
                     >
                       Review Authority Requirements →
                     </Button>
@@ -927,6 +927,4 @@ export default function Dashboard() {
     </DashboardLayout>
   );
 }
-
-
 

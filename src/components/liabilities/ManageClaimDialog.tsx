@@ -21,12 +21,14 @@ export function ManageClaimDialog({ liability, open, onOpenChange }: ManageClaim
     const [action, setAction] = useState<'APPROVE' | 'REJECT' | null>(null);
     const [notes, setNotes] = useState("");
     const [allowedAmount, setAllowedAmount] = useState("");
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
     React.useEffect(() => {
         if (liability) {
             setAllowedAmount(liability.amount.toString());
             setNotes(liability.rejectionReason || "");
             setAction(null);
+            setPreviewUrl(null);
         }
     }, [liability]);
 
@@ -49,7 +51,19 @@ export function ManageClaimDialog({ liability, open, onOpenChange }: ManageClaim
                 allowedAmount: parseFloat(allowedAmount)
             }
         }),
-        onError: (err: any) => toast.error("Preview failed: " + err.message)
+        onSuccess: (res: any) => {
+            if (!res?.pdfBase64) {
+                setPreviewUrl(null);
+                toast.info("Auto-fill unavailable. Opened blank DE-174 form.");
+                window.open("https://www.courts.ca.gov/documents/de174.pdf", "_blank", "noopener,noreferrer");
+                return;
+            }
+            setPreviewUrl(`data:application/pdf;base64,${res.pdfBase64}`);
+        },
+        onError: (err: any) => {
+            setPreviewUrl(null);
+            toast.error("Preview failed: " + err.message);
+        }
     });
 
     const handleSave = () => {
@@ -125,18 +139,18 @@ export function ManageClaimDialog({ liability, open, onOpenChange }: ManageClaim
 
                             <div className="bg-slate-50 p-3 rounded border flex items-center justify-between">
                                 <span className="text-sm font-medium">Generate DE-174 Form</span>
-                                <Button size="sm" variant="outline" onClick={() => previewMutation.mutate()}>
-                                    <FileText className="w-4 h-4 mr-2" /> Preview
+                                <Button size="sm" variant="outline" onClick={() => previewMutation.mutate()} disabled={previewMutation.isPending}>
+                                    <FileText className="w-4 h-4 mr-2" /> {previewMutation.isPending ? "Generating..." : "Preview"}
                                 </Button>
                             </div>
                         </div>
                     )}
                 </div>
 
-                {previewMutation.isSuccess && (
+                {previewUrl && (
                     <div className="mt-4 p-2 border rounded bg-slate-100 h-64">
                         <iframe
-                            src={`data:application/pdf;base64,${previewMutation.data.pdfBase64}`}
+                            src={previewUrl}
                             className="w-full h-full"
                             title="PDF Preview"
                         />
@@ -153,3 +167,4 @@ export function ManageClaimDialog({ liability, open, onOpenChange }: ManageClaim
         </Dialog>
     );
 }
+

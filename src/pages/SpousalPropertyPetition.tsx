@@ -20,6 +20,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { downloadAutofillWithFallback } from "@/lib/formAutofill";
 
 export default function SpousalPropertyPetition() {
     const queryClient = useQueryClient();
@@ -40,49 +41,27 @@ export default function SpousalPropertyPetition() {
         onError: (err: any) => {
             toast.error(`Error updating progress: ${err.message}`);
         }
-    });
-
-    const generatePdfMutation = useMutation({
-        mutationFn: (formType: string) => api.previewPetition({ formType }),
-        onSuccess: (data: any, formType) => {
-            if (data.pdfBase64) {
-                const blob = b64toBlob(data.pdfBase64, 'application/pdf');
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `${formType}_PreFilled.pdf`;
-                a.click();
-                toast.success(`${formType} downloaded successfully`);
-            }
-        },
-        onSettled: () => setDownloadingForm(null),
-        onError: (err: any) => {
-            toast.error(`Error generating PDF: ${err.message}`);
-        }
-    });
-
-    // Helper to convert base64 to Blob
-    const b64toBlob = (b64Data: string, contentType = '', sliceSize = 512) => {
-        const byteCharacters = atob(b64Data);
-        const byteArrays = [];
-        for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
-            const slice = byteCharacters.slice(offset, offset + sliceSize);
-            const byteNumbers = new Array(slice.length);
-            for (let i = 0; i < slice.length; i++) {
-                byteNumbers[i] = slice.charCodeAt(i);
-            }
-            const byteArray = new Uint8Array(byteNumbers);
-            byteArrays.push(byteArray);
-        }
-        return new Blob(byteArrays, { type: contentType });
-    };
-
-    const isSpousalPath = estate?.authorityType === "SPOUSAL_PETITION";
-    const completedTaskIds = estate?.roadmapProgress?.completedTaskIds || [];
-
-    const handleDownload = (form: string) => {
+    });
+    const isSpousalPath = estate?.authorityType === 'SPOUSAL_PETITION';
+    const completedTaskIds = estate?.roadmapProgress?.completedTaskIds || [];
+    const handleDownload = async (form: string, blankUrl?: string) => {
         setDownloadingForm(form);
-        generatePdfMutation.mutate(form);
+        try {
+            const result = await downloadAutofillWithFallback({
+                formType: form,
+                blankPdfUrl: blankUrl,
+                filename: form + "_PreFilled.pdf",
+            });
+            if (result.mode === "blank") {
+                toast.success("Auto-fill isn't available for " + form + " yet. Opened the blank form.");
+            } else {
+                toast.success(form + " downloaded successfully");
+            }
+        } catch (err: any) {
+            toast.error("Couldn't generate " + form + ": " + err.message);
+        } finally {
+            setDownloadingForm(null);
+        }
     };
 
     const handleMarkAsFiled = async (taskId: string) => {
@@ -219,7 +198,7 @@ export default function SpousalPropertyPetition() {
                                                         variant="outline"
                                                         size="sm"
                                                         className="h-8 text-[10px] font-bold uppercase tracking-tight"
-                                                        onClick={() => handleDownload(step.form)}
+                                                        onClick={() => handleDownload(step.form, step.link)}
                                                         disabled={!isSpousalPath || downloadingForm === step.form || step.status === 'locked'}
                                                     >
                                                         {downloadingForm === step.form ? "Generating..." : "Auto-Fill (Beta)"}
@@ -301,7 +280,7 @@ export default function SpousalPropertyPetition() {
                                         <span className="text-[10px] font-bold text-slate-700">Judicial Council Guide</span>
                                         <ExternalLink className="w-3 h-3 text-slate-300 group-hover:text-rose-500" />
                                     </a>
-                                    <a href="#" className="flex items-center justify-between p-2 rounded hover:bg-slate-50 transition-colors group">
+                                    <a href="https://www.courts.ca.gov/7646.htm" target="_blank" rel="noreferrer" className="flex items-center justify-between p-2 rounded hover:bg-slate-50 transition-colors group">
                                         <span className="text-[10px] font-bold text-slate-700">Find Local Court Fees</span>
                                         <ExternalLink className="w-3 h-3 text-slate-300 group-hover:text-rose-500" />
                                     </a>
@@ -314,3 +293,6 @@ export default function SpousalPropertyPetition() {
         </div>
     );
 }
+
+
+

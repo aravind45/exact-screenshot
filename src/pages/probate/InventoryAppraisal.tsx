@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Eye, Save, Calculator, AlertTriangle, FileText, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { downloadAutofillWithFallback } from "@/lib/formAutofill";
 
 // Helper to determine default categories
 const inferCategory = (asset: Asset): string => {
@@ -56,9 +57,21 @@ export default function InventoryAppraisal() {
     };
 
     const previewMutation = useMutation({
-        // Placeholder for DE-160 preview endpoint
-        mutationFn: () => api.previewPetition({ ...estate, formType: 'DE-160' }),
-        onError: () => toast.error("DE-160 Preview not implemented yet")
+        mutationFn: () =>
+            downloadAutofillWithFallback({
+                formType: "DE-160",
+                filename: "DE-160_Inventory_Appraisal.pdf",
+                payload: estate ? { ...estate } : {},
+                blankPdfUrl: "https://www.courts.ca.gov/documents/de160.pdf",
+            }),
+        onSuccess: (result) => {
+            if (result.mode === "blank") {
+                toast.info("Auto-fill unavailable. Opened blank DE-160 form.");
+                return;
+            }
+            toast.success("DE-160 downloaded successfully");
+        },
+        onError: (err: any) => toast.error(err?.message || "Could not generate DE-160"),
     });
 
     if (!assets) return <div className="p-8">Loading assets...</div>;
@@ -88,9 +101,9 @@ export default function InventoryAppraisal() {
                                 <FileText className="w-4 h-4 mr-2" />
                                 Instructions
                             </Button>
-                            <Button onClick={() => previewMutation.mutate()}>
+                            <Button onClick={() => previewMutation.mutate()} disabled={previewMutation.isPending}>
                                 <Eye className="w-4 h-4 mr-2" />
-                                Preview Form
+                                {previewMutation.isPending ? "Generating..." : "Auto-Fill DE-160"}
                             </Button>
                         </div>
                     </div>
@@ -221,3 +234,4 @@ function InventorySection({ title, description, assets, editingId, editValues, o
         </Card>
     );
 }
+

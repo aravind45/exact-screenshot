@@ -56,7 +56,7 @@ export function CAFormAutoFillDialog({ open, onOpenChange, formId, formTitle }: 
         enabled: open && !!formId,
     });
 
-    const { data: previewData, isLoading: previewLoading, refetch: refetchPreview } = useQuery({
+    const { data: previewData, isLoading: previewLoading } = useQuery({
         queryKey: ['ca-form-preview', formId, overrides],
         queryFn: () => api.previewCAFormFields(formId, overrides),
         enabled: open && !!formId,
@@ -71,25 +71,55 @@ export function CAFormAutoFillDialog({ open, onOpenChange, formId, formTitle }: 
     }, [open]);
 
     const generateMutation = useMutation({
-        mutationFn: ({ isPreview }: { isPreview: boolean }) =>
-            api.generateCAForm(formId, isPreview, overrides),
-        onSuccess: (blob, { isPreview }) => {
-            const url = window.URL.createObjectURL(blob);
-            if (isPreview) {
-                window.open(url, '_blank');
-                toast.success('Preview opened in new tab');
-            } else {
-                const link = document.createElement('a');
-                link.href = url;
-                link.setAttribute('download', `${formId}.pdf`);
-                document.body.appendChild(link);
-                link.click();
-                link.remove();
-                window.URL.revokeObjectURL(url);
-                toast.success(`${formId} downloaded successfully`);
+        mutationFn: async ({ isPreview }: { isPreview: boolean }) => {
+            const blob = await api.generateCAForm(formId, isPreview, overrides);
+
+            if (!blob || blob.size === 0) {
+                throw new Error(`Generated ${formId} file was empty`);
             }
+
+            const normalizedType = (blob.type || "").toLowerCase();
+            if (normalizedType.includes("text/html")) {
+                throw new Error(`Server returned HTML instead of a PDF for ${formId}`);
+            }
+
+            return { blob, isPreview };
+        },
+        onSuccess: ({ blob, isPreview }) => {
+            const url = window.URL.createObjectURL(blob);
+
+            if (isPreview) {
+                const previewTab = window.open(url, "_blank", "noopener,noreferrer");
+                if (!previewTab) {
+                    window.URL.revokeObjectURL(url);
+                    toast.error("Preview blocked by browser popup settings");
+                    return;
+                }
+                window.setTimeout(() => window.URL.revokeObjectURL(url), 60000);
+                toast.success("Preview opened in new tab");
+                return;
+            }
+
+            const link = document.createElement("a");
+            link.href = url;
+            link.setAttribute("download", `${formId}.pdf`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.setTimeout(() => window.URL.revokeObjectURL(url), 1000);
+            toast.success(`${formId} downloaded successfully`);
         },
         onError: (e: any) => {
+            const fallbackUrl = formId.startsWith("DE-")
+                ? `https://www.courts.ca.gov/documents/${formId.toLowerCase()}.pdf`
+                : null;
+
+            if (fallbackUrl) {
+                window.open(fallbackUrl, "_blank", "noopener,noreferrer");
+                toast.info(`Auto-fill unavailable. Opened blank ${formId} form.`);
+                return;
+            }
+
             toast.error(`Failed to generate ${formId}: ${e.message}`);
         },
     });
@@ -425,7 +455,7 @@ export function CAFormAutoFillDialog({ open, onOpenChange, formId, formTitle }: 
                         variant="outline"
                         size="sm"
                         onClick={() => generateMutation.mutate({ isPreview: true })}
-                        disabled={generateMutation.isPending || schemaLoading}
+                        disabled={generateMutation.isPending || schemaLoading || !isReady}
                         className="border-gray-200 text-gray-700 hover:bg-gray-100 rounded-xl"
                     >
                         {generateMutation.isPending && generateMutation.variables?.isPreview ? (
@@ -439,7 +469,7 @@ export function CAFormAutoFillDialog({ open, onOpenChange, formId, formTitle }: 
                     <Button
                         size="sm"
                         onClick={() => generateMutation.mutate({ isPreview: false })}
-                        disabled={generateMutation.isPending || schemaLoading}
+                        disabled={generateMutation.isPending || schemaLoading || !isReady}
                         className={cn(
                             "rounded-xl font-bold text-xs uppercase tracking-wider",
                             isReady
@@ -459,3 +489,4 @@ export function CAFormAutoFillDialog({ open, onOpenChange, formId, formTitle }: 
         </Dialog>
     );
 }
+

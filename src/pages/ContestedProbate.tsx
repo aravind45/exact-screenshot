@@ -23,6 +23,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { downloadAutofillWithFallback } from "@/lib/formAutofill";
 
 export default function ContestedProbate() {
     const queryClient = useQueryClient();
@@ -43,48 +44,26 @@ export default function ContestedProbate() {
         onError: (err: any) => {
             toast.error(`Error updating progress: ${err.message}`);
         }
-    });
-
-    const generatePdfMutation = useMutation({
-        mutationFn: (formType: string) => api.previewPetition({ formType }),
-        onSuccess: (data: any, formType) => {
-            if (data.pdfBase64) {
-                const blob = b64toBlob(data.pdfBase64, 'application/pdf');
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `${formType}_PreFilled.pdf`;
-                a.click();
-                toast.success(`${formType} downloaded successfully`);
-            }
-        },
-        onSettled: () => setDownloadingForm(null),
-        onError: (err: any) => {
-            toast.error(`Error generating PDF: ${err.message}`);
-        }
-    });
-
-    // Helper to convert base64 to Blob
-    const b64toBlob = (b64Data: string, contentType = '', sliceSize = 512) => {
-        const byteCharacters = atob(b64Data);
-        const byteArrays = [];
-        for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
-            const slice = byteCharacters.slice(offset, offset + sliceSize);
-            const byteNumbers = new Array(slice.length);
-            for (let i = 0; i < slice.length; i++) {
-                byteNumbers[i] = slice.charCodeAt(i);
-            }
-            const byteArray = new Uint8Array(byteNumbers);
-            byteArrays.push(byteArray);
-        }
-        return new Blob(byteArrays, { type: contentType });
-    };
-
-    const completedTaskIds = estate?.roadmapProgress?.completedTaskIds || [];
-
-    const handleDownload = (form: string) => {
+    });
+    const completedTaskIds = estate?.roadmapProgress?.completedTaskIds || [];
+    const handleDownload = async (form: string, blankUrl?: string) => {
         setDownloadingForm(form);
-        generatePdfMutation.mutate(form);
+        try {
+            const result = await downloadAutofillWithFallback({
+                formType: form,
+                blankPdfUrl: blankUrl,
+                filename: form + "_PreFilled.pdf",
+            });
+            if (result.mode === "blank") {
+                toast.success("Auto-fill isn't available for " + form + " yet. Opened the blank form.");
+            } else {
+                toast.success(form + " downloaded successfully");
+            }
+        } catch (err: any) {
+            toast.error("Couldn't generate " + form + ": " + err.message);
+        } finally {
+            setDownloadingForm(null);
+        }
     };
 
     const handleMarkAsComplete = async (taskId: string) => {
@@ -190,7 +169,7 @@ export default function ContestedProbate() {
                                                             variant="outline"
                                                             size="sm"
                                                             className="h-9 px-4 text-[10px] font-black uppercase tracking-widest border-rose-200 text-rose-700 hover:bg-rose-50"
-                                                            onClick={() => handleDownload(step.form)}
+                                                            onClick={() => handleDownload(step.form, step.link)}
                                                             disabled={downloadingForm === step.form || step.status === 'locked'}
                                                         >
                                                             {downloadingForm === step.form ? "Generating..." : "Auto-Fill (Beta)"}
@@ -278,3 +257,6 @@ export default function ContestedProbate() {
         </div>
     );
 }
+
+
+

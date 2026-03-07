@@ -67,11 +67,18 @@ export default function Distribution() {
     }, []);
 
     // 4. PDF Generation
-    const generatePdfMutation = useMutation({
+        const generatePdfMutation = useMutation({
         mutationFn: () => api.previewPetition({ formType: 'DE-310' }),
-        onSuccess: (data) => {
+        onSuccess: (data: any) => {
+            if (!data?.pdfBase64) {
+                toast.error("Preview unavailable: form generation did not return a PDF.");
+                return;
+            }
             setPreviewUrl(`data:application/pdf;base64,${data.pdfBase64}`);
             toast.success("Petition generated");
+        },
+        onError: (err: any) => {
+            toast.error("Preview failed: " + err.message);
         }
     });
 
@@ -531,3 +538,5 @@ function calculateFee(val: number) {
     const t4 = Math.min(remaining, 9000000); fee += t4 * 0.01; remaining -= t4;
     return fee;
 }
+
+

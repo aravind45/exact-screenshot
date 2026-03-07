@@ -258,6 +258,7 @@ const AppRoutes = () => {
             <Route path="/settlement-trail" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><ProfileGuard><SubscriptionGuard><SettlementTrail /></SubscriptionGuard></ProfileGuard></RoleRoute></ProtectedRoute>} />
 
             <Route path="/forms" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><ProfileGuard><SubscriptionGuard><Forms /></SubscriptionGuard></ProfileGuard></RoleRoute></ProtectedRoute>} />
+            <Route path="/probate" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><ProfileGuard><SubscriptionGuard><Navigate to="/probate/petition" replace /></SubscriptionGuard></ProfileGuard></RoleRoute></ProtectedRoute>} />
             <Route path="/probate/petition/wizard" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><ProfileGuard><SubscriptionGuard><PetitionWizard /></SubscriptionGuard></ProfileGuard></RoleRoute></ProtectedRoute>} />
             <Route path="/probate/petition" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><ProfileGuard><SubscriptionGuard><ProbatePetition /></SubscriptionGuard></ProfileGuard></RoleRoute></ProtectedRoute>} />
             <Route path="/probate/inventory" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><ProfileGuard><SubscriptionGuard><InventoryAppraisal /></SubscriptionGuard></ProfileGuard></RoleRoute></ProtectedRoute>} />

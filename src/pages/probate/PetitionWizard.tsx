@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, ArrowRight, Save, Download, Plus, Trash2, FileText, CheckCircle2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sidebar } from "@/components/Sidebar";
+import { downloadAutofillPdf } from "@/lib/formAutofill";
 
 export default function PetitionWizard() {
     const navigate = useNavigate();
@@ -73,10 +74,13 @@ export default function PetitionWizard() {
 
     const handleDownload = async () => {
         try {
-            await api.getPetitionPdf("DE-111_Petition.pdf");
+            await downloadAutofillPdf({
+                formType: "DE-111",
+                filename: "DE-111_Petition.pdf",
+            });
             toast({ title: "Downloaded", description: "Form DE-111 has been generated." });
-        } catch (e) {
-            toast({ variant: "destructive", title: "Download Failed", description: "Could not generate PDF." });
+        } catch (e: any) {
+            toast({ variant: "destructive", title: "Download Failed", description: e?.message || "Could not generate PDF." });
         }
     };
 
@@ -86,7 +90,7 @@ export default function PetitionWizard() {
             <main className="flex-1 ml-64 p-8">
                 <div className="max-w-4xl mx-auto space-y-6">
                     <div className="flex items-center gap-4 mb-6">
-                        <Button variant="ghost" size="sm" onClick={() => navigate("/probate")}>
+                        <Button variant="ghost" size="sm" onClick={() => navigate("/probate/petition")}>
                             <ArrowLeft className="w-4 h-4 mr-2" /> Back to Hub
                         </Button>
                         <div>

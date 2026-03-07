@@ -27,15 +27,30 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { downloadAutofillWithFallback } from "@/lib/formAutofill";
 
 export default function FinalDistribution() {
     const queryClient = useQueryClient();
     const [downloadingForm, setDownloadingForm] = useState<string | null>(null);
-
     const { data: estate } = useQuery({
         queryKey: ["estate"],
         queryFn: api.getMyEstate,
     });
+
+    const { data: heirsData = [] } = useQuery({
+        queryKey: ["heirs"],
+        queryFn: api.getHeirs,
+        enabled: !!estate,
+    });
+
+    const estateBeneficiaries = Array.isArray((estate as any)?.beneficiaries)
+        ? ((estate as any).beneficiaries as Array<{ name?: string }>)
+        : [];
+    const heirs = Array.isArray(heirsData)
+        ? (heirsData as Array<{ name?: string }>)
+        : [];
+    const distributionRecipients = (estateBeneficiaries.length > 0 ? estateBeneficiaries : heirs)
+        .filter((person) => Boolean(person?.name));
 
     const completeTaskMutation = useMutation({
         mutationFn: ({ taskId }: { taskId: string }) =>
@@ -47,49 +62,29 @@ export default function FinalDistribution() {
         onError: (err: any) => {
             toast.error(`Error updating progress: ${err.message}`);
         }
-    });
+    });
+    const completedTaskIds = estate?.roadmapProgress?.completedTaskIds || [];
+    const handleDownload = async (form: string, beneficiaryName?: string) => {
+        const downloadKey = form === "RECEIPT_DISTRIBUTION" ? ("RECEIPT_" + (beneficiaryName || "")) : form;
+        setDownloadingForm(downloadKey);
 
-    const generatePdfMutation = useMutation({
-        mutationFn: (args: { formType: string, beneficiaryName?: string }) =>
-            api.previewPetition(args),
-        onSuccess: (data: any, variables) => {
-            if (data.pdfBase64) {
-                const blob = b64toBlob(data.pdfBase64, 'application/pdf');
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `${variables.formType}_${variables.beneficiaryName || ''}_PreFilled.pdf`;
-                a.click();
-                toast.success(`${variables.formType} downloaded successfully`);
+        try {
+            const result = await downloadAutofillWithFallback({
+                formType: form,
+                payload: beneficiaryName ? { beneficiaryName } : undefined,
+                blankPdfUrl: form === "DE-295" ? "https://www.courts.ca.gov/documents/de295.pdf" : undefined,
+                filename: beneficiaryName ? (form + "_" + beneficiaryName + "_PreFilled.pdf") : (form + "_PreFilled.pdf"),
+            });
+            if (result.mode === "blank") {
+                toast.success("Auto-fill isn't available for " + form + " yet. Opened the blank form.");
+            } else {
+                toast.success(form + " downloaded successfully");
             }
-        },
-        onSettled: () => setDownloadingForm(null),
-        onError: (err: any) => {
-            toast.error(`Error generating PDF: ${err.message}`);
+        } catch (err: any) {
+            toast.error("Couldn't generate " + form + ": " + err.message);
+        } finally {
+            setDownloadingForm(null);
         }
-    });
-
-    // Helper to convert base64 to Blob
-    const b64toBlob = (b64Data: string, contentType = '', sliceSize = 512) => {
-        const byteCharacters = atob(b64Data);
-        const byteArrays = [];
-        for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
-            const slice = byteCharacters.slice(offset, offset + sliceSize);
-            const byteNumbers = new Array(slice.length);
-            for (let i = 0; i < slice.length; i++) {
-                byteNumbers[i] = slice.charCodeAt(i);
-            }
-            const byteArray = new Uint8Array(byteNumbers);
-            byteArrays.push(byteArray);
-        }
-        return new Blob(byteArrays, { type: contentType });
-    };
-
-    const completedTaskIds = estate?.roadmapProgress?.completedTaskIds || [];
-
-    const handleDownload = (form: string, beneficiaryName?: string) => {
-        setDownloadingForm(form === 'RECEIPT_DISTRIBUTION' ? `RECEIPT_${beneficiaryName}` : form);
-        generatePdfMutation.mutate({ formType: form, beneficiaryName });
     };
 
     const handleMarkAsComplete = async (taskId: string) => {
@@ -180,27 +175,38 @@ export default function FinalDistribution() {
                                 </CardHeader>
                                 <CardContent className="space-y-4">
                                     <div className="border rounded-2xl overflow-hidden divide-y divide-slate-100">
-                                        {(estate?.beneficiaries || [{ name: "Sample Beneficiary" }]).map((b: any, i: number) => (
-                                            <div key={i} className="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
+                                        {distributionRecipients.length > 0 ? distributionRecipients.map((person, i) => (
+                                            <div key={`${person.name}-${i}`} className="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
                                                 <div className="flex items-center gap-4 min-w-0">
                                                     <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center shrink-0">
                                                         <Users className="w-5 h-5 text-slate-500" />
                                                     </div>
                                                     <div className="min-w-0">
-                                                        <p className="text-sm font-bold text-slate-900 truncate tracking-tight">{b.name}</p>
+                                                        <p className="text-sm font-bold text-slate-900 truncate tracking-tight">{person.name}</p>
                                                         <p className="text-[10px] text-slate-400 font-medium">Ready for Receipt</p>
                                                     </div>
                                                 </div>
                                                 <Button
                                                     variant="outline"
                                                     className="h-9 px-4 rounded-xl border-slate-200 text-[10px] font-black uppercase tracking-widest text-slate-600 hover:bg-slate-50 flex gap-2"
-                                                    onClick={() => handleDownload("RECEIPT_DISTRIBUTION", b.name)}
-                                                    disabled={downloadingForm === `RECEIPT_${b.name}`}
+                                                    onClick={() => handleDownload("RECEIPT_DISTRIBUTION", person.name)}
+                                                    disabled={downloadingForm === `RECEIPT_${person.name}`}
                                                 >
                                                     <Download className="w-4 h-4" /> Receipt
                                                 </Button>
                                             </div>
-                                        ))}
+                                        )) : (
+                                            <div className="p-5 text-center bg-slate-50/70">
+                                                <p className="text-xs font-semibold text-slate-600">No heirs or beneficiaries found.</p>
+                                                <Button
+                                                    variant="link"
+                                                    className="h-auto p-0 mt-1 text-xs font-black uppercase tracking-wide"
+                                                    asChild
+                                                >
+                                                    <a href="/heirs">Add recipients in Heirs</a>
+                                                </Button>
+                                            </div>
+                                        )}
                                     </div>
 
                                     {!completedTaskIds.includes("distribute_assets") && (
@@ -310,3 +316,10 @@ export default function FinalDistribution() {
         </div>
     );
 }
+
+
+
+
+
+
+

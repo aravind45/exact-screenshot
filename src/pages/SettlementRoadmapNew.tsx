@@ -247,7 +247,7 @@ export default function SettlementRoadmapNew() {
                 <div className="mt-4 flex items-center gap-4">
                   <Button
                     className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-6 h-10 rounded-lg shadow-md shadow-indigo-200 transition-all active:scale-95"
-                    onClick={() => navigate('/official-forms')}
+                    onClick={() => navigate('/forms')}
                   >
                     <FileText className="w-4 h-4 mr-2" />
                     FINALIZE DOCUMENTS

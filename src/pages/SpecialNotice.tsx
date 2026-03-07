@@ -24,6 +24,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { downloadAutofillWithFallback } from "@/lib/formAutofill";
 
 export default function SpecialNotice() {
     const queryClient = useQueryClient();
@@ -45,48 +46,26 @@ export default function SpecialNotice() {
         onError: (err: any) => {
             toast.error(`Error updating progress: ${err.message}`);
         }
-    });
-
-    const generatePdfMutation = useMutation({
-        mutationFn: (formType: string) => api.previewPetition({ formType }),
-        onSuccess: (data: any, formType) => {
-            if (data.pdfBase64) {
-                const blob = b64toBlob(data.pdfBase64, 'application/pdf');
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `${formType}_PreFilled.pdf`;
-                a.click();
-                toast.success(`${formType} downloaded successfully`);
-            }
-        },
-        onSettled: () => setDownloadingForm(null),
-        onError: (err: any) => {
-            toast.error(`Error generating PDF: ${err.message}`);
-        }
-    });
-
-    // Helper to convert base64 to Blob
-    const b64toBlob = (b64Data: string, contentType = '', sliceSize = 512) => {
-        const byteCharacters = atob(b64Data);
-        const byteArrays = [];
-        for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
-            const slice = byteCharacters.slice(offset, offset + sliceSize);
-            const byteNumbers = new Array(slice.length);
-            for (let i = 0; i < slice.length; i++) {
-                byteNumbers[i] = slice.charCodeAt(i);
-            }
-            const byteArray = new Uint8Array(byteNumbers);
-            byteArrays.push(byteArray);
-        }
-        return new Blob(byteArrays, { type: contentType });
-    };
-
-    const completedTaskIds = estate?.roadmapProgress?.completedTaskIds || [];
-
-    const handleDownload = (form: string) => {
+    });
+    const completedTaskIds = estate?.roadmapProgress?.completedTaskIds || [];
+    const handleDownload = async (form: string, blankUrl?: string) => {
         setDownloadingForm(form);
-        generatePdfMutation.mutate(form);
+        try {
+            const result = await downloadAutofillWithFallback({
+                formType: form,
+                blankPdfUrl: blankUrl,
+                filename: form + "_PreFilled.pdf",
+            });
+            if (result.mode === "blank") {
+                toast.success("Auto-fill isn't available for " + form + " yet. Opened the blank form.");
+            } else {
+                toast.success(form + " downloaded successfully");
+            }
+        } catch (err: any) {
+            toast.error("Couldn't generate " + form + ": " + err.message);
+        } finally {
+            setDownloadingForm(null);
+        }
     };
 
     const handleMarkAsComplete = async (taskId: string) => {
@@ -176,7 +155,7 @@ export default function SpecialNotice() {
                                                     <div>
                                                         <p className="text-sm font-bold text-slate-900">{item.name}</p>
                                                         <div className="flex items-center gap-2">
-                                                            <span className="text-[10px] text-slate-400 font-medium">Recieved: {item.date}</span>
+                                                            <span className="text-[10px] text-slate-400 font-medium">Received: {item.date}</span>
                                                             <span className="text-[10px] text-blue-500 bg-blue-50 px-1.5 py-0.5 rounded-md font-black uppercase tracking-tighter">{item.type}</span>
                                                         </div>
                                                     </div>
@@ -300,10 +279,10 @@ export default function SpecialNotice() {
                                     <Button
                                         variant="outline"
                                         className="w-full h-9 rounded-xl border-slate-200 text-[10px] font-black uppercase tracking-widest text-slate-600 hover:bg-slate-50 flex gap-2"
-                                        onClick={() => handleDownload("DE-154")}
+                                        onClick={() => handleDownload("DE-154", "https://www.courts.ca.gov/documents/de154.pdf")}
                                         disabled={downloadingForm === "DE-154"}
                                     >
-                                        <FileText className="w-4 h-4" /> {downloadingForm === "DE-154" ? "Generating..." : "Example DE-154"}
+                                        <FileText className="w-4 h-4" /> {downloadingForm === "DE-154" ? "Generating..." : "Generate DE-154"}
                                     </Button>
                                 </CardContent>
                             </Card>
@@ -314,3 +293,6 @@ export default function SpecialNotice() {
         </div>
     );
 }
+
+
+

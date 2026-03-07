@@ -10,6 +10,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Sidebar } from "@/components/Sidebar";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { downloadAutofillPdf } from "@/lib/formAutofill";
 
 export default function ProbatePetition() {
     const queryClient = useQueryClient();
@@ -25,7 +30,7 @@ export default function ProbatePetition() {
         enabled: !!estate,
     });
 
-    const { data: heirs = [] } = useQuery({
+    const { data: heirsData, isError: heirsQueryFailed } = useQuery({
         queryKey: ["heirs"],
         queryFn: api.getHeirs,
         enabled: !!estate,
@@ -45,22 +50,28 @@ export default function ProbatePetition() {
     if (!estate) return <div className="p-8">Loading estate data...</div>;
 
     const filedPetition = documents?.find((d: any) => d.documentType === "DE-111");
-    const heirCount = (Array.isArray(heirs) && heirs.length > 0)
-        ? heirs.length
-        : (Array.isArray(estate.heirs) ? estate.heirs.length : 0);
+    const heirs = Array.isArray(heirsData) ? heirsData : [];
+    const estateHeirs = Array.isArray(estate.heirs) ? estate.heirs : [];
+    const estateBeneficiaries = Array.isArray((estate as any).beneficiaries) ? (estate as any).beneficiaries : [];
+    const heirCount = Math.max(heirs.length, estateHeirs.length, estateBeneficiaries.length);
 
     const missingFields = [];
     if (!estate.deceasedFirstName) missingFields.push("Decedent Name");
     if (!estate.deceasedDateOfDeath) missingFields.push("Date of Death");
     if (!estate.probateCounty) missingFields.push("Probate County");
-    if (heirCount === 0) missingFields.push("Heirs/Beneficiaries");
+    if (heirCount === 0 && !heirsQueryFailed) missingFields.push("Heirs/Beneficiaries");
 
     const progress = Math.max(0, 100 - (missingFields.length * 25));
     const isReady = missingFields.length === 0;
 
     const handleDownloadDraft = async () => {
         try {
-            await api.getPetitionPdf("probate-petition-draft.pdf");
+            await downloadAutofillPdf({
+                formType: "DE-111",
+                payload: formData,
+                filename: "probate-petition-draft.pdf",
+            });
+            toast.success("Draft downloaded successfully");
         } catch (err: any) {
             toast.error("Download failed: " + err.message);
         }
@@ -85,6 +96,10 @@ export default function ProbatePetition() {
     const previewMutation = useMutation({
         mutationFn: (data: any) => api.previewPetition({ ...estate, ...data }),
         onSuccess: (res: any) => {
+            if (!res?.pdfBase64) {
+                toast.error("Preview unavailable: form generation did not return a PDF.");
+                return;
+            }
             setPreviewPdf(`data:application/pdf;base64,${res.pdfBase64}`);
             setPreviewOpen(true);
         },
@@ -422,11 +437,4 @@ function StatusItem({ icon, label, complete }: { icon: React.ReactNode, label: s
         </div>
     );
 }
-
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
-
-// ... (Existing code above remains, this is appended helper/components or state integration)
 
