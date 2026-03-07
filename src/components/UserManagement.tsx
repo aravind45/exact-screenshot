@@ -23,15 +23,9 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { UserPlus, Mail, Shield, UserCircle, CreditCard, Clock, Loader2, AlertCircle, Trash2, ExternalLink } from "lucide-react";
-import { loadStripe } from "@stripe/stripe-js";
+import stripePromise, { isStripeConfigured } from "@/lib/stripe";
 import { EmbeddedCheckoutProvider, EmbeddedCheckout } from "@stripe/react-stripe-js";
 
-// Initialize Stripe
-const stripeKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
-if (!stripeKey && import.meta.env.PROD) {
-    throw new Error("VITE_STRIPE_PUBLISHABLE_KEY is required in production");
-}
-const stripePromise = loadStripe(stripeKey || "pk_test_placeholder");
 
 interface UserManagementProps {
     estateId: string;
@@ -148,11 +142,17 @@ export function UserManagement({ estateId }: UserManagementProps) {
                         </DialogHeader>
 
                         {clientSecret ? (
-                            <div className="mt-4 border rounded-xl overflow-hidden bg-white">
-                                <EmbeddedCheckoutProvider stripe={stripePromise} options={{ clientSecret }}>
-                                    <EmbeddedCheckout className="min-h-[400px]" />
-                                </EmbeddedCheckoutProvider>
-                            </div>
+                            isStripeConfigured ? (
+                                <div className="mt-4 border rounded-xl overflow-hidden bg-white">
+                                    <EmbeddedCheckoutProvider stripe={stripePromise} options={{ clientSecret }}>
+                                        <EmbeddedCheckout className="min-h-[400px]" />
+                                    </EmbeddedCheckoutProvider>
+                                </div>
+                            ) : (
+                                <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+                                    Billing is currently unavailable. Please contact support to complete payment.
+                                </div>
+                            )
                         ) : isLimitExceeded ? (
                             <div className="space-y-6 pt-4">
                                 <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex gap-3 text-amber-800">
@@ -164,17 +164,28 @@ export function UserManagement({ estateId }: UserManagementProps) {
                                         </p>
                                     </div>
                                 </div>
+                                {!isStripeConfigured && (
+                                    <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
+                                        Online billing is currently unavailable. Please contact support for manual assistance.
+                                    </div>
+                                )}
                                 <div className="flex flex-col gap-3">
                                     <Button
-                                        onClick={() => seatPaymentMutation.mutate()}
-                                        disabled={seatPaymentMutation.isPending}
+                                        onClick={() => {
+                                            if (!isStripeConfigured) {
+                                                toast.error("Billing is currently unavailable. Please contact support.");
+                                                return;
+                                            }
+                                            seatPaymentMutation.mutate();
+                                        }}
+                                        disabled={seatPaymentMutation.isPending || !isStripeConfigured}
                                         className="w-full bg-indigo-600 hover:bg-indigo-700 h-12 font-bold gap-2"
                                     >
                                         {seatPaymentMutation.isPending ? (
                                             <Loader2 className="w-5 h-5 animate-spin" />
                                         ) : (
                                             <>
-                                                Pay $9.99 for Extra Seat
+                                                {isStripeConfigured ? "Pay $9.99 for Extra Seat" : "Checkout Unavailable"}
                                                 <CreditCard className="w-4 h-4" />
                                             </>
                                         )}
@@ -321,3 +332,4 @@ export function UserManagement({ estateId }: UserManagementProps) {
         </Card>
     );
 }
+

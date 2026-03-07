@@ -5,16 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Check, Shield, ShieldCheck, Zap, FileCheck, Scale, AlertTriangle, Loader2, ArrowLeft, Gem } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { loadStripe } from "@stripe/stripe-js";
+import stripePromise, { isStripeConfigured } from "@/lib/stripe";
 import { EmbeddedCheckoutProvider, EmbeddedCheckout } from "@stripe/react-stripe-js";
 import { motion, AnimatePresence } from "framer-motion";
 
-// Initialize Stripe
-const stripeKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
-if (!stripeKey && import.meta.env.PROD) {
-    throw new Error("VITE_STRIPE_PUBLISHABLE_KEY is required in production");
-}
-const stripePromise = loadStripe(stripeKey || "pk_test_placeholder");
 
 import { useAuth } from "@/contexts/AuthContext";
 import { SEO } from "@/components/SEO";
@@ -42,6 +36,15 @@ export default function Pricing(): JSX.Element {
         if (!user) {
             sessionStorage.setItem("after_login_redirect", "/pricing");
             navigate("/auth");
+            return;
+        }
+
+        if (!isStripeConfigured) {
+            toast({
+                variant: "destructive",
+                title: "Billing Unavailable",
+                description: "Online checkout is temporarily unavailable. Please contact support.",
+            });
             return;
         }
 
@@ -185,24 +188,31 @@ export default function Pricing(): JSX.Element {
                                             </div>
 
                                             <div className="space-y-4">
+                                                {!isStripeConfigured && (
+                                                    <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
+                                                        Billing is temporarily unavailable. Please contact support to activate a plan.
+                                                    </div>
+                                                )}
                                                 <Button
                                                     size="lg"
                                                     className="w-full bg-white hover:bg-slate-100 text-slate-950 font-black text-lg py-7 rounded-2xl shadow-xl shadow-white/5 transition-all active:scale-95 disabled:opacity-50"
                                                     onClick={() => fetchClientSecret(false)}
-                                                    disabled={loading}
+                                                    disabled={loading || !isStripeConfigured}
                                                 >
                                                     {loading ? (
                                                         <Loader2 className="w-6 h-6 animate-spin" />
-                                                    ) : (
+                                                    ) : isStripeConfigured ? (
                                                         "Start 7-Day Free Trial"
+                                                    ) : (
+                                                        "Billing Unavailable"
                                                     )}
                                                 </Button>
                                                 <button
                                                     onClick={() => fetchClientSecret(true)}
-                                                    disabled={loading}
-                                                    className="w-full text-slate-500 hover:text-slate-300 transition-colors text-sm font-bold uppercase tracking-widest py-2"
+                                                    disabled={loading || !isStripeConfigured}
+                                                    className="w-full text-slate-500 hover:text-slate-300 transition-colors text-sm font-bold uppercase tracking-widest py-2 disabled:cursor-not-allowed disabled:opacity-50"
                                                 >
-                                                    Skip Trial & Buy Now
+                                                    {isStripeConfigured ? "Skip Trial & Buy Now" : "Checkout Disabled"}
                                                 </button>
                                             </div>
                                         </div>
@@ -244,14 +254,23 @@ export default function Pricing(): JSX.Element {
                                 </div>
                             </div>
 
-                            <div className="bg-white rounded-[2.5rem] overflow-hidden p-2 shadow-2xl">
-                                <EmbeddedCheckoutProvider
-                                    stripe={stripePromise}
-                                    options={{ clientSecret }}
-                                >
-                                    <EmbeddedCheckout className="min-h-[650px]" />
-                                </EmbeddedCheckoutProvider>
-                            </div>
+                            {isStripeConfigured ? (
+                                <div className="bg-white rounded-[2.5rem] overflow-hidden p-2 shadow-2xl">
+                                    <EmbeddedCheckoutProvider
+                                        stripe={stripePromise}
+                                        options={{ clientSecret }}
+                                    >
+                                        <EmbeddedCheckout className="min-h-[650px]" />
+                                    </EmbeddedCheckoutProvider>
+                                </div>
+                            ) : (
+                                <div className="rounded-[2.5rem] border border-amber-500/30 bg-amber-500/10 p-8 text-amber-100 shadow-2xl">
+                                    <h2 className="text-2xl font-bold text-white">Billing is unavailable</h2>
+                                    <p className="mt-2 text-sm text-amber-200">
+                                        We could not initialize secure checkout. Please contact support and try again later.
+                                    </p>
+                                </div>
+                            )}
                         </motion.div>
                     )}
                 </AnimatePresence>
@@ -270,3 +289,4 @@ function FeatureItem({ icon: Icon, text }: { icon: any; text: string }) {
         </div>
     );
 }
+
