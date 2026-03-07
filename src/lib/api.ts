@@ -1591,10 +1591,29 @@ export const api = {
     },
 
     previewPetition: async (data: any) => {
-        const response = await fetch(`${API_URL}/pdf/preview`, {
+        const requestedDocumentId = String(
+            data?.documentId || data?.formId || data?.formType || "DE-111"
+        ).trim().toUpperCase();
+
+        // Legacy aliases used across probate pages.
+        const documentAliasMap: Record<string, string> = {
+            NOTICE_OF_HEARING: "DE-121",
+            RECEIPT_DISTRIBUTION: "RECEIPT_DISTRIBUTION",
+            SMALL_ESTATE_AFFIDAVIT: "SMALL_ESTATE_AFFIDAVIT",
+            AFFIDAVIT: "SMALL_ESTATE_AFFIDAVIT",
+        };
+
+        const documentId = documentAliasMap[requestedDocumentId] || requestedDocumentId;
+        const { documentId: _documentId, formId: _formId, formType: _formType, ...overrides } = data || {};
+
+        const response = await fetch(`${API_URL}/documents/generate`, {
             method: "POST",
             headers: getHeaders(),
-            body: JSON.stringify(data),
+            body: JSON.stringify({
+                documentId,
+                isPreview: true,
+                overrides,
+            }),
         });
         return parseResponse(response);
     },

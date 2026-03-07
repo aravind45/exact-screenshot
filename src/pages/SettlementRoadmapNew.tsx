@@ -1,7 +1,8 @@
 import { Sidebar } from "@/components/Sidebar";
+import { CollapsiblePhaseChevron } from "@/components/CollapsiblePhaseChevron";
 import { ProbateBlockerAlert } from "@/components/ProbateBlockerAlert";
 import { useWorkflow } from "@/contexts/WorkflowContext";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { CheckCircle, AlertCircle, ArrowRight, FileText, MapPin, History } from "lucide-react";
 import { SEO } from "@/components/SEO";
@@ -12,6 +13,7 @@ import { MinimumIntakeGate } from "@/components/MinimumIntakeGate";
 import { RoadmapTimelineOverview } from "@/components/roadmap/RoadmapTimelineOverview";
 
 export default function SettlementRoadmapNew() {
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { phaseProgress, probateBlockers, currentPhase, completedPhases, completedTaskIds, assets, isStateMissing, clientRoadmap } = useWorkflow();
 
@@ -47,6 +49,31 @@ export default function SettlementRoadmapNew() {
     : (clientRoadmap && clientRoadmap.length > 0 ? clientRoadmap : []);
 
   const isViewer = (estate as any)?.userRole === 'VIEWER';
+
+  const roadmapMutation = useMutation({
+    mutationFn: api.updateRoadmap,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['estate'] });
+    }
+  });
+
+  const handleTaskToggle = (taskId: string, completed: boolean, taskTitle: string, phaseName: string) => {
+    const currentCompleted = estate?.roadmapProgress?.completedTaskIds || [];
+    const currentPhases = estate?.roadmapProgress?.completedPhases || [];
+
+    const newCompletedIds = completed
+      ? [...new Set([...currentCompleted, taskId])]
+      : currentCompleted.filter((id: string) => id !== taskId);
+
+    roadmapMutation.mutate({
+      completedTaskIds: newCompletedIds,
+      completedPhases: currentPhases,
+      taskId,
+      action: completed ? 'COMPLETED' : 'UNCOMPLETED',
+      taskTitle,
+      phaseName
+    });
+  };
 
 
   // Calculate overall progress
@@ -237,6 +264,13 @@ export default function SettlementRoadmapNew() {
             </div>
           )}
 
+
+          {!isStateMissing && (
+            <CollapsiblePhaseChevron
+              onTaskToggle={handleTaskToggle}
+              isViewer={isViewer}
+            />
+          )}
         </main>
       </div>
     </div>

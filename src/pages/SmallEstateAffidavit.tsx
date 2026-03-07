@@ -1,7 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
-import { useState } from "react";
 import { Sidebar } from "@/components/Sidebar";
 import {
     Zap,
@@ -24,7 +23,6 @@ import { useTerminology } from "@/hooks/use-terminology";
 
 export default function SmallEstateAffidavit() {
     const queryClient = useQueryClient();
-    const [downloadingForm, setDownloadingForm] = useState<string | null>(null);
     const { stateRule, smallEstateThreshold, estate } = useTerminology();
 
     const completeTaskMutation = useMutation({
@@ -39,47 +37,7 @@ export default function SmallEstateAffidavit() {
         }
     });
 
-    const generatePdfMutation = useMutation({
-        mutationFn: (formType: string) => api.previewPetition({ formType }),
-        onSuccess: (data: any, formType) => {
-            if (data.pdfBase64) {
-                const blob = b64toBlob(data.pdfBase64, 'application/pdf');
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `${formType}_PreFilled.pdf`;
-                a.click();
-                toast.success(`${formType} downloaded successfully`);
-            }
-        },
-        onSettled: () => setDownloadingForm(null),
-        onError: (err: any) => {
-            toast.error(`Error generating PDF: ${err.message}`);
-        }
-    });
-
-    // Helper to convert base64 to Blob
-    const b64toBlob = (b64Data: string, contentType = '', sliceSize = 512) => {
-        const byteCharacters = atob(b64Data);
-        const byteArrays = [];
-        for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
-            const slice = byteCharacters.slice(offset, offset + sliceSize);
-            const byteNumbers = new Array(slice.length);
-            for (let i = 0; i < slice.length; i++) {
-                byteNumbers[i] = slice.charCodeAt(i);
-            }
-            const byteArray = new Uint8Array(byteNumbers);
-            byteArrays.push(byteArray);
-        }
-        return new Blob(byteArrays, { type: contentType });
-    };
-
     const completedTaskIds = estate?.roadmapProgress?.completedTaskIds || [];
-
-    const handleDownload = (form: string) => {
-        setDownloadingForm(form);
-        generatePdfMutation.mutate(form);
-    };
 
     const handleMarkAsComplete = async (taskId: string) => {
         completeTaskMutation.mutate({ taskId });
@@ -179,11 +137,10 @@ export default function SmallEstateAffidavit() {
                                                         <Button
                                                             variant="outline"
                                                             size="sm"
-                                                            className="h-9 px-4 text-[10px] font-black uppercase tracking-widest border-amber-200 text-amber-700 hover:bg-amber-50"
-                                                            onClick={() => handleDownload("SMALL_ESTATE_AFFIDAVIT")}
-                                                            disabled={downloadingForm === "SMALL_ESTATE_AFFIDAVIT" || step.status === 'locked'}
+                                                            className="h-9 px-4 text-[10px] font-black uppercase tracking-widest border-amber-200 text-amber-500"
+                                                            disabled
                                                         >
-                                                            {downloadingForm === "SMALL_ESTATE_AFFIDAVIT" ? "Generating..." : "Generate Affidavit"}
+                                                            Auto-fill unavailable
                                                         </Button>
                                                     )}
 

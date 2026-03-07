@@ -101,7 +101,13 @@ router.get("/readiness", async (req: any, res: Response) => {
 router.post("/generate", async (req: any, res: Response) => {
     try {
         const validated = generateDocumentSchema.parse(req.body);
-        const { documentId: formId, isPreview, overrides } = validated;
+        const { documentId: requestedDocumentId, isPreview, overrides } = validated;
+        const normalizedDocumentId = requestedDocumentId.trim().toUpperCase();
+        const documentAliasMap: Record<string, string> = {
+            NOTICE_OF_HEARING: 'DE-121',
+            RECEIPT_DISTRIBUTION: 'RECEIPT_DISTRIBUTION',
+        };
+        const formId = documentAliasMap[normalizedDocumentId] || normalizedDocumentId;
         const estateId = await getEstateId(req.user.id);
 
         if (!estateId) return res.status(404).json({ error: "Estate not found" });
@@ -116,7 +122,7 @@ router.post("/generate", async (req: any, res: Response) => {
         const mergedData = { ...estate, ...overrides };
         let pdfBytes: Uint8Array;
 
-        // Check for specialised generator first
+        // Check for specialised generator first.
         const specializedGenerators: Record<string, Function> = {
             'DE-111': DocumentService.generateDE111,
             'DE-160': async (data: any) => {
@@ -138,8 +144,19 @@ router.post("/generate", async (req: any, res: Response) => {
             'DE-351': DocumentService.generateDE351,
             'DE-142': DocumentService.generateDE142,
             'DE-143': DocumentService.generateDE143,
+            'DE-154': DocumentService.generateDE154,
+            'DE-115': DocumentService.generateDE115,
+            'DE-116': DocumentService.generateDE116,
+            'DE-295': DocumentService.generateDE295,
+            'DE-165': DocumentService.generateDE165,
+            'DE-260': DocumentService.generateDE260,
+            'DE-265': DocumentService.generateDE265,
+            'RECEIPT_DISTRIBUTION': async (data: any) => {
+                const beneficiaryName = overrides?.beneficiaryName || data?.beneficiaryName;
+                return DocumentService.generateReceiptOfDistribution(data, beneficiaryName);
+            },
             'DE-174': async (data: any) => {
-                // If overrides contains a liabilityId, fetch it
+                // If overrides contains a liabilityId, fetch it.
                 if (overrides?.liabilityId) {
                     const liability = await prisma.liability.findUnique({ where: { id: overrides.liabilityId } });
                     return DocumentService.generateDE174(data, liability);
