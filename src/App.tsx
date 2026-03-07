@@ -33,6 +33,7 @@ const VerifyEmail = lazy(() => import("./pages/VerifyEmail"));
 const Assets = lazy(() => import("./pages/Assets"));
 const AssetDetail = lazy(() => import("./pages/AssetDetail"));
 const AddAsset = lazy(() => import("./pages/AddAsset"));
+const AddLiability = lazy(() => import("./pages/AddLiability"));
 const UploadDocument = lazy(() => import("./pages/UploadDocument"));
 const Documents = lazy(() => import("./pages/Documents"));
 
@@ -245,6 +246,7 @@ const AppRoutes = () => {
             <Route path="/assets" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><ProfileGuard><SubscriptionGuard><Assets /></SubscriptionGuard></ProfileGuard></RoleRoute></ProtectedRoute>} />
             <Route path="/asset/:id" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><ProfileGuard><SubscriptionGuard><AssetDetail /></SubscriptionGuard></ProfileGuard></RoleRoute></ProtectedRoute>} />
             <Route path="/add-asset" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><ProfileGuard><SubscriptionGuard><AddAsset /></SubscriptionGuard></ProfileGuard></RoleRoute></ProtectedRoute>} />
+            <Route path="/add-liability" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><ProfileGuard><SubscriptionGuard><AddLiability /></SubscriptionGuard></ProfileGuard></RoleRoute></ProtectedRoute>} />
             <Route path="/upload" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><ProfileGuard><SubscriptionGuard><UploadDocument /></SubscriptionGuard></ProfileGuard></RoleRoute></ProtectedRoute>} />
             <Route path="/documents" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><ProfileGuard><SubscriptionGuard><Documents /></SubscriptionGuard></ProfileGuard></RoleRoute></ProtectedRoute>} />
 
@@ -346,3 +348,4 @@ const AppRoutes = () => {
 };
 
 export default App;
+

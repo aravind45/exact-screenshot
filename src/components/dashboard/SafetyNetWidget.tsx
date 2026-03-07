@@ -1,71 +1,101 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { AlertCircle, ArrowRight, MessageSquare, ShieldCheck } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { ArrowRight, ShieldCheck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface Asset {
-    id: string;
-    institution: string;
-    status: string;
-    lastContactDate?: string | null;
+  id: string;
+  institution: string;
+  status: string;
+  lastContactDate?: string | null;
 }
 
 interface SafetyNetWidgetProps {
-    assets: Asset[];
-    onNavigate: (assetId: string) => void;
+  assets: Asset[];
+  onNavigate: (assetId: string) => void;
+}
+
+interface StaleAsset extends Asset {
+  daysSinceLastContact: number;
 }
 
 export function SafetyNetWidget({ assets, onNavigate }: SafetyNetWidgetProps) {
-    const STUCK_THRESHOLD_DAYS = 14;
+  const navigate = useNavigate();
+  const STUCK_THRESHOLD_DAYS = 14;
 
-    // Identify assets that are "stuck":
-    // 1. Status is discoverd or contacted (not closed/distributed)
-    // 2. Last contact was > 14 days ago OR never contacted but created > 14 days ago
-    const stuckAssets = assets.filter(asset => {
-        const status = asset.status?.toLowerCase() || "";
-        if (status === "closed" || status === "distributed") return false;
+  const staleAssets: StaleAsset[] = assets
+    .map((asset) => {
+      const status = asset.status?.toLowerCase() || "";
+      if (status === "closed" || status === "distributed") return null;
 
-        const lastDate = asset.lastContactDate ? new Date(asset.lastContactDate) : null;
-        if (!lastDate) return false; // If never contacted, maybe it's just new. Simplified logic.
+      const lastDate = asset.lastContactDate ? new Date(asset.lastContactDate) : null;
+      if (!lastDate) return null;
 
-        const daysSince = Math.ceil((new Date().getTime() - lastDate.getTime()) / (1000 * 3600 * 24));
-        return daysSince > STUCK_THRESHOLD_DAYS;
-    });
+      const daysSinceLastContact = Math.ceil(
+        (Date.now() - lastDate.getTime()) / (1000 * 3600 * 24)
+      );
 
-    if (stuckAssets.length === 0) return null;
+      if (daysSinceLastContact <= STUCK_THRESHOLD_DAYS) return null;
 
-    return (
-        <Card className="bg-amber-50 border-amber-100 shadow-sm">
-            <CardHeader className="flex flex-row items-center gap-2 pb-2">
-                <ShieldCheck className="w-4 h-4 text-amber-600" />
-                <CardTitle className="text-sm font-bold text-amber-900 uppercase tracking-wider">Safety Net Active</CardTitle>
-            </CardHeader>
-            <CardContent>
-                <div className="space-y-3">
-                    <p className="text-xs text-amber-800 font-medium">
-                        {stuckAssets.length} asset{stuckAssets.length > 1 ? 's' : ''} haven't had activity in over 2 weeks.
-                        Institutions often stall here.
-                    </p>
+      return {
+        ...asset,
+        daysSinceLastContact,
+      };
+    })
+    .filter((asset): asset is StaleAsset => !!asset)
+    .sort((a, b) => b.daysSinceLastContact - a.daysSinceLastContact);
 
-                    <div className="space-y-1.5">
-                        {stuckAssets.slice(0, 3).map(asset => (
-                            <div key={asset.id} className="flex items-center justify-between p-2 bg-white rounded-xl border border-amber-200">
-                                <span className="text-sm font-bold text-slate-700">{asset.institution}</span>
-                                <Button
-                                    size="sm"
-                                    variant="outline"
-                                    className="h-7 text-xs border-amber-200 text-amber-700 hover:bg-amber-50"
-                                    onClick={() => onNavigate(asset.id)}
-                                >
-                                    Nudge
-                                    <ArrowRight className="w-3 h-3 ml-1" />
-                                </Button>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </CardContent>
-        </Card>
-    );
+  if (staleAssets.length === 0) return null;
+
+  return (
+    <Card className="bg-white border-slate-200 shadow-sm">
+      <CardHeader className="flex flex-row items-center justify-between gap-2 pb-2">
+        <div className="flex items-center gap-2">
+          <ShieldCheck className="w-4 h-4 text-indigo-600" />
+          <CardTitle className="text-sm font-bold text-slate-900">Follow-Up Reminders</CardTitle>
+        </div>
+        <span className="text-[10px] font-bold uppercase tracking-wide text-slate-500">
+          {staleAssets.length} pending
+        </span>
+      </CardHeader>
+
+      <CardContent className="space-y-3">
+        <p className="text-xs text-slate-600 font-medium leading-relaxed">
+          These accounts have had no recent updates. A quick follow-up call or secure message can keep the case moving.
+        </p>
+
+        <div className="space-y-1.5">
+          {staleAssets.slice(0, 3).map((asset) => (
+            <div
+              key={asset.id}
+              className="flex items-center justify-between gap-2 p-2.5 bg-slate-50 rounded-xl border border-slate-100"
+            >
+              <div className="min-w-0">
+                <p className="text-sm font-bold text-slate-800 truncate">{asset.institution}</p>
+                <p className="text-[11px] text-slate-500">No update for {asset.daysSinceLastContact} days</p>
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-7 text-xs border-slate-200 text-slate-700 hover:bg-white"
+                onClick={() => onNavigate(asset.id)}
+              >
+                Review
+                <ArrowRight className="w-3 h-3 ml-1" />
+              </Button>
+            </div>
+          ))}
+        </div>
+
+        <Button
+          variant="ghost"
+          size="sm"
+          className="w-full h-8 text-[10px] uppercase font-black tracking-widest text-indigo-600 hover:bg-indigo-50 border border-indigo-100 rounded-xl"
+          onClick={() => navigate("/assets")}
+        >
+          Open Asset Ledger
+        </Button>
+      </CardContent>
+    </Card>
+  );
 }

@@ -12,6 +12,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 import { useAuth } from "@/contexts/AuthContext";
 import { SEO } from "@/components/SEO";
+import { useQuery } from "@tanstack/react-query";
 
 export default function Pricing(): JSX.Element {
     const navigate = useNavigate();
@@ -19,6 +20,20 @@ export default function Pricing(): JSX.Element {
     const { user, isAdmin } = useAuth(); // Get user and helper
     const [loading, setLoading] = useState(false);
     const [clientSecret, setClientSecret] = useState<string | null>(null);
+
+    const { data: billingStatus } = useQuery({
+        queryKey: ["billing-status"],
+        queryFn: () => api.billing.getStatus(),
+        enabled: Boolean(user),
+        staleTime: 60_000,
+    });
+
+    const backendCheckoutEnabled = billingStatus?.checkoutEnabled !== false;
+    const checkoutDisabledReason = !isStripeConfigured
+        ? "Stripe publishable key is missing. Configure VITE_STRIPE_PUBLISHABLE_KEY to enable checkout."
+        : (!backendCheckoutEnabled ? (billingStatus?.checkoutDisabledReason || "Billing checkout is not configured.") : null);
+
+    const canCheckout = isStripeConfigured && backendCheckoutEnabled;
 
     // ── GA4 view_pricing event on mount ────────────────────────────────────
     useEffect(() => {
@@ -39,14 +54,16 @@ export default function Pricing(): JSX.Element {
             return;
         }
 
-        if (!isStripeConfigured) {
+        if (!canCheckout) {
             toast({
                 variant: "destructive",
                 title: "Billing Unavailable",
-                description: "Online checkout is temporarily unavailable. Please contact support.",
+                description: checkoutDisabledReason || "Online checkout is temporarily unavailable. Please contact support.",
             });
             return;
         }
+
+
 
         // ── GA4 begin_checkout event ────────────────────────────────────────
         if (typeof window !== 'undefined' && (window as any).gtag) {
@@ -70,7 +87,7 @@ export default function Pricing(): JSX.Element {
         } finally {
             setLoading(false);
         }
-    }, [toast, user, navigate]);
+    }, [toast, user, navigate, canCheckout, checkoutDisabledReason]);
 
     // Admin Bypass
     if (isAdmin) {
@@ -188,20 +205,20 @@ export default function Pricing(): JSX.Element {
                                             </div>
 
                                             <div className="space-y-4">
-                                                {!isStripeConfigured && (
+                                                {checkoutDisabledReason && (
                                                     <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
-                                                        Billing is temporarily unavailable. Please contact support to activate a plan.
+                                                        {checkoutDisabledReason}
                                                     </div>
                                                 )}
                                                 <Button
                                                     size="lg"
                                                     className="w-full bg-white hover:bg-slate-100 text-slate-950 font-black text-lg py-7 rounded-2xl shadow-xl shadow-white/5 transition-all active:scale-95 disabled:opacity-50"
                                                     onClick={() => fetchClientSecret(false)}
-                                                    disabled={loading || !isStripeConfigured}
+                                                    disabled={loading || !canCheckout}
                                                 >
                                                     {loading ? (
                                                         <Loader2 className="w-6 h-6 animate-spin" />
-                                                    ) : isStripeConfigured ? (
+                                                    ) : canCheckout ? (
                                                         "Start 7-Day Free Trial"
                                                     ) : (
                                                         "Billing Unavailable"
@@ -209,10 +226,10 @@ export default function Pricing(): JSX.Element {
                                                 </Button>
                                                 <button
                                                     onClick={() => fetchClientSecret(true)}
-                                                    disabled={loading || !isStripeConfigured}
+                                                    disabled={loading || !canCheckout}
                                                     className="w-full text-slate-500 hover:text-slate-300 transition-colors text-sm font-bold uppercase tracking-widest py-2 disabled:cursor-not-allowed disabled:opacity-50"
                                                 >
-                                                    {isStripeConfigured ? "Skip Trial & Buy Now" : "Checkout Disabled"}
+                                                    {canCheckout ? "Skip Trial & Buy Now" : "Checkout Disabled"}
                                                 </button>
                                             </div>
                                         </div>
@@ -254,7 +271,7 @@ export default function Pricing(): JSX.Element {
                                 </div>
                             </div>
 
-                            {isStripeConfigured ? (
+                            {canCheckout ? (
                                 <div className="bg-white rounded-[2.5rem] overflow-hidden p-2 shadow-2xl">
                                     <EmbeddedCheckoutProvider
                                         stripe={stripePromise}
@@ -289,4 +306,11 @@ function FeatureItem({ icon: Icon, text }: { icon: any; text: string }) {
         </div>
     );
 }
+
+
+
+
+
+
+
 

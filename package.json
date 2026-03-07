@@ -46,7 +46,8 @@
     "test:verify-no-null-authority-scopes": "tsx server/scripts/verify-no-null-authority-scopes.ts",
     "test:roadmap:matrix": "vitest run src/tests/roadmap/roadmap_matrix_hardening.test.ts",
     "test:roadmap:random-smoke": "tsx server/scripts/smoke-random-estate-roadmap.ts",
-    "test:roadmap:confidence-matrix": "tsx server/scripts/roadmap-confidence-matrix.ts"
+    "test:roadmap:confidence-matrix": "tsx server/scripts/roadmap-confidence-matrix.ts",
+    "test:billing": "vitest run src/tests/billing"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -168,4 +169,6 @@
     "vitest": "^3.2.4"
   }
 }
+
+
 

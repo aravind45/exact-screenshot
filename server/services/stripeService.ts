@@ -2,6 +2,7 @@ import Stripe from 'stripe';
 import { prisma } from '../db.js';
 import crypto from 'crypto';
 import { logger } from '../lib/logger.js';
+import { getRefundEligibility } from '../utils/refundUtils.js';
 
 
 const PRICE_ID = process.env.STRIPE_PRICE_ID || 'price_1234567890'; // $49/mo product
@@ -304,31 +305,47 @@ export class StripeService {
             include: { user: true },
         });
 
-        if (!transaction) throw new Error('Transaction not found');
-        if (!transaction.stripePaymentIntentId) throw new Error('No Stripe payment intent found');
+        const eligibility = getRefundEligibility({
+            type: transaction?.type,
+            status: transaction?.status,
+            amount: transaction?.amount as any,
+            stripePaymentIntentId: transaction?.stripePaymentIntentId,
+        });
+
+        if (!eligibility.eligible) {
+            throw new Error(eligibility.reason || 'Transaction is not refundable');
+        }
+
+        const existingRefunds = await this.stripe.refunds.list({
+            payment_intent: transaction!.stripePaymentIntentId as string,
+            limit: 1,
+        });
+
+        if (existingRefunds.data.length > 0) {
+            throw new Error('This payment already has a refund recorded in Stripe');
+        }
 
         // Issue refund via Stripe
         const refund = await this.stripe.refunds.create({
-            payment_intent: transaction.stripePaymentIntentId,
+            payment_intent: transaction!.stripePaymentIntentId as string,
         });
 
         // Log refund transaction
         await prisma.transaction.create({
             data: {
-                userId: transaction.userId,
-                amount: -transaction.amount,
-                currency: transaction.currency,
+                userId: transaction!.userId,
+                amount: -transaction!.amount,
+                currency: transaction!.currency,
                 status: 'REFUNDED',
                 stripePaymentIntentId: refund.id,
                 type: 'REFUND',
-                notes: adminNotes,
+                notes: `refund_of:${transactionId} | ${adminNotes}`,
             },
         });
 
         logger.info(`✅ Refund issued for transaction ${transactionId}`);
         return refund;
     }
-
     /**
      * Get subscription status for a user
      */
@@ -604,3 +621,5 @@ export class StripeService {
         }
     }
 }
+
+

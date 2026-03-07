@@ -23,7 +23,13 @@ export default function PetitionWizard() {
     // Fetch Estate Data
     const { data: estate, isLoading } = useQuery({
         queryKey: ["estate"],
-        queryFn: api.getMyEstate, // This includes heirs now
+        queryFn: api.getMyEstate,
+    });
+
+    const { data: heirs = [] } = useQuery({
+        queryKey: ["heirs"],
+        queryFn: api.getHeirs,
+        enabled: !!estate,
     });
 
     const updateEst = useMutation({
@@ -31,6 +37,7 @@ export default function PetitionWizard() {
         onSuccess: () => {
             toast({ title: "Saved", description: "Progress saved." });
             queryClient.invalidateQueries({ queryKey: ["estate"] });
+            queryClient.invalidateQueries({ queryKey: ["heirs"] });
         }
     });
 
@@ -38,6 +45,7 @@ export default function PetitionWizard() {
         mutationFn: api.createHeir,
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["estate"] });
+            queryClient.invalidateQueries({ queryKey: ["heirs"] });
             toast({ title: "Heir Added" });
         }
     });
@@ -46,6 +54,7 @@ export default function PetitionWizard() {
         mutationFn: api.deleteHeir,
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["estate"] });
+            queryClient.invalidateQueries({ queryKey: ["heirs"] });
             toast({ title: "Heir Removed" });
         }
     });
@@ -56,6 +65,7 @@ export default function PetitionWizard() {
     if (isLoading) return <div className="p-8 text-center">Loading Petition...</div>;
     if (!estate) return <div className="p-8 text-center">Estate not found.</div>;
 
+    const heirsList = (Array.isArray(heirs) && heirs.length > 0) ? heirs : (estate.heirs || []);
     const totalSteps = 5;
 
     const nextStep = () => setStep(s => Math.min(s + 1, totalSteps));
@@ -226,8 +236,8 @@ export default function PetitionWizard() {
 
                                         {/* Existing Heirs */}
                                         <div className="border rounded-lg divide-y">
-                                            {estate.heirs?.length === 0 && <div className="p-4 text-center text-slate-500 italic">No heirs listed yet.</div>}
-                                            {estate.heirs?.map((heir: any) => (
+                                            {heirsList.length === 0 && <div className="p-4 text-center text-slate-500 italic">No heirs listed yet.</div>}
+                                            {heirsList.map((heir: any) => (
                                                 <div key={heir.id} className="p-3 flex items-center justify-between hover:bg-slate-50">
                                                     <div>
                                                         <div className="font-medium text-slate-900">{heir.name}</div>
@@ -294,7 +304,7 @@ export default function PetitionWizard() {
                                             </div>
                                             <div className="p-4 border rounded bg-slate-50">
                                                 <div className="text-xs font-bold text-slate-500 uppercase">Heirs Count</div>
-                                                <div className="font-medium">{estate.heirs?.length || 0}</div>
+                                                <div className="font-medium">{heirsList.length || 0}</div>
                                             </div>
                                         </div>
 
@@ -330,3 +340,4 @@ export default function PetitionWizard() {
         </div>
     );
 }
+

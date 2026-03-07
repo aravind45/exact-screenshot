@@ -362,7 +362,7 @@ export default function Accounting() {
                             title="Disbursements (Paid Debts)"
                             data={paidLiabilities}
                             isDebt
-                            onAdd={() => navigate('/liabilities')}
+                            onAdd={() => navigate('/add-liability')}
                             onDiscovery={() => navigate('/discovery')}
                         />
                     </TabsContent>
@@ -520,3 +520,4 @@ function CompletenessBadge({ label, active }: { label: string, active: boolean }
         </div>
     );
 }
+

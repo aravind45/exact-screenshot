@@ -114,7 +114,7 @@ router.get("/my", async (req: any, res: Response) => {
                         { grants: { some: { userId: req.user.id } } }
                     ]
                 },
-                include: { user: true }
+                include: { user: true, heirs: true }
             });
         } catch (dbError: any) {
             // Check if this is a missing column error
@@ -145,7 +145,7 @@ router.get("/my", async (req: any, res: Response) => {
             try {
                 updatedEstate = await prisma.estate.findUnique({
                     where: { id: estate.id },
-                    include: { user: true }
+                    include: { user: true, heirs: true }
                 });
             } catch (dbError: any) {
                 // Check if this is a missing column error
@@ -209,6 +209,18 @@ router.get("/my", async (req: any, res: Response) => {
                 estateToReturn.user = await prisma.user.findUnique({
                     where: { id: estateToReturn.userId }
                 });
+            }
+
+            if (estateToReturn.id) {
+                try {
+                    estateToReturn.heirs = await prisma.heir.findMany({
+                        where: { estateId: estateToReturn.id },
+                        orderBy: { createdAt: "asc" }
+                    });
+                } catch (heirErr) {
+                    logger.warn("Failed to load heirs during fallback estate fetch:", heirErr);
+                    estateToReturn.heirs = [];
+                }
             }
 
             return res.json(estateToReturn);

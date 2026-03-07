@@ -1,20 +1,18 @@
-import React, { useState } from "react";
+import React from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Button } from "@/components/ui/button";
-import { Plus, AlertCircle, CheckCircle2, TrendingDown, Clock } from "lucide-react";
+import { Plus, AlertCircle, CheckCircle2, Clock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { LiabilityStatsWidget } from "@/components/liabilities/LiabilityStatsWidget";
 import { LiabilityList } from "@/components/liabilities/LiabilityList";
-import { AddLiabilityDialog } from "@/components/liabilities/AddLiabilityDialog";
 import { SolvencyTracker } from "@/components/liabilities/SolvencyTracker";
 import { ClaimsPriorityEngine } from "@/components/liabilities/ClaimsPriorityEngine";
 import { SEO } from "@/components/SEO";
 
 export default function Liabilities() {
     const navigate = useNavigate();
-    const [showAddDialog, setShowAddDialog] = useState(false);
 
     const { data: estate } = useQuery({
         queryKey: ["estate"],
@@ -45,7 +43,6 @@ export default function Liabilities() {
 
     // Derived stats from real data (no hardcoded values)
     const liabilitiesArray = Array.isArray(liabilities) ? liabilities as any[] : [];
-    const totalDebt = liabilitiesArray.reduce((s: number, l: any) => s + (Number(l.amount) || 0), 0);
     const paidCount = liabilitiesArray.filter((l: any) => l.status === 'PAID').length;
     const pendingCount = liabilitiesArray.filter((l: any) => l.status !== 'PAID').length;
     const overdueCount = liabilitiesArray.filter((l: any) => {
@@ -96,7 +93,7 @@ export default function Liabilities() {
                 </div>
                 {!isViewer && (
                     <Button
-                        onClick={() => setShowAddDialog(true)}
+                        onClick={() => navigate("/add-liability")}
                         className="h-9 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-xl px-5 text-[11px] gap-1.5 shadow-sm"
                     >
                         <Plus className="w-3.5 h-3.5" /> Add Liability
@@ -137,11 +134,8 @@ export default function Liabilities() {
                     />
                 )}
             </div>
-
-            <AddLiabilityDialog
-                open={showAddDialog}
-                onOpenChange={setShowAddDialog}
-            />
         </DashboardLayout>
     );
 }
+
+

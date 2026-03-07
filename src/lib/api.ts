@@ -77,6 +77,14 @@ export interface Estate {
         fullName: string;
         state: string;
     };
+    heirs?: Array<{
+        id: string;
+        name: string;
+        relationship?: string;
+        isAdult?: boolean;
+        email?: string;
+        phone?: string;
+    }>;
 
     // Completeness
     completenessLevel?: string;
@@ -347,6 +355,23 @@ const openBlobInNewTab = (blob: Blob) => {
     window.open(url, '_blank');
 };
 
+
+const blobToBase64 = async (blob: Blob): Promise<string> => {
+    return await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            const result = String(reader.result || "");
+            const commaIndex = result.indexOf(",");
+            if (commaIndex === -1) {
+                reject(new Error("Failed to convert PDF blob to base64"));
+                return;
+            }
+            resolve(result.slice(commaIndex + 1));
+        };
+        reader.onerror = () => reject(new Error("Failed to read PDF blob"));
+        reader.readAsDataURL(blob);
+    });
+};
 const parseResponse = async (response: Response) => {
     const text = await response.text();
     let data;
@@ -1606,16 +1631,70 @@ export const api = {
         const documentId = documentAliasMap[requestedDocumentId] || requestedDocumentId;
         const { documentId: _documentId, formId: _formId, formType: _formType, ...overrides } = data || {};
 
-        const response = await fetch(`${API_URL}/documents/generate`, {
+        const toBase64Response = async (response: Response) => {
+            const pdfBlob = await response.blob();
+            const pdfBase64 = await blobToBase64(pdfBlob);
+            return {
+                documentId,
+                pdfBase64,
+                mimeType: "application/pdf",
+                filename: `${documentId}_Generated.pdf`,
+            };
+        };
+
+        // Prefer the CA pipeline for forms with explicit CA auto-fill registries.
+        if (["DE-111", "DE-160", "DE-310"].includes(documentId)) {
+            const caResponse = await fetch(`${API_URL}/forms/ca/generate`, {
+                method: "POST",
+                headers: getHeaders(),
+                body: JSON.stringify({
+                    formId: documentId,
+                    isPreview: true,
+                    overrides,
+                }),
+            });
+
+            if (caResponse.ok) {
+                return toBase64Response(caResponse);
+            }
+        }
+
+        let primaryError: any;
+        try {
+            const response = await fetch(`${API_URL}/documents/generate`, {
+                method: "POST",
+                headers: getHeaders(),
+                body: JSON.stringify({
+                    documentId,
+                    isPreview: true,
+                    overrides,
+                }),
+            });
+            return await parseResponse(response);
+        } catch (error: any) {
+            primaryError = error;
+        }
+
+        // Compatibility fallback for environments still using /forms/generate.
+        const fallbackResponse = await fetch(`${API_URL}/forms/generate`, {
             method: "POST",
             headers: getHeaders(),
             body: JSON.stringify({
-                documentId,
+                formId: documentId,
                 isPreview: true,
                 overrides,
             }),
         });
-        return parseResponse(response);
+
+        if (fallbackResponse.ok) {
+            return toBase64Response(fallbackResponse);
+        }
+
+        if (primaryError) {
+            throw primaryError;
+        }
+
+        throw new Error(`Preview generation failed for ${documentId}`);
     },
 
     createLiability: async (data: Partial<Liability>) => {
@@ -2806,3 +2885,4 @@ export const api = {
         },
     },
 };
+

@@ -318,7 +318,7 @@ export function DeadlineTracker({ estateId }: { estateId: string }) {
                 <div className="flex items-center gap-2">
                     <Calendar className="w-4 h-4 text-violet-500" />
                     <CardTitle className="text-sm font-black text-slate-700 uppercase tracking-wider">
-                        Critical Dates
+                        Important Dates
                     </CardTitle>
                     {overdue.length > 0 && (
                     <span className="text-xs font-bold bg-rose-500 text-white rounded-full px-1.5 py-0.5 animate-pulse">
@@ -426,7 +426,7 @@ export function DeadlineTracker({ estateId }: { estateId: string }) {
                 {isEmpty && (
                     <div className="h-32 flex flex-col items-center justify-center text-center p-3 border-2 border-dashed border-slate-100 rounded-xl">
                         <Clock className="w-6 h-6 text-slate-300 mb-1.5" />
-                        <p className="text-sm text-slate-500 font-medium">No deadlines tracked</p>
+                        <p className="text-sm text-slate-500 font-medium">No dates saved yet</p>
                         <p className="text-xs text-slate-400 mt-0.5">
                             Click <strong>Auto-Generate</strong> to compute all statutory deadlines
                             <br />based on your estate's track and state
@@ -437,7 +437,7 @@ export function DeadlineTracker({ estateId }: { estateId: string }) {
                 {/* Overdue section */}
                 {overdue.length > 0 && (
                     <div className="space-y-1">
-                        <p className="text-xs font-bold text-rose-600 uppercase tracking-wide px-0.5">Overdue</p>
+                        <p className="text-xs font-bold text-rose-600 uppercase tracking-wide px-0.5">Needs Attention</p>
                         {overdue.map(d => (
                             <div key={d.id} className="group">
                                 <DeadlineRow
@@ -453,7 +453,7 @@ export function DeadlineTracker({ estateId }: { estateId: string }) {
                 {/* Urgent section */}
                 {urgent.length > 0 && (
                     <div className="space-y-1">
-                        <p className="text-xs font-bold text-amber-600 uppercase tracking-wide px-0.5">Due Soon</p>
+                        <p className="text-xs font-bold text-amber-600 uppercase tracking-wide px-0.5">Coming Soon</p>
                         {urgent.map(d => (
                             <div key={d.id} className="group">
                                 <DeadlineRow
@@ -494,7 +494,7 @@ export function DeadlineTracker({ estateId }: { estateId: string }) {
                             className="flex items-center gap-1 text-xs font-bold text-slate-400 uppercase tracking-wide px-0.5 hover:text-slate-600 transition-colors"
                         >
                             <AlertTriangle className="w-3 h-3 text-amber-400" />
-                            {pending.length} Pending Anchor Date{pending.length > 1 ? "s" : ""}
+                            {pending.length} Missing Anchor Date{pending.length > 1 ? "s" : ""}
                             {showPending ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
                         </button>
                         {showPending && pending.map(d => (
@@ -524,3 +524,4 @@ export function DeadlineTracker({ estateId }: { estateId: string }) {
         </Card>
     );
 }
+

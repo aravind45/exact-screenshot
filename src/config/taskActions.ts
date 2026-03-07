@@ -68,7 +68,7 @@ export const TASK_ACTIONS: Record<string, TaskAction> = {
   },
   'pay_immediate_bills': {
     type: 'navigate',
-    target: '/assets',
+    target: '/liabilities',
     label: 'Track Bills',
     icon: 'DollarSign'
   },
@@ -585,7 +585,7 @@ export const TASK_ACTIONS: Record<string, TaskAction> = {
   },
   'manage_utilities': {
     type: 'navigate',
-    target: '/assets',
+    target: '/liabilities',
     label: 'Track Utilities',
     icon: 'Wrench'
   },
@@ -836,6 +836,7 @@ export const TASK_ACTIONS: Record<string, TaskAction> = {
     icon: 'Shield'
   }
 };
+
 
 
 

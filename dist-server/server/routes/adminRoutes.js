@@ -438,10 +438,17 @@ router.post("/refund", isAdmin, async (req, res) => {
         res.json({ success: true, refund });
     }
     catch (error) {
-        if (error instanceof z.ZodError)
+        if (error instanceof z.ZodError) {
             return res.status(400).json({ error: "Invalid refund request", details: error.errors });
-        logger.error('Refund error:', error.message);
-        res.status(500).json({ error: "Failed to issue refund" });
+        }
+        const message = String(error?.message || "Failed to issue refund");
+        const isValidationFailure = message.toLowerCase().includes("not refundable") ||
+            message.toLowerCase().includes("already has a refund") ||
+            message.toLowerCase().includes("missing a valid stripe payment intent") ||
+            message.toLowerCase().includes("transaction not found") ||
+            message.toLowerCase().includes("only successful payment transactions");
+        logger.error('Refund error:', message);
+        res.status(isValidationFailure ? 400 : 500).json({ error: message });
     }
 });
 // Knowledge Base Management

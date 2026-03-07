@@ -25,6 +25,12 @@ export default function ProbatePetition() {
         enabled: !!estate,
     });
 
+    const { data: heirs = [] } = useQuery({
+        queryKey: ["heirs"],
+        queryFn: api.getHeirs,
+        enabled: !!estate,
+    });
+
     const uploadMutation = useMutation({
         mutationFn: ({ file }: { file: File }) => api.uploadEstateDocument("DE-111", "Petition for Probate (Filed)", file),
         onSuccess: () => {
@@ -39,12 +45,15 @@ export default function ProbatePetition() {
     if (!estate) return <div className="p-8">Loading estate data...</div>;
 
     const filedPetition = documents?.find((d: any) => d.documentType === "DE-111");
+    const heirCount = (Array.isArray(heirs) && heirs.length > 0)
+        ? heirs.length
+        : (Array.isArray(estate.heirs) ? estate.heirs.length : 0);
 
     const missingFields = [];
     if (!estate.deceasedFirstName) missingFields.push("Decedent Name");
     if (!estate.deceasedDateOfDeath) missingFields.push("Date of Death");
     if (!estate.probateCounty) missingFields.push("Probate County");
-    if (!estate.heirs || estate.heirs.length === 0) missingFields.push("Heirs/Beneficiaries");
+    if (heirCount === 0) missingFields.push("Heirs/Beneficiaries");
 
     const progress = Math.max(0, 100 - (missingFields.length * 25));
     const isReady = missingFields.length === 0;
@@ -162,7 +171,7 @@ export default function ProbatePetition() {
                                             <StatusItem
                                                 icon={<Users className="w-4 h-4" />}
                                                 label="Heirs List"
-                                                complete={estate.heirs?.length > 0}
+                                                complete={heirCount > 0}
                                             />
                                             <StatusItem
                                                 icon={<Gavel className="w-4 h-4" />}
@@ -420,3 +429,4 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 
 // ... (Existing code above remains, this is appended helper/components or state integration)
+

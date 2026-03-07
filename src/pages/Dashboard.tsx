@@ -85,7 +85,7 @@ export default function Dashboard() {
   const { user, signOut } = useAuth();
   const { roleName, estateName, authorityType } = useTerminology();
   const [viewMode, setViewMode] = useState<'grid' | 'trail'>('grid');
-  const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [advancedOpen, setAdvancedOpen] = useState(true);
   const [estateDetailsOpen, setEstateDetailsOpen] = useState(false);
   const { toast } = useToast();
 
@@ -322,7 +322,7 @@ export default function Dashboard() {
         id: a.id,
         occurredAt: a.occurredAt,
         subject: displaySubject,
-        notes: a.action === 'PHASE_COMPLETED' ? `Advanced to next roadmap stage` : `Fiduciary record updated`,
+        notes: a.action === 'PHASE_COMPLETED' ? `Advanced to next roadmap stage` : `Case record updated`,
         direction: 'system',
         type: a.type || 'roadmap',
         uiType: 'activity'
@@ -591,7 +591,7 @@ export default function Dashboard() {
           <div>
             <h2 className="text-base font-black text-slate-900 tracking-tight">Critical Dates</h2>
             <p className="text-xs font-medium text-amber-700 mt-0.5">
-              Statutory Deadlines — Miss one and face personal liability
+              Court and tax dates. We prioritize what needs attention first.
             </p>
           </div>
         </div>
@@ -609,8 +609,8 @@ export default function Dashboard() {
                 <Lightbulb className="w-4 h-4 text-indigo-600" />
               </div>
               <div>
-                <h2 className="text-base font-black text-slate-900 tracking-tight">Support Requested</h2>
-                <p className="text-xs font-medium text-slate-500 mt-0.5">Fiduciary Guidance Queue</p>
+                <h2 className="text-base font-black text-slate-900 tracking-tight">Where You Need Help</h2>
+                <p className="text-xs font-medium text-slate-500 mt-0.5">Questions and blockers that need a decision</p>
               </div>
               {(realFollowUps.length > 0 || taxonomyStats.blocked > 0) && (
                 <Badge variant="secondary" className="bg-indigo-100 text-indigo-700 text-[10px] font-black border-none rounded-lg px-2">
@@ -673,7 +673,7 @@ export default function Dashboard() {
             </div>
           </section>
 
-          {/* Recent Proof of Work */}
+          {/* Recent Activity */}
           <section className="space-y-3">
             <div className="flex items-center justify-between px-1">
               <div className="flex items-center gap-2.5">
@@ -681,8 +681,8 @@ export default function Dashboard() {
                   <HistoryIcon className="w-4 h-4 text-indigo-600" />
                 </div>
                 <div>
-                  <h2 className="text-base font-black text-slate-900 tracking-tight">Recent Proof of Work</h2>
-                  <p className="text-xs font-medium text-slate-500 mt-0.5">Immutable Activity Log</p>
+                  <h2 className="text-base font-black text-slate-900 tracking-tight">Recent Activity</h2>
+                  <p className="text-xs font-medium text-slate-500 mt-0.5">What changed recently</p>
                 </div>
               </div>
               <Button
@@ -703,7 +703,7 @@ export default function Dashboard() {
                   </div>
                   <p className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-600 mb-2">Immutable Audit Trail</p>
                   <p className="text-xs text-slate-500 max-w-[240px] leading-relaxed mb-6 font-medium">
-                    Secure, court-ready activity logging is a premium feature. Track every fiduciary action with timestamps.
+                    Secure, court-ready activity logging is a premium feature. Track every case action with timestamps.
                   </p>
                   <Button
                     size="sm"
@@ -769,7 +769,7 @@ export default function Dashboard() {
             estateCreatedAt={(estate as any)?.createdAt}
           />
 
-          {/* ── Advanced Diagnostics (collapsible) ── */}
+          {/* ── Guided Risk Check (collapsible) ── */}
           <div className="rounded-3xl border border-slate-100 bg-white shadow-sm overflow-hidden">
             <button
               className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-slate-50 transition-colors"
@@ -780,9 +780,9 @@ export default function Dashboard() {
                   <BarChart2 className="w-3.5 h-3.5 text-slate-500" />
                 </div>
                 <div className="text-left">
-                  <p className="text-xs font-black text-slate-700 tracking-tight">Advanced Diagnostics</p>
+                  <p className="text-xs font-black text-slate-700 tracking-tight">Guided Risk Check</p>
                   <p className="text-[10px] font-medium text-slate-400 mt-0.5">
-                    Health scores, attorney flags & diligence gaps
+                    Clear next steps to protect you and keep the estate moving.
                   </p>
                 </div>
               </div>
@@ -843,7 +843,7 @@ export default function Dashboard() {
                 <div className="text-left">
                   <p className="text-xs font-black text-slate-700 tracking-tight">Estate Details</p>
                   <p className="text-[10px] font-medium text-slate-400 mt-0.5">
-                    Verify registration & setup data
+                    Make sure the core case details are accurate
                   </p>
                 </div>
               </div>
@@ -927,3 +927,6 @@ export default function Dashboard() {
     </DashboardLayout>
   );
 }
+
+
+

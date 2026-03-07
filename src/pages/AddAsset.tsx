@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -55,6 +55,22 @@ export default function AddAsset() {
     const { toast } = useToast();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [selectedInst, setSelectedInst] = useState<Institution | null>(null);
+    const [searchParams] = useSearchParams();
+
+    const rawAssetType = (searchParams.get("assetType") || "").trim().toLowerCase();
+    const rawCategory = (searchParams.get("category") || "").trim().toLowerCase();
+    const rawInstitution = (searchParams.get("institution") || "").trim();
+    const rawValue = Number(searchParams.get("value"));
+
+    const allowedAssetTypes = new Set([
+        "checking", "savings", "401k", "ira", "life_insurance", "stock", "property", "vehicle", "other"
+    ]);
+    const allowedCategories = new Set(["financial", "retirement", "insurance", "property", "digital"]);
+
+    const initialAssetType = allowedAssetTypes.has(rawAssetType) ? rawAssetType : "checking";
+    const initialCategory = allowedCategories.has(rawCategory) ? rawCategory : "financial";
+    const initialInstitution = rawInstitution;
+    const initialValue = Number.isFinite(rawValue) && rawValue >= 0 ? rawValue : 0;
 
     const { data: estate } = useQuery({
         queryKey: ['estate'],
@@ -64,10 +80,10 @@ export default function AddAsset() {
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            institution: "",
-            assetType: "checking",
-            category: "financial",
-            value: 0,
+            institution: initialInstitution,
+            assetType: initialAssetType,
+            category: initialCategory,
+            value: initialValue,
             ownershipType: "INDIVIDUAL",
             status: "discovered",
             priority: "medium",
@@ -365,3 +381,5 @@ export default function AddAsset() {
         </div>
     );
 }
+
+

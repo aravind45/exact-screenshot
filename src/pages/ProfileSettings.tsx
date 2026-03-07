@@ -836,7 +836,7 @@ export default function ProfileSettings() {
                                                 <div className="text-right">
                                                     <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Status</p>
                                                     <p className={cn("font-bold capitalize",
-                                                        billingStatus?.status === 'active' ? "text-emerald-600" : "text-amber-600"
+                                                        String(billingStatus?.status || profile?.subscriptionStatus || '').toLowerCase() === 'active' ? "text-emerald-600" : "text-amber-600"
                                                     )}>
                                                         {billingStatus?.status || profile?.subscriptionStatus || "Active"}
                                                     </p>
@@ -1067,3 +1067,4 @@ function TriStateToggle({ label, description, value, onChange }: {
         </div>
     );
 }
+

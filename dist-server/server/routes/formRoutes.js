@@ -189,7 +189,7 @@ router.post("/generate", async (req, res) => {
             return res.status(404).json({ error: "Estate not found" });
         const estate = await prisma.estate.findUnique({
             where: { id: estateId },
-            include: { user: true }
+            include: { user: true, heirs: true }
         });
         if (!estate)
             return res.status(404).json({ error: "Estate data not found" });
@@ -226,7 +226,20 @@ router.post("/generate", async (req, res) => {
                 return DocumentService.generateDE174(data, {});
             }
         };
-        if (specializedGenerators[formId]) {
+        const isCARegistryForm = Object.prototype.hasOwnProperty.call(CA_FORM_REGISTRY, formId);
+        if (isCARegistryForm) {
+            const assets = await prisma.asset.findMany({ where: { estateId } });
+            const heirs = estate.heirs || await prisma.heir.findMany({ where: { estateId } });
+            const caResult = await CAFormService.generate({
+                formId: formId,
+                estate: mergedData,
+                assets,
+                heirs,
+                overrides,
+            });
+            pdfBytes = caResult.pdfBytes;
+        }
+        else if (specializedGenerators[formId]) {
             pdfBytes = await specializedGenerators[formId](mergedData);
         }
         else {
@@ -287,7 +300,7 @@ router.post("/ca/preview", async (req, res) => {
             return res.status(404).json({ error: "Estate not found" });
         const estate = await prisma.estate.findUnique({
             where: { id: estateId },
-            include: { user: true },
+            include: { user: true, heirs: true },
         });
         if (!estate)
             return res.status(404).json({ error: "Estate data not found" });
@@ -319,7 +332,7 @@ router.post("/ca/generate", async (req, res) => {
             return res.status(404).json({ error: "Estate not found" });
         const estate = await prisma.estate.findUnique({
             where: { id: estateId },
-            include: { user: true },
+            include: { user: true, heirs: true },
         });
         if (!estate)
             return res.status(404).json({ error: "Estate data not found" });
@@ -372,7 +385,7 @@ router.post("/ny/preview", async (req, res) => {
             return res.status(404).json({ error: "Estate not found" });
         const estate = await prisma.estate.findUnique({
             where: { id: estateId },
-            include: { user: true },
+            include: { user: true, heirs: true },
         });
         if (!estate)
             return res.status(404).json({ error: "Estate data not found" });
@@ -406,7 +419,7 @@ router.post("/ny/generate", async (req, res) => {
             return res.status(404).json({ error: "Estate not found" });
         const estate = await prisma.estate.findUnique({
             where: { id: estateId },
-            include: { user: true },
+            include: { user: true, heirs: true },
         });
         if (!estate)
             return res.status(404).json({ error: "Estate data not found" });
@@ -459,7 +472,7 @@ router.post("/tx/preview", async (req, res) => {
             return res.status(404).json({ error: "Estate not found" });
         const estate = await prisma.estate.findUnique({
             where: { id: estateId },
-            include: { user: true },
+            include: { user: true, heirs: true },
         });
         if (!estate)
             return res.status(404).json({ error: "Estate data not found" });
@@ -493,7 +506,7 @@ router.post("/tx/generate", async (req, res) => {
             return res.status(404).json({ error: "Estate not found" });
         const estate = await prisma.estate.findUnique({
             where: { id: estateId },
-            include: { user: true },
+            include: { user: true, heirs: true },
         });
         if (!estate)
             return res.status(404).json({ error: "Estate data not found" });
@@ -546,7 +559,7 @@ router.post("/fl/preview", async (req, res) => {
             return res.status(404).json({ error: "Estate not found" });
         const estate = await prisma.estate.findUnique({
             where: { id: estateId },
-            include: { user: true },
+            include: { user: true, heirs: true },
         });
         if (!estate)
             return res.status(404).json({ error: "Estate data not found" });
@@ -580,7 +593,7 @@ router.post("/fl/generate", async (req, res) => {
             return res.status(404).json({ error: "Estate not found" });
         const estate = await prisma.estate.findUnique({
             where: { id: estateId },
-            include: { user: true },
+            include: { user: true, heirs: true },
         });
         if (!estate)
             return res.status(404).json({ error: "Estate data not found" });
@@ -633,7 +646,7 @@ router.post("/nj/preview", async (req, res) => {
             return res.status(404).json({ error: "Estate not found" });
         const estate = await prisma.estate.findUnique({
             where: { id: estateId },
-            include: { user: true },
+            include: { user: true, heirs: true },
         });
         if (!estate)
             return res.status(404).json({ error: "Estate data not found" });
@@ -667,7 +680,7 @@ router.post("/nj/generate", async (req, res) => {
             return res.status(404).json({ error: "Estate not found" });
         const estate = await prisma.estate.findUnique({
             where: { id: estateId },
-            include: { user: true },
+            include: { user: true, heirs: true },
         });
         if (!estate)
             return res.status(404).json({ error: "Estate data not found" });

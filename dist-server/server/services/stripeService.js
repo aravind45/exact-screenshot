@@ -2,6 +2,7 @@ import Stripe from 'stripe';
 import { prisma } from '../db.js';
 import crypto from 'crypto';
 import { logger } from '../lib/logger.js';
+import { getRefundEligibility } from '../utils/refundUtils.js';
 const PRICE_ID = process.env.STRIPE_PRICE_ID || 'price_1234567890'; // $49/mo product
 const EXTRA_SEAT_PRICE_ID = process.env.STRIPE_EXTRA_SEAT_PRICE_ID || 'price_extraseat_placeholder'; // $9.99 extra seat
 export class StripeService {
@@ -265,10 +266,22 @@ export class StripeService {
             where: { id: transactionId },
             include: { user: true },
         });
-        if (!transaction)
-            throw new Error('Transaction not found');
-        if (!transaction.stripePaymentIntentId)
-            throw new Error('No Stripe payment intent found');
+        const eligibility = getRefundEligibility({
+            type: transaction?.type,
+            status: transaction?.status,
+            amount: transaction?.amount,
+            stripePaymentIntentId: transaction?.stripePaymentIntentId,
+        });
+        if (!eligibility.eligible) {
+            throw new Error(eligibility.reason || 'Transaction is not refundable');
+        }
+        const existingRefunds = await this.stripe.refunds.list({
+            payment_intent: transaction.stripePaymentIntentId,
+            limit: 1,
+        });
+        if (existingRefunds.data.length > 0) {
+            throw new Error('This payment already has a refund recorded in Stripe');
+        }
         // Issue refund via Stripe
         const refund = await this.stripe.refunds.create({
             payment_intent: transaction.stripePaymentIntentId,
@@ -282,7 +295,7 @@ export class StripeService {
                 status: 'REFUNDED',
                 stripePaymentIntentId: refund.id,
                 type: 'REFUND',
-                notes: adminNotes,
+                notes: `refund_of:${transactionId} | ${adminNotes}`,
             },
         });
         logger.info(`✅ Refund issued for transaction ${transactionId}`);

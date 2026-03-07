@@ -9,6 +9,7 @@ interface ChecklistItem {
   label: string;
   description: string;
   href: string;
+  actionLabel: string;
   urgent?: boolean;
 }
 
@@ -17,33 +18,38 @@ const FIRST_WEEK_ITEMS: ChecklistItem[] = [
     id: "file_death_cert",
     label: "Locate the will & death certificate",
     description: "You'll need certified copies — order at least 10 from the funeral home or county clerk.",
-    href: "/documents",
+    href: "/documents?focus=required-docs",
+    actionLabel: "Upload Docs",
     urgent: true,
   },
   {
     id: "open_estate_account",
     label: "Open an estate bank account",
     description: "Never mix estate funds with personal funds. Take death certificate + letters to any bank.",
-    href: "/accounting",
+    href: "/add-asset?assetType=checking&category=financial&institution=Estate%20Checking%20Account",
+    actionLabel: "Add Account",
     urgent: true,
   },
   {
     id: "list_assets",
     label: "List every asset you know about",
     description: "Real estate, bank accounts, investments, vehicles, valuables. Use Asset Detective to find hidden ones.",
-    href: "/assets",
+    href: "/add-asset?category=financial",
+    actionLabel: "Add Asset",
   },
   {
     id: "list_debts",
     label: "List known debts & bills",
     description: "Mortgage, credit cards, utilities. Don't pay anything yet — wait until the creditor period ends.",
-    href: "/liabilities",
+    href: "/add-liability",
+    actionLabel: "Add Liability",
   },
   {
     id: "notify_institutions",
     label: "Notify key institutions",
     description: "Social Security, pension plans, life insurance. Use the Letters page to track who you've contacted.",
     href: "/probate/letters",
+    actionLabel: "Open Letters",
   },
 ];
 
@@ -57,10 +63,7 @@ export function FirstWeekChecklist({ completedTaskIds, className }: Props) {
   const [localChecked, setLocalChecked] = useState<Set<string>>(new Set());
   const [collapsed, setCollapsed] = useState(false);
 
-  const allChecked = localChecked.size + (completedTaskIds?.length || 0);
-  const totalComplete = FIRST_WEEK_ITEMS.filter(
-    (item) => localChecked.has(item.id)
-  ).length;
+  const totalComplete = FIRST_WEEK_ITEMS.filter((item) => localChecked.has(item.id)).length;
   const allDone = totalComplete === FIRST_WEEK_ITEMS.length;
 
   if (allDone) return null; // hide once user has checked everything off
@@ -157,7 +160,7 @@ export function FirstWeekChecklist({ completedTaskIds, className }: Props) {
                     className="h-7 px-3 text-[10px] font-black uppercase tracking-widest text-indigo-600 hover:bg-indigo-50 flex-shrink-0 rounded-xl border border-indigo-100/60"
                     onClick={() => navigate(item.href)}
                   >
-                    Go →
+                    {item.actionLabel} →
                   </Button>
                 )}
               </div>

@@ -7,6 +7,8 @@ import { AccountingService } from "../services/accountingService.js";
 import { z } from "zod";
 import { logger } from "../lib/logger.js";
 import { requireSubscription } from "../middleware/subscription.js";
+import { CAFormService } from "../services/caFormService.js";
+import { CA_FORM_REGISTRY, type CAFormId } from "../services/caFormRegistry.js";
 
 const generateDocumentSchema = z.object({
     documentId: z.string().min(1), // Previously formId
@@ -114,7 +116,7 @@ router.post("/generate", async (req: any, res: Response) => {
 
         const estate = await prisma.estate.findUnique({
             where: { id: estateId },
-            include: { user: true }
+            include: { user: true, heirs: true }
         });
 
         if (!estate) return res.status(404).json({ error: "Estate data not found" });
@@ -165,7 +167,20 @@ router.post("/generate", async (req: any, res: Response) => {
             }
         };
 
-        if (specializedGenerators[formId]) {
+        const isCARegistryForm = Object.prototype.hasOwnProperty.call(CA_FORM_REGISTRY, formId);
+
+        if (isCARegistryForm) {
+            const assets = await prisma.asset.findMany({ where: { estateId } });
+            const heirs = estate.heirs || await prisma.heir.findMany({ where: { estateId } });
+            const caResult = await CAFormService.generate({
+                formId: formId as CAFormId,
+                estate: mergedData,
+                assets,
+                heirs,
+                overrides,
+            });
+            pdfBytes = caResult.pdfBytes;
+        } else if (specializedGenerators[formId]) {
             pdfBytes = await specializedGenerators[formId](mergedData);
         } else {
             // Fallback to Overlay processing
@@ -207,3 +222,4 @@ router.post("/generate", async (req: any, res: Response) => {
 });
 
 export default router;
+

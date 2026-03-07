@@ -1,9 +1,11 @@
 import { Router, Response } from "express";
+import { z } from "zod";
+
+import { prisma } from "../db.js";
+import { logger } from "../lib/logger.js";
 import { CollaborationService } from "../services/collaborationService.js";
 import { StripeService } from "../services/stripeService.js";
-import { prisma } from "../db.js";
-import { z } from "zod";
-import { logger } from "../lib/logger.js";
+import { getStripeBillingConfig, getCheckoutDisabledReason } from "../utils/billingConfig.js";
 
 const invitationSchema = z.object({
     estateId: z.string().min(1),
@@ -23,6 +25,15 @@ router.post("/extra-seat-session", async (req: any, res: Response) => {
         const validated = invitationSchema.parse(req.body);
         const { estateId, email, role } = validated;
 
+        const billingConfig = getStripeBillingConfig();
+        if (!billingConfig.extraSeatCheckoutEnabled) {
+            return res.status(503).json({
+                error: "Extra seat checkout is not configured",
+                message: getCheckoutDisabledReason(billingConfig.missingForExtraSeat),
+                missing: billingConfig.missingForExtraSeat,
+            });
+        }
+
         const session = await StripeService.createExtraSeatCheckoutSession(
             req.user.id,
             estateId,
@@ -34,7 +45,7 @@ router.post("/extra-seat-session", async (req: any, res: Response) => {
     } catch (error: any) {
         if (error instanceof z.ZodError) return res.status(400).json({ error: "Invalid seat session request", details: error.errors });
         logger.error("Extra Seat Session Error:", error.message);
-        res.status(500).json({ error: "Failed to create seat session" });
+        res.status(500).json({ error: error.message || "Failed to create seat session" });
     }
 });
 
