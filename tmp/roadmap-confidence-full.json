@@ -1,0 +1,1153 @@
+{
+  "generatedAt": "2026-03-07T16:43:12.336Z",
+  "filters": {
+    "state": null,
+    "limit": null
+  },
+  "totals": {
+    "jurisdictions": 51,
+    "avgConfidence": 100,
+    "failingJurisdictions": 0
+  },
+  "lowestJurisdictions": [
+    {
+      "state": "AK",
+      "county": null,
+      "phaseCount": 5,
+      "taskCount": 30,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    },
+    {
+      "state": "AL",
+      "county": null,
+      "phaseCount": 13,
+      "taskCount": 82,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    },
+    {
+      "state": "AR",
+      "county": null,
+      "phaseCount": 13,
+      "taskCount": 82,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    },
+    {
+      "state": "AZ",
+      "county": null,
+      "phaseCount": 5,
+      "taskCount": 30,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    },
+    {
+      "state": "CA",
+      "county": null,
+      "phaseCount": 13,
+      "taskCount": 86,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    },
+    {
+      "state": "CO",
+      "county": null,
+      "phaseCount": 5,
+      "taskCount": 30,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    },
+    {
+      "state": "CT",
+      "county": null,
+      "phaseCount": 13,
+      "taskCount": 82,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    },
+    {
+      "state": "DC",
+      "county": null,
+      "phaseCount": 13,
+      "taskCount": 82,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    },
+    {
+      "state": "DE",
+      "county": null,
+      "phaseCount": 13,
+      "taskCount": 82,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    },
+    {
+      "state": "FL",
+      "county": null,
+      "phaseCount": 13,
+      "taskCount": 82,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    },
+    {
+      "state": "GA",
+      "county": null,
+      "phaseCount": 13,
+      "taskCount": 78,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    },
+    {
+      "state": "HI",
+      "county": null,
+      "phaseCount": 5,
+      "taskCount": 30,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    },
+    {
+      "state": "IA",
+      "county": null,
+      "phaseCount": 13,
+      "taskCount": 82,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    },
+    {
+      "state": "ID",
+      "county": null,
+      "phaseCount": 5,
+      "taskCount": 30,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    },
+    {
+      "state": "IL",
+      "county": null,
+      "phaseCount": 13,
+      "taskCount": 82,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    }
+  ],
+  "byState": [
+    {
+      "state": "AK",
+      "jurisdictions": 1,
+      "avgConfidence": 100,
+      "minConfidence": 100,
+      "worstCounty": null,
+      "worstIssues": []
+    },
+    {
+      "state": "AL",
+      "jurisdictions": 1,
+      "avgConfidence": 100,
+      "minConfidence": 100,
+      "worstCounty": null,
+      "worstIssues": []
+    },
+    {
+      "state": "AR",
+      "jurisdictions": 1,
+      "avgConfidence": 100,
+      "minConfidence": 100,
+      "worstCounty": null,
+      "worstIssues": []
+    },
+    {
+      "state": "AZ",
+      "jurisdictions": 1,
+      "avgConfidence": 100,
+      "minConfidence": 100,
+      "worstCounty": null,
+      "worstIssues": []
+    },
+    {
+      "state": "CA",
+      "jurisdictions": 1,
+      "avgConfidence": 100,
+      "minConfidence": 100,
+      "worstCounty": null,
+      "worstIssues": []
+    },
+    {
+      "state": "CO",
+      "jurisdictions": 1,
+      "avgConfidence": 100,
+      "minConfidence": 100,
+      "worstCounty": null,
+      "worstIssues": []
+    },
+    {
+      "state": "CT",
+      "jurisdictions": 1,
+      "avgConfidence": 100,
+      "minConfidence": 100,
+      "worstCounty": null,
+      "worstIssues": []
+    },
+    {
+      "state": "DC",
+      "jurisdictions": 1,
+      "avgConfidence": 100,
+      "minConfidence": 100,
+      "worstCounty": null,
+      "worstIssues": []
+    },
+    {
+      "state": "DE",
+      "jurisdictions": 1,
+      "avgConfidence": 100,
+      "minConfidence": 100,
+      "worstCounty": null,
+      "worstIssues": []
+    },
+    {
+      "state": "FL",
+      "jurisdictions": 1,
+      "avgConfidence": 100,
+      "minConfidence": 100,
+      "worstCounty": null,
+      "worstIssues": []
+    },
+    {
+      "state": "GA",
+      "jurisdictions": 1,
+      "avgConfidence": 100,
+      "minConfidence": 100,
+      "worstCounty": null,
+      "worstIssues": []
+    },
+    {
+      "state": "HI",
+      "jurisdictions": 1,
+      "avgConfidence": 100,
+      "minConfidence": 100,
+      "worstCounty": null,
+      "worstIssues": []
+    },
+    {
+      "state": "IA",
+      "jurisdictions": 1,
+      "avgConfidence": 100,
+      "minConfidence": 100,
+      "worstCounty": null,
+      "worstIssues": []
+    },
+    {
+      "state": "ID",
+      "jurisdictions": 1,
+      "avgConfidence": 100,
+      "minConfidence": 100,
+      "worstCounty": null,
+      "worstIssues": []
+    },
+    {
+      "state": "IL",
+      "jurisdictions": 1,
+      "avgConfidence": 100,
+      "minConfidence": 100,
+      "worstCounty": null,
+      "worstIssues": []
+    },
+    {
+      "state": "IN",
+      "jurisdictions": 1,
+      "avgConfidence": 100,
+      "minConfidence": 100,
+      "worstCounty": null,
+      "worstIssues": []
+    },
+    {
+      "state": "KS",
+      "jurisdictions": 1,
+      "avgConfidence": 100,
+      "minConfidence": 100,
+      "worstCounty": null,
+      "worstIssues": []
+    },
+    {
+      "state": "KY",
+      "jurisdictions": 1,
+      "avgConfidence": 100,
+      "minConfidence": 100,
+      "worstCounty": null,
+      "worstIssues": []
+    },
+    {
+      "state": "LA",
+      "jurisdictions": 1,
+      "avgConfidence": 100,
+      "minConfidence": 100,
+      "worstCounty": null,
+      "worstIssues": []
+    },
+    {
+      "state": "MA",
+      "jurisdictions": 1,
+      "avgConfidence": 100,
+      "minConfidence": 100,
+      "worstCounty": null,
+      "worstIssues": []
+    },
+    {
+      "state": "MD",
+      "jurisdictions": 1,
+      "avgConfidence": 100,
+      "minConfidence": 100,
+      "worstCounty": null,
+      "worstIssues": []
+    },
+    {
+      "state": "ME",
+      "jurisdictions": 1,
+      "avgConfidence": 100,
+      "minConfidence": 100,
+      "worstCounty": null,
+      "worstIssues": []
+    },
+    {
+      "state": "MI",
+      "jurisdictions": 1,
+      "avgConfidence": 100,
+      "minConfidence": 100,
+      "worstCounty": null,
+      "worstIssues": []
+    },
+    {
+      "state": "MN",
+      "jurisdictions": 1,
+      "avgConfidence": 100,
+      "minConfidence": 100,
+      "worstCounty": null,
+      "worstIssues": []
+    },
+    {
+      "state": "MO",
+      "jurisdictions": 1,
+      "avgConfidence": 100,
+      "minConfidence": 100,
+      "worstCounty": null,
+      "worstIssues": []
+    },
+    {
+      "state": "MS",
+      "jurisdictions": 1,
+      "avgConfidence": 100,
+      "minConfidence": 100,
+      "worstCounty": null,
+      "worstIssues": []
+    },
+    {
+      "state": "MT",
+      "jurisdictions": 1,
+      "avgConfidence": 100,
+      "minConfidence": 100,
+      "worstCounty": null,
+      "worstIssues": []
+    },
+    {
+      "state": "NC",
+      "jurisdictions": 1,
+      "avgConfidence": 100,
+      "minConfidence": 100,
+      "worstCounty": null,
+      "worstIssues": []
+    },
+    {
+      "state": "ND",
+      "jurisdictions": 1,
+      "avgConfidence": 100,
+      "minConfidence": 100,
+      "worstCounty": null,
+      "worstIssues": []
+    },
+    {
+      "state": "NE",
+      "jurisdictions": 1,
+      "avgConfidence": 100,
+      "minConfidence": 100,
+      "worstCounty": null,
+      "worstIssues": []
+    },
+    {
+      "state": "NH",
+      "jurisdictions": 1,
+      "avgConfidence": 100,
+      "minConfidence": 100,
+      "worstCounty": null,
+      "worstIssues": []
+    },
+    {
+      "state": "NJ",
+      "jurisdictions": 1,
+      "avgConfidence": 100,
+      "minConfidence": 100,
+      "worstCounty": null,
+      "worstIssues": []
+    },
+    {
+      "state": "NM",
+      "jurisdictions": 1,
+      "avgConfidence": 100,
+      "minConfidence": 100,
+      "worstCounty": null,
+      "worstIssues": []
+    },
+    {
+      "state": "NV",
+      "jurisdictions": 1,
+      "avgConfidence": 100,
+      "minConfidence": 100,
+      "worstCounty": null,
+      "worstIssues": []
+    },
+    {
+      "state": "NY",
+      "jurisdictions": 1,
+      "avgConfidence": 100,
+      "minConfidence": 100,
+      "worstCounty": null,
+      "worstIssues": []
+    },
+    {
+      "state": "OH",
+      "jurisdictions": 1,
+      "avgConfidence": 100,
+      "minConfidence": 100,
+      "worstCounty": null,
+      "worstIssues": []
+    },
+    {
+      "state": "OK",
+      "jurisdictions": 1,
+      "avgConfidence": 100,
+      "minConfidence": 100,
+      "worstCounty": null,
+      "worstIssues": []
+    },
+    {
+      "state": "OR",
+      "jurisdictions": 1,
+      "avgConfidence": 100,
+      "minConfidence": 100,
+      "worstCounty": null,
+      "worstIssues": []
+    },
+    {
+      "state": "PA",
+      "jurisdictions": 1,
+      "avgConfidence": 100,
+      "minConfidence": 100,
+      "worstCounty": null,
+      "worstIssues": []
+    },
+    {
+      "state": "RI",
+      "jurisdictions": 1,
+      "avgConfidence": 100,
+      "minConfidence": 100,
+      "worstCounty": null,
+      "worstIssues": []
+    },
+    {
+      "state": "SC",
+      "jurisdictions": 1,
+      "avgConfidence": 100,
+      "minConfidence": 100,
+      "worstCounty": null,
+      "worstIssues": []
+    },
+    {
+      "state": "SD",
+      "jurisdictions": 1,
+      "avgConfidence": 100,
+      "minConfidence": 100,
+      "worstCounty": null,
+      "worstIssues": []
+    },
+    {
+      "state": "TN",
+      "jurisdictions": 1,
+      "avgConfidence": 100,
+      "minConfidence": 100,
+      "worstCounty": null,
+      "worstIssues": []
+    },
+    {
+      "state": "TX",
+      "jurisdictions": 1,
+      "avgConfidence": 100,
+      "minConfidence": 100,
+      "worstCounty": null,
+      "worstIssues": []
+    },
+    {
+      "state": "UT",
+      "jurisdictions": 1,
+      "avgConfidence": 100,
+      "minConfidence": 100,
+      "worstCounty": null,
+      "worstIssues": []
+    },
+    {
+      "state": "VA",
+      "jurisdictions": 1,
+      "avgConfidence": 100,
+      "minConfidence": 100,
+      "worstCounty": null,
+      "worstIssues": []
+    },
+    {
+      "state": "VT",
+      "jurisdictions": 1,
+      "avgConfidence": 100,
+      "minConfidence": 100,
+      "worstCounty": null,
+      "worstIssues": []
+    },
+    {
+      "state": "WA",
+      "jurisdictions": 1,
+      "avgConfidence": 100,
+      "minConfidence": 100,
+      "worstCounty": null,
+      "worstIssues": []
+    },
+    {
+      "state": "WI",
+      "jurisdictions": 1,
+      "avgConfidence": 100,
+      "minConfidence": 100,
+      "worstCounty": null,
+      "worstIssues": []
+    },
+    {
+      "state": "WV",
+      "jurisdictions": 1,
+      "avgConfidence": 100,
+      "minConfidence": 100,
+      "worstCounty": null,
+      "worstIssues": []
+    },
+    {
+      "state": "WY",
+      "jurisdictions": 1,
+      "avgConfidence": 100,
+      "minConfidence": 100,
+      "worstCounty": null,
+      "worstIssues": []
+    }
+  ],
+  "topMissingActionIds": [],
+  "jurisdictions": [
+    {
+      "state": "AK",
+      "county": null,
+      "phaseCount": 5,
+      "taskCount": 30,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    },
+    {
+      "state": "AL",
+      "county": null,
+      "phaseCount": 13,
+      "taskCount": 82,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    },
+    {
+      "state": "AR",
+      "county": null,
+      "phaseCount": 13,
+      "taskCount": 82,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    },
+    {
+      "state": "AZ",
+      "county": null,
+      "phaseCount": 5,
+      "taskCount": 30,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    },
+    {
+      "state": "CA",
+      "county": null,
+      "phaseCount": 13,
+      "taskCount": 86,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    },
+    {
+      "state": "CO",
+      "county": null,
+      "phaseCount": 5,
+      "taskCount": 30,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    },
+    {
+      "state": "CT",
+      "county": null,
+      "phaseCount": 13,
+      "taskCount": 82,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    },
+    {
+      "state": "DC",
+      "county": null,
+      "phaseCount": 13,
+      "taskCount": 82,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    },
+    {
+      "state": "DE",
+      "county": null,
+      "phaseCount": 13,
+      "taskCount": 82,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    },
+    {
+      "state": "FL",
+      "county": null,
+      "phaseCount": 13,
+      "taskCount": 82,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    },
+    {
+      "state": "GA",
+      "county": null,
+      "phaseCount": 13,
+      "taskCount": 78,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    },
+    {
+      "state": "HI",
+      "county": null,
+      "phaseCount": 5,
+      "taskCount": 30,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    },
+    {
+      "state": "IA",
+      "county": null,
+      "phaseCount": 13,
+      "taskCount": 82,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    },
+    {
+      "state": "ID",
+      "county": null,
+      "phaseCount": 5,
+      "taskCount": 30,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    },
+    {
+      "state": "IL",
+      "county": null,
+      "phaseCount": 13,
+      "taskCount": 82,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    },
+    {
+      "state": "IN",
+      "county": null,
+      "phaseCount": 13,
+      "taskCount": 82,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    },
+    {
+      "state": "KS",
+      "county": null,
+      "phaseCount": 13,
+      "taskCount": 82,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    },
+    {
+      "state": "KY",
+      "county": null,
+      "phaseCount": 13,
+      "taskCount": 82,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    },
+    {
+      "state": "LA",
+      "county": null,
+      "phaseCount": 13,
+      "taskCount": 82,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    },
+    {
+      "state": "MA",
+      "county": null,
+      "phaseCount": 5,
+      "taskCount": 30,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    },
+    {
+      "state": "MD",
+      "county": null,
+      "phaseCount": 13,
+      "taskCount": 82,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    },
+    {
+      "state": "ME",
+      "county": null,
+      "phaseCount": 5,
+      "taskCount": 30,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    },
+    {
+      "state": "MI",
+      "county": null,
+      "phaseCount": 5,
+      "taskCount": 30,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    },
+    {
+      "state": "MN",
+      "county": null,
+      "phaseCount": 5,
+      "taskCount": 30,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    },
+    {
+      "state": "MO",
+      "county": null,
+      "phaseCount": 13,
+      "taskCount": 82,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    },
+    {
+      "state": "MS",
+      "county": null,
+      "phaseCount": 13,
+      "taskCount": 82,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    },
+    {
+      "state": "MT",
+      "county": null,
+      "phaseCount": 5,
+      "taskCount": 30,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    },
+    {
+      "state": "NC",
+      "county": null,
+      "phaseCount": 13,
+      "taskCount": 82,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    },
+    {
+      "state": "ND",
+      "county": null,
+      "phaseCount": 5,
+      "taskCount": 30,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    },
+    {
+      "state": "NE",
+      "county": null,
+      "phaseCount": 5,
+      "taskCount": 30,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    },
+    {
+      "state": "NH",
+      "county": null,
+      "phaseCount": 13,
+      "taskCount": 82,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    },
+    {
+      "state": "NJ",
+      "county": null,
+      "phaseCount": 5,
+      "taskCount": 30,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    },
+    {
+      "state": "NM",
+      "county": null,
+      "phaseCount": 5,
+      "taskCount": 30,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    },
+    {
+      "state": "NV",
+      "county": null,
+      "phaseCount": 13,
+      "taskCount": 82,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    },
+    {
+      "state": "NY",
+      "county": null,
+      "phaseCount": 13,
+      "taskCount": 82,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    },
+    {
+      "state": "OH",
+      "county": null,
+      "phaseCount": 13,
+      "taskCount": 82,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    },
+    {
+      "state": "OK",
+      "county": null,
+      "phaseCount": 13,
+      "taskCount": 82,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    },
+    {
+      "state": "OR",
+      "county": null,
+      "phaseCount": 13,
+      "taskCount": 82,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    },
+    {
+      "state": "PA",
+      "county": null,
+      "phaseCount": 13,
+      "taskCount": 82,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    },
+    {
+      "state": "RI",
+      "county": null,
+      "phaseCount": 13,
+      "taskCount": 82,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    },
+    {
+      "state": "SC",
+      "county": null,
+      "phaseCount": 5,
+      "taskCount": 30,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    },
+    {
+      "state": "SD",
+      "county": null,
+      "phaseCount": 5,
+      "taskCount": 30,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    },
+    {
+      "state": "TN",
+      "county": null,
+      "phaseCount": 13,
+      "taskCount": 82,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    },
+    {
+      "state": "TX",
+      "county": null,
+      "phaseCount": 13,
+      "taskCount": 82,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    },
+    {
+      "state": "UT",
+      "county": null,
+      "phaseCount": 5,
+      "taskCount": 30,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    },
+    {
+      "state": "VA",
+      "county": null,
+      "phaseCount": 13,
+      "taskCount": 82,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    },
+    {
+      "state": "VT",
+      "county": null,
+      "phaseCount": 13,
+      "taskCount": 82,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    },
+    {
+      "state": "WA",
+      "county": null,
+      "phaseCount": 13,
+      "taskCount": 82,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    },
+    {
+      "state": "WI",
+      "county": null,
+      "phaseCount": 13,
+      "taskCount": 82,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    },
+    {
+      "state": "WV",
+      "county": null,
+      "phaseCount": 13,
+      "taskCount": 82,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    },
+    {
+      "state": "WY",
+      "county": null,
+      "phaseCount": 13,
+      "taskCount": 82,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    }
+  ]
+}

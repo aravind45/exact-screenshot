@@ -316,11 +316,33 @@ function normalizeTaskForState(task: PhaseTask, state: string, county?: string):
   if (mergedTask === null) return null; // Task excluded for this state
 
   // Clean CA-only dependencies for non-CA states
-  if (state !== "CA" && mergedTask.dependencies) {
+  if (state !== "CA" && Array.isArray(mergedTask.dependencies)) {
     mergedTask.dependencies = mergedTask.dependencies.filter(
       (dep: string) => !CA_ONLY_TASK_IDS.has(dep)
     );
   }
+
+  const normalizedRequiredDocs = Array.isArray(mergedTask.requiredDocs)
+    ? mergedTask.requiredDocs.map((doc) => normalizeTextForState(doc, state) || doc)
+    : undefined;
+
+  const normalizedAlerts = Array.isArray(mergedTask.alerts)
+    ? mergedTask.alerts.map((alert) => ({
+      ...alert,
+      message: normalizeTextForState(alert.message, state) || alert.message,
+    }))
+    : undefined;
+
+  const normalizedLinks = Array.isArray(mergedTask.links)
+    ? mergedTask.links.map((link) => ({
+      ...link,
+      label: normalizeTextForState(link.label, state) || link.label,
+    }))
+    : undefined;
+
+  const normalizedFormNames = Array.isArray(mergedTask.formNames)
+    ? mergedTask.formNames.map((f) => normalizeTextForState(f, state) || f)
+    : undefined;
 
   // Apply text normalization (CA form numbers, Medi-Cal → Medicaid, etc.)
   return {
@@ -330,17 +352,11 @@ function normalizeTaskForState(task: PhaseTask, state: string, county?: string):
     utility: normalizeTextForState(mergedTask.utility, state),
     rationale: normalizeTextForState(mergedTask.rationale, state),
     conditionalRequirementLabel: normalizeTextForState(mergedTask.conditionalRequirementLabel, state) || mergedTask.conditionalRequirementLabel,
-    requiredDocs: mergedTask.requiredDocs?.map(doc => normalizeTextForState(doc, state) || doc),
-    alerts: mergedTask.alerts?.map(alert => ({
-      ...alert,
-      message: normalizeTextForState(alert.message, state) || alert.message
-    })),
-    links: mergedTask.links?.map(link => ({
-      ...link,
-      label: normalizeTextForState(link.label, state) || link.label
-    })),
+    requiredDocs: normalizedRequiredDocs,
+    alerts: normalizedAlerts,
+    links: normalizedLinks,
     primaryActionLabel: normalizeTextForState(mergedTask.primaryActionLabel, state),
-    formNames: mergedTask.formNames?.map(f => normalizeTextForState(f, state) || f)
+    formNames: normalizedFormNames
   };
 }
 
@@ -539,7 +555,7 @@ function removeCAOnlyTasks(phases: PhaseTaskList[], state: string): PhaseTaskLis
  * Normalize phase-level metadata AND task content for the estate's state.
  * Phase milestones, subtitles, and task text are all adjusted.
  */
-function normalizePhasesForState(phases: PhaseTaskList[], state: string): PhaseTaskList[] {
+function normalizePhasesForState(phases: PhaseTaskList[], state: string, county?: string): PhaseTaskList[] {
   return phases.map(phase => {
     // Use canonical resolvePhaseHeader: state → DEFAULT → NEUTRAL → original
     const resolved = resolvePhaseHeader(phase.phase, state);
@@ -548,11 +564,44 @@ function normalizePhasesForState(phases: PhaseTaskList[], state: string): PhaseT
       ...phase,
       milestone: resolved.milestone || phase.milestone,
       subtitle: resolved.subtitle || phase.subtitle,
-      tasks: phase.tasks.map(task => normalizeTaskForState(task, state)).filter((t): t is PhaseTask => t !== null),
+      tasks: phase.tasks.map(task => normalizeTaskForState(task, state, county)).filter((t): t is PhaseTask => t !== null),
     };
   });
 }
 
+function dedupeRoadmapTaskIds(
+  phases: PhaseTaskList[],
+  context: { estateId?: string; state?: string; county?: string } = {}
+): PhaseTaskList[] {
+  const seen = new Set<string>();
+  const duplicateTaskIds = new Set<string>();
+
+  const deduped = phases.map((phase) => ({
+    ...phase,
+    tasks: phase.tasks.filter((task) => {
+      if (seen.has(task.id)) {
+        duplicateTaskIds.add(task.id);
+        return false;
+      }
+      seen.add(task.id);
+      return true;
+    }),
+  }));
+
+  if (duplicateTaskIds.size > 0) {
+    logger.warn(
+      {
+        estateId: context.estateId,
+        state: context.state,
+        county: context.county,
+        duplicateTaskIds: [...duplicateTaskIds].sort(),
+      },
+      "Dropped duplicate task IDs from generated roadmap"
+    );
+  }
+
+  return deduped;
+}
 function isProbateMode(profile: EstateProfile) {
   return profile.activeEngines.includes("PROBATE") || profile.activeEngines.includes("AFFIDAVIT");
 }
@@ -999,7 +1048,8 @@ export async function analyzeEstateProfile(estateId: string): Promise<EstateProf
 export function filterTasksForEstate(
   allTasks: PhaseTaskList[],
   profile: EstateProfile,
-  completedTaskIds: string[] = []
+  completedTaskIds: string[] = [],
+  county?: string
 ): PhaseTaskList[] {
   // 1. Identify which exclusive groups have a completed task
   const completedGroups = new Set<string>();
@@ -1018,7 +1068,7 @@ export function filterTasksForEstate(
       // Actually, SETTLEMENT_PHASE_TASKS contains PhaseTasks which need normalization.
 
       // Resolve state override merge (state-neutral first pattern)
-      const mergedTask = resolveTaskForState(task, profile.state);
+      const mergedTask = resolveTaskForState(task, profile.state, county);
       if (mergedTask === null) return false; // Task excluded for this state
 
       // Note: we are filtering, but we ALSO need to map the tasks to their normalized versions.
@@ -1139,7 +1189,7 @@ export function filterTasksForEstate(
     }),
   })).map(phaseList => ({
     ...phaseList,
-    tasks: phaseList.tasks.map(t => normalizeTaskForState(t, profile.state)!)
+    tasks: phaseList.tasks.map(t => normalizeTaskForState(t, profile.state, county)!)
   }));
 
   // 6. Scrub Dependencies: Filter out any dependencies that are not present in the current roadmap
@@ -1799,18 +1849,28 @@ export async function getRoadmapFromDatabase(
 
     // Fallback to hardcoded tasks if query fails
     const injected = ensurePreFilingCompliance(SETTLEMENT_PHASE_TASKS, profile);
-    const filtered = filterTasksForEstate(injected, profile, completedTaskIds);
+    const filtered = filterTasksForEstate(injected, profile, completedTaskIds, estate.probateCounty || undefined);
     const caGuarded = removeCAOnlyTasks(filtered, profile.state);
-    return normalizePhasesForState(caGuarded, profile.state);
+    const deduped = dedupeRoadmapTaskIds(caGuarded, {
+      estateId,
+      state: profile.state,
+      county: estate.probateCounty || undefined,
+    });
+    return normalizePhasesForState(deduped, profile.state, estate.probateCounty || undefined);
   }
 
   if (!settlementType) {
     logger.warn(`Settlement type ${settlementTypeCode} not found in database, falling back to hardcoded SETTLEMENT_PHASE_TASKS`);
     // Fallback to hardcoded tasks if type not found
     const injected = ensurePreFilingCompliance(SETTLEMENT_PHASE_TASKS, profile);
-    const filtered = filterTasksForEstate(injected, profile, completedTaskIds);
+    const filtered = filterTasksForEstate(injected, profile, completedTaskIds, estate.probateCounty || undefined);
     const caGuarded = removeCAOnlyTasks(filtered, profile.state);
-    return normalizePhasesForState(caGuarded, profile.state);
+    const deduped = dedupeRoadmapTaskIds(caGuarded, {
+      estateId,
+      state: profile.state,
+      county: estate.probateCounty || undefined,
+    });
+    return normalizePhasesForState(deduped, profile.state, estate.probateCounty || undefined);
   }
 
   // Fetch all state overrides for this state once to avoid N+1 or broken relations
@@ -1888,10 +1948,14 @@ export async function getRoadmapFromDatabase(
   }));
 
   const injected = ensurePreFilingCompliance(phases, profile);
-  const filtered = filterTasksForEstate(injected, profile, completedTaskIds);
+  const filtered = filterTasksForEstate(injected, profile, completedTaskIds, estate.probateCounty || undefined);
 
   // Apply unified jurisdiction filter (fail-closed scope check)
-  const { phases: scopeFiltered, dropped: jurisdictionDropped } = filterPhasesByJurisdiction(filtered as unknown as PhaseLike<PhaseTask>[], profile.state);
+  const { phases: scopeFiltered, dropped: jurisdictionDropped } = filterPhasesByJurisdiction(
+    filtered as unknown as PhaseLike<PhaseTask>[],
+    profile.state,
+    estate.probateCounty || undefined
+  );
 
   // Apply authorityScope filtering (ROOT-CAUSE filter for trust/probate module leakage)
   const { phases: authorityFiltered, dropped: authorityDropped } = filterPhasesByAuthorityScope(
@@ -1933,7 +1997,12 @@ export async function getRoadmapFromDatabase(
   }
 
   const caGuarded = removeCAOnlyTasks(finalizedPhases, profile.state);
-  return normalizePhasesForState(caGuarded, profile.state);
+  const deduped = dedupeRoadmapTaskIds(caGuarded, {
+    estateId,
+    state: profile.state,
+    county: estate.probateCounty || undefined,
+  });
+  return normalizePhasesForState(deduped, profile.state, estate.probateCounty || undefined);
 }
 
 /**
@@ -2505,20 +2574,4 @@ export async function uncompleteTask(
 
   return { success: true, taskId };
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

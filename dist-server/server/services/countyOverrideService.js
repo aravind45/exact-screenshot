@@ -7,6 +7,12 @@ let tableExistsCache = null;
  * This handles cases where migrations haven't been applied yet.
  */
 async function tableExists() {
+    // Unit tests often mock prisma without $queryRaw. In that case,
+    // allow query execution and rely on mocked delegate behavior.
+    if (typeof db.$queryRaw !== "function") {
+        tableExistsCache = true;
+        return true;
+    }
     if (tableExistsCache !== null) {
         return tableExistsCache;
     }
@@ -73,6 +79,7 @@ export class CountyOverrideService {
         const overrides = await safeQuery(() => db.countyOverride.findMany({
             where: {
                 stateCode,
+                status: "APPROVED",
                 countyName: {
                     equals: countyName,
                     mode: "insensitive"
@@ -96,6 +103,10 @@ export class CountyOverrideService {
                 ...task,
                 title: patch.title || task.title,
                 description: patch.description || task.description,
+                // Promote approved county actions/forms into canonical task fields
+                // so downstream action handlers and confidence audits see them.
+                primaryActionUrl: patch.primaryActionUrl || task.primaryActionUrl,
+                formNames: patch.formNames.length > 0 ? patch.formNames : task.formNames,
                 // We attach metadata that the roadmap UI can use for fees/forms
                 countyMetadata: {
                     feeAmount: patch.feeAmount ? Number(patch.feeAmount) : undefined,
@@ -115,7 +126,7 @@ export class CountyOverrideService {
         if (!countyName || countyName.trim() === "")
             return null;
         const overrides = await safeQuery(() => db.countyOverride.findMany({
-            where: { stateCode, countyName },
+            where: { stateCode, countyName, status: "APPROVED" },
             orderBy: { taskId: "asc" },
             select: { taskId: true, updatedAt: true }
         }));

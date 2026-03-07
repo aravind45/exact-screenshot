@@ -5,6 +5,42 @@ import { prisma } from '../db.js';
 import { FeeService } from './feeService.js';
 import { PriorityService } from './priorityService.js';
 import { logger } from '../lib/logger.js';
+async function loadTemplatePdfDocument(pdfBytes) {
+    try {
+        return await PDFDocument.load(pdfBytes);
+    }
+    catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        if (!/encrypted/i.test(message)) {
+            throw error;
+        }
+        logger.warn("Encrypted PDF template detected. Retrying with ignoreEncryption=true.");
+        return await PDFDocument.load(pdfBytes, { ignoreEncryption: true });
+    }
+}
+async function createTemplateFallbackPdf(formName, estate, reason) {
+    const doc = await PDFDocument.create();
+    const page = doc.addPage([612, 792]);
+    const font = await doc.embedStandardFont(StandardFonts.Helvetica);
+    const fontBold = await doc.embedStandardFont(StandardFonts.HelveticaBold);
+    const decedentName = `${String(estate?.deceasedFirstName || "")} ${String(estate?.deceasedLastName || "")}`.trim() || "Unknown Decedent";
+    const summaryReason = reason.length > 180 ? `${reason.slice(0, 177)}...` : reason;
+    page.drawText(`${formName} TEMPORARY PLACEHOLDER`, { x: 50, y: 740, size: 16, font: fontBold });
+    page.drawText("Official template could not be parsed in this environment.", { x: 50, y: 710, size: 11, font });
+    page.drawText(`Estate: ${decedentName}`, { x: 50, y: 680, size: 11, font });
+    page.drawText(`Generated: ${new Date().toLocaleDateString()}`, { x: 50, y: 660, size: 11, font });
+    page.drawText("Reason:", { x: 50, y: 630, size: 11, font: fontBold });
+    page.drawText(summaryReason, { x: 50, y: 612, size: 10, font, maxWidth: 510, lineHeight: 12 });
+    page.drawText("Use this only as a non-filing placeholder while template integrity is remediated.", {
+        x: 50,
+        y: 560,
+        size: 10,
+        font,
+        maxWidth: 510,
+        lineHeight: 12,
+    });
+    return await doc.save();
+}
 export const DocumentService = {
     TEMPLATES_DIR: path.join(process.cwd(), 'server', 'templates'),
     async getTemplateBytes(templateName) {
@@ -47,8 +83,17 @@ export const DocumentService = {
                 pdfBytes = Buffer.from(await doc.save());
             }
         }
-        const pdfDoc = await PDFDocument.load(pdfBytes);
-        const form = pdfDoc.getForm();
+        let pdfDoc;
+        let form;
+        try {
+            pdfDoc = await loadTemplatePdfDocument(pdfBytes);
+            form = pdfDoc.getForm();
+        }
+        catch (error) {
+            const reason = error instanceof Error ? error.message : String(error);
+            logger.error({ err: reason }, "[DocumentService] Failed to parse DE-111 template. Returning placeholder PDF.");
+            return await createTemplateFallbackPdf("DE-111", estate, reason);
+        }
         // --- MAPPING LOGIC ---
         // 1. Petitioner (Header)
         const petitionerName = estate.user?.fullName || "Petitioner";
@@ -121,7 +166,14 @@ export const DocumentService = {
             safeSetText(form, 'AttorneyBarNumber', estate.attorneyBarNumber || "");
         }
         // Return bytes
-        return await pdfDoc.save();
+        try {
+            return await pdfDoc.save();
+        }
+        catch (error) {
+            const reason = error instanceof Error ? error.message : String(error);
+            logger.error({ err: reason }, "[DocumentService] Failed to serialize DE-111. Returning placeholder PDF.");
+            return await createTemplateFallbackPdf("DE-111", estate, reason);
+        }
     },
     /**
      * Generates a filled DE-221 Spousal Property Petition
@@ -148,8 +200,17 @@ export const DocumentService = {
                 pdfBytes = Buffer.from(await doc.save());
             }
         }
-        const pdfDoc = await PDFDocument.load(pdfBytes);
-        const form = pdfDoc.getForm();
+        let pdfDoc;
+        let form;
+        try {
+            pdfDoc = await loadTemplatePdfDocument(pdfBytes);
+            form = pdfDoc.getForm();
+        }
+        catch (error) {
+            const reason = error instanceof Error ? error.message : String(error);
+            logger.error({ err: reason }, "[DocumentService] Failed to parse DE-221 template. Returning placeholder PDF.");
+            return await createTemplateFallbackPdf("DE-221", estate, reason);
+        }
         const petitionerName = estate.user?.fullName || "Petitioner";
         safeSetText(form, 'PetitionerName', petitionerName);
         safeSetText(form, 'PetitionerPhone', estate.petitionerPhone || "");
@@ -242,7 +303,7 @@ export const DocumentService = {
         if (!fs.existsSync(templatePath))
             return [];
         const pdfBytes = fs.readFileSync(templatePath);
-        const pdfDoc = await PDFDocument.load(pdfBytes);
+        const pdfDoc = await loadTemplatePdfDocument(pdfBytes);
         const form = pdfDoc.getForm();
         return form.getFields().map(f => f.getName());
     },

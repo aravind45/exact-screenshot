@@ -399,5 +399,444 @@ export const TASK_ACTIONS: Record<string, TaskAction> = {
     target: '/distribution',
     label: 'Track Distribution',
     icon: 'CheckCircle'
+  },
+
+  // Cross-state fallback actions (confidence hardening)
+  'distribute': {
+    type: 'navigate',
+    target: '/distribution',
+    label: 'Track Distribution',
+    icon: 'Send'
+  },
+  'pay_debts': {
+    type: 'navigate',
+    target: '/liabilities?filter=priority',
+    label: 'Pay Debts',
+    icon: 'CreditCard',
+    variant: 'primary'
+  },
+  'apply_priority': {
+    type: 'navigate',
+    target: '/liabilities?filter=priority',
+    label: 'Apply Priority',
+    icon: 'ListOrdered'
+  },
+  'appraisal': {
+    type: 'navigate',
+    target: '/assets?filter=needs_appraisal',
+    label: 'Start Appraisal',
+    icon: 'ClipboardList'
+  },
+  'attend_final_hearing': {
+    type: 'navigate',
+    target: '/roadmap',
+    label: 'Prepare Hearing',
+    icon: 'Gavel'
+  },
+  'blocked_account_minors': {
+    type: 'navigate',
+    target: '/probate/guardian-ad-litem',
+    label: 'Protect Minors',
+    icon: 'ShieldCheck'
+  },
+  'bond': {
+    type: 'navigate',
+    target: '/probate/bond-waiver',
+    label: 'Bond Setup',
+    icon: 'Shield'
+  },
+  'business_valuation': {
+    type: 'navigate',
+    target: '/assets',
+    label: 'Value Business',
+    icon: 'Building2'
+  },
+  'calculate_filing_fees': {
+    type: 'navigate',
+    target: '/probate/petition',
+    label: 'Review Filing Fees',
+    icon: 'Calculator'
+  },
+  'categorize_claims': {
+    type: 'navigate',
+    target: '/liabilities?filter=pending',
+    label: 'Categorize Claims',
+    icon: 'Filter'
+  },
+  'compile_required_form_pack': {
+    type: 'navigate',
+    target: '/forms',
+    label: 'Open Form Pack',
+    icon: 'FileStack'
+  },
+  'compile_will_and_proof': {
+    type: 'navigate',
+    target: '/documents',
+    label: 'Upload Will Proof',
+    icon: 'Upload'
+  },
+  'confirm_us_rep': {
+    type: 'navigate',
+    target: '/profile',
+    label: 'Confirm Representative',
+    icon: 'UserCheck'
+  },
+  'court_order': {
+    type: 'navigate',
+    target: '/documents',
+    label: 'Upload Court Order',
+    icon: 'Scale'
+  },
+  'determine_bond': {
+    type: 'navigate',
+    target: '/probate/bond-waiver',
+    label: 'Determine Bond',
+    icon: 'ShieldCheck'
+  },
+  'discharge': {
+    type: 'navigate',
+    target: '/probate/final-distribution',
+    label: 'Request Discharge',
+    icon: 'CheckCircle'
+  },
+  'ein': {
+    type: 'navigate',
+    target: '/documents',
+    label: 'Store EIN Docs',
+    icon: 'FileText'
+  },
+  'estimate_value': {
+    type: 'navigate',
+    target: '/assets',
+    label: 'Estimate Value',
+    icon: 'DollarSign'
+  },
+  'evaluate_solvency': {
+    type: 'navigate',
+    target: '/liabilities',
+    label: 'Evaluate Solvency',
+    icon: 'AlertTriangle'
+  },
+  'file_final_accounting': {
+    type: 'navigate',
+    target: '/accounting',
+    label: 'File Accounting',
+    icon: 'BarChart'
+  },
+  'final_petition': {
+    type: 'navigate',
+    target: '/probate/final-distribution',
+    label: 'File Final Petition',
+    icon: 'FileText'
+  },
+  'gather_death_certs': {
+    type: 'navigate',
+    target: '/documents',
+    label: 'Upload Certificates',
+    icon: 'Upload'
+  },
+  'genealogical_search': {
+    type: 'navigate',
+    target: '/heirs',
+    label: 'Review Heirs',
+    icon: 'Users'
+  },
+  'identify_jurisdiction': {
+    type: 'navigate',
+    target: '/profile',
+    label: 'Set Jurisdiction',
+    icon: 'MapPin'
+  },
+  'international_distribution_prep': {
+    type: 'navigate',
+    target: '/distribution',
+    label: 'International Prep',
+    icon: 'Globe'
+  },
+  'inventory_assets': {
+    type: 'navigate',
+    target: '/assets',
+    label: 'Inventory Assets',
+    icon: 'Package'
+  },
+  'issue_k1': {
+    type: 'navigate',
+    target: '/tax-management',
+    label: 'Issue K-1',
+    icon: 'Receipt'
+  },
+  'letters': {
+    type: 'navigate',
+    target: '/probate/letters',
+    label: 'Prepare Letters',
+    icon: 'Mail'
+  },
+  'lodge_will': {
+    type: 'navigate',
+    target: '/documents',
+    label: 'Lodge Will',
+    icon: 'Upload'
+  },
+  'manage_business_authority': {
+    type: 'navigate',
+    target: '/assets',
+    label: 'Manage Authority',
+    icon: 'Building2'
+  },
+  'manage_utilities': {
+    type: 'navigate',
+    target: '/assets',
+    label: 'Track Utilities',
+    icon: 'Wrench'
+  },
+  'minor_beneficiary_court_approval': {
+    type: 'navigate',
+    target: '/probate/guardian-ad-litem',
+    label: 'Minor Approval',
+    icon: 'ShieldCheck'
+  },
+  'notify_banks': {
+    type: 'navigate',
+    target: '/assets',
+    label: 'Notify Banks',
+    icon: 'Landmark'
+  },
+  'notify_creditors': {
+    type: 'navigate',
+    target: '/liabilities',
+    label: 'Notify Creditors',
+    icon: 'Bell'
+  },
+  'pay_approved': {
+    type: 'navigate',
+    target: '/liabilities?filter=approved',
+    label: 'Pay Approved Claims',
+    icon: 'CheckCircle'
+  },
+  'preliminary_inventory': {
+    type: 'navigate',
+    target: '/assets',
+    label: 'Preliminary Inventory',
+    icon: 'ClipboardList'
+  },
+  'request_temporary_authority': {
+    type: 'navigate',
+    target: '/probate/petition',
+    label: 'Temporary Authority',
+    icon: 'FileText'
+  },
+  'screen_fiduciary_eligibility': {
+    type: 'navigate',
+    target: '/profile',
+    label: 'Verify Eligibility',
+    icon: 'UserCheck'
+  },
+  'secure_property_2': {
+    type: 'navigate',
+    target: '/assets',
+    label: 'Secure Property',
+    icon: 'Shield'
+  },
+  'tax_returns': {
+    type: 'navigate',
+    target: '/tax-management',
+    label: 'File Tax Returns',
+    icon: 'FileText'
+  },
+  'tax_withholding_review': {
+    type: 'navigate',
+    target: '/tax-management',
+    label: 'Review Withholding',
+    icon: 'Calculator'
+  },
+  'transfer_accounts': {
+    type: 'navigate',
+    target: '/distribution',
+    label: 'Transfer Accounts',
+    icon: 'RefreshCcw'
+  },
+  'validate_venue_jurisdiction': {
+    type: 'navigate',
+    target: '/probate/petition',
+    label: 'Validate Venue',
+    icon: 'MapPin'
+  },
+  'prepare_required_notices_and_waivers': {
+    type: 'navigate',
+    target: '/probate/special-notice',
+    label: 'Prepare Notices',
+    icon: 'FileText'
+  },
+  'validate_interested_parties': {
+    type: 'navigate',
+    target: '/heirs',
+    label: 'Validate Parties',
+    icon: 'Users'
+  },
+  'wait_claim_period': {
+    type: 'navigate',
+    target: '/liabilities',
+    label: 'Track Claim Window',
+    icon: 'Clock'
+  },
+  'attach_will': {
+    type: 'navigate',
+    target: '/documents',
+    label: 'Attach Will',
+    icon: 'Paperclip'
+  },
+  'beneficiary_consents': {
+    type: 'navigate',
+    target: '/heirs',
+    label: 'Collect Consents',
+    icon: 'Users'
+  },
+  'brief_hearing': {
+    type: 'navigate',
+    target: '/roadmap',
+    label: 'Prepare Hearing Brief',
+    icon: 'Gavel'
+  },
+  'certified_copies': {
+    type: 'navigate',
+    target: '/documents',
+    label: 'Upload Certified Copies',
+    icon: 'Copy'
+  },
+  'closing_statement': {
+    type: 'navigate',
+    target: '/accounting',
+    label: 'Closing Statement',
+    icon: 'FileText'
+  },
+  'collect_assets': {
+    type: 'navigate',
+    target: '/assets',
+    label: 'Collect Assets',
+    icon: 'Package'
+  },
+  'communicate': {
+    type: 'navigate',
+    target: '/inbox',
+    label: 'Send Updates',
+    icon: 'MessageSquare'
+  },
+  'contact_beneficiaries': {
+    type: 'navigate',
+    target: '/heirs',
+    label: 'Contact Beneficiaries',
+    icon: 'Users'
+  },
+  'distribution_plan': {
+    type: 'navigate',
+    target: '/distribution',
+    label: 'Distribution Plan',
+    icon: 'Workflow'
+  },
+  'document_agreement': {
+    type: 'navigate',
+    target: '/documents',
+    label: 'Document Agreement',
+    icon: 'FileText'
+  },
+  'expedited_hearing': {
+    type: 'navigate',
+    target: '/probate/petition',
+    label: 'Expedite Hearing',
+    icon: 'Gavel'
+  },
+  'file_court': {
+    type: 'navigate',
+    target: '/probate/petition',
+    label: 'File with Court',
+    icon: 'Scale'
+  },
+  'file_taxes': {
+    type: 'navigate',
+    target: '/tax-management',
+    label: 'File Taxes',
+    icon: 'Receipt'
+  },
+  'minimal_supervision': {
+    type: 'navigate',
+    target: '/roadmap',
+    label: 'Review Track',
+    icon: 'Compass'
+  },
+  'no_accounting': {
+    type: 'navigate',
+    target: '/accounting',
+    label: 'Accounting Check',
+    icon: 'BarChart'
+  },
+  'no_contests': {
+    type: 'navigate',
+    target: '/probate/contested-probate',
+    label: 'Contest Check',
+    icon: 'ShieldAlert'
+  },
+  'no_inventory': {
+    type: 'navigate',
+    target: '/assets',
+    label: 'Inventory Check',
+    icon: 'ClipboardList'
+  },
+  'notify_heirs': {
+    type: 'navigate',
+    target: '/heirs',
+    label: 'Notify Heirs',
+    icon: 'Bell'
+  },
+  'prepare_petition': {
+    type: 'navigate',
+    target: '/probate/petition',
+    label: 'Prepare Petition',
+    icon: 'FileText'
+  },
+  'receipts': {
+    type: 'navigate',
+    target: '/receipts',
+    label: 'Collect Receipts',
+    icon: 'CheckCircle'
+  },
+  'records': {
+    type: 'navigate',
+    target: '/documents',
+    label: 'Keep Records',
+    icon: 'Archive'
+  },
+  'reduced_fees': {
+    type: 'navigate',
+    target: '/probate/small-estate',
+    label: 'Fee Reduction Path',
+    icon: 'BadgeDollarSign'
+  },
+  'review_will': {
+    type: 'navigate',
+    target: '/documents',
+    label: 'Review Will',
+    icon: 'Search'
+  },
+  'state_requirements': {
+    type: 'navigate',
+    target: '/roadmap',
+    label: 'Review Requirements',
+    icon: 'Map'
+  },
+  'verify_no_disputes': {
+    type: 'navigate',
+    target: '/probate/contested-probate',
+    label: 'Verify No Disputes',
+    icon: 'ShieldCheck'
+  },
+  'waive_bond': {
+    type: 'navigate',
+    target: '/probate/bond-waiver',
+    label: 'Waive Bond',
+    icon: 'Shield'
   }
 };
+
+
+
+
