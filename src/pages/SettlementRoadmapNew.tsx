@@ -12,11 +12,12 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { getLettersTerm } from "@/lib/stateRules";
 import { MinimumIntakeGate } from "@/components/MinimumIntakeGate";
+import { RoadmapTimelineOverview } from "@/components/roadmap/RoadmapTimelineOverview";
 
 export default function SettlementRoadmapNew() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const { phaseProgress, probateBlockers, currentPhase, completedPhases, assets, isStateMissing, clientRoadmap } = useWorkflow();
+  const { phaseProgress, probateBlockers, currentPhase, completedPhases, completedTaskIds, assets, isStateMissing, clientRoadmap } = useWorkflow();
 
   const { data: estate } = useQuery({
     queryKey: ['estate'],
@@ -187,6 +188,14 @@ export default function SettlementRoadmapNew() {
             </div>
           )}
 
+
+          {!isStateMissing && dynamicRoadmap.length > 0 && (
+            <RoadmapTimelineOverview
+              phases={dynamicRoadmap}
+              currentPhase={currentPhase}
+              completedTaskIds={completedTaskIds}
+            />
+          )}
           {/* ── STATE MISSING BANNER ── */}
           {isStateMissing && (
             <div className="bg-amber-50 rounded-2xl p-8 shadow-sm border-2 border-amber-200 flex items-start gap-5 relative overflow-hidden">
@@ -287,10 +296,4 @@ export default function SettlementRoadmapNew() {
     </div>
   );
 }
-
-
-
-
-
-
 
