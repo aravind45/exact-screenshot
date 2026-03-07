@@ -1084,7 +1084,9 @@ import {
     uncompleteTask,
     getTaskCompletions,
     pinEstateRoadmap,
-    repinEstateRoadmap
+    repinEstateRoadmap,
+    getEstateRoadmapVersionHistory,
+    activateEstateRoadmapVersion
 } from "../services/roadmapService.js";
 
 const VALID_STATE_CODE = /^[A-Z]{2}$/;
@@ -1392,6 +1394,87 @@ router.post("/:id/repin", requireSubscription, async (req: any, res: Response) =
 });
 
 /**
+ * GET /:id/roadmap-versions - List immutable roadmap versions for the estate
+ */
+router.get("/:id/roadmap-versions", requireSubscription, async (req: any, res: Response) => {
+    try {
+        const { id } = req.params;
+
+        const estate = await prisma.estate.findFirst({
+            where: {
+                id,
+                OR: [
+                    { userId: req.user.id },
+                    { grants: { some: { userId: req.user.id } } }
+                ]
+            },
+            select: { id: true }
+        });
+
+        if (!estate) {
+            return res.status(404).json({ error: "Estate not found or access denied" });
+        }
+
+        const versions = await getEstateRoadmapVersionHistory(id);
+        res.json({ versions });
+    } catch (error: any) {
+        if (error.message === "ROADMAP_VERSIONING_UNAVAILABLE") {
+            return res.status(503).json({
+                error: "Roadmap versioning unavailable",
+                code: "ROADMAP_VERSIONING_UNAVAILABLE"
+            });
+        }
+
+        logger.error("Error fetching roadmap version history:", error);
+        res.status(500).json({ error: "Failed to fetch roadmap version history", message: error.message });
+    }
+});
+
+/**
+ * POST /:id/roadmap-versions/:versionId/activate - Activate a previous roadmap version
+ */
+router.post("/:id/roadmap-versions/:versionId/activate", requireSubscription, async (req: any, res: Response) => {
+    try {
+        const { id, versionId } = req.params;
+
+        const estate = await prisma.estate.findFirst({
+            where: {
+                id,
+                OR: [
+                    { userId: req.user.id },
+                    { grants: { some: { userId: req.user.id } } }
+                ]
+            },
+            select: { id: true }
+        });
+
+        if (!estate) {
+            return res.status(404).json({ error: "Estate not found or access denied" });
+        }
+
+        const result = await activateEstateRoadmapVersion(id, versionId, req.user.id);
+        res.json(result);
+    } catch (error: any) {
+        if (error.message === "ROADMAP_VERSION_NOT_FOUND") {
+            return res.status(404).json({
+                error: "Roadmap version not found",
+                code: "ROADMAP_VERSION_NOT_FOUND"
+            });
+        }
+
+        if (error.message === "ROADMAP_VERSIONING_UNAVAILABLE") {
+            return res.status(503).json({
+                error: "Roadmap versioning unavailable",
+                code: "ROADMAP_VERSIONING_UNAVAILABLE"
+            });
+        }
+
+        logger.error("Error activating roadmap version:", error);
+        res.status(500).json({ error: "Failed to activate roadmap version", message: error.message });
+    }
+});
+
+/**
  * GET /:id/authorityHistory - Get authority change history for audit
  */
 router.get("/:id/authorityHistory", requireSubscription, async (req: any, res: Response) => {
@@ -1684,3 +1767,10 @@ router.post("/:id/select-track", authenticate, requireEstateAccess, async (req: 
         res.status(500).json({ error: "Failed to select track", message: error.message });
     }
 });
+
+
+
+
+
+
+

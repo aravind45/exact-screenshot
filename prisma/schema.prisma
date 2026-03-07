@@ -163,6 +163,7 @@ model Estate {
   mailings                  Mailing[]
   activities                SettlementActivity[]
   taskCompletions           TaskCompletion[]
+  roadmapVersions           EstateRoadmapVersion[]
 
   @@map("estates")
 }
@@ -610,6 +611,29 @@ model RoadmapVersion {
   
   @@unique([version, settlementTypeCode])
   @@map("roadmap_versions")
+}
+model EstateRoadmapVersion {
+  id               String    @id @default(uuid())
+  estateId         String    @map("estate_id")
+  versionNumber    Int       @map("version_number")
+  versionLabel     String    @map("version_label")
+  status           String    @default("ACTIVE")
+  generationReason String    @map("generation_reason")
+  inputSnapshot    Json      @map("input_snapshot")
+  inputHash        String    @map("input_hash")
+  roadmapSnapshot  Json      @map("roadmap_snapshot")
+  roadmapHash      String    @map("roadmap_hash")
+  changeSummary    Json?     @map("change_summary")
+  createdBy        String?   @map("created_by")
+  supersededAt     DateTime? @map("superseded_at")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+  estate           Estate    @relation(fields: [estateId], references: [id], onDelete: Cascade)
+
+  @@unique([estateId, versionNumber])
+  @@index([estateId, status])
+  @@index([estateId, createdAt])
+  @@map("estate_roadmap_versions")
 }
 
 model RoadmapPhase {
@@ -1278,3 +1302,6 @@ model AuthorityChangeEvent {
   @@index([estateId, computedAt])
   @@map("authority_change_events")
 }
+
+
+

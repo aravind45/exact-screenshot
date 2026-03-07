@@ -4,7 +4,7 @@ import { ProbateBlockerAlert } from "@/components/ProbateBlockerAlert";
 import { useWorkflow } from "@/contexts/WorkflowContext";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import { CheckCircle, AlertCircle, ArrowRight, FileText, MapPin } from "lucide-react";
+import { CheckCircle, AlertCircle, ArrowRight, FileText, MapPin, History } from "lucide-react";
 import { SettlementPhaseChevron } from "@/components/SettlementPhaseChevron";
 import { type SettlementPhase } from "@/config/settlementPhases";
 import { SEO } from "@/components/SEO";
@@ -35,6 +35,14 @@ export default function SettlementRoadmapNew() {
 
   const isMinimumIntakeRequired = (roadmapError as any)?.status === 409 &&
     (roadmapError as any)?.data?.code === 'MINIMUM_INTAKE_REQUIRED';
+
+  const roadmapRevision = roadmapData?.roadmapRevision;
+  const roadmapVersionLabel = roadmapRevision?.versionLabel || roadmapData?.version || "latest";
+  const revisionInvalidatedCount = roadmapRevision?.invalidatedCompletedTaskIds?.length || 0;
+  const revisionChangedTaskCount =
+    (roadmapRevision?.addedTaskIds?.length || 0) +
+    (roadmapRevision?.removedTaskIds?.length || 0) +
+    (roadmapRevision?.changedTaskIds?.length || 0);
 
   // Primary: server-side roadmap. Fallback: client-side generated roadmap.
   const dynamicRoadmap = (roadmapData?.phases && roadmapData.phases.length > 0)
@@ -106,7 +114,7 @@ export default function SettlementRoadmapNew() {
           <div>
             <h1 className="text-[30px] font-bold text-slate-900 tracking-tight leading-none">Action Plan</h1>
             <p className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-2">
-              Your Complete 6-Phase Guide
+              {`Your Complete 6-Phase Guide - ${roadmapVersionLabel}`}
             </p>
           </div>
           <div className="flex items-center gap-6">
@@ -147,6 +155,37 @@ export default function SettlementRoadmapNew() {
 
         {/* Main Content */}
         <main className="max-w-[1280px] w-full mx-auto px-10 py-10 space-y-8">
+          {roadmapRevision && (
+            <div className={`rounded-2xl p-5 border shadow-sm ${revisionInvalidatedCount > 0 ? "bg-amber-50 border-amber-200" : "bg-white border-slate-100"}`}>
+              <div className="flex items-start gap-3">
+                <div className={`w-9 h-9 rounded-full flex items-center justify-center ${revisionInvalidatedCount > 0 ? "bg-amber-100" : "bg-indigo-50"}`}>
+                  <History className={`w-4 h-4 ${revisionInvalidatedCount > 0 ? "text-amber-700" : "text-indigo-600"}`} />
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Roadmap Version</p>
+                  <h3 className="text-base font-black text-slate-900 mt-1">{roadmapRevision.versionLabel} is active</h3>
+                  <p className="text-xs text-slate-600 mt-1">
+                    Generated {new Date(roadmapRevision.generatedAt).toLocaleString()} · {roadmapRevision.generationReason.split("_").join(" ")}
+                  </p>
+                  {roadmapRevision.triggerReasons.length > 0 && (
+                    <p className="text-xs text-slate-600 mt-1">
+                      Trigger(s): {roadmapRevision.triggerReasons.join(", ")}
+                    </p>
+                  )}
+                  {revisionChangedTaskCount > 0 && (
+                    <p className="text-xs text-slate-600 mt-1">
+                      Changed tasks: {revisionChangedTaskCount} (added {roadmapRevision.addedTaskIds.length}, removed {roadmapRevision.removedTaskIds.length}, updated {roadmapRevision.changedTaskIds.length})
+                    </p>
+                  )}
+                  {revisionInvalidatedCount > 0 && (
+                    <p className="text-xs font-bold text-amber-800 mt-2">
+                      {revisionInvalidatedCount} completed task(s) need revalidation because material facts changed.
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* ── STATE MISSING BANNER ── */}
           {isStateMissing && (
@@ -248,3 +287,10 @@ export default function SettlementRoadmapNew() {
     </div>
   );
 }
+
+
+
+
+
+
+

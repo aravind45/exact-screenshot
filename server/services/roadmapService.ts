@@ -13,6 +13,15 @@ import {
   computeAuthorityRecommendation,
   checkAuthorityChangePending,
 } from "./authorityChangeService.js";
+import {
+  computeCompletedPhases,
+  computeRoadmapVersionDiff,
+  hashStable,
+  normalizeRoadmapForSnapshot,
+  shouldCreateNewRoadmapVersion,
+  type EstateRoadmapInputSnapshot,
+  type RoadmapVersionDiff,
+} from "./roadmapVersioning.js";
 
 /**
  * Effective Authority Result
@@ -113,6 +122,8 @@ interface EstateProfile {
   estimatedValue: number;
   totalDebts: number;
   solvencyRatio: number;
+  assetCount: number;
+  liabilityCount: number;
 
   // Multi-dimensional Track Data
   authoritySource: AuthoritySource;
@@ -651,8 +662,50 @@ export interface RoadmapResponse {
   authorityRecommendation: string;
   userSelectedAuthorityType?: EstateAuthorityType;
   requiresTrackSelection?: boolean; // Banner flag for DEFAULT_FAIL_CLOSED mode
+  roadmapRevision?: {
+    id: string;
+    versionNumber: number;
+    versionLabel: string;
+    status: string;
+    generationReason: string;
+    generatedAt: Date;
+    createdNewVersion: boolean;
+    triggerReasons: string[];
+    changedInputFields: string[];
+    addedTaskIds: string[];
+    removedTaskIds: string[];
+    changedTaskIds: string[];
+    carriedCompletedTaskIds: string[];
+    invalidatedCompletedTaskIds: string[];
+  };
+  versioningEnabled?: boolean;
 }
 
+
+interface EstateRoadmapVersionRecord {
+  id: string;
+  estateId: string;
+  versionNumber: number;
+  versionLabel: string;
+  status: string;
+  generationReason: string;
+  inputSnapshot: EstateRoadmapInputSnapshot | null;
+  inputHash: string;
+  roadmapSnapshot: PhaseTaskList[];
+  roadmapHash: string;
+  changeSummary: RoadmapVersionDiff | null;
+  createdBy?: string | null;
+  supersededAt?: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface EnsureEstateRoadmapVersionResult {
+  versioningEnabled: boolean;
+  createdNewVersion: boolean;
+  activeVersion: EstateRoadmapVersionRecord | null;
+  diff: RoadmapVersionDiff | null;
+}
 /**
  * Fetch jurisdiction rules from database with fallback to hardcoded defaults
  */
@@ -904,6 +957,8 @@ export async function analyzeEstateProfile(estateId: string): Promise<EstateProf
     estimatedValue: rec.probateTotal,
     totalDebts,
     solvencyRatio,
+    assetCount: estate.assets.length,
+    liabilityCount: estate.liabilities.length,
     authoritySource: rec.authoritySource,
     procedureType: rec.procedureType,
     distributionModel: rec.distributionModel,
@@ -1112,6 +1167,535 @@ async function getLatestPublishedVersion(settlementTypeCode: string): Promise<st
     select: { version: true }
   });
   return version?.version || null;
+}
+
+/**
+ * Estate roadmap snapshot versioning helpers
+ */
+function isEstateRoadmapVersioningUnavailable(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error || "");
+  const lowered = message.toLowerCase();
+  return (
+    lowered.includes("estate_roadmap_versions") &&
+    (lowered.includes("does not exist") || lowered.includes("unknown table") || lowered.includes("no such table"))
+  );
+}
+
+function getEstateRoadmapVersionDelegate(client: any) {
+  const delegate = client?.estateRoadmapVersion;
+  if (!delegate || typeof delegate.findFirst !== "function") {
+    return null;
+  }
+  return delegate;
+}
+
+function getSettlementTypeCodeForProfile(profile: EstateProfile, estate: {
+  settlementPath?: string | null;
+  estateType?: string | null;
+}): string {
+  return profile.procedureType !== "UNSET"
+    ? profile.procedureType
+    : (estate.settlementPath || estate.estateType || "FORMAL_PROBATE");
+}
+
+function buildEstateRoadmapInputSnapshot(params: {
+  profile: EstateProfile;
+  settlementTypeCode: string;
+  estate: {
+    deceasedState?: string | null;
+    probateCounty?: string | null;
+    stateRulesetHash?: string | null;
+    countyOverrideHash?: string | null;
+    roadmapVersion?: string | null;
+  };
+}): EstateRoadmapInputSnapshot {
+  const { profile, settlementTypeCode, estate } = params;
+  return {
+    deceasedState: (estate.deceasedState || profile.state || "").toUpperCase(),
+    probateCounty: estate.probateCounty || null,
+    settlementTypeCode,
+    estateAuthorityType: profile.estateAuthorityType,
+    procedureType: profile.procedureType,
+    distributionModel: profile.distributionModel,
+    activeEngines: [...profile.activeEngines].sort(),
+    hasWill: !!profile.hasWill,
+    hasMinorBeneficiaries: !!profile.hasMinorBeneficiaries,
+    hasContest: !!profile.isContested,
+    hasUnknownHeirs: !!profile.hasUnknownHeirs,
+    hasPrimaryResidence: !!profile.isPrimaryResidence,
+    estimatedValue: Number(profile.estimatedValue || 0),
+    totalDebts: Number(profile.totalDebts || 0),
+    solvencyRatio: Number(profile.solvencyRatio || 0),
+    assetCount: Number(profile.assetCount || 0),
+    liabilityCount: Number(profile.liabilityCount || 0),
+    stateRulesetHash: estate.stateRulesetHash || null,
+    countyOverrideHash: estate.countyOverrideHash || null,
+    ssotRoadmapVersion: estate.roadmapVersion || null,
+  };
+}
+
+function parseSnapshotPhases(snapshot: unknown): PhaseTaskList[] {
+  if (!Array.isArray(snapshot)) return [];
+  return snapshot as PhaseTaskList[];
+}
+
+function normalizeEstateRoadmapVersionRecord(row: any): EstateRoadmapVersionRecord {
+  return {
+    id: row.id,
+    estateId: row.estateId,
+    versionNumber: Number(row.versionNumber),
+    versionLabel: row.versionLabel,
+    status: row.status,
+    generationReason: row.generationReason,
+    inputSnapshot: (row.inputSnapshot || null) as EstateRoadmapInputSnapshot | null,
+    inputHash: row.inputHash,
+    roadmapSnapshot: parseSnapshotPhases(row.roadmapSnapshot),
+    roadmapHash: row.roadmapHash,
+    changeSummary: (row.changeSummary || null) as RoadmapVersionDiff | null,
+    createdBy: row.createdBy,
+    supersededAt: row.supersededAt,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+  };
+}
+
+function buildInitialVersionDiff(phases: PhaseTaskList[], completedTaskIds: string[]): RoadmapVersionDiff {
+  const visibleTaskIds = phases.flatMap((phase) => phase.tasks.map((task) => task.id));
+  const visibleTaskIdSet = new Set(visibleTaskIds);
+
+  const carriedCompletedTaskIds = completedTaskIds
+    .filter((taskId) => visibleTaskIdSet.has(taskId))
+    .sort();
+
+  const carriedSet = new Set(carriedCompletedTaskIds);
+  const invalidatedCompletedTaskIds = completedTaskIds
+    .filter((taskId) => !carriedSet.has(taskId))
+    .sort();
+
+  return {
+    addedTaskIds: [],
+    removedTaskIds: [],
+    changedTaskIds: [],
+    unchangedTaskIds: [...new Set(visibleTaskIds)].sort(),
+    carriedCompletedTaskIds,
+    invalidatedCompletedTaskIds,
+    changedInputFields: ["INITIAL_SNAPSHOT"],
+    triggerReasons: ["INITIAL_GENERATION"],
+  };
+}
+
+async function applyRoadmapCompletionRevalidation(params: {
+  client: any;
+  estateId: string;
+  phases: PhaseTaskList[];
+  currentProgress: any;
+  carriedCompletedTaskIds: string[];
+  invalidatedCompletedTaskIds: string[];
+}): Promise<void> {
+  const {
+    client,
+    estateId,
+    phases,
+    currentProgress,
+    carriedCompletedTaskIds,
+    invalidatedCompletedTaskIds,
+  } = params;
+
+  const nextCompletedTaskIds = [...new Set(carriedCompletedTaskIds)].sort();
+  const nextCompletedPhases = computeCompletedPhases(phases, nextCompletedTaskIds);
+
+  await client.estate.update({
+    where: { id: estateId },
+    data: {
+      roadmapProgress: {
+        ...(currentProgress || {}),
+        completedTaskIds: nextCompletedTaskIds,
+        completedPhases: nextCompletedPhases,
+      },
+    },
+  });
+
+  if (invalidatedCompletedTaskIds.length > 0) {
+    await client.taskCompletion.updateMany({
+      where: {
+        estateId,
+        taskId: { in: invalidatedCompletedTaskIds },
+      },
+      data: {
+        completed: false,
+        completedAt: null,
+      },
+    });
+  }
+}
+
+async function ensureEstateRoadmapVersion(params: {
+  estateId: string;
+  profile: EstateProfile;
+  phases: PhaseTaskList[];
+  completedTaskIds: string[];
+  forceNewVersion?: boolean;
+  actorUserId?: string;
+  generationReason?: string;
+}): Promise<EnsureEstateRoadmapVersionResult> {
+  const {
+    estateId,
+    profile,
+    phases,
+    completedTaskIds,
+    forceNewVersion = false,
+    actorUserId,
+    generationReason,
+  } = params;
+
+  const delegate = getEstateRoadmapVersionDelegate(db as any);
+  if (!delegate) {
+    return {
+      versioningEnabled: false,
+      createdNewVersion: false,
+      activeVersion: null,
+      diff: null,
+    };
+  }
+
+  let estateMeta: any;
+  try {
+    estateMeta = await db.estate.findUnique({
+      where: { id: estateId },
+      select: {
+        id: true,
+        deceasedState: true,
+        probateCounty: true,
+        estateType: true,
+        settlementPath: true,
+        roadmapVersion: true,
+        stateRulesetHash: true,
+        countyOverrideHash: true,
+        roadmapProgress: true,
+      },
+    });
+  } catch (error) {
+    if (isMissingColumnError(error)) {
+      const fallback = await fetchEstateRowById(db, estateId);
+      estateMeta = fallback
+        ? {
+          id: fallback.id,
+          deceasedState: fallback.deceasedState ?? profile.state,
+          probateCounty: fallback.probateCounty ?? null,
+          estateType: fallback.estateType ?? null,
+          settlementPath: fallback.settlementPath ?? null,
+          roadmapVersion: fallback.roadmapVersion ?? null,
+          stateRulesetHash: fallback.stateRulesetHash ?? null,
+          countyOverrideHash: fallback.countyOverrideHash ?? null,
+          roadmapProgress: fallback.roadmapProgress ?? null,
+        }
+        : null;
+    } else {
+      throw error;
+    }
+  }
+
+  if (!estateMeta) {
+    throw new Error(`Estate ${estateId} not found`);
+  }
+
+  const settlementTypeCode = getSettlementTypeCodeForProfile(profile, estateMeta);
+  const nextInputSnapshot = buildEstateRoadmapInputSnapshot({
+    profile,
+    settlementTypeCode,
+    estate: estateMeta,
+  });
+  const nextInputHash = hashStable(nextInputSnapshot);
+  const nextRoadmapSnapshot = normalizeRoadmapForSnapshot(phases);
+  const nextRoadmapHash = hashStable(nextRoadmapSnapshot);
+
+  try {
+    return await db.$transaction(async (tx) => {
+      const txDelegate = getEstateRoadmapVersionDelegate(tx as any);
+      if (!txDelegate) {
+        return {
+          versioningEnabled: false,
+          createdNewVersion: false,
+          activeVersion: null,
+          diff: null,
+        };
+      }
+
+      const activeRaw = await txDelegate.findFirst({
+        where: { estateId, status: "ACTIVE" },
+        orderBy: { versionNumber: "desc" },
+      });
+
+      if (!activeRaw) {
+        const initialDiff = buildInitialVersionDiff(phases, completedTaskIds);
+        const created = await txDelegate.create({
+          data: {
+            estateId,
+            versionNumber: 1,
+            versionLabel: "v1",
+            status: "ACTIVE",
+            generationReason: generationReason || "INITIAL_GENERATION",
+            inputSnapshot: nextInputSnapshot,
+            inputHash: nextInputHash,
+            roadmapSnapshot: nextRoadmapSnapshot,
+            roadmapHash: nextRoadmapHash,
+            changeSummary: initialDiff,
+            createdBy: actorUserId || null,
+          },
+        });
+
+        await applyRoadmapCompletionRevalidation({
+          client: tx,
+          estateId,
+          phases,
+          currentProgress: estateMeta.roadmapProgress,
+          carriedCompletedTaskIds: initialDiff.carriedCompletedTaskIds,
+          invalidatedCompletedTaskIds: initialDiff.invalidatedCompletedTaskIds,
+        });
+
+        return {
+          versioningEnabled: true,
+          createdNewVersion: true,
+          activeVersion: normalizeEstateRoadmapVersionRecord(created),
+          diff: initialDiff,
+        };
+      }
+
+      const activeVersion = normalizeEstateRoadmapVersionRecord(activeRaw);
+      const diff = computeRoadmapVersionDiff({
+        previousPhases: activeVersion.roadmapSnapshot,
+        nextPhases: phases,
+        completedTaskIds,
+        previousInputSnapshot: activeVersion.inputSnapshot,
+        nextInputSnapshot,
+      });
+
+      const shouldCreate = shouldCreateNewRoadmapVersion({
+        previousInputHash: activeVersion.inputHash,
+        nextInputHash,
+        previousRoadmapHash: activeVersion.roadmapHash,
+        nextRoadmapHash,
+        force: forceNewVersion,
+      });
+
+      if (!shouldCreate) {
+        return {
+          versioningEnabled: true,
+          createdNewVersion: false,
+          activeVersion,
+          diff,
+        };
+      }
+
+      const nextVersionNumber = Number(activeVersion.versionNumber) + 1;
+      const nextVersionLabel = `v${nextVersionNumber}`;
+
+      await txDelegate.updateMany({
+        where: { estateId, status: "ACTIVE" },
+        data: {
+          status: "SUPERSEDED",
+          supersededAt: new Date(),
+        },
+      });
+
+      const created = await txDelegate.create({
+        data: {
+          estateId,
+          versionNumber: nextVersionNumber,
+          versionLabel: nextVersionLabel,
+          status: "ACTIVE",
+          generationReason: generationReason || (forceNewVersion ? "MANUAL_REGENERATION" : "MATERIAL_CHANGE"),
+          inputSnapshot: nextInputSnapshot,
+          inputHash: nextInputHash,
+          roadmapSnapshot: nextRoadmapSnapshot,
+          roadmapHash: nextRoadmapHash,
+          changeSummary: diff,
+          createdBy: actorUserId || null,
+        },
+      });
+
+      await applyRoadmapCompletionRevalidation({
+        client: tx,
+        estateId,
+        phases,
+        currentProgress: estateMeta.roadmapProgress,
+        carriedCompletedTaskIds: diff.carriedCompletedTaskIds,
+        invalidatedCompletedTaskIds: diff.invalidatedCompletedTaskIds,
+      });
+
+      if (diff.invalidatedCompletedTaskIds.length > 0) {
+        await tx.settlementActivity.create({
+          data: {
+            estateId,
+            userId: actorUserId || null,
+            type: "ROADMAP",
+            action: "VERSION_REVALIDATION",
+            notes: `Roadmap ${nextVersionLabel} invalidated ${diff.invalidatedCompletedTaskIds.length} completed tasks due to material changes.`,
+          },
+        });
+      }
+
+      return {
+        versioningEnabled: true,
+        createdNewVersion: true,
+        activeVersion: normalizeEstateRoadmapVersionRecord(created),
+        diff,
+      };
+    });
+  } catch (error) {
+    if (isEstateRoadmapVersioningUnavailable(error)) {
+      logger.warn({ estateId, error: error instanceof Error ? error.message : String(error) }, "Roadmap version snapshot table unavailable; continuing without snapshot versioning.");
+      return {
+        versioningEnabled: false,
+        createdNewVersion: false,
+        activeVersion: null,
+        diff: null,
+      };
+    }
+    throw error;
+  }
+}
+
+export async function getEstateRoadmapVersionHistory(estateId: string): Promise<Array<{
+  id: string;
+  versionNumber: number;
+  versionLabel: string;
+  status: string;
+  generationReason: string;
+  createdAt: Date;
+  supersededAt?: Date | null;
+  changeSummary: RoadmapVersionDiff | null;
+}>> {
+  const delegate = getEstateRoadmapVersionDelegate(db as any);
+  if (!delegate) return [];
+
+  try {
+    const rows = await delegate.findMany({
+      where: { estateId },
+      orderBy: { versionNumber: "desc" },
+      select: {
+        id: true,
+        versionNumber: true,
+        versionLabel: true,
+        status: true,
+        generationReason: true,
+        createdAt: true,
+        supersededAt: true,
+        changeSummary: true,
+      },
+    });
+
+    return rows.map((row: any) => ({
+      id: row.id,
+      versionNumber: Number(row.versionNumber),
+      versionLabel: row.versionLabel,
+      status: row.status,
+      generationReason: row.generationReason,
+      createdAt: row.createdAt,
+      supersededAt: row.supersededAt,
+      changeSummary: (row.changeSummary || null) as RoadmapVersionDiff | null,
+    }));
+  } catch (error) {
+    if (isEstateRoadmapVersioningUnavailable(error)) {
+      return [];
+    }
+    throw error;
+  }
+}
+
+export async function activateEstateRoadmapVersion(
+  estateId: string,
+  versionId: string,
+  userId: string
+): Promise<{ success: boolean; activeVersion: EstateRoadmapVersionRecord; diff: RoadmapVersionDiff }> {
+  const delegate = getEstateRoadmapVersionDelegate(db as any);
+  if (!delegate) {
+    throw new Error("ROADMAP_VERSIONING_UNAVAILABLE");
+  }
+
+  try {
+    return await db.$transaction(async (tx) => {
+      const txDelegate = getEstateRoadmapVersionDelegate(tx as any);
+      if (!txDelegate) {
+        throw new Error("ROADMAP_VERSIONING_UNAVAILABLE");
+      }
+
+      const [targetRaw, activeRaw, estate] = await Promise.all([
+        txDelegate.findFirst({ where: { id: versionId, estateId } }),
+        txDelegate.findFirst({ where: { estateId, status: "ACTIVE" }, orderBy: { versionNumber: "desc" } }),
+        tx.estate.findUnique({ where: { id: estateId }, select: { roadmapProgress: true } }),
+      ]);
+
+      if (!targetRaw) {
+        throw new Error("ROADMAP_VERSION_NOT_FOUND");
+      }
+
+      if (!estate) {
+        throw new Error(`Estate ${estateId} not found`);
+      }
+
+      const target = normalizeEstateRoadmapVersionRecord(targetRaw);
+      const active = activeRaw ? normalizeEstateRoadmapVersionRecord(activeRaw) : null;
+      const completedTaskIds = ((estate.roadmapProgress as any)?.completedTaskIds || []) as string[];
+
+      const diff = computeRoadmapVersionDiff({
+        previousPhases: active?.roadmapSnapshot || null,
+        nextPhases: target.roadmapSnapshot,
+        completedTaskIds,
+        previousInputSnapshot: active?.inputSnapshot || null,
+        nextInputSnapshot: target.inputSnapshot || ({} as EstateRoadmapInputSnapshot),
+      });
+
+      if (!active || active.id !== target.id) {
+        await txDelegate.updateMany({
+          where: { estateId, status: "ACTIVE" },
+          data: {
+            status: "SUPERSEDED",
+            supersededAt: new Date(),
+          },
+        });
+
+        await txDelegate.update({
+          where: { id: target.id },
+          data: {
+            status: "ACTIVE",
+            supersededAt: null,
+          },
+        });
+      }
+
+      await applyRoadmapCompletionRevalidation({
+        client: tx,
+        estateId,
+        phases: target.roadmapSnapshot,
+        currentProgress: estate.roadmapProgress,
+        carriedCompletedTaskIds: diff.carriedCompletedTaskIds,
+        invalidatedCompletedTaskIds: diff.invalidatedCompletedTaskIds,
+      });
+
+      await tx.settlementActivity.create({
+        data: {
+          estateId,
+          userId,
+          type: "ROADMAP",
+          action: "VERSION_ACTIVATED",
+          notes: `Activated roadmap ${target.versionLabel}. Revalidated ${diff.invalidatedCompletedTaskIds.length} completed tasks.`,
+        },
+      });
+
+      const refreshed = await txDelegate.findUnique({ where: { id: target.id } });
+      return {
+        success: true,
+        activeVersion: normalizeEstateRoadmapVersionRecord(refreshed),
+        diff,
+      };
+    });
+  } catch (error) {
+    if (isEstateRoadmapVersioningUnavailable(error)) {
+      throw new Error("ROADMAP_VERSIONING_UNAVAILABLE");
+    }
+    throw error;
+  }
 }
 
 /**
@@ -1388,6 +1972,26 @@ export async function getEstateRoadmap(estateId: string): Promise<RoadmapRespons
 
   // Development-time contamination check: warn if CA tokens leaked into non-CA state
   validateNoStateContamination(filteredPhases, profile.state);
+  let roadmapVersioning: EnsureEstateRoadmapVersionResult = {
+    versioningEnabled: false,
+    createdNewVersion: false,
+    activeVersion: null,
+    diff: null,
+  };
+
+  try {
+    roadmapVersioning = await ensureEstateRoadmapVersion({
+      estateId,
+      profile,
+      phases: filteredPhases,
+      completedTaskIds,
+    });
+  } catch (error) {
+    logger.error({
+      estateId,
+      error: error instanceof Error ? error.message : String(error),
+    }, "Roadmap versioning sync failed. Continuing with roadmap response.");
+  }
 
   // Get estate for version info and authority status
   let estate;
@@ -1435,6 +2039,8 @@ export async function getEstateRoadmap(estateId: string): Promise<RoadmapRespons
 
   // Return roadmap with triggers
   const effectiveAuthority = (profile as any).effectiveAuthority;
+  const activeRoadmapRevision = roadmapVersioning.activeVersion;
+  const revisionDiff = roadmapVersioning.diff || activeRoadmapRevision?.changeSummary || null;
 
   return {
     estateId,
@@ -1450,7 +2056,7 @@ export async function getEstateRoadmap(estateId: string): Promise<RoadmapRespons
     },
     profile,
     // Include version info for client awareness
-    version: estate?.roadmapVersion || 'latest',
+    version: activeRoadmapRevision?.versionLabel || estate?.roadmapVersion || 'latest',
     pinnedAt: estate?.roadmapPinnedAt,
     // Authority change policy fields
     authorityChangePending,
@@ -1464,6 +2070,25 @@ export async function getEstateRoadmap(estateId: string): Promise<RoadmapRespons
     authorityRecommendation: effectiveAuthority.recommendation,
     userSelectedAuthorityType: effectiveAuthority.userSelection,
     requiresTrackSelection: effectiveAuthority.source === "DEFAULT_FAIL_CLOSED" || effectiveAuthority.source === "ENGINE_LOW_CONFIDENCE",
+    roadmapRevision: activeRoadmapRevision
+      ? {
+        id: activeRoadmapRevision.id,
+        versionNumber: activeRoadmapRevision.versionNumber,
+        versionLabel: activeRoadmapRevision.versionLabel,
+        status: activeRoadmapRevision.status,
+        generationReason: activeRoadmapRevision.generationReason,
+        generatedAt: activeRoadmapRevision.createdAt,
+        createdNewVersion: roadmapVersioning.createdNewVersion,
+        triggerReasons: revisionDiff?.triggerReasons || [],
+        changedInputFields: revisionDiff?.changedInputFields || [],
+        addedTaskIds: revisionDiff?.addedTaskIds || [],
+        removedTaskIds: revisionDiff?.removedTaskIds || [],
+        changedTaskIds: revisionDiff?.changedTaskIds || [],
+        carriedCompletedTaskIds: revisionDiff?.carriedCompletedTaskIds || [],
+        invalidatedCompletedTaskIds: revisionDiff?.invalidatedCompletedTaskIds || [],
+      }
+      : undefined,
+    versioningEnabled: roadmapVersioning.versioningEnabled,
   };
 }
 
@@ -1564,7 +2189,24 @@ export async function pinEstateRoadmap(
       }
     });
   }
-
+  try {
+    const completions = await getTaskCompletions(estateId);
+    const snapshotPhases = await getRoadmapFromDatabase(estateId, profile, completions.completedTaskIds);
+    await ensureEstateRoadmapVersion({
+      estateId,
+      profile,
+      phases: snapshotPhases,
+      completedTaskIds: completions.completedTaskIds,
+      forceNewVersion: true,
+      actorUserId: userId,
+      generationReason: "MANUAL_PIN",
+    });
+  } catch (snapshotError) {
+    logger.warn({
+      estateId,
+      error: snapshotError instanceof Error ? snapshotError.message : String(snapshotError)
+    }, "Failed to force snapshot version during pin. Continuing.");
+  }
   // Log activity
   await db.settlementActivity.create({
     data: {
@@ -1656,8 +2298,7 @@ export async function unpinRoadmapVersion(
       roadmapPinnedAt: null
     }
   });
-
-  // Log activity
+    // Log activity
   await db.settlementActivity.create({
     data: {
       estateId,
@@ -1763,7 +2404,6 @@ export async function completeTask(
       });
     }
   }
-
   // Log activity
   await db.settlementActivity.create({
     data: {
@@ -1852,7 +2492,6 @@ export async function uncompleteTask(
       data: { roadmapProgress: progress },
     });
   }
-
   // Log activity
   await db.settlementActivity.create({
     data: {
@@ -1866,3 +2505,20 @@ export async function uncompleteTask(
 
   return { success: true, taskId };
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

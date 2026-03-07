@@ -253,6 +253,42 @@ export type FormReadiness = Record<string, {
     authorityTier?: string;
 }>;
 
+export interface RoadmapRevision {
+    id: string;
+    versionNumber: number;
+    versionLabel: string;
+    status: string;
+    generationReason: string;
+    generatedAt: string;
+    createdNewVersion: boolean;
+    triggerReasons: string[];
+    changedInputFields: string[];
+    addedTaskIds: string[];
+    removedTaskIds: string[];
+    changedTaskIds: string[];
+    carriedCompletedTaskIds: string[];
+    invalidatedCompletedTaskIds: string[];
+}
+
+export interface EstateRoadmapVersionHistoryItem {
+    id: string;
+    versionNumber: number;
+    versionLabel: string;
+    status: string;
+    generationReason: string;
+    createdAt: string;
+    supersededAt?: string | null;
+    changeSummary?: {
+        addedTaskIds?: string[];
+        removedTaskIds?: string[];
+        changedTaskIds?: string[];
+        carriedCompletedTaskIds?: string[];
+        invalidatedCompletedTaskIds?: string[];
+        triggerReasons?: string[];
+        changedInputFields?: string[];
+    } | null;
+}
+
 export interface RoadmapResponse {
     estateId: string;
     phases: any[]; // PhaseTaskList[] from settlementPhases
@@ -263,10 +299,13 @@ export interface RoadmapResponse {
         isContested: boolean;
         showBondWaiver: boolean;
         showSpecialNotice: boolean;
+        activeEngines?: string[];
     };
     profile: any;
     version: string;
     pinnedAt?: string | null;
+    roadmapRevision?: RoadmapRevision;
+    versioningEnabled?: boolean;
 }
 
 const API_URL = import.meta.env.VITE_API_URL || "/api";
@@ -1702,6 +1741,20 @@ export const api = {
         });
         return parseResponse(response);
     },
+    getEstateRoadmapVersions: async (id: string): Promise<{ versions: EstateRoadmapVersionHistoryItem[] }> => {
+        const response = await fetch(`${API_URL}/estates/${id}/roadmap-versions`, {
+            headers: getHeaders(),
+        });
+        return parseResponse(response);
+    },
+
+    activateEstateRoadmapVersion: async (id: string, versionId: string) => {
+        const response = await fetch(`${API_URL}/estates/${id}/roadmap-versions/${versionId}/activate`, {
+            method: "POST",
+            headers: getHeaders(),
+        });
+        return parseResponse(response);
+    },
 
     help: {
         getRecommendations: async (estateId: string) => {
@@ -2726,3 +2779,5 @@ export const api = {
         },
     },
 };
+
+
