@@ -45,6 +45,7 @@ import { calculateAuthorityRecommendation } from "@/lib/authorityEngine";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { IntestacyDistributionPreview } from "@/components/IntestacyDistributionPreview";
 import { useTracking } from "@/hooks/useTracking";
+import { deriveEstateAuthorityTypeFromEngines } from "@/lib/estateAuthority";
 import { US_STATES } from "@/lib/states";
 
 // Enhanced field types with clarification support
@@ -259,9 +260,12 @@ export default function OnboardingGuidedWizard() {
 
                 sessionStorage.removeItem("discovery_data");
             } else if (currentStep === 3) { // Track Scout (after guided assessment)
+                const estateAuthorityType = deriveEstateAuthorityTypeFromEngines(recommendation.activeEngines || []);
+
                 await api.updateMyEstate({
                     estateType: recommendation.type,
                     authorityType: recommendation.type,
+                    estateAuthorityType,
                     hasUnknownHeirs: formData.hasUnknownHeirs.value === true,
                     isTrustRevocable: formData.isTrustRevocable.value === true,
                     hasContest: formData.hasContest.value === true,
@@ -270,16 +274,33 @@ export default function OnboardingGuidedWizard() {
                     hasOutOfStateProperty: formData.isOutOfState.value === true
                 });
 
-                if (estate?.id) {
+                const estateForTrack = estate?.id ? estate : await api.getMyEstate();
+                if (estateForTrack?.id) {
                     try {
-                        await api.completeTask(estate.id, "check_small_estate", "Auto-completed via onboarding questionnaire");
+                        await api.selectEstateTrack(estateForTrack.id, {
+                            estateAuthorityType,
+                            hasProbateAssets: recommendation.activeEngines.includes("PROBATE"),
+                            hasTrustAssets: recommendation.activeEngines.includes("TRUST"),
+                            hasBeneficiaryAssets: recommendation.activeEngines.includes("TOD_DEED") || recommendation.activeEngines.includes("POD_TOD_ACCOUNTS"),
+                            assistedDecisionAnswers: {
+                                source: "guided_onboarding",
+                                recommendationType: recommendation.type,
+                                confidenceScore,
+                            },
+                        });
+                    } catch (e) {
+                        console.warn("Failed to persist canonical track selection (non-fatal)", e);
+                    }
+
+                    try {
+                        await api.completeTask(estateForTrack.id, "check_small_estate", "Auto-completed via onboarding questionnaire");
                     } catch (e) {
                         console.warn("Failed to auto-complete task", e);
                     }
 
                     // AUTO-PIN ROADMAP after authority decision
                     try {
-                        await api.pinRoadmap(estate.id);
+                        await api.pinRoadmap(estateForTrack.id);
                         console.log("Roadmap pinned after Track Scout");
                     } catch (e) {
                         console.warn("Failed to pin roadmap (non-fatal)", e);

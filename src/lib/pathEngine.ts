@@ -135,7 +135,7 @@ export function determinePath(answers: UserAnswers, state: string): PathResult {
  */
 function mapComplexity(
     pathType: string,
-    resolved: { hasInsolvencyRisk: boolean; hasContest: boolean; isOutOfState: boolean }
+    _resolved: { hasInsolvencyRisk: boolean; hasContest: boolean; isOutOfState: boolean }
 ): 'Simple' | 'Medium' | 'Complex' {
     switch (pathType) {
         case 'SMALL_ESTATE':
@@ -143,10 +143,8 @@ function mapComplexity(
 
         case 'TRUST_ADMIN_REVOCABLE':
         case 'TRUST_ADMIN_IRREVOCABLE':
-            // Trust + any complication = Complex
-            return (resolved.hasInsolvencyRisk || resolved.hasContest || resolved.isOutOfState)
-                ? 'Complex'
-                : 'Medium';
+            // Workbook keeps trust administration in Medium unless insolvency changes the primary lane.
+            return 'Medium';
 
         case 'INFORMAL_PROBATE':
         case 'FORMAL_PROBATE':
@@ -156,8 +154,6 @@ function mapComplexity(
             return 'Medium';
 
         case 'ANCILLARY_PROBATE':
-            return 'Complex';
-
         case 'CONTESTED_ESTATE':
         case 'INSOLVENT_ESTATE':
             return 'Complex';
@@ -167,10 +163,6 @@ function mapComplexity(
     }
 }
 
-/**
- * Map path type to expected timeline.
- * Aligned with Estate_Path_Combinations_All_50_States.xlsx "Approx Time" column.
- */
 function mapTimeline(pathType: string): string {
     switch (pathType) {
         case 'SMALL_ESTATE':
@@ -178,11 +170,12 @@ function mapTimeline(pathType: string): string {
         case 'TRUST_ADMIN_REVOCABLE':
             return '2–6 months';
         case 'TRUST_ADMIN_IRREVOCABLE':
-            return '2–6 months';   // XLSX: same 2–6 months for both trust types
+            return '3–9 months';
         case 'INFORMAL_PROBATE':
             return '4–9 months';
-        case 'FORMAL_PROBATE':
         case 'INTESTATE':
+            return '8–18 months';
+        case 'FORMAL_PROBATE':
         case 'SPOUSAL_PETITION':
         case 'MUNIMENT_OF_TITLE':
             return '6–12 months';
@@ -197,11 +190,6 @@ function mapTimeline(pathType: string): string {
     }
 }
 
-/**
- * Generate actionable next steps for each path type.
- * Steps correspond to the roadmap phases in Estate_Path_Combinations_All_50_States.xlsx
- * "Roadmap Steps (Condensed)" column.
- */
 function generateNextSteps(
     pathType: string,
     state: string,

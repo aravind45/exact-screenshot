@@ -8,6 +8,7 @@ import { Progress } from '@/components/ui/progress';
 import { Loader2, AlertCircle, CheckCircle2, HelpCircle } from 'lucide-react';
 import { determinePath } from '@/lib/pathEngine';
 import { api } from '@/lib/api';
+import { deriveEstateAuthorityTypeFromLegacyAuthority } from '@/lib/estateAuthority';
 import { cn } from '@/lib/utils';
 import { GuidedQuestion } from './GuidedQuestion';
 import { PathResultCard } from './PathResultCard';
@@ -268,8 +269,11 @@ export function EnhancedOnboardingWizard({ onComplete, className }: EnhancedOnbo
         setError(null);
 
         try {
-            await api.updateMyEstate({
+            const estateAuthorityType = deriveEstateAuthorityTypeFromLegacyAuthority(pathResult.pathId);
+
+            const updatedEstate = await api.updateMyEstate({
                 authorityType: pathResult.pathId,
+                estateAuthorityType,
                 hasWill: answers.hasWill === 'yes',
                 isTrustRevocable: resolveIsTrustRevocable(),
                 hasTODDeed: answers.hasTODDeed === 'yes',
@@ -284,6 +288,25 @@ export function EnhancedOnboardingWizard({ onComplete, className }: EnhancedOnbo
                 name: `${user?.fullName || 'User'}'s Estate`,
                 deceasedDateOfDeath: new Date().toISOString(),
             });
+
+            const estateForTrack = updatedEstate?.id ? updatedEstate : await api.getMyEstate();
+            if (estateForTrack?.id) {
+                try {
+                    await api.selectEstateTrack(estateForTrack.id, {
+                        estateAuthorityType,
+                        hasProbateAssets: estateAuthorityType === 'PROBATE' || estateAuthorityType === 'BOTH',
+                        hasTrustAssets: estateAuthorityType === 'TRUST' || estateAuthorityType === 'BOTH',
+                        hasBeneficiaryAssets: answers.hasTODDeed === 'yes',
+                        assistedDecisionAnswers: {
+                            source: 'enhanced_onboarding',
+                            pathId: pathResult.pathId,
+                            confidence: pathResult.confidence,
+                        },
+                    });
+                } catch (trackErr) {
+                    console.warn('Failed to persist canonical track selection (non-fatal)', trackErr);
+                }
+            }
 
             await queryClient.invalidateQueries({ queryKey: ['estate'] });
             await queryClient.invalidateQueries({ queryKey: ['roadmap'] });
@@ -542,3 +565,4 @@ export function EnhancedOnboardingWizard({ onComplete, className }: EnhancedOnbo
         </div>
     );
 }
+

@@ -1647,6 +1647,21 @@ export const api = {
         return parseResponse(response);
     },
 
+    selectEstateTrack: async (id: string, data: {
+        estateAuthorityType: "PROBATE" | "TRUST" | "BOTH";
+        hasProbateAssets?: boolean;
+        hasTrustAssets?: boolean;
+        hasBeneficiaryAssets?: boolean;
+        assistedDecisionAnswers?: Record<string, unknown>;
+    }) => {
+        const response = await fetch(`${API_URL}/estates/${id}/select-track`, {
+            method: "POST",
+            headers: getHeaders(),
+            body: JSON.stringify(data),
+        });
+        return parseResponse(response);
+    },
+
     getTaskCompletions: async (id: string) => {
         const response = await fetch(`${API_URL}/estates/${id}/tasks`, {
             headers: getHeaders(),

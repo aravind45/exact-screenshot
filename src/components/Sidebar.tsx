@@ -85,24 +85,39 @@ export function Sidebar() {
     if (isHeir) {
         const HEIR_NAV: { title: string; items: NavItem[] }[] = [
             {
-                title: `${t('estateName')} Management`,
+                title: "Dashboard",
                 items: [
                     { label: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
+                ]
+            },
+            {
+                title: "Case Setup",
+                items: [
+                    { label: "Case Setup", icon: User, path: "/profile" },
+                    { label: "Track Decision", icon: Map, path: "/roadmap" },
+                ]
+            },
+            {
+                title: "Settlement",
+                items: [
                     { label: "Asset Ledger", icon: Landmark, path: "/assets" },
+                    { label: "Liabilities", icon: AlertCircle, path: "/liabilities" },
+                    { label: "Accounting", icon: Calculator, path: "/accounting" },
                     { label: "Final Distribution", icon: CheckCircle2, path: "/distribution" },
                 ]
             },
             {
-                title: "Records",
+                title: "Deadlines & Records",
                 items: [
+                    { label: "Deadlines & Follow-Ups", icon: Bell, path: "/follow-ups" },
                     { label: "Document Vault", icon: Inbox, path: "/documents" },
                     { label: "Settlement Trail", icon: History, path: "/settlement-trail" },
                 ]
             },
             {
-                title: "Account",
+                title: "Team",
                 items: [
-                    { label: "Profile", icon: User, path: "/profile" },
+                    { label: "Heirs & Benes", icon: Users, path: "/heirs" },
                 ]
             }
         ];
@@ -201,10 +216,16 @@ export function Sidebar() {
             ]
         }] : []),
         {
-            title: "Navigation",
+            title: "Dashboard",
             items: [
                 { label: t('executorDashboard') as string, icon: LayoutDashboard, path: "/dashboard" },
-                { label: "Action Plan", icon: Map, path: "/roadmap" },
+            ]
+        },
+        {
+            title: "Case Setup",
+            items: [
+                { label: "Case Setup", icon: User, path: "/profile" },
+                { label: "Track Decision", icon: Map, path: "/roadmap" },
             ]
         },
         {
@@ -214,18 +235,23 @@ export function Sidebar() {
                 { label: "Liabilities", icon: AlertCircle, path: "/liabilities" },
                 { label: "Accounting", icon: Calculator, path: "/accounting" },
                 { label: "Final Distribution", icon: CheckCircle2, path: "/distribution" },
-                { label: "Heirs & Benes", icon: Users, path: "/heirs" },
                 ...(!isViewer ? [{ label: "Official Forms", icon: ScrollText, path: "/forms" }] : []),
                 ...(estate?.id && !isViewer ? [{ label: "Legal Research", icon: Zap, path: `/estates/${estate.id}/agents` }] : []),
             ]
         },
         {
-            title: "Records",
+            title: "Deadlines & Records",
             items: [
-                ...(!isViewer ? [{ label: "Discovery", icon: Search, path: "/discovery" }] : []),
+                { label: "Deadlines & Follow-Ups", icon: Bell, path: "/follow-ups" },
                 { label: "Document Vault", icon: Inbox, path: "/documents" },
                 { label: "Settlement Trail", icon: History, path: "/settlement-trail" },
-                { label: "Follow-Ups", icon: Bell, path: "/follow-ups" },
+                ...(!isViewer ? [{ label: "Discovery", icon: Search, path: "/discovery" }] : []),
+            ]
+        },
+        {
+            title: "Team",
+            items: [
+                { label: "Heirs & Benes", icon: Users, path: "/heirs" },
             ]
         },
         ...(!isB2BTexas ? [{
@@ -260,7 +286,6 @@ export function Sidebar() {
         {
             title: "System",
             items: [
-                { label: "Profile", icon: User, path: "/profile" },
                 ...(isAdmin ? [{ label: "Admin Console", icon: ShieldCheck, path: "/admin" }] : []),
                 ...(!isViewer ? [{ label: "Billing & Plans", icon: Zap, path: "/pricing" }] : []),
             ]
@@ -348,7 +373,7 @@ export function Sidebar() {
                                             {active && (
                                                 <div className="w-1 h-4 bg-indigo-600 rounded-full" />
                                             )}
-                                            {item.label === "Action Plan" && item.path && !isActive(item.path) && (
+                                            {item.path === "/roadmap" && !isActive(item.path) && (
                                                 <div className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
                                             )}
                                         </div>

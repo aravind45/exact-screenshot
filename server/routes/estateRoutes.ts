@@ -348,18 +348,30 @@ router.put("/my", authenticate, async (req: any, res: Response) => {
                 }
             }
 
-            // Legacy compatibility: older onboarding flows write authorityType/estateType
-            // instead of userSelectedEstateAuthorityType. Treat those as valid track signals.
+            // One-stop compatibility: normalize legacy authority writes into canonical track fields.
             const currentStatus = (estate as any).estateStatus || "DRAFT";
             const currentCompletenessLevel = (estate as any).completenessLevel || "UNSET";
-            const hasTrackSignal = hasTrackSelectionSignal({
+            const trackSelection = resolveTrackSelectionSignal({
                 userSelectedEstateAuthorityType: updateData.userSelectedEstateAuthorityType,
                 estateAuthorityType: updateData.estateAuthorityType,
                 authorityType: updateData.authorityType || updateData.estateType,
             });
             const effectiveState = (updateData.deceasedState ?? estate.deceasedState ?? "").toString().trim();
+            const effectiveFirstName = (updateData.deceasedFirstName ?? estate.deceasedFirstName ?? "").toString().trim();
+            const effectiveLastName = (updateData.deceasedLastName ?? estate.deceasedLastName ?? "").toString().trim();
+            const hasDeceasedName = effectiveFirstName.length > 0 || effectiveLastName.length > 0;
 
-            if (hasTrackSignal && effectiveState.length > 0) {
+            if (trackSelection.track) {
+                if (!normalizeEstateAuthorityType(updateData.estateAuthorityType)) {
+                    updateData.estateAuthorityType = trackSelection.track;
+                }
+                if (!normalizeEstateAuthorityType(updateData.userSelectedEstateAuthorityType)) {
+                    updateData.userSelectedEstateAuthorityType = trackSelection.track;
+                    updateData.userSelectedAuthorityAt = new Date();
+                }
+            }
+
+            if (trackSelection.track && isValidStateCode(effectiveState) && hasDeceasedName) {
                 if (currentStatus === "DRAFT") {
                     updateData.estateStatus = "MINIMUM_READY";
                     logger.info(`✅ [ESTATE] Advancing estate ${estate.id} from DRAFT to MINIMUM_READY`);
@@ -1077,20 +1089,89 @@ import {
 
 const VALID_STATE_CODE = /^[A-Z]{2}$/;
 
-function hasTrackSelectionSignal(input: {
+type EstateAuthorityTrack = "PROBATE" | "TRUST" | "BOTH";
+
+function normalizeEstateAuthorityType(value?: string | null): EstateAuthorityTrack | null {
+    const normalized = (value || "").toString().trim().toUpperCase();
+    if (normalized === "PROBATE" || normalized === "TRUST" || normalized === "BOTH") {
+        return normalized as EstateAuthorityTrack;
+    }
+    return null;
+}
+
+function inferTrackFromLegacyAuthority(authorityType?: string | null): EstateAuthorityTrack | null {
+    const normalized = (authorityType || "").toString().trim().toUpperCase();
+    if (!normalized || normalized === "UNSET") return null;
+    if (normalized.includes("TRUST") && normalized.includes("PROBATE")) return "BOTH";
+    if (normalized.includes("TRUST")) return "TRUST";
+    return "PROBATE";
+}
+
+function resolveTrackSelectionSignal(input: {
     userSelectedEstateAuthorityType?: string | null;
     estateAuthorityType?: string | null;
     authorityType?: string | null;
-}): boolean {
-    return Boolean(
-        input.userSelectedEstateAuthorityType ||
-        (input.estateAuthorityType && input.estateAuthorityType !== "UNSET") ||
-        (input.authorityType && input.authorityType !== "UNSET")
-    );
+}): {
+    track: EstateAuthorityTrack | null;
+    explicit: boolean;
+    fromLegacyAuthority: boolean;
+} {
+    const userSelected = normalizeEstateAuthorityType(input.userSelectedEstateAuthorityType);
+    if (userSelected) {
+        return { track: userSelected, explicit: true, fromLegacyAuthority: false };
+    }
+
+    const estateAuthority = normalizeEstateAuthorityType(input.estateAuthorityType);
+    if (estateAuthority) {
+        return { track: estateAuthority, explicit: true, fromLegacyAuthority: false };
+    }
+
+    const legacy = inferTrackFromLegacyAuthority(input.authorityType);
+    if (legacy) {
+        return { track: legacy, explicit: false, fromLegacyAuthority: true };
+    }
+
+    return { track: null, explicit: false, fromLegacyAuthority: false };
 }
 
 function isMinimumIntakeReady(completenessLevel?: string | null): boolean {
     return completenessLevel === "MINIMUM_READY" || completenessLevel === "PROFILE_READY";
+}
+
+function isValidStateCode(value?: string | null): boolean {
+    const normalized = (value || "").toString().trim().toUpperCase();
+    return VALID_STATE_CODE.test(normalized);
+}
+
+async function backfillLegacyTrackSelection(estate: {
+    id: string;
+    deceasedState: string | null;
+    completenessLevel?: string | null;
+    estateStatus?: string | null;
+    estateAuthorityType?: string | null;
+}, track: EstateAuthorityTrack): Promise<void> {
+    const patch: Record<string, any> = {};
+
+    if (!normalizeEstateAuthorityType(estate.estateAuthorityType)) {
+        patch.estateAuthorityType = track;
+    }
+    if (!isMinimumIntakeReady(estate.completenessLevel)) {
+        patch.completenessLevel = "MINIMUM_READY";
+    }
+    if ((estate.estateStatus || "DRAFT") === "DRAFT" && isValidStateCode(estate.deceasedState)) {
+        patch.estateStatus = "MINIMUM_READY";
+    }
+
+    if (Object.keys(patch).length === 0) return;
+
+    try {
+        await prisma.estate.update({
+            where: { id: estate.id },
+            data: patch,
+        });
+    } catch (error: any) {
+        logger.warn({ estateId: estate.id, error: error?.message }, "Failed to backfill legacy track fields");
+    }
 }
 
 
@@ -1126,15 +1207,25 @@ router.get("/:id/roadmap", requireSubscription, async (req: any, res: Response) 
             return res.status(404).json({ error: "Estate not found or access denied" });
         }
 
-        const hasTrackSignal = hasTrackSelectionSignal({
+        const trackSelection = resolveTrackSelectionSignal({
             userSelectedEstateAuthorityType: estate.userSelectedEstateAuthorityType,
             estateAuthorityType: estate.estateAuthorityType,
             authorityType: estate.authorityType,
         });
 
+        if (trackSelection.fromLegacyAuthority && trackSelection.track) {
+            await backfillLegacyTrackSelection({
+                id: estate.id,
+                deceasedState: estate.deceasedState || null,
+                completenessLevel: estate.completenessLevel || null,
+                estateStatus: (estate as any).estateStatus || "DRAFT",
+                estateAuthorityType: estate.estateAuthorityType || null,
+            }, trackSelection.track);
+        }
+
         // 🚨 ESTATE STATUS GATE: Check new estateStatus field first
         const currentEstateStatus = (estate as any).estateStatus || "DRAFT";
-        if (currentEstateStatus === "DRAFT" && !hasTrackSignal) {
+        if (currentEstateStatus === "DRAFT" && !trackSelection.track) {
             logger.warn({ estateId: id, estateStatus: currentEstateStatus }, "Roadmap blocked — estate is in DRAFT status");
             return res.status(409).json({
                 code: "INCOMPLETE_ESTATE",
@@ -1159,7 +1250,7 @@ router.get("/:id/roadmap", requireSubscription, async (req: any, res: Response) 
 
         // 🚨 MINIMUM INTAKE GATE: Prevent misleading roadmaps for incomplete estates
         const { estateAuthorityType, completenessLevel } = estate;
-        if (!isMinimumIntakeReady(completenessLevel) && !hasTrackSignal) {
+        if (!isMinimumIntakeReady(completenessLevel) && !trackSelection.track) {
             logger.warn({ estateId: id, completenessLevel, estateAuthorityType }, "Roadmap blocked — minimum intake not complete");
             return res.status(409).json({
                 code: "MINIMUM_INTAKE_REQUIRED",
@@ -1169,7 +1260,7 @@ router.get("/:id/roadmap", requireSubscription, async (req: any, res: Response) 
             });
         }
 
-        if ((!estateAuthorityType || estateAuthorityType === "UNSET") && !hasTrackSignal) {
+        if ((!estateAuthorityType || estateAuthorityType === "UNSET") && !trackSelection.track) {
             logger.warn({ estateId: id, estateAuthorityType }, "Roadmap blocked — authority type is UNSET");
             return res.status(409).json({
                 code: "MINIMUM_INTAKE_REQUIRED",
@@ -1415,7 +1506,7 @@ router.post("/:id/tasks/:taskId/complete", requireSubscription, async (req: any,
             return res.status(404).json({ error: "Estate not found or access denied" });
         }
 
-        const hasTrackSignal = hasTrackSelectionSignal({
+        const trackSelection = resolveTrackSelectionSignal({
             userSelectedEstateAuthorityType: estate.userSelectedEstateAuthorityType,
             estateAuthorityType: estate.estateAuthorityType,
             authorityType: estate.authorityType,
@@ -1423,7 +1514,7 @@ router.post("/:id/tasks/:taskId/complete", requireSubscription, async (req: any,
 
         // 🚨 ESTATE STATUS GATE: Check new estateStatus field first
         const currentEstateStatus = (estate as any).estateStatus || "DRAFT";
-        if (currentEstateStatus === "DRAFT" && !hasTrackSignal) {
+        if (currentEstateStatus === "DRAFT" && !trackSelection.track) {
             logger.warn({ estateId: id, estateStatus: currentEstateStatus, taskId }, "Task completion blocked — estate is in DRAFT status");
             return res.status(409).json({
                 code: "INCOMPLETE_ESTATE",
@@ -1435,7 +1526,7 @@ router.post("/:id/tasks/:taskId/complete", requireSubscription, async (req: any,
         }
 
         // 🚨 MINIMUM INTAKE GATE: Block task completion until setup is complete
-        if (!isMinimumIntakeReady(estate.completenessLevel) && !hasTrackSignal) {
+        if (!isMinimumIntakeReady(estate.completenessLevel) && !trackSelection.track) {
             return res.status(409).json({
                 code: "MINIMUM_INTAKE_REQUIRED",
                 error: "Complete estate setup before marking tasks complete",
@@ -1525,21 +1616,42 @@ router.post("/:id/select-track", authenticate, requireEstateAccess, async (req: 
         const validated = trackSelectionSchema.parse(req.body);
         const assistedDecisionAnswers = validated.assistedDecisionAnswers as Prisma.InputJsonValue | undefined;
 
-        // Update estate with track selection and advance completeness level
+        const normalizedState = (estate.deceasedState || "").toString().trim().toUpperCase();
+        if (!isValidStateCode(normalizedState)) {
+            return res.status(409).json({
+                code: "MINIMUM_INTAKE_REQUIRED",
+                error: "State information required before selecting a legal track",
+                requiredFields: ["deceasedState"],
+                wizardStep: "TRACK_SELECTION"
+            });
+        }
+
+        const hasDeceasedName = Boolean(
+            (estate.deceasedFirstName && estate.deceasedFirstName.trim().length > 0) ||
+            (estate.deceasedLastName && estate.deceasedLastName.trim().length > 0)
+        );
+        if (!hasDeceasedName) {
+            return res.status(409).json({
+                code: "MINIMUM_INTAKE_REQUIRED",
+                error: "Deceased name is required before selecting a legal track",
+                requiredFields: ["deceasedFirstName"],
+                wizardStep: "ESTATE_INFO"
+            });
+        }
+
+        // Update estate with canonical track selection and lifecycle readiness.
         const updatedEstate = await prisma.estate.update({
             where: { id },
             data: {
                 userSelectedEstateAuthorityType: validated.estateAuthorityType,
+                estateAuthorityType: validated.estateAuthorityType,
                 userSelectedAuthorityAt: new Date(),
                 hasProbateAssets: validated.hasProbateAssets,
                 hasTrustAssets: validated.hasTrustAssets,
                 hasBeneficiaryAssets: validated.hasBeneficiaryAssets,
                 assistedDecisionAnswers,
-                // Advance to MINIMUM_READY once user has selected a track.
-                // deceasedState is required at estate creation so it is always present here.
-                completenessLevel: "MINIMUM_READY",
-                // Also update estateStatus for lifecycle gating
-                estateStatus: "MINIMUM_READY",
+                completenessLevel: isMinimumIntakeReady(estate.completenessLevel) ? estate.completenessLevel : "MINIMUM_READY",
+                estateStatus: (estate.estateStatus || "DRAFT") === "DRAFT" ? "MINIMUM_READY" : estate.estateStatus,
             }
         });
 

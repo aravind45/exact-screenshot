@@ -225,79 +225,68 @@ export function calculateAuthorityRecommendation(
 
     // 4. MULTI-DIMENSIONAL CLASSIFICATION (Attorney Decision Tree)
 
-    // AUTHORITY SOURCE
-    if (probateTotal > threshold || metadata?.isOutOfState || metadata?.hasContest) {
+    const hasTrustSignal = trustAssets.length > 0 || metadata?.isTrustRevocable === true;
+    const hasWill = metadata?.hasWill === true;
+    const hasContest = metadata?.hasContest === true;
+    const hasOutOfState = metadata?.isOutOfState === true;
+    const hasInsolvencyRisk = metadata?.hasInsolvencyRisk === true;
+
+    // AUTHORITY SOURCE (primary legal authority lane)
+    if (hasInsolvencyRisk) {
         authoritySource = "COURT";
-    } else if (trustAssets.length > 0) {
+    } else if (hasTrustSignal) {
         authoritySource = "FIDUCIARY_INSTRUMENT";
+    } else if (probateTotal > threshold || hasOutOfState || hasContest || hasWill || metadata?.isSpouse) {
+        authoritySource = "COURT";
     } else {
         authoritySource = "BENEFICIARY_TRANSFER";
     }
 
     // PROCEDURE TYPE DETERMINATION
-    // Hierarchy follows Estate_Path_Combinations_All_50_States.xlsx priority:
-    //   1. Insolvency (debt wins — overrides everything except trust in some states)
-    //   2. Trust type (bypasses probate regardless of will/out-of-state)
-    //   3. Contested (litigation overrides ancillary)
-    //   4. Ancillary Probate (out-of-state BEFORE will=no check — intestate + out-of-state = ancillary)
-    //   5. Intestate (will=no, not contested, not out-of-state)
-    //   6. Spousal petition
-    //   7. General probate (will=yes or large estate)
-    if (metadata?.hasInsolvencyRisk) {
+    // Workbook-aligned hierarchy:
+    //   1. Insolvency
+    //   2. Trust (revocable / irrevocable) as primary lane
+    //   3. Contested probate
+    //   4. Ancillary probate (only when out-of-state + will, no trust/contest/insolvency)
+    //   5. Intestate (no will)
+    //   6. General probate (will present)
+    if (hasInsolvencyRisk) {
         // Insolvent estate requires court-supervised creditor priority process
         procedureType = "FORMAL_PROBATE";
         type = "INSOLVENT_ESTATE";
-    } else if (metadata?.hasContest) {
-        // Contested estates require formal probate regardless of out-of-state or will status
+    } else if (hasTrustSignal) {
+        // Trust remains the primary lane; contest/ancillary are handled as attached phases.
+        procedureType = "TRUST_ADMINISTRATION";
+        type = metadata?.isTrustRevocable ? "TRUST_ADMIN_REVOCABLE" : "TRUST_ADMIN_IRREVOCABLE";
+    } else if (hasContest && hasWill) {
+        // Contested estates require formal probate when trust is not primary.
         procedureType = "FORMAL_PROBATE";
         type = "CONTESTED_ESTATE";
-    } else if (metadata?.isOutOfState) {
+    } else if (hasOutOfState && hasWill) {
         procedureType = "ANCILLARY_PROBATE";
-        type = "ANCILLARY_PROBATE";  // Ancillary probate is the primary type for out-of-state estates
-    } else if (state === "TX" && metadata?.hasWill && !metadata?.hasInsolvencyRisk && probateTotal <= threshold) {
+        type = "ANCILLARY_PROBATE";
+    } else if (!hasWill) {
+        // No will defaults to intestate lane for conservative legal handling.
+        type = "INTESTATE";
+        procedureType = rule.isUPC ? "INFORMAL_PROBATE" : "FORMAL_PROBATE";
+    } else if (state === "TX" && hasWill && !hasInsolvencyRisk && probateTotal > 0 && probateTotal <= threshold) {
         // TX-specific: Muniment of Title for uncontested wills with no unpaid debts at or below threshold
         // This must be checked BEFORE isEligibleForSmallEstate since TX Muniment is a probate shortcut, not a small estate affidavit
         procedureType = "MUNIMENT_OF_TITLE";
         type = "MUNIMENT_OF_TITLE";
     } else if (isEligibleForSmallEstate) {
-        // Small estate eligibility - check BEFORE hasWill to prioritize affidavit path
-        // This ensures estates below threshold get simplified processing regardless of will status
-        // EXCEPT for TX which has Muniment of Title (handled above)
+        // Small estate eligibility - check BEFORE general probate for finer procedure routing
         if (state === "MA" && probateTotal <= 25000) procedureType = "VOLUNTARY_ADMINISTRATION";
         else if (state === "FL" && probateTotal < 75000) procedureType = "SUMMARY_ADMINISTRATION";
         else if (state === "NY" && probateTotal < 50000) procedureType = "VOLUNTARY_ADMINISTRATION";
-        else if (state === "GA" && probateTotal <= 10000) procedureType = "SMALL_ESTATE_AFFIDAVIT"; // "No Administration Necessary"
-        else if (state === "NJ") {
-            // NJ small estate: $20,000 general, $50,000 if spouse is sole heir
-            procedureType = "SMALL_ESTATE_AFFIDAVIT";
-        }
+        else if (state === "GA" && probateTotal <= 10000) procedureType = "SMALL_ESTATE_AFFIDAVIT";
+        else if (state === "NJ") procedureType = "SMALL_ESTATE_AFFIDAVIT";
         else procedureType = "SMALL_ESTATE_AFFIDAVIT";
         type = "SMALL_ESTATE";
-    } else if (trustAssets.length > 0) {
-        // Trust administration bypasses standard intestacy/probate logic as it is governed by the trust instrument.
-        procedureType = "TRUST_ADMINISTRATION";
-        type = metadata?.isTrustRevocable ? "TRUST_ADMIN_REVOCABLE" : "TRUST_ADMIN_IRREVOCABLE";
-    } else if (metadata?.isSpouse) {
-        // Spousal petitions (e.g. CA Prob. Code 13500) bypass standard probate for property passing to spouse.
-        // NJ-specific: Check spouse small estate threshold BEFORE general eligibility
-        if (state === "NJ") {
-            const njRule = rule as any;
-            const spouseThreshold = njRule?.smallEstateSpouseThreshold || 50000;
-            if (probateTotal <= spouseThreshold) {
-                procedureType = "SMALL_ESTATE_AFFIDAVIT";
-                type = "SMALL_ESTATE";
-            } else {
-                procedureType = "SPOUSAL_PETITION";
-                type = "SPOUSAL_PETITION";
-            }
-        } else {
-            procedureType = "SPOUSAL_PETITION";
-            type = "SPOUSAL_PETITION";
-        }
-    } else if (metadata?.hasWill) {
+    } else if (hasWill) {
         if (state === "MA") {
             // MA-specific: Use Informal Probate for uncontested estates, Formal for contested
-            if (metadata?.hasContest) {
+            if (hasContest) {
                 procedureType = "FORMAL_PROBATE";
                 type = "FORMAL_PROBATE";
             } else {
@@ -306,18 +295,14 @@ export function calculateAuthorityRecommendation(
             }
         } else if (state === "TX") {
             // TX wills above threshold go to Independent Administration (formal probate)
-            // TX wills at/below threshold already handled by Muniment of Title check above
             procedureType = "FORMAL_PROBATE";
             type = "FORMAL_PROBATE";
         } else if (state === "NJ") {
             // NJ-specific: Uncontested probate through Surrogate's Court
-            // Contested matters escalate to Superior Court, Chancery Division, Probate Part
-            if (metadata?.hasContest) {
+            if (hasContest) {
                 procedureType = "FORMAL_PROBATE";
                 type = "CONTESTED_ESTATE";
-                // Note: Contested NJ probate goes to Superior Court, Chancery Division, Probate Part
             } else {
-                // NJ uncontested probate through Surrogate's Court - align type with procedureType
                 procedureType = "INFORMAL_PROBATE";
                 type = "INFORMAL_PROBATE";
             }
@@ -328,16 +313,10 @@ export function calculateAuthorityRecommendation(
             procedureType = "FORMAL_PROBATE";
             type = "FORMAL_PROBATE";
         }
-    } else if (probateTotal > threshold) {
+    } else {
+        // Final conservative fallback for unresolved metadata.
         type = "INTESTATE";
-        if (rule.isUPC) {
-            procedureType = "INFORMAL_PROBATE";
-        } else {
-            procedureType = "FORMAL_PROBATE";
-        }
-    } else if (activeEngines.includes("TOD_DEED") || activeEngines.includes("POD_TOD_ACCOUNTS")) {
-        procedureType = "DIRECT_TRANSFER";
-        type = metadata?.hasTODDeed ? "TOD_DEED" : "POD_TOD_TRANSFER";
+        procedureType = rule.isUPC ? "INFORMAL_PROBATE" : "FORMAL_PROBATE";
     }
 
     // DISTRIBUTION MODEL

@@ -33,6 +33,7 @@ import { calculateAuthorityRecommendation } from "@/lib/authorityEngine";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { useTracking } from "@/hooks/useTracking";
+import { deriveEstateAuthorityTypeFromEngines } from "@/lib/estateAuthority";
 import { US_STATES } from "@/lib/states";
 
 const STEPS = [
@@ -206,9 +207,12 @@ export default function OnboardingWizard() {
                 // Clear discovery data since it's now persisted to the backend
                 sessionStorage.removeItem("discovery_data");
             } else if (currentStepId === "track_scout") { // Track Scout
+                const estateAuthorityType = deriveEstateAuthorityTypeFromEngines(recommendation.activeEngines || []);
+
                 await api.updateMyEstate({
                     estateType: recommendation.type,
                     authorityType: recommendation.type,
+                    estateAuthorityType,
                     hasUnknownHeirs: estateData.hasUnknownHeirs,
                     // All 7 XLSX dimensions confirmed/re-saved at track assignment
                     hasWill: estateData.hasWill,
@@ -220,20 +224,43 @@ export default function OnboardingWizard() {
                     isOutOfState: estateData.isOutOfState,
                 });
 
-                // Auto-complete the eligibility task so it doesn't show up as a redundant task on the dashboard
-                if (estate?.id) {
+                const estateForTrack = estate?.id ? estate : await api.getMyEstate();
+                if (estateForTrack?.id) {
+                    try {
+                        await api.selectEstateTrack(estateForTrack.id, {
+                            estateAuthorityType,
+                            hasProbateAssets: recommendation.activeEngines.includes("PROBATE"),
+                            hasTrustAssets: recommendation.activeEngines.includes("TRUST"),
+                            hasBeneficiaryAssets: recommendation.activeEngines.includes("TOD_DEED") || recommendation.activeEngines.includes("POD_TOD_ACCOUNTS"),
+                            assistedDecisionAnswers: {
+                                source: "onboarding_wizard",
+                                recommendationType: recommendation.type,
+                            },
+                        });
+                    } catch (e) {
+                        console.warn("Failed to persist canonical track selection (non-fatal)", e);
+                    }
+
+                    // Auto-complete the eligibility task so it doesn't show up as a redundant task on the dashboard
                     try {
                         // Mark 'Check Small Estate Eligibility' as complete if we already did it in the wizard
-                        await api.completeTask(estate.id, "check_small_estate", "Auto-completed via onboarding questionnaire");
+                        await api.completeTask(estateForTrack.id, "check_small_estate", "Auto-completed via onboarding questionnaire");
                         console.log("Auto-completed eligibility task");
                     } catch (e) {
                         console.warn("Failed to auto-complete task, likely not in roadmap", e);
+                    }
+
+                    try {
+                        await api.pinRoadmap(estateForTrack.id);
+                    } catch (e) {
+                        console.warn("Failed to pin roadmap (non-fatal)", e);
                     }
                 }
 
                 // Invalidate queries to ensure dashboard is fresh
                 await queryClient.invalidateQueries({ queryKey: ["tasks"] });
                 await queryClient.invalidateQueries({ queryKey: ["estate"] });
+                await queryClient.invalidateQueries({ queryKey: ["roadmap"] });
             } else if (currentStepId === "documents") { // Documents
                 if (uploadedFile) {
                     await api.uploadEstateDocument("DEATH_CERTIFICATE", "Death Certificate.pdf", uploadedFile);
@@ -863,3 +890,4 @@ export default function OnboardingWizard() {
         </div>
     );
 }
+
