@@ -9,6 +9,8 @@ import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 import { prisma } from '../db.js';
 import { FeeService } from './feeService.js';
 import { logger } from '../lib/logger.js';
+import fs from 'fs';
+import path from 'path';
 import { CA_FORM_REGISTRY, validateCAFormData, } from './caFormRegistry.js';
 // ─── Value Transforms ─────────────────────────────────────────────────────────
 function formatDate(value) {
@@ -50,6 +52,17 @@ function applyTransform(value, transform) {
         case 'formatPhone': return formatPhone(value);
         default: return String(value || '');
     }
+}
+function sanitizePdfText(value) {
+    if (value === null || value === undefined)
+        return '';
+    return String(value)
+        .replace(/\u00A0/g, ' ')
+        .replace(/[–—]/g, '-')
+        .replace(/[“”]/g, '"')
+        .replace(/[‘’]/g, "'")
+        .replace(/…/g, '...')
+        .replace(/[^\x09\x0A\x0D\x20-\x7E\xA0-\xFF]/g, '');
 }
 // ─── Value Resolution ─────────────────────────────────────────────────────────
 function getNestedValue(obj, path) {
@@ -122,7 +135,7 @@ async function buildFallbackDE111(fieldValues) {
     const { height } = page.getSize();
     let y = height - 50;
     const draw = (text, size = 10, bold = false, indent = 0) => {
-        page.drawText(text, { x: 50 + indent, y, size, font: bold ? fontBold : fontRegular });
+        page.drawText(sanitizePdfText(text), { x: 50 + indent, y, size, font: bold ? fontBold : fontRegular });
         y -= size + 5;
     };
     draw('PETITION FOR PROBATE (DE-111)', 16, true);
@@ -158,7 +171,7 @@ async function buildFallbackDE111(fieldValues) {
         draw(`Bond Amount: $${fieldValues.bondAmount}`, 10, false, 10);
     }
     y -= 20;
-    draw('Note: Upload the official DE-111 PDF template via Admin → Templates for', 8, false);
+    draw('Note: Upload the official DE-111 PDF template via Admin -> Templates for', 8, false);
     draw('field-level auto-fill. This is a structured draft for review.', 8, false);
     return await doc.save();
 }
@@ -174,7 +187,7 @@ async function buildFallbackDE160(fieldValues, assets) {
     const draw = (text, size = 10, bold = false, indent = 0, curY) => {
         const usePage = page;
         const useY = curY !== undefined ? curY : y;
-        usePage.drawText(text, { x: 50 + indent, y: useY, size, font: bold ? fontBold : fontRegular });
+        usePage.drawText(sanitizePdfText(text), { x: 50 + indent, y: useY, size, font: bold ? fontBold : fontRegular });
         if (curY === undefined)
             y -= size + 5;
     };
@@ -232,7 +245,7 @@ async function buildFallbackDE310(fieldValues, assets) {
     const { height } = page.getSize();
     let y = height - 50;
     const draw = (text, size = 10, bold = false, indent = 0) => {
-        page.drawText(text, { x: 50 + indent, y, size, font: bold ? fontBold : fontRegular });
+        page.drawText(sanitizePdfText(text), { x: 50 + indent, y, size, font: bold ? fontBold : fontRegular });
         y -= size + 5;
     };
     draw('PETITION TO DETERMINE SUCCESSION TO REAL PROPERTY (DE-310)', 13, true);
@@ -287,6 +300,7 @@ async function fillTemplateFields(templateBytes, fieldValues, registry) {
         if (rawValue === undefined || rawValue === null)
             continue;
         const rendered = applyTransform(rawValue, def.transform);
+        const safeRendered = sanitizePdfText(rendered);
         if (def.pdfFieldName && fieldNames.has(def.pdfFieldName)) {
             try {
                 if (def.type === 'checkbox') {
@@ -295,7 +309,7 @@ async function fillTemplateFields(templateBytes, fieldValues, registry) {
                 }
                 else {
                     const tf = form.getTextField(def.pdfFieldName);
-                    tf.setText(rendered);
+                    tf.setText(safeRendered);
                 }
             }
             catch {
@@ -306,7 +320,7 @@ async function fillTemplateFields(templateBytes, fieldValues, registry) {
             const pageIdx = def.coord.page || 0;
             if (pageIdx < pages.length) {
                 if (def.type !== 'checkbox') {
-                    pages[pageIdx].drawText(rendered, {
+                    pages[pageIdx].drawText(safeRendered, {
                         x: def.coord.x,
                         y: def.coord.y,
                         size: def.coord.size || 10,
@@ -315,7 +329,7 @@ async function fillTemplateFields(templateBytes, fieldValues, registry) {
                     });
                 }
                 else if (rawValue) {
-                    pages[pageIdx].drawText('✓', {
+                    pages[pageIdx].drawText('X', {
                         x: def.coord.x,
                         y: def.coord.y,
                         size: def.coord.size || 10,
@@ -372,13 +386,34 @@ export const CAFormService = {
         const dbTemplate = await prisma.formTemplate.findUnique({
             where: { name: input.formId },
         }).catch(() => null);
-        const templateBytes = dbTemplate ? Buffer.from(dbTemplate.data) : null;
-        if (templateBytes) {
-            logger.info(`[CAFormService] Using template from DB for ${input.formId}`);
-            pdfBytes = await fillTemplateFields(templateBytes, fieldValues, registry);
+        const localTemplatePath = path.join(process.cwd(), 'server', 'templates', `${input.formId}.pdf`);
+        const localTemplateBytes = fs.existsSync(localTemplatePath) ? fs.readFileSync(localTemplatePath) : null;
+        const templateCandidates = [];
+        if (dbTemplate) {
+            templateCandidates.push({ source: 'DB', bytes: Buffer.from(dbTemplate.data) });
         }
-        else {
-            logger.warn(`[CAFormService] No template found for ${input.formId}, using fallback builder`);
+        if (localTemplateBytes) {
+            templateCandidates.push({ source: 'filesystem', bytes: localTemplateBytes });
+            logger.info(`[CAFormService] Using local template file for ${input.formId}`);
+        }
+        let templateFillError = null;
+        for (const candidate of templateCandidates) {
+            try {
+                logger.info(`[CAFormService] Using template from ${candidate.source} for ${input.formId}`);
+                pdfBytes = await fillTemplateFields(candidate.bytes, fieldValues, registry);
+                templateFillError = null;
+                break;
+            }
+            catch (error) {
+                templateFillError = error;
+                logger.warn(`[CAFormService] Template fill failed from ${candidate.source} for ${input.formId}: ${error instanceof Error ? error.message : String(error)}`);
+            }
+        }
+        if (!pdfBytes) {
+            if (templateFillError) {
+                logger.warn(`[CAFormService] Falling back to structured builder for ${input.formId} after template parse failures`);
+            }
+            logger.warn(`[CAFormService] No usable template found for ${input.formId}, using fallback builder`);
             switch (input.formId) {
                 case 'DE-111':
                     pdfBytes = await buildFallbackDE111(fieldValues);

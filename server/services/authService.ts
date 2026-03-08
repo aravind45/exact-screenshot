@@ -198,6 +198,41 @@ export const AuthService = {
         });
     },
 
+    async changePassword(userId: string, currentPassword: string, newPassword: string) {
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: {
+                id: true,
+                passwordHash: true
+            }
+        });
+
+        if (!user || !user.passwordHash) {
+            throw new Error("User not found");
+        }
+
+        const currentPasswordValid = await bcrypt.compare(currentPassword, user.passwordHash);
+        if (!currentPasswordValid) {
+            throw new Error("Current password is incorrect");
+        }
+
+        const isSameAsCurrent = await bcrypt.compare(newPassword, user.passwordHash);
+        if (isSameAsCurrent) {
+            throw new Error("New password must be different from current password");
+        }
+
+        const passwordHash = await bcrypt.hash(newPassword, 10);
+        await prisma.user.update({
+            where: { id: userId },
+            data: {
+                passwordHash,
+                resetPasswordToken: null,
+                resetPasswordExpires: null
+            }
+        });
+
+        return { message: "Password changed successfully" };
+    },
     async forgotPassword(email: string) {
         // Generic response to prevent email enumeration
         const genericResponse = { message: "If an account exists with this email, a reset code has been sent." };
@@ -284,3 +319,4 @@ export const AuthService = {
         return { message: "Email verified successfully" };
     }
 };
+

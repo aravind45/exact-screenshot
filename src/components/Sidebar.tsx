@@ -80,6 +80,157 @@ export function Sidebar() {
     const userRole = (estate as any)?.userRole;
     const isViewer = userRole === 'VIEWER';
     const isHeir = user?.role === 'HEIR' || (user as any)?.userType === 'HEIR';
+    // ─── ADMIN SIDEBAR (operations console) ──────────────────────────────────
+    if (isAdmin) {
+        const ADMIN_NAV: { title: string; items: NavItem[] }[] = [
+            {
+                title: "Admin Console",
+                items: [
+                    { label: "Overview", icon: ShieldCheck, path: "/admin" },
+                    { label: "Jurisdiction Health", icon: Map, path: "/admin/jurisdiction-health" },
+                    { label: "Institution Directory", icon: Landmark, path: "/admin/institutions" },
+                ]
+            },
+            {
+                title: "Marketplace Ops",
+                items: [
+                    { label: "Advisor Queue", icon: Users, path: "/admin/advisors" },
+                ]
+            },
+            {
+                title: "Rules & Data",
+                items: [
+                    { label: "SSOT Probate Engine", icon: ScrollText, path: "/admin/probate-engine" },
+                ]
+            },
+            {
+                title: "Support",
+                items: [
+                    {
+                        label: "Support & Feedback",
+                        icon: MessageSquare,
+                        onClick: () => {
+                            setSupportTab("contact");
+                            setSupportOpen(true);
+                        }
+                    },
+                ]
+            }
+        ];
+
+        return (
+            <>
+                {/* ── Mobile hamburger toggle (only on small screens) ── */}
+                <button
+                    className="md:hidden fixed top-3 left-3 z-[70] p-2.5 bg-white rounded-xl shadow-md border border-slate-200 text-slate-700 hover:bg-amber-50 hover:text-amber-700 transition-colors"
+                    onClick={() => setIsMobileOpen(prev => !prev)}
+                    aria-label="Toggle navigation"
+                >
+                    {isMobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+                </button>
+
+                {/* ── Backdrop (mobile only, closes sidebar when tapped) ── */}
+                {isMobileOpen && (
+                    <div
+                        className="md:hidden fixed inset-0 bg-black/50 z-[65] backdrop-blur-sm"
+                        onClick={() => setIsMobileOpen(false)}
+                    />
+                )}
+
+                {/* ── Sidebar panel ── */}
+                <div className={cn(
+                    "w-64 h-screen bg-white text-slate-600 flex flex-col fixed left-0 top-0 border-r border-slate-200 shadow-sm",
+                    "transition-transform duration-300 ease-in-out",
+                    "z-[68] md:z-50 md:translate-x-0",
+                    isMobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+                )}>
+                    {/* Brand */}
+                    <div className="p-4 pb-3">
+                        <div className="flex items-center gap-2.5 mb-4">
+                            <div className="p-2 rounded-xl bg-amber-600 shadow-sm">
+                                <ShieldCheck className="w-5 h-5 text-white" />
+                            </div>
+                            <span className="font-['Outfit'] font-black text-xl tracking-tight text-slate-900 antialiased">ExpectedEstate</span>
+                        </div>
+                        <div className="pl-0.5">
+                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-50 border border-amber-100 shadow-sm">
+                                <div className="w-1.5 h-1.5 rounded-full bg-amber-600" />
+                                <span className="text-[10px] font-bold uppercase tracking-widest text-amber-800">
+                                    Admin Access
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Admin Navigation */}
+                    <nav className="flex-1 px-2.5 space-y-4 overflow-y-auto pt-2 pb-4 custom-scrollbar scroll-smooth">
+                        {ADMIN_NAV.map((category) => (
+                            <div key={category.title} className="space-y-0.5">
+                                <p className="px-3 text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-2 antialiased">
+                                    {category.title}
+                                </p>
+                                {category.items.map((item) => {
+                                    const active = item.path && isActive(item.path);
+                                    return (
+                                        <button
+                                            key={item.label}
+                                            onClick={() => (item.onClick ? item.onClick() : item.path && navigate(item.path))}
+                                            className={cn(
+                                                "w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all duration-200 group relative",
+                                                active ? "bg-amber-50 shadow-sm" : "hover:bg-slate-50"
+                                            )}
+                                        >
+                                            <div className="flex items-center gap-3 relative z-10">
+                                                <item.icon className={cn(
+                                                    "w-4.5 h-4.5 transition-colors duration-200",
+                                                    active ? "text-amber-600" : "text-slate-400 group-hover:text-slate-600"
+                                                )} />
+                                                <span className={cn(
+                                                    "text-[13px] font-bold tracking-tight transition-colors duration-200 antialiased whitespace-nowrap",
+                                                    active ? "text-slate-900" : "text-slate-600 group-hover:text-slate-800"
+                                                )}>
+                                                    {item.label}
+                                                </span>
+                                            </div>
+                                            {active && (
+                                                <div className="w-1 h-4 bg-amber-600 rounded-full" />
+                                            )}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        ))}
+                    </nav>
+
+                    {/* User Footer */}
+                    <div className="p-3 bg-white border-t border-slate-100">
+                        <div className="flex items-center gap-2.5 mb-2.5 px-1.5">
+                            <div className="w-9 h-9 rounded-full bg-amber-50 flex items-center justify-center border border-amber-100">
+                                <ShieldCheck className="w-4.5 h-4.5 text-amber-600" />
+                            </div>
+                            <div className="flex flex-col min-w-0">
+                                <span className="text-[12px] font-bold text-slate-900 truncate antialiased">{user?.fullName || "Admin"}</span>
+                                <span className="text-[10px] font-medium text-amber-700 truncate tracking-tight uppercase">Administrator</span>
+                            </div>
+                        </div>
+                        <button
+                            onClick={signOut}
+                            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition-all font-bold text-[10px] uppercase tracking-widest"
+                        >
+                            <LogOut className="w-3.5 h-3.5" />
+                            Sign Out
+                        </button>
+                    </div>
+
+                    <SupportDialog
+                        open={supportOpen}
+                        onOpenChange={setSupportOpen}
+                        defaultTab={supportTab}
+                    />
+                </div>
+            </>
+        );
+    }
 
     // ─── HEIR SIDEBAR (read-only) ────────────────────────────────────────────
     if (isHeir) {

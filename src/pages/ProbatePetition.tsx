@@ -94,7 +94,7 @@ export default function ProbatePetition() {
     }, [estate]);
 
     const previewMutation = useMutation({
-        mutationFn: (data: any) => api.previewPetition({ ...estate, ...data }),
+        mutationFn: (data: any) => api.previewPetition({ formType: "DE-111", ...data }),
         onSuccess: (res: any) => {
             if (!res?.pdfBase64) {
                 toast.error("Preview unavailable: form generation did not return a PDF.");
@@ -437,4 +437,5 @@ function StatusItem({ icon, label, complete }: { icon: React.ReactNode, label: s
         </div>
     );
 }
+
 

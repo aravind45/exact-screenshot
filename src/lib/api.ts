@@ -865,6 +865,15 @@ export const api = {
         return parseResponse(response);
     },
 
+    changePassword: async (data: { currentPassword: string; newPassword: string }) => {
+        const response = await fetch(`${API_URL}/auth/change-password`, {
+            method: "POST",
+            headers: getHeaders(),
+            body: JSON.stringify(data)
+        });
+        return parseResponse(response);
+    },
+
     /**
      * Admin Functions
      */

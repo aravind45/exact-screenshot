@@ -28,6 +28,10 @@ const resetPasswordSchema = z.object({
     token: z.string(),
     newPassword: z.string().min(8)
 });
+const changePasswordSchema = z.object({
+    currentPassword: z.string().min(1),
+    newPassword: z.string().min(8)
+});
 const verifyEmailSchema = z.object({
     email: z.string().email(),
     token: z.string()
@@ -104,6 +108,20 @@ router.post("/reset-password", async (req, res) => {
             return res.status(400).json({ error: "Invalid input" });
         }
         logger.error("Reset Password Error:", error.message);
+        res.status(400).json({ error: error.message });
+    }
+});
+router.post("/change-password", authenticate, async (req, res) => {
+    try {
+        const validated = changePasswordSchema.parse(req.body);
+        const result = await AuthService.changePassword(req.user.id, validated.currentPassword, validated.newPassword);
+        res.json(result);
+    }
+    catch (error) {
+        if (error instanceof z.ZodError) {
+            return res.status(400).json({ error: "Invalid input" });
+        }
+        logger.error("Change Password Error:", error.message);
         res.status(400).json({ error: error.message });
     }
 });

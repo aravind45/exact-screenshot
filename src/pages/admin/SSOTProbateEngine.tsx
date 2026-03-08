@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { Sidebar } from "@/components/Sidebar";
 import {
   Globe, Map, FileText, AlertTriangle, History, BarChart3,
   ChevronRight, Plus, Check, Eye, Loader2,
@@ -492,35 +493,40 @@ function RulesTab() {
 /* ─── Main Component ───────────────────────────────────────────────────────── */
 export default function SSOTProbateEngine() {
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <Database className="h-6 w-6" /> SSOT Probate Engine
-        </h1>
-        <p className="text-muted-foreground text-sm mt-1">
-          Single Source of Truth for 50-state probate rules, roadmaps, forms, and compliance
-        </p>
+    <div className="flex min-h-screen bg-[#F8FAFC]">
+      <Sidebar />
+      <div className="flex-1 ml-64">
+        <div className="p-6 max-w-7xl mx-auto">
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold flex items-center gap-2">
+              <Database className="h-6 w-6" /> SSOT Probate Engine
+            </h1>
+            <p className="text-muted-foreground text-sm mt-1">
+              Single Source of Truth for 50-state probate rules, roadmaps, forms, and compliance
+            </p>
+          </div>
+
+          <Tabs defaultValue="overview">
+            <TabsList className="mb-4 flex-wrap">
+              <TabsTrigger value="overview"><BarChart3 className="h-4 w-4 mr-1" /> Overview</TabsTrigger>
+              <TabsTrigger value="jurisdictions"><Globe className="h-4 w-4 mr-1" /> Jurisdictions</TabsTrigger>
+              <TabsTrigger value="roadmaps"><Map className="h-4 w-4 mr-1" /> Roadmaps</TabsTrigger>
+              <TabsTrigger value="forms"><FileText className="h-4 w-4 mr-1" /> Forms</TabsTrigger>
+              <TabsTrigger value="rules"><Scale className="h-4 w-4 mr-1" /> Rules</TabsTrigger>
+              <TabsTrigger value="gaps"><AlertTriangle className="h-4 w-4 mr-1" /> Gap Detection</TabsTrigger>
+              <TabsTrigger value="audit"><History className="h-4 w-4 mr-1" /> Audit Log</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="overview"><OverviewTab /></TabsContent>
+            <TabsContent value="jurisdictions"><JurisdictionsTab /></TabsContent>
+            <TabsContent value="roadmaps"><RoadmapsTab /></TabsContent>
+            <TabsContent value="forms"><FormsTab /></TabsContent>
+            <TabsContent value="rules"><RulesTab /></TabsContent>
+            <TabsContent value="gaps"><GapDetectionTab /></TabsContent>
+            <TabsContent value="audit"><AuditLogTab /></TabsContent>
+          </Tabs>
+        </div>
       </div>
-
-      <Tabs defaultValue="overview">
-        <TabsList className="mb-4 flex-wrap">
-          <TabsTrigger value="overview"><BarChart3 className="h-4 w-4 mr-1" /> Overview</TabsTrigger>
-          <TabsTrigger value="jurisdictions"><Globe className="h-4 w-4 mr-1" /> Jurisdictions</TabsTrigger>
-          <TabsTrigger value="roadmaps"><Map className="h-4 w-4 mr-1" /> Roadmaps</TabsTrigger>
-          <TabsTrigger value="forms"><FileText className="h-4 w-4 mr-1" /> Forms</TabsTrigger>
-          <TabsTrigger value="rules"><Scale className="h-4 w-4 mr-1" /> Rules</TabsTrigger>
-          <TabsTrigger value="gaps"><AlertTriangle className="h-4 w-4 mr-1" /> Gap Detection</TabsTrigger>
-          <TabsTrigger value="audit"><History className="h-4 w-4 mr-1" /> Audit Log</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="overview"><OverviewTab /></TabsContent>
-        <TabsContent value="jurisdictions"><JurisdictionsTab /></TabsContent>
-        <TabsContent value="roadmaps"><RoadmapsTab /></TabsContent>
-        <TabsContent value="forms"><FormsTab /></TabsContent>
-        <TabsContent value="rules"><RulesTab /></TabsContent>
-        <TabsContent value="gaps"><GapDetectionTab /></TabsContent>
-        <TabsContent value="audit"><AuditLogTab /></TabsContent>
-      </Tabs>
     </div>
   );
 }

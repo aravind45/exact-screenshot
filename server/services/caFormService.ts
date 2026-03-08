@@ -10,6 +10,8 @@ import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 import { prisma } from '../db.js';
 import { FeeService } from './feeService.js';
 import { logger } from '../lib/logger.js';
+import fs from 'fs';
+import path from 'path';
 import {
     CA_FORM_REGISTRY,
     CAFormId,
@@ -73,6 +75,16 @@ function applyTransform(value: any, transform?: string): string {
         case 'formatPhone': return formatPhone(value);
         default: return String(value || '');
     }
+}
+function sanitizePdfText(value: any): string {
+    if (value === null || value === undefined) return '';
+    return String(value)
+        .replace(/\u00A0/g, ' ')
+        .replace(/[–—]/g, '-')
+        .replace(/[“”]/g, '"')
+        .replace(/[‘’]/g, "'")
+        .replace(/…/g, '...')
+        .replace(/[^\x09\x0A\x0D\x20-\x7E\xA0-\xFF]/g, '');
 }
 
 // ─── Value Resolution ─────────────────────────────────────────────────────────
@@ -175,7 +187,7 @@ async function buildFallbackDE111(fieldValues: Record<string, any>): Promise<Uin
     let y = height - 50;
 
     const draw = (text: string, size = 10, bold = false, indent = 0) => {
-        page.drawText(text, { x: 50 + indent, y, size, font: bold ? fontBold : fontRegular });
+        page.drawText(sanitizePdfText(text), { x: 50 + indent, y, size, font: bold ? fontBold : fontRegular });
         y -= size + 5;
     };
 
@@ -221,7 +233,7 @@ async function buildFallbackDE111(fieldValues: Record<string, any>): Promise<Uin
     }
     y -= 20;
 
-    draw('Note: Upload the official DE-111 PDF template via Admin → Templates for', 8, false);
+    draw('Note: Upload the official DE-111 PDF template via Admin -> Templates for', 8, false);
     draw('field-level auto-fill. This is a structured draft for review.', 8, false);
 
     return await doc.save();
@@ -242,7 +254,7 @@ async function buildFallbackDE160(fieldValues: Record<string, any>, assets: any[
     const draw = (text: string, size = 10, bold = false, indent = 0, curY?: number) => {
         const usePage = page;
         const useY = curY !== undefined ? curY : y;
-        usePage.drawText(text, { x: 50 + indent, y: useY, size, font: bold ? fontBold : fontRegular });
+        usePage.drawText(sanitizePdfText(text), { x: 50 + indent, y: useY, size, font: bold ? fontBold : fontRegular });
         if (curY === undefined) y -= size + 5;
     };
 
@@ -299,7 +311,7 @@ async function buildFallbackDE310(fieldValues: Record<string, any>, assets: any[
     let y = height - 50;
 
     const draw = (text: string, size = 10, bold = false, indent = 0) => {
-        page.drawText(text, { x: 50 + indent, y, size, font: bold ? fontBold : fontRegular });
+        page.drawText(sanitizePdfText(text), { x: 50 + indent, y, size, font: bold ? fontBold : fontRegular });
         y -= size + 5;
     };
 
@@ -369,6 +381,7 @@ async function fillTemplateFields(
         const rawValue = fieldValues[key];
         if (rawValue === undefined || rawValue === null) continue;
         const rendered = applyTransform(rawValue, def.transform);
+        const safeRendered = sanitizePdfText(rendered);
 
         if (def.pdfFieldName && fieldNames.has(def.pdfFieldName)) {
             try {
@@ -377,7 +390,7 @@ async function fillTemplateFields(
                     rawValue ? cb.check() : cb.uncheck();
                 } else {
                     const tf = form.getTextField(def.pdfFieldName);
-                    tf.setText(rendered);
+                    tf.setText(safeRendered);
                 }
             } catch {
                 // AcroForm field unavailable — fall through to overlay
@@ -388,7 +401,7 @@ async function fillTemplateFields(
             const pageIdx = def.coord.page || 0;
             if (pageIdx < pages.length) {
                 if (def.type !== 'checkbox') {
-                    pages[pageIdx].drawText(rendered, {
+                    pages[pageIdx].drawText(safeRendered, {
                         x: def.coord.x,
                         y: def.coord.y,
                         size: def.coord.size || 10,
@@ -396,7 +409,7 @@ async function fillTemplateFields(
                         color: rgb(0, 0, 0),
                     });
                 } else if (rawValue) {
-                    pages[pageIdx].drawText('✓', {
+                    pages[pageIdx].drawText('X', {
                         x: def.coord.x,
                         y: def.coord.y,
                         size: def.coord.size || 10,
@@ -466,13 +479,36 @@ export const CAFormService = {
             where: { name: input.formId },
         }).catch(() => null);
 
-        const templateBytes = dbTemplate ? Buffer.from(dbTemplate.data) : null;
+        const localTemplatePath = path.join(process.cwd(), 'server', 'templates', `${input.formId}.pdf`);
+        const localTemplateBytes = fs.existsSync(localTemplatePath) ? fs.readFileSync(localTemplatePath) : null;
+        const templateCandidates: Array<{ source: 'DB' | 'filesystem'; bytes: Buffer }> = [];
 
-        if (templateBytes) {
-            logger.info(`[CAFormService] Using template from DB for ${input.formId}`);
-            pdfBytes = await fillTemplateFields(templateBytes, fieldValues, registry);
-        } else {
-            logger.warn(`[CAFormService] No template found for ${input.formId}, using fallback builder`);
+        if (dbTemplate) {
+            templateCandidates.push({ source: 'DB', bytes: Buffer.from(dbTemplate.data) });
+        }
+        if (localTemplateBytes) {
+            templateCandidates.push({ source: 'filesystem', bytes: localTemplateBytes });
+            logger.info(`[CAFormService] Using local template file for ${input.formId}`);
+        }
+
+        let templateFillError: unknown = null;
+        for (const candidate of templateCandidates) {
+            try {
+                logger.info(`[CAFormService] Using template from ${candidate.source} for ${input.formId}`);
+                pdfBytes = await fillTemplateFields(candidate.bytes, fieldValues, registry);
+                templateFillError = null;
+                break;
+            } catch (error) {
+                templateFillError = error;
+                logger.warn(`[CAFormService] Template fill failed from ${candidate.source} for ${input.formId}: ${error instanceof Error ? error.message : String(error)}`);
+            }
+        }
+
+        if (!pdfBytes) {
+            if (templateFillError) {
+                logger.warn(`[CAFormService] Falling back to structured builder for ${input.formId} after template parse failures`);
+            }
+            logger.warn(`[CAFormService] No usable template found for ${input.formId}, using fallback builder`);
             switch (input.formId) {
                 case 'DE-111':
                     pdfBytes = await buildFallbackDE111(fieldValues);
@@ -487,7 +523,6 @@ export const CAFormService = {
                     throw new Error(`No fallback builder for ${input.formId}`);
             }
         }
-
         return { pdfBytes, fieldValues, validationErrors };
     },
 
@@ -518,3 +553,4 @@ export const CAFormService = {
             }));
     },
 };
+

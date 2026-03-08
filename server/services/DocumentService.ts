@@ -837,77 +837,141 @@ export const DocumentService = {
     },
 
     async generateDE142(estate: any) {
-        const doc = await PDFDocument.create();
-        let page = doc.addPage();
-        const { height } = page.getSize();
-        let y = height - 50;
-        const fontBold = await doc.embedStandardFont(StandardFonts.HelveticaBold);
+        const decedentName = `${String(estate.deceasedFirstName || '')} ${String(estate.deceasedLastName || '')}`.trim();
+        const caseNumber = String(estate.courtCaseNumber || 'Pending');
+        const signerName = String(estate.user?.fullName || '[Name of Heir or Beneficiary]');
 
-        page.drawText('WAIVER OF BOND BY HEIR OR BENEFICIARY (DE-142)', { x: 50, y, size: 14, font: fontBold });
-        y -= 30;
+        const overlayData = {
+            partyName: signerName,
+            partyAddress: String(estate.user?.address || ''),
+            partyPhone: String(estate.petitionerPhone || estate.user?.phone || ''),
+            estateOf: decedentName.toUpperCase(),
+            caseNumber,
+            waiverDate: new Date().toLocaleDateString(),
+            heirName: signerName,
+        };
 
-        page.drawText(`Estate of: ${String(estate.deceasedFirstName || '')} ${String(estate.deceasedLastName || '')}`, { x: 50, y, size: 12 });
-        page.drawText(`Case Number: ${String(estate.courtCaseNumber || 'Pending')}`, { x: 400, y, size: 12 });
-        y -= 40;
+        const mapping: FormMapping = {
+            partyName: { x: 50, y: 715, size: 9 },
+            partyAddress: { x: 50, y: 702, size: 9 },
+            partyPhone: { x: 50, y: 689, size: 9 },
+            estateOf: { x: 160, y: 575, size: 12, font: 'HelveticaBold' },
+            caseNumber: { x: 420, y: 540, size: 11 },
+            waiverDate: { x: 92, y: 231, size: 10 },
+            heirName: { x: 92, y: 145, size: 10 },
+        };
 
-        page.drawText('1. I am an heir or beneficiary of the estate of the decedent named above.', { x: 50, y, size: 11 });
-        y -= 20;
-        page.drawText('2. I understand that the court would otherwise require the personal', { x: 50, y, size: 11 });
-        y -= 15;
-        page.drawText('   representative to post a bond for my protection.', { x: 50, y, size: 11 });
-        y -= 25;
-        page.drawText('3. I freely and voluntarily waive the requirement of a bond.', { x: 50, y, size: 11, font: fontBold });
-        y -= 40;
+        try {
+            return await this.generateOverlayPdf('DE-142', overlayData, mapping);
+        } catch (error: any) {
+            logger.warn(`[DocumentService] Template overlay failed for DE-142, using fallback draft: ${error?.message || error}`);
 
-        // Signature area
-        page.drawText(`Date: ${new Date().toLocaleDateString()}`, { x: 50, y });
-        y -= 30;
-        page.drawText('___________________________________________________', { x: 50, y });
-        y -= 15;
-        page.drawText('Signature of Heir or Beneficiary', { x: 50, y, size: 10 });
-        y -= 20;
-        page.drawText(`[Name of Heir Placeholder]`, { x: 50, y, size: 10 });
+            const doc = await PDFDocument.create();
+            const page = doc.addPage([612, 792]);
+            const fontBold = await doc.embedStandardFont(StandardFonts.HelveticaBold);
+            const fontRegular = await doc.embedStandardFont(StandardFonts.Helvetica);
 
-        return await doc.save();
+            const draw = (text: string, x: number, y: number, size = 10, bold = false) => {
+                page.drawText(text, {
+                    x,
+                    y,
+                    size,
+                    font: bold ? fontBold : fontRegular,
+                    color: rgb(0, 0, 0),
+                });
+            };
+
+            draw('ATTORNEY OR PARTY WITHOUT ATTORNEY (Name, Address and Telephone):', 40, 748, 7);
+            draw(signerName, 40, 734, 9, true);
+            draw(String(estate.user?.address || ''), 40, 721, 9);
+            draw(`Telephone: ${String(estate.petitionerPhone || estate.user?.phone || '')}`, 40, 708, 9);
+            draw('SUPERIOR COURT OF CALIFORNIA, COUNTY OF', 40, 690, 8);
+
+            draw('ESTATE OF:', 40, 650, 9, true);
+            draw(decedentName || '______________________________', 112, 650, 11, true);
+            draw('CASE NUMBER:', 360, 650, 9, true);
+            draw(caseNumber, 448, 650, 10);
+            page.drawLine({ start: { x: 40, y: 642 }, end: { x: 570, y: 642 }, thickness: 0.75, color: rgb(0, 0, 0) });
+
+            draw('WAIVER OF BOND BY HEIR OR BENEFICIARY (DE-142)', 132, 610, 12, true);
+            draw('I declare:', 40, 575, 10, true);
+            draw('1. I am an heir or beneficiary of the estate of the decedent named above.', 52, 553, 10);
+            draw('2. I understand that the court would otherwise require the personal representative', 52, 534, 10);
+            draw('   to post a bond for my protection.', 52, 518, 10);
+            draw('3. I freely and voluntarily waive the requirement of a bond.', 52, 496, 10, true);
+
+            draw(`Date: ${new Date().toLocaleDateString()}`, 52, 430, 10);
+            page.drawLine({ start: { x: 52, y: 395 }, end: { x: 360, y: 395 }, thickness: 1, color: rgb(0, 0, 0) });
+            draw('Signature of Heir or Beneficiary', 52, 379, 9);
+            draw(signerName, 52, 358, 10);
+
+            return await doc.save();
+        }
     },
-
     async generateDE143(estate: any) {
-        const doc = await PDFDocument.create();
-        let page = doc.addPage();
-        const { height } = page.getSize();
-        let y = height - 50;
-        const fontBold = await doc.embedStandardFont(StandardFonts.HelveticaBold);
+        const decedentName = `${String(estate.deceasedFirstName || '')} ${String(estate.deceasedLastName || '')}`.trim();
+        const caseNumber = String(estate.courtCaseNumber || 'Pending');
 
-        page.drawText('ORDER WAIVING BOND (DE-143)', { x: 50, y, size: 14, font: fontBold });
-        y -= 30;
+        const overlayData = {
+            partyName: String(estate.user?.fullName || ''),
+            partyAddress: String(estate.user?.address || ''),
+            partyPhone: String(estate.petitionerPhone || estate.user?.phone || ''),
+            estateOf: decedentName.toUpperCase(),
+            caseNumber,
+            orderDate: new Date().toLocaleDateString(),
+        };
 
-        page.drawText(`Estate of: ${String(estate.deceasedFirstName || '')} ${String(estate.deceasedLastName || '')}`, { x: 50, y, size: 12 });
-        page.drawText(`Case Number: ${String(estate.courtCaseNumber || 'Pending')}`, { x: 400, y, size: 12 });
-        y -= 40;
+        const mapping: FormMapping = {
+            partyName: { x: 50, y: 715, size: 9 },
+            partyAddress: { x: 50, y: 702, size: 9 },
+            partyPhone: { x: 50, y: 689, size: 9 },
+            estateOf: { x: 160, y: 575, size: 12, font: 'HelveticaBold' },
+            caseNumber: { x: 420, y: 540, size: 11 },
+            orderDate: { x: 96, y: 108, size: 10 },
+        };
 
-        page.drawText('THE COURT FINDS:', { x: 50, y, size: 12, font: fontBold });
-        y -= 25;
-        page.drawText('1. All heirs and beneficiaries have signed waivers of bond (DE-142).', { x: 70, y });
-        y -= 20;
-        page.drawText('2. The estate is solvent and no creditors will be harmed by the waiver.', { x: 70, y });
-        y -= 40;
+        try {
+            return await this.generateOverlayPdf('DE-143', overlayData, mapping);
+        } catch (error: any) {
+            logger.warn(`[DocumentService] Template overlay failed for DE-143, using fallback draft: ${error?.message || error}`);
 
-        page.drawText('THE COURT ORDERS:', { x: 50, y, size: 12, font: fontBold });
-        y -= 25;
-        page.drawText('1. The requirement of a bond is waived for the personal representative.', { x: 70, y });
-        y -= 30;
+            const doc = await PDFDocument.create();
+            const page = doc.addPage([612, 792]);
+            const fontBold = await doc.embedStandardFont(StandardFonts.HelveticaBold);
+            const fontRegular = await doc.embedStandardFont(StandardFonts.Helvetica);
 
-        page.drawText('2. Letters of Administration/Testamentary shall issue without bond.', { x: 70, y });
-        y -= 50;
+            const draw = (text: string, x: number, y: number, size = 10, bold = false) => {
+                page.drawText(text, {
+                    x,
+                    y,
+                    size,
+                    font: bold ? fontBold : fontRegular,
+                    color: rgb(0, 0, 0),
+                });
+            };
 
-        // Judge Signature area
-        page.drawText('Date: ________________________', { x: 50, y });
-        y -= 30;
-        page.drawText('___________________________________________________', { x: 300, y });
-        y -= 15;
-        page.drawText('JUDGE OF THE SUPERIOR COURT', { x: 350, y, size: 8 });
+            draw('SUPERIOR COURT OF CALIFORNIA, COUNTY OF', 40, 730, 8);
+            draw('ESTATE OF:', 40, 694, 9, true);
+            draw(decedentName || '______________________________', 112, 694, 11, true);
+            draw('CASE NUMBER:', 360, 694, 9, true);
+            draw(caseNumber, 448, 694, 10);
+            page.drawLine({ start: { x: 40, y: 686 }, end: { x: 570, y: 686 }, thickness: 0.75, color: rgb(0, 0, 0) });
 
-        return await doc.save();
+            draw('ORDER WAIVING BOND (DE-143)', 202, 650, 12, true);
+            draw('THE COURT FINDS:', 40, 616, 10, true);
+            draw('1. All heirs and beneficiaries have signed waivers of bond (DE-142).', 52, 595, 10);
+            draw('2. The estate is solvent and no creditor will be harmed by waiving bond.', 52, 576, 10);
+
+            draw('THE COURT ORDERS:', 40, 535, 10, true);
+            draw('1. The requirement of a bond is waived for the personal representative.', 52, 514, 10);
+            draw('2. Letters shall issue without bond.', 52, 495, 10);
+
+            draw(`Date: ${new Date().toLocaleDateString()}`, 72, 350, 10);
+            page.drawLine({ start: { x: 340, y: 318 }, end: { x: 555, y: 318 }, thickness: 1, color: rgb(0, 0, 0) });
+            draw('JUDGE OF THE SUPERIOR COURT', 376, 302, 8);
+
+            return await doc.save();
+        }
     },
     /**
      * Generates a professional chronological Settlement Trail PDF with multi-page support.
@@ -2046,10 +2110,4 @@ function safeSetCheckbox(form: any, name: string, checked: boolean) {
         logger.warn(`[DocumentService] Could not set checkbox for field "${name}": ${e.message}`);
     }
 }
-
-
-
-
-
-
 

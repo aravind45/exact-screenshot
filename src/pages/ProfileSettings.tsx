@@ -53,6 +53,11 @@ export default function ProfileSettings() {
     const [portalLoading, setPortalLoading] = useState(false);
     const [refundLoading, setRefundLoading] = useState(false);
     const [refundReason, setRefundReason] = useState("");
+    const [passwordForm, setPasswordForm] = useState({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+    });
 
     // Estate form state
     const [estateFormData, setEstateFormData] = useState({
@@ -131,6 +136,17 @@ export default function ProfileSettings() {
         },
     });
 
+    const changePasswordMutation = useMutation({
+        mutationFn: (data: { currentPassword: string; newPassword: string }) => api.changePassword(data),
+        onSuccess: () => {
+            toast({ title: "Password Updated", description: "Your password was changed successfully." });
+            setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
+        },
+        onError: (err: any) => {
+            toast({ variant: "destructive", title: "Password Change Failed", description: err.message || "Unable to update password" });
+        },
+    });
+
     // Estate update mutation
     const updateEstateMutation = useMutation({
         mutationFn: (data: any) => api.updateMyEstate(data),
@@ -170,6 +186,49 @@ export default function ProfileSettings() {
 
     const handleSave = () => {
         updateMutation.mutate(formData);
+    };
+
+    const handleChangePassword = () => {
+        if (!passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword) {
+            toast({
+                variant: "destructive",
+                title: "All Fields Required",
+                description: "Enter your current password and your new password twice.",
+            });
+            return;
+        }
+
+        if (passwordForm.newPassword.length < 8) {
+            toast({
+                variant: "destructive",
+                title: "Password Too Short",
+                description: "New password must be at least 8 characters.",
+            });
+            return;
+        }
+
+        if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+            toast({
+                variant: "destructive",
+                title: "Passwords Do Not Match",
+                description: "New password and confirmation must match.",
+            });
+            return;
+        }
+
+        if (passwordForm.currentPassword === passwordForm.newPassword) {
+            toast({
+                variant: "destructive",
+                title: "Choose a Different Password",
+                description: "Your new password must be different from your current password.",
+            });
+            return;
+        }
+
+        changePasswordMutation.mutate({
+            currentPassword: passwordForm.currentPassword,
+            newPassword: passwordForm.newPassword,
+        });
     };
 
     const handleManageBilling = async () => {
@@ -480,6 +539,66 @@ export default function ProfileSettings() {
                                             <Button onClick={handleSave} disabled={updateMutation.isPending} className="gap-2">
                                                 {updateMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                                                 Save Profile Changes
+                                            </Button>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </motion.div>
+
+                                    <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.04 }}
+                            >
+                                <Card className="card-elevated border-none">
+                                    <CardHeader>
+                                        <CardTitle className="flex items-center gap-2">
+                                            <ShieldCheck className="w-5 h-5 text-primary" />
+                                            Password & Security
+                                        </CardTitle>
+                                        <CardDescription>Update your password to keep your account secure.</CardDescription>
+                                    </CardHeader>
+                                    <CardContent className="space-y-4">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="currentPassword">Current Password</Label>
+                                            <Input
+                                                id="currentPassword"
+                                                type="password"
+                                                autoComplete="current-password"
+                                                value={passwordForm.currentPassword}
+                                                onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
+                                            />
+                                        </div>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                                <Label htmlFor="newPassword">New Password</Label>
+                                                <Input
+                                                    id="newPassword"
+                                                    type="password"
+                                                    autoComplete="new-password"
+                                                    value={passwordForm.newPassword}
+                                                    onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                                                <Input
+                                                    id="confirmPassword"
+                                                    type="password"
+                                                    autoComplete="new-password"
+                                                    value={passwordForm.confirmPassword}
+                                                    onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <p className="text-xs text-muted-foreground">Password must be at least 8 characters.</p>
+
+                                        <div className="pt-2 border-t flex justify-end">
+                                            <Button onClick={handleChangePassword} disabled={changePasswordMutation.isPending} className="gap-2">
+                                                {changePasswordMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldCheck className="w-4 h-4" />}
+                                                Update Password
                                             </Button>
                                         </div>
                                     </CardContent>
@@ -1106,5 +1225,8 @@ function TriStateToggle({ label, description, value, onChange }: {
         </div>
     );
 }
+
+
+
 
 
