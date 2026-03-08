@@ -86,20 +86,28 @@ export function Sidebar() {
             {
                 title: "Admin Console",
                 items: [
-                    { label: "Overview", icon: ShieldCheck, path: "/admin" },
-                    { label: "Jurisdiction Health", icon: Map, path: "/admin/jurisdiction-health" },
-                    { label: "Institution Directory", icon: Landmark, path: "/admin/institutions" },
+                    { label: "System Users", icon: Users, path: "/admin/system-users" },
+                    { label: "Billing & Ledger", icon: CreditCard, path: "/admin/billing-ledger" },
+                    { label: "Institution Master", icon: Landmark, path: "/admin/institution-master" },
+                    { label: "Form Templates", icon: FileText, path: "/admin/form-templates" },
+                    { label: "Knowledge Base", icon: HelpCircle, path: "/admin/knowledge-base" },
+                    { label: "Communications", icon: MessageSquare, path: "/admin/communications" },
+                    { label: "Marketing & Leads", icon: Zap, path: "/admin/marketing-leads" },
+                    { label: "Advisor Verification", icon: Briefcase, path: "/admin/advisor-verification" },
+                    { label: "State Rules", icon: ScrollText, path: "/admin/state-rules" },
                 ]
             },
             {
                 title: "Marketplace Ops",
                 items: [
                     { label: "Advisor Queue", icon: Users, path: "/admin/advisors" },
+                    { label: "Institution Directory", icon: Landmark, path: "/admin/institutions" },
                 ]
             },
             {
                 title: "Rules & Data",
                 items: [
+                    { label: "Jurisdiction Health", icon: Map, path: "/admin/jurisdiction-health" },
                     { label: "SSOT Probate Engine", icon: ScrollText, path: "/admin/probate-engine" },
                 ]
             },

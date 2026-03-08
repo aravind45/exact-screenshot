@@ -68,10 +68,28 @@ function formatCurrency(value: number): string {
     }).format(value);
 }
 
-export default function AdminDashboard() {
+type AdminDashboardTab = 'overview' | 'billing' | 'institutions' | 'templates' | 'knowledge' | 'communications' | 'marketing' | 'advisors' | 'rulebook';
+
+const TAB_ROUTE_MAP: Record<AdminDashboardTab, string> = {
+    overview: '/admin/system-users',
+    billing: '/admin/billing-ledger',
+    institutions: '/admin/institution-master',
+    templates: '/admin/form-templates',
+    knowledge: '/admin/knowledge-base',
+    communications: '/admin/communications',
+    marketing: '/admin/marketing-leads',
+    advisors: '/admin/advisor-verification',
+    rulebook: '/admin/state-rules',
+};
+
+interface AdminDashboardProps {
+    initialTab?: AdminDashboardTab;
+}
+
+export default function AdminDashboard({ initialTab = 'overview' }: AdminDashboardProps) {
     const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState("");
-    const [activeTab, setActiveTab] = useState("overview");
+    const [activeTab, setActiveTab] = useState<AdminDashboardTab>(initialTab);
     const { toast } = useToast();
     const queryClient = useQueryClient();
 
@@ -95,6 +113,10 @@ export default function AdminDashboard() {
         }, 500);
         return () => clearTimeout(timer);
     }, [searchTerm]);
+
+    useEffect(() => {
+        setActiveTab(initialTab);
+    }, [initialTab]);
 
     const { data: userData, isLoading: usersLoading } = useQuery({
         queryKey: ["admin", "users", page, debouncedSearch],
@@ -156,6 +178,15 @@ export default function AdminDashboard() {
 
     // Server-side filtering now handled by useQuery
     const filteredUsers = users;
+
+    const handleTabChange = (tab: string) => {
+        const nextTab = tab as AdminDashboardTab;
+        setActiveTab(nextTab);
+        const nextRoute = TAB_ROUTE_MAP[nextTab];
+        if (nextRoute) {
+            navigate(nextRoute);
+        }
+    };
 
     return (
         <div className="flex min-h-screen bg-[#F8FAFC]">
@@ -248,7 +279,7 @@ export default function AdminDashboard() {
                         </Card>
                     </div>
 
-                    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                    <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
                         <TabsList className="mb-6">
                             <TabsTrigger value="overview">System Users</TabsTrigger>
                             <TabsTrigger value="billing">Billing & Ledger</TabsTrigger>
@@ -1397,3 +1428,4 @@ function AdvisorManager() {
         </Card>
     );
 }
+
