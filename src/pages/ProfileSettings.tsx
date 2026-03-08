@@ -237,7 +237,7 @@ export default function ProfileSettings() {
             <Sidebar />
             <div className="flex-1 ml-64 min-h-screen bg-background">
                 <header className="sticky top-0 z-40 glass border-b border-border/50">
-                    <div className="section-container">
+                    <div className="px-4 sm:px-6 lg:px-6">
                         <div className="flex items-center justify-between h-16">
                             <div className="flex items-center gap-4">
                                 <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="gap-2">
@@ -250,7 +250,7 @@ export default function ProfileSettings() {
                     </div>
                 </header>
 
-                <main className="section-container py-8 max-w-4xl">
+                <main className="py-8 px-4 sm:px-6 lg:px-6 max-w-6xl">
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                         {/* Sidebar Info */}
                         <div className="lg:col-span-1 space-y-6">
@@ -1106,4 +1106,5 @@ function TriStateToggle({ label, description, value, onChange }: {
         </div>
     );
 }
+
 
