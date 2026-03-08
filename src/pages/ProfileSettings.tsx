@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
     Select,
     SelectContent,
@@ -23,10 +24,21 @@ import { Sidebar } from "@/components/Sidebar";
 import { US_STATES } from "@/lib/states";
 import { determinePath, UserAnswers } from "@/lib/pathEngine";
 
+const PROFILE_TAB_VALUES = new Set(["executor-profile", "case-setup", "billing", "referrals"]);
+
 export default function ProfileSettings() {
     const navigate = useNavigate();
     const { toast } = useToast();
     const queryClient = useQueryClient();
+    const [searchParams, setSearchParams] = useSearchParams();
+    const tabParam = searchParams.get("tab");
+    const activeTab = tabParam && PROFILE_TAB_VALUES.has(tabParam) ? tabParam : "executor-profile";
+
+    const handleTabChange = (tab: string) => {
+        const next = new URLSearchParams(searchParams);
+        next.set("tab", tab);
+        setSearchParams(next, { replace: true });
+    };
 
     const { data: estate, isLoading: isEstateLoading } = useQuery({
         queryKey: ["my-estate"],
@@ -302,7 +314,16 @@ export default function ProfileSettings() {
 
                         {/* Settings Form */}
                         <div className="lg:col-span-2 space-y-6">
-                            <motion.div
+                            <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4">
+                                <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 gap-2 h-auto p-0 bg-transparent">
+                                    <TabsTrigger value="executor-profile" className="h-10 border border-border bg-card data-[state=active]:border-primary data-[state=active]:bg-primary/5">Executor Profile</TabsTrigger>
+                                    <TabsTrigger value="case-setup" className="h-10 border border-border bg-card data-[state=active]:border-primary data-[state=active]:bg-primary/5">Case Setup Details</TabsTrigger>
+                                    <TabsTrigger value="billing" className="h-10 border border-border bg-card data-[state=active]:border-primary data-[state=active]:bg-primary/5">Billing</TabsTrigger>
+                                    <TabsTrigger value="referrals" className="h-10 border border-border bg-card data-[state=active]:border-primary data-[state=active]:bg-primary/5">Referrals & Admin</TabsTrigger>
+                                </TabsList>
+
+                                <TabsContent value="executor-profile" className="mt-0 space-y-6">
+                                    <motion.div
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                             >
@@ -464,8 +485,19 @@ export default function ProfileSettings() {
                                     </CardContent>
                                 </Card>
                             </motion.div>
+                                </TabsContent>
 
-                            {/* Estate Details Section */}
+                                <TabsContent value="case-setup" className="mt-0 space-y-6">
+                                    {!isEstateLoading && !estate && (
+                                        <Alert variant="info">
+                                            <Info className="h-4 w-4" />
+                                            <AlertDescription>
+                                                Estate details are not available yet. Complete onboarding to unlock case setup fields.
+                                            </AlertDescription>
+                                        </Alert>
+                                    )}
+
+                                    {/* Estate Details Section */}
                             {!isEstateLoading && estate && (
                                 <motion.div
                                     initial={{ opacity: 0, y: 20 }}
@@ -808,7 +840,10 @@ export default function ProfileSettings() {
                                 </motion.div>
                             )}
 
-                            <motion.div
+                                </TabsContent>
+
+                                <TabsContent value="billing" className="mt-0 space-y-6">
+                                    <motion.div
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.05 }}
@@ -892,8 +927,10 @@ export default function ProfileSettings() {
                                     </CardContent>
                                 </Card>
                             </motion.div>
+                                </TabsContent>
 
-                            <motion.div
+                                <TabsContent value="referrals" className="mt-0 space-y-6">
+                                    <motion.div
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.1 }}
@@ -949,6 +986,8 @@ export default function ProfileSettings() {
                                     </CardContent>
                                 </Card>
                             )}
+                                </TabsContent>
+                            </Tabs>
                         </div>
                     </div>
                 </main>

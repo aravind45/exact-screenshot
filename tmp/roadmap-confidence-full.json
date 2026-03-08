@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-03-07T16:43:12.336Z",
+  "generatedAt": "2026-03-08T00:47:15.004Z",
   "filters": {
     "state": null,
     "limit": null
   },
   "totals": {
-    "jurisdictions": 51,
+    "jurisdictions": 53,
     "avgConfidence": 100,
     "failingJurisdictions": 0
   },
@@ -523,7 +523,7 @@
     },
     {
       "state": "TX",
-      "jurisdictions": 1,
+      "jurisdictions": 2,
       "avgConfidence": 100,
       "minConfidence": 100,
       "worstCounty": null,
@@ -555,7 +555,7 @@
     },
     {
       "state": "WA",
-      "jurisdictions": 1,
+      "jurisdictions": 2,
       "avgConfidence": 100,
       "minConfidence": 100,
       "worstCounty": null,
@@ -1073,6 +1073,17 @@
       "issues": []
     },
     {
+      "state": "TX",
+      "county": "Fort Bend",
+      "phaseCount": 13,
+      "taskCount": 82,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    },
+    {
       "state": "UT",
       "county": null,
       "phaseCount": 5,
@@ -1108,6 +1119,17 @@
     {
       "state": "WA",
       "county": null,
+      "phaseCount": 13,
+      "taskCount": 82,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    },
+    {
+      "state": "WA",
+      "county": "Test",
       "phaseCount": 13,
       "taskCount": 82,
       "duplicateTaskIds": [],

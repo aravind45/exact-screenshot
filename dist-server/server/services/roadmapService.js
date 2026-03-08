@@ -393,6 +393,71 @@ function normalizePhasesForState(phases, state, county) {
         };
     });
 }
+const DUPLICATE_TASK_PHASE_PREFERENCES = {
+    file_inventory: ["asset_discovery", "discovery"],
+    publish_notice: ["creditor_claims", "petition"],
+    mail_notice: ["creditor_claims", "petition"],
+    wait_claim_period: ["creditor_claims", "creditors"],
+    review_claims: ["creditor_claims", "creditors"],
+};
+function harmonizeDuplicateTaskOwnership(phases, context = {}) {
+    const occurrences = new Map();
+    phases.forEach((phase, phaseIndex) => {
+        phase.tasks.forEach((task, taskIndex) => {
+            if (!occurrences.has(task.id)) {
+                occurrences.set(task.id, []);
+            }
+            occurrences.get(task.id).push({
+                phaseIndex,
+                taskIndex,
+                phaseCode: phase.phase,
+            });
+        });
+    });
+    const removalsByPhase = new Map();
+    const resolutionSummary = [];
+    for (const [taskId, taskOccurrences] of occurrences.entries()) {
+        if (taskOccurrences.length <= 1)
+            continue;
+        const preferredPhases = DUPLICATE_TASK_PHASE_PREFERENCES[taskId] || [];
+        const keep = preferredPhases
+            .map((phaseCode) => taskOccurrences.find((occ) => occ.phaseCode === phaseCode))
+            .find((occ) => Boolean(occ)) || taskOccurrences[0];
+        const removed = taskOccurrences.filter((occ) => !(occ.phaseIndex === keep.phaseIndex && occ.taskIndex === keep.taskIndex));
+        if (removed.length === 0)
+            continue;
+        for (const entry of removed) {
+            if (!removalsByPhase.has(entry.phaseIndex)) {
+                removalsByPhase.set(entry.phaseIndex, new Set());
+            }
+            removalsByPhase.get(entry.phaseIndex).add(entry.taskIndex);
+        }
+        resolutionSummary.push({
+            taskId,
+            keptPhase: keep.phaseCode,
+            removedFrom: [...new Set(removed.map((entry) => entry.phaseCode))].sort(),
+        });
+    }
+    if (resolutionSummary.length === 0)
+        return phases;
+    const harmonized = phases.map((phase, phaseIndex) => {
+        const phaseRemovals = removalsByPhase.get(phaseIndex);
+        if (!phaseRemovals || phaseRemovals.size === 0)
+            return phase;
+        return {
+            ...phase,
+            tasks: phase.tasks.filter((_, taskIndex) => !phaseRemovals.has(taskIndex)),
+        };
+    });
+    logger.info({
+        estateId: context.estateId,
+        state: context.state,
+        county: context.county,
+        resolvedDuplicateTaskIds: resolutionSummary.map((item) => item.taskId).sort(),
+        resolutionSummary,
+    }, "Harmonized duplicate roadmap task ownership across legacy/canonical phases");
+    return harmonized;
+}
 function dedupeRoadmapTaskIds(phases, context = {}) {
     const seen = new Set();
     const duplicateTaskIds = new Set();
@@ -1428,7 +1493,12 @@ export async function getRoadmapFromDatabase(estateId, profile, completedTaskIds
         const injected = ensurePreFilingCompliance(SETTLEMENT_PHASE_TASKS, profile);
         const filtered = filterTasksForEstate(injected, profile, completedTaskIds, estate.probateCounty || undefined);
         const caGuarded = removeCAOnlyTasks(filtered, profile.state);
-        const deduped = dedupeRoadmapTaskIds(caGuarded, {
+        const harmonized = harmonizeDuplicateTaskOwnership(caGuarded, {
+            estateId,
+            state: profile.state,
+            county: estate.probateCounty || undefined,
+        });
+        const deduped = dedupeRoadmapTaskIds(harmonized, {
             estateId,
             state: profile.state,
             county: estate.probateCounty || undefined,
@@ -1441,7 +1511,12 @@ export async function getRoadmapFromDatabase(estateId, profile, completedTaskIds
         const injected = ensurePreFilingCompliance(SETTLEMENT_PHASE_TASKS, profile);
         const filtered = filterTasksForEstate(injected, profile, completedTaskIds, estate.probateCounty || undefined);
         const caGuarded = removeCAOnlyTasks(filtered, profile.state);
-        const deduped = dedupeRoadmapTaskIds(caGuarded, {
+        const harmonized = harmonizeDuplicateTaskOwnership(caGuarded, {
+            estateId,
+            state: profile.state,
+            county: estate.probateCounty || undefined,
+        });
+        const deduped = dedupeRoadmapTaskIds(harmonized, {
             estateId,
             state: profile.state,
             county: estate.probateCounty || undefined,
@@ -1550,7 +1625,12 @@ export async function getRoadmapFromDatabase(estateId, profile, completedTaskIds
         }
     }
     const caGuarded = removeCAOnlyTasks(finalizedPhases, profile.state);
-    const deduped = dedupeRoadmapTaskIds(caGuarded, {
+    const harmonized = harmonizeDuplicateTaskOwnership(caGuarded, {
+        estateId,
+        state: profile.state,
+        county: estate.probateCounty || undefined,
+    });
+    const deduped = dedupeRoadmapTaskIds(harmonized, {
         estateId,
         state: profile.state,
         county: estate.probateCounty || undefined,

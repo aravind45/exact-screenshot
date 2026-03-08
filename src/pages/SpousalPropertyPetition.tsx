@@ -41,9 +41,11 @@ export default function SpousalPropertyPetition() {
         onError: (err: any) => {
             toast.error(`Error updating progress: ${err.message}`);
         }
-    });
+    });
+
     const isSpousalPath = estate?.authorityType === 'SPOUSAL_PETITION';
-    const completedTaskIds = estate?.roadmapProgress?.completedTaskIds || [];
+    const completedTaskIds = estate?.roadmapProgress?.completedTaskIds || [];
+
     const handleDownload = async (form: string, blankUrl?: string) => {
         setDownloadingForm(form);
         try {
@@ -233,6 +235,13 @@ export default function SpousalPropertyPetition() {
                                                         </a>
                                                     </Button>
                                                 </div>
+                                                {(!isSpousalPath || step.status === 'locked') && (
+                                                    <p className="mt-2 text-[10px] font-medium text-slate-400">
+                                                        {!isSpousalPath
+                                                            ? "Disabled because this estate is not on the spousal petition path."
+                                                            : "Complete the prior step to unlock this action."}
+                                                    </p>
+                                                )}
                                             </div>
                                         </div>
                                     </CardContent>
@@ -293,6 +302,7 @@ export default function SpousalPropertyPetition() {
         </div>
     );
 }
+
 
 
 

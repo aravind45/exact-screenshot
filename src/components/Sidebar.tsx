@@ -93,7 +93,7 @@ export function Sidebar() {
             {
                 title: "Case Setup",
                 items: [
-                    { label: "Case Setup", icon: User, path: "/profile" },
+                    { label: "Case Setup", icon: User, path: "/profile?tab=case-setup" },
                     { label: "Track Decision", icon: Map, path: "/roadmap" },
                 ]
             },
@@ -224,7 +224,7 @@ export function Sidebar() {
         {
             title: "Case Setup",
             items: [
-                { label: "Case Setup", icon: User, path: "/profile" },
+                { label: "Case Setup", icon: User, path: "/profile?tab=case-setup" },
                 { label: "Track Decision", icon: Map, path: "/roadmap" },
             ]
         },
@@ -413,3 +413,4 @@ export function Sidebar() {
         </>
     );
 }
+

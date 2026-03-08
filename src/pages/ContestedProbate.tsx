@@ -194,6 +194,11 @@ export default function ContestedProbate() {
                                                         </Badge>
                                                     )}
                                                 </div>
+                                                {step.status === 'locked' && (
+                                                    <p className="mt-2 text-[10px] font-medium text-slate-400">
+                                                        Complete the prior step to unlock this action.
+                                                    </p>
+                                                )}
                                             </div>
                                         </div>
                                     </CardContent>
@@ -257,6 +262,7 @@ export default function ContestedProbate() {
         </div>
     );
 }
+
 
 
 

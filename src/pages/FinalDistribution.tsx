@@ -62,8 +62,10 @@ export default function FinalDistribution() {
         onError: (err: any) => {
             toast.error(`Error updating progress: ${err.message}`);
         }
-    });
-    const completedTaskIds = estate?.roadmapProgress?.completedTaskIds || [];
+    });
+
+    const completedTaskIds = estate?.roadmapProgress?.completedTaskIds || [];
+
     const handleDownload = async (form: string, beneficiaryName?: string) => {
         const downloadKey = form === "RECEIPT_DISTRIBUTION" ? ("RECEIPT_" + (beneficiaryName || "")) : form;
         setDownloadingForm(downloadKey);
@@ -237,13 +239,20 @@ export default function FinalDistribution() {
                                                 <p className="text-[10px] text-indigo-600/70 font-medium">Ex Parte Petition for Final Discharge</p>
                                             </div>
                                         </div>
-                                        <Button
-                                            className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl h-9 px-6 font-black text-[10px] uppercase tracking-widest shrink-0"
-                                            onClick={() => handleDownload("DE-295")}
-                                            disabled={downloadingForm === "DE-295" || !completedTaskIds.includes("distribute_assets")}
-                                        >
-                                            {downloadingForm === "DE-295" ? "Preparing..." : "Auto-Fill Discharge"}
-                                        </Button>
+                                        <div className="flex flex-col items-end gap-2 shrink-0">
+                                            <Button
+                                                className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl h-9 px-6 font-black text-[10px] uppercase tracking-widest shrink-0"
+                                                onClick={() => handleDownload("DE-295")}
+                                                disabled={downloadingForm === "DE-295" || !completedTaskIds.includes("distribute_assets")}
+                                            >
+                                                {downloadingForm === "DE-295" ? "Preparing..." : "Auto-Fill Discharge"}
+                                            </Button>
+                                            {!completedTaskIds.includes("distribute_assets") && (
+                                                <p className="text-[10px] font-medium text-indigo-700/80 text-right">
+                                                    Complete "Mark All Distributions Finished" to unlock DE-295.
+                                                </p>
+                                            )}
+                                        </div>
                                     </div>
 
                                     {!completedTaskIds.includes("close_estate") && (

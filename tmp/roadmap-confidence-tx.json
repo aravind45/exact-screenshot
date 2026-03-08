@@ -1,0 +1,71 @@
+{
+  "generatedAt": "2026-03-08T00:46:09.274Z",
+  "filters": {
+    "state": "TX",
+    "limit": null
+  },
+  "totals": {
+    "jurisdictions": 2,
+    "avgConfidence": 100,
+    "failingJurisdictions": 0
+  },
+  "lowestJurisdictions": [
+    {
+      "state": "TX",
+      "county": null,
+      "phaseCount": 13,
+      "taskCount": 82,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    },
+    {
+      "state": "TX",
+      "county": "Fort Bend",
+      "phaseCount": 13,
+      "taskCount": 82,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    }
+  ],
+  "byState": [
+    {
+      "state": "TX",
+      "jurisdictions": 2,
+      "avgConfidence": 100,
+      "minConfidence": 100,
+      "worstCounty": null,
+      "worstIssues": []
+    }
+  ],
+  "topMissingActionIds": [],
+  "jurisdictions": [
+    {
+      "state": "TX",
+      "county": null,
+      "phaseCount": 13,
+      "taskCount": 82,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    },
+    {
+      "state": "TX",
+      "county": "Fort Bend",
+      "phaseCount": 13,
+      "taskCount": 82,
+      "duplicateTaskIds": [],
+      "tasksMissingActionCount": 0,
+      "missingActionTaskIds": [],
+      "confidence": 100,
+      "issues": []
+    }
+  ]
+}

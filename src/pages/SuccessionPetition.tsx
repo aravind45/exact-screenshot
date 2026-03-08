@@ -39,9 +39,11 @@ export default function SuccessionPetition() {
         onError: (err: any) => {
             toast.error(`Error updating progress: ${err.message}`);
         }
-    });
+    });
+
     const isSmallEstate = (estate?.probateTotal || 0) <= (smallEstateThreshold || 50000);
-    const completedTaskIds = estate?.roadmapProgress?.completedTaskIds || [];
+    const completedTaskIds = estate?.roadmapProgress?.completedTaskIds || [];
+
     const handleDownload = async (form: string, blankUrl?: string) => {
         setDownloadingForm(form);
         try {
@@ -216,6 +218,11 @@ export default function SuccessionPetition() {
                                                         </a>
                                                     </Button>
                                                 </div>
+                                                {step.status === 'locked' && (
+                                                    <p className="mt-2 text-[10px] font-medium text-slate-400">
+                                                        Complete the prior step to unlock this action.
+                                                    </p>
+                                                )}
                                             </div>
                                         </div>
                                     </CardContent>
@@ -281,6 +288,8 @@ export default function SuccessionPetition() {
         </div>
     );
 }
+
+
 
 
 

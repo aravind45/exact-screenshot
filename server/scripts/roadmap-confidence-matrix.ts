@@ -95,18 +95,62 @@ async function loadJurisdictions(stateFilter?: string): Promise<Jurisdiction[]> 
     countyRows = [];
   }
 
-  const countiesByState = new Map<string, string[]>();
-  for (const row of countyRows) {
-    if (!countiesByState.has(row.stateCode)) {
-      countiesByState.set(row.stateCode, []);
+  let estateCountyRows: Array<{ deceasedState: string | null; probateCounty: string | null }> = [];
+  try {
+    estateCountyRows = await prisma.estate.findMany({
+      where: {
+        probateCounty: { not: null },
+      },
+      select: { deceasedState: true, probateCounty: true },
+      distinct: ["deceasedState", "probateCounty"],
+      orderBy: [{ deceasedState: "asc" }, { probateCounty: "asc" }],
+      take: 5000,
+    });
+  } catch {
+    estateCountyRows = [];
+  }
+
+  const normalizeCounty = (value: string): string => value.trim().replace(/\s+/g, " ");
+  const toDisplayCounty = (value: string): string =>
+    value
+      .split(" ")
+      .filter(Boolean)
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+      .join(" ");
+  const countiesByState = new Map<string, Map<string, string>>();
+
+  const addCounty = (stateCode: string | undefined, rawCounty: string | null | undefined): void => {
+    if (!stateCode || !rawCounty) return;
+
+    const normalizedCounty = normalizeCounty(rawCounty);
+    if (!normalizedCounty) return;
+
+    if (!countiesByState.has(stateCode)) {
+      countiesByState.set(stateCode, new Map<string, string>());
     }
-    countiesByState.get(row.stateCode)!.push(row.countyName);
+
+    const key = normalizedCounty.toLowerCase();
+    const stateCounties = countiesByState.get(stateCode)!;
+    if (!stateCounties.has(key)) {
+      stateCounties.set(key, toDisplayCounty(normalizedCounty));
+    }
+  };
+
+  for (const row of countyRows) {
+    addCounty(row.stateCode?.toUpperCase().trim(), row.countyName);
+  }
+
+  for (const row of estateCountyRows) {
+    addCounty(row.deceasedState?.toUpperCase().trim(), row.probateCounty);
   }
 
   const jurisdictions: Jurisdiction[] = [];
   for (const state of states) {
     jurisdictions.push({ state });
-    for (const county of countiesByState.get(state) || []) {
+    const counties = [...(countiesByState.get(state)?.values() || [])].sort((a, b) =>
+      a.localeCompare(b)
+    );
+    for (const county of counties) {
       jurisdictions.push({ state, county });
     }
   }
@@ -308,3 +352,4 @@ main()
   .finally(async () => {
     await prisma.$disconnect();
   });
+
