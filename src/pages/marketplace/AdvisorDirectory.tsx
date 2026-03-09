@@ -17,6 +17,7 @@ import { api } from '@/lib/api';
 import { toStringArray } from '@/lib/advisorData';
 import { US_STATES } from '@/lib/states';
 import { cn } from '@/lib/utils';
+import { Sidebar } from '@/components/Sidebar';
 
 type Specialty = 'PROBATE' | 'ESTATE_TAX' | 'TRUST_ADMIN' | 'DOCUMENT_REVIEW' | 'LITIGATION' | 'TAX_PLANNING';
 type AdvisorType = 'ATTORNEY' | 'CPA' | 'PARALEGAL' | 'COACH';
@@ -293,7 +294,9 @@ export default function AdvisorDirectory() {
   const activeFilterCount = [filters.specialties.length > 0, !!filters.state, !!filters.advisorType, filters.minRate > 0, filters.maxRate < 1000, filters.minRating > 1].filter(Boolean).length;
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC]">
+    <div className="flex min-h-screen bg-[#F8FAFC]">
+      <Sidebar />
+      <div className="flex-1 md:ml-64">
       <div className="bg-amber-50 border-b border-amber-200 px-4 py-2.5">
         <div className="max-w-7xl mx-auto flex items-start gap-2 text-sm text-amber-800">
           <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
@@ -335,6 +338,7 @@ export default function AdvisorDirectory() {
             )}
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

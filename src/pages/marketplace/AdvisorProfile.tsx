@@ -11,6 +11,7 @@ import { Separator } from '@/components/ui/separator';
 import { api } from '@/lib/api';
 import { normalizeAdvisorStatus, toStringArray } from '@/lib/advisorData';
 import { cn } from '@/lib/utils';
+import { Sidebar } from '@/components/Sidebar';
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday, isPast, startOfDay } from 'date-fns';
 
 type AdvisorType = 'ATTORNEY' | 'CPA' | 'PARALEGAL' | 'COACH';
@@ -159,7 +160,9 @@ export default function AdvisorProfile() {
   const ratePlans: RatePlan[] = Array.isArray(advisor.ratePlans) ? advisor.ratePlans : [];
   const initials = advisor.user.fullName.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2);
   return (
-    <div className="min-h-screen bg-[#F8FAFC]">
+    <div className="flex min-h-screen bg-[#F8FAFC]">
+      <Sidebar />
+      <div className="flex-1 md:ml-64">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Button variant="ghost" className="mb-6 -ml-2" onClick={() => navigate('/marketplace')}><ChevronLeft className="w-4 h-4 mr-1" />Back to Directory</Button>
         {/* Header */}
@@ -259,6 +262,7 @@ export default function AdvisorProfile() {
             </Card>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

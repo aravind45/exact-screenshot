@@ -1,9 +1,8 @@
 import { Router, Request, Response } from "express";
 import { EmailService } from "../services/emailService.js";
-import { StripeService } from "../services/stripeService.js";
 import { logger } from "../lib/logger.js";
-import { prisma } from "../db.js";
 import Stripe from 'stripe';
+import { DurableWorkflowService } from "../services/durableWorkflowService.js";
 
 const router = Router();
 
@@ -36,8 +35,8 @@ router.post("/inbound-email", async (req: Request, res: Response) => {
 });
 
 /**
- * Handle Stripe webhooks for advisor booking payments
- * This endpoint uses raw body parsing (configured in index.ts)
+ * Handle Stripe webhooks via durable inbox pattern.
+ * Endpoint verifies signature and persists event first, then async workers process it.
  */
 router.post("/stripe", async (req: Request, res: Response) => {
     const sig = req.headers['stripe-signature'] as string;
@@ -53,65 +52,25 @@ router.post("/stripe", async (req: Request, res: Response) => {
             apiVersion: '2026-01-28.clover' as any,
         });
 
-        // Verify webhook signature
         const event = stripe.webhooks.constructEvent(
             (req as any).rawBody || req.body,
             sig,
             webhookSecret
         );
 
-        logger.info(`[Stripe Webhook] Received event: ${event.type}`);
+        const recorded = await DurableWorkflowService.recordStripeInboxEvent(event);
 
-        // Handle different event types
-        switch (event.type) {
-            case 'payment_intent.succeeded': {
-                const paymentIntent = event.data.object as Stripe.PaymentIntent;
+        // Fire-and-forget worker drain to keep webhook response path fast.
+        void DurableWorkflowService.drainOnce({
+            inboxSource: 'STRIPE',
+            inboxLimit: 25,
+            outboxLimit: 50,
+        }).catch((error: any) => {
+            logger.error('[Stripe Webhook] Durable drain failed:', error?.message || error);
+        });
 
-                // Check if this is an advisor booking payment
-                if (paymentIntent.metadata.type === 'ADVISOR_BOOKING') {
-                    await StripeService.captureBookingPayment(paymentIntent.id);
-                    logger.info(`✅ Advisor booking payment captured: ${paymentIntent.id}`);
-                }
-                break;
-            }
-
-            case 'payment_intent.payment_failed': {
-                const paymentIntent = event.data.object as Stripe.PaymentIntent;
-                logger.error(`❌ Payment failed for booking: ${paymentIntent.metadata.bookingId}`);
-                if (paymentIntent.metadata.bookingId) {
-                    await prisma.booking.update({
-                        where: { id: paymentIntent.metadata.bookingId },
-                        data: { status: 'CANCELLED' }
-                    });
-                }
-                break;
-            }
-
-            case 'account.updated': {
-                const account = event.data.object as Stripe.Account;
-                logger.info(`Stripe Connect account updated: ${account.id}`);
-                if (account.details_submitted) {
-                    await prisma.advisorProfile.updateMany({
-                        where: { stripeAccountId: account.id },
-                        data: { stripeOnboardingComplete: true }
-                    });
-                    logger.info(`✅ Advisor onboarding marked complete for account: ${account.id}`);
-                }
-                break;
-            }
-
-            case 'transfer.created': {
-                const transfer = event.data.object as Stripe.Transfer;
-                logger.info(`✅ Transfer created to advisor: ${transfer.id}`);
-                break;
-            }
-
-            default:
-                // Handle other webhook events from existing StripeService
-                await StripeService.handleWebhook(event);
-        }
-
-        res.json({ received: true });
+        logger.info(`[Stripe Webhook] Accepted ${event.type} (${recorded.created ? 'new' : 'duplicate'}) id=${event.id}`);
+        res.json({ received: true, queued: true, duplicate: !recorded.created });
     } catch (error: any) {
         logger.error("[Stripe Webhook] Error:", error.message);
         return res.status(400).json({ error: `Webhook Error: ${error.message}` });

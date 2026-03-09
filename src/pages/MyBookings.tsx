@@ -31,6 +31,7 @@ import { toStringArray } from '@/lib/advisorData';
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Sidebar } from '@/components/Sidebar';
+import { BookingChatPanel } from '@/components/marketplace/BookingChatPanel';
 
 type ClientBooking = {
     id: string;
@@ -159,11 +160,16 @@ export default function MyBookings() {
             <div className="flex-1 ml-64 flex flex-col">
                 <main className="max-w-[1240px] w-full mx-auto px-6 py-8">
                     <div className="space-y-8">
-                        <div className="space-y-2">
-                            <h1 className="text-4xl font-black tracking-tight">My Bookings</h1>
-                            <p className="text-slate-500 text-lg">
-                                View and manage your advisor consultation bookings.
-                            </p>
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                            <div className="space-y-2">
+                                <h1 className="text-4xl font-black tracking-tight">My Bookings</h1>
+                                <p className="text-slate-500 text-lg">
+                                    View and manage your advisor consultation bookings.
+                                </p>
+                            </div>
+                            <Button variant="outline" asChild>
+                                <a href="/consultations/calendar">Calendar View</a>
+                            </Button>
                         </div>
 
                         {bookingList.length === 0 ? (
@@ -333,6 +339,13 @@ export default function MyBookings() {
                                                         </AlertDialog>
                                                     </div>
                                                 )}
+
+                                                <div className="mt-6 pt-6 border-t">
+                                                    <BookingChatPanel
+                                                        bookingId={booking.id}
+                                                        canSend={!['CANCELLED', 'REFUNDED'].includes(booking.status)}
+                                                    />
+                                                </div>
                                             </CardContent>
                                         </Card>
                                     );

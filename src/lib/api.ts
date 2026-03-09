@@ -316,7 +316,20 @@ export interface RoadmapResponse {
     versioningEnabled?: boolean;
 }
 
-const API_URL = import.meta.env.VITE_API_URL || "/api";
+const resolveApiUrl = () => {
+    const configured = (import.meta.env.VITE_API_URL || "/api").trim();
+    if (/^https?:\/\//i.test(configured)) {
+        return configured.replace(/\/+$/, "");
+    }
+
+    if (typeof window !== "undefined" && window.location?.origin) {
+        return new URL(configured, window.location.origin).toString().replace(/\/+$/, "");
+    }
+
+    return configured;
+};
+
+const API_URL = resolveApiUrl();
 
 const getToken = () => localStorage.getItem("auth_token");
 
@@ -443,6 +456,57 @@ const toArray = <T = any>(payload: any, candidateKeys: string[] = []): T[] => {
     return [];
 };
 
+const toMaybeNumber = (value: unknown): unknown => {
+    if (typeof value === "number") return value;
+    if (typeof value !== "string") return value;
+    const trimmed = value.trim();
+    if (!trimmed) return value;
+    const parsed = Number(trimmed);
+    return Number.isFinite(parsed) ? parsed : value;
+};
+
+const normalizeAdvisorProfile = <T extends Record<string, any> | null | undefined>(profile: T): T => {
+    if (!profile || typeof profile !== "object") return profile;
+    return {
+        ...profile,
+        hourlyRate: toMaybeNumber((profile as any).hourlyRate),
+    } as T;
+};
+
+const normalizeAdvisorProfiles = <T extends Record<string, any>>(profiles: T[]): T[] =>
+    profiles.map((profile) => normalizeAdvisorProfile(profile) as T);
+
+const normalizeBookingStatus = (status: unknown): unknown => {
+    if (status === "REQUESTED") return "PENDING";
+    return status;
+};
+
+const normalizeBooking = <T extends Record<string, any> | null | undefined>(booking: T): T => {
+    if (!booking || typeof booking !== "object") return booking;
+
+    const normalizedSessionDuration = toMaybeNumber((booking as any).sessionDuration);
+    const normalizedDurationMinutes = toMaybeNumber((booking as any).durationMinutes);
+
+    let sessionDuration: unknown = normalizedSessionDuration;
+    if (sessionDuration == null) {
+        sessionDuration = typeof normalizedDurationMinutes === "number"
+            ? normalizedDurationMinutes / 60
+            : normalizedDurationMinutes;
+    }
+
+    return {
+        ...booking,
+        sessionDuration,
+        sessionDate: (booking as any).sessionDate ?? (booking as any).startTime ?? null,
+        status: normalizeBookingStatus((booking as any).status),
+        totalAmount: toMaybeNumber((booking as any).totalAmount),
+        platformFee: toMaybeNumber((booking as any).platformFee),
+        advisorPayout: toMaybeNumber((booking as any).advisorPayout),
+    } as T;
+};
+
+const normalizeBookings = <T extends Record<string, any>>(bookings: T[]): T[] =>
+    bookings.map((booking) => normalizeBooking(booking) as T);
 export const api = {
     getToken,
     /**
@@ -935,6 +999,50 @@ export const api = {
         return parseResponse(response);
     },
 
+    getWorkflowMetrics: async () => {
+        const response = await fetch(`${API_URL}/admin/workflows/metrics`, {
+            headers: getHeaders(),
+        });
+        return parseResponse(response);
+    },
+
+    getWorkflowDeadLetters: async (params?: {
+        page?: number;
+        limit?: number;
+        status?: "OPEN" | "REPLAYED";
+        sourceTable?: "INBOX" | "OUTBOX";
+        eventType?: string;
+    }) => {
+        const query = new URLSearchParams();
+        if (params?.page) query.append("page", params.page.toString());
+        if (params?.limit) query.append("limit", params.limit.toString());
+        if (params?.status) query.append("status", params.status);
+        if (params?.sourceTable) query.append("sourceTable", params.sourceTable);
+        if (params?.eventType) query.append("eventType", params.eventType);
+        const queryString = query.toString() ? `?${query.toString()}` : "";
+        const response = await fetch(`${API_URL}/admin/workflows/dead-letters${queryString}`, {
+            headers: getHeaders(),
+        });
+        return parseResponse(response);
+    },
+
+    replayWorkflowDeadLetter: async (deadLetterId: string, reason?: string) => {
+        const response = await fetch(`${API_URL}/admin/workflows/dead-letters/${deadLetterId}/replay`, {
+            method: "POST",
+            headers: getHeaders(),
+            body: JSON.stringify({ reason }),
+        });
+        return parseResponse(response);
+    },
+
+    runWorkflowDrain: async () => {
+        const response = await fetch(`${API_URL}/admin/workflows/drain`, {
+            method: "POST",
+            headers: getHeaders(),
+            body: JSON.stringify({}),
+        });
+        return parseResponse(response);
+    },
     getTemplates: async () => {
         const response = await fetch(`${API_URL}/admin/templates`, {
             headers: getHeaders(),
@@ -2103,7 +2211,8 @@ export const api = {
     advisors: {
         getMe: async () => {
             const response = await fetch(`${API_URL}/advisors/me`, { headers: getHeaders() });
-            return parseResponse(response);
+            const payload = await parseResponse(response);
+            return normalizeAdvisorProfile(payload);
         },
         updateProfile: async (data: { bio?: string, expertise?: string[], hourlyRate?: number, licenseNumber?: string, licenseDocument?: string, profileImage?: string }) => {
             const response = await fetch(`${API_URL}/advisors/profile`, {
@@ -2111,7 +2220,8 @@ export const api = {
                 headers: getHeaders(),
                 body: JSON.stringify(data),
             });
-            return parseResponse(response);
+            const payload = await parseResponse(response);
+            return normalizeAdvisorProfile(payload);
         },
         getMarketplace: async (filters?: { expertise?: string, maxRate?: number }) => {
             const url = new URL(`${API_URL}/advisors/marketplace`, window.location.origin);
@@ -2119,12 +2229,12 @@ export const api = {
             if (filters?.maxRate) url.searchParams.append('maxRate', filters.maxRate.toString());
             const response = await fetch(url.toString(), { headers: getHeaders() });
             const payload = await parseResponse(response);
-            return toArray(payload, ['advisors', 'results', 'items']);
+            return normalizeAdvisorProfiles(toArray(payload, ['advisors', 'results', 'items']));
         },
         adminList: async () => {
             const response = await fetch(`${API_URL}/advisors/admin/list`, { headers: getHeaders() });
             const payload = await parseResponse(response);
-            return toArray(payload, ['advisors', 'results', 'items']);
+            return normalizeAdvisorProfiles(toArray(payload, ['advisors', 'results', 'items']));
         },
         adminVerify: async (id: string, status: 'VERIFIED' | 'REJECTED') => {
             const response = await fetch(`${API_URL}/advisors/${id}/verify`, {
@@ -2162,7 +2272,8 @@ export const api = {
                 headers: getHeaders(),
                 body: JSON.stringify(data),
             });
-            return parseResponse(response);
+            const payload = await parseResponse(response);
+            return normalizeBooking(payload);
         },
         createPaymentIntent: async (bookingId: string) => {
             const response = await fetch(`${API_URL}/bookings/${bookingId}/payment`, {
@@ -2176,7 +2287,8 @@ export const api = {
                 method: "POST",
                 headers: getHeaders(),
             });
-            return parseResponse(response);
+            const payload = await parseResponse(response);
+            return normalizeBooking(payload);
         },
         cancel: async (bookingId: string, reason?: string) => {
             const response = await fetch(`${API_URL}/bookings/${bookingId}/cancel`, {
@@ -2189,16 +2301,17 @@ export const api = {
         getMyBookings: async () => {
             const response = await fetch(`${API_URL}/bookings/my-bookings`, { headers: getHeaders() });
             const payload = await parseResponse(response);
-            return toArray(payload, ['bookings', 'items']);
+            return normalizeBookings(toArray(payload, ['bookings', 'items']));
         },
         getAdvisorBookings: async () => {
             const response = await fetch(`${API_URL}/bookings/advisor-bookings`, { headers: getHeaders() });
             const payload = await parseResponse(response);
-            return toArray(payload, ['bookings', 'items']);
+            return normalizeBookings(toArray(payload, ['bookings', 'items']));
         },
         getById: async (id: string) => {
             const response = await fetch(`${API_URL}/bookings/${id}`, { headers: getHeaders() });
-            return parseResponse(response);
+            const payload = await parseResponse(response);
+            return normalizeBooking(payload);
         }
     },
     /**
@@ -2515,6 +2628,19 @@ export const api = {
             return parseResponse(response);
         },
 
+        getBookingMessages: async (bookingId: string) => {
+            const response = await fetch(`${API_URL}/bookings/marketplace/${bookingId}/messages`, { headers: getHeaders() });
+            const payload = await parseResponse(response);
+            return toArray(payload, ['messages', 'items']);
+        },
+        sendBookingMessage: async (bookingId: string, message: string) => {
+            const response = await fetch(`${API_URL}/bookings/marketplace/${bookingId}/messages`, {
+                method: "POST",
+                headers: getHeaders(),
+                body: JSON.stringify({ message }),
+            });
+            return parseResponse(response);
+        },
         // ── Admin marketplace management ─────────────────────────────────────────
         admin: {
             getQueue: async (params?: { status?: string; page?: number; limit?: number }) => {
@@ -2602,6 +2728,28 @@ export const api = {
             },
             getAuditLog: async (advisorId: string) => {
                 const response = await fetch(`${API_URL}/admin/marketplace/advisors/${advisorId}/audit-log`, { headers: getHeaders() });
+                return parseResponse(response);
+            },
+            getPayoutQueue: async (params?: { page?: number; limit?: number }) => {
+                const q = new URLSearchParams();
+                if (params?.page) q.set("page", params.page.toString());
+                if (params?.limit) q.set("limit", params.limit.toString());
+                const qs = q.toString() ? `?${q.toString()}` : "";
+                const response = await fetch(`${API_URL}/admin/marketplace/payouts/queue${qs}`, { headers: getHeaders() });
+                const payload = await parseResponse(response);
+                const items = toArray(payload, ["items", "bookings"]);
+                const total = Number((payload as any)?.total ?? items.length);
+                const page = Number((payload as any)?.page ?? params?.page ?? 1);
+                const limit = Number((payload as any)?.limit ?? params?.limit ?? (items.length || 25));
+                const totalPages = Number((payload as any)?.totalPages ?? Math.max(1, Math.ceil(total / Math.max(1, limit))));
+                return { ...(payload as Record<string, unknown>), items, total, page, limit, totalPages };
+            },
+            releaseDuePayouts: async (includeAutoComplete = true) => {
+                const response = await fetch(`${API_URL}/admin/marketplace/payouts/release-due`, {
+                    method: "POST",
+                    headers: getHeaders(),
+                    body: JSON.stringify({ includeAutoComplete }),
+                });
                 return parseResponse(response);
             },
         },
@@ -2993,6 +3141,10 @@ export const api = {
         },
     },
 };
+
+
+
+
 
 
 

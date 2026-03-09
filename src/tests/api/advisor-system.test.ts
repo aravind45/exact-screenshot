@@ -232,10 +232,10 @@ describe('Advisor System - Complete Integration Tests', () => {
             expect(Number(booking.platformFee)).toBe(expectedPlatformFee);
             expect(Number(booking.advisorPayout)).toBe(expectedAdvisorPayout);
 
-            // Verify escrow release date (90 days from now)
+            // Verify escrow release date (30 days from now)
             const escrowDate = new Date(booking.escrowReleaseDate);
             const expectedEscrowDate = new Date();
-            expectedEscrowDate.setDate(expectedEscrowDate.getDate() + 90);
+            expectedEscrowDate.setDate(expectedEscrowDate.getDate() + 30);
             
             const daysDiff = Math.abs(escrowDate.getTime() - expectedEscrowDate.getTime()) / (1000 * 60 * 60 * 24);
             expect(daysDiff).toBeLessThan(1); // Within 1 day
@@ -536,3 +536,4 @@ describe('Advisor System - Complete Integration Tests', () => {
         console.log('✅ Advisor system tests completed');
     });
 });
+

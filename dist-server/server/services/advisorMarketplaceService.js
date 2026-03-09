@@ -6,6 +6,7 @@ export class AdvisorMarketplaceService {
     // ─── Profile ───────────────────────────────────────────────────────────────
     static async upsertProfile(userId, data) {
         logger.info(`📝 Upserting advisor marketplace profile for user ${userId}`);
+        const DEFAULT_RATE_PLAN_DESCRIPTION = "Auto-generated from hourly rate";
         const profile = await prisma.advisorProfile.upsert({
             where: { userId },
             update: {
@@ -58,6 +59,29 @@ export class AdvisorMarketplaceService {
             where: { id: userId },
             data: { role: 'ADVISOR' }
         });
+        // If advisor only sets an hourly rate, create a default bookable package.
+        const numericHourlyRate = data.hourlyRate !== undefined
+            ? Number(data.hourlyRate)
+            : Number(profile.hourlyRate ?? 0);
+        if (numericHourlyRate > 0) {
+            const activePlanCount = await prisma.advisorRatePlan.count({
+                where: { advisorId: profile.id, isActive: true }
+            });
+            if (activePlanCount === 0) {
+                await prisma.advisorRatePlan.create({
+                    data: {
+                        advisorId: profile.id,
+                        serviceName: "Consultation (60 min)",
+                        durationMinutes: 60,
+                        priceCents: Math.round(numericHourlyRate * 100),
+                        currency: "USD",
+                        description: DEFAULT_RATE_PLAN_DESCRIPTION,
+                        sortOrder: 0,
+                        isActive: true,
+                    }
+                });
+            }
+        }
         return profile;
     }
     static async getProfile(userId) {
@@ -98,6 +122,23 @@ export class AdvisorMarketplaceService {
             throw new Error('Profile not found');
         if (profile.status === AdvisorStatus.APPROVED)
             throw new Error('Already approved');
+        const activePlanCount = await prisma.advisorRatePlan.count({
+            where: { advisorId: profile.id, isActive: true }
+        });
+        if (activePlanCount === 0 && Number(profile.hourlyRate ?? 0) > 0) {
+            await prisma.advisorRatePlan.create({
+                data: {
+                    advisorId: profile.id,
+                    serviceName: "Consultation (60 min)",
+                    durationMinutes: 60,
+                    priceCents: Math.round(Number(profile.hourlyRate) * 100),
+                    currency: "USD",
+                    description: "Auto-generated from hourly rate",
+                    sortOrder: 0,
+                    isActive: true,
+                }
+            });
+        }
         return prisma.advisorProfile.update({
             where: { userId },
             data: { status: AdvisorStatus.PENDING_REVIEW }

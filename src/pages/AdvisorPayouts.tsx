@@ -211,7 +211,7 @@ export default function AdvisorPayouts() {
                             </div>
                             <div className="space-y-1">
                                 <p className="text-xs text-slate-500 font-medium">Escrow Period</p>
-                                <p className="text-2xl font-black text-slate-900">7 Days</p>
+                                <p className="text-2xl font-black text-slate-900">30 Days</p>
                             </div>
                             <div className="pt-4 border-t border-slate-200">
                                 <div className="flex items-start gap-3">
@@ -268,8 +268,4 @@ const AlertDescription = ({ children, className }: any) => (
         {children}
     </div>
 );
-
-
-
-
 

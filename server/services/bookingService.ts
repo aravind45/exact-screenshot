@@ -1,11 +1,11 @@
 import { prisma } from '../db.js';
 import { logger } from '../lib/logger.js';
 import { StripeService } from './stripeService.js';
+import { BookingPayoutSagaService } from './bookingPayoutSagaService.js';
+import { DurableWorkflowService } from './durableWorkflowService.js';
+import { ADVISOR_PLATFORM_FEE_PERCENT, calculateAdvisorEscrowReleaseDate } from '../config/marketplacePayments.js';
 
 export class BookingService {
-    private static PLATFORM_FEE_PERCENT = 0.20; // 20% fee
-    private static ESCROW_DAYS = 7; // 7 days after session completion (was 90, reduced for advisor retention)
-
     /**
      * Create a new booking with session details — includes double-booking guard
      */
@@ -23,11 +23,20 @@ export class BookingService {
             include: { user: true }
         });
 
-        if (!advisor || !advisor.isVerified) {
+        if (!advisor) {
             throw new Error('Advisor not found or not verified');
         }
 
-        if (!advisor.stripeAccountId) {
+        const strictAdvisorEligibility = process.env.NODE_ENV === "production";
+        if (!advisor.isVerified && strictAdvisorEligibility) {
+            throw new Error('Advisor not found or not verified');
+        }
+
+        if (!advisor.isVerified && !strictAdvisorEligibility) {
+            logger.warn(`⚠️ Allowing booking for non-verified advisor ${advisor.id} outside production`);
+        }
+
+        if (!advisor.stripeAccountId && strictAdvisorEligibility) {
             throw new Error('Advisor has not completed Stripe onboarding');
         }
 
@@ -54,11 +63,10 @@ export class BookingService {
 
         const hourlyRate = Number(advisor.hourlyRate);
         const totalAmount = hourlyRate * data.sessionDuration;
-        const platformFee = totalAmount * this.PLATFORM_FEE_PERCENT;
+        const platformFee = totalAmount * ADVISOR_PLATFORM_FEE_PERCENT;
         const advisorPayout = totalAmount - platformFee;
 
-        const escrowReleaseDate = new Date();
-        escrowReleaseDate.setDate(escrowReleaseDate.getDate() + this.ESCROW_DAYS);
+        const escrowReleaseDate = calculateAdvisorEscrowReleaseDate(new Date());
 
         const booking = await prisma.booking.create({
             data: {
@@ -101,7 +109,7 @@ export class BookingService {
             throw new Error('Booking not found');
         }
 
-        if (!booking.advisor.stripeAccountId) {
+        if (!booking.advisor.stripeAccountId && process.env.NODE_ENV === "production") {
             throw new Error('Advisor does not have a Stripe account');
         }
 
@@ -111,7 +119,7 @@ export class BookingService {
             booking.advisor.stripeAccountId
         );
 
-        return paymentIntent;
+        return { ...paymentIntent, amount: Number(booking.totalAmount) };
     }
 
     /**
@@ -218,6 +226,88 @@ export class BookingService {
         return booking;
     }
 
+        /**
+     * Get escrow payout queue for admin operations.
+     */
+    static async getEscrowPayoutQueue(page = 1, limit = 25) {
+        const safePage = Number.isFinite(page) ? Math.max(1, Math.floor(page)) : 1;
+        const safeLimit = Number.isFinite(limit) ? Math.min(100, Math.max(1, Math.floor(limit))) : 25;
+        const skip = (safePage - 1) * safeLimit;
+        const now = new Date();
+
+        const baseWhere = {
+            payoutStatus: { in: ['ESCROWED', 'UNPAID'] },
+            stripePaymentId: { not: null },
+        };
+
+        const [bookings, total, dueCount, nextRelease] = await Promise.all([
+            prisma.booking.findMany({
+                where: {
+                    ...baseWhere,
+                    status: { in: ['CONFIRMED', 'COMPLETED'] },
+                },
+                include: {
+                    user: { select: { id: true, fullName: true, email: true } },
+                    advisor: {
+                        select: {
+                            id: true,
+                            userId: true,
+                            stripeAccountId: true,
+                            user: { select: { fullName: true, email: true } },
+                        },
+                    },
+                },
+                orderBy: [
+                    { escrowReleaseDate: 'asc' },
+                    { createdAt: 'desc' },
+                ],
+                skip,
+                take: safeLimit,
+            }),
+            prisma.booking.count({
+                where: {
+                    ...baseWhere,
+                    status: { in: ['CONFIRMED', 'COMPLETED'] },
+                },
+            }),
+            prisma.booking.count({
+                where: {
+                    ...baseWhere,
+                    status: 'COMPLETED',
+                    escrowReleaseDate: { not: null, lte: now },
+                },
+            }),
+            prisma.booking.findFirst({
+                where: {
+                    ...baseWhere,
+                    status: 'COMPLETED',
+                    escrowReleaseDate: { not: null, gt: now },
+                },
+                orderBy: { escrowReleaseDate: 'asc' },
+                select: { escrowReleaseDate: true },
+            }),
+        ]);
+
+        const items = bookings.map((booking) => ({
+            ...booking,
+            dueForRelease:
+                booking.status === 'COMPLETED' &&
+                Boolean(booking.escrowReleaseDate) &&
+                (booking.escrowReleaseDate as Date).getTime() <= now.getTime(),
+        }));
+
+        return {
+            items,
+            total,
+            page: safePage,
+            limit: safeLimit,
+            totalPages: Math.max(1, Math.ceil(total / safeLimit)),
+            dueCount,
+            pendingCount: Math.max(0, total - dueCount),
+            nextReleaseAt: nextRelease?.escrowReleaseDate ?? null,
+        };
+    }
+
     /**
      * Process due payouts (Cron Job candidate)
      */
@@ -227,39 +317,89 @@ export class BookingService {
         const now = new Date();
         const dueBookings = await prisma.booking.findMany({
             where: {
-                status: 'COMPLETED', // Only pay for completed services
-                payoutStatus: 'UNPAID',
-                escrowReleaseDate: { lte: now }
+                status: 'COMPLETED',
+                payoutStatus: { in: ['ESCROWED', 'UNPAID'] },
+                stripePaymentId: { not: null },
+                escrowReleaseDate: { not: null, lte: now }
             },
             include: {
-                advisor: true
+                advisor: {
+                    select: {
+                        id: true,
+                        stripeAccountId: true,
+                    },
+                },
             }
         });
+
+        const dueBookingIds = dueBookings.map((booking) => booking.id);
+
+        const summary: {
+            scanned: number;
+            queued: number;
+            processedOutbox: number;
+            paid: number;
+            failed: number;
+            deadLettered: number;
+            skippedNoStripe: number;
+            failures: Array<{ bookingId: string; error: string }>;
+        } = {
+            scanned: dueBookings.length,
+            queued: 0,
+            processedOutbox: 0,
+            paid: 0,
+            failed: 0,
+            deadLettered: 0,
+            skippedNoStripe: 0,
+            failures: [],
+        };
 
         logger.info(`Found ${dueBookings.length} bookings due for payout`);
 
         for (const booking of dueBookings) {
             try {
                 if (!booking.advisor.stripeAccountId) {
+                    summary.skippedNoStripe += 1;
                     logger.warn(`⚠️ Advisor ${booking.advisorId} has no Stripe account linked`);
                     continue;
                 }
 
-                // Send transfer via Stripe Connect
-                await StripeService.releaseBookingEscrow(booking.id);
-
-                logger.info(`✅ Paid advisor for booking ${booking.id}`);
+                const queued = await BookingPayoutSagaService.enqueuePayoutReleaseEvent({
+                    bookingId: booking.id,
+                    source: 'scheduler',
+                    availableAt: now,
+                });
+                if (queued.queued || queued.reactivated) {
+                    summary.queued += 1;
+                }
             } catch (error: any) {
-                logger.error(`❌ Failed to process payout for booking ${booking.id}: ${error.message}`);
+                summary.failed += 1;
+                summary.failures.push({ bookingId: booking.id, error: error.message || 'Failed to enqueue payout release' });
+                logger.error(`❌ Failed to enqueue payout for booking ${booking.id}: ${error.message}`);
             }
         }
-    }
 
-    /**
-     * Auto-complete sessions whose endTime has passed (Cron Job candidate)
-     * Moves CONFIRMED bookings to COMPLETED once the session end time has passed.
-     * Also sets the escrow release date from the completion time (not booking creation).
-     */
+        if (summary.queued > 0) {
+            const outboxSummary = await DurableWorkflowService.processOutboxBatch({
+                limit: Math.max(25, summary.queued),
+                eventTypes: ['booking.payout.release_due'],
+            });
+            summary.processedOutbox = outboxSummary.processed;
+            summary.failed += outboxSummary.failed;
+            summary.deadLettered = outboxSummary.deadLettered;
+        }
+
+        if (dueBookingIds.length > 0) {
+            summary.paid = await prisma.booking.count({
+                where: {
+                    id: { in: dueBookingIds },
+                    payoutStatus: 'PAID',
+                },
+            });
+        }
+
+        return summary;
+    }
     static async autoCompleteExpiredSessions() {
         logger.info("⏰ Auto-completing past sessions...");
         const now = new Date();
@@ -275,8 +415,7 @@ export class BookingService {
 
         for (const booking of expiredBookings) {
             try {
-                const escrowReleaseDate = new Date(now);
-                escrowReleaseDate.setDate(escrowReleaseDate.getDate() + this.ESCROW_DAYS);
+                const escrowReleaseDate = calculateAdvisorEscrowReleaseDate(now);
 
                 await prisma.booking.update({
                     where: { id: booking.id },
@@ -284,6 +423,11 @@ export class BookingService {
                         status: 'COMPLETED',
                         escrowReleaseDate, // Reset escrow from completion time, not booking creation
                     }
+                });
+
+                await BookingPayoutSagaService.enqueueBookingCompletedEvent({
+                    bookingId: booking.id,
+                    source: 'auto-complete',
                 });
 
                 logger.info(`✅ Auto-completed booking ${booking.id}, escrow releases ${escrowReleaseDate.toISOString()}`);

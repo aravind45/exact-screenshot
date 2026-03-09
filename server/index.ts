@@ -31,6 +31,8 @@ import billingRoutes from "./routes/billingRoutes.js";
 import marketingRoutes from "./routes/marketingRoutes.js";
 import advisorRoutes from "./routes/advisorRoutes.js";
 import bookingRoutes from "./routes/bookingRoutes.js";
+import { BookingService } from "./services/bookingService.js";
+import { DurableWorkflowService } from "./services/durableWorkflowService.js";
 import reviewRoutes from "./routes/reviewRoutes.js";
 import marketplaceRoutes from "./routes/marketplaceRoutes.js";
 import advisorProfileRoutes from "./routes/advisorProfileRoutes.js";
@@ -48,6 +50,44 @@ const isServerless = process.env.VERCEL === '1' || process.env.NETLIFY === 'true
 const app = express();
 const port = Number(process.env.PORT) || 3000;
 
+const BOOKING_MAINTENANCE_INTERVAL_MS = 60 * 60 * 1000;
+const DURABLE_WORKFLOW_POLL_INTERVAL_MS = 60 * 1000;
+let durableWorkflowPumpInProgress = false;
+let bookingMaintenanceInProgress = false;
+
+const runBookingMaintenanceJobs = async () => {
+    if (bookingMaintenanceInProgress) return;
+
+    bookingMaintenanceInProgress = true;
+    try {
+        await BookingService.autoCompleteExpiredSessions();
+        await BookingService.processDuePayouts();
+    } catch (error: any) {
+        logger.error("❌ Booking maintenance job failed:", error?.message || error);
+    } finally {
+        bookingMaintenanceInProgress = false;
+    }
+};
+const runDurableWorkflowPump = async () => {
+    if (durableWorkflowPumpInProgress) return;
+
+    durableWorkflowPumpInProgress = true;
+    try {
+        const result = await DurableWorkflowService.drainOnce({
+            inboxSource: 'STRIPE',
+            inboxLimit: 25,
+            outboxLimit: 50,
+        });
+
+        if (result.inbox.processed > 0 || result.outbox.processed > 0 || result.inbox.deadLettered > 0 || result.outbox.deadLettered > 0) {
+            logger.info(`⚙️ Durable workflow pump: inbox=${result.inbox.processed}/${result.inbox.scanned}, outbox=${result.outbox.processed}/${result.outbox.scanned}, deadLettered=${result.inbox.deadLettered + result.outbox.deadLettered}`);
+        }
+    } catch (error: any) {
+        logger.error("❌ Durable workflow pump failed:", error?.message || error);
+    } finally {
+        durableWorkflowPumpInProgress = false;
+    }
+};
 // Enable if you're behind a reverse proxy (Heroku, Bluemix, AWS ELB, Nginx, etc)
 // see https://expressjs.com/en/guide/behind-proxies.html
 app.set('trust proxy', 1);
@@ -273,11 +313,29 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 logger.info(`🎧 Starting server on 0.0.0.0:${port}...`);
 
 let server: any; // Declare server variable outside the conditional block
+let bookingMaintenanceTimer: ReturnType<typeof setInterval> | null = null;
+let durableWorkflowTimer: ReturnType<typeof setInterval> | null = null;
 
 if (!isServerless) {
     server = app.listen(port, '0.0.0.0', async () => {
         logger.info(`✅ Server running on http://0.0.0.0:${port}`);
         logger.info(`✅ Environment: ${process.env.NODE_ENV || 'development'}`);
+
+        if (!bookingMaintenanceTimer) {
+            void runBookingMaintenanceJobs();
+            bookingMaintenanceTimer = setInterval(() => {
+                void runBookingMaintenanceJobs();
+            }, BOOKING_MAINTENANCE_INTERVAL_MS);
+            logger.info(`⏱️ Booking maintenance scheduler started (every ${BOOKING_MAINTENANCE_INTERVAL_MS / (60 * 1000)} minutes)`);
+        }
+
+        if (!durableWorkflowTimer) {
+            void runDurableWorkflowPump();
+            durableWorkflowTimer = setInterval(() => {
+                void runDurableWorkflowPump();
+            }, DURABLE_WORKFLOW_POLL_INTERVAL_MS);
+            logger.info(`⏱️ Durable workflow pump started (every ${DURABLE_WORKFLOW_POLL_INTERVAL_MS / 1000} seconds)`);
+        }
 
         // Background Database Sync & Seeding (Non-blocking)
         (async () => {
@@ -310,6 +368,14 @@ if (!isServerless) {
 if (server) {
     process.on('SIGTERM', () => {
         logger.info('SIGTERM signal received: closing HTTP server');
+        if (bookingMaintenanceTimer) {
+            clearInterval(bookingMaintenanceTimer);
+            bookingMaintenanceTimer = null;
+        }
+        if (durableWorkflowTimer) {
+            clearInterval(durableWorkflowTimer);
+            durableWorkflowTimer = null;
+        }
         server.close(() => {
             logger.info('HTTP server closed');
         });
@@ -329,4 +395,9 @@ process.on('unhandledRejection', (reason, promise) => {
 });
 
 export default app;
+
+
+
+
+
 

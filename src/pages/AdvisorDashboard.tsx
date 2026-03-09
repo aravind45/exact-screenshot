@@ -441,7 +441,7 @@ export default function AdvisorDashboard() {
                             <div className="space-y-1">
                                 <h3 className="font-bold text-indigo-900">About Escrow & Payouts</h3>
                                 <p className="text-sm text-indigo-700">
-                                    Payments are held in escrow for 90 days after the session to ensure quality service.
+                                    Payments are held in escrow for 30 days after the session to ensure quality service.
                                     Funds are automatically released to your connected Stripe account after the escrow period.
                                 </p>
                             </div>
@@ -452,5 +452,4 @@ export default function AdvisorDashboard() {
         </div>
     );
 }
-
 

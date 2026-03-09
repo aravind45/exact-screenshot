@@ -281,7 +281,7 @@ export default function AdvisorProfileSettings() {
                     </Card>
                     <div className="bg-amber-50 border border-amber-200 rounded-lg p-2 flex gap-2">
                         <Shield className="w-3 h-3 text-amber-600 mt-0.5" />
-                        <p className="text-[10px] text-amber-700"><strong>20% platform fee.</strong> Your earnings are released after a 90-day escrow period.</p>
+                        <p className="text-[10px] text-amber-700"><strong>20% platform fee.</strong> Your earnings are released after a 30-day escrow period.</p>
                     </div>
                 </TabsContent>
 
@@ -319,6 +319,4 @@ export default function AdvisorProfileSettings() {
         </div>
     );
 }
-
-
 

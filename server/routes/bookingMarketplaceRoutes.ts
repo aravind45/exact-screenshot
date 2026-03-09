@@ -4,10 +4,11 @@ import { prisma } from "../db.js";
 import { AdvisorMarketplaceService } from "../services/advisorMarketplaceService.js";
 import { logger } from "../lib/logger.js";
 import { z } from "zod";
+import { randomUUID } from "crypto";
+import { ADVISOR_PLATFORM_FEE_PERCENT, calculateAdvisorEscrowReleaseDate } from "../config/marketplacePayments.js";
+import { BookingPayoutSagaService } from "../services/bookingPayoutSagaService.js";
 
 const router = Router();
-
-const PLATFORM_FEE_PERCENT = 0.20;
 
 // ─── Validation schemas ───────────────────────────────────────────────
 
@@ -34,6 +35,45 @@ const disputeSchema = z.object({
   reason: z.string().min(1),
   description: z.string().optional(),
 });
+
+const chatMessageSchema = z.object({
+  message: z.string().trim().min(1).max(2000),
+});
+
+type BookingChatMessage = {
+  id: string;
+  senderId: string;
+  senderRole: "EXECUTOR" | "ADVISOR";
+  senderName: string;
+  message: string;
+  createdAt: string;
+};
+
+const isPlainObject = (value: unknown): value is Record<string, any> =>
+  !!value && typeof value === "object" && !Array.isArray(value);
+
+const normalizeIntakeAnswers = (value: unknown): Record<string, any> =>
+  isPlainObject(value) ? { ...value } : {};
+
+const readChatMessages = (value: unknown): BookingChatMessage[] => {
+  const intake = normalizeIntakeAnswers(value);
+  const raw = Array.isArray(intake.chatMessages) ? intake.chatMessages : [];
+
+  return raw
+    .map((entry: any) => {
+      const role = entry?.senderRole === "ADVISOR" ? "ADVISOR" : "EXECUTOR";
+      return {
+        id: typeof entry?.id === "string" ? entry.id : "",
+        senderId: typeof entry?.senderId === "string" ? entry.senderId : "",
+        senderRole: role,
+        senderName: typeof entry?.senderName === "string" && entry.senderName.trim() ? entry.senderName : role,
+        message: typeof entry?.message === "string" ? entry.message : "",
+        createdAt: typeof entry?.createdAt === "string" ? entry.createdAt : "",
+      } as BookingChatMessage;
+    })
+    .filter((entry) => Boolean(entry.id && entry.senderId && entry.message && entry.createdAt))
+    .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+};
 
 // ─── POST /bookings ─────────────────────────────────────────────────────
 
@@ -70,8 +110,8 @@ router.post("/", authenticate, async (req: any, res: Response) => {
 
     // Calculate amounts
     const totalAmount = ratePlan.priceCents / 100;
-    const platformFee = totalAmount * PLATFORM_FEE_PERCENT;
-    const advisorPayout = totalAmount * (1 - PLATFORM_FEE_PERCENT);
+    const platformFee = totalAmount * ADVISOR_PLATFORM_FEE_PERCENT;
+    const advisorPayout = totalAmount * (1 - ADVISOR_PLATFORM_FEE_PERCENT);
 
     // Concurrency-safe booking creation using pg advisory lock in a transaction
     const booking = await prisma.$transaction(async (tx: any) => {
@@ -225,6 +265,107 @@ router.get("/:id", authenticate, async (req: any, res: Response) => {
   }
 });
 
+/** GET /bookings/:id/messages - booking chat history for advisor + executor */
+router.get("/:id/messages", authenticate, async (req: any, res: Response) => {
+  try {
+    const booking = await prisma.booking.findUnique({
+      where: { id: req.params.id },
+      include: {
+        user: { select: { id: true, fullName: true, email: true } },
+        advisor: { include: { user: { select: { id: true, fullName: true, email: true } } } },
+      },
+    });
+
+    if (!booking) return res.status(404).json({ error: "Booking not found" });
+
+    const isAdvisor = booking.advisor?.userId === req.user.id;
+    if (booking.userId !== req.user.id && !isAdvisor) {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+
+    const messages = readChatMessages(booking.intakeAnswers);
+    res.json({ messages });
+  } catch (error: any) {
+    logger.error("bookingMarketplaceRoutes getMessages error:", error.message);
+    res.status(500).json({ error: "Failed to fetch booking messages" });
+  }
+});
+
+/** POST /bookings/:id/messages - append booking chat message */
+router.post("/:id/messages", authenticate, async (req: any, res: Response) => {
+  try {
+    const data = chatMessageSchema.parse(req.body);
+
+    const payload = await prisma.$transaction(async (tx: any) => {
+      const lockKey = `booking-chat-${req.params.id}`;
+      await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${lockKey}))`;
+
+      const booking = await tx.booking.findUnique({
+        where: { id: req.params.id },
+        include: {
+          user: { select: { id: true, fullName: true, email: true } },
+          advisor: { include: { user: { select: { id: true, fullName: true, email: true } } } },
+        },
+      });
+
+      if (!booking) throw Object.assign(new Error("Booking not found"), { status: 404 });
+
+      const isAdvisor = booking.advisor?.userId === req.user.id;
+      if (booking.userId !== req.user.id && !isAdvisor) {
+        throw Object.assign(new Error("Forbidden"), { status: 403 });
+      }
+
+      if (["CANCELLED", "REFUNDED"].includes(String(booking.status))) {
+        throw Object.assign(new Error("Messaging is disabled for cancelled bookings"), { status: 400 });
+      }
+
+      const senderRole: "EXECUTOR" | "ADVISOR" = isAdvisor ? "ADVISOR" : "EXECUTOR";
+      const senderName = isAdvisor
+        ? booking.advisor?.user?.fullName || booking.advisor?.user?.email || "Advisor"
+        : booking.user?.fullName || booking.user?.email || "Executor";
+
+      const nextMessage: BookingChatMessage = {
+        id: randomUUID(),
+        senderId: req.user.id,
+        senderRole,
+        senderName,
+        message: data.message,
+        createdAt: new Date().toISOString(),
+      };
+
+      const intake = normalizeIntakeAnswers(booking.intakeAnswers);
+      const existing = readChatMessages(booking.intakeAnswers);
+      const chatMessages = [...existing, nextMessage];
+
+      const updated = await tx.booking.update({
+        where: { id: booking.id },
+        data: {
+          intakeAnswers: {
+            ...intake,
+            chatMessages,
+          },
+        },
+        select: { id: true },
+      });
+
+      return { bookingId: updated.id, message: nextMessage, messages: chatMessages };
+    });
+
+    res.status(201).json(payload);
+  } catch (error: any) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: "Invalid message data", details: error.errors });
+    }
+
+    const status = Number(error?.status || 0);
+    if (status === 403 || status === 404 || status === 400) {
+      return res.status(status).json({ error: error.message });
+    }
+
+    logger.error("bookingMarketplaceRoutes postMessage error:", error.message);
+    res.status(500).json({ error: "Failed to send booking message" });
+  }
+});
 /** POST /bookings/:id/payment - create Stripe payment intent */
 router.post("/:id/payment", authenticate, async (req: any, res: Response) => {
   try {
@@ -237,7 +378,7 @@ router.post("/:id/payment", authenticate, async (req: any, res: Response) => {
     if (booking.status === "CANCELLED") return res.status(400).json({ error: "Cannot pay for a cancelled booking" });
 
     const { StripeService } = await import("../services/stripeService.js");
-    const amountCents = Math.round(Number(booking.totalAmount) * 100);
+    const amountDollars = Number(booking.totalAmount);
 
     if (!booking.advisor.stripeAccountId) {
       return res.status(400).json({ error: "Advisor has not completed payment setup" });
@@ -245,7 +386,7 @@ router.post("/:id/payment", authenticate, async (req: any, res: Response) => {
 
     const paymentIntent = await StripeService.createBookingPaymentIntent(
       req.params.id,
-      amountCents,
+      amountDollars,
       booking.advisor.stripeAccountId
     );
     res.json(paymentIntent);
@@ -327,17 +468,27 @@ router.post("/:id/complete", authenticate, async (req: any, res: Response) => {
     if (!booking) return res.status(404).json({ error: "Booking not found" });
     if (booking.advisorId !== advisor.id) return res.status(403).json({ error: "Forbidden" });
     if (booking.status !== "CONFIRMED") return res.status(400).json({ error: "Only CONFIRMED bookings can be completed" });
+
     const updated = await prisma.booking.update({
       where: { id: req.params.id },
-      data: { status: "COMPLETED" },
+      data: {
+        status: "COMPLETED",
+        escrowReleaseDate: calculateAdvisorEscrowReleaseDate(new Date()),
+      },
     });
+
+    await BookingPayoutSagaService.enqueueBookingCompletedEvent({
+      bookingId: updated.id,
+      source: "advisor-complete",
+      correlationId: updated.id,
+    });
+
     res.json(updated);
   } catch (error: any) {
     logger.error("bookingMarketplaceRoutes complete error:", error.message);
     res.status(500).json({ error: error.message || "Failed to complete booking" });
   }
 });
-
 /** POST /bookings/:id/no-show - mark NO_SHOW (advisor only) */
 router.post("/:id/no-show", authenticate, async (req: any, res: Response) => {
   try {
@@ -480,3 +631,6 @@ router.post("/:id/dispute", authenticate, async (req: any, res: Response) => {
 });
 
 export default router;
+
+
+

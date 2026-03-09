@@ -82,6 +82,22 @@ describe('advisor/admin/marketplace smoke contracts', () => {
     expect(fetchMock.mock.calls[0][1]).toMatchObject({ method: 'POST' });
   });
 
+  it('uses booking chat endpoints for advisor-executor messaging', async () => {
+    fetchMock
+      .mockResolvedValueOnce(jsonResponse({ messages: [{ id: 'msg_1' }] }))
+      .mockResolvedValueOnce(jsonResponse({ bookingId: 'book_1', message: { id: 'msg_2' } }));
+
+    const messages = await api.marketplace.getBookingMessages('book_1');
+    await api.marketplace.sendBookingMessage('book_1', 'Hello advisor');
+
+    expect(messages).toHaveLength(1);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(String(fetchMock.mock.calls[0][0])).toContain('/api/bookings/marketplace/book_1/messages');
+    expect(String(fetchMock.mock.calls[1][0])).toContain('/api/bookings/marketplace/book_1/messages');
+    expect(fetchMock.mock.calls[1][1]).toMatchObject({ method: 'POST' });
+    expect(String((fetchMock.mock.calls[1][1] as any)?.body || '')).toContain('Hello advisor');
+  });
+
   it('targets admin advisor action endpoints correctly', async () => {
     fetchMock.mockResolvedValueOnce(jsonResponse({ ok: true }));
 
@@ -91,4 +107,20 @@ describe('advisor/admin/marketplace smoke contracts', () => {
     expect(String(fetchMock.mock.calls[0][0])).toContain('/api/admin/marketplace/advisors/advisor_999/approve');
     expect(fetchMock.mock.calls[0][1]).toMatchObject({ method: 'POST' });
   });
+  it('targets admin payout queue and manual release endpoints', async () => {
+    fetchMock
+      .mockResolvedValueOnce(jsonResponse({ items: [{ id: 'book_due_1' }], total: 1, page: 1, limit: 25, totalPages: 1 }))
+      .mockResolvedValueOnce(jsonResponse({ ok: true, payoutResult: { paid: 1, failed: 0 } }));
+
+    const queue = await api.marketplace.admin.getPayoutQueue({ page: 1, limit: 25 });
+    const release = await api.marketplace.admin.releaseDuePayouts(true);
+
+    expect(queue.items).toHaveLength(1);
+    expect(release.ok).toBe(true);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(String(fetchMock.mock.calls[0][0])).toContain('/api/admin/marketplace/payouts/queue');
+    expect(String(fetchMock.mock.calls[1][0])).toContain('/api/admin/marketplace/payouts/release-due');
+    expect(fetchMock.mock.calls[1][1]).toMatchObject({ method: 'POST' });
+  });
 });
+

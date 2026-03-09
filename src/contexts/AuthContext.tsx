@@ -246,11 +246,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const isAdmin = user?.role === 'ADMIN' || user?.email?.toLowerCase() === 'aravind45@gmail.com';
-  const isAdvisor = user?.role === 'ADVISOR' || isAdmin;
-  const isAttorney = user?.role === 'ATTORNEY' || isAdmin;
-  const isExecutor = user?.role === 'EXECUTOR' || isAdmin;
-  const isHeir = user?.role === 'HEIR' || isAdmin;
+  const normalizedRole = user?.role?.toUpperCase();
+  const normalizedUserType = user?.userType?.toUpperCase();
+
+  const isAdmin = normalizedRole === 'ADMIN' || user?.email?.toLowerCase() === 'aravind45@gmail.com';
+  const isAdvisor = normalizedRole === 'ADVISOR' || normalizedUserType === 'ADVISOR' || isAdmin;
+  const isAttorney = normalizedRole === 'ATTORNEY' || normalizedUserType === 'ATTORNEY' || isAdmin;
+  const isExecutor = normalizedRole === 'EXECUTOR' || normalizedUserType === 'EXECUTOR' || isAdmin;
+  const isHeir = normalizedRole === 'HEIR' || normalizedUserType === 'HEIR' || isAdmin;
 
   return (
     <AuthContext.Provider value={{
@@ -278,3 +281,4 @@ export function useAuth() {
   }
   return context;
 }
+

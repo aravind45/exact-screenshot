@@ -3,6 +3,7 @@ import { prisma } from "../db.js";
 import { FormSeedingService } from "../services/formSeedingService.js";
 import { StripeService } from "../services/stripeService.js";
 import { KnowledgeService } from "../services/knowledgeService.js";
+import { DurableWorkflowService } from "../services/durableWorkflowService.js";
 import { z } from "zod";
 import { logger } from "../lib/logger.js";
 import { RoleUtils } from "../utils/userUtils.js";
@@ -1002,6 +1003,292 @@ router.get("/county-overrides/:id/diff", isAdmin, async (req: any, res: Response
     }
 });
 
+/**
+ * GET /api/admin/workflows/metrics
+ * Operational metrics for durable workflow reliability dashboards.
+ */
+router.get("/workflows/metrics", isAdmin, async (req: any, res: Response) => {
+    try {
+        const now = new Date();
+        const dayAgo = new Date(now.getTime() - (24 * 60 * 60 * 1000));
+
+        const [
+            inboxReceived,
+            inboxFailed,
+            inboxProcessing,
+            inboxDeadLetter,
+            inboxProcessed24h,
+            inboxRetryDueNow,
+            oldestInbox,
+            outboxPending,
+            outboxFailed,
+            outboxProcessing,
+            outboxDeadLetter,
+            outboxProcessed24h,
+            outboxRetryDueNow,
+            oldestOutbox,
+            workflowRunning,
+            workflowFailed,
+            workflowCompleted24h,
+            deadLetterOpen,
+            deadLetterReplayed24h,
+            deadLetterBookingOpen,
+            payoutReleaseEventsPending,
+            payoutReleaseEventsDeadLetter,
+            escrowHoldsActive,
+            escrowReleasesDue,
+        ] = await Promise.all([
+            prisma.inboxEvent.count({ where: { status: 'RECEIVED' } }),
+            prisma.inboxEvent.count({ where: { status: 'FAILED' } }),
+            prisma.inboxEvent.count({ where: { status: 'PROCESSING' } }),
+            prisma.inboxEvent.count({ where: { status: 'DEAD_LETTER' } }),
+            prisma.inboxEvent.count({ where: { status: 'PROCESSED', processedAt: { gte: dayAgo } } }),
+            prisma.inboxEvent.count({ where: { status: { in: ['RECEIVED', 'FAILED'] }, nextAttemptAt: { lte: now } } }),
+            prisma.inboxEvent.findFirst({
+                where: { status: { in: ['RECEIVED', 'FAILED', 'PROCESSING'] } },
+                orderBy: { receivedAt: 'asc' },
+                select: { receivedAt: true },
+            }),
+            prisma.outboxEvent.count({ where: { status: 'PENDING' } }),
+            prisma.outboxEvent.count({ where: { status: 'FAILED' } }),
+            prisma.outboxEvent.count({ where: { status: 'PROCESSING' } }),
+            prisma.outboxEvent.count({ where: { status: 'DEAD_LETTER' } }),
+            prisma.outboxEvent.count({ where: { status: 'PROCESSED', processedAt: { gte: dayAgo } } }),
+            prisma.outboxEvent.count({ where: { status: { in: ['PENDING', 'FAILED'] }, nextAttemptAt: { lte: now } } }),
+            prisma.outboxEvent.findFirst({
+                where: { status: { in: ['PENDING', 'FAILED', 'PROCESSING'] } },
+                orderBy: { createdAt: 'asc' },
+                select: { createdAt: true },
+            }),
+            prisma.workflowRun.count({ where: { status: 'RUNNING' } }),
+            prisma.workflowRun.count({ where: { status: 'FAILED' } }),
+            prisma.workflowRun.count({ where: { status: 'COMPLETED', finishedAt: { gte: dayAgo } } }),
+            prisma.deadLetterEvent.count({ where: { status: 'OPEN' } }),
+            prisma.deadLetterEvent.count({ where: { status: 'REPLAYED', replayedAt: { gte: dayAgo } } }),
+            prisma.deadLetterEvent.count({ where: { status: 'OPEN', eventType: { startsWith: 'booking.' } } }),
+            prisma.outboxEvent.count({
+                where: {
+                    eventType: 'booking.payout.release_due',
+                    status: { in: ['PENDING', 'FAILED', 'PROCESSING'] },
+                },
+            }),
+            prisma.deadLetterEvent.count({
+                where: {
+                    eventType: 'booking.payout.release_due',
+                    status: 'OPEN',
+                },
+            }),
+            prisma.booking.count({
+                where: {
+                    status: 'COMPLETED',
+                    payoutStatus: { in: ['ESCROWED', 'UNPAID'] },
+                    escrowReleaseDate: { gt: now },
+                },
+            }),
+            prisma.booking.count({
+                where: {
+                    status: 'COMPLETED',
+                    payoutStatus: { in: ['ESCROWED', 'UNPAID'] },
+                    escrowReleaseDate: { lte: now },
+                },
+            }),
+        ]);
+
+        const inboxLagMinutes = oldestInbox?.receivedAt
+            ? Math.max(0, Math.floor((now.getTime() - oldestInbox.receivedAt.getTime()) / (60 * 1000)))
+            : 0;
+        const outboxLagMinutes = oldestOutbox?.createdAt
+            ? Math.max(0, Math.floor((now.getTime() - oldestOutbox.createdAt.getTime()) / (60 * 1000)))
+            : 0;
+
+        res.json({
+            capturedAt: now.toISOString(),
+            inbox: {
+                received: inboxReceived,
+                failed: inboxFailed,
+                processing: inboxProcessing,
+                deadLetter: inboxDeadLetter,
+                processed24h: inboxProcessed24h,
+                retryDueNow: inboxRetryDueNow,
+                backlogLagMinutes: inboxLagMinutes,
+            },
+            outbox: {
+                pending: outboxPending,
+                failed: outboxFailed,
+                processing: outboxProcessing,
+                deadLetter: outboxDeadLetter,
+                processed24h: outboxProcessed24h,
+                retryDueNow: outboxRetryDueNow,
+                backlogLagMinutes: outboxLagMinutes,
+            },
+            workflows: {
+                running: workflowRunning,
+                failed: workflowFailed,
+                completed24h: workflowCompleted24h,
+            },
+            deadLetters: {
+                open: deadLetterOpen,
+                replayed24h: deadLetterReplayed24h,
+                bookingOpen: deadLetterBookingOpen,
+            },
+            payouts: {
+                releaseEventsPending: payoutReleaseEventsPending,
+                releaseEventsDeadLetter: payoutReleaseEventsDeadLetter,
+                escrowHoldsActive,
+                escrowReleasesDue,
+            },
+        });
+    } catch (error: any) {
+        logger.error("Failed to fetch workflow metrics:", error.message);
+        res.status(500).json({ error: "Failed to fetch workflow metrics" });
+    }
+});
+
+/**
+ * GET /api/admin/workflows/dead-letters
+ * List dead-letter events with filtering + pagination.
+ */
+router.get("/workflows/dead-letters", isAdmin, async (req: any, res: Response) => {
+    try {
+        const page = Math.max(1, parseInt(req.query.page as string, 10) || 1);
+        const limit = Math.max(1, Math.min(100, parseInt(req.query.limit as string, 10) || 25));
+        const skip = (page - 1) * limit;
+
+        const statusRaw = String(req.query.status || "").trim().toUpperCase();
+        const sourceRaw = String(req.query.sourceTable || "").trim().toUpperCase();
+        const eventTypeRaw = String(req.query.eventType || "").trim();
+
+        if (statusRaw && !["OPEN", "REPLAYED"].includes(statusRaw)) {
+            return res.status(400).json({ error: "Invalid status filter" });
+        }
+
+        if (sourceRaw && !["INBOX", "OUTBOX"].includes(sourceRaw)) {
+            return res.status(400).json({ error: "Invalid sourceTable filter" });
+        }
+
+        const where: any = {
+            status: statusRaw || undefined,
+            sourceTable: sourceRaw || undefined,
+            eventType: eventTypeRaw ? { contains: eventTypeRaw, mode: "insensitive" } : undefined,
+        };
+
+        const [items, total] = await Promise.all([
+            prisma.deadLetterEvent.findMany({
+                where,
+                orderBy: [{ movedAt: "desc" }],
+                skip,
+                take: limit,
+            }),
+            prisma.deadLetterEvent.count({ where }),
+        ]);
+
+        const data = items.map((item) => {
+            const payload = (item.payload || {}) as Record<string, any>;
+            const stripeEventId = typeof payload.id === "string" ? payload.id : null;
+            const bookingId = typeof payload.bookingId === "string"
+                ? payload.bookingId
+                : (typeof payload?.data?.object?.metadata?.bookingId === "string" ? payload.data.object.metadata.bookingId : null);
+
+            return {
+                id: item.id,
+                sourceTable: item.sourceTable,
+                sourceId: item.sourceId,
+                eventType: item.eventType,
+                correlationId: item.correlationId,
+                status: item.status,
+                reason: item.reason,
+                retryCount: item.retryCount,
+                movedAt: item.movedAt,
+                replayedAt: item.replayedAt,
+                summary: {
+                    bookingId,
+                    stripeEventId,
+                },
+            };
+        });
+
+        res.json({
+            items: data,
+            total,
+            page,
+            limit,
+            totalPages: Math.max(1, Math.ceil(total / limit)),
+        });
+    } catch (error: any) {
+        logger.error("Failed to fetch dead letter queue:", error.message);
+        res.status(500).json({ error: "Failed to fetch dead letter queue" });
+    }
+});
+
+/**
+ * POST /api/admin/workflows/dead-letters/:id/replay
+ * Replay a dead-letter event and trigger one immediate drain cycle.
+ */
+router.post("/workflows/dead-letters/:id/replay", isAdmin, async (req: any, res: Response) => {
+    try {
+        const { id } = req.params;
+        const reason = String(req.body?.reason || "").slice(0, 500) || null;
+
+        const replayResult = await DurableWorkflowService.replayDeadLetter(id, req.user.id);
+        const drainResult = await DurableWorkflowService.drainOnce({
+            inboxSource: "STRIPE",
+            inboxLimit: 25,
+            outboxLimit: 50,
+        });
+
+        await prisma.adminActionLog.create({
+            data: {
+                adminId: req.user.id,
+                action: "REPLAY_DEAD_LETTER",
+                targetType: "WORKFLOW_DEAD_LETTER",
+                targetId: id,
+                reason,
+                metadata: {
+                    replayResult,
+                    drainResult,
+                },
+            },
+        });
+
+        res.json({
+            success: true,
+            replayResult,
+            drainResult,
+        });
+    } catch (error: any) {
+        logger.error({ deadLetterId: req.params.id }, "Failed to replay dead letter event:");
+        res.status(500).json({ error: error.message || "Failed to replay dead letter event" });
+    }
+});
+
+/**
+ * POST /api/admin/workflows/drain
+ * Manual one-shot drain for inbox/outbox processors.
+ */
+router.post("/workflows/drain", isAdmin, async (req: any, res: Response) => {
+    try {
+        const result = await DurableWorkflowService.drainOnce({
+            inboxSource: "STRIPE",
+            inboxLimit: 50,
+            outboxLimit: 100,
+        });
+
+        await prisma.adminActionLog.create({
+            data: {
+                adminId: req.user.id,
+                action: "RUN_WORKFLOW_DRAIN",
+                targetType: "WORKFLOW_SYSTEM",
+                targetId: "durable-workflow-drain",
+                metadata: result as any,
+            },
+        });
+
+        res.json({ success: true, result });
+    } catch (error: any) {
+        logger.error("Failed to run manual workflow drain:", error.message);
+        res.status(500).json({ error: error.message || "Failed to run workflow drain" });
+    }
+});
 router.get("/authority-scope-health", async (req: Request, res: Response) => {
     try {
         const { SETTLEMENT_PHASE_TASKS } = await import("../../src/config/settlementPhases.js");
@@ -1061,4 +1348,6 @@ router.get("/authority-scope-health", async (req: Request, res: Response) => {
 });
 
 export default router;
+
+
 

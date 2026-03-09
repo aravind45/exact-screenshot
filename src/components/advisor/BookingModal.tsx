@@ -259,7 +259,7 @@ const BookingForm = ({ advisor, onClose, user }: { advisor: any; onClose: () => 
                     </div>
 
                     <p className="text-[10px] text-center text-muted-foreground">
-                        Your payment is secure. Funds will be held in escrow until the session is completed or for 7 days.
+                        Your payment is secure. Funds are held in escrow and released 30 days after session completion.
                     </p>
                 </form>
             )}

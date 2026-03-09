@@ -3,6 +3,7 @@ import { prisma } from '../db.js';
 import crypto from 'crypto';
 import { logger } from '../lib/logger.js';
 import { getRefundEligibility } from '../utils/refundUtils.js';
+import { ADVISOR_PLATFORM_FEE_PERCENT, calculateAdvisorEscrowReleaseDate } from '../config/marketplacePayments.js';
 const PRICE_ID = process.env.STRIPE_PRICE_ID || 'price_1234567890'; // $49/mo product
 const EXTRA_SEAT_PRICE_ID = process.env.STRIPE_EXTRA_SEAT_PRICE_ID || 'price_extraseat_placeholder'; // $9.99 extra seat
 export class StripeService {
@@ -13,6 +14,17 @@ export class StripeService {
             });
         }
         return this._stripe;
+    }
+    static get stripeSecretKey() {
+        return (process.env.STRIPE_SECRET_KEY || "").trim();
+    }
+    static isStripeMockMode() {
+        const key = this.stripeSecretKey.toLowerCase();
+        return !key || key.includes("placeholder") || key === "sk_test";
+    }
+    static buildMockStripeAccountId(userId) {
+        const compact = userId.replace(/[^a-z0-9]/gi, "").slice(0, 16) || crypto.randomBytes(6).toString("hex");
+        return `acct_mock_${compact}`;
     }
     /**
      * Create a Stripe Checkout Session for a user to subscribe
@@ -331,6 +343,15 @@ export class StripeService {
         const user = await prisma.user.findUnique({ where: { id: userId } });
         if (!user)
             throw new Error('User not found');
+        if (this.isStripeMockMode()) {
+            const mockAccountId = this.buildMockStripeAccountId(userId);
+            await prisma.advisorProfile.update({
+                where: { userId },
+                data: { stripeAccountId: mockAccountId },
+            });
+            logger.warn(`⚠️ Stripe mock mode active; created mock Connect account ${mockAccountId} for user ${userId}`);
+            return { id: mockAccountId };
+        }
         try {
             const account = await this.stripe.accounts.create({
                 type: 'express',
@@ -358,6 +379,12 @@ export class StripeService {
      * Create an account link for Stripe Connect onboarding
      */
     static async createAccountLink(accountId, returnUrl, refreshUrl) {
+        if (this.isStripeMockMode()) {
+            const token = encodeURIComponent(accountId);
+            return {
+                url: `https://connect.stripe.com/setup/s/${token}`
+            };
+        }
         return this.stripe.accountLinks.create({
             account: accountId,
             refresh_url: refreshUrl,
@@ -380,6 +407,13 @@ export class StripeService {
      * Get the status of a Stripe Connect account
      */
     static async getAccountStatus(stripeAccountId) {
+        if (this.isStripeMockMode() && stripeAccountId.startsWith("acct_mock_")) {
+            return {
+                detailsSubmitted: false,
+                chargesEnabled: false,
+                payoutsEnabled: false,
+            };
+        }
         try {
             const account = await this.stripe.accounts.retrieve(stripeAccountId);
             return {
@@ -394,18 +428,31 @@ export class StripeService {
         }
     }
     /**
-     * Create a payment intent for a booking
+     * Create a payment intent for a booking.
+     * Funds remain on the platform and are transferred to advisor after escrow release.
      */
-    static async createBookingPaymentIntent(bookingId, amount, advisorStripeAccountId) {
+    static async createBookingPaymentIntent(bookingId, amountDollars, _advisorStripeAccountId) {
         try {
-            const platformFee = Math.round(amount * this.PLATFORM_FEE_PERCENTAGE);
+            const amountCents = Math.round(amountDollars * 100);
+            if (amountCents <= 0) {
+                throw new Error('Invalid booking amount');
+            }
+            if (this.isStripeMockMode()) {
+                const mockIntentId = `pi_mock_${crypto.randomBytes(8).toString('hex')}`;
+                const mockClientSecret = `${mockIntentId}_secret_mock`;
+                await prisma.booking.update({
+                    where: { id: bookingId },
+                    data: { stripePaymentId: mockIntentId }
+                });
+                logger.warn(`⚠️ Stripe mock mode active; created mock booking payment intent ${mockIntentId} for booking ${bookingId}`);
+                return {
+                    clientSecret: mockClientSecret,
+                    paymentIntentId: mockIntentId,
+                };
+            }
             const paymentIntent = await this.stripe.paymentIntents.create({
-                amount: Math.round(amount * 100), // Convert to cents
+                amount: amountCents,
                 currency: 'usd',
-                application_fee_amount: platformFee * 100,
-                transfer_data: {
-                    destination: advisorStripeAccountId,
-                },
                 metadata: {
                     bookingId,
                     type: 'ADVISOR_BOOKING',
@@ -437,26 +484,58 @@ export class StripeService {
                 throw new Error('Payment intent has not succeeded');
             }
             const bookingId = paymentIntent.metadata.bookingId;
-            // Update booking status and set escrow release date
+            if (!bookingId) {
+                throw new Error('Payment intent missing bookingId metadata');
+            }
+            const booking = await prisma.booking.findUnique({
+                where: { id: bookingId },
+                select: {
+                    id: true,
+                    status: true,
+                    endTime: true,
+                    payoutStatus: true,
+                    escrowReleaseDate: true,
+                },
+            });
+            if (!booking) {
+                throw new Error('Booking not found');
+            }
+            if (booking.status === 'CANCELLED' || booking.status === 'REFUNDED') {
+                logger.warn(`Skipping payment capture status update for ${bookingId}; current status=${booking.status}`);
+                return { success: false, skipped: true, bookingId };
+            }
+            if (booking.payoutStatus === 'ESCROWED' || booking.payoutStatus === 'PAID') {
+                logger.info(`ℹ️ Payment capture already applied for ${bookingId}; payoutStatus=${booking.payoutStatus}`);
+                return {
+                    success: true,
+                    bookingId,
+                    alreadyCaptured: true,
+                    escrowReleaseDate: booking.escrowReleaseDate?.toISOString?.() ?? null,
+                };
+            }
+            const now = new Date();
+            const escrowBaseDate = booking.endTime > now ? booking.endTime : now;
+            const escrowReleaseDate = calculateAdvisorEscrowReleaseDate(escrowBaseDate);
             await prisma.booking.update({
                 where: { id: bookingId },
                 data: {
                     status: 'CONFIRMED',
                     payoutStatus: 'ESCROWED',
-                    escrowReleaseDate: new Date(Date.now() + this.ESCROW_DAYS * 24 * 60 * 60 * 1000)
+                    escrowReleaseDate,
                 }
             });
             logger.info(`✅ Booking payment captured for ${bookingId}`);
-            return { success: true };
+            return {
+                success: true,
+                bookingId,
+                escrowReleaseDate: escrowReleaseDate.toISOString(),
+            };
         }
         catch (error) {
             logger.error('Error capturing booking payment:', error.message);
             throw error;
         }
     }
-    /**
-     * Release escrow and payout to advisor
-     */
     static async releaseBookingEscrow(bookingId) {
         try {
             const booking = await prisma.booking.findUnique({
@@ -469,18 +548,50 @@ export class StripeService {
             if (!booking.advisor.stripeAccountId) {
                 throw new Error('Advisor does not have a Stripe account');
             }
+            if (!booking.stripePaymentId) {
+                throw new Error('Booking does not have a successful payment to release');
+            }
+            if (booking.status !== 'COMPLETED') {
+                throw new Error('Escrow can only be released for completed bookings');
+            }
+            if (!booking.escrowReleaseDate || booking.escrowReleaseDate > new Date()) {
+                throw new Error('Escrow hold period has not ended');
+            }
             if (booking.payoutStatus === 'PAID') {
                 throw new Error('Escrow already released');
             }
-            // Create transfer to advisor
-            const transfer = await this.stripe.transfers.create({
+            if (booking.payoutStatus !== 'ESCROWED' && booking.payoutStatus !== 'UNPAID') {
+                throw new Error(`Booking payout status ${booking.payoutStatus} is not eligible for release`);
+            }
+            const paymentIntent = await this.stripe.paymentIntents.retrieve(booking.stripePaymentId);
+            if (paymentIntent.status !== 'succeeded') {
+                throw new Error('Cannot release payout for a payment that did not succeed');
+            }
+            // Legacy destination-charge flow already sent funds to advisor at payment time.
+            if (paymentIntent.transfer_data?.destination) {
+                await prisma.booking.update({
+                    where: { id: bookingId },
+                    data: { payoutStatus: 'PAID' },
+                });
+                logger.info(`ℹ️ Booking ${bookingId} used legacy destination charge; marked payout as PAID`);
+                return { transferId: null, alreadyTransferred: true };
+            }
+            const transferPayload = {
                 amount: Math.round(Number(booking.advisorPayout) * 100),
                 currency: 'usd',
                 destination: booking.advisor.stripeAccountId,
                 metadata: {
                     bookingId: booking.id,
                 },
-            });
+            };
+            const latestChargeId = typeof paymentIntent.latest_charge === 'string'
+                ? paymentIntent.latest_charge
+                : paymentIntent.latest_charge?.id;
+            if (latestChargeId) {
+                transferPayload.source_transaction = latestChargeId;
+            }
+            // Create transfer to advisor
+            const transfer = await this.stripe.transfers.create(transferPayload);
             // Update booking payout status
             await prisma.booking.update({
                 where: { id: bookingId },
@@ -543,5 +654,4 @@ export class StripeService {
 }
 StripeService._stripe = null;
 // ========== ADVISOR BOOKING PAYMENT METHODS ==========
-StripeService.PLATFORM_FEE_PERCENTAGE = 0.20; // 20% platform fee
-StripeService.ESCROW_DAYS = 90; // 90-day escrow period
+StripeService.PLATFORM_FEE_PERCENTAGE = ADVISOR_PLATFORM_FEE_PERCENT; // 20% platform fee

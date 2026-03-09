@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { api } from '@/lib/api';
 import { US_STATES } from '@/lib/states';
 import { cn } from '@/lib/utils';
+import { Sidebar } from '@/components/Sidebar';
 import { format } from 'date-fns';
 
 interface IntakeForm {
@@ -130,7 +131,9 @@ export default function BookingCheckout() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] py-8">
+    <div className="flex min-h-screen bg-[#F8FAFC]">
+      <Sidebar />
+      <div className="flex-1 md:ml-64 py-8">
       <div className="max-w-lg mx-auto px-4">
         <h1 className="text-2xl font-black text-slate-900 mb-2 text-center">Book Consultation</h1>
         <p className="text-slate-500 text-center mb-6 text-sm">{advisorName}</p>
@@ -229,6 +232,7 @@ export default function BookingCheckout() {
           )}
 
         </AnimatePresence>
+      </div>
       </div>
     </div>
   );

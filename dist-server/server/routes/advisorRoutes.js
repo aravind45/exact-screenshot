@@ -138,6 +138,7 @@ router.get('/stripe/connect/status', authenticate, async (req, res) => {
         if (!advisor?.stripeAccountId) {
             return res.json({
                 connected: false,
+                detailsSubmitted: false,
                 stripeOnboardingComplete: false,
                 stripeDetailsSubmitted: false,
                 chargesEnabled: false,

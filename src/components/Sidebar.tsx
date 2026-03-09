@@ -6,6 +6,7 @@ import {
     User,
     LogOut,
     LayoutDashboard,
+    Activity,
     Zap,
     ShieldCheck,
     Inbox,
@@ -27,6 +28,7 @@ import {
     X,
     Briefcase,
     FileText,
+    Calendar,
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -101,6 +103,9 @@ export function Sidebar() {
                 title: "Marketplace Ops",
                 items: [
                     { label: "Advisor Queue", icon: Users, path: "/admin/advisors" },
+                    { label: "Advisor Payout Queue", icon: CreditCard, path: "/admin/advisor-payouts" },
+                    { label: "Workflow Reliability", icon: Activity, path: "/admin/workflow-reliability" },
+                    { label: "Advisor QA Checklist", icon: CheckCircle2, path: "/admin/advisor-qa" },
                     { label: "Institution Directory", icon: Landmark, path: "/admin/institutions" },
                 ]
             },
@@ -418,6 +423,7 @@ export function Sidebar() {
             items: [
                 { label: "Marketplace", icon: Search, path: "/marketplace" },
                 { label: "My Consultations", icon: MessageSquare, path: "/my-bookings" },
+                { label: "Consultation Calendar", icon: Calendar, path: "/consultations/calendar" },
                 ...(user?.role === 'ADVISOR'
                     ? [
                         { label: "Advisor Dashboard", icon: LayoutDashboard, path: "/advisor/dashboard" },
@@ -572,4 +578,7 @@ export function Sidebar() {
         </>
     );
 }
+
+
+
 

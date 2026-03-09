@@ -4,6 +4,8 @@ import { AdvisorMarketplaceService } from "../services/advisorMarketplaceService
 import { RoleUtils } from "../utils/userUtils.js";
 import { logger } from "../lib/logger.js";
 import { z } from "zod";
+import { BookingService } from "../services/bookingService.js";
+import { ADVISOR_ESCROW_DAYS } from "../config/marketplacePayments.js";
 const router = Router();
 // ─── isAdmin middleware ───────────────────────────────────────────────────
 const isAdmin = (req, res, next) => {
@@ -27,6 +29,9 @@ const resolveDisputeSchema = z.object({
     resolution: z.string().min(1),
     refundType: z.enum(["REFUND", "RELEASE"]),
     refundAmount: z.number().int().min(0).optional(),
+});
+const releasePayoutSchema = z.object({
+    includeAutoComplete: z.boolean().optional(),
 });
 const handleGetAdvisors = async (req, res) => {
     try {
@@ -65,6 +70,48 @@ const handleGetAdvisors = async (req, res) => {
 router.get("/advisors", handleGetAdvisors);
 /** GET /admin/marketplace/queue - alias for backwards compatibility */
 router.get("/queue", handleGetAdvisors);
+/** GET /admin/marketplace/payouts/queue - escrow payout queue */
+router.get("/payouts/queue", async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 25;
+        const result = await BookingService.getEscrowPayoutQueue(page, limit);
+        res.json({
+            ...result,
+            holdDays: ADVISOR_ESCROW_DAYS,
+            generatedAt: new Date().toISOString(),
+        });
+    }
+    catch (error) {
+        logger.error("adminMarketplaceRoutes payoutQueue error:", error.message);
+        res.status(500).json({ error: "Failed to fetch payout queue" });
+    }
+});
+/** POST /admin/marketplace/payouts/release-due - run payout release job manually */
+router.post("/payouts/release-due", async (req, res) => {
+    try {
+        const { includeAutoComplete = true } = releasePayoutSchema.parse(req.body ?? {});
+        if (includeAutoComplete) {
+            await BookingService.autoCompleteExpiredSessions();
+        }
+        const payoutResult = await BookingService.processDuePayouts();
+        res.json({
+            ok: true,
+            holdDays: ADVISOR_ESCROW_DAYS,
+            includeAutoComplete,
+            payoutResult,
+            triggeredBy: req.user.id,
+            triggeredAt: new Date().toISOString(),
+        });
+    }
+    catch (error) {
+        if (error instanceof z.ZodError) {
+            return res.status(400).json({ error: "Invalid data", details: error.errors });
+        }
+        logger.error("adminMarketplaceRoutes releaseDuePayouts error:", error.message);
+        res.status(500).json({ error: error.message || "Failed to release due payouts" });
+    }
+});
 /** GET /admin/marketplace/advisors/:id */
 router.get("/advisors/:id", async (req, res) => {
     try {

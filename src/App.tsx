@@ -89,6 +89,9 @@ const AdminAdvisorVerificationPage = lazy(() => import("./pages/admin/AdminAdvis
 const AdminStateRulesPage = lazy(() => import("./pages/admin/AdminStateRulesPage"));
 const AdminInstitutions = lazy(() => import("./pages/admin/AdminInstitutions"));
 const AdminAdvisorQueue = lazy(() => import("./pages/admin/AdminAdvisorQueue"));
+const AdminAdvisorQaChecklistPage = lazy(() => import("./pages/admin/AdminAdvisorQaChecklistPage"));
+const AdminAdvisorPayoutsPage = lazy(() => import("./pages/admin/AdminAdvisorPayoutsPage"));
+const AdminWorkflowReliabilityPage = lazy(() => import("./pages/admin/AdminWorkflowReliabilityPage"));
 const SSOTProbateEngine = lazy(() => import("./pages/admin/SSOTProbateEngine"));
 const JurisdictionHealthDashboard = lazy(() => import("./pages/admin/JurisdictionHealthDashboard"));
 const DebugMARoadmapPage = lazy(() => import("./pages/DebugMARoadmapPage"));
@@ -103,6 +106,7 @@ const AdvisorAccountSettings = lazy(() => import("./pages/advisor/Settings"));
 const AdvisorMarketplace = lazy(() => import("./pages/AdvisorMarketplace"));
 const AdvisorPayouts = lazy(() => import("./pages/AdvisorPayouts"));
 const MyBookings = lazy(() => import("./pages/MyBookings"));
+const ConsultationCalendar = lazy(() => import("./pages/ConsultationCalendar"));
 
 // Marketplace (new two-sided marketplace)
 const AdvisorDirectory = lazy(() => import("./pages/marketplace/AdvisorDirectory"));
@@ -310,6 +314,8 @@ const AppRoutes = () => {
                 <Route path="/marketplace/:advisorId" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><AdvisorProfilePage /></RoleRoute></ProtectedRoute>} />
                 <Route path="/marketplace/:advisorId/book" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><BookingCheckout /></RoleRoute></ProtectedRoute>} />
                 <Route path="/my-bookings" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><MyBookings /></RoleRoute></ProtectedRoute>} />
+                <Route path="/consultations/calendar" element={<ProtectedRoute><RoleRoute allowedRoles={['EXECUTOR', 'HEIR', 'USER']}><ConsultationCalendar /></RoleRoute></ProtectedRoute>} />
+                <Route path="/my-bookings/calendar" element={<Navigate to="/consultations/calendar" replace />} />
               </>
             )}
 
@@ -352,6 +358,9 @@ const AppRoutes = () => {
             <Route path="/admin/state-rules" element={<ProtectedRoute><RoleRoute allowedRoles={['ADMIN']}><AdminStateRulesPage /></RoleRoute></ProtectedRoute>} />
             <Route path="/admin/institutions" element={<ProtectedRoute><RoleRoute allowedRoles={['ADMIN']}><AdminInstitutions /></RoleRoute></ProtectedRoute>} />
             <Route path="/admin/advisors" element={<ProtectedRoute><RoleRoute allowedRoles={['ADMIN']}><AdminAdvisorQueue /></RoleRoute></ProtectedRoute>} />
+            <Route path="/admin/advisor-qa" element={<ProtectedRoute><RoleRoute allowedRoles={['ADMIN']}><AdminAdvisorQaChecklistPage /></RoleRoute></ProtectedRoute>} />
+            <Route path="/admin/advisor-payouts" element={<ProtectedRoute><RoleRoute allowedRoles={['ADMIN']}><AdminAdvisorPayoutsPage /></RoleRoute></ProtectedRoute>} />
+            <Route path="/admin/workflow-reliability" element={<ProtectedRoute><RoleRoute allowedRoles={['ADMIN']}><AdminWorkflowReliabilityPage /></RoleRoute></ProtectedRoute>} />
             <Route path="/admin/probate-engine" element={<ProtectedRoute><RoleRoute allowedRoles={['ADMIN']}><SSOTProbateEngine /></RoleRoute></ProtectedRoute>} />
             <Route path="/admin/jurisdiction-health" element={<ProtectedRoute><RoleRoute allowedRoles={['ADMIN']}><JurisdictionHealthDashboard /></RoleRoute></ProtectedRoute>} />
             <Route path="/debug/ma-roadmap" element={<ProtectedRoute><DebugMARoadmapPage /></ProtectedRoute>} />
@@ -368,3 +377,7 @@ const AppRoutes = () => {
 };
 
 export default App;
+
+
+
+

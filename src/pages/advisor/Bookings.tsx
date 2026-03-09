@@ -28,6 +28,7 @@ import {
     AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Textarea } from '@/components/ui/textarea';
+import { BookingChatPanel } from '@/components/marketplace/BookingChatPanel';
 
 type AdvisorBooking = {
     id: string;
@@ -289,6 +290,13 @@ export default function AdvisorBookings() {
                                                 </div>
                                             )}
                                         </div>
+                                    </div>
+
+                                    <div className="mt-6 pt-6 border-t">
+                                        <BookingChatPanel
+                                            bookingId={booking.id}
+                                            canSend={!['CANCELLED', 'REFUNDED'].includes(booking.status)}
+                                        />
                                     </div>
                                 </CardContent>
                             </Card>
