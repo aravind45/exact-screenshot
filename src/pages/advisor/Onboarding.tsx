@@ -6,12 +6,10 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Briefcase, DollarSign, Upload, CheckCircle2 } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { api } from '@/lib/api';
 
 export default function AdvisorOnboarding() {
-    const { user } = useAuth();
     const navigate = useNavigate();
     const { toast } = useToast();
     const [loading, setLoading] = useState(false);
@@ -45,15 +43,17 @@ export default function AdvisorOnboarding() {
     const handleSubmit = async () => {
         setLoading(true);
         try {
-            // Post to advisor profile via api service
-            await api.advisors.updateProfile({
-                ...formData,
-                hourlyRate: Number(formData.hourlyRate)
+            await api.marketplace.upsertMyProfile({
+                bio: formData.bio,
+                specialties: formData.expertise,
+                hourlyRate: Number(formData.hourlyRate) || 0,
+                licenseNumber: formData.licenseNumber,
             });
+            await api.marketplace.submitForReview();
 
             toast({
-                title: "Profile Created",
-                description: "Your advisor profile has been set up successfully."
+                title: "Profile Submitted",
+                description: "Your advisor profile has been submitted for admin review."
             });
 
             navigate('/advisor/dashboard');

@@ -78,7 +78,15 @@ const Heirs = lazy(() => import("./pages/Heirs"));
 const NonProbate = lazy(() => import("./pages/NonProbate"));
 
 // Admin
-const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+const AdminSystemUsersPage = lazy(() => import("./pages/admin/AdminSystemUsersPage"));
+const AdminBillingLedgerPage = lazy(() => import("./pages/admin/AdminBillingLedgerPage"));
+const AdminInstitutionMasterPage = lazy(() => import("./pages/admin/AdminInstitutionMasterPage"));
+const AdminFormTemplatesPage = lazy(() => import("./pages/admin/AdminFormTemplatesPage"));
+const AdminKnowledgeBasePage = lazy(() => import("./pages/admin/AdminKnowledgeBasePage"));
+const AdminCommunicationsPage = lazy(() => import("./pages/admin/AdminCommunicationsPage"));
+const AdminMarketingLeadsPage = lazy(() => import("./pages/admin/AdminMarketingLeadsPage"));
+const AdminAdvisorVerificationPage = lazy(() => import("./pages/admin/AdminAdvisorVerificationPage"));
+const AdminStateRulesPage = lazy(() => import("./pages/admin/AdminStateRulesPage"));
 const AdminInstitutions = lazy(() => import("./pages/admin/AdminInstitutions"));
 const AdminAdvisorQueue = lazy(() => import("./pages/admin/AdminAdvisorQueue"));
 const SSOTProbateEngine = lazy(() => import("./pages/admin/SSOTProbateEngine"));
@@ -86,7 +94,7 @@ const JurisdictionHealthDashboard = lazy(() => import("./pages/admin/Jurisdictio
 const DebugMARoadmapPage = lazy(() => import("./pages/DebugMARoadmapPage"));
 
 // Advisor
-const AdvisorDashboard = lazy(() => import("./pages/advisor/Dashboard"));
+const AdvisorDashboardLegacy = lazy(() => import("./pages/advisor/Dashboard"));
 const AdvisorOnboarding = lazy(() => import("./pages/advisor/Onboarding"));
 const AdvisorDashboardNew = lazy(() => import("./pages/advisor/AdvisorDashboardNew"));
 const AdvisorBookings = lazy(() => import("./pages/advisor/Bookings"));
@@ -322,7 +330,9 @@ const AppRoutes = () => {
                 </RoleRoute>
               </ProtectedRoute>
             }>
-              <Route path="dashboard" element={<AdvisorDashboard />} />
+              <Route index element={<Navigate to="/advisor/dashboard" replace />} />
+              <Route path="dashboard" element={<AdvisorDashboardNew />} />
+              <Route path="dashboard-legacy" element={<AdvisorDashboardLegacy />} />
               <Route path="profile" element={<AdvisorProfileSettings />} />
               <Route path="bookings" element={<AdvisorBookings />} />
               <Route path="earnings" element={<Navigate to="/advisor/payouts" replace />} />
@@ -331,15 +341,15 @@ const AppRoutes = () => {
             </Route>
 
             <Route path="/admin" element={<Navigate to="/admin/system-users" replace />} />
-            <Route path="/admin/system-users" element={<ProtectedRoute><RoleRoute allowedRoles={['ADMIN']}><AdminDashboard initialTab="overview" /></RoleRoute></ProtectedRoute>} />
-            <Route path="/admin/billing-ledger" element={<ProtectedRoute><RoleRoute allowedRoles={['ADMIN']}><AdminDashboard initialTab="billing" /></RoleRoute></ProtectedRoute>} />
-            <Route path="/admin/institution-master" element={<ProtectedRoute><RoleRoute allowedRoles={['ADMIN']}><AdminDashboard initialTab="institutions" /></RoleRoute></ProtectedRoute>} />
-            <Route path="/admin/form-templates" element={<ProtectedRoute><RoleRoute allowedRoles={['ADMIN']}><AdminDashboard initialTab="templates" /></RoleRoute></ProtectedRoute>} />
-            <Route path="/admin/knowledge-base" element={<ProtectedRoute><RoleRoute allowedRoles={['ADMIN']}><AdminDashboard initialTab="knowledge" /></RoleRoute></ProtectedRoute>} />
-            <Route path="/admin/communications" element={<ProtectedRoute><RoleRoute allowedRoles={['ADMIN']}><AdminDashboard initialTab="communications" /></RoleRoute></ProtectedRoute>} />
-            <Route path="/admin/marketing-leads" element={<ProtectedRoute><RoleRoute allowedRoles={['ADMIN']}><AdminDashboard initialTab="marketing" /></RoleRoute></ProtectedRoute>} />
-            <Route path="/admin/advisor-verification" element={<ProtectedRoute><RoleRoute allowedRoles={['ADMIN']}><AdminDashboard initialTab="advisors" /></RoleRoute></ProtectedRoute>} />
-            <Route path="/admin/state-rules" element={<ProtectedRoute><RoleRoute allowedRoles={['ADMIN']}><AdminDashboard initialTab="rulebook" /></RoleRoute></ProtectedRoute>} />
+            <Route path="/admin/system-users" element={<ProtectedRoute><RoleRoute allowedRoles={['ADMIN']}><AdminSystemUsersPage /></RoleRoute></ProtectedRoute>} />
+            <Route path="/admin/billing-ledger" element={<ProtectedRoute><RoleRoute allowedRoles={['ADMIN']}><AdminBillingLedgerPage /></RoleRoute></ProtectedRoute>} />
+            <Route path="/admin/institution-master" element={<ProtectedRoute><RoleRoute allowedRoles={['ADMIN']}><AdminInstitutionMasterPage /></RoleRoute></ProtectedRoute>} />
+            <Route path="/admin/form-templates" element={<ProtectedRoute><RoleRoute allowedRoles={['ADMIN']}><AdminFormTemplatesPage /></RoleRoute></ProtectedRoute>} />
+            <Route path="/admin/knowledge-base" element={<ProtectedRoute><RoleRoute allowedRoles={['ADMIN']}><AdminKnowledgeBasePage /></RoleRoute></ProtectedRoute>} />
+            <Route path="/admin/communications" element={<ProtectedRoute><RoleRoute allowedRoles={['ADMIN']}><AdminCommunicationsPage /></RoleRoute></ProtectedRoute>} />
+            <Route path="/admin/marketing-leads" element={<ProtectedRoute><RoleRoute allowedRoles={['ADMIN']}><AdminMarketingLeadsPage /></RoleRoute></ProtectedRoute>} />
+            <Route path="/admin/advisor-verification" element={<ProtectedRoute><RoleRoute allowedRoles={['ADMIN']}><AdminAdvisorVerificationPage /></RoleRoute></ProtectedRoute>} />
+            <Route path="/admin/state-rules" element={<ProtectedRoute><RoleRoute allowedRoles={['ADMIN']}><AdminStateRulesPage /></RoleRoute></ProtectedRoute>} />
             <Route path="/admin/institutions" element={<ProtectedRoute><RoleRoute allowedRoles={['ADMIN']}><AdminInstitutions /></RoleRoute></ProtectedRoute>} />
             <Route path="/admin/advisors" element={<ProtectedRoute><RoleRoute allowedRoles={['ADMIN']}><AdminAdvisorQueue /></RoleRoute></ProtectedRoute>} />
             <Route path="/admin/probate-engine" element={<ProtectedRoute><RoleRoute allowedRoles={['ADMIN']}><SSOTProbateEngine /></RoleRoute></ProtectedRoute>} />
@@ -358,4 +368,3 @@ const AppRoutes = () => {
 };
 
 export default App;
-

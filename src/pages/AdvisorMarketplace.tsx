@@ -4,14 +4,14 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/componen
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Filter, Star, ShieldCheck, MapPin, DollarSign, Clock } from "lucide-react";
+import { Search, Filter, Star, ShieldCheck, ChevronDown, ChevronUp } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BookingModal } from "@/components/advisor/BookingModal";
 import ReviewList from "@/components/advisor/ReviewList";
 import { useAuth } from "@/contexts/AuthContext";
 import { api } from "@/lib/api";
-import { ChevronDown, ChevronUp } from "lucide-react";
 import { Sidebar } from "@/components/Sidebar";
+import { toStringArray } from '@/lib/advisorData';
 
 export default function AdvisorMarketplace() {
     const { user } = useAuth();
@@ -28,10 +28,18 @@ export default function AdvisorMarketplace() {
         }
     });
 
-    const filteredAdvisors = advisors?.filter((a: any) =>
-        a.user.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        a.expertise.some((e: string) => e.toLowerCase().includes(searchTerm.toLowerCase()))
-    );
+    const advisorList = Array.isArray(advisors)
+        ? advisors
+        : Array.isArray((advisors as any)?.advisors)
+            ? (advisors as any).advisors
+            : [];
+
+    const filteredAdvisors = advisorList.filter((advisor: any) => {
+        const fullName = String(advisor?.user?.fullName || '').toLowerCase();
+        const expertise = toStringArray(advisor?.expertise ?? advisor?.specialties);
+        const q = searchTerm.toLowerCase();
+        return fullName.includes(q) || expertise.some((e: string) => String(e).toLowerCase().includes(q));
+    });
 
     const handleBook = (advisor: any) => {
         setSelectedAdvisor(advisor);
@@ -104,7 +112,7 @@ export default function AdvisorMarketplace() {
                                             <div className="flex items-center gap-4">
                                                 <div className="w-16 h-16 rounded-2xl bg-slate-100 border border-slate-200 overflow-hidden flex-shrink-0 shadow-sm">
                                                     {advisor.profileImage ? (
-                                                        <img src={advisor.profileImage} alt={advisor.user.fullName} className="w-full h-full object-cover" />
+                                                        <img src={advisor.profileImage} alt={advisor?.user?.fullName || 'Advisor'} className="w-full h-full object-cover" />
                                                     ) : (
                                                         <div className="w-full h-full flex items-center justify-center text-slate-300">
                                                             <ShieldCheck className="w-8 h-8" />
@@ -113,12 +121,12 @@ export default function AdvisorMarketplace() {
                                                 </div>
                                                 <div className="space-y-1">
                                                     <CardTitle className="text-xl font-bold flex items-center gap-2">
-                                                        {advisor.user.fullName}
+                                                        {advisor?.user?.fullName || 'Advisor'}
                                                         <ShieldCheck className="w-5 h-5 text-indigo-600 fill-indigo-50" />
                                                     </CardTitle>
                                                     <div className="flex items-center gap-2 text-sm text-slate-500">
                                                         <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
-                                                        <span className="font-bold text-slate-900">{advisor.averageRating?.toFixed(1) || "5.0"}</span>
+                                                        <span className="font-bold text-slate-900">{Number(advisor?.averageRating || 0).toFixed(1)}</span>
                                                         <button
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
@@ -143,7 +151,7 @@ export default function AdvisorMarketplace() {
                                             {advisor.bio || "No professional bio provided."}
                                         </p>
                                         <div className="flex flex-wrap gap-2">
-                                            {advisor.expertise.map((exp: string) => (
+                                            {toStringArray(advisor?.expertise ?? advisor?.specialties).map((exp: string) => (
                                                 <Badge key={exp} variant="secondary" className="bg-slate-100 text-slate-600 hover:bg-indigo-50 hover:text-indigo-600 transition-colors">
                                                     {exp}
                                                 </Badge>

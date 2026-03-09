@@ -463,6 +463,8 @@ export class AdvisorMarketplaceService {
             where.targetType = filters.targetType;
         if (filters?.adminId)
             where.adminId = filters.adminId;
+        if (filters?.targetId)
+            where.targetId = filters.targetId;
         const [logs, total] = await Promise.all([
             prisma.adminActionLog.findMany({
                 where,

@@ -572,12 +572,14 @@ export class AdvisorMarketplaceService {
         action?: string;
         targetType?: string;
         adminId?: string;
+        targetId?: string;
     }) {
         const skip = (page - 1) * limit;
         const where: any = {};
         if (filters?.action) where.action = { contains: filters.action, mode: 'insensitive' };
         if (filters?.targetType) where.targetType = filters.targetType;
         if (filters?.adminId) where.adminId = filters.adminId;
+        if (filters?.targetId) where.targetId = filters.targetId;
 
         const [logs, total] = await Promise.all([
             prisma.adminActionLog.findMany({

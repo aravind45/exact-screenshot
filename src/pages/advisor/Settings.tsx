@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { toast } from 'sonner';
@@ -52,42 +52,35 @@ export default function AdvisorAccountSettings() {
     const [email] = useState(user?.email || '');
 
     // ── Load existing profile settings ────────────────────────────────────────
-    useQuery({
+    const { data: profileSettings } = useQuery({
         queryKey: ['advisor-profile-settings'],
-        queryFn: () => api.advisors.getMe(),
-        onSuccess: (data: any) => {
-            if (data && !profileLoaded) {
-                setTimezone(data.timezone || 'America/Chicago');
-                setCancellationHours(String(data.cancellationHours ?? 24));
-                setMaxSessionsPerDay(String(data.maxSessionsPerDay ?? 5));
-                setBufferMinutes(String(data.bufferMinutes ?? 15));
-                setMeetingLink(data.meetingLink || '');
-                setPublicNotes(data.publicNotes || '');
-                setRequiresApproval(data.requiresApproval !== false);
-                setProfileLoaded(true);
-            }
-        }
-    } as any);
+        queryFn: () => api.marketplace.getMyProfile(),
+    });
+
+    useEffect(() => {
+        if (!profileSettings || profileLoaded) return;
+
+        setTimezone((profileSettings as any).timezone || 'America/Chicago');
+        setCancellationHours(String((profileSettings as any).cancellationHours ?? 24));
+        setMaxSessionsPerDay(String((profileSettings as any).maxSessionsPerDay ?? 5));
+        setBufferMinutes(String((profileSettings as any).bufferMinutes ?? 15));
+        setMeetingLink((profileSettings as any).meetingLink || '');
+        setPublicNotes((profileSettings as any).publicNotes || '');
+        setRequiresApproval((profileSettings as any).requiresApproval !== false);
+        setProfileLoaded(true);
+    }, [profileSettings, profileLoaded]);
 
     // ── Save scheduling settings ──────────────────────────────────────────────
     const saveSchedulingMutation = useMutation({
-        mutationFn: () =>
-            fetch('/api/advisor/profile', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${api.getToken()}`,
-                },
-                body: JSON.stringify({
-                    timezone,
-                    cancellationHours: parseInt(cancellationHours),
-                    maxSessionsPerDay: parseInt(maxSessionsPerDay),
-                    bufferMinutes: parseInt(bufferMinutes),
-                    meetingLink,
-                    publicNotes,
-                    requiresApproval,
-                }),
-            }).then(r => r.json()),
+        mutationFn: () => api.marketplace.upsertMyProfile({
+            timezone,
+            cancellationHours: parseInt(cancellationHours),
+            maxSessionsPerDay: parseInt(maxSessionsPerDay),
+            bufferMinutes: parseInt(bufferMinutes),
+            meetingLink,
+            publicNotes,
+            requiresApproval,
+        }),
         onSuccess: () => {
             toast.success('Settings saved');
             queryClient.invalidateQueries({ queryKey: ['advisor-profile-settings'] });
@@ -326,3 +319,5 @@ export default function AdvisorAccountSettings() {
         </div>
     );
 }
+
+

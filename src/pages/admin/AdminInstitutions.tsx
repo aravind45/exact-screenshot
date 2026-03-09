@@ -88,9 +88,17 @@ export default function AdminInstitutions() {
         setFormData({ name: "", email: "", phone: "", fax: "", address: "", website: "" });
     };
 
-    const filteredInstitutions = institutions?.filter((inst: any) =>
-        inst.name.toLowerCase().includes(searchQuery.toLowerCase())
-    ) || [];
+    const institutionList = Array.isArray(institutions)
+        ? institutions
+        : Array.isArray((institutions as any)?.data)
+            ? (institutions as any).data
+            : Array.isArray((institutions as any)?.institutions)
+                ? (institutions as any).institutions
+                : [];
+
+    const filteredInstitutions = institutionList.filter((inst: any) =>
+        String(inst?.name || '').toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
     if (isLoading) return <div className="p-8">Loading directory...</div>;
 
@@ -258,3 +266,4 @@ export default function AdminInstitutions() {
         </div>
     );
 }
+

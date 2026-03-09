@@ -29,6 +29,59 @@ const getEstateId = async (userId: string) => {
     return estate?.id;
 };
 
+const safeLogDocumentEvent = async (
+    estateId: string,
+    userId: string,
+    isPreview: boolean,
+    notes: string,
+) => {
+    try {
+        await DistributionService.logEvent(
+            estateId,
+            userId,
+            isPreview ? 'VIEWED' : 'PREPARED',
+            notes,
+        );
+    } catch (error: any) {
+        logger.warn(`[documents] Failed to write settlement activity for document event: ${error?.message || error}`);
+    }
+};
+
+const generateCAWithFallback = async (
+    formId: CAFormId,
+    estateData: any,
+    assets: any[],
+    heirs: any[],
+    overrides?: Record<string, any>,
+): Promise<Uint8Array> => {
+    try {
+        const result = await CAFormService.generate({
+            formId,
+            estate: estateData,
+            assets,
+            heirs,
+            overrides,
+        });
+        return result.pdfBytes;
+    } catch (error: any) {
+        logger.error(`[documents] CA auto-fill failed for ${formId}. Falling back to legacy generator. ${error?.message || error}`);
+        const mergedEstate = { ...estateData, ...(overrides || {}) };
+
+        switch (formId) {
+            case 'DE-111':
+                return DocumentService.generateDE111(mergedEstate);
+            case 'DE-160':
+                return DocumentService.generateDE160(mergedEstate, assets);
+            case 'DE-310': {
+                const total = assets.reduce((sum: number, a: any) => sum + Number(a.inventoryValue || a.value || 0), 0);
+                return DocumentService.generateDE310(mergedEstate, total);
+            }
+            default:
+                throw error;
+        }
+    }
+};
+
 // GET /api/documents/templates - List available templates
 router.get("/templates", async (req: Request, res: Response) => {
     try {
@@ -171,15 +224,16 @@ router.post("/generate", async (req: any, res: Response) => {
 
         if (isCARegistryForm) {
             const assets = await prisma.asset.findMany({ where: { estateId } });
-            const heirs = estate.heirs || await prisma.heir.findMany({ where: { estateId } });
-            const caResult = await CAFormService.generate({
-                formId: formId as CAFormId,
-                estate: mergedData,
+            const heirs = Array.isArray((estate as any).heirs)
+                ? (estate as any).heirs
+                : await prisma.heir.findMany({ where: { estateId } });
+            pdfBytes = await generateCAWithFallback(
+                formId as CAFormId,
+                mergedData,
                 assets,
                 heirs,
                 overrides,
-            });
-            pdfBytes = caResult.pdfBytes;
+            );
         } else if (specializedGenerators[formId]) {
             pdfBytes = await specializedGenerators[formId](mergedData);
         } else {
@@ -202,8 +256,7 @@ router.post("/generate", async (req: any, res: Response) => {
         }
 
         // Audit Trail Logging
-        await DistributionService.logEvent(estateId, req.user.id, isPreview ? 'VIEWED' : 'PREPARED',
-            `${isPreview ? 'PREVIEWED' : 'PREPARED'} – ${formId} document generated (auto-fill)`);
+        await safeLogDocumentEvent(estateId, req.user.id, !!isPreview, `${isPreview ? 'PREVIEWED' : 'PREPARED'} – ${formId} document generated (auto-fill)`);
 
         // Return Base64 as the standard response contract
         const base64Pdf = Buffer.from(pdfBytes).toString('base64');
@@ -222,4 +275,3 @@ router.post("/generate", async (req: any, res: Response) => {
 });
 
 export default router;
-

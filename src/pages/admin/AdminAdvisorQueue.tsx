@@ -99,27 +99,26 @@ export default function AdminAdvisorQueue() {
   const { data: advisors, isLoading, isError } = useQuery<AdvisorQueueItem[]>({
     queryKey: ['admin-advisor-queue'],
     queryFn: async () => {
-      const res = await fetch('/api/admin/marketplace/advisors', {
-        headers: { Authorization: `Bearer ${api.getToken()}` },
-      });
-      if (!res.ok) throw new Error('Failed to load advisors');
-
-      const payload = await res.json();
-      const advisorList = Array.isArray(payload) ? payload : Array.isArray(payload?.advisors) ? payload.advisors : [];
+      const payload = await api.marketplace.admin.getQueue();
+      const advisorList = Array.isArray(payload)
+        ? payload
+        : Array.isArray((payload as any)?.advisors)
+          ? (payload as any).advisors
+          : Array.isArray((payload as any)?.data)
+            ? (payload as any).data
+            : Array.isArray((payload as any)?.data?.advisors)
+              ? (payload as any).data.advisors
+              : [];
       return advisorList.map((advisor: AdvisorQueueApiItem) => normalizeAdvisor(advisor));
     },
   });
 
   const mutateStatus = useMutation({
     mutationFn: async ({ id, action, reason }: { id: string; action: AdminAction; reason?: string }) => {
-      const body = reason ? JSON.stringify({ reason }) : undefined;
-      const res = await fetch(`/api/admin/marketplace/advisors/${id}/${action}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${api.getToken()}` },
-        ...(body ? { body } : {}),
-      });
-      if (!res.ok) throw new Error('Action failed');
-      return res.json();
+      if (action === 'approve') return api.marketplace.admin.approve(id, reason);
+      if (action === 'reject') return api.marketplace.admin.reject(id, reason || 'Rejected by admin');
+      if (action === 'pause') return api.marketplace.admin.pause(id, reason);
+      return api.marketplace.admin.unpause(id);
     },
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['admin-advisor-queue'] });
@@ -136,7 +135,7 @@ export default function AdminAdvisorQueue() {
     onError: (e: any) => toast.error(e?.message || 'Action failed'),
   });
 
-  const all: AdvisorQueueItem[] = advisors ?? [];
+  const all: AdvisorQueueItem[] = Array.isArray(advisors) ? advisors : [];
   const filtered = all.filter(a => {
     const inTab = STATUS_MAP[tab]?.includes(a.verificationStatus);
     const inSearch =
@@ -384,4 +383,3 @@ export default function AdminAdvisorQueue() {
     </div>
   );
 }
-

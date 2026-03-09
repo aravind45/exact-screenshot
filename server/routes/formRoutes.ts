@@ -30,6 +30,59 @@ const getEstateId = async (userId: string) => {
     return estate?.id;
 };
 
+const safeLogFormEvent = async (
+    estateId: string,
+    userId: string,
+    isPreview: boolean,
+    notes: string,
+) => {
+    try {
+        await DistributionService.logEvent(
+            estateId,
+            userId,
+            isPreview ? 'VIEWED' : 'PREPARED',
+            notes,
+        );
+    } catch (error: any) {
+        logger.warn(`[forms] Failed to write settlement activity for form event: ${error?.message || error}`);
+    }
+};
+
+const generateCAWithFallback = async (
+    formId: CAFormId,
+    estateData: any,
+    assets: any[],
+    heirs: any[],
+    overrides?: Record<string, any>,
+): Promise<Uint8Array> => {
+    try {
+        const result = await CAFormService.generate({
+            formId,
+            estate: estateData,
+            assets,
+            heirs,
+            overrides,
+        });
+        return result.pdfBytes;
+    } catch (error: any) {
+        logger.error(`[forms] CA auto-fill failed for ${formId}. Falling back to legacy generator. ${error?.message || error}`);
+        const mergedEstate = { ...estateData, ...(overrides || {}) };
+
+        switch (formId) {
+            case 'DE-111':
+                return DocumentService.generateDE111(mergedEstate);
+            case 'DE-160':
+                return DocumentService.generateDE160(mergedEstate, assets);
+            case 'DE-310': {
+                const total = assets.reduce((sum: number, a: any) => sum + Number(a.inventoryValue || a.value || 0), 0);
+                return DocumentService.generateDE310(mergedEstate, total);
+            }
+            default:
+                throw error;
+        }
+    }
+};
+
 // GET /api/forms/templates - List all form templates from DB
 router.get("/templates", async (req: Request, res: Response) => {
     try {
@@ -253,15 +306,16 @@ router.post("/generate", async (req: any, res: Response) => {
 
         if (isCARegistryForm) {
             const assets = await prisma.asset.findMany({ where: { estateId } });
-            const heirs = estate.heirs || await prisma.heir.findMany({ where: { estateId } });
-            const caResult = await CAFormService.generate({
-                formId: formId as CAFormId,
-                estate: mergedData,
+            const heirs = Array.isArray((estate as any).heirs)
+                ? (estate as any).heirs
+                : await prisma.heir.findMany({ where: { estateId } });
+            pdfBytes = await generateCAWithFallback(
+                formId as CAFormId,
+                mergedData,
                 assets,
                 heirs,
                 overrides,
-            });
-            pdfBytes = caResult.pdfBytes;
+            );
         } else if (specializedGenerators[formId]) {
             pdfBytes = await specializedGenerators[formId](mergedData);
         } else {
@@ -283,12 +337,7 @@ router.post("/generate", async (req: any, res: Response) => {
         }
 
         // Log audit trail
-        await DistributionService.logEvent(
-            estateId,
-            req.user.id,
-            isPreview ? 'VIEWED' : 'PREPARED',
-            `${isPreview ? 'PREVIEWED' : 'PREPARED'} – ${formId} (ProForms page)`
-        );
+        await safeLogFormEvent(estateId, req.user.id, isPreview, `${isPreview ? 'PREVIEWED' : 'PREPARED'} – ${formId} (ProForms page)`);
 
         // Return raw PDF binary so the browser can createObjectURL from it
         res.setHeader("Content-Type", "application/pdf");
@@ -373,29 +422,26 @@ router.post("/ca/generate", async (req: any, res: Response) => {
         if (!estate) return res.status(404).json({ error: "Estate data not found" });
 
         const assets = await prisma.asset.findMany({ where: { estateId } });
-        const heirs = await prisma.heir.findMany({ where: { estateId } });
+        const heirs = Array.isArray((estate as any).heirs)
+            ? (estate as any).heirs
+            : await prisma.heir.findMany({ where: { estateId } });
 
-        const result = await CAFormService.generate({
-            formId: formId as CAFormId,
+        const pdfBytes = await generateCAWithFallback(
+            formId as CAFormId,
             estate,
             assets,
             heirs,
             overrides,
-        });
-
-        await DistributionService.logEvent(
-            estateId,
-            req.user.id,
-            isPreview ? 'VIEWED' : 'PREPARED',
-            `${isPreview ? 'PREVIEWED' : 'PREPARED'} – ${formId} (CA Auto-Fill)`,
         );
+
+        await safeLogFormEvent(estateId, req.user.id, isPreview, `${isPreview ? 'PREVIEWED' : 'PREPARED'} – ${formId} (CA Auto-Fill)`);
 
         res.setHeader("Content-Type", "application/pdf");
         res.setHeader(
             "Content-Disposition",
             `${isPreview ? 'inline' : 'attachment'}; filename="${formId}.pdf"`,
         );
-        res.send(Buffer.from(result.pdfBytes));
+        res.send(Buffer.from(pdfBytes));
     } catch (e: any) {
         logger.error(`Error generating CA form ${req.body?.formId}:`, e.message);
         res.status(500).json({ error: "Failed to generate CA form" });
@@ -484,12 +530,7 @@ router.post("/ny/generate", async (req: any, res: Response) => {
             overrides,
         });
 
-        await DistributionService.logEvent(
-            estateId,
-            req.user.id,
-            isPreview ? 'VIEWED' : 'PREPARED',
-            `${isPreview ? 'PREVIEWED' : 'PREPARED'} – ${formId} (NY Auto-Fill)`,
-        );
+        await safeLogFormEvent(estateId, req.user.id, isPreview, `${isPreview ? 'PREVIEWED' : 'PREPARED'} – ${formId} (NY Auto-Fill)`);
 
         res.setHeader("Content-Type", "application/pdf");
         res.setHeader(
@@ -585,12 +626,7 @@ router.post("/tx/generate", async (req: any, res: Response) => {
             overrides,
         });
 
-        await DistributionService.logEvent(
-            estateId,
-            req.user.id,
-            isPreview ? 'VIEWED' : 'PREPARED',
-            `${isPreview ? 'PREVIEWED' : 'PREPARED'} – ${formId} (TX Auto-Fill)`,
-        );
+        await safeLogFormEvent(estateId, req.user.id, isPreview, `${isPreview ? 'PREVIEWED' : 'PREPARED'} – ${formId} (TX Auto-Fill)`);
 
         res.setHeader("Content-Type", "application/pdf");
         res.setHeader(
@@ -686,12 +722,7 @@ router.post("/fl/generate", async (req: any, res: Response) => {
             overrides,
         });
 
-        await DistributionService.logEvent(
-            estateId,
-            req.user.id,
-            isPreview ? 'VIEWED' : 'PREPARED',
-            `${isPreview ? 'PREVIEWED' : 'PREPARED'} – ${formId} (FL Auto-Fill)`,
-        );
+        await safeLogFormEvent(estateId, req.user.id, isPreview, `${isPreview ? 'PREVIEWED' : 'PREPARED'} – ${formId} (FL Auto-Fill)`);
 
         res.setHeader("Content-Type", "application/pdf");
         res.setHeader(
@@ -787,12 +818,7 @@ router.post("/nj/generate", async (req: any, res: Response) => {
             overrides,
         });
 
-        await DistributionService.logEvent(
-            estateId,
-            req.user.id,
-            isPreview ? 'VIEWED' : 'PREPARED',
-            `${isPreview ? 'PREVIEWED' : 'PREPARED'} – ${formId} (NJ Auto-Fill)`,
-        );
+        await safeLogFormEvent(estateId, req.user.id, isPreview, `${isPreview ? 'PREVIEWED' : 'PREPARED'} – ${formId} (NJ Auto-Fill)`);
 
         res.setHeader("Content-Type", "application/pdf");
         res.setHeader(
@@ -807,4 +833,3 @@ router.post("/nj/generate", async (req: any, res: Response) => {
 });
 
 export default router;
-

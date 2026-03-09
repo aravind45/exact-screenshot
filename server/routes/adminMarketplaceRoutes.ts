@@ -33,16 +33,12 @@ const resolveDisputeSchema = z.object({
   refundAmount: z.number().int().min(0).optional(),
 });
 
-// ─── Routes ──────────────────────────────────────────────────────────────
-
-/** GET /admin/marketplace/advisors - paginated advisor queue */
-router.get("/advisors", async (req: any, res: Response) => {
+const handleGetAdvisors = async (req: any, res: Response) => {
   try {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 20;
     const status = req.query.status as string | undefined;
 
-    // Use the service queue method (all statuses) or filter by status
     if (status) {
       const { prisma } = await import("../db.js");
       const skip = (page - 1) * limit;
@@ -50,9 +46,13 @@ router.get("/advisors", async (req: any, res: Response) => {
       const [advisors, total] = await Promise.all([
         prisma.advisorProfile.findMany({
           where,
-          include: { user: { select: { fullName: true, email: true } }, licenseDocuments: { select: { id: true, documentType: true, status: true, expirationDate: true } } },
+          include: {
+            user: { select: { fullName: true, email: true } },
+            licenseDocuments: { select: { id: true, documentType: true, status: true, expirationDate: true } },
+          },
           orderBy: { updatedAt: "desc" },
-          skip, take: limit,
+          skip,
+          take: limit,
         }),
         prisma.advisorProfile.count({ where }),
       ]);
@@ -65,7 +65,15 @@ router.get("/advisors", async (req: any, res: Response) => {
     logger.error("adminMarketplaceRoutes getAdvisors error:", error.message);
     res.status(500).json({ error: "Failed to fetch advisors" });
   }
-});
+};
+
+// ─── Routes ──────────────────────────────────────────────────────────────
+
+/** GET /admin/marketplace/advisors - paginated advisor queue */
+router.get("/advisors", handleGetAdvisors);
+
+/** GET /admin/marketplace/queue - alias for backwards compatibility */
+router.get("/queue", handleGetAdvisors);
 
 /** GET /admin/marketplace/advisors/:id */
 router.get("/advisors/:id", async (req: any, res: Response) => {
@@ -183,12 +191,32 @@ router.get("/audit-log", async (req: any, res: Response) => {
       action: req.query.action as string | undefined,
       targetType: req.query.targetType as string | undefined,
       adminId: req.query.adminId as string | undefined,
+      targetId: req.query.targetId as string | undefined,
     };
     const result = await AdvisorMarketplaceService.getAuditLog(page, limit, filters);
     res.json(result);
   } catch (error: any) {
     logger.error("adminMarketplaceRoutes auditLog error:", error.message);
     res.status(500).json({ error: "Failed to fetch audit log" });
+  }
+});
+
+/** GET /admin/marketplace/advisors/:id/audit-log - filtered alias */
+router.get("/advisors/:id/audit-log", async (req: any, res: Response) => {
+  try {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 50;
+    const filters = {
+      action: req.query.action as string | undefined,
+      targetType: "ADVISOR",
+      adminId: req.query.adminId as string | undefined,
+      targetId: req.params.id,
+    };
+    const result = await AdvisorMarketplaceService.getAuditLog(page, limit, filters);
+    res.json(result);
+  } catch (error: any) {
+    logger.error("adminMarketplaceRoutes advisorAuditLog error:", error.message);
+    res.status(500).json({ error: "Failed to fetch advisor audit log" });
   }
 });
 

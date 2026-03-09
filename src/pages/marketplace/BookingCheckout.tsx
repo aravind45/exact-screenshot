@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { api } from '@/lib/api';
@@ -22,6 +21,14 @@ interface IntakeForm {
   hasWill: 'yes' | 'no' | '';
   primaryGoals: string;
   urgency: 'ROUTINE' | 'SOON' | 'URGENT' | '';
+}
+
+interface CheckoutRatePlan {
+  id: string;
+  name?: string;
+  serviceName?: string;
+  price?: number;
+  priceCents?: number;
 }
 
 const STEPS = ['Confirm', 'Intake', 'Payment', 'Confirmed'];
@@ -44,6 +51,7 @@ function StepIndicator({ current }: { current: number }) {
     </div>
   );
 }
+
 export default function BookingCheckout() {
   const { advisorId } = useParams<{ advisorId: string }>();
   const [searchParams] = useSearchParams();
@@ -57,54 +65,75 @@ export default function BookingCheckout() {
   const ratePlanId = searchParams.get('ratePlanId');
   const startTime = searchParams.get('startTime');
 
-  const { data: advisor, isLoading } = useQuery({
+  const { data: advisorPayload, isLoading } = useQuery({
     queryKey: ['advisor-checkout', advisorId],
-    queryFn: async () => {
-      const res = await fetch(`/api/marketplace/${advisorId}`, { headers: api.getToken() ? { Authorization: `Bearer ${api.getToken()}` } : {} });
-      if (!res.ok) throw new Error('Not found');
-      return res.json();
-    },
+    queryFn: async () => api.marketplace.getAdvisorProfile(advisorId!),
     enabled: !!advisorId,
   });
 
-  const ratePlan = advisor?.ratePlans?.find((p: any) => p.id === ratePlanId);
-  const displayPrice = ratePlan ? `$${ratePlan.price}` : `$${advisor?.hourlyRate ?? '—'}/hr`;
-  const displayService = ratePlan ? ratePlan.name : 'Consultation';
+  const advisor: any = (advisorPayload as any)?.data ?? advisorPayload ?? null;
+  const advisorName = advisor?.user?.fullName || 'Advisor';
+
+  const ratePlans: CheckoutRatePlan[] = useMemo(() => {
+    if (!Array.isArray(advisor?.ratePlans)) return [];
+    return advisor.ratePlans;
+  }, [advisor]);
+
+  const selectedRatePlan: CheckoutRatePlan | null = useMemo(() => {
+    if (ratePlans.length === 0) return null;
+    if (ratePlanId) {
+      const matched = ratePlans.find((plan) => plan.id === ratePlanId);
+      if (matched) return matched;
+    }
+    return ratePlans[0] ?? null;
+  }, [ratePlanId, ratePlans]);
+
+  const selectedRatePlanId = selectedRatePlan?.id ?? null;
+  const canProceedToIntake = Boolean(selectedRatePlanId && startTime);
+
+  const displayPrice = selectedRatePlan
+    ? `$${Number(selectedRatePlan.price ?? ((selectedRatePlan.priceCents ?? 0) / 100)).toFixed(2)}`
+    : `$${advisor?.hourlyRate ?? '—'}/hr`;
+  const displayService = selectedRatePlan ? (selectedRatePlan.serviceName || selectedRatePlan.name || 'Consultation') : 'Consultation';
   const displayTime = startTime ? format(new Date(startTime), 'EEEE, MMMM d, yyyy h:mm a') : '—';
 
   const bookingMutation = useMutation({
     mutationFn: async () => {
-      const res = await fetch('/api/bookings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...(api.getToken() ? { Authorization: 'Bearer ' + api.getToken() } : {}) },
-        body: JSON.stringify({ advisorId, ratePlanId: ratePlanId ?? undefined, startTime: startTime ?? undefined, intakeData: intake }),
+      if (!advisorId || !selectedRatePlanId || !startTime) {
+        throw new Error('Please go back and select an available time slot before continuing');
+      }
+      return api.marketplace.createBooking({
+        advisorId,
+        ratePlanId: selectedRatePlanId,
+        startTime,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/Chicago',
+        intakeAnswers: intake as unknown as Record<string, string>,
+        idempotencyKey: `${advisorId}:${selectedRatePlanId}:${startTime}`,
       });
-      if (!res.ok) throw new Error('Failed to create booking');
-      return res.json();
     },
-    onSuccess: (data: any) => { setBookingId(data.id); setStep(2); },
+    onSuccess: (data: any) => {
+      setBookingId(data.id);
+      setStep(2);
+    },
   });
 
   const paymentMutation = useMutation({
     mutationFn: async () => {
       if (!bookingId) throw new Error('No booking');
-      const res = await fetch(`/api/bookings/${bookingId}/payment`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...(api.getToken() ? { Authorization: 'Bearer ' + api.getToken() } : {}) },
-        body: JSON.stringify({ paymentData }),
-      });
-      if (!res.ok) throw new Error('Payment failed');
-      return res.json();
+      return api.marketplace.createBookingPaymentIntent(bookingId);
     },
     onSuccess: () => setStep(3),
   });
-  if (isLoading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-10 h-10 animate-spin text-indigo-600" /></div>;
+
+  if (isLoading) {
+    return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-10 h-10 animate-spin text-indigo-600" /></div>;
+  }
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] py-8">
       <div className="max-w-lg mx-auto px-4">
         <h1 className="text-2xl font-black text-slate-900 mb-2 text-center">Book Consultation</h1>
-        <p className="text-slate-500 text-center mb-6 text-sm">{advisor?.user?.fullName}</p>
+        <p className="text-slate-500 text-center mb-6 text-sm">{advisorName}</p>
         <StepIndicator current={step} />
 
         <AnimatePresence mode="wait">
@@ -116,12 +145,25 @@ export default function BookingCheckout() {
                 <CardHeader><CardTitle>Confirm Selection</CardTitle></CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2 bg-slate-50 rounded-lg p-4">
-                    <div className="flex justify-between"><span className="text-sm text-slate-500">Advisor</span><span className="font-medium text-sm">{advisor?.user?.fullName}</span></div>
+                    <div className="flex justify-between"><span className="text-sm text-slate-500">Advisor</span><span className="font-medium text-sm">{advisorName}</span></div>
                     <div className="flex justify-between"><span className="text-sm text-slate-500">Service</span><span className="font-medium text-sm">{displayService}</span></div>
                     <div className="flex justify-between"><span className="text-sm text-slate-500">Date/Time</span><span className="font-medium text-sm">{displayTime}</span></div>
                     <div className="flex justify-between border-t border-slate-200 pt-2 mt-2"><span className="font-semibold">Total</span><span className="font-black text-indigo-600 text-lg">{displayPrice}</span></div>
                   </div>
-                  <Button className="w-full bg-indigo-600 hover:bg-indigo-700" onClick={() => setStep(1)}>Continue <ArrowRight className="w-4 h-4 ml-2" /></Button>
+
+                  {!canProceedToIntake && (
+                    <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-2">
+                      A valid service plan and time slot are required. Go back to the advisor profile and choose an available slot.
+                    </p>
+                  )}
+
+                  <Button
+                    className="w-full bg-indigo-600 hover:bg-indigo-700"
+                    onClick={() => setStep(1)}
+                    disabled={!canProceedToIntake}
+                  >
+                    Continue <ArrowRight className="w-4 h-4 ml-2" />
+                  </Button>
                 </CardContent>
               </Card>
             </motion.div>
@@ -143,7 +185,9 @@ export default function BookingCheckout() {
                 </CardContent>
               </Card>
             </motion.div>
-          )}          {/* STEP 3: Payment */}
+          )}
+
+          {/* STEP 3: Payment */}
           {step === 2 && (
             <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
               <Card className="rounded-xl border-slate-200">
@@ -176,7 +220,7 @@ export default function BookingCheckout() {
                 <CardContent className="pt-10 pb-10 text-center space-y-4">
                   <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center mx-auto"><Check className="w-8 h-8 text-emerald-600" /></div>
                   <h2 className="text-2xl font-black text-slate-900">Booking Confirmed!</h2>
-                  <p className="text-slate-600">Your consultation with <strong>{advisor?.user?.fullName}</strong> has been booked.</p>
+                  <p className="text-slate-600">Your consultation with <strong>{advisorName}</strong> has been booked.</p>
                   {bookingId && <p className="text-xs text-slate-400">Booking ID: {bookingId}</p>}
                   <Button className="bg-indigo-600 hover:bg-indigo-700" onClick={() => navigate('/my-bookings')}>View My Bookings</Button>
                 </CardContent>
@@ -189,3 +233,4 @@ export default function BookingCheckout() {
     </div>
   );
 }
+

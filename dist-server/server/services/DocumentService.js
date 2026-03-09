@@ -44,10 +44,16 @@ async function createTemplateFallbackPdf(formName, estate, reason) {
 export const DocumentService = {
     TEMPLATES_DIR: path.join(process.cwd(), 'server', 'templates'),
     async getTemplateBytes(templateName) {
-        const dbTemplate = await prisma.formTemplate.findUnique({
-            where: { name: templateName }
-        });
-        if (dbTemplate)
+        let dbTemplate = null;
+        try {
+            dbTemplate = await prisma.formTemplate.findUnique({
+                where: { name: templateName }
+            });
+        }
+        catch (error) {
+            logger.warn(`[DocumentService] DB template lookup failed for ${templateName}: ${error?.message || error}. Falling back to filesystem template.`);
+        }
+        if (dbTemplate?.data)
             return Buffer.from(dbTemplate.data);
         const templatePath = path.join(this.TEMPLATES_DIR, templateName.endsWith('.pdf') ? templateName : `${templateName}.pdf`);
         if (fs.existsSync(templatePath))

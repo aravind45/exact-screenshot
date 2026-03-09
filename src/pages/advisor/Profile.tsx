@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
+import { normalizeAdvisorStatus, toStringArray } from '@/lib/advisorData';
 import { toast } from 'sonner';
 import {
     User, Briefcase, MapPin, Languages, Clock, DollarSign,
@@ -34,6 +35,7 @@ export default function AdvisorProfileSettings() {
     const [hourlyRate, setHourlyRate] = useState('');
     const [licenseNumber, setLicenseNumber] = useState('');
     const [profileLoaded, setProfileLoaded] = useState(false);
+    const [profileStatus, setProfileStatus] = useState<string>('DRAFT');
     const [newPlanName, setNewPlanName] = useState('');
     const [newPlanDuration, setNewPlanDuration] = useState('60');
     const [newPlanPrice, setNewPlanPrice] = useState('');
@@ -41,50 +43,79 @@ export default function AdvisorProfileSettings() {
     const [showPlanForm, setShowPlanForm] = useState(false);
     const [availRules, setAvailRules] = useState<Array<{dayOfWeek: number; startTime: string; endTime: string; isActive: boolean;}>>(DAYS.map((_, i) => ({ dayOfWeek: i, startTime: '09:00', endTime: '17:00', isActive: i >= 1 && i <= 5 })));
 
-    const { isLoading: profileLoading } = useQuery({
+    const { data: profileData, isLoading: profileLoading } = useQuery({
         queryKey: ['advisor-profile-me'],
-        queryFn: () => api.advisors.getMe(),
-        onSuccess: (data: any) => {
-            if (data && !profileLoaded) {
-                setBio(data.bio || '');
-                setAdvisorType(data.advisorType || '');
-                setSpecialties(data.specialties || data.expertise || []);
-                setStatesServed(data.statesServed || []);
-                setLanguages(data.languages?.length ? data.languages : ['English']);
-                setHourlyRate(data.hourlyRate ? String(data.hourlyRate) : '');
-                setLicenseNumber(data.licenseNumber || '');
-                setProfileLoaded(true);
-            }
-        }
-    } as any);
+        queryFn: () => api.marketplace.getMyProfile(),
+    });
+
+    useEffect(() => {
+        if (!profileData || profileLoaded) return;
+
+        const specialtyList = toStringArray((profileData as any)?.specialties ?? (profileData as any)?.expertise);
+        const stateList = toStringArray((profileData as any)?.statesServed);
+        const languageList = toStringArray((profileData as any)?.languages);
+
+        setBio((profileData as any)?.bio || '');
+        setAdvisorType((profileData as any)?.advisorType || '');
+        setSpecialties(specialtyList);
+        setStatesServed(stateList);
+        setLanguages(languageList.length > 0 ? languageList : ['English']);
+        setHourlyRate((profileData as any)?.hourlyRate ? String((profileData as any).hourlyRate) : '');
+        setLicenseNumber((profileData as any)?.licenseNumber || '');
+        setProfileStatus(normalizeAdvisorStatus((profileData as any)?.status || (profileData as any)?.verificationStatus));
+        setProfileLoaded(true);
+    }, [profileData, profileLoaded]);
 
     const { data: ratePlans = [], isLoading: plansLoading } = useQuery({
         queryKey: ['advisor-rate-plans'],
         queryFn: () => api.marketplace.getRatePlans(),
     });
 
-    const { isLoading: rulesLoading } = useQuery({
+    const { data: availabilityRules, isLoading: rulesLoading } = useQuery({
         queryKey: ['advisor-avail-rules'],
         queryFn: () => api.marketplace.getAvailabilityRules(),
-        onSuccess: (data: any) => {
-            if (Array.isArray(data) && data.length > 0) {
-                setAvailRules(DAYS.map((_, i) => {
-                    const existing = data.find((r: any) => r.dayOfWeek === i);
-                    return existing ? { dayOfWeek: i, startTime: existing.startTime, endTime: existing.endTime, isActive: existing.isActive !== false } : { dayOfWeek: i, startTime: '09:00', endTime: '17:00', isActive: i >= 1 && i <= 5 };
-                }));
-            }
-        }
-    } as any);
+    });
+
+    useEffect(() => {
+        if (!Array.isArray(availabilityRules) || availabilityRules.length === 0) return;
+
+        setAvailRules(DAYS.map((_, i) => {
+            const existing = availabilityRules.find((rule: any) => Number(rule?.dayOfWeek) === i);
+            return existing
+                ? {
+                    dayOfWeek: i,
+                    startTime: String(existing.startTime || '09:00'),
+                    endTime: String(existing.endTime || '17:00'),
+                    isActive: existing.isActive !== false,
+                }
+                : { dayOfWeek: i, startTime: '09:00', endTime: '17:00', isActive: i >= 1 && i <= 5 };
+        }));
+    }, [availabilityRules]);
 
     const saveExtendedMutation = useMutation({
-        mutationFn: () => {
-            const body: any = { bio, advisorType, specialties, statesServed, languages, hourlyRate: hourlyRate ? parseFloat(hourlyRate) : undefined, licenseNumber };
-            return fetch('/api/advisor/profile', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${api.getToken()}` }, body: JSON.stringify(body) }).then(r => r.json());
-        },
+        mutationFn: () => api.marketplace.upsertMyProfile({
+            bio,
+            advisorType: advisorType || undefined,
+            specialties,
+            statesServed,
+            languages,
+            hourlyRate: hourlyRate ? parseFloat(hourlyRate) : undefined,
+            licenseNumber: licenseNumber || undefined,
+        }),
         onSuccess: () => { toast.success('Profile saved successfully'); queryClient.invalidateQueries({ queryKey: ['advisor-profile-me'] }); },
         onError: (e: any) => toast.error(e.message || 'Failed to save profile'),
     });
 
+
+    const submitReviewMutation = useMutation({
+        mutationFn: () => api.marketplace.submitForReview(),
+        onSuccess: () => {
+            toast.success('Profile submitted for admin review');
+            setProfileStatus('PENDING_REVIEW');
+            queryClient.invalidateQueries({ queryKey: ['advisor-profile-me'] });
+        },
+        onError: (e: any) => toast.error(e.message || 'Failed to submit profile for review'),
+    });
     const createPlanMutation = useMutation({
         mutationFn: () => api.marketplace.createRatePlan({ label: newPlanName, durationMinutes: parseInt(newPlanDuration), amountCents: Math.round(parseFloat(newPlanPrice) * 100), description: newPlanDesc }),
         onSuccess: () => { toast.success('Rate plan created'); setNewPlanName(''); setNewPlanDuration('60'); setNewPlanPrice(''); setNewPlanDesc(''); setShowPlanForm(false); queryClient.invalidateQueries({ queryKey: ['advisor-rate-plans'] }); },
@@ -115,9 +146,22 @@ export default function AdvisorProfileSettings() {
                     <h1 className="text-lg font-semibold text-slate-800">Profile Settings</h1>
                     <p className="text-xs text-slate-500">Manage your public advisor profile, rates, and availability.</p>
                 </div>
-                <Button onClick={() => saveExtendedMutation.mutate()} disabled={saveExtendedMutation.isPending} className="h-7 px-3 text-xs">
-                    {saveExtendedMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin mr-1.5" /> : <Save className="w-3 h-3 mr-1.5" />}Save
-                </Button>
+                <div className="flex items-center gap-2">
+                    {profileStatus !== 'APPROVED' && profileStatus !== 'PENDING_REVIEW' && (
+                        <Button
+                            variant="outline"
+                            onClick={() => submitReviewMutation.mutate()}
+                            disabled={submitReviewMutation.isPending}
+                            className="h-7 px-3 text-xs"
+                        >
+                            {submitReviewMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin mr-1.5" /> : <CheckCircle2 className="w-3 h-3 mr-1.5" />}
+                            Submit For Review
+                        </Button>
+                    )}
+                    <Button onClick={() => saveExtendedMutation.mutate()} disabled={saveExtendedMutation.isPending} className="h-7 px-3 text-xs">
+                        {saveExtendedMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin mr-1.5" /> : <Save className="w-3 h-3 mr-1.5" />}Save
+                    </Button>
+                </div>
             </div>
 
             <Tabs defaultValue="profile">
@@ -275,3 +319,6 @@ export default function AdvisorProfileSettings() {
         </div>
     );
 }
+
+
+

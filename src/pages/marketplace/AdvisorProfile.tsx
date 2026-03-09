@@ -9,13 +9,14 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { api } from '@/lib/api';
+import { normalizeAdvisorStatus, toStringArray } from '@/lib/advisorData';
 import { cn } from '@/lib/utils';
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday, isPast, startOfDay } from 'date-fns';
 
 type AdvisorType = 'ATTORNEY' | 'CPA' | 'PARALEGAL' | 'COACH';
 type Specialty = 'PROBATE' | 'ESTATE_TAX' | 'TRUST_ADMIN' | 'DOCUMENT_REVIEW' | 'LITIGATION' | 'TAX_PLANNING';
 
-interface RatePlan { id: string; name: string; durationMinutes: number; price: number; }
+interface RatePlan { id: string; name?: string; serviceName?: string; durationMinutes: number; price?: number; priceCents?: number; }
 interface Review { id: string; rating: number; comment?: string; createdAt: string; user: { fullName: string }; }
 interface AdvisorProfile {
   id: string; bio: string; advisorType: AdvisorType; specialties: Specialty[];
@@ -59,15 +60,10 @@ function AvailabilityCalendar({ advisorId, ratePlan, onSlotSelect }: { advisorId
   const dayOfWeek = monthStart.getDay();
 
   const { data: slots, isLoading: slotsLoading } = useQuery<string[]>({
-    queryKey: ['advisor-slots', advisorId, selectedDate?.toISOString(), ratePlan?.durationMinutes],
+    queryKey: ['advisor-slots', advisorId, selectedDate?.toISOString(), ratePlan?.id],
     queryFn: async () => {
       if (!selectedDate || !ratePlan) return [];
-      const url = new URL(`/api/marketplace/${advisorId}/slots`, window.location.origin);
-      url.searchParams.set('date', format(selectedDate, 'yyyy-MM-dd'));
-      url.searchParams.set('duration', String(ratePlan.durationMinutes));
-      const res = await fetch(url.toString(), { headers: api.getToken() ? { Authorization: `Bearer ${api.getToken()}` } : {} });
-      if (!res.ok) return [];
-      return res.json();
+      return api.marketplace.getSlots(advisorId, format(selectedDate, 'yyyy-MM-dd'), ratePlan.id);
     },
     enabled: !!selectedDate && !!ratePlan,
   });
@@ -118,22 +114,49 @@ export default function AdvisorProfile() {
   const { data: advisor, isLoading, isError } = useQuery<AdvisorProfile>({
     queryKey: ['advisor-profile', advisorId],
     queryFn: async () => {
-      const res = await fetch(`/api/marketplace/${advisorId}`, { headers: api.getToken() ? { Authorization: `Bearer ${api.getToken()}` } : {} });
-      if (!res.ok) throw new Error('Failed to load advisor');
-      return res.json();
+      const payload = await api.marketplace.getAdvisorProfile(advisorId!);
+      const source = ((payload as any)?.data ?? payload ?? {}) as any;
+      const user = source?.user ?? {};
+
+      return {
+        id: source?.id || '',
+        bio: source?.bio || '',
+        advisorType: source?.advisorType || 'ATTORNEY',
+        specialties: toStringArray(source?.specialties ?? source?.expertise),
+        statesServed: toStringArray(source?.statesServed),
+        languages: toStringArray(source?.languages),
+        hourlyRate: Number(source?.hourlyRate || 0),
+        averageRating: Number(source?.averageRating ?? source?.avgRating ?? 0),
+        totalReviews: Number(source?.totalReviews || 0),
+        verificationStatus: normalizeAdvisorStatus(source?.verificationStatus || source?.status),
+        user: {
+          fullName: user?.fullName || 'Unknown Advisor',
+          email: user?.email || '',
+        },
+        profileImage: source?.profileImage,
+        ratePlans: Array.isArray(source?.ratePlans) ? source.ratePlans : [],
+      } as AdvisorProfile;
     },
+    enabled: !!advisorId,
   });
 
   const { data: reviews } = useQuery<Review[]>({
     queryKey: ['advisor-reviews', advisorId],
-    queryFn: () => api.reviews.getAdvisorReviews(advisorId!),
+    queryFn: async () => {
+      const payload = await api.reviews.getAdvisorReviews(advisorId!);
+      if (Array.isArray(payload)) return payload;
+      if (Array.isArray((payload as any)?.reviews)) return (payload as any).reviews;
+      if (Array.isArray((payload as any)?.data)) return (payload as any).data;
+      if (Array.isArray((payload as any)?.data?.reviews)) return (payload as any).data.reviews;
+      return [];
+    },
     enabled: !!advisorId,
   });
 
   if (isLoading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-10 h-10 animate-spin text-indigo-600" /></div>;
   if (isError || !advisor) return <div className="min-h-screen flex items-center justify-center"><p className="text-red-600">Advisor not found.</p></div>;
 
-  const ratePlans: RatePlan[] = advisor.ratePlans ?? [];
+  const ratePlans: RatePlan[] = Array.isArray(advisor.ratePlans) ? advisor.ratePlans : [];
   const initials = advisor.user.fullName.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2);
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
@@ -179,10 +202,10 @@ export default function AdvisorProfile() {
                     {ratePlans.map(plan => (
                       <div key={plan.id} className={cn('flex items-center justify-between p-4 rounded-xl border transition-colors cursor-pointer', selectedRatePlan?.id === plan.id ? 'border-indigo-500 bg-indigo-50' : 'border-slate-200 hover:border-indigo-200')} onClick={() => setSelectedRatePlan(plan)}>
                         <div>
-                          <p className="font-semibold text-slate-800">{plan.name}</p>
+                          <p className="font-semibold text-slate-800">{plan.serviceName || plan.name || 'Consultation'}</p>
                           <p className="text-sm text-slate-500 flex items-center gap-1"><Clock className="w-3.5 h-3.5" />{plan.durationMinutes} min</p>
                         </div>
-                        <div className="text-right"><p className="text-lg font-black text-indigo-600">${plan.price}</p><Button size="sm" className="mt-1 bg-indigo-600 hover:bg-indigo-700" onClick={e => { e.stopPropagation(); setSelectedRatePlan(plan); }}>Select</Button></div>
+                        <div className="text-right"><p className="text-lg font-black text-indigo-600">${(plan.price ?? ((plan.priceCents ?? 0) / 100)).toFixed(2)}</p><Button size="sm" className="mt-1 bg-indigo-600 hover:bg-indigo-700" onClick={e => { e.stopPropagation(); setSelectedRatePlan(plan); }}>Select</Button></div>
                       </div>
                     ))}
                   </div>
@@ -228,7 +251,9 @@ export default function AdvisorProfile() {
                   </div>
                 )}
                 {ratePlans.length === 0 && (
-                  <Button className="w-full bg-indigo-600 hover:bg-indigo-700" onClick={() => navigate(`/marketplace/${advisorId}/book`)}>Book Now</Button>
+                  <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs text-slate-500">
+                    This advisor has not published a bookable service plan yet.
+                  </div>
                 )}
               </CardContent>
             </Card>
@@ -238,3 +263,5 @@ export default function AdvisorProfile() {
     </div>
   );
 }
+
+

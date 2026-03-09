@@ -51,16 +51,16 @@ const BookingForm = ({ advisor, onClose, user }: { advisor: any; onClose: () => 
 
     const hourlyRate = Number(advisor.hourlyRate);
     const totalAmount = hourlyRate * Number(duration);
-    const platformFee = totalAmount * 0.20;
-    const grandTotal = totalAmount; // In our model, totalAmount already includes everything or is the final price
+        const grandTotal = totalAmount; // In our model, totalAmount already includes everything or is the final price
 
     useEffect(() => {
         const fetchEstates = async () => {
             try {
                 const response = await api.estates.list();
-                setEstates(response || []);
-                if (response?.length > 0) {
-                    setSelectedEstate(response[0].id);
+                const estateList = Array.isArray(response) ? response : Array.isArray((response as any)?.data) ? (response as any).data : [];
+                setEstates(estateList);
+                if (estateList.length > 0) {
+                    setSelectedEstate(estateList[0].id);
                 }
             } catch (error) {
                 console.error('Error fetching estates:', error);
@@ -87,7 +87,7 @@ const BookingForm = ({ advisor, onClose, user }: { advisor: any; onClose: () => 
             // 1. Create booking
             const booking = await api.bookings.create({
                 advisorId: advisor.id,
-                estateId: selectedEstate || undefined,
+                estateId: selectedEstate && selectedEstate !== "none" ? selectedEstate : undefined,
                 sessionDuration: Number(duration),
                 sessionDate: date.toISOString(),
             });
@@ -205,7 +205,7 @@ const BookingForm = ({ advisor, onClose, user }: { advisor: any; onClose: () => 
             ) : (
                 <form onSubmit={handleSubmitPayment} className="space-y-4">
                     <div className="bg-muted p-4 rounded-lg mb-4 text-sm space-y-1">
-                        <p><strong>Advisor:</strong> {advisor.user.fullName}</p>
+                        <p><strong>Advisor:</strong> {advisor?.user?.fullName || "Advisor"}</p>
                         <p><strong>Date:</strong> {date ? format(date, "PPP") : ''}</p>
                         <p><strong>Duration:</strong> {duration} Hours</p>
                         <p className="pt-1 font-bold"><strong>Amount to Pay:</strong> ${grandTotal.toFixed(2)}</p>
@@ -259,7 +259,7 @@ const BookingForm = ({ advisor, onClose, user }: { advisor: any; onClose: () => 
                     </div>
 
                     <p className="text-[10px] text-center text-muted-foreground">
-                        Your payment is secure. Funds will be held in escrow until the session is completed or for 90 days.
+                        Your payment is secure. Funds will be held in escrow until the session is completed or for 7 days.
                     </p>
                 </form>
             )}
@@ -276,7 +276,7 @@ export function BookingModal({ isOpen, onClose, advisor, user }: BookingModalPro
                 <DialogHeader>
                     <DialogTitle>Book a Consultation</DialogTitle>
                     <DialogDescription>
-                        Schedule a session with {advisor.user.fullName}.
+                        Schedule a session with {advisor?.user?.fullName || "Advisor"}.
                     </DialogDescription>
                 </DialogHeader>
                 <Elements stripe={stripePromise}>
@@ -286,3 +286,4 @@ export function BookingModal({ isOpen, onClose, advisor, user }: BookingModalPro
         </Dialog>
     );
 }
+

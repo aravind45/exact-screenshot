@@ -64,11 +64,16 @@ export const DocumentService = {
     TEMPLATES_DIR: path.join(process.cwd(), 'server', 'templates'),
 
     async getTemplateBytes(templateName: string): Promise<Buffer | null> {
-        const dbTemplate = await prisma.formTemplate.findUnique({
-            where: { name: templateName }
-        });
+        let dbTemplate: { data: Buffer | Uint8Array } | null = null;
+        try {
+            dbTemplate = await prisma.formTemplate.findUnique({
+                where: { name: templateName }
+            }) as any;
+        } catch (error: any) {
+            logger.warn(`[DocumentService] DB template lookup failed for ${templateName}: ${error?.message || error}. Falling back to filesystem template.`);
+        }
 
-        if (dbTemplate) return Buffer.from(dbTemplate.data);
+        if (dbTemplate?.data) return Buffer.from(dbTemplate.data);
 
         const templatePath = path.join(this.TEMPLATES_DIR, templateName.endsWith('.pdf') ? templateName : `${templateName}.pdf`);
         if (fs.existsSync(templatePath)) return fs.readFileSync(templatePath);
@@ -2110,4 +2115,3 @@ function safeSetCheckbox(form: any, name: string, checked: boolean) {
         logger.warn(`[DocumentService] Could not set checkbox for field "${name}": ${e.message}`);
     }
 }
-

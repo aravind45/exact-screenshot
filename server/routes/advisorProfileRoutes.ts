@@ -71,10 +71,27 @@ const recordDocumentSchema = z.object({
   expirationDate: z.string().datetime().optional(),
 });
 
-// ─── Routes ──────────────────────────────────────────────────────────────
+const normalizeRatePlanInput = (body: any) => ({
+  ...body,
+  serviceName: body?.serviceName ?? body?.label,
+  priceCents: body?.priceCents ?? body?.amountCents,
+});
 
-/** GET /advisor/me */
-router.get("/me", async (req: any, res: Response) => {
+const normalizeExceptionInput = (body: any) => ({
+  ...body,
+  isBlackout: body?.isBlackout ?? body?.isBlocked,
+});
+
+const normalizeDocumentInput = (body: any) => ({
+  ...body,
+  fileName: body?.fileName ?? body?.storageKey ?? "license-document",
+  mimeType: body?.mimeType ?? "application/octet-stream",
+  expirationDate: body?.expirationDate ?? body?.expiresAt,
+});
+
+// ─── Route handlers (canonical + backwards-compatible aliases) ─────────
+
+const handleGetProfile = async (req: any, res: Response) => {
   try {
     const profile = await AdvisorMarketplaceService.getProfile(req.user.id);
     res.json(profile ?? null);
@@ -82,10 +99,9 @@ router.get("/me", async (req: any, res: Response) => {
     logger.error("advisorProfileRoutes getProfile error:", error.message);
     res.status(500).json({ error: "Failed to fetch advisor profile" });
   }
-});
+};
 
-/** POST /advisor/profile */
-router.post("/profile", async (req: any, res: Response) => {
+const handleUpsertProfile = async (req: any, res: Response) => {
   try {
     const data = upsertProfileSchema.parse(req.body);
     const profile = await AdvisorMarketplaceService.upsertProfile(req.user.id, data);
@@ -97,10 +113,9 @@ router.post("/profile", async (req: any, res: Response) => {
     logger.error("advisorProfileRoutes upsertProfile error:", error.message);
     res.status(500).json({ error: "Failed to update profile" });
   }
-});
+};
 
-/** POST /advisor/submit-review */
-router.post("/submit-review", async (req: any, res: Response) => {
+const handleSubmitForReview = async (req: any, res: Response) => {
   try {
     const profile = await AdvisorMarketplaceService.submitForReview(req.user.id);
     res.json(profile);
@@ -108,10 +123,9 @@ router.post("/submit-review", async (req: any, res: Response) => {
     logger.error("advisorProfileRoutes submitForReview error:", error.message);
     res.status(400).json({ error: error.message || "Failed to submit for review" });
   }
-});
+};
 
-/** GET /advisor/rates */
-router.get("/rates", async (req: any, res: Response) => {
+const handleGetRatePlans = async (req: any, res: Response) => {
   try {
     const plans = await AdvisorMarketplaceService.getRatePlans(req.user.id);
     res.json(plans);
@@ -119,12 +133,19 @@ router.get("/rates", async (req: any, res: Response) => {
     logger.error("advisorProfileRoutes getRatePlans error:", error.message);
     res.status(500).json({ error: "Failed to fetch rate plans" });
   }
-});
+};
 
-/** POST /advisor/rates */
-router.post("/rates", async (req: any, res: Response) => {
+const handleCreateRatePlan = async (req: any, res: Response) => {
   try {
-    const data = createRatePlanSchema.parse(req.body) as { serviceName: string; durationMinutes: number; priceCents: number; currency?: string; description?: string; sortOrder?: number; };
+    const normalized = normalizeRatePlanInput(req.body);
+    const data = createRatePlanSchema.parse(normalized) as {
+      serviceName: string;
+      durationMinutes: number;
+      priceCents: number;
+      currency?: string;
+      description?: string;
+      sortOrder?: number;
+    };
     const plan = await AdvisorMarketplaceService.createRatePlan(req.user.id, data);
     res.status(201).json(plan);
   } catch (error: any) {
@@ -134,12 +155,12 @@ router.post("/rates", async (req: any, res: Response) => {
     logger.error("advisorProfileRoutes createRatePlan error:", error.message);
     res.status(400).json({ error: error.message || "Failed to create rate plan" });
   }
-});
+};
 
-/** PUT /advisor/rates/:id */
-router.put("/rates/:id", async (req: any, res: Response) => {
+const handleUpdateRatePlan = async (req: any, res: Response) => {
   try {
-    const data = updateRatePlanSchema.parse(req.body);
+    const normalized = normalizeRatePlanInput(req.body);
+    const data = updateRatePlanSchema.parse(normalized);
     const plan = await AdvisorMarketplaceService.updateRatePlan(req.user.id, req.params.id, data);
     res.json(plan);
   } catch (error: any) {
@@ -149,10 +170,9 @@ router.put("/rates/:id", async (req: any, res: Response) => {
     logger.error("advisorProfileRoutes updateRatePlan error:", error.message);
     res.status(400).json({ error: error.message || "Failed to update rate plan" });
   }
-});
+};
 
-/** DELETE /advisor/rates/:id */
-router.delete("/rates/:id", async (req: any, res: Response) => {
+const handleDeleteRatePlan = async (req: any, res: Response) => {
   try {
     await AdvisorMarketplaceService.deleteRatePlan(req.user.id, req.params.id);
     res.json({ success: true });
@@ -160,10 +180,9 @@ router.delete("/rates/:id", async (req: any, res: Response) => {
     logger.error("advisorProfileRoutes deleteRatePlan error:", error.message);
     res.status(400).json({ error: error.message || "Failed to delete rate plan" });
   }
-});
+};
 
-/** GET /advisor/availability/rules */
-router.get("/availability/rules", async (req: any, res: Response) => {
+const handleGetAvailabilityRules = async (req: any, res: Response) => {
   try {
     const rules = await AdvisorMarketplaceService.getAvailabilityRules(req.user.id);
     res.json(rules);
@@ -171,13 +190,15 @@ router.get("/availability/rules", async (req: any, res: Response) => {
     logger.error("advisorProfileRoutes getAvailabilityRules error:", error.message);
     res.status(500).json({ error: "Failed to fetch availability rules" });
   }
-});
+};
 
-/** PUT /advisor/availability/rules */
-router.put("/availability/rules", async (req: any, res: Response) => {
+const handleSetAvailabilityRules = async (req: any, res: Response) => {
   try {
     const { rules } = setRulesSchema.parse(req.body);
-    const result = await AdvisorMarketplaceService.setAvailabilityRules(req.user.id, rules as { dayOfWeek: number; startTime: string; endTime: string; isActive?: boolean; }[]);
+    const result = await AdvisorMarketplaceService.setAvailabilityRules(
+      req.user.id,
+      rules as { dayOfWeek: number; startTime: string; endTime: string; isActive?: boolean }[]
+    );
     res.json(result);
   } catch (error: any) {
     if (error instanceof z.ZodError) {
@@ -186,10 +207,9 @@ router.put("/availability/rules", async (req: any, res: Response) => {
     logger.error("advisorProfileRoutes setAvailabilityRules error:", error.message);
     res.status(400).json({ error: error.message || "Failed to set availability rules" });
   }
-});
+};
 
-/** GET /advisor/availability/exceptions */
-router.get("/availability/exceptions", async (req: any, res: Response) => {
+const handleGetAvailabilityExceptions = async (req: any, res: Response) => {
   try {
     const exceptions = await AdvisorMarketplaceService.getAvailabilityExceptions(req.user.id);
     res.json(exceptions);
@@ -197,12 +217,12 @@ router.get("/availability/exceptions", async (req: any, res: Response) => {
     logger.error("advisorProfileRoutes getAvailabilityExceptions error:", error.message);
     res.status(500).json({ error: "Failed to fetch availability exceptions" });
   }
-});
+};
 
-/** POST /advisor/availability/exceptions */
-router.post("/availability/exceptions", async (req: any, res: Response) => {
+const handleCreateAvailabilityException = async (req: any, res: Response) => {
   try {
-    const data = createExceptionSchema.parse(req.body);
+    const normalized = normalizeExceptionInput(req.body);
+    const data = createExceptionSchema.parse(normalized);
     const exception = await AdvisorMarketplaceService.createAvailabilityException(req.user.id, {
       date: new Date(data.date),
       isBlackout: data.isBlackout,
@@ -218,10 +238,9 @@ router.post("/availability/exceptions", async (req: any, res: Response) => {
     logger.error("advisorProfileRoutes createAvailabilityException error:", error.message);
     res.status(400).json({ error: error.message || "Failed to create exception" });
   }
-});
+};
 
-/** DELETE /advisor/availability/exceptions/:id */
-router.delete("/availability/exceptions/:id", async (req: any, res: Response) => {
+const handleDeleteAvailabilityException = async (req: any, res: Response) => {
   try {
     await AdvisorMarketplaceService.deleteAvailabilityException(req.user.id, req.params.id);
     res.json({ success: true });
@@ -229,10 +248,9 @@ router.delete("/availability/exceptions/:id", async (req: any, res: Response) =>
     logger.error("advisorProfileRoutes deleteAvailabilityException error:", error.message);
     res.status(400).json({ error: error.message || "Failed to delete exception" });
   }
-});
+};
 
-/** GET /advisor/documents */
-router.get("/documents", async (req: any, res: Response) => {
+const handleGetDocuments = async (req: any, res: Response) => {
   try {
     const docs = await AdvisorMarketplaceService.getLicenseDocuments(req.user.id);
     res.json(docs);
@@ -240,12 +258,12 @@ router.get("/documents", async (req: any, res: Response) => {
     logger.error("advisorProfileRoutes getLicenseDocuments error:", error.message);
     res.status(500).json({ error: "Failed to fetch documents" });
   }
-});
+};
 
-/** POST /advisor/documents */
-router.post("/documents", async (req: any, res: Response) => {
+const handleCreateDocument = async (req: any, res: Response) => {
   try {
-    const data = recordDocumentSchema.parse(req.body);
+    const normalized = normalizeDocumentInput(req.body);
+    const data = recordDocumentSchema.parse(normalized);
     const doc = await AdvisorMarketplaceService.recordLicenseDocument(req.user.id, {
       documentType: data.documentType,
       storageKey: data.storageKey,
@@ -264,10 +282,9 @@ router.post("/documents", async (req: any, res: Response) => {
     logger.error("advisorProfileRoutes recordLicenseDocument error:", error.message);
     res.status(400).json({ error: error.message || "Failed to record document" });
   }
-});
+};
 
-/** DELETE /advisor/documents/:id */
-router.delete("/documents/:id", async (req: any, res: Response) => {
+const handleDeleteDocument = async (req: any, res: Response) => {
   try {
     await AdvisorMarketplaceService.deleteLicenseDocument(req.user.id, req.params.id);
     res.json({ success: true });
@@ -275,7 +292,40 @@ router.delete("/documents/:id", async (req: any, res: Response) => {
     logger.error("advisorProfileRoutes deleteLicenseDocument error:", error.message);
     res.status(400).json({ error: error.message || "Failed to delete document" });
   }
-});
+};
+
+// ─── Canonical Routes + backwards-compatible aliases ───────────────────
+
+router.get("/me", handleGetProfile);
+router.get("/profile", handleGetProfile);
+
+router.post("/profile", handleUpsertProfile);
+router.put("/profile", handleUpsertProfile);
+
+router.post("/submit-review", handleSubmitForReview);
+router.post("/profile/submit", handleSubmitForReview);
+
+router.get("/rates", handleGetRatePlans);
+router.get("/rate-plans", handleGetRatePlans);
+router.post("/rates", handleCreateRatePlan);
+router.post("/rate-plans", handleCreateRatePlan);
+router.put("/rates/:id", handleUpdateRatePlan);
+router.patch("/rate-plans/:id", handleUpdateRatePlan);
+router.delete("/rates/:id", handleDeleteRatePlan);
+router.delete("/rate-plans/:id", handleDeleteRatePlan);
+
+router.get("/availability/rules", handleGetAvailabilityRules);
+router.put("/availability/rules", handleSetAvailabilityRules);
+router.get("/availability/exceptions", handleGetAvailabilityExceptions);
+router.post("/availability/exceptions", handleCreateAvailabilityException);
+router.delete("/availability/exceptions/:id", handleDeleteAvailabilityException);
+
+router.get("/documents", handleGetDocuments);
+router.get("/license-documents", handleGetDocuments);
+router.post("/documents", handleCreateDocument);
+router.post("/license-documents", handleCreateDocument);
+router.delete("/documents/:id", handleDeleteDocument);
+router.delete("/license-documents/:id", handleDeleteDocument);
 
 /** GET /advisor/earnings */
 router.get("/earnings", async (req: any, res: Response) => {
@@ -294,31 +344,43 @@ router.get("/dashboard", async (req: any, res: Response) => {
     const { prisma } = await import("../db.js");
     const profile = await prisma.advisorProfile.findUnique({ where: { userId: req.user.id } });
     if (!profile) return res.status(404).json({ error: "Advisor profile not found" });
+
     const now = new Date();
-    const [totalBookings, pendingBookings, confirmedBookings, completedBookings, upcomingBookings, earningsAgg, pendingAgg] =
-      await Promise.all([
-        prisma.booking.count({ where: { advisorId: profile.id } }),
-        prisma.booking.count({ where: { advisorId: profile.id, status: "REQUESTED" } }),
-        prisma.booking.count({ where: { advisorId: profile.id, status: "CONFIRMED" } }),
-        prisma.booking.count({ where: { advisorId: profile.id, status: "COMPLETED" } }),
-        prisma.booking.findMany({
-          where: { advisorId: profile.id, status: "CONFIRMED", startTime: { gte: now } },
-          orderBy: { startTime: "asc" },
-          take: 10,
-          include: {
-            user: { select: { fullName: true, email: true } },
-            ratePlan: { select: { serviceName: true, durationMinutes: true } },
-          },
-        }),
-        prisma.booking.aggregate({ where: { advisorId: profile.id, status: "COMPLETED" }, _sum: { advisorPayout: true } }),
-        prisma.booking.aggregate({
-          where: { advisorId: profile.id, status: { in: ["CONFIRMED", "COMPLETED"] }, payoutStatus: { not: "PAID" } },
-          _sum: { advisorPayout: true },
-        }),
-      ]);
+    const [
+      totalBookings,
+      pendingBookings,
+      confirmedBookings,
+      completedBookings,
+      upcomingBookings,
+      earningsAgg,
+      pendingAgg,
+    ] = await Promise.all([
+      prisma.booking.count({ where: { advisorId: profile.id } }),
+      prisma.booking.count({ where: { advisorId: profile.id, status: "REQUESTED" } }),
+      prisma.booking.count({ where: { advisorId: profile.id, status: "CONFIRMED" } }),
+      prisma.booking.count({ where: { advisorId: profile.id, status: "COMPLETED" } }),
+      prisma.booking.findMany({
+        where: { advisorId: profile.id, status: "CONFIRMED", startTime: { gte: now } },
+        orderBy: { startTime: "asc" },
+        take: 10,
+        include: {
+          user: { select: { fullName: true, email: true } },
+          ratePlan: { select: { serviceName: true, durationMinutes: true } },
+        },
+      }),
+      prisma.booking.aggregate({ where: { advisorId: profile.id, status: "COMPLETED" }, _sum: { advisorPayout: true } }),
+      prisma.booking.aggregate({
+        where: { advisorId: profile.id, status: { in: ["CONFIRMED", "COMPLETED"] }, payoutStatus: { not: "PAID" } },
+        _sum: { advisorPayout: true },
+      }),
+    ]);
+
     res.json({
       stats: {
-        totalBookings, pendingBookings, confirmedBookings, completedBookings,
+        totalBookings,
+        pendingBookings,
+        confirmedBookings,
+        completedBookings,
         totalEarnings: Number(earningsAgg._sum.advisorPayout ?? 0),
         pendingEarnings: Number(pendingAgg._sum.advisorPayout ?? 0),
         avgRating: profile.avgRating,
@@ -338,6 +400,7 @@ router.get("/bookings", async (req: any, res: Response) => {
     const { prisma } = await import("../db.js");
     const profile = await prisma.advisorProfile.findUnique({ where: { userId: req.user.id } });
     if (!profile) return res.status(404).json({ error: "Advisor profile not found" });
+
     const bookings = await prisma.booking.findMany({
       where: { advisorId: profile.id },
       include: {
@@ -348,6 +411,7 @@ router.get("/bookings", async (req: any, res: Response) => {
       },
       orderBy: { createdAt: "desc" },
     });
+
     res.json(bookings);
   } catch (error: any) {
     logger.error("advisorProfileRoutes getBookings error:", error.message);

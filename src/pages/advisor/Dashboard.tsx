@@ -16,11 +16,18 @@ export default function AdvisorDashboard() {
     useEffect(() => {
         const fetchDashboard = async () => {
             try {
-                // Use the dedicated advisor/dashboard/stats via api service
                 const data = await api.advisors.getDashboardStats();
                 if (data) {
-                    setStats(data.stats);
-                    setUpcomingSessions(data.upcomingSessions || []);
+                    setStats(data?.stats ?? data);
+                    const rawUpcoming = Array.isArray(data?.upcomingSessions)
+                        ? data.upcomingSessions
+                        : Array.isArray(data?.upcomingBookings)
+                            ? data.upcomingBookings
+                            : [];
+                    setUpcomingSessions(rawUpcoming.map((session: any) => ({
+                        ...session,
+                        sessionDate: session?.sessionDate || session?.startTime,
+                    })));
                 }
             } catch (error) {
                 console.error("Failed to fetch dashboard stats", error);
@@ -127,16 +134,16 @@ export default function AdvisorDashboard() {
                                     <CardContent className="p-6 flex items-center justify-between">
                                         <div className="flex items-center gap-4">
                                             <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-lg">
-                                                {new Date(session.sessionDate).getDate()}
+                                                {session?.sessionDate ? new Date(session.sessionDate).getDate() : "-"}
                                             </div>
                                             <div>
-                                                <h3 className="font-bold text-slate-900">{session.user.fullName}</h3>
-                                                <p className="text-sm text-slate-500">{session.estate.name}</p>
+                                                <h3 className="font-bold text-slate-900">{session?.user?.fullName || "Client"}</h3>
+                                                <p className="text-sm text-slate-500">{session?.estate?.name || "Estate"}</p>
                                             </div>
                                         </div>
                                         <div className="text-right">
                                             <div className="font-medium text-slate-900">
-                                                {new Date(session.sessionDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                {session?.sessionDate ? new Date(session.sessionDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'TBD'}
                                             </div>
                                             <Button size="sm" className="mt-2 h-8">Join Call</Button>
                                         </div>

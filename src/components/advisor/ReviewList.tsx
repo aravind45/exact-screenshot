@@ -6,19 +6,27 @@ import {
     MessageSquare,
     Calendar,
     Loader2
-} from "lucide-react";
+} from 'lucide-react';
 import { format } from 'date-fns';
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from '@/components/ui/card';
 
 interface ReviewListProps {
     advisorId: string;
 }
 
 export default function ReviewList({ advisorId }: ReviewListProps) {
-    const { data: reviews, isLoading } = useQuery({
+    const { data: reviewsPayload, isLoading } = useQuery({
         queryKey: ['advisor-reviews', advisorId],
         queryFn: () => api.reviews.getAdvisorReviews(advisorId)
     });
+
+    const reviews = Array.isArray(reviewsPayload)
+        ? reviewsPayload
+        : Array.isArray((reviewsPayload as any)?.reviews)
+            ? (reviewsPayload as any).reviews
+            : Array.isArray((reviewsPayload as any)?.data)
+                ? (reviewsPayload as any).data
+                : [];
 
     if (isLoading) {
         return (
@@ -28,7 +36,7 @@ export default function ReviewList({ advisorId }: ReviewListProps) {
         );
     }
 
-    if (!reviews || reviews.length === 0) {
+    if (reviews.length === 0) {
         return (
             <div className="text-center py-10 border-2 border-dashed border-slate-100 rounded-2xl">
                 <MessageSquare className="w-8 h-8 text-slate-200 mx-auto mb-3" />
@@ -50,10 +58,10 @@ export default function ReviewList({ advisorId }: ReviewListProps) {
                         <CardContent className="p-6 space-y-4">
                             <div className="flex justify-between items-start">
                                 <div className="space-y-1">
-                                    <div className="font-bold text-slate-900">{review.user.fullName}</div>
+                                    <div className="font-bold text-slate-900">{review?.user?.fullName || 'Client'}</div>
                                     <div className="flex items-center gap-1 text-xs text-slate-400">
                                         <Calendar className="w-3 h-3" />
-                                        {format(new Date(review.createdAt), "MMMM yyyy")}
+                                        {review?.createdAt ? format(new Date(review.createdAt), 'MMMM yyyy') : '-'}
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-1">
@@ -61,15 +69,15 @@ export default function ReviewList({ advisorId }: ReviewListProps) {
                                         <Star
                                             key={i}
                                             className={cn(
-                                                "w-4 h-4",
-                                                i < review.rating ? "text-amber-400 fill-amber-400" : "text-slate-200"
+                                                'w-4 h-4',
+                                                i < Number(review?.rating || 0) ? 'text-amber-400 fill-amber-400' : 'text-slate-200'
                                             )}
                                         />
                                     ))}
                                 </div>
                             </div>
 
-                            {review.comment && (
+                            {review?.comment && (
                                 <p className="text-slate-600 text-sm leading-relaxed italic">
                                     "{review.comment}"
                                 </p>

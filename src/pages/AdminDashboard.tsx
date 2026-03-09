@@ -32,7 +32,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
@@ -70,23 +70,24 @@ function formatCurrency(value: number): string {
 
 type AdminDashboardTab = 'overview' | 'billing' | 'institutions' | 'templates' | 'knowledge' | 'communications' | 'marketing' | 'advisors' | 'rulebook';
 
-const TAB_ROUTE_MAP: Record<AdminDashboardTab, string> = {
-    overview: '/admin/system-users',
-    billing: '/admin/billing-ledger',
-    institutions: '/admin/institution-master',
-    templates: '/admin/form-templates',
-    knowledge: '/admin/knowledge-base',
-    communications: '/admin/communications',
-    marketing: '/admin/marketing-leads',
-    advisors: '/admin/advisor-verification',
-    rulebook: '/admin/state-rules',
+const ADMIN_SECTION_META: Record<AdminDashboardTab, { title: string; description: string }> = {
+    overview: { title: 'System Users', description: 'Manage users, subscriptions, and account actions.' },
+    billing: { title: 'Billing & Ledger', description: 'Review billing operations and ledger-related workflows.' },
+    institutions: { title: 'Institution Master', description: 'Access and maintain institutional directory operations.' },
+    templates: { title: 'Form Templates', description: 'Upload and manage probate form templates.' },
+    knowledge: { title: 'Knowledge Base', description: 'Manage ingestion sources and knowledge documents.' },
+    communications: { title: 'Communications', description: 'Configure communications and integration settings.' },
+    marketing: { title: 'Marketing & Leads', description: 'Track leads, campaigns, and event performance.' },
+    advisors: { title: 'Advisor Verification', description: 'Review and verify advisor applications.' },
+    rulebook: { title: 'State Rules', description: 'Manage state rulebook configuration and governance.' },
 };
 
 interface AdminDashboardProps {
     initialTab?: AdminDashboardTab;
+    showKpiCards?: boolean;
 }
 
-export default function AdminDashboard({ initialTab = 'overview' }: AdminDashboardProps) {
+export default function AdminDashboard({ initialTab = 'overview', showKpiCards = true }: AdminDashboardProps) {
     const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState("");
     const [activeTab, setActiveTab] = useState<AdminDashboardTab>(initialTab);
@@ -123,9 +124,15 @@ export default function AdminDashboard({ initialTab = 'overview' }: AdminDashboa
         queryFn: () => api.admin.getUsers({ page, limit: pageSize, search: debouncedSearch }),
     });
 
-    const users = userData?.data;
-    const totalUsers = userData?.total;
-    const totalPages = userData?.totalPages;
+    const users = Array.isArray(userData?.data)
+        ? userData.data
+        : Array.isArray((userData as any)?.users)
+            ? (userData as any).users
+            : Array.isArray(userData)
+                ? userData
+                : [];
+    const totalUsers = (userData as any)?.total ?? users.length;
+    const totalPages = (userData as any)?.totalPages ?? 1;
 
     const resetMutation = useMutation({
         mutationFn: (estateId: string) => api.admin.resetEstate(estateId),
@@ -178,15 +185,7 @@ export default function AdminDashboard({ initialTab = 'overview' }: AdminDashboa
 
     // Server-side filtering now handled by useQuery
     const filteredUsers = users;
-
-    const handleTabChange = (tab: string) => {
-        const nextTab = tab as AdminDashboardTab;
-        setActiveTab(nextTab);
-        const nextRoute = TAB_ROUTE_MAP[nextTab];
-        if (nextRoute) {
-            navigate(nextRoute);
-        }
-    };
+    const sectionMeta = ADMIN_SECTION_META[activeTab];
 
     return (
         <div className="flex min-h-screen bg-[#F8FAFC]">
@@ -211,7 +210,13 @@ export default function AdminDashboard({ initialTab = 'overview' }: AdminDashboa
                 </header>
 
                 <main className="section-container py-8 space-y-8">
+                    <div className="space-y-1">
+                        <h2 className="text-2xl font-black text-slate-900">{sectionMeta.title}</h2>
+                        <p className="text-slate-500">{sectionMeta.description}</p>
+                    </div>
+
                     {/* KPI Grid */}
+                    {showKpiCards && (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                         <Card className="card-elevated border-none bg-primary/5">
                             <CardHeader className="pb-2">
@@ -278,19 +283,9 @@ export default function AdminDashboard({ initialTab = 'overview' }: AdminDashboa
                             </CardHeader>
                         </Card>
                     </div>
+                    )}
 
-                    <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-                        <TabsList className="mb-6">
-                            <TabsTrigger value="overview">System Users</TabsTrigger>
-                            <TabsTrigger value="billing">Billing & Ledger</TabsTrigger>
-                            <TabsTrigger value="institutions">Institution Master</TabsTrigger>
-                            <TabsTrigger value="templates">Form Templates</TabsTrigger>
-                            <TabsTrigger value="knowledge">Knowledge Base</TabsTrigger>
-                            <TabsTrigger value="communications">Communications</TabsTrigger>
-                            <TabsTrigger value="marketing">Marketing & Leads</TabsTrigger>
-                            <TabsTrigger value="advisors">Advisors</TabsTrigger>
-                            <TabsTrigger value="rulebook">State Rules</TabsTrigger>
-                        </TabsList>
+                    <Tabs value={activeTab} className="w-full">
 
                         <TabsContent value="overview" className="mt-0 space-y-4">
                             <div className="card-elevated overflow-hidden border-none">
@@ -1173,10 +1168,17 @@ function MarketingManager() {
 
     if (isLoading) return <div className="p-8 text-center text-muted-foreground">Loading marketing events...</div>;
 
-    const events = eventsData?.data || [];
-    const totalEvents = eventsData?.total || 0;
-    const totalPages = eventsData?.totalPages || 1;
-    const leads = events?.filter((e: any) => e.email) || [];
+    const events = Array.isArray(eventsData?.data)
+        ? eventsData.data
+        : Array.isArray((eventsData as any)?.events)
+            ? (eventsData as any).events
+            : Array.isArray(eventsData)
+                ? eventsData
+                : [];
+    const totalEvents = (eventsData as any)?.total || events.length || 0;
+    const totalPages = (eventsData as any)?.totalPages || 1;
+    const leads = events.filter((e: any) => !!e?.email);
+    const sourceKeys = Array.from(new Set(events.map((e: any) => e?.utmSource || 'direct')));
 
     return (
         <div className="space-y-6">
@@ -1217,9 +1219,9 @@ function MarketingManager() {
                     <CardContent>
                         <div className="space-y-2">
                             {/* Simplified source breakdown */}
-                            {Array.from(new Set(events?.map((e: any) => e.utmSource || 'direct'))).map((source: any) => {
-                                const count = events?.filter((e: any) => (e.utmSource || 'direct') === source).length;
-                                const percentage = Math.round((count / (events?.length || 1)) * 100);
+                            {sourceKeys.map((source: any) => {
+                                const count = events.filter((e: any) => (e?.utmSource || 'direct') === source).length;
+                                const percentage = Math.round((count / (events.length || 1)) * 100);
                                 return (
                                     <div key={source} className="space-y-1">
                                         <div className="flex justify-between text-xs font-medium">
@@ -1327,6 +1329,13 @@ function AdvisorManager() {
         queryKey: ["admin", "advisors"],
         queryFn: () => api.advisors.adminList()
     });
+
+    const advisorList = Array.isArray(advisors)
+        ? advisors
+        : Array.isArray((advisors as any)?.advisors)
+            ? (advisors as any).advisors
+            : [];
+
     const verifyMutation = useMutation({
         mutationFn: ({ id, status }: { id: string, status: 'VERIFIED' | 'REJECTED' }) =>
             api.advisors.adminVerify(id, status),
@@ -1358,7 +1367,11 @@ function AdvisorManager() {
                             <tr>
                                 <td colSpan={5} className="px-6 py-20 text-center text-muted-foreground">Loading advisors...</td>
                             </tr>
-                        ) : advisors?.map((advisor: any) => (
+                        ) : advisorList.length === 0 ? (
+                            <tr>
+                                <td colSpan={5} className="px-6 py-20 text-center text-muted-foreground">No advisors in queue.</td>
+                            </tr>
+                        ) : advisorList.map((advisor: any) => (
                             <tr key={advisor.id} className="hover:bg-muted/30 transition-colors">
                                 <td className="px-6 py-4">
                                     <div className="flex items-center gap-3">
@@ -1372,21 +1385,21 @@ function AdvisorManager() {
                                             )}
                                         </div>
                                         <div className="flex flex-col">
-                                            <span className="font-semibold">{advisor.user.fullName}</span>
-                                            <span className="text-xs text-muted-foreground">{advisor.user.email}</span>
+                                            <span className="font-semibold">{advisor.user?.fullName || 'Unknown Advisor'}</span>
+                                            <span className="text-xs text-muted-foreground">{advisor.user?.email || '—'}</span>
                                         </div>
                                     </div>
                                 </td>
                                 <td className="px-6 py-4">
                                     <div className="flex flex-wrap gap-1">
-                                        {advisor.expertise.map((e: string) => (
+                                        {(Array.isArray(advisor.expertise) ? advisor.expertise : Array.isArray(advisor.specialties) ? advisor.specialties : []).map((e: string) => (
                                             <Badge key={e} variant="outline" className="text-[10px]">{e}</Badge>
                                         ))}
                                     </div>
                                 </td>
                                 <td className="px-6 py-4">
                                     <div className="flex flex-col">
-                                        <span className="text-xs font-mono">{advisor.licenseNumber}</span>
+                                        <span className="text-xs font-mono">{advisor.licenseNumber || '—'}</span>
                                         {advisor.licenseDocument && (
                                             <a href={advisor.licenseDocument} target="_blank" className="text-[10px] text-blue-600 hover:underline flex items-center gap-1">
                                                 View Document <ExternalLink className="w-3 h-3" />
@@ -1395,8 +1408,8 @@ function AdvisorManager() {
                                     </div>
                                 </td>
                                 <td className="px-6 py-4">
-                                    <Badge variant={advisor.verificationStatus === 'VERIFIED' ? 'default' : (advisor.verificationStatus === 'REJECTED' ? 'destructive' : 'secondary')} className="text-[10px]">
-                                        {advisor.verificationStatus}
+                                    <Badge variant={(advisor.verificationStatus || advisor.status) === 'VERIFIED' ? 'default' : ((advisor.verificationStatus || advisor.status) === 'REJECTED' ? 'destructive' : 'secondary')} className="text-[10px]">
+                                        {advisor.verificationStatus || advisor.status || 'PENDING'}
                                     </Badge>
                                 </td>
                                 <td className="px-6 py-4 text-right">
@@ -1405,7 +1418,7 @@ function AdvisorManager() {
                                             size="sm"
                                             className="bg-green-600 hover:bg-green-700 text-white h-8"
                                             onClick={() => verifyMutation.mutate({ id: advisor.id, status: 'VERIFIED' })}
-                                            disabled={advisor.verificationStatus === 'VERIFIED' || verifyMutation.isPending}
+                                            disabled={(advisor.verificationStatus || advisor.status) === 'VERIFIED' || verifyMutation.isPending}
                                         >
                                             Verify
                                         </Button>
@@ -1414,7 +1427,7 @@ function AdvisorManager() {
                                             variant="destructive"
                                             className="h-8"
                                             onClick={() => verifyMutation.mutate({ id: advisor.id, status: 'REJECTED' })}
-                                            disabled={advisor.verificationStatus === 'REJECTED' || verifyMutation.isPending}
+                                            disabled={(advisor.verificationStatus || advisor.status) === 'REJECTED' || verifyMutation.isPending}
                                         >
                                             Reject
                                         </Button>
@@ -1428,4 +1441,3 @@ function AdvisorManager() {
         </Card>
     );
 }
-

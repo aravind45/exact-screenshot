@@ -139,6 +139,26 @@ router.get("/my-bookings", authenticate, async (req, res) => {
         res.status(500).json({ error: "Failed to fetch bookings" });
     }
 });
+/** GET /bookings - alias for my bookings (backwards compatibility) */
+router.get("/", authenticate, async (req, res) => {
+    try {
+        const bookings = await prisma.booking.findMany({
+            where: { userId: req.user.id },
+            include: {
+                advisor: { include: { user: { select: { fullName: true, email: true } } } },
+                ratePlan: { select: { serviceName: true, durationMinutes: true } },
+                estate: { select: { id: true, name: true } },
+                review: { select: { rating: true, comment: true } },
+            },
+            orderBy: { createdAt: "desc" },
+        });
+        res.json(bookings);
+    }
+    catch (error) {
+        logger.error("bookingMarketplaceRoutes bookings-root error:", error.message);
+        res.status(500).json({ error: "Failed to fetch bookings" });
+    }
+});
 /** GET /bookings/advisor-bookings */
 router.get("/advisor-bookings", authenticate, async (req, res) => {
     try {

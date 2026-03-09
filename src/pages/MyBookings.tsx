@@ -4,7 +4,6 @@ import { format } from 'date-fns';
 import {
     Calendar,
     Clock,
-    DollarSign,
     User,
     AlertCircle,
     CheckCircle,
@@ -28,28 +27,64 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { api } from '@/lib/api';
+import { toStringArray } from '@/lib/advisorData';
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Sidebar } from '@/components/Sidebar';
 
+type ClientBooking = {
+    id: string;
+    status: string;
+    sessionDate: string | null;
+    sessionDuration: number;
+    totalAmount: number;
+    platformFee: number;
+    advisorPayout: number;
+    cancellationReason?: string;
+    advisor?: { expertise?: string[] | string; specialties?: string[] | string; user?: { fullName?: string; email?: string } };
+    estate?: { name?: string };
+};
+
+const normalizeBookingStatus = (rawStatus?: string): string => {
+    if (rawStatus === 'REQUESTED') return 'PENDING';
+    return rawStatus || 'PENDING';
+};
+
+const normalizeBooking = (booking: any): ClientBooking => {
+    const sessionDate = booking?.startTime || booking?.sessionDate || null;
+    const sessionDuration = booking?.sessionDuration
+        ? Number(booking.sessionDuration)
+        : booking?.durationMinutes
+            ? Math.max(1, Math.round(Number(booking.durationMinutes) / 60))
+            : 1;
+
+    return {
+        ...booking,
+        id: booking?.id || '',
+        status: normalizeBookingStatus(booking?.status),
+        sessionDate,
+        sessionDuration,
+        totalAmount: Number(booking?.totalAmount || 0),
+        platformFee: Number(booking?.platformFee || 0),
+        advisorPayout: Number(booking?.advisorPayout || 0),
+    };
+};
+
 export default function MyBookings() {
     const queryClient = useQueryClient();
-    const [cancelReason, setCancelReason] = useState('');
-    const [selectedBooking, setSelectedBooking] = useState<string | null>(null);
+    const [cancelReasonById, setCancelReasonById] = useState<Record<string, string>>({});
 
-    const { data: bookings, isLoading } = useQuery({
+    const { data: bookingsPayload, isLoading } = useQuery({
         queryKey: ['my-bookings'],
-        queryFn: () => api.bookings.getMyBookings()
+        queryFn: () => api.marketplace.getMyMarketplaceBookings()
     });
 
     const cancelMutation = useMutation({
-        mutationFn: ({ id, reason }: { id: string; reason: string }) =>
-            api.bookings.cancel(id, reason),
-        onSuccess: () => {
+        mutationFn: ({ id, reason }: { id: string; reason: string }) => api.marketplace.cancelBooking(id, reason),
+        onSuccess: (_data, variables) => {
             toast.success('Booking cancelled successfully');
             queryClient.invalidateQueries({ queryKey: ['my-bookings'] });
-            setSelectedBooking(null);
-            setCancelReason('');
+            setCancelReasonById((prev) => ({ ...prev, [variables.id]: '' }));
         },
         onError: (error: any) => {
             toast.error(error.message || 'Failed to cancel booking');
@@ -77,11 +112,12 @@ export default function MyBookings() {
     };
 
     const handleCancelBooking = (bookingId: string) => {
-        if (!cancelReason.trim()) {
+        const reason = (cancelReasonById[bookingId] || '').trim();
+        if (!reason) {
             toast.error('Please provide a cancellation reason');
             return;
         }
-        cancelMutation.mutate({ id: bookingId, reason: cancelReason });
+        cancelMutation.mutate({ id: bookingId, reason });
     };
 
     if (isLoading) {
@@ -107,6 +143,16 @@ export default function MyBookings() {
         );
     }
 
+    const rawBookings = Array.isArray(bookingsPayload)
+        ? bookingsPayload
+        : Array.isArray((bookingsPayload as any)?.bookings)
+            ? (bookingsPayload as any).bookings
+            : Array.isArray((bookingsPayload as any)?.data)
+                ? (bookingsPayload as any).data
+                : [];
+
+    const bookingList: ClientBooking[] = rawBookings.map(normalizeBooking);
+
     return (
         <div className="flex min-h-screen bg-[#F8FAFC]">
             <Sidebar />
@@ -120,7 +166,7 @@ export default function MyBookings() {
                             </p>
                         </div>
 
-                        {!bookings || bookings.length === 0 ? (
+                        {bookingList.length === 0 ? (
                             <Card className="border-dashed">
                                 <CardContent className="flex flex-col items-center justify-center py-20">
                                     <Calendar className="w-16 h-16 text-slate-200 mb-4" />
@@ -135,165 +181,162 @@ export default function MyBookings() {
                             </Card>
                         ) : (
                             <div className="grid gap-6">
-                                {bookings.map((booking: any) => (
-                                    <Card key={booking.id} className="overflow-hidden">
-                                        <CardHeader className="bg-slate-50/50 border-b">
-                                            <div className="flex justify-between items-start">
-                                                <div className="space-y-1">
-                                                    <CardTitle className="flex items-center gap-3">
-                                                        <User className="w-5 h-5 text-indigo-600" />
-                                                        {booking.advisor.user.fullName}
-                                                    </CardTitle>
-                                                    <CardDescription>
-                                                        {booking.advisor.expertise.join(', ')}
-                                                    </CardDescription>
+                                {bookingList.map((booking) => {
+                                    const sessionStart = booking.sessionDate;
+                                    const expertiseList = toStringArray(booking.advisor?.expertise ?? booking.advisor?.specialties);
+                                    const expertise = expertiseList.length > 0 ? expertiseList.join(', ') : 'General Consultation';
+
+                                    return (
+                                        <Card key={booking.id} className="overflow-hidden">
+                                            <CardHeader className="bg-slate-50/50 border-b">
+                                                <div className="flex justify-between items-start">
+                                                    <div className="space-y-1">
+                                                        <CardTitle className="flex items-center gap-3">
+                                                            <User className="w-5 h-5 text-indigo-600" />
+                                                            {booking.advisor?.user?.fullName || 'Advisor'}
+                                                        </CardTitle>
+                                                        <CardDescription>
+                                                            {expertise}
+                                                        </CardDescription>
+                                                    </div>
+                                                    {getStatusBadge(booking.status)}
                                                 </div>
-                                                {getStatusBadge(booking.status)}
-                                            </div>
-                                        </CardHeader>
-                                        <CardContent className="pt-6">
-                                            <div className="grid md:grid-cols-2 gap-6">
-                                                <div className="space-y-4">
-                                                    <div className="flex items-start gap-3">
-                                                        <Calendar className="w-5 h-5 text-slate-400 mt-0.5" />
-                                                        <div>
-                                                            <div className="text-sm text-slate-500">Session Date</div>
-                                                            <div className="font-semibold">
-                                                                {booking.sessionDate
-                                                                    ? format(new Date(booking.sessionDate), 'PPP')
-                                                                    : 'Not scheduled'}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="flex items-start gap-3">
-                                                        <Clock className="w-5 h-5 text-slate-400 mt-0.5" />
-                                                        <div>
-                                                            <div className="text-sm text-slate-500">Duration</div>
-                                                            <div className="font-semibold">
-                                                                {booking.sessionDuration || 1} {booking.sessionDuration === 1 ? 'Hour' : 'Hours'}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    {booking.estate && (
+                                            </CardHeader>
+                                            <CardContent className="pt-6">
+                                                <div className="grid md:grid-cols-2 gap-6">
+                                                    <div className="space-y-4">
                                                         <div className="flex items-start gap-3">
-                                                            <MessageSquare className="w-5 h-5 text-slate-400 mt-0.5" />
+                                                            <Calendar className="w-5 h-5 text-slate-400 mt-0.5" />
                                                             <div>
-                                                                <div className="text-sm text-slate-500">Related Estate</div>
-                                                                <div className="font-semibold">{booking.estate.name}</div>
+                                                                <div className="text-sm text-slate-500">Session Date</div>
+                                                                <div className="font-semibold">
+                                                                    {sessionStart ? format(new Date(sessionStart), 'PPP p') : 'Not scheduled'}
+                                                                </div>
                                                             </div>
                                                         </div>
-                                                    )}
-                                                </div>
 
-                                                <div className="space-y-4">
-                                                    <div className="bg-slate-50 p-4 rounded-lg space-y-2">
-                                                        <div className="flex justify-between text-sm">
-                                                            <span className="text-slate-600">Total Amount</span>
-                                                            <span className="font-bold">${Number(booking.totalAmount).toFixed(2)}</span>
+                                                        <div className="flex items-start gap-3">
+                                                            <Clock className="w-5 h-5 text-slate-400 mt-0.5" />
+                                                            <div>
+                                                                <div className="text-sm text-slate-500">Duration</div>
+                                                                <div className="font-semibold">
+                                                                    {booking.sessionDuration} {booking.sessionDuration === 1 ? 'Hour' : 'Hours'}
+                                                                </div>
+                                                            </div>
                                                         </div>
-                                                        <div className="flex justify-between text-sm">
-                                                            <span className="text-slate-600">Platform Fee</span>
-                                                            <span className="text-slate-500">${Number(booking.platformFee).toFixed(2)}</span>
-                                                        </div>
-                                                        <div className="flex justify-between text-sm pt-2 border-t">
-                                                            <span className="text-slate-600">Advisor Receives</span>
-                                                            <span className="font-bold text-indigo-600">${Number(booking.advisorPayout).toFixed(2)}</span>
-                                                        </div>
+
+                                                        {booking.estate && (
+                                                            <div className="flex items-start gap-3">
+                                                                <MessageSquare className="w-5 h-5 text-slate-400 mt-0.5" />
+                                                                <div>
+                                                                    <div className="text-sm text-slate-500">Related Estate</div>
+                                                                    <div className="font-semibold">{booking.estate.name || 'Estate'}</div>
+                                                                </div>
+                                                            </div>
+                                                        )}
                                                     </div>
 
-                                                    {booking.status === 'PENDING' && (
-                                                        <div className="bg-amber-50 border border-amber-200 p-3 rounded-lg">
-                                                            <div className="flex items-start gap-2">
-                                                                <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5" />
-                                                                <div className="text-xs text-amber-800">
-                                                                    <strong>Awaiting Confirmation</strong>
-                                                                    <p className="mt-1">The advisor will confirm your booking soon.</p>
+                                                    <div className="space-y-4">
+                                                        <div className="bg-slate-50 p-4 rounded-lg space-y-2">
+                                                            <div className="flex justify-between text-sm">
+                                                                <span className="text-slate-600">Total Amount</span>
+                                                                <span className="font-bold">${booking.totalAmount.toFixed(2)}</span>
+                                                            </div>
+                                                            <div className="flex justify-between text-sm">
+                                                                <span className="text-slate-600">Platform Fee</span>
+                                                                <span className="text-slate-500">${booking.platformFee.toFixed(2)}</span>
+                                                            </div>
+                                                            <div className="flex justify-between text-sm pt-2 border-t">
+                                                                <span className="text-slate-600">Advisor Receives</span>
+                                                                <span className="font-bold text-indigo-600">${booking.advisorPayout.toFixed(2)}</span>
+                                                            </div>
+                                                        </div>
+
+                                                        {booking.status === 'PENDING' && (
+                                                            <div className="bg-amber-50 border border-amber-200 p-3 rounded-lg">
+                                                                <div className="flex items-start gap-2">
+                                                                    <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5" />
+                                                                    <div className="text-xs text-amber-800">
+                                                                        <strong>Awaiting Confirmation</strong>
+                                                                        <p className="mt-1">The advisor will confirm your booking soon.</p>
+                                                                    </div>
                                                                 </div>
                                                             </div>
-                                                        </div>
-                                                    )}
+                                                        )}
 
-                                                    {booking.status === 'CONFIRMED' && (
-                                                        <div className="bg-green-50 border border-green-200 p-3 rounded-lg">
-                                                            <div className="flex items-start gap-2">
-                                                                <CheckCircle className="w-4 h-4 text-green-600 mt-0.5" />
-                                                                <div className="text-xs text-green-800">
-                                                                    <strong>Booking Confirmed</strong>
-                                                                    <p className="mt-1">Your session is scheduled. The advisor will contact you.</p>
+                                                        {booking.status === 'CONFIRMED' && (
+                                                            <div className="bg-green-50 border border-green-200 p-3 rounded-lg">
+                                                                <div className="flex items-start gap-2">
+                                                                    <CheckCircle className="w-4 h-4 text-green-600 mt-0.5" />
+                                                                    <div className="text-xs text-green-800">
+                                                                        <strong>Booking Confirmed</strong>
+                                                                        <p className="mt-1">Your session is scheduled. The advisor will contact you.</p>
+                                                                    </div>
                                                                 </div>
                                                             </div>
-                                                        </div>
-                                                    )}
+                                                        )}
 
-                                                    {booking.cancellationReason && (
-                                                        <div className="bg-red-50 border border-red-200 p-3 rounded-lg">
-                                                            <div className="text-xs text-red-800">
-                                                                <strong>Cancellation Reason:</strong>
-                                                                <p className="mt-1">{booking.cancellationReason}</p>
+                                                        {booking.cancellationReason && (
+                                                            <div className="bg-red-50 border border-red-200 p-3 rounded-lg">
+                                                                <div className="text-xs text-red-800">
+                                                                    <strong>Cancellation Reason:</strong>
+                                                                    <p className="mt-1">{booking.cancellationReason}</p>
+                                                                </div>
                                                             </div>
-                                                        </div>
-                                                    )}
+                                                        )}
+                                                    </div>
                                                 </div>
-                                            </div>
 
-                                            {(booking.status === 'PENDING' || booking.status === 'CONFIRMED') && (
-                                                <div className="mt-6 pt-6 border-t flex justify-end">
-                                                    <AlertDialog>
-                                                        <AlertDialogTrigger asChild>
-                                                            <Button
-                                                                variant="destructive"
-                                                                size="sm"
-                                                                onClick={() => setSelectedBooking(booking.id)}
-                                                            >
-                                                                Cancel Booking
-                                                            </Button>
-                                                        </AlertDialogTrigger>
-                                                        <AlertDialogContent>
-                                                            <AlertDialogHeader>
-                                                                <AlertDialogTitle>Cancel Booking?</AlertDialogTitle>
-                                                                <AlertDialogDescription>
-                                                                    This action cannot be undone. Please provide a reason for cancellation.
-                                                                </AlertDialogDescription>
-                                                            </AlertDialogHeader>
-                                                            <div className="py-4">
-                                                                <Textarea
-                                                                    placeholder="Reason for cancellation..."
-                                                                    value={cancelReason}
-                                                                    onChange={(e) => setCancelReason(e.target.value)}
-                                                                    rows={3}
-                                                                />
-                                                            </div>
-                                                            <AlertDialogFooter>
-                                                                <AlertDialogCancel onClick={() => {
-                                                                    setSelectedBooking(null);
-                                                                    setCancelReason('');
-                                                                }}>
-                                                                    Keep Booking
-                                                                </AlertDialogCancel>
-                                                                <AlertDialogAction
-                                                                    onClick={() => handleCancelBooking(booking.id)}
-                                                                    disabled={cancelMutation.isPending}
-                                                                    className="bg-red-600 hover:bg-red-700"
-                                                                >
-                                                                    {cancelMutation.isPending ? (
-                                                                        <>
-                                                                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                                                            Cancelling...
-                                                                        </>
-                                                                    ) : (
-                                                                        'Cancel Booking'
-                                                                    )}
-                                                                </AlertDialogAction>
-                                                            </AlertDialogFooter>
-                                                        </AlertDialogContent>
-                                                    </AlertDialog>
-                                                </div>
-                                            )}
-                                        </CardContent>
-                                    </Card>
-                                ))}
+                                                {(booking.status === 'PENDING' || booking.status === 'CONFIRMED') && (
+                                                    <div className="mt-6 pt-6 border-t flex justify-end">
+                                                        <AlertDialog>
+                                                            <AlertDialogTrigger asChild>
+                                                                <Button variant="destructive" size="sm">
+                                                                    Cancel Booking
+                                                                </Button>
+                                                            </AlertDialogTrigger>
+                                                            <AlertDialogContent>
+                                                                <AlertDialogHeader>
+                                                                    <AlertDialogTitle>Cancel Booking?</AlertDialogTitle>
+                                                                    <AlertDialogDescription>
+                                                                        This action cannot be undone. Please provide a reason for cancellation.
+                                                                    </AlertDialogDescription>
+                                                                </AlertDialogHeader>
+                                                                <div className="py-4">
+                                                                    <Textarea
+                                                                        placeholder="Reason for cancellation..."
+                                                                        value={cancelReasonById[booking.id] || ''}
+                                                                        onChange={(e) => setCancelReasonById((prev) => ({ ...prev, [booking.id]: e.target.value }))}
+                                                                        rows={3}
+                                                                    />
+                                                                </div>
+                                                                <AlertDialogFooter>
+                                                                    <AlertDialogCancel onClick={() => setCancelReasonById((prev) => ({ ...prev, [booking.id]: '' }))}>
+                                                                        Keep Booking
+                                                                    </AlertDialogCancel>
+                                                                    <AlertDialogAction
+                                                                        onClick={() => handleCancelBooking(booking.id)}
+                                                                        disabled={cancelMutation.isPending}
+                                                                        className="bg-red-600 hover:bg-red-700"
+                                                                    >
+                                                                        {cancelMutation.isPending ? (
+                                                                            <>
+                                                                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                                                                Cancelling...
+                                                                            </>
+                                                                        ) : (
+                                                                            'Cancel Booking'
+                                                                        )}
+                                                                    </AlertDialogAction>
+                                                                </AlertDialogFooter>
+                                                            </AlertDialogContent>
+                                                        </AlertDialog>
+                                                    </div>
+                                                )}
+                                            </CardContent>
+                                        </Card>
+                                    );
+                                })}
                             </div>
                         )}
                     </div>
@@ -302,3 +345,8 @@ export default function MyBookings() {
         </div>
     );
 }
+
+
+
+
+

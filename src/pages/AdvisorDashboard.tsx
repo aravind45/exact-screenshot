@@ -47,7 +47,7 @@ export default function AdvisorDashboard() {
 
     const { data: bookings, isLoading: bookingsLoading } = useQuery({
         queryKey: ['advisor-bookings'],
-        queryFn: () => api.bookings.getAdvisorBookings()
+        queryFn: () => api.marketplace.getAdvisorBookings()
     });
 
     const { data: earnings, isLoading: earningsLoading } = useQuery({
@@ -56,7 +56,7 @@ export default function AdvisorDashboard() {
     });
 
     const confirmMutation = useMutation({
-        mutationFn: (bookingId: string) => api.bookings.confirm(bookingId),
+        mutationFn: (bookingId: string) => api.marketplace.confirmBooking(bookingId),
         onSuccess: () => {
             toast.success('Booking confirmed successfully');
             queryClient.invalidateQueries({ queryKey: ['advisor-bookings'] });
@@ -108,8 +108,22 @@ export default function AdvisorDashboard() {
         );
     }
 
-    const pendingBookings = bookings?.filter((b: any) => b.status === 'PENDING') || [];
-    const upcomingSessions = stats?.upcomingSessions || [];
+    const bookingList = Array.isArray(bookings)
+        ? bookings
+        : Array.isArray((bookings as any)?.bookings)
+            ? (bookings as any).bookings
+            : Array.isArray((bookings as any)?.data)
+                ? (bookings as any).data
+                : [];
+
+    const pendingBookings = bookingList.filter((booking: any) => {
+        const status = String(booking?.status || '').toUpperCase();
+        return status === 'PENDING' || status === 'REQUESTED';
+    });
+
+    const upcomingSessions = Array.isArray((stats as any)?.upcomingSessions)
+        ? (stats as any).upcomingSessions
+        : [];
 
     return (
         <div className="container mx-auto py-10">
@@ -438,3 +452,5 @@ export default function AdvisorDashboard() {
         </div>
     );
 }
+
+
