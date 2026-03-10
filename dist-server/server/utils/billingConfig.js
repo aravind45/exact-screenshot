@@ -20,7 +20,7 @@ const getMode = (secretKey) => {
 const describeMissing = (token) => {
     switch (token) {
         case "publishable_key":
-            return "Stripe publishable key (VITE_STRIPE_PUBLISHABLE_KEY) is missing.";
+            return "Stripe publishable key (VITE_STRIPE_PUBLISHABLE_KEY or NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY) is missing.";
         case "secret_key":
             return "Stripe secret key (STRIPE_SECRET_KEY) is missing.";
         case "price_id":
@@ -45,7 +45,7 @@ export function getCheckoutDisabledReason(missing) {
 }
 export function getStripeBillingConfig(env = process.env) {
     const secretKey = normalize(env.STRIPE_SECRET_KEY);
-    const publishableKey = normalize(env.VITE_STRIPE_PUBLISHABLE_KEY || env.STRIPE_PUBLISHABLE_KEY);
+    const publishableKey = normalize(env.VITE_STRIPE_PUBLISHABLE_KEY || env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || env.STRIPE_PUBLISHABLE_KEY);
     const priceId = normalize(env.STRIPE_PRICE_ID);
     const extraSeatPriceId = normalize(env.STRIPE_EXTRA_SEAT_PRICE_ID);
     const webhookSecret = normalize(env.STRIPE_WEBHOOK_SECRET);
