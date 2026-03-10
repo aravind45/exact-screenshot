@@ -2,7 +2,6 @@ User-agent: *
 Allow: /
 Disallow: /dashboard
 Disallow: /roadmap
-Disallow: /assets
 Disallow: /liabilities
 Disallow: /documents
 Disallow: /discovery

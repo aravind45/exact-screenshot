@@ -1,6 +1,7 @@
 import "dotenv/config";
 import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
+import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import helmet from "helmet";
@@ -45,6 +46,7 @@ import ssotRoutes from "./routes/ssotRoutes.js";
 import authorityRoutes from "./routes/authorityRoutes.js";
 import { registerAssetDomainEventHandlers } from "./services/assetDomainEvents.js";
 import { TENANTS, getTenantByHostname } from "../src/config/tenantConfig.js";
+import { isKnownSpaPath } from "../src/shared/knownSpaRoutes.js";
 
 const isServerless = process.env.VERCEL === '1' || process.env.NETLIFY === 'true' || !!process.env.AWS_EXECUTION_ENV || !!process.env.FUNCTION_NAME;
 const app = express();
@@ -288,6 +290,16 @@ if (!isServerless) {
         if (req.path.startsWith("/api/")) {
             return res.status(404).json({ error: "API route not found" });
         }
+
+        if (!isKnownSpaPath(req.path)) {
+            const notFoundPath = path.join(distPath, "404.html");
+            if (fs.existsSync(notFoundPath)) {
+                return res.status(404).sendFile(notFoundPath);
+            }
+
+            return res.status(404).sendFile(path.join(distPath, "index.html"));
+        }
+
         res.sendFile(path.join(distPath, "index.html"));
     });
 } else {
@@ -395,6 +407,7 @@ process.on('unhandledRejection', (reason, promise) => {
 });
 
 export default app;
+
 
 
 

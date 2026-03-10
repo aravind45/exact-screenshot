@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { ShieldCheck, Loader2, CheckCircle2, XCircle, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+import { SEO } from "@/components/SEO";
 
 export default function AcceptInvite() {
     const { token } = useParams<{ token: string }>();
@@ -48,6 +49,12 @@ export default function AcceptInvite() {
 
     return (
         <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center p-4">
+            <SEO
+                title="Estate Team Invitation"
+                description="Invitation acceptance flow for ExpectedEstate estate collaboration."
+                canonical={token ? `https://www.expectedestate.com/invite/${token}` : "https://www.expectedestate.com/invite"}
+                noindex
+            />
             <Card className="max-w-md w-full border-none card-elevated">
                 <CardHeader className="text-center">
                     <div className="mx-auto w-12 h-12 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 mb-4">
@@ -114,3 +121,4 @@ export default function AcceptInvite() {
         </div>
     );
 }
+

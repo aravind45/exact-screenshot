@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { useTracking } from "@/hooks/useTracking";
 import { toast } from "sonner";
 import { CheckCircle2, FileText, ArrowRight } from "lucide-react";
+import { SEO } from "@/components/SEO";
 
 const ChecklistLanding = () => {
     const navigate = useNavigate();
@@ -46,6 +47,12 @@ const ChecklistLanding = () => {
 
     return (
         <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
+            <SEO
+                title="Executor 7-Day Checklist"
+                description="Email capture page for the ExpectedEstate executor checklist lead magnet."
+                canonical="https://www.expectedestate.com/checklist"
+                noindex
+            />
             <div className="w-full max-w-md space-y-8 text-center mb-8">
                 <div className="inline-flex items-center justify-center p-2 bg-blue-100 rounded-full mb-4">
                     <FileText className="w-6 h-6 text-blue-600" />
@@ -134,3 +141,4 @@ const ChecklistLanding = () => {
 };
 
 export default ChecklistLanding;
+

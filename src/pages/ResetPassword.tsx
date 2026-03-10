@@ -8,6 +8,7 @@ import { Heart, ArrowRight, Loader2, CheckCircle2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useToast } from '@/hooks/use-toast';
 import { z } from 'zod';
+import { SEO } from '@/components/SEO';
 
 const passwordSchema = z.string().min(6, 'Password must be at least 6 characters');
 
@@ -71,6 +72,12 @@ export default function ResetPassword() {
     if (success) {
         return (
             <div className="min-h-screen bg-gradient-to-b from-background to-primary/5 flex items-center justify-center p-4">
+                <SEO
+                    title="Reset Password"
+                    description="Reset your ExpectedEstate password."
+                    canonical="https://www.expectedestate.com/reset-password"
+                    noindex
+                />
                 <motion.div
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
@@ -93,6 +100,12 @@ export default function ResetPassword() {
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-background to-primary/5 flex flex-col">
+            <SEO
+                title="Reset Password"
+                description="Reset your ExpectedEstate password."
+                canonical="https://www.expectedestate.com/reset-password"
+                noindex
+            />
             <header className="p-6">
                 <div className="inline-flex items-center gap-2">
                     <div className="p-1.5 rounded-lg bg-primary text-primary-foreground">
@@ -162,3 +175,4 @@ export default function ResetPassword() {
         </div>
     );
 }
+

@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "api": "tsx server/index.ts",
-    "build": "prisma generate && vite build && npm run build:server",
+    "build": "prisma generate && npm run build:client && npm run build:public-seo && npm run build:server",
+    "build:client": "vite build",
+    "build:public-seo": "tsx scripts/build-public-seo-assets.ts",
     "build:server": "tsc -p tsconfig.server.json",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
@@ -169,6 +171,7 @@
     "vitest": "^3.2.4"
   }
 }
+
 
 
 

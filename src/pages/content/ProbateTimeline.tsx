@@ -1,7 +1,7 @@
 import React from "react";
 import { PillarPageLayout } from "@/components/layout/PillarPageLayout";
 import { SEO } from "@/components/SEO";
-import { Clock, Calendar, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Clock, AlertCircle, CheckCircle2 } from "lucide-react";
 
 export default function ProbateTimeline() {
     const toc = [
@@ -14,29 +14,36 @@ export default function ProbateTimeline() {
 
     const structuredData = {
         "@context": "https://schema.org",
-        "@type": "Article",
-        "headline": "Probate Timeline 2026: How Long Does It Really Take?",
-        "description": "A realistic month-by-month breakdown of the probate process. Learn why it takes 9-18 months and how to speed it up.",
-        "author": {
-            "@type": "Organization",
-            "name": "ExpectedEstate"
-        },
-        "faq": [
+        "@graph": [
             {
-                "@type": "Question",
-                "name": "How long does probate take?",
-                "acceptedAnswer": {
-                    "@type": "Answer",
-                    "text": "On average, probate takes 9 to 18 months. Simple estates can finish in 6 months, while contested ones can take years."
+                "@type": "Article",
+                "headline": "Probate Timeline 2026: How Long Does It Really Take?",
+                "description": "A realistic month-by-month breakdown of the probate process. Learn why it takes 9-18 months and how to speed it up.",
+                "author": {
+                    "@type": "Organization",
+                    "name": "ExpectedEstate"
                 }
             },
             {
-                "@type": "Question",
-                "name": "Can you sell a house during probate?",
-                "acceptedAnswer": {
-                    "@type": "Answer",
-                    "text": "Yes, but it usually adds 4-6 weeks to the timeline for court approval unless you have full independent authority."
-                }
+                "@type": "FAQPage",
+                "mainEntity": [
+                    {
+                        "@type": "Question",
+                        "name": "How long does probate take?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "On average, probate takes 9 to 18 months. Simple estates can finish in 6 months, while contested ones can take years."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "Can you sell a house during probate?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "Yes, but it usually adds 4-6 weeks to the timeline for court approval unless you have full independent authority."
+                        }
+                    }
+                ]
             }
         ]
     };
@@ -45,7 +52,7 @@ export default function ProbateTimeline() {
         <PillarPageLayout
             category="Timelines & Expectations"
             heroTitle="How Long Does Probate Take? (2026 Guide)"
-            heroSubtitle="The average estate takes 12 months to settle. Here is the realistic timeline you need to plan for—and how to avoid the delays that drag it out."
+            heroSubtitle="The average estate takes 12 months to settle. Here is the realistic timeline you need to plan for-and how to avoid the delays that drag it out."
             toc={toc}
         >
             <SEO
@@ -68,7 +75,7 @@ export default function ProbateTimeline() {
                     </p>
                 </div>
                 <p>
-                    Most executors differ "probate" to just the court appointments. In reality, the "settlement" clock starts the day of death and ends when the final check is cashed.
+                    Most executors reduce "probate" to just the court appointment stage. In reality, the settlement clock starts the day of death and ends when the final distribution check is cashed.
                 </p>
             </section>
 

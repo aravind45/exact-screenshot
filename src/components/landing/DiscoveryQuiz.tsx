@@ -20,6 +20,7 @@ import {
 import { cn } from "@/lib/utils";
 import { calculateAuthorityRecommendation } from "@/lib/authorityEngine";
 import { US_STATES } from "@/lib/states";
+import { SEO } from "@/components/SEO";
 
 const STEPS = [
     { id: "intro", title: "Let's Start" },
@@ -61,6 +62,12 @@ export default function DiscoveryQuiz() {
 
     return (
         <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
+            <SEO
+                title="Estate Intake Quiz"
+                description="Interactive estate intake quiz used to start a personalized executor roadmap."
+                canonical="https://www.expectedestate.com/start"
+                noindex
+            />
             <div className="max-w-xl w-full">
                 {/* Progress header */}
                 <div className="mb-8 flex items-center justify-between">
@@ -281,3 +288,4 @@ export default function DiscoveryQuiz() {
         </div>
     );
 }
+

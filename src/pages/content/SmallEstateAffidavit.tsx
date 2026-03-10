@@ -7,7 +7,7 @@ export default function SmallEstateAffidavit() {
         { id: "what-is-small-estate", label: "What is a Small Estate Affidavit?" },
         { id: "when-to-use", label: "When Can You Use It? ($ Thresholds)" },
         { id: "step-by-step", label: "How to File (Step-by-Step)" },
-        { id: "state-thresholds", label: "State-by-State Affirmation Limits" },
+        { id: "state-thresholds", label: "State-by-State Affidavit Limits" },
         { id: "risks", label: "Personal Liability Risks" },
         { id: "faq", label: "Affidavit Frequently Asked Questions" }
     ];
@@ -15,7 +15,7 @@ export default function SmallEstateAffidavit() {
     const structuredData = {
         "@context": "https://schema.org",
         "@type": "HowTo",
-        "name": "How to Use a Small Estate Affidavit to Bypassing Probate",
+        "name": "How to Use a Small Estate Affidavit to Bypass Probate",
         "description": "A guide on using a small estate affidavit to collect assets without a full court probate process.",
         "step": [
             {
@@ -164,3 +164,4 @@ export default function SmallEstateAffidavit() {
         </PillarPageLayout>
     );
 }
+

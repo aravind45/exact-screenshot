@@ -198,7 +198,7 @@ const AppRoutes = () => {
           <Routes>
             <Route path="/" element={tenant?.id === 'texas_lawyer' ? <LandingTexasLawyer /> : <Landing />} />
             <Route path="/landing/texas-lawyer" element={<LandingTexasLawyer />} />
-            <Route path="/home" element={<Index />} />
+            <Route path="/home" element={<Navigate to="/" replace />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/login" element={<Navigate to="/auth" replace />} />
             <Route path="/register" element={<Navigate to="/auth?mode=signup" replace />} />
@@ -377,6 +377,7 @@ const AppRoutes = () => {
 };
 
 export default App;
+
 
 
 

@@ -350,6 +350,7 @@ export default function Auth() {
           : 'Free Estate Settlement Software — No Attorney Required'
         }
         ogDescription="Get a personalized probate action plan in minutes. ExpectedEstate helps executors navigate every legal deadline, form, and decision — free to start."
+        noindex
         structuredData={authMode === 'signup' ? {
           "@context": "https://schema.org",
           "@graph": [
@@ -742,4 +743,5 @@ export default function Auth() {
     </div>
   );
 }
+
 

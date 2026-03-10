@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import { Header } from "./Header";
 import { Footer } from "./Footer";
 import { motion } from "framer-motion";
@@ -113,10 +114,10 @@ export function PillarPageLayout({
                                             Skip the paperwork and let our guided intake handle the details for you.
                                         </p>
                                         <Button
-                                            onClick={() => window.location.href = "/auth?mode=signup"}
+                                            asChild
                                             className="relative z-10 w-full h-12 bg-primary hover:bg-primary/90 text-white font-black rounded-xl shadow-lg shadow-primary/20"
                                         >
-                                            Begin Guided Intake
+                                            <Link to="/auth?mode=signup">Begin Guided Intake</Link>
                                         </Button>
                                     </div>
                                 </div>
@@ -130,3 +131,4 @@ export function PillarPageLayout({
         </div>
     );
 }
+

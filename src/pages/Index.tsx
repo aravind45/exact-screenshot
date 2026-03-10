@@ -152,8 +152,10 @@ const Index = () => {
                   Estate settlement shouldn't be a mystery. Explore our expert guides to understand your legal path and fiduciary responsibilities.
                 </p>
               </div>
-              <Button variant="ghost" className="font-bold text-primary group" onClick={() => navigate("/probate-process")}>
-                View all guides <span className="ml-2 group-hover:translate-x-1 transition-transform">→</span>
+              <Button variant="ghost" className="font-bold text-primary group" asChild>
+                <Link to="/probate-process">
+                  View all guides <span className="ml-2 group-hover:translate-x-1 transition-transform">→</span>
+                </Link>
               </Button>
             </div>
 
@@ -243,3 +245,6 @@ const Index = () => {
 };
 
 export default Index;
+
+
+

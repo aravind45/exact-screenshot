@@ -312,32 +312,11 @@ export default function CompetitorComparison() {
     <>
       <SEO
         title="Probate Software Comparison: ExpectedEstate vs Atticus, Clio & More"
-        description="Compare probate software options including ExpectedEstate, Atticus, Clio, MyCase, and PracticePanther. Find the best probate management solution for executors and estate administrators."
+        description="Editorial comparison of probate software positioning and feature sets. Verify current pricing, reviews, and availability directly with each vendor."
         canonical="https://www.expectedestate.com/competitor-comparison"
-        ogTitle="Probate Software Comparison: Find the Best Solution for Your Needs"
-        ogDescription="Detailed comparison of probate software including features, pricing, and user reviews. See how ExpectedEstate compares to industry leaders."
-        structuredData={{
-          "@context": "https://schema.org",
-          "@type": "ComparisonTable",
-          "name": "Probate Software Comparison",
-          "description": "Comparison of probate and estate settlement software solutions",
-          "about": "Probate Software",
-          "itemListElement": COMPETITORS.map(comp => ({
-            "@type": "Product",
-            "name": comp.name,
-            "description": `${comp.category} - ${comp.bestFor}`,
-            "aggregateRating": {
-              "@type": "AggregateRating",
-              "ratingValue": comp.rating,
-              "reviewCount": "100"
-            },
-            "offers": {
-              "@type": "Offer",
-              "price": comp.pricing.basic,
-              "priceCurrency": "USD"
-            }
-          }))
-        }}
+        ogTitle="Probate Software Comparison: Feature Positioning Snapshot"
+        ogDescription="Editorial comparison of probate software feature positioning. Verify current pricing, reviews, and availability directly with each vendor."
+        noindex
       />
 
       <div className="min-h-screen bg-white font-sans">
@@ -401,18 +380,18 @@ export default function CompetitorComparison() {
               </div>
               <div className="bg-white p-6 rounded-2xl border border-slate-200">
                 <div className="text-3xl font-black text-green-600 mb-2">4.8</div>
-                <div className="text-sm text-slate-600 font-semibold">Average Rating</div>
-                <div className="text-xs text-slate-500 mt-1">Based on user reviews</div>
+                <div className="text-sm text-slate-600 font-semibold">Editorial Score</div>
+                <div className="text-xs text-slate-500 mt-1">Internal product assessment</div>
               </div>
               <div className="bg-white p-6 rounded-2xl border border-slate-200">
                 <div className="text-3xl font-black text-blue-600 mb-2">95%</div>
-                <div className="text-sm text-slate-600 font-semibold">User Satisfaction</div>
-                <div className="text-xs text-slate-500 mt-1">Would recommend</div>
+                <div className="text-sm text-slate-600 font-semibold">Workflow Coverage</div>
+                <div className="text-xs text-slate-500 mt-1">Coverage of core executor workflows</div>
               </div>
               <div className="bg-white p-6 rounded-2xl border border-slate-200">
                 <div className="text-3xl font-black text-purple-600 mb-2">12x</div>
                 <div className="text-sm text-slate-600 font-semibold">Faster Setup</div>
-                <div className="text-xs text-slate-500 mt-1">Compared to competitors</div>
+                <div className="text-xs text-slate-500 mt-1">Compared with manual executor tracking</div>
               </div>
             </div>
           </div>
@@ -778,3 +757,5 @@ export default function CompetitorComparison() {
     </>
   );
 }
+
+

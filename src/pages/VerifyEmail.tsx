@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Landmark, CheckCircle2, XCircle, Loader2, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
+import { SEO } from '@/components/SEO';
 
 export default function VerifyEmail() {
     const [searchParams] = useSearchParams();
@@ -45,6 +46,12 @@ export default function VerifyEmail() {
 
     return (
         <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6">
+            <SEO
+                title="Verify Email"
+                description="Email verification flow for ExpectedEstate accounts."
+                canonical="https://www.expectedestate.com/verify-email"
+                noindex
+            />
             <div className="w-full max-w-[440px]">
                 <div className="text-center mb-10">
                     <Link to="/" className="inline-flex items-center gap-2 mb-8">
@@ -117,3 +124,4 @@ export default function VerifyEmail() {
         </div>
     );
 }
+

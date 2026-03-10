@@ -28,7 +28,7 @@ export default function ProbateProcess() {
         <PillarPageLayout
             category="The Master Hub"
             heroTitle="The Probate Process: A Complete Guide to Settling an Estate"
-            heroSubtitle="Probate doesn't have to be a mystery. This master hub connect you to the rules, costs, and shortcuts for every stage of estate administration."
+            heroSubtitle="Probate doesn't have to be a mystery. This master hub connects you to the rules, costs, and shortcuts for every stage of estate administration."
             toc={toc}
         >
             <SEO
@@ -58,7 +58,7 @@ export default function ProbateProcess() {
                 <p>The process starts by filing a petition and the original will in the county court. If there is no will, you will follow the <a href="/intestate-without-will">Intestate Succession</a> rules.</p>
 
                 <h3>2. Notice to Heirs and Creditors</h3>
-                <p>You must legally notify everyone with an interest in the estate, including known and potential sensors.</p>
+                <p>You must legally notify everyone with an interest in the estate, including known and potential creditors.</p>
 
                 <h3>3. Appointing the Representative</h3>
                 <p>The judge issues "Letters" (Testamentary or Administration) which give you the power to sign documents and move money.</p>
@@ -138,3 +138,4 @@ export default function ProbateProcess() {
         </PillarPageLayout>
     );
 }
+
