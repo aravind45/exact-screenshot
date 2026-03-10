@@ -30,7 +30,7 @@ export default function Pricing(): JSX.Element {
 
     const backendCheckoutEnabled = billingStatus?.checkoutEnabled !== false;
     const checkoutDisabledReason = !isStripeConfigured
-        ? "Stripe publishable key is missing. Configure VITE_STRIPE_PUBLISHABLE_KEY or NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY to enable checkout."
+        ? "Stripe publishable key is missing. Configure VITE_STRIPE_PUBLISHABLE_KEY, NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY, or STRIPE_PUBLISHABLE_KEY to enable checkout."
         : (!backendCheckoutEnabled ? (billingStatus?.checkoutDisabledReason || "Billing checkout is not configured.") : null);
 
     const canCheckout = isStripeConfigured && backendCheckoutEnabled;
@@ -306,6 +306,7 @@ function FeatureItem({ icon: Icon, text }: { icon: any; text: string }) {
         </div>
     );
 }
+
 
 
 

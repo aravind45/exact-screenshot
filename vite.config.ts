@@ -26,5 +26,6 @@ export default defineConfig(({ mode }) => ({
   build: {
     chunkSizeWarningLimit: 1600,
   },
-  envPrefix: ['VITE_', 'NEXT_PUBLIC_'],
+  envPrefix: ['VITE_', 'NEXT_PUBLIC_', 'STRIPE_PUBLISHABLE_'],
 }));
+
