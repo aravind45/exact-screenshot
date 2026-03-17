@@ -9,6 +9,7 @@ import { logger } from "../lib/logger.js";
 import { requireSubscription } from "../middleware/subscription.js";
 import { CAFormService } from "../services/caFormService.js";
 import { CA_FORM_REGISTRY, type CAFormId } from "../services/caFormRegistry.js";
+import { mergeEstateFormContext } from "../lib/estateFormNormalization.js";
 
 const generateDocumentSchema = z.object({
     documentId: z.string().min(1), // Previously formId
@@ -55,9 +56,10 @@ const generateCAWithFallback = async (
     overrides?: Record<string, any>,
 ): Promise<Uint8Array> => {
     try {
+        const normalizedEstate = mergeEstateFormContext(estateData, overrides);
         const result = await CAFormService.generate({
             formId,
-            estate: estateData,
+            estate: normalizedEstate,
             assets,
             heirs,
             overrides,
@@ -65,7 +67,7 @@ const generateCAWithFallback = async (
         return result.pdfBytes;
     } catch (error: any) {
         logger.error(`[documents] CA auto-fill failed for ${formId}. Falling back to legacy generator. ${error?.message || error}`);
-        const mergedEstate = { ...estateData, ...(overrides || {}) };
+        const mergedEstate = mergeEstateFormContext(estateData, overrides);
 
         switch (formId) {
             case 'DE-111':

@@ -15,6 +15,7 @@ import { authenticate } from "../middleware/auth.js";
 import { fetchEstateRowForUser } from "../utils/estateFallback.js";
 import { getPrismaErrorDetails, isMissingColumnError } from "../utils/prismaErrors.js";
 import { emitDomainEvent } from "../lib/domainEvents.js";
+import { normalizeEstateForForms, normalizeEstateUpdateInput } from "../lib/estateFormNormalization.js";
 
 
 const estateUpdateSchema = z.object({
@@ -23,10 +24,12 @@ const estateUpdateSchema = z.object({
     deceasedLastName: z.string().optional(),
     deceasedDateOfBirth: z.string().optional().nullable(),
     deceasedDateOfDeath: z.string().optional().nullable(),
+    deceasedAddress: z.string().optional(),
     deceasedState: z.string().optional(),
     estateType: z.string().optional(),
     authorityType: z.string().optional(),
     authorityStatus: z.string().optional(),
+    administrationType: z.string().optional(),
     certifiedCopies: z.coerce.number().optional().nullable(),
     authorityEffectiveDate: z.string().optional().nullable(),
     iaeaType: z.string().optional(),
@@ -37,9 +40,12 @@ const estateUpdateSchema = z.object({
     status: z.string().optional(),
     petitionerPhone: z.string().optional(),
     petitionerIsAttorney: z.boolean().optional(),
+    publicationNewspaper: z.string().optional(),
     hasWill: z.boolean().optional(),
+    hasCodicil: z.boolean().optional(),
     willDate: z.string().optional().nullable(),
-    codicilDates: z.string().optional(),
+    codicilDate: z.string().optional().nullable(),
+    codicilDates: z.union([z.string(), z.array(z.string())]).optional(),
     estimatedPersonalProperty: z.coerce.number().optional().nullable(),
     estimatedRealProperty: z.coerce.number().optional().nullable(),
     estimatedAnnualIncome: z.coerce.number().optional().nullable(),
@@ -57,6 +63,7 @@ const estateUpdateSchema = z.object({
     isTrustRevocable: z.boolean().optional().nullable(),
     hasTODDeed: z.boolean().optional(),
     isSurvivingSpouse: z.boolean().optional(),
+    isSpouse: z.boolean().optional(),
     hasUnknownHeirs: z.boolean().optional(),
     isOutOfState: z.boolean().optional(),
     hasOutOfStateProperty: z.boolean().optional(),
@@ -96,7 +103,7 @@ router.get("/", async (req: any, res: Response) => {
             include: { user: true },
             orderBy: { createdAt: 'desc' }
         });
-        res.json(estates);
+        res.json(estates.map((estate) => normalizeEstateForForms(estate)));
     } catch (error: any) {
         logger.error("Error fetching estates:", error.message);
         res.status(500).json({ error: "Failed to fetch estates" });
@@ -166,7 +173,7 @@ router.get("/my", async (req: any, res: Response) => {
                             estate.deceasedSsn = undefined;
                         }
                     }
-                    return res.json(estate);
+                    return res.json(normalizeEstateForForms(estate));
                 }
                 throw dbError;
             }
@@ -176,9 +183,9 @@ router.get("/my", async (req: any, res: Response) => {
                 updatedEstate.deceasedSsn = updatedEstate.deceasedSsn ? decrypt(updatedEstate.deceasedSsn) : updatedEstate.deceasedSsn;
             }
 
-            return res.json(updatedEstate);
+            return res.json(normalizeEstateForForms(updatedEstate || estate));
         }
-        res.json(estate);
+        res.json(estate ? normalizeEstateForForms(estate) : null);
     } catch (error: any) {
         if (isMissingColumnError(error)) {
             logger.warn("Estate fetch failed due to missing columns — using fallback query.", {
@@ -223,7 +230,7 @@ router.get("/my", async (req: any, res: Response) => {
                 }
             }
 
-            return res.json(estateToReturn);
+            return res.json(normalizeEstateForForms(estateToReturn));
         }
 
         logger.error("Estate Fetch Error:", error.message);
@@ -263,7 +270,7 @@ router.put("/my", authenticate, async (req: any, res: Response) => {
         }
 
         // Whitelist allowed fields and parse dates
-        const validated = estateUpdateSchema.parse(req.body);
+        const validated = normalizeEstateUpdateInput(estateUpdateSchema.parse(req.body));
 
         const updateData: any = {};
         const dateFields = ['deceasedDateOfDeath', 'deceasedDateOfBirth', 'authorityEffectiveDate', 'appointedDate', 'willDate', 'hearingDate'];

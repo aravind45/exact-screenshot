@@ -6,6 +6,7 @@ import { prisma } from '../db.js';
 import { FeeService } from './feeService.js';
 import { PriorityService } from './priorityService.js';
 import { logger } from '../lib/logger.js';
+import { normalizeEstateForForms } from '../lib/estateFormNormalization.js';
 
 export interface OverlayCoordinate {
     x: number;
@@ -84,6 +85,7 @@ export const DocumentService = {
      * Generates a filled DE-111 Petition for Probate
      */
     async generateDE111(estate: any) {
+        const normalizedEstate = normalizeEstateForForms(estate);
         let pdfBytes: Buffer;
 
         // 1. Try Database (Vercel Persistence)
@@ -118,35 +120,35 @@ export const DocumentService = {
         } catch (error) {
             const reason = error instanceof Error ? error.message : String(error);
             logger.error({ err: reason }, "[DocumentService] Failed to parse DE-111 template. Returning placeholder PDF.");
-            return await createTemplateFallbackPdf("DE-111", estate, reason);
+            return await createTemplateFallbackPdf("DE-111", normalizedEstate, reason);
         }
 
         // --- MAPPING LOGIC ---
 
         // 1. Petitioner (Header)
-        const petitionerName = estate.user?.fullName || "Petitioner";
+        const petitionerName = normalizedEstate.user?.fullName || "Petitioner";
         safeSetText(form, 'PetitionerName', petitionerName);
-        safeSetText(form, 'PetitionerPhone', estate.petitionerPhone || "");
+        safeSetText(form, 'PetitionerPhone', normalizedEstate.petitionerPhone || "");
 
         // Attorney Box
-        if (estate.petitionerIsAttorney) {
+        if (normalizedEstate.petitionerIsAttorney) {
             safeSetText(form, 'AttorneyName', petitionerName);
         } else {
             safeSetText(form, 'AttorneyName', `${petitionerName} (In Pro Per)`);
         }
 
         // 2. Decedent Info
-        const decedentName = `${estate.deceasedFirstName} ${estate.deceasedLastName}`;
+        const decedentName = `${normalizedEstate.deceasedFirstName} ${normalizedEstate.deceasedLastName}`;
         safeSetText(form, 'DecedentName', decedentName);
-        if (estate.deceasedDateOfDeath) {
-            safeSetText(form, 'DeathDate', new Date(estate.deceasedDateOfDeath).toLocaleDateString());
+        if (normalizedEstate.deceasedDateOfDeath) {
+            safeSetText(form, 'DeathDate', new Date(normalizedEstate.deceasedDateOfDeath).toLocaleDateString());
         }
-        safeSetText(form, 'StreetAddress', estate.deceasedState); // Placeholder for full address
+        safeSetText(form, 'StreetAddress', normalizedEstate.deceasedAddress || normalizedEstate.deceasedState);
 
         // 3. Estimated Value
-        const personal = Number(estate.estimatedPersonalProperty) || 0;
-        const real = Number(estate.estimatedRealProperty) || 0;
-        const income = Number(estate.estimatedAnnualIncome) || 0;
+        const personal = Number(normalizedEstate.estimatedPersonalProperty) || 0;
+        const real = Number(normalizedEstate.estimatedRealProperty) || 0;
+        const income = Number(normalizedEstate.estimatedAnnualIncome) || 0;
         const total = personal + real + income;
 
         safeSetText(form, 'ValuePersonalProperty', personal.toFixed(2));
@@ -155,49 +157,49 @@ export const DocumentService = {
         safeSetText(form, 'ValueTotal', total.toFixed(2));
 
         // 4. Will Logic
-        if (estate.hasWill) {
+        if (normalizedEstate.hasWill) {
             safeSetCheckbox(form, 'HasWillBox', true);
-            if (estate.willDate) {
-                safeSetText(form, 'WillDate', new Date(estate.willDate).toLocaleDateString());
+            if (normalizedEstate.willDate) {
+                safeSetText(form, 'WillDate', new Date(normalizedEstate.willDate).toLocaleDateString());
             }
         } else {
             safeSetCheckbox(form, 'NoWillBox', true);
         }
 
         // 5. Bond Logic
-        if (estate.bondWaived) {
+        if (normalizedEstate.bondWaived) {
             safeSetCheckbox(form, 'BondWaivedBox', true);
-        } else if (estate.bondAmount) {
-            safeSetText(form, 'BondAmount', Number(estate.bondAmount).toFixed(2));
+        } else if (normalizedEstate.bondAmount) {
+            safeSetText(form, 'BondAmount', Number(normalizedEstate.bondAmount).toFixed(2));
         } else {
             // Default calculation if not set: Total Value
             safeSetText(form, 'BondAmount', total.toFixed(2));
         }
 
         // 6. Publication Info (NEW)
-        if (estate.publicationNewspaper) {
-            safeSetText(form, 'PublicationNewspaper', estate.publicationNewspaper);
+        if (normalizedEstate.publicationNewspaper) {
+            safeSetText(form, 'PublicationNewspaper', normalizedEstate.publicationNewspaper);
         }
 
         // 7. Codicils (NEW)
-        if (estate.hasCodicil) {
+        if (normalizedEstate.hasCodicil) {
             safeSetCheckbox(form, 'HasCodicilBox', true);
-            if (estate.codicilDate) {
-                safeSetText(form, 'CodicilDate', new Date(estate.codicilDate).toLocaleDateString());
+            if (normalizedEstate.codicilDate) {
+                safeSetText(form, 'CodicilDate', new Date(normalizedEstate.codicilDate).toLocaleDateString());
             }
         }
 
         // 8. Contact Info (NEW)
-        safeSetText(form, 'PetitionerPhone', estate.petitionerPhone || "");
-        safeSetText(form, 'PetitionerEmail', estate.petitionerEmail || "");
+        safeSetText(form, 'PetitionerPhone', normalizedEstate.petitionerPhone || "");
+        safeSetText(form, 'PetitionerEmail', normalizedEstate.petitionerEmail || "");
 
         // 9. Attorney Details (Enhanced)
-        if (estate.attorneyName) {
-            safeSetText(form, 'AttorneyName', estate.attorneyName);
-            safeSetText(form, 'AttorneyFirm', estate.attorneyFirm || "");
-            safeSetText(form, 'AttorneyAddress', estate.attorneyAddress || "");
-            safeSetText(form, 'AttorneyPhone', estate.attorneyPhone || "");
-            safeSetText(form, 'AttorneyBarNumber', estate.attorneyBarNumber || "");
+        if (normalizedEstate.attorneyName) {
+            safeSetText(form, 'AttorneyName', normalizedEstate.attorneyName);
+            safeSetText(form, 'AttorneyFirm', normalizedEstate.attorneyFirm || "");
+            safeSetText(form, 'AttorneyAddress', normalizedEstate.attorneyAddress || "");
+            safeSetText(form, 'AttorneyPhone', normalizedEstate.attorneyPhone || "");
+            safeSetText(form, 'AttorneyBarNumber', normalizedEstate.attorneyBarNumber || "");
         }
 
         // Return bytes
@@ -206,7 +208,7 @@ export const DocumentService = {
         } catch (error) {
             const reason = error instanceof Error ? error.message : String(error);
             logger.error({ err: reason }, "[DocumentService] Failed to serialize DE-111. Returning placeholder PDF.");
-            return await createTemplateFallbackPdf("DE-111", estate, reason);
+            return await createTemplateFallbackPdf("DE-111", normalizedEstate, reason);
         }
     },
 
@@ -214,6 +216,7 @@ export const DocumentService = {
      * Generates a filled DE-221 Spousal Property Petition
      */
     async generateDE221(estate: any) {
+        const normalizedEstate = normalizeEstateForForms(estate);
         let pdfBytes: Buffer;
 
         const dbTemplate = await prisma.formTemplate.findUnique({ where: { name: "DE-221" } });
@@ -244,35 +247,35 @@ export const DocumentService = {
         } catch (error) {
             const reason = error instanceof Error ? error.message : String(error);
             logger.error({ err: reason }, "[DocumentService] Failed to parse DE-221 template. Returning placeholder PDF.");
-            return await createTemplateFallbackPdf("DE-221", estate, reason);
+            return await createTemplateFallbackPdf("DE-221", normalizedEstate, reason);
         }
 
-        const petitionerName = estate.user?.fullName || "Petitioner";
+        const petitionerName = normalizedEstate.user?.fullName || "Petitioner";
         safeSetText(form, 'PetitionerName', petitionerName);
-        safeSetText(form, 'PetitionerPhone', estate.petitionerPhone || "");
-        safeSetText(form, 'PetitionerEmail', estate.petitionerEmail || "");
+        safeSetText(form, 'PetitionerPhone', normalizedEstate.petitionerPhone || "");
+        safeSetText(form, 'PetitionerEmail', normalizedEstate.petitionerEmail || "");
 
-        if (!estate.petitionerIsAttorney) {
+        if (!normalizedEstate.petitionerIsAttorney) {
             safeSetText(form, 'AttorneyName', `${petitionerName} (In Pro Per)`);
-        } else if (estate.attorneyName) {
-            safeSetText(form, 'AttorneyName', estate.attorneyName);
-            safeSetText(form, 'AttorneyFirm', estate.attorneyFirm || "");
-            safeSetText(form, 'AttorneyBarNumber', estate.attorneyBarNumber || "");
+        } else if (normalizedEstate.attorneyName) {
+            safeSetText(form, 'AttorneyName', normalizedEstate.attorneyName);
+            safeSetText(form, 'AttorneyFirm', normalizedEstate.attorneyFirm || "");
+            safeSetText(form, 'AttorneyBarNumber', normalizedEstate.attorneyBarNumber || "");
         }
 
-        const decedentName = `${estate.deceasedFirstName} ${estate.deceasedLastName}`;
+        const decedentName = `${normalizedEstate.deceasedFirstName} ${normalizedEstate.deceasedLastName}`;
         safeSetText(form, 'DecedentName', decedentName);
-        if (estate.deceasedDateOfDeath) {
-            safeSetText(form, 'DeathDate', new Date(estate.deceasedDateOfDeath).toLocaleDateString());
+        if (normalizedEstate.deceasedDateOfDeath) {
+            safeSetText(form, 'DeathDate', new Date(normalizedEstate.deceasedDateOfDeath).toLocaleDateString());
         }
 
         // California Specifics
-        if (estate.probateCounty) {
-            safeSetText(form, 'County', estate.probateCounty);
+        if (normalizedEstate.probateCounty) {
+            safeSetText(form, 'County', normalizedEstate.probateCounty);
         }
 
         // Checkbox for spouse/partner
-        safeSetCheckbox(form, 'SpouseBox', estate.isSpouse);
+        safeSetCheckbox(form, 'SpouseBox', normalizedEstate.isSpouse);
 
         return await pdfDoc.save();
 

@@ -18,11 +18,13 @@ export interface Estate {
     deceasedState: string;
     deceasedDateOfBirth?: string;
     deceasedDateOfDeath?: string;
+    deceasedAddress?: string;
     deceasedSsn?: string;
     probateCounty?: string;
     probateStatus: string;
     courtCaseNumber?: string;
     estateType?: string;
+    administrationType?: string;
     certifiedCopies?: number;
     inboundEmail?: string;
     handle?: string;
@@ -46,6 +48,7 @@ export interface Estate {
     hasWill?: boolean;
     willDate?: string;
     hasCodicil?: boolean;
+    codicilDate?: string;
     codicilDates?: string[];
     publicationNewspaper?: string;
 
@@ -62,6 +65,7 @@ export interface Estate {
 
     // Estate Assessment
     isSurvivingSpouse?: boolean;
+    isSpouse?: boolean;
     hasTODDeed?: boolean;
     hasOutOfStateProperty?: boolean;
     hasUnknownHeirs?: boolean;
@@ -3141,7 +3145,6 @@ export const api = {
         },
     },
 };
-
 
 
 

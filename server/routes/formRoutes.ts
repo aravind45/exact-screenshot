@@ -16,6 +16,7 @@ import { FLFormService } from "../services/flFormService.js";
 import { FL_FORM_REGISTRY, FL_FORM_TITLES, type FLFormId } from "../services/flFormRegistry.js";
 import { NJFormService } from "../services/njFormService.js";
 import { NJ_FORM_REGISTRY, NJ_FORM_TITLES, type NJFormId } from "../services/njFormRegistry.js";
+import { mergeEstateFormContext } from "../lib/estateFormNormalization.js";
 
 const router = Router();
 router.use(requireSubscription);
@@ -56,9 +57,10 @@ const generateCAWithFallback = async (
     overrides?: Record<string, any>,
 ): Promise<Uint8Array> => {
     try {
+        const normalizedEstate = mergeEstateFormContext(estateData, overrides);
         const result = await CAFormService.generate({
             formId,
-            estate: estateData,
+            estate: normalizedEstate,
             assets,
             heirs,
             overrides,
@@ -66,7 +68,7 @@ const generateCAWithFallback = async (
         return result.pdfBytes;
     } catch (error: any) {
         logger.error(`[forms] CA auto-fill failed for ${formId}. Falling back to legacy generator. ${error?.message || error}`);
-        const mergedEstate = { ...estateData, ...(overrides || {}) };
+        const mergedEstate = mergeEstateFormContext(estateData, overrides);
 
         switch (formId) {
             case 'DE-111':
@@ -388,10 +390,11 @@ router.post("/ca/preview", async (req: any, res: Response) => {
         if (!estate) return res.status(404).json({ error: "Estate data not found" });
 
         const assets = await prisma.asset.findMany({ where: { estateId } });
+        const normalizedEstate = mergeEstateFormContext(estate, overrides);
 
         const { fieldValues, validationErrors } = CAFormService.resolveFields({
             formId: formId as CAFormId,
-            estate: { ...estate, ...overrides },
+            estate: normalizedEstate,
             assets,
             overrides,
         });

@@ -3,6 +3,7 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -223,6 +224,41 @@ export default function Settings() {
                                     <div className="space-y-2">
                                         <Label htmlFor="probateCounty">County of Filing</Label>
                                         <Input id="probateCounty" name="probateCounty" defaultValue={estate.probateCounty} placeholder="e.g. Los Angeles" />
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <Label htmlFor="deceasedAddress">Decedent Residence Address</Label>
+                                        <Textarea
+                                            id="deceasedAddress"
+                                            name="deceasedAddress"
+                                            defaultValue={estate.deceasedAddress || ""}
+                                            placeholder="Street address, city, state, ZIP"
+                                            rows={3}
+                                        />
+                                        <p className="text-xs text-slate-500">
+                                            Used by residence-based filings such as New Jersey probate applications.
+                                        </p>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="administrationType">Administration Type</Label>
+                                            <Input
+                                                id="administrationType"
+                                                name="administrationType"
+                                                defaultValue={estate.administrationType || ""}
+                                                placeholder="e.g. Independent Administration"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="publicationNewspaper">Publication Newspaper</Label>
+                                            <Input
+                                                id="publicationNewspaper"
+                                                name="publicationNewspaper"
+                                                defaultValue={estate.publicationNewspaper || ""}
+                                                placeholder="e.g. San Francisco Chronicle"
+                                            />
+                                        </div>
                                     </div>
 
                                     <div className="p-4 bg-amber-50 border border-amber-100 rounded-xl flex items-start gap-3">

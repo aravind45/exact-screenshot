@@ -4,7 +4,7 @@ import { api } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { FileText, Download, CheckCircle, CheckCircle2, AlertCircle, Users, Gavel, Landmark, Upload, Eye, FileUp, Loader2, Archive, Edit2 } from "lucide-react";
+import { FileText, Download, CheckCircle, CheckCircle2, AlertCircle, Users, Gavel, Landmark, Upload, Eye, FileUp, Loader2, Archive, Edit2, Save } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -15,6 +15,31 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { downloadAutofillPdf } from "@/lib/formAutofill";
+
+type PetitionDetailFormData = {
+    publicationNewspaper: string;
+    hasCodicil: boolean;
+    codicilDate: string;
+    petitionerPhone: string;
+};
+
+function toDateInputValue(value?: string | null): string {
+    if (!value) return "";
+
+    const parsedDate = new Date(value);
+    if (Number.isNaN(parsedDate.getTime())) return "";
+
+    return parsedDate.toISOString().split("T")[0];
+}
+
+function buildPetitionDetailFormData(estate: any): PetitionDetailFormData {
+    return {
+        publicationNewspaper: estate?.publicationNewspaper || "",
+        hasCodicil: estate?.hasCodicil || false,
+        codicilDate: estate?.hasCodicil ? toDateInputValue(estate?.codicilDate) : "",
+        petitionerPhone: estate?.petitionerPhone || "",
+    };
+}
 
 export default function ProbatePetition() {
     const queryClient = useQueryClient();
@@ -68,7 +93,10 @@ export default function ProbatePetition() {
         try {
             await downloadAutofillPdf({
                 formType: "DE-111",
-                payload: formData,
+                payload: {
+                    ...formData,
+                    codicilDate: formData.hasCodicil ? formData.codicilDate : undefined,
+                },
                 filename: "probate-petition-draft.pdf",
             });
             toast.success("Draft downloaded successfully");
@@ -79,19 +107,32 @@ export default function ProbatePetition() {
 
     const [previewOpen, setPreviewOpen] = React.useState(false);
     const [previewPdf, setPreviewPdf] = React.useState<string | null>(null);
-    const [formData, setFormData] = React.useState<any>({});
+    const [formData, setFormData] = React.useState<PetitionDetailFormData>(buildPetitionDetailFormData(null));
 
     // Sync estate data to local form state on load
     React.useEffect(() => {
         if (estate) {
-            setFormData({
-                publicationNewspaper: estate.publicationNewspaper || "",
-                hasCodicil: estate.hasCodicil || false,
-                codicilDate: estate.codicilDate || "",
-                petitionerPhone: estate.petitionerPhone || "",
-            });
+            setFormData(buildPetitionDetailFormData(estate));
         }
     }, [estate]);
+
+    const saveMutation = useMutation({
+        mutationFn: (data: PetitionDetailFormData) =>
+            api.updateMyEstate({
+                publicationNewspaper: data.publicationNewspaper,
+                hasCodicil: data.hasCodicil,
+                codicilDate: data.hasCodicil ? data.codicilDate || null : null,
+                petitionerPhone: data.petitionerPhone,
+            }),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["estate"] });
+            queryClient.invalidateQueries({ queryKey: ["my-estate"] });
+            toast.success("Petition details saved");
+        },
+        onError: (err: any) => {
+            toast.error("Failed to save details: " + err.message);
+        },
+    });
 
     const previewMutation = useMutation({
         mutationFn: (data: any) => api.previewPetition({ formType: "DE-111", ...data }),
@@ -107,7 +148,10 @@ export default function ProbatePetition() {
     });
 
     const handlePreview = () => {
-        previewMutation.mutate(formData);
+        previewMutation.mutate({
+            ...formData,
+            codicilDate: formData.hasCodicil ? formData.codicilDate : undefined,
+        });
     };
 
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -117,6 +161,10 @@ export default function ProbatePetition() {
         }
     };
 
+    const handleSaveDetails = () => {
+        saveMutation.mutate(formData);
+    };
+
     const handleViewStored = async () => {
         try {
             await api.downloadEstateDocument("DE-111", "filed-petition.pdf");
@@ -124,6 +172,13 @@ export default function ProbatePetition() {
             toast.error("Download failed: " + err.message);
         }
     };
+
+    const estateFormData = buildPetitionDetailFormData(estate);
+    const hasUnsavedDetails =
+        formData.publicationNewspaper !== estateFormData.publicationNewspaper ||
+        formData.hasCodicil !== estateFormData.hasCodicil ||
+        formData.codicilDate !== estateFormData.codicilDate ||
+        formData.petitionerPhone !== estateFormData.petitionerPhone;
 
     return (
         <div className="flex bg-slate-50 min-h-screen">
@@ -221,7 +276,11 @@ export default function ProbatePetition() {
                                                     <Checkbox
                                                         id="hasCodicil"
                                                         checked={formData.hasCodicil}
-                                                        onCheckedChange={(c) => setFormData({ ...formData, hasCodicil: c === true })}
+                                                        onCheckedChange={(checked) => setFormData({
+                                                            ...formData,
+                                                            hasCodicil: checked === true,
+                                                            codicilDate: checked === true ? formData.codicilDate : "",
+                                                        })}
                                                     />
                                                     <Label htmlFor="hasCodicil">Are there any codicils to the will?</Label>
                                                 </div>
@@ -230,12 +289,15 @@ export default function ProbatePetition() {
                                                         <Label>Date of Codicil</Label>
                                                         <Input
                                                             type="date"
-                                                            value={formData.codicilDate ? new Date(formData.codicilDate).toISOString().split('T')[0] : ""}
+                                                            value={formData.codicilDate}
                                                             onChange={(e) => setFormData({ ...formData, codicilDate: e.target.value })}
                                                         />
                                                     </div>
                                                 )}
                                             </div>
+                                            <p className="text-xs text-slate-500">
+                                                Save these details once so future petition previews and notice flows reuse the same estate data.
+                                            </p>
                                         </div>
 
                                         {!isReady && (
@@ -259,6 +321,10 @@ export default function ProbatePetition() {
                                         )}
 
                                         <div className="flex justify-end gap-3 pt-4 border-t">
+                                            <Button variant="outline" onClick={handleSaveDetails} disabled={saveMutation.isPending || !hasUnsavedDetails}>
+                                                {saveMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+                                                Save Details
+                                            </Button>
                                             <Button variant="outline" onClick={handlePreview} disabled={previewMutation.isPending}>
                                                 {previewMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Eye className="w-4 h-4 mr-2" />}
                                                 Preview Draft
