@@ -16,6 +16,9 @@ import { AuthorityBadge, AuthorityType } from "@/components/AuthorityBadge";
 import { CAFormAutoFillDialog } from "@/components/CAFormAutoFillDialog";
 import { NYFormAutoFillDialog } from "@/components/NYFormAutoFillDialog";
 import { NJFormAutoFillDialog } from "@/components/NJFormAutoFillDialog";
+import { TXFormAutoFillDialog } from "@/components/TXFormAutoFillDialog";
+import { FLFormAutoFillDialog } from "@/components/FLFormAutoFillDialog";
+import { AUTO_FILL_FORMS, getDedicatedAutoFillState } from "@/lib/formAutoFillSupport";
 
 const STATES = [
     { id: "AL", name: "Alabama", icon: "🏛️", supported: false },
@@ -152,11 +155,6 @@ const DynamicIcon = ({ name, className }: { name: string, className?: string }) 
     return <IconComponent className={className} />;
 };
 
-const CA_AUTO_FILL_FORMS = new Set(['DE-111', 'DE-160', 'DE-310']);
-const NY_AUTO_FILL_FORMS = new Set(['ET-1', 'ET-2', 'ET-3', 'ET-8', 'ET-13']);
-const NJ_AUTO_FILL_FORMS = new Set(['NJ-1', 'NJ-2']);
-const AUTO_FILL_FORMS = new Set([...CA_AUTO_FILL_FORMS, ...NY_AUTO_FILL_FORMS, ...NJ_AUTO_FILL_FORMS]);
-
 const Forms = () => {
     const [selectedState, setSelectedState] = useState("CA");
     const [searchQuery, setSearchQuery] = useState("");
@@ -165,6 +163,8 @@ const Forms = () => {
     const [loadingAction, setLoadingAction] = useState<string | null>(null);
     const [caAutoFillForm, setCaAutoFillForm] = useState<{ id: string; title: string } | null>(null);
     const [nyAutoFillForm, setNyAutoFillForm] = useState<{ id: string; title: string } | null>(null);
+    const [txAutoFillForm, setTxAutoFillForm] = useState<{ id: string; title: string } | null>(null);
+    const [flAutoFillForm, setFlAutoFillForm] = useState<{ id: string; title: string } | null>(null);
     const [njAutoFillForm, setNjAutoFillForm] = useState<{ id: string; title: string } | null>(null);
 
     const stateName = STATES.find(s => s.id === selectedState)?.name || selectedState;
@@ -494,11 +494,17 @@ const Forms = () => {
                                                                                 )}
                                                                                 onClick={() => {
                                                                                     if (!formReady) return;
-                                                                                    if (CA_AUTO_FILL_FORMS.has(form.name)) {
+                                                                                    const dedicatedAutoFillState = getDedicatedAutoFillState(form.name);
+
+                                                                                    if (dedicatedAutoFillState === "CA") {
                                                                                         setCaAutoFillForm({ id: form.name, title: form.title });
-                                                                                    } else if (NY_AUTO_FILL_FORMS.has(form.name)) {
+                                                                                    } else if (dedicatedAutoFillState === "NY") {
                                                                                         setNyAutoFillForm({ id: form.name, title: form.title });
-                                                                                    } else if (NJ_AUTO_FILL_FORMS.has(form.name)) {
+                                                                                    } else if (dedicatedAutoFillState === "TX") {
+                                                                                        setTxAutoFillForm({ id: form.name, title: form.title });
+                                                                                    } else if (dedicatedAutoFillState === "FL") {
+                                                                                        setFlAutoFillForm({ id: form.name, title: form.title });
+                                                                                    } else if (dedicatedAutoFillState === "NJ") {
                                                                                         setNjAutoFillForm({ id: form.name, title: form.title });
                                                                                     } else {
                                                                                         handleFormAction(form.name, false);
@@ -576,6 +582,24 @@ const Forms = () => {
                     onOpenChange={open => { if (!open) setNyAutoFillForm(null); }}
                     formId={nyAutoFillForm.id}
                     formTitle={nyAutoFillForm.title}
+                />
+            )}
+
+            {txAutoFillForm && (
+                <TXFormAutoFillDialog
+                    open={!!txAutoFillForm}
+                    onOpenChange={open => { if (!open) setTxAutoFillForm(null); }}
+                    formId={txAutoFillForm.id}
+                    formTitle={txAutoFillForm.title}
+                />
+            )}
+
+            {flAutoFillForm && (
+                <FLFormAutoFillDialog
+                    open={!!flAutoFillForm}
+                    onOpenChange={open => { if (!open) setFlAutoFillForm(null); }}
+                    formId={flAutoFillForm.id}
+                    formTitle={flAutoFillForm.title}
                 />
             )}
 

@@ -1644,6 +1644,94 @@ export const api = {
         return await response.blob();
     },
 
+    getTXFormSchema: async (formId: string): Promise<{
+        formId: string;
+        title: string;
+        schema: Array<{
+            key: string;
+            label: string;
+            type: string;
+            required: boolean;
+            description?: string;
+            overridable: boolean;
+        }>;
+    }> => {
+        const response = await fetch(`${API_URL}/forms/tx/schema/${formId}`, {
+            headers: getHeaders(),
+        });
+        return parseResponse(response);
+    },
+
+    previewTXFormFields: async (formId: string, overrides?: Record<string, any>): Promise<{
+        formId: string;
+        fieldValues: Record<string, any>;
+        validationErrors: string[];
+    }> => {
+        const response = await fetch(`${API_URL}/forms/tx/preview`, {
+            method: 'POST',
+            headers: getHeaders(),
+            body: JSON.stringify({ formId, overrides: overrides || {} }),
+        });
+        return parseResponse(response);
+    },
+
+    generateTXForm: async (formId: string, isPreview: boolean = true, overrides?: Record<string, any>): Promise<Blob> => {
+        const response = await fetch(`${API_URL}/forms/tx/generate`, {
+            method: 'POST',
+            headers: getHeaders(),
+            body: JSON.stringify({ formId, isPreview, overrides: overrides || {} }),
+        });
+        if (!response.ok) {
+            const err = await response.json().catch(() => ({ error: 'Failed to generate TX form' }));
+            throw new Error(err.error || 'Failed to generate TX form');
+        }
+        return await response.blob();
+    },
+
+    getFLFormSchema: async (formId: string): Promise<{
+        formId: string;
+        title: string;
+        schema: Array<{
+            key: string;
+            label: string;
+            type: string;
+            required: boolean;
+            description?: string;
+            overridable: boolean;
+        }>;
+    }> => {
+        const response = await fetch(`${API_URL}/forms/fl/schema/${formId}`, {
+            headers: getHeaders(),
+        });
+        return parseResponse(response);
+    },
+
+    previewFLFormFields: async (formId: string, overrides?: Record<string, any>): Promise<{
+        formId: string;
+        fieldValues: Record<string, any>;
+        validationErrors: string[];
+    }> => {
+        const response = await fetch(`${API_URL}/forms/fl/preview`, {
+            method: 'POST',
+            headers: getHeaders(),
+            body: JSON.stringify({ formId, overrides: overrides || {} }),
+        });
+        return parseResponse(response);
+    },
+
+    generateFLForm: async (formId: string, isPreview: boolean = true, overrides?: Record<string, any>): Promise<Blob> => {
+        const response = await fetch(`${API_URL}/forms/fl/generate`, {
+            method: 'POST',
+            headers: getHeaders(),
+            body: JSON.stringify({ formId, isPreview, overrides: overrides || {} }),
+        });
+        if (!response.ok) {
+            const err = await response.json().catch(() => ({ error: 'Failed to generate FL form' }));
+            throw new Error(err.error || 'Failed to generate FL form');
+        }
+        return await response.blob();
+    },
+
     getNJFormSchema: async (formId: string): Promise<{
         formId: string;
         title: string;
@@ -3145,7 +3233,6 @@ export const api = {
         },
     },
 };
-
 
 
 

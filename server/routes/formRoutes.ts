@@ -17,6 +17,7 @@ import { FL_FORM_REGISTRY, FL_FORM_TITLES, type FLFormId } from "../services/flF
 import { NJFormService } from "../services/njFormService.js";
 import { NJ_FORM_REGISTRY, NJ_FORM_TITLES, type NJFormId } from "../services/njFormRegistry.js";
 import { mergeEstateFormContext } from "../lib/estateFormNormalization.js";
+import { buildRegistryReadinessMap, type FormReadinessStageGate } from "../lib/formReadiness.js";
 
 const router = Router();
 router.use(requireSubscription);
@@ -119,13 +120,19 @@ router.get("/readiness", async (req: any, res: Response) => {
         const estateId = await getEstateId(req.user.id);
         if (!estateId) return res.status(404).json({ error: "Estate not found" });
 
-        const estate = await prisma.estate.findUnique({ where: { id: estateId } });
+        const estate = await prisma.estate.findUnique({
+            where: { id: estateId },
+            include: { user: true, heirs: true },
+        });
         const accountingReadiness = await AccountingService.getReadiness(estateId);
+        const assets = await prisma.asset.findMany({ where: { estateId } });
 
         const hasDecedentInfo = !!(estate?.deceasedFirstName && estate?.deceasedLastName);
         const isAppointed = estate?.status === 'APPOINTED' || estate?.status === 'SETTLEMENT';
         const hasInventory = accountingReadiness.checks.inventoryObtained || estate?.status === 'SETTLEMENT';
         const estateState = (estate as any)?.deceasedState || '';
+        const heirs = Array.isArray((estate as any)?.heirs) ? (estate as any).heirs : [];
+        const normalizedEstate = mergeEstateFormContext(estate);
 
         // --- Helper to build a standard readiness entry ---
         const entry = (ready: boolean, reason: string, statusYes: string, statusNo: string, tier = "COURT_REQUIRED") => ({
@@ -135,73 +142,129 @@ router.get("/readiness", async (req: any, res: Response) => {
             authorityTier: tier
         });
 
-        // --- California (DE-*) ---
-        const caReadiness: Record<string, any> = {
-            'DE-111': entry(hasDecedentInfo, "Requires decedent name and address.", "READY", "LOCKED"),
-            'DE-121': entry(hasDecedentInfo, "Requires decedent name and address.", "READY", "LOCKED"),
-            'DE-150': entry(isAppointed, "Can be prepared once the court has issued appointment orders.", "READY (Letters Issued)", "PENDING COURT ORDER"),
-            'DE-160': entry(hasInventory, "Appropriate once assets have been discovered and valued.", "READY (Inventory Open)", "COLLECTING ASSETS"),
+        const defaultGate: FormReadinessStageGate = {
+            ready: true,
+            reason: "Required captured estate data is available.",
+            statusYes: "READY",
+            statusNo: "LOCKED",
         };
 
-        // --- New York (ET-*) ---
+        const caStageGates: Record<string, FormReadinessStageGate> = {
+            'DE-111': {
+                ready: true,
+                reason: "Requires captured petition data before the probate draft is reliable.",
+                statusYes: "READY",
+                statusNo: "LOCKED",
+            },
+            'DE-160': {
+                ready: hasInventory,
+                reason: "Appropriate once assets have been discovered and valued.",
+                statusYes: "READY (Inventory Open)",
+                statusNo: "COLLECTING ASSETS",
+            },
+            'DE-310': {
+                ready: hasInventory,
+                reason: "Requires identified real property and supporting succession details.",
+                statusYes: "READY",
+                statusNo: "COLLECTING ASSETS",
+            },
+        };
+
+        const nyStageGates: Record<string, FormReadinessStageGate> = {
+            'ET-8': {
+                ready: isAppointed,
+                reason: "Requires Letters to be issued for inventory filing.",
+                statusYes: "READY",
+                statusNo: "PENDING COURT ORDER",
+            },
+            'ET-13': {
+                ready: hasInventory,
+                reason: "Requires estate inventory and distribution planning.",
+                statusYes: "READY",
+                statusNo: "COLLECTING DATA",
+            },
+        };
+
+        const txStageGates: Record<string, FormReadinessStageGate> = {
+            'TX-4': { ready: isAppointed, reason: "Requires court appointment.", statusYes: "READY (Letters Issued)", statusNo: "PENDING COURT ORDER" },
+            'TX-5': { ready: isAppointed, reason: "Requires Letters Testamentary.", statusYes: "READY", statusNo: "PENDING COURT ORDER" },
+            'TX-6': { ready: isAppointed, reason: "Requires Letters of Administration.", statusYes: "READY", statusNo: "PENDING COURT ORDER" },
+            'TX-7': { ready: hasInventory, reason: "Requires asset inventory data.", statusYes: "READY (Inventory Open)", statusNo: "COLLECTING ASSETS" },
+            'TX-8': { ready: hasInventory, reason: "Requires estate accounting.", statusYes: "READY", statusNo: "COLLECTING DATA" },
+            'TX-9': { ready: hasInventory, reason: "Requires final accounting.", statusYes: "READY", statusNo: "COLLECTING DATA" },
+            'TX-10': { ready: hasInventory, reason: "Requires completed administration for closing.", statusYes: "READY", statusNo: "COLLECTING DATA" },
+            'TX-11': { ready: true, reason: "Requires captured small-estate intake details.", statusYes: "READY", statusNo: "LOCKED", authorityTier: "AFFIDAVIT_SMALL" },
+        };
+
+        const flStageGates: Record<string, FormReadinessStageGate> = {
+            'FL-2': { ready: true, reason: "Summary administration still requires a basis override before filing.", statusYes: "READY", statusNo: "LOCKED", authorityTier: "AFFIDAVIT_SMALL" },
+            'FL-4': { ready: isAppointed, reason: "Requires court appointment.", statusYes: "READY (Letters Issued)", statusNo: "PENDING COURT ORDER" },
+            'FL-6': { ready: isAppointed, reason: "Requires Letters of Administration.", statusYes: "READY", statusNo: "PENDING COURT ORDER" },
+            'FL-8': { ready: hasInventory, reason: "Requires creditor claim details and supporting estate data.", statusYes: "READY", statusNo: "COLLECTING ASSETS" },
+            'FL-9': { ready: hasInventory, reason: "Requires estate accounting data.", statusYes: "READY", statusNo: "COLLECTING DATA" },
+            'FL-10': { ready: hasInventory, reason: "Requires accounting data.", statusYes: "READY", statusNo: "COLLECTING DATA" },
+            'FL-11': { ready: hasInventory, reason: "Requires final accounting.", statusYes: "READY", statusNo: "COLLECTING DATA" },
+            'FL-12': { ready: hasInventory, reason: "Requires completed administration for closing.", statusYes: "READY", statusNo: "COLLECTING DATA" },
+            'FL-14': { ready: true, reason: "Disposition without administration needs claimant-specific details.", statusYes: "READY", statusNo: "LOCKED", authorityTier: "AFFIDAVIT_SMALL" },
+        };
+
+        const caReadiness: Record<string, any> = {
+            'DE-121': entry(hasDecedentInfo, "Requires decedent name and address.", "READY", "LOCKED"),
+            'DE-150': entry(isAppointed, "Can be prepared once the court has issued appointment orders.", "READY (Letters Issued)", "PENDING COURT ORDER"),
+            ...buildRegistryReadinessMap({
+                registries: CA_FORM_REGISTRY,
+                estate: normalizedEstate,
+                assets,
+                heirs,
+                stageGates: caStageGates,
+                defaultStageGate: defaultGate,
+                additionalRequiredFieldsByForm: {
+                    'DE-111': [
+                        { label: 'Publication Newspaper', path: 'publicationNewspaper' },
+                        { label: 'Codicil Date', path: 'codicilDate', when: ({ estate }) => estate.hasCodicil === true },
+                    ],
+                },
+            }),
+        };
+
         const nyReadiness: Record<string, any> = {
-            'ET-1': entry(hasDecedentInfo, "Requires decedent name, address, and date of death.", "READY", "LOCKED"),
-            'ET-2': entry(hasDecedentInfo, "Requires decedent and heir information.", "READY", "LOCKED"),
-            'ET-3': entry(hasDecedentInfo, "Requires decedent name and domicile.", "READY", "LOCKED"),
-            'ET-4': entry(isAppointed, "Requires Letters Testamentary or Administration to be issued.", "READY (Letters Issued)", "PENDING COURT ORDER"),
-            'ET-5': entry(isAppointed, "Requires court appointment before filing.", "READY", "PENDING COURT ORDER"),
-            'ET-6': entry(isAppointed, "Can be prepared after appointment.", "READY", "PENDING COURT ORDER"),
-            'ET-7': entry(hasInventory, "Appropriate once assets have been discovered and valued.", "READY (Inventory Open)", "COLLECTING ASSETS"),
-            'ET-8': entry(isAppointed, "Requires Letters to be issued for creditor notice.", "READY", "PENDING COURT ORDER"),
-            'ET-9': entry(hasInventory, "Requires accounting data from estate administration.", "READY", "COLLECTING DATA"),
-            'ET-10': entry(hasInventory, "Requires accounting data.", "READY", "COLLECTING DATA"),
-            'ET-11': entry(hasInventory, "Requires estate accounting to be completed.", "READY", "COLLECTING DATA"),
-            'ET-12': entry(hasInventory, "Requires final accounting.", "READY", "COLLECTING DATA"),
-            'ET-13': entry(hasDecedentInfo, "Requires estate value information.", "READY", "LOCKED"),
+            ...buildRegistryReadinessMap({
+                registries: NY_FORM_REGISTRY,
+                estate: normalizedEstate,
+                assets,
+                heirs,
+                stageGates: nyStageGates,
+                defaultStageGate: defaultGate,
+            }),
             'ET-14': entry(hasDecedentInfo, "Small estate affidavit — requires decedent info and asset values.", "READY", "LOCKED", "AFFIDAVIT_SMALL"),
             'ET-15': entry(hasDecedentInfo, "Voluntary administration affidavit.", "READY", "LOCKED", "AFFIDAVIT_SMALL"),
         };
 
-        // --- Texas (TX-*) ---
-        const txReadiness: Record<string, any> = {
-            'TX-1': entry(hasDecedentInfo, "Requires decedent name, date of death, and county.", "READY", "LOCKED"),
-            'TX-2': entry(hasDecedentInfo, "Requires decedent and heir information.", "READY", "LOCKED"),
-            'TX-3': entry(hasDecedentInfo, "Requires will and decedent information.", "READY", "LOCKED"),
-            'TX-4': entry(isAppointed, "Requires court appointment.", "READY (Letters Issued)", "PENDING COURT ORDER"),
-            'TX-5': entry(hasInventory, "Requires asset inventory data.", "READY (Inventory Open)", "COLLECTING ASSETS"),
-            'TX-6': entry(isAppointed, "Requires Letters Testamentary.", "READY", "PENDING COURT ORDER"),
-            'TX-7': entry(isAppointed, "Requires appointment for creditor notice.", "READY", "PENDING COURT ORDER"),
-            'TX-8': entry(hasInventory, "Requires estate accounting.", "READY", "COLLECTING DATA"),
-            'TX-9': entry(hasInventory, "Requires final accounting.", "READY", "COLLECTING DATA"),
-            'TX-10': entry(hasInventory, "Requires completed administration for closing.", "READY", "COLLECTING DATA"),
-            'TX-11': entry(hasDecedentInfo, "Small estate affidavit — requires decedent info and asset values.", "READY", "LOCKED", "AFFIDAVIT_SMALL"),
-            'TX-12': entry(hasDecedentInfo, "Requires estate and beneficiary info for Muniment of Title.", "READY", "LOCKED"),
-        };
+        const txReadiness = buildRegistryReadinessMap({
+            registries: TX_FORM_REGISTRY,
+            estate: normalizedEstate,
+            assets,
+            heirs,
+            stageGates: txStageGates,
+            defaultStageGate: defaultGate,
+        });
 
-        // --- Florida (FL-*) ---
-        const flReadiness: Record<string, any> = {
-            'FL-1': entry(hasDecedentInfo, "Requires decedent name, date of death, and county.", "READY", "LOCKED"),
-            'FL-2': entry(hasDecedentInfo, "Summary administration — requires decedent info and estate value.", "READY", "LOCKED", "AFFIDAVIT_SMALL"),
-            'FL-3': entry(hasDecedentInfo, "Requires decedent and estate information.", "READY", "LOCKED"),
-            'FL-4': entry(isAppointed, "Requires court appointment.", "READY (Letters Issued)", "PENDING COURT ORDER"),
-            'FL-5': entry(hasDecedentInfo, "Requires will and decedent information.", "READY", "LOCKED"),
-            'FL-6': entry(isAppointed, "Requires Letters of Administration.", "READY", "PENDING COURT ORDER"),
-            'FL-7': entry(isAppointed, "Requires appointment for creditor notice.", "READY", "PENDING COURT ORDER"),
-            'FL-8': entry(hasInventory, "Requires asset inventory data.", "READY (Inventory Open)", "COLLECTING ASSETS"),
-            'FL-9': entry(hasInventory, "Requires estate accounting data.", "READY", "COLLECTING DATA"),
-            'FL-10': entry(hasInventory, "Requires accounting data.", "READY", "COLLECTING DATA"),
-            'FL-11': entry(hasInventory, "Requires final accounting.", "READY", "COLLECTING DATA"),
-            'FL-12': entry(hasInventory, "Requires completed administration for closing.", "READY", "COLLECTING DATA"),
-            'FL-13': entry(hasDecedentInfo, "Requires estate and beneficiary info.", "READY", "LOCKED"),
-            'FL-14': entry(hasDecedentInfo, "Disposition without administration affidavit.", "READY", "LOCKED", "AFFIDAVIT_SMALL"),
-            'FL-15': entry(hasDecedentInfo, "Requires estate information for family allowance.", "READY", "LOCKED"),
-        };
+        const flReadiness = buildRegistryReadinessMap({
+            registries: FL_FORM_REGISTRY,
+            estate: normalizedEstate,
+            assets,
+            heirs,
+            stageGates: flStageGates,
+            defaultStageGate: defaultGate,
+        });
 
-        // --- New Jersey (NJ-*) ---
-        const njReadiness: Record<string, any> = {
-            'NJ-1': entry(hasDecedentInfo, "Requires decedent information.", "READY", "LOCKED"),
-            'NJ-2': entry(hasDecedentInfo, "Requires petitioner and decedent information.", "READY", "LOCKED"),
-        };
+        const njReadiness = buildRegistryReadinessMap({
+            registries: NJ_FORM_REGISTRY,
+            estate: normalizedEstate,
+            assets,
+            heirs,
+            defaultStageGate: defaultGate,
+        });
 
         // Return readiness for the estate's state, or all states if query param requests it
         const requestedState = (req.query.state as string)?.toUpperCase() || estateState;
