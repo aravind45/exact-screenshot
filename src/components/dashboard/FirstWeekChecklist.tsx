@@ -103,35 +103,39 @@ export function FirstWeekChecklist({ completedTaskIds, className }: Props) {
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
 
-  const { data: assets = [] } = useQuery({
+  const assetsQuery = useQuery({
     queryKey: ["assets"],
     queryFn: api.getAssets,
   });
 
-  const { data: liabilities = [] } = useQuery({
+  const liabilitiesQuery = useQuery({
     queryKey: ["liabilities"],
     queryFn: api.getLiabilities,
   });
 
-  const { data: documents = [] } = useQuery({
+  const documentsQuery = useQuery({
     queryKey: ["estate-documents"],
     queryFn: api.getEstateDocuments,
   });
 
+  const assets = Array.isArray(assetsQuery.data) ? assetsQuery.data : [];
+  const liabilities = Array.isArray(liabilitiesQuery.data) ? liabilitiesQuery.data : [];
+  const documents = Array.isArray(documentsQuery.data) ? documentsQuery.data : [];
+
   const checklistContext = useMemo<ChecklistContext>(() => {
     const completedTaskIdSet = new Set(completedTaskIds || []);
 
-    const hasWillDoc = (documents as any[]).some((doc) => {
+    const hasWillDoc = documents.some((doc) => {
       const text = `${normalize(doc?.documentType)} ${normalize(doc?.name)}`;
       return text.includes("WILL") || text.includes("TESTAMENT");
     });
 
-    const hasDeathCertDoc = (documents as any[]).some((doc) => {
+    const hasDeathCertDoc = documents.some((doc) => {
       const text = `${normalize(doc?.documentType)} ${normalize(doc?.name)}`;
       return text.includes("DEATH_CERT") || text.includes("DEATH CERTIFICATE");
     });
 
-    const hasInstitutionNoticeDoc = (documents as any[]).some((doc) => {
+    const hasInstitutionNoticeDoc = documents.some((doc) => {
       const text = `${normalize(doc?.documentType)} ${normalize(doc?.name)}`;
       return text.includes("SSA") || text.includes("NOTICE") || text.includes("LETTER") || text.includes("CREDITOR");
     });
@@ -140,9 +144,9 @@ export function FirstWeekChecklist({ completedTaskIds, className }: Props) {
       completedTaskIdSet,
       hasWillDoc,
       hasDeathCertDoc,
-      hasEstateAccount: (assets as any[]).some((asset) => isLikelyEstateAccount(asset)),
-      hasAssets: (assets as any[]).length > 0,
-      hasLiabilities: (liabilities as any[]).length > 0,
+      hasEstateAccount: assets.some((asset) => isLikelyEstateAccount(asset)),
+      hasAssets: assets.length > 0,
+      hasLiabilities: liabilities.length > 0,
       hasInstitutionNoticeDoc,
     };
   }, [assets, liabilities, documents, completedTaskIds]);
