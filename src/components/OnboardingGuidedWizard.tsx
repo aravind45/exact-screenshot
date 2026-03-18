@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
@@ -83,12 +83,30 @@ const STEPS = [
     { id: "completion", title: "All Set" }
 ];
 
+const clampStep = (step: number) => Math.min(STEPS.length - 1, Math.max(0, step));
+
+const parseStepFromSearch = (search: string) => {
+    const rawStep = new URLSearchParams(search).get("step");
+    if (rawStep === null) {
+        return 0;
+    }
+
+    const parsedStep = Number.parseInt(rawStep, 10);
+    if (Number.isNaN(parsedStep)) {
+        return 0;
+    }
+
+    return clampStep(parsedStep);
+};
+
 export default function OnboardingGuidedWizard() {
     const navigate = useNavigate();
+    const location = useLocation();
     const queryClient = useQueryClient();
     const { toast } = useToast();
     const { trackEvent } = useTracking();
-    const [currentStep, setCurrentStep] = useState(0);
+    const currentStep = parseStepFromSearch(location.search);
+    const entryStepRef = useRef(currentStep);
     const [isLoading, setIsLoading] = useState(false);
     const [confidenceScore, setConfidenceScore] = useState<number | null>(null);
 
@@ -127,6 +145,48 @@ export default function OnboardingGuidedWizard() {
 
     const { user } = useAuth();
 
+    const goToStep = (step: number, options?: { replace?: boolean }) => {
+        const nextStep = clampStep(step);
+        const searchParams = new URLSearchParams(location.search);
+        const shouldPersistStepParam = nextStep > 0 || searchParams.has("step");
+
+        if (shouldPersistStepParam) {
+            searchParams.set("step", String(nextStep));
+        } else {
+            searchParams.delete("step");
+        }
+
+        const nextSearch = searchParams.toString();
+        const normalizedCurrentSearch = location.search.startsWith("?")
+            ? location.search.slice(1)
+            : location.search;
+
+        if (nextSearch === normalizedCurrentSearch) {
+            return;
+        }
+
+        navigate(
+            {
+                pathname: location.pathname,
+                search: nextSearch ? `?${nextSearch}` : "",
+            },
+            { replace: options?.replace ?? true }
+        );
+    };
+
+    const handleBack = () => {
+        if (currentStep === 0) {
+            return;
+        }
+
+        if (currentStep === entryStepRef.current && entryStepRef.current > 0 && window.history.length > 1) {
+            navigate(-1);
+            return;
+        }
+
+        goToStep(currentStep - 1);
+    };
+
     // Redirect Advisors out of executor onboarding
     // Auto-skip role selection for known EXECUTOR users
     useEffect(() => {
@@ -141,7 +201,7 @@ export default function OnboardingGuidedWizard() {
             }
             // Only auto-advance if still on the welcome step
             if (currentStep === 0) {
-                setCurrentStep(1);
+                goToStep(1);
             }
         }
         // If user registered as HEIR, set role accordingly
@@ -192,7 +252,7 @@ export default function OnboardingGuidedWizard() {
                     }));
                     // Move to step 1 (Estate Basics) if we have data, skipping intro
                     if (parsed.deceasedName || parsed.state) {
-                        setCurrentStep(1);
+                        goToStep(1);
                     }
                 }
             } catch (e) {
@@ -361,7 +421,7 @@ export default function OnboardingGuidedWizard() {
                     duration: 2000,
                     className: "bg-emerald-50 text-emerald-900 border-none"
                 });
-                setCurrentStep(prev => prev + 1);
+                goToStep(currentStep + 1);
             } else {
                 await trackEvent("intake_completed");
                 navigate("/dashboard");
@@ -521,7 +581,7 @@ export default function OnboardingGuidedWizard() {
                                             ) : (
                                                 <Button
                                                     size="lg"
-                                                    onClick={() => setCurrentStep(1)}
+                                                    onClick={() => goToStep(1)}
                                                     disabled={!role}
                                                     className="w-full rounded-xl h-12 text-base font-bold mt-6 shadow-lg shadow-primary/20"
                                                 >
@@ -977,7 +1037,7 @@ export default function OnboardingGuidedWizard() {
                                         <div className="flex flex-col gap-3">
                                             <Button
                                                 size="lg"
-                                                onClick={() => setCurrentStep(3)}
+                                                onClick={() => goToStep(3)}
                                                 disabled={isLoading}
                                                 className="w-full rounded-2xl h-12 font-bold"
                                             >
@@ -985,7 +1045,7 @@ export default function OnboardingGuidedWizard() {
                                             </Button>
                                             <Button
                                                 variant="outline"
-                                                onClick={() => setCurrentStep(1)}
+                                                onClick={() => goToStep(1)}
                                                 className="text-slate-400 text-xs"
                                             >
                                                 Go Back to Basics
@@ -1245,7 +1305,7 @@ export default function OnboardingGuidedWizard() {
                                             >
                                                 {isLoading ? "Uploading..." : "Sync & Continue"}
                                             </Button>
-                                            <Button variant="ghost" onClick={() => setCurrentStep(prev => prev + 1)} className="text-slate-400 text-xs">
+                                            <Button variant="ghost" onClick={() => goToStep(currentStep + 1)} className="text-slate-400 text-xs">
                                                 I don't have it yet, skip for now
                                             </Button>
                                         </div>
@@ -1467,7 +1527,7 @@ export default function OnboardingGuidedWizard() {
                         <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => setCurrentStep(prev => prev - 1)}
+                            onClick={handleBack}
                             className="text-slate-400 hover:text-slate-600"
                         >
                             Back
