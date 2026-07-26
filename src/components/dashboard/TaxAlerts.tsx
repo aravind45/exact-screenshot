@@ -10,24 +10,14 @@ interface TaxAlertsProps {
     className?: string;
 }
 
-const INHERITANCE_TAX_STATES = ['KY', 'MD', 'NE', 'NJ', 'PA'];
-const STATE_ESTATE_TAX_THRESHOLDS: Record<string, number> = {
-    'OR': 1000000,
-    'MA': 2000000,
-    'RI': 1774583,
-    'MN': 3000000,
-    'WA': 2193000,
-    'VT': 5000000,
-    'IL': 4000000,
-    'ME': 6410000,
-    'MD': 5000000,
-    'NY': 6940000,
-    'CT': 12920000,
-    'DC': 4528900,
-    'HI': 5490000,
-};
+import {
+    FEDERAL_ESTATE_TAX,
+    STATE_ESTATE_TAX_THRESHOLDS,
+    INHERITANCE_TAX_STATES,
+} from "@/lib/jurisdictionData";
 
-const FEDERAL_ESTATE_TAX_THRESHOLD = 13610000; // 2024 limit
+// 2026 federal exemption: $15,000,000/person (P.L. 119-21, effective 2026-01-01)
+const FEDERAL_ESTATE_TAX_THRESHOLD = FEDERAL_ESTATE_TAX.exemption2026;
 
 export function TaxAlerts({ estate, totalValue, className }: TaxAlertsProps) {
     if (!estate) return null;

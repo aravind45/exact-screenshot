@@ -5,7 +5,7 @@ import { SEO } from "@/components/SEO";
 export default function ProbateCalifornia() {
     const toc = [
         { id: "california-basics", label: "California Probate Basics" },
-        { id: "simplified-procedures", label: "Simplified Procedures ($184,500)" },
+        { id: "simplified-procedures", label: "Simplified Procedures ($208,850)" },
         { id: "full-probate", label: "Full Formal Probate" },
         { id: "fees-costs", label: "Statutory Fees & Costs" },
         { id: "forms", label: "Essential CA Forms" },
@@ -16,7 +16,7 @@ export default function ProbateCalifornia() {
         "@context": "https://schema.org",
         "@type": "Article",
         "headline": "California Probate Process: The 2026 Complete Guide",
-        "description": "Navigate the California probate court system. Learn about the $184,500 threshold, statutory attorney fees, and the step-by-step timeline for CA estates.",
+        "description": "Navigate the California probate court system. Learn about the $208,850 threshold, statutory attorney fees, and the step-by-step timeline for CA estates.",
         "author": {
             "@type": "Organization",
             "name": "ExpectedEstate"
@@ -32,7 +32,7 @@ export default function ProbateCalifornia() {
         >
             <SEO
                 title="California Probate Process: Rules, Fees & Timelines | ExpectedEstate"
-                description="A detailed guide to California probate law. Learn about simplified procedures for estates under $184,500, statutory fees, and the CA probate timeline."
+                description="A detailed guide to California probate law. Learn about simplified procedures for estates under $208,850, statutory fees, and the CA probate timeline."
                 ogTitle="California Probate Guide: 2026 Updated Laws"
                 structuredData={structuredData}
             />
@@ -48,14 +48,15 @@ export default function ProbateCalifornia() {
             </section>
 
             <section id="simplified-procedures">
-                <h2>Simplified Procedures: The $184,500 Threshold</h2>
+                <h2>Simplified Procedures: The $208,850 Threshold</h2>
                 <p>
-                    Not every California estate requires a full court proceeding. As of 2026, if the total value of the "probate estate" is <strong>$184,500 or less</strong>, you may qualify for simplified procedures that bypass formal court hearings entirely.
+                    Not every California estate requires a full court proceeding. As of 2026, if the total value of the "probate estate" is <strong>$208,850 or less</strong>, you may qualify for simplified procedures that bypass formal court hearings entirely.
                 </p>
                 <ul>
                     <li><strong>Small Estate Affidavit:</strong> Used for personal property (bank accounts, stocks, cars) after a 40-day waiting period. See our dedicated <a href="/small-estate-affidavit">Small Estate Affidavit Guide</a>.</li>
                     <li><strong>Spousal Property Petition:</strong> If the assets pass to a surviving spouse or domestic partner, this allows for a much faster transfer regardless of the estate's value.</li>
-                    <li><strong>Succession to Real Property:</strong> A simplified court petition for real estate valued under $184,500.</li>
+                    <li><strong>Succession to Real Property:</strong> A simplified court petition for real estate valued under $208,850.</li>
+                    <li><strong>Primary Residence Petition (AB 2016, new for 2025):</strong> For deaths on or after April 1, 2025, the decedent's primary residence valued at <strong>$750,000 or less</strong> (gross) may qualify for a streamlined court petition (Prob. Code §§13151–13154) without full probate — a major expansion since most California homes far exceed the general $208,850 threshold.</li>
                 </ul>
             </section>
 

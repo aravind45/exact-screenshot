@@ -252,8 +252,8 @@ export const STATE_RULES: Record<string, StateRule> = {
                 citation: "CA Prob. Code §10400 et seq.",
             },
             noticePeriodDays: 15, // 15-day objection period for Notice of Proposed Action
-            overbidFormula: "MAX(bid + $500, bid + 5% of first $10k + 2.5% of excess)",
-            overbidCitation: "CA Prob. Code §10310",
+            overbidFormula: "bid + 10% of first $10,000 + 5% of excess (minimum increase $500) — first overbid only; subsequent overbids set by court",
+            overbidCitation: "CA Prob. Code §10311 (overbids); §10310 (confirmation hearing)",
         },
     },
     "CO": { threshold: 82000, smallEstateTerm: "Small Estate Affidavit", smallEstateCitation: ["C.R.S. § 15-12-1201"], probateTerm: "Informal Probate", probateCitation: ["C.R.S. § 15-12-301"], isUPC: true, lettersTerm: "Letters Testamentary", notes: "Threshold adjusted annually for inflation ($82k for 2024/25)." },
@@ -510,7 +510,7 @@ export const STATE_RULES: Record<string, StateRule> = {
         lettersTerm: "Letters Testamentary"
     },
     "RI": { threshold: 25000, smallEstateTerm: "Small Estate Affidavit", smallEstateCitation: ["R.I.G.L. § 33-24-1"], probateTerm: "Formal Probate", probateCitation: ["R.I.G.L. § 33"], isUPC: false, lettersTerm: "Letters Testamentary" },
-    "SC": { threshold: 25000, smallEstateTerm: "Small Estate Affidavit", smallEstateCitation: ["S.C. Code § 62-3-1201"], probateTerm: "Informal Probate", probateCitation: ["S.C. Code § 62-3-301"], isUPC: true, lettersTerm: "Letters Testamentary" },
+    "SC": { threshold: 45000, smallEstateTerm: "Small Estate Affidavit", smallEstateCitation: ["S.C. Code § 62-3-1201"], probateTerm: "Informal Probate", probateCitation: ["S.C. Code § 62-3-301"], isUPC: true, lettersTerm: "Letters Testamentary", notes: "Threshold raised to $45,000 by Act No. 26 (H.3472), effective 2025-05-08." },
     "SD": { threshold: 50000, smallEstateTerm: "Small Estate Affidavit", smallEstateCitation: ["S.D.C.L. § 29A-3-1201"], probateTerm: "Informal Probate", probateCitation: ["S.D.C.L. § 29A-3-301"], isUPC: true, lettersTerm: "Letters Testamentary" },
     "TN": { threshold: 50000, smallEstateTerm: "Small Estate Affidavit", smallEstateCitation: ["T.C.A. § 30-4-101"], probateTerm: "Formal Probate", probateCitation: ["T.C.A. § 30-1"], isUPC: false, lettersTerm: "Letters Testamentary" },
     "TX": {

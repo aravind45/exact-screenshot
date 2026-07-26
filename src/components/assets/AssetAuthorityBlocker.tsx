@@ -81,7 +81,7 @@ export function AssetAuthorityBlocker({ institutionName, hasLetters, track, auth
                 return {
                     title: "Affidavit Required",
                     description: `Owned Individually. ${institutionName} requires a notarized Small Estate Affidavit to release funds.`,
-                    docs: ["DE-310 Affidavit", "Death Certificate"],
+                    docs: ["Notarized Prob. Code §13100 Affidavit", "Certified Death Certificate"],
                     link: "/vault",
                     linkText: "Prepare Affidavit",
                     icon: Zap,

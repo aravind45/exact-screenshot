@@ -144,7 +144,7 @@ const TESTIMONIALS = [
 const FAQS = [
   {
     q: "How long does probate take in California?",
-    a: "Most California probate cases take 9–18 months. Simple estates under $184,500 may qualify for small-estate procedures that take 30–60 days. Contested estates can take 2–5 years.",
+    a: "Most California probate cases take 9–18 months. Simple estates under $208,850 may qualify for small-estate procedures that take 30–60 days. Contested estates can take 2–5 years.",
   },
   {
     q: "Do I need an attorney to be an executor in California?",

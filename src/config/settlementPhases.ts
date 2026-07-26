@@ -323,6 +323,53 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         }]
       },
       {
+        id: "evaluate_prop19_exclusion",
+        authorityScope: "BOTH",
+        scope: "CORE",
+        title: "Evaluate Prop 19 Parent-Child Exclusion (CA)",
+        description: "If California real property passes from parent to child, determine eligibility for the Prop 19 reassessment exclusion: the property must have been the parents' primary residence, the child must move in within 1 year and use it as their own primary residence, and only the first ~$1M of assessed value above the existing base is protected. File claim form BOE-19-P with the county assessor.",
+        estimatedTime: "2-4 hours",
+        requiredDocs: ["BOE-19-P Claim Form", "Death Certificate", "Evidence of primary residence"],
+        applicability: { states: ["CA"] },
+        tags: ["tax", "statutory", "risk-guardrail"],
+        alerts: [
+          {
+            type: "warning",
+            message: "Missing the Prop 19 exclusion on a $1.5M home can cost heirs $10,000–$15,000+ per year in additional property tax — permanently. File BOE-19-P promptly; late claims reduce relief."
+          },
+          {
+            type: "important",
+            message: "The child MUST use the property as their primary residence and move in within 1 year, or the exclusion is lost. Investment/rental transfers are fully reassessed."
+          }
+        ],
+        links: [{
+          label: "BOE Prop 19 Guidance",
+          url: "https://www.boe.ca.gov/prop19/"
+        }]
+      },
+      {
+        id: "medical_estate_recovery_check",
+        authorityScope: "BOTH",
+        scope: "CORE",
+        title: "Medi-Cal Estate Recovery Check (Mandatory Gate)",
+        description: "Before any distribution, determine whether the decedent received Medi-Cal benefits after age 55 or for nursing facility care. If yes, submit a DHCS Estate Recovery inquiry and do not distribute until DHCS responds. Post-SB 833, recovery generally reaches only assets passing through probate — which is exactly the formal-probate population.",
+        estimatedTime: "1-2 hours + DHCS response time",
+        requiredDocs: ["Decedent's Medi-Cal history", "DHCS Estate Recovery inquiry form"],
+        applicability: { states: ["CA"] },
+        tags: ["statutory", "risk-guardrail"],
+        isLongHorizon: true,
+        alerts: [
+          {
+            type: "warning",
+            message: "PERSONAL LIABILITY: An executor who distributes estate assets without resolving a Medi-Cal recovery claim can be personally liable to DHCS (Welf. & Inst. Code §14009.5)."
+          }
+        ],
+        links: [{
+          label: "DHCS Estate Recovery",
+          url: "https://www.dhcs.ca.gov/services/Pages/EstateRecovery.aspx"
+        }]
+      },
+      {
         id: "cancel_cards",
         authorityScope: "BOTH",
         scope: "CORE",

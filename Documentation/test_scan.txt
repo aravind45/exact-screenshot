@@ -1,7 +1,0 @@
-
-Statement for John Doe
-Account Number: 123456789
-Bank of America
-Checking Account
-Ending Balance: $12,500.00
-Date: Jan 21, 2026

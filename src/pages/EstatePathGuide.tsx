@@ -340,7 +340,7 @@ const ESTATE_PATHS: EstatePath[] = [
         faqs: [
             {
                 q: "What are the thresholds by state?",
-                a: "Thresholds vary widely: California ~$184,500 (2024), Texas ~$75,000, Florida no monetary threshold but uses a simplified adminstration for estates under $75,000. Check your state's current limits.",
+                a: "Thresholds vary widely: California ~$208,850 (2025-26), Texas ~$75,000, Florida no monetary threshold but uses a simplified adminstration for estates under $75,000. Check your state's current limits.",
             },
             {
                 q: "Can I use an affidavit for real estate?",
