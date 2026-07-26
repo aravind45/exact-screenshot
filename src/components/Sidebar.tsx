@@ -379,51 +379,41 @@ export function Sidebar() {
                 { label: t('clientStatusReport') as string, icon: FileText, path: "/reports/client-status" },
             ]
         }] : []),
+        // ── Executor-focused nav: 7 essentials, one flat group ─────────────
+        // A grieving executor needs orientation, not a professional console.
+        // Everything else (accounting, liabilities, trail, marketplace,
+        // consultations) moves into "More Tools" so the core path stays
+        // uncluttered. Advisors/admins keep their own dedicated navs above.
         {
-            title: "Dashboard",
+            title: "My Estate",
             items: [
                 { label: t('executorDashboard') as string, icon: LayoutDashboard, path: "/dashboard" },
+                { label: "My Roadmap", icon: Map, path: "/roadmap" },
+                { label: "Assets", icon: Landmark, path: "/assets" },
+                { label: "Documents", icon: Inbox, path: "/documents" },
+                { label: "Deadlines", icon: Bell, path: "/follow-ups" },
+                ...(!isViewer ? [{ label: "Forms", icon: ScrollText, path: "/forms" }] : []),
+                { label: "Help", icon: HelpCircle, path: "/help" },
             ]
         },
         {
-            title: "Case Setup",
+            title: "More Tools",
             items: [
                 { label: "Case Setup", icon: User, path: "/profile?tab=case-setup" },
-                { label: "Track Decision", icon: Map, path: "/roadmap" },
-            ]
-        },
-        {
-            title: "Settlement",
-            items: [
-                { label: "Asset Ledger", icon: Landmark, path: "/assets" },
                 { label: "Liabilities", icon: AlertCircle, path: "/liabilities" },
                 { label: "Accounting", icon: Calculator, path: "/accounting" },
                 { label: "Final Distribution", icon: CheckCircle2, path: "/distribution" },
-                ...(!isViewer ? [{ label: "Official Forms", icon: ScrollText, path: "/forms" }] : []),
+                { label: "Heirs & Benes", icon: Users, path: "/heirs" },
+                { label: "Settlement Trail", icon: History, path: "/settlement-trail" },
+                ...(!isViewer ? [{ label: "Discovery", icon: Search, path: "/discovery" }] : []),
                 ...(estate?.id && !isViewer ? [{ label: "Legal Research", icon: Zap, path: `/estates/${estate.id}/agents` }] : []),
             ]
         },
-        {
-            title: "Deadlines & Records",
-            items: [
-                { label: "Deadlines & Follow-Ups", icon: Bell, path: "/follow-ups" },
-                { label: "Document Vault", icon: Inbox, path: "/documents" },
-                { label: "Settlement Trail", icon: History, path: "/settlement-trail" },
-                ...(!isViewer ? [{ label: "Discovery", icon: Search, path: "/discovery" }] : []),
-            ]
-        },
-        {
-            title: "Team",
-            items: [
-                { label: "Heirs & Benes", icon: Users, path: "/heirs" },
-            ]
-        },
         ...(!isB2BTexas ? [{
-            title: "Advisor Marketplace",
+            title: "Professional Help",
             items: [
-                { label: "Marketplace", icon: Search, path: "/marketplace" },
+                { label: "Find an Advisor", icon: Search, path: "/marketplace" },
                 { label: "My Consultations", icon: MessageSquare, path: "/my-bookings" },
-                { label: "Consultation Calendar", icon: Calendar, path: "/consultations/calendar" },
                 ...(user?.role === 'ADVISOR'
                     ? [
                         { label: "Advisor Dashboard", icon: LayoutDashboard, path: "/advisor/dashboard" },
@@ -434,9 +424,8 @@ export function Sidebar() {
             ]
         }] : []),
         ...(!isViewer ? [{
-            title: "Support",
+            title: "Account",
             items: [
-                { label: "Help Center", icon: HelpCircle, path: "/help" },
                 {
                     label: "Support & Feedback",
                     icon: MessageSquare,

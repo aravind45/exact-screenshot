@@ -85,8 +85,9 @@ export default function Dashboard() {
   const { user, signOut } = useAuth();
   const { roleName, estateName, authorityType } = useTerminology();
   const [viewMode, setViewMode] = useState<'grid' | 'trail'>('grid');
-  const [advancedOpen, setAdvancedOpen] = useState(true);
+  const [advancedOpen, setAdvancedOpen] = useState(false);
   const [estateDetailsOpen, setEstateDetailsOpen] = useState(false);
+  const [thisWeekOpen, setThisWeekOpen] = useState(true);
   const { toast } = useToast();
 
   const { data: assetsData, isLoading, error } = useQuery({
@@ -425,7 +426,7 @@ export default function Dashboard() {
           <div className="w-8 h-8 rounded-xl bg-indigo-600 flex items-center justify-center">
             <Target className="w-4 h-4 text-white" />
           </div>
-          <h2 className="text-lg font-black text-slate-900 tracking-tight">What To Do Today</h2>
+          <h2 className="text-lg font-black text-slate-900 tracking-tight">Your Next Step</h2>
         </div>
         <NextActionWidget estate={estate} assets={assets} />
       </div>
@@ -573,29 +574,56 @@ export default function Dashboard() {
       </div>
 
       {/* ──────────────────────────────────────────────────────────────
-          FIRST WEEK CHECKLIST — Guided onboarding for new executors
-          Shown when < 5 roadmap tasks completed; self-hides when done
+          THIS WEEK — checklist + critical dates, collapsed by default
+          to keep the hero ("What To Do Today") dominant for a
+          cognitively-loaded (grieving) user. Auto-opens only when
+          something is due within 14 days.
       ────────────────────────────────────────────────────────────── */}
-      {(completedTaskIds?.length || 0) < 5 && (
-        <FirstWeekChecklist completedTaskIds={completedTaskIds || []} />
-      )}
+      <div className="rounded-3xl border border-slate-100 bg-white shadow-sm overflow-hidden">
+        <button
+          className="w-full flex items-center justify-between px-5 py-4 hover:bg-slate-50 transition-colors"
+          onClick={() => setThisWeekOpen((v) => !v)}
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-red-50 flex items-center justify-center">
+              <Clock className="w-4 h-4 text-red-500" />
+            </div>
+            <div className="text-left">
+              <h2 className="text-base font-black text-slate-900 tracking-tight">This Week</h2>
+              <p className="text-xs font-medium text-slate-500 mt-0.5">
+                Getting-started checklist and critical court & tax dates
+              </p>
+            </div>
+          </div>
+          {thisWeekOpen ? (
+            <ChevronUp className="w-4 h-4 text-slate-400 flex-shrink-0" />
+          ) : (
+            <ChevronDown className="w-4 h-4 text-slate-400 flex-shrink-0" />
+          )}
+        </button>
 
-      {/* ──────────────────────────────────────────────────────────────
-          CRITICAL DATES — Prominent deadline display
-      ────────────────────────────────────────────────────────────── */}
-      <div className="space-y-3">
-        <div className="flex items-center gap-3 px-1">
-          <div className="w-8 h-8 rounded-xl bg-red-50 flex items-center justify-center">
-            <Clock className="w-4 h-4 text-red-500" />
-          </div>
-          <div>
-            <h2 className="text-base font-black text-slate-900 tracking-tight">Critical Dates</h2>
-            <p className="text-xs font-medium text-amber-700 mt-0.5">
-              Court and tax dates. We prioritize what needs attention first.
-            </p>
-          </div>
-        </div>
-        <DeadlineTracker estateId={estate?.id || ""} />
+        <AnimatePresence initial={false}>
+          {thisWeekOpen && (
+            <motion.div
+              key="this-week"
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.22, ease: "easeInOut" }}
+              className="overflow-hidden"
+            >
+              <div className="px-5 pb-5 pt-1 space-y-5 border-t border-slate-50">
+                {(completedTaskIds?.length || 0) < 5 && (
+                  <FirstWeekChecklist completedTaskIds={completedTaskIds || []} />
+                )}
+                <div className="space-y-3">
+                  <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest pt-2">Critical Dates</p>
+                  <DeadlineTracker estateId={estate?.id || ""} />
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">

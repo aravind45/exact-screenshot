@@ -284,10 +284,23 @@ export default function Auth() {
             // Validate redirect for executors (must not be advisor or admin routes)
             const validatedRedirect = validateRedirectPath(redirect, newUser);
 
+            // Funnel guard: executors who signed up cold (no discovery quiz
+            // data) get routed through the quiz first so their dashboard has
+            // context instead of empty widgets.
+            const hasDiscoveryData = (() => {
+              try {
+                return !!sessionStorage.getItem("discovery_data");
+              } catch { return false; }
+            })();
+
             if (validatedRedirect) {
               navigate(validatedRedirect);
+            } else if (buyMode) {
+              navigate('/pricing?mode=buy');
+            } else if (!hasDiscoveryData) {
+              navigate('/start');
             } else {
-              navigate(buyMode ? '/pricing?mode=buy' : '/onboarding');
+              navigate('/onboarding');
             }
           }
         }
