@@ -87,7 +87,7 @@ export default function TransferCarTitle() {
             <section id="state-specific">
                 <h2>Major State DMV Rules (2026)</h2>
                 <ul>
-                    <li><strong>California:</strong> Allows transfer without probate if the total estate value is under $184,500. Use Form REG 5 (Affidavit for Transfer Without Probate).</li>
+                    <li><strong>California:</strong> Allows transfer without probate if the total estate value is under $208,850. Use Form REG 5 (Affidavit for Transfer Without Probate).</li>
                     <li><strong>Texas:</strong> Use Form VTR-262 (Affidavit of Heirship for a Motor Vehicle) if there is no will and no probate.</li>
                     <li><strong>Florida:</strong> Allows for "Disposition of Personal Property Without Administration" for vehicles in specific small estate scenarios.</li>
                 </ul>

@@ -1104,7 +1104,7 @@ export default function OnboardingGuidedWizard() {
                                                 </div>
                                                 <p className="text-xs text-indigo-700">
                                                     {recommendation.type === 'SMALL_ESTATE'
-                                                        ? (formData.location === 'CA' ? 'Wait 40 days, then prepare and notarize the 13100 Affidavit (DE-310).' :
+                                                        ? (formData.location === 'CA' ? 'Wait 40 days after death, then prepare and notarize a Prob. Code §13100 Affidavit (self-drafted, not a court form) and present it directly to each institution — no court filing. Note: DE-310 is a different, court-filed petition for real property.' :
                                                             formData.location === 'TX' ? 'Prepare and file the Small Estate Affidavit (SEA) with the court.' :
                                                                 formData.location === 'FL' ? 'Prepare the Petition for Summary Administration.' :
                                                                     'Prepare and notarize a Small Estate Affidavit.')

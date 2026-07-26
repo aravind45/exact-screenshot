@@ -134,13 +134,19 @@ function normalizeTextForState(text: string | undefined, state: string): string 
     out = out.replace(/\bDE-\d+\b/gi, "");
 
     // CA-specific replacements (for contamination cleanup)
-    out = out.replace(/\bMedi-Cal\b/gi, "Medicaid");
-    out = out.replace(/\bDHCS\b/gi, "Medicaid");
+    // NOTE: Medi-Cal/DHCS are California-specific programs. Erasing them into
+    // generic "Medicaid" would hide a mandatory estate-recovery gate from
+    // California users. Preserve the terms; only neutralize for non-CA states
+    // that have their own recovery program names.
     out = out.replace(/\bCalifornia Probate Code\b/gi, "State probate code");
     out = out.replace(/\bCA Prob\. Code\b/gi, "State probate code");
     out = out.replace(/\bCalifornia law\b/gi, "State law");
     out = out.replace(/\bCalifornia\b/gi, "state");
     out = out.replace(/\bCA\b/g, "state");
+    // Medi-Cal estate recovery applies in every state under a different
+    // program name (Medicaid estate recovery / MERP); keep the concept intact.
+    out = out.replace(/\bMedi-Cal\b/gi, "Medicaid estate recovery");
+    out = out.replace(/\bDHCS\b/gi, "the state Medicaid agency");
 
     // NY-specific replacements (for contamination cleanup)
     out = out.replace(/\bSurrogate'?s?\s+Court\b/gi, "Probate Court");

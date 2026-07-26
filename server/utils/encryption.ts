@@ -22,15 +22,22 @@ if (!ENCRYPTION_KEY_HEX && process.env.NODE_ENV === 'production') {
 // A robust way for a generic app is to use a fixed key derived from the env secret.
 const getKey = (): Buffer => {
     if (!ENCRYPTION_KEY_HEX) {
-        // Fallback for local dev ONLY if not set
-        return crypto.scryptSync('development_fallback_secret', 'salt', 32);
+        // Never fall back to a hardcoded key — encrypted data would be
+        // recoverable by anyone with source access. Generate a per-process
+        // key for local dev instead (data becomes undecryptable after
+        // restart, which is the correct failure mode for missing config).
+        if (process.env.NODE_ENV === 'production') {
+            throw new Error("ENCRYPTION_KEY is required in production environment");
+        }
+        console.warn('[encryption] ENCRYPTION_KEY not set — using ephemeral per-process key. Encrypted data will NOT survive restarts. Set ENCRYPTION_KEY in .env for persistent local data.');
+        return crypto.randomBytes(KEY_LENGTH);
     }
     // If it looks like hex and is 64 chars, parse it. Otherwise, hash it.
     if (/^[0-9a-f]{64}$/i.test(ENCRYPTION_KEY_HEX)) {
         return Buffer.from(ENCRYPTION_KEY_HEX, 'hex');
     }
-    // Otherwise hash whatever string was provided to get 32 bytes
-    return crypto.scryptSync(ENCRYPTION_KEY_HEX, 'salt', 32);
+    // Derive a 32-byte key from whatever string was provided (unique salt per key)
+    return crypto.scryptSync(ENCRYPTION_KEY_HEX, 'ee-encryption-v1', KEY_LENGTH);
 };
 
 const KEY = getKey();

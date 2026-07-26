@@ -151,6 +151,8 @@ const TransferCarTitle = lazy(() => import("./pages/content/TransferCarTitle"));
 const LifeInsuranceClaim = lazy(() => import("./pages/content/LifeInsuranceClaim"));
 const IntestateWithoutWill = lazy(() => import("./pages/content/IntestateWithoutWill"));
 const ProbateCost = lazy(() => import("./pages/content/ProbateCost"));
+const ProbateCalculator = lazy(() => import("./pages/ProbateCalculator"));
+const DigitalAssets = lazy(() => import("./pages/DigitalAssets"));
 const EstateSettlementChecklist = lazy(() => import("./pages/content/EstateSettlementChecklist"));
 const EstatePathGuide = lazy(() => import("./pages/EstatePathGuide"));
 
@@ -226,6 +228,8 @@ const AppRoutes = () => {
             <Route path="/life-insurance-claim-process" element={<LifeInsuranceClaim />} />
             <Route path="/intestate-without-will" element={<IntestateWithoutWill />} />
             <Route path="/probate-cost" element={<ProbateCost />} />
+            <Route path="/probate-calculator" element={<ProbateCalculator />} />
+            <Route path="/digital-assets" element={<DigitalAssets />} />
             <Route path="/estate-settlement-checklist" element={<EstateSettlementChecklist />} />
             <Route path="/estate-path-guide" element={<EstatePathGuide />} />
             <Route path="/competitor-comparison" element={<CompetitorComparison />} />

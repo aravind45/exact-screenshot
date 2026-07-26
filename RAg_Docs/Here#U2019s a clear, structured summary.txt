@@ -1,0 +1,67 @@
+Here’s a clear, structured summary of the main points from the page you’re viewing .
+
+---
+
+# **Summary of the Page**
+
+## **1. The Reader’s Question**
+A person received their late mother’s jewelry from their father over many years before he died.  
+They now want to sell the jewelry but have **no paperwork** and are unsure:
+- What **cost basis** applies  
+- Whether taxes are owed  
+- Whether the basis is tied to the mother’s death or the father’s death
+
+---
+
+## **2. Key Tax Distinction: Gift vs. Inheritance**
+The columnist explains that:
+- The jewelry was **a gift from the father**, not an inheritance from the mother.  
+- Because it was a **lifetime gift**, the usual “step‑up in basis” that applies to inherited assets **does not apply** here.
+
+**Implication:**  
+The cost basis is the **father’s original basis** (what he or the mother paid), not the value at either parent’s death.
+
+---
+
+## **3. Gift‑Tax and Estate‑Tax Rules**
+- The federal estate & gift‑tax exemption for 2025 is **$13.99M per person**.  
+- Annual gift‑tax exclusion is **$19,000 per recipient**.  
+- Gifts above that require filing a gift‑tax return, but most people never owe tax because of the large lifetime exemption.
+
+---
+
+## **4. Capital Gains Tax on Collectibles**
+Jewelry is considered a **collectible**, so:
+- Long‑term capital gains on collectibles are taxed at **up to 28%**, higher than typical capital‑gains rates.  
+- High earners may also owe the **3.8% net investment‑income tax**.
+
+---
+
+## **5. Establishing Cost Basis Without Paperwork**
+Because the reader has no documentation, the IRS may look for:
+- Old appraisals  
+- Estate documents  
+- Gift‑tax filings (Form 706, Schedule A, Form 8971)
+
+If none exist, determining basis becomes difficult, and a professional appraisal may be needed.
+
+---
+
+## **6. Broader Lessons for Families**
+The article warns that:
+- Giving valuable assets (jewelry, real estate, collectibles) to children during life can create **tax complications**.  
+- Inheriting assets at death often provides a **more favorable tax outcome** due to the step‑up in basis.
+
+---
+
+## **7. Advice to the Reader**
+- Consult a **tax adviser** experienced in estate and gift‑tax issues.  
+- Get the jewelry **professionally appraised** if no prior valuations exist.  
+- Selling the jewelry is fine, but taxes may apply depending on the gain.
+
+---
+
+If you’d like, I can also turn this into:
+- A shorter bullet‑point cheat sheet  
+- A “what you should do next” action plan  
+- A comparison of gift vs. inheritance tax rules

@@ -27,3 +27,17 @@ dist-ssr
 .env
 preflight.yml
 .worktrees/
+
+# Build & test artifacts (should never be committed)
+test-results/
+videos/
+playwright-report/
+dist-server/
+tmp/
+uploads/
+
+# Probate court form PDFs (download via npm run download-forms)
+forms/
+
+# Large documentation bundles
+Roadmap_pdfs/

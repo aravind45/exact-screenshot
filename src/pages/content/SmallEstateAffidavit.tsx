@@ -93,7 +93,7 @@ export default function SmallEstateAffidavit() {
                     <tbody>
                         <tr>
                             <td>California</td>
-                            <td>$184,500</td>
+                            <td>$208,850</td>
                             <td>Deep Dive: <a href="/probate-california">CA Rules</a></td>
                         </tr>
                         <tr>

@@ -112,7 +112,7 @@ export default function HelpCenter() {
                 {
                     id: "probate-needed",
                     q: "When is full probate actually needed?",
-                    a: "Probate is required when a deceased person owned assets in their name alone (no beneficiary, no joint owner) that exceed the state's 'Small Estate' threshold. For many jurisdictions, this is currently $184,500 for assets not in a trust or joint tenancy."
+                    a: "Probate is required when a deceased person owned assets in their name alone (no beneficiary, no joint owner) that exceed the state's 'Small Estate' threshold. For many jurisdictions, this is currently $208,850 for assets not in a trust or joint tenancy."
                 },
                 {
                     id: "executor-duties",
@@ -247,7 +247,7 @@ export default function HelpCenter() {
                 {
                     id: "small-estate-affidavit",
                     q: "How does the Small Estate Affidavit work?",
-                    a: "For estates under a specific state threshold (e.g., $184,500), you can use a Small Estate Affidavit to claim assets without going through court probate. You must wait a required period (often 40 days) after death, then present the notarized affidavit directly to financial institutions. This is the fastest way to settle a small estate."
+                    a: "For estates under a specific state threshold (e.g., $208,850), you can use a Small Estate Affidavit to claim assets without going through court probate. You must wait a required period (often 40 days) after death, then present the notarized affidavit directly to financial institutions. This is the fastest way to settle a small estate."
                 }
             ]
         },
@@ -405,7 +405,7 @@ export default function HelpCenter() {
                                         <Badge variant="outline" className="bg-rose-50 text-rose-700 border-rose-100 text-[9px] font-black tracking-widest uppercase">Required</Badge>
                                     </div>
                                     <CardTitle className="text-base font-bold">Full Probate Flow</CardTitle>
-                                    <CardDescription className="text-[10px] font-bold text-rose-600 uppercase tracking-wider">Estate {">"} $184,500</CardDescription>
+                                    <CardDescription className="text-[10px] font-bold text-rose-600 uppercase tracking-wider">Estate {">"} $208,850</CardDescription>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
                                     <p className="text-xs text-slate-600 leading-relaxed font-medium">
@@ -439,7 +439,7 @@ export default function HelpCenter() {
                                         <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-100 text-[9px] font-black tracking-widest uppercase">Streamlined</Badge>
                                     </div>
                                     <CardTitle className="text-base font-bold">Small Estate Affidavit</CardTitle>
-                                    <CardDescription className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">Estate ≤ $184,500</CardDescription>
+                                    <CardDescription className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">Estate ≤ $208,850</CardDescription>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
                                     <p className="text-xs text-slate-600 leading-relaxed font-medium">

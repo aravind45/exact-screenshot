@@ -242,7 +242,7 @@ export function validateStructuralInvariants(
   // Validate small estate threshold for applicable states
   if (estateProfile.characteristics.isSmallEstate) {
     const stateThresholds: Record<string, number> = {
-      'CA': 184500, // California small estate threshold
+      'CA': 208850, // California small estate threshold
       'TX': 75000,  // Texas small estate (affidavit) threshold
       'FL': 75000,  // Florida summary administration threshold
       'NY': 50000,  // New York voluntary administration threshold

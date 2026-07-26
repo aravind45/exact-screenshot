@@ -390,7 +390,7 @@ export default function Auth() {
                   "name": "How long does probate take in California?",
                   "acceptedAnswer": {
                     "@type": "Answer",
-                    "text": "Most California probate cases take 9–18 months from filing to final distribution. Simple estates under $184,500 may qualify for a small estate affidavit, which can be completed in 30–60 days. Contested estates with disputes can take 2–5 years."
+                    "text": "Most California probate cases take 9–18 months from filing to final distribution. Simple estates under $208,850 may qualify for a small estate affidavit, which can be completed in 30–60 days. Contested estates with disputes can take 2–5 years."
                   }
                 },
                 {

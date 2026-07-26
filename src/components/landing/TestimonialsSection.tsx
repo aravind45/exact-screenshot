@@ -5,9 +5,9 @@ const testimonials = [
     {
         name: "Sarah M.",
         role: "Executor",
-        content: "The probate lawyer quoted us $15,000. We settled the estate for under $500 using ExpectedEstate and it was accepted by the court on the first try.",
+        content: "The probate lawyer quoted us $15,000. ExpectedEstate organized every deadline and document — unavoidable court costs (filing, publication, referee) still applied, but we saved thousands in professional fees and the court accepted our filings on the first try.",
         rating: 5,
-        highlight: "Saved ~$14,500 in fees"
+        highlight: "Saved thousands in fees"
     },
     {
         name: "David L.",
