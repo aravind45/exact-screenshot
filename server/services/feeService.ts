@@ -8,7 +8,7 @@
  * (src/lib/jurisdictionData.ts). This file re-exports for server-side
  * consumers; do not duplicate tier values here.
  */
-import { calculateCAStatutoryFee } from "../../src/lib/jurisdictionData";
+import { calculateCAStatutoryFee } from "../../src/lib/jurisdictionData.js";
 
 export const FeeService = {
     calculateStatutoryFee(inventoryValue: number): number {
