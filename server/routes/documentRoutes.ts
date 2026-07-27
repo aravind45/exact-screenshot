@@ -10,6 +10,7 @@ import { requireSubscription } from "../middleware/subscription.js";
 import { CAFormService } from "../services/caFormService.js";
 import { CA_FORM_REGISTRY, type CAFormId } from "../services/caFormRegistry.js";
 import { mergeEstateFormContext } from "../lib/estateFormNormalization.js";
+import { requireWriteAccess } from "../middleware/writeProtection.js";
 
 const generateDocumentSchema = z.object({
     documentId: z.string().min(1), // Previously formId
@@ -155,7 +156,7 @@ router.get("/readiness", async (req: any, res: Response) => {
 });
 
 // POST /api/documents/generate - Unified generation endpoint
-router.post("/generate", async (req: any, res: Response) => {
+router.post("/generate", requireWriteAccess, async (req: any, res: Response) => {
     try {
         const validated = generateDocumentSchema.parse(req.body);
         const { documentId: requestedDocumentId, isPreview, overrides } = validated;
