@@ -647,6 +647,22 @@ export const api = {
             const response = await fetch(`${API_URL}/admin/users${queryString}`, { headers: getHeaders() });
             return parseResponse(response);
         },
+        /** Download the admin user-audit CSV (metadata only — no credentials). */
+        exportUsersCsv: async () => {
+            const response = await fetch(`${API_URL}/admin/users/export`, { headers: getHeaders() });
+            if (!response.ok) {
+                throw new Error(`Export failed (${response.status})`);
+            }
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `user-audit-${new Date().toISOString().slice(0, 10)}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+        },
         getInstitutions: async () => {
             const response = await fetch(`${API_URL}/admin/institutions`, { headers: getHeaders() });
             return parseResponse(response);

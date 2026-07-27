@@ -17,6 +17,7 @@ import {
     X,
     Loader2,
     ExternalLink,
+    FileDown,
     Mail,
     FileCheck,
     CreditCard,
@@ -106,6 +107,19 @@ export default function AdminDashboard({ initialTab = 'overview', showKpiCards =
     const [page, setPage] = useState(1);
     const [pageSize] = useState(25);
     const [debouncedSearch, setDebouncedSearch] = useState(searchTerm);
+    const [exporting, setExporting] = useState(false);
+
+    const handleExport = async () => {
+        setExporting(true);
+        try {
+            await api.admin.exportUsersCsv();
+            toast.success("User audit CSV downloaded");
+        } catch (e: any) {
+            toast.error(e?.message || "Export failed");
+        } finally {
+            setExporting(false);
+        }
+    };
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -299,6 +313,20 @@ export default function AdminDashboard({ initialTab = 'overview', showKpiCards =
                                             onChange={(e) => setSearchTerm(e.target.value)}
                                         />
                                     </div>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={handleExport}
+                                        disabled={exporting}
+                                        title="Download all users as CSV — account metadata only, no credentials"
+                                    >
+                                        {exporting ? (
+                                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                        ) : (
+                                            <FileDown className="w-4 h-4 mr-2" />
+                                        )}
+                                        Export CSV
+                                    </Button>
                                 </div>
 
                                 <div className="overflow-x-auto">
