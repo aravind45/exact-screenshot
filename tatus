@@ -1,0 +1,3 @@
+[33m8d175c3[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m SECURITY: block VIEWER writes at API level + gate SSN decryption by role (#81)
+[33mf9faf4f[m[33m ([m[1;31morigin/dev[m[33m)[m TX/FL audit fixes + 50-state tax refresh (#79)
+[33m65768f2[m Admin: user audit CSV export + dashboard button (metadata only, audit-logged) (#80)
