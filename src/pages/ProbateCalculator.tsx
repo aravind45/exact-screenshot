@@ -30,6 +30,9 @@ import {
   INHERITANCE_TAX_STATES,
   PROBATE_TIMELINES,
   ANCILLARY_COSTS,
+  getNYSurrogateFilingFee,
+  evaluateNYEstateTax,
+  NJ_INHERITANCE_TAX,
 } from "@/lib/jurisdictionData";
 import { STATE_RULES } from "@/lib/stateRules";
 
@@ -100,11 +103,17 @@ export default function ProbateCalculator() {
     }
 
     // ── Court & administrative ─────────────────────────────────────────
-    const filingFee = state === "CA" ? CALIFORNIA.initialFilingFee : 300;
+    const filingFee =
+      state === "CA" ? CALIFORNIA.initialFilingFee
+      : state === "NY" ? getNYSurrogateFilingFee(grossValue)
+      : 300;
     breakdown.push({
       label: "Court filing fees",
       amount: filingFee,
-      note: state === "CA" ? "Initial petition (2025 base fee)" : "Typical initial petition",
+      note:
+        state === "CA" ? "Initial petition (2025 base fee)"
+        : state === "NY" ? "SCPA §2402 tiered fee schedule"
+        : "Typical initial petition",
     });
 
     const publication = (ANCILLARY_COSTS.publicationNotice.min + ANCILLARY_COSTS.publicationNotice.max) / 2;
@@ -139,8 +148,9 @@ export default function ProbateCalculator() {
     const fedExemption = FEDERAL_ESTATE_TAX.exemption2026;
     const stateThreshold = STATE_ESTATE_TAX_THRESHOLDS[state];
     const hasInheritanceTax = (INHERITANCE_TAX_STATES as readonly string[]).includes(state);
+    const nyCliff = state === "NY" ? evaluateNYEstateTax(grossValue, 2026) : null;
 
-    return { breakdown, subtotal, total, timeline, smallEstateEligible, fedExemption, stateThreshold, hasInheritanceTax, rule };
+    return { breakdown, subtotal, total, timeline, smallEstateEligible, fedExemption, stateThreshold, hasInheritanceTax, rule, nyCliff };
   }, [state, grossValue, includeExecutor, contested]);
 
   return (
@@ -356,7 +366,35 @@ export default function ProbateCalculator() {
                     <div className="flex items-start gap-2">
                       <Info className="w-4 h-4 mt-0.5 shrink-0 text-blue-500" />
                       <p className="text-muted-foreground">
-                        {state} imposes an inheritance tax on certain beneficiaries (separate from estate tax).
+                        {state === "NJ" ? (
+                          <>
+                            NJ inheritance tax (on recipients, not the estate): Class A (spouse, children, parents) exempt;
+                            Class C (siblings, in-laws) {money(NJ_INHERITANCE_TAX.classes.C.exemption)} exempt then 11–16%;
+                            Class D (all others) 15–16% from the first dollar. IT-R return due 8 months after death.
+                          </>
+                        ) : (
+                          `${state} imposes an inheritance tax on certain beneficiaries (separate from estate tax).`
+                        )}
+                      </p>
+                    </div>
+                  )}
+                  {result.nyCliff?.warning && (
+                    <div className={`flex items-start gap-2 rounded-lg border p-3 ${result.nyCliff.cliffTriggered ? "border-red-300 bg-red-50" : "border-amber-200 bg-amber-50"}`}>
+                      <ShieldAlert className={`w-4 h-4 mt-0.5 shrink-0 ${result.nyCliff.cliffTriggered ? "text-red-600" : "text-amber-600"}`} />
+                      <div className={result.nyCliff.cliffTriggered ? "text-red-800" : "text-amber-800"}>
+                        <p className="text-xs font-semibold">NY Estate Tax Cliff (Tax Law §952)</p>
+                        <p className="text-xs mt-0.5">{result.nyCliff.warning}</p>
+                        <p className="text-xs mt-1 opacity-80">NY's exclusion is also NOT portable between spouses (unlike federal).</p>
+                      </div>
+                    </div>
+                  )}
+                  {state === "NJ" && (
+                    <div className="flex items-start gap-2">
+                      <Info className="w-4 h-4 mt-0.5 shrink-0 text-blue-500" />
+                      <p className="text-muted-foreground text-xs">
+                        NJ tax waivers: banks may freeze up to 50% of accounts, and NJ real estate carries an automatic
+                        tax lien, until Form L-8 (accounts) / L-9 (real estate) is presented — self-executing for Class A
+                        beneficiaries. Small-estate affidavit is intestate-only.
                       </p>
                     </div>
                   )}

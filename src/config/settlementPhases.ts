@@ -1385,22 +1385,22 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         authorityScope: "PROBATE",
         scope: "US-NJ",
         title: "File Small Estate Affidavit (NJ)",
-        description: "For NJ estates under $20,000 (or $50,000 if surviving spouse is sole heir), file a Small Estate Affidavit to collect assets without formal probate.",
+        description: "For INTESTATE NJ estates (no will) under $20,000 — or $50,000 if the surviving spouse/partner is the sole heir — file a Small Estate Affidavit to collect assets without formal probate.",
         estimatedTime: "1-2 hours",
         category: "probate",
         trackCompatibility: ["PROBATE", "AFFIDAVIT"],
-        applicability: { states: ["NJ"] },
+        applicability: { states: ["NJ"], variants: ["INTESTATE"] },
         isConditional: true,
-        conditionalRequirementLabel: "Available if estate value ≤ $20,000 (or $50,000 if spouse is sole heir)",
+        conditionalRequirementLabel: "Intestate only · estate value ≤ $20,000 (or $50,000 if spouse is sole heir) · no real property",
         requiredDocs: ["Death Certificate", "Small Estate Affidavit Form", "Asset Information"],
         alerts: [
           {
-            type: "info",
-            message: "N.J.S.A. § 3B:10-3 — Small estate affidavit is available 30 days after death. No real property allowed."
+            type: "warning",
+            message: "INTESTATE ONLY (N.J.S.A. 3B:10-3/10-4): this route is unavailable if the decedent left a will — a will must be probated through the Surrogate's Court. Do not present this affidavit for a testate estate."
           },
           {
-            type: "important",
-            message: "Threshold is $20,000 general or $50,000 if surviving spouse is the sole heir."
+            type: "info",
+            message: "Available 30 days after death. No real property allowed. Non-spouse heirs need written consent of the remaining heirs."
           }
         ],
         links: [{ label: "NJ Small Estate Information", url: "https://www.njcourts.gov/self-help/small-estate" }],
@@ -1435,6 +1435,96 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         ],
         dependencies: ["preliminary_asset_scan"],
         links: [{ label: "NJ Bond Requirements (N.J.S.A. 3B:15-1)", url: "https://www.njcourts.gov/self-help/probate#bond" }]
+      },
+      {
+        id: "nj_tax_waiver_l8",
+        authorityScope: "BOTH",
+        scope: "US-NJ",
+        title: "Obtain NJ Tax Waivers — Form L-8 (Bank/Brokerage Accounts)",
+        description: "NJ law lets institutions freeze up to 50% of account balances until the Division of Taxation issues a waiver. For Class A beneficiaries (spouse, children, parents, lineal descendants), Form L-8 is SELF-EXECUTING — present it directly to the bank or brokerage to release funds without filing a full inheritance tax return. Class C/D beneficiaries require the full IT-R return instead.",
+        estimatedTime: "1-2 hours per institution",
+        category: "probate",
+        trackCompatibility: ["PROBATE", "AFFIDAVIT"],
+        applicability: { states: ["NJ"] },
+        tags: ["tax", "statutory"],
+        requiredDocs: ["Form L-8 (per institution)", "Death Certificate", "Account statements"],
+        alerts: [
+          {
+            type: "warning",
+            message: "Expect frozen funds: NJ institutions may hold up to 50% of balances until a waiver or L-8 is presented (N.J.A.C. 18:26-11)."
+          },
+          {
+            type: "info",
+            message: "L-8 is only valid for Class A beneficiaries. If ANY beneficiary is Class C/D (siblings, in-laws, unrelated), the full IT-R return is required and L-8 cannot be used."
+          }
+        ],
+        links: [{ label: "NJ Form L-8 & Waiver Guide", url: "https://www.nj.gov/treasury/taxation/inheritance-estate/waivers.shtml" }],
+        formNames: ["Form L-8"]
+      },
+      {
+        id: "nj_tax_waiver_l9_realestate",
+        authorityScope: "BOTH",
+        scope: "US-NJ",
+        title: "Release NJ Real Estate Tax Lien — Form L-9",
+        description: "NJ real estate carries an AUTOMATIC inheritance-tax lien from the date of death. For Class A beneficiaries, Form L-9 releases the lien without a full return — required before the property can be sold or refinanced with clear title. Title companies will not close without it (or a Division of Taxation waiver).",
+        estimatedTime: "1-2 hours",
+        category: "probate",
+        trackCompatibility: ["PROBATE"],
+        applicability: { states: ["NJ"] },
+        tags: ["tax", "statutory"],
+        requiredDocs: ["Form L-9", "Death Certificate", "Property deed / tax records"],
+        alerts: [
+          {
+            type: "important",
+            message: "The lien exists even if no tax is due. Selling the house before releasing it will stall the closing."
+          }
+        ],
+        links: [{ label: "NJ Form L-9 Real Property Waiver", url: "https://www.nj.gov/treasury/taxation/inheritance-estate/waivers.shtml" }],
+        formNames: ["Form L-9"]
+      },
+      {
+        id: "nj_inheritance_tax_return",
+        authorityScope: "BOTH",
+        scope: "US-NJ",
+        title: "File NJ Inheritance Tax Return (IT-R) — if Class C/D beneficiaries",
+        description: "Required if ANY beneficiary is Class C (siblings, sons/daughters-in-law: $25,000 exemption, then 11%–16%) or Class D (all others: no exemption, 15% first $700k / 16% above). Class A beneficiaries (spouse, children, parents) are fully exempt and need no return. DEADLINE: 8 months after the date of death.",
+        estimatedTime: "4-8 hours",
+        category: "probate",
+        trackCompatibility: ["PROBATE", "AFFIDAVIT"],
+        applicability: { states: ["NJ"] },
+        tags: ["tax", "statutory"],
+        isConditional: true,
+        conditionalRequirementLabel: "Only if any beneficiary is Class C or D",
+        requiredDocs: ["Form IT-R", "Date-of-death valuations", "Beneficiary relationship documentation"],
+        outputs: ["Filed IT-R", "Tax clearance / waivers"],
+        alerts: [
+          {
+            type: "warning",
+            message: "DEADLINE: IT-R is due 8 months after death (N.J.S.A. 54:33-1). Late filing accrues interest at 10%/year."
+          }
+        ],
+        links: [{ label: "NJ Inheritance Tax Guide", url: "https://www.nj.gov/treasury/taxation/inheritance-estate/index.shtml" }],
+        formNames: ["Form IT-R"]
+      },
+      {
+        id: "ny_estate_tax_cliff_check",
+        authorityScope: "BOTH",
+        scope: "US-NY",
+        title: "NY Estate Tax Cliff Analysis (Mandatory for estates > $6M)",
+        description: "New York's estate tax has a CLIFF: if the taxable estate exceeds 105% of the Basic Exclusion Amount ($7.35M in 2026 → cliff ≈ $7.72M), the exclusion is lost ENTIRELY and the whole estate is taxed from dollar one. An estate at $7.5M owes ~$386,400; at $7.35M it owes $0. Model the cliff BEFORE distribution; options include a 'Santa Clause' charitable bequest that caps the taxable estate at the exclusion.",
+        estimatedTime: "2-4 hours (with CPA)",
+        category: "probate",
+        trackCompatibility: ["PROBATE", "AFFIDAVIT"],
+        applicability: { states: ["NY"] },
+        tags: ["tax", "statutory", "risk-guardrail"],
+        requiredDocs: ["Date-of-death asset valuations", "Prior gift history"],
+        alerts: [
+          {
+            type: "warning",
+            message: "NY Tax Law §952: exceeding 105% of the exclusion triggers tax on the ENTIRE estate, not just the excess. Also note: the NY exclusion is NOT portable between spouses (unlike federal)."
+          }
+        ],
+        links: [{ label: "NY Estate Tax (Dept. of Taxation)", url: "https://www.tax.ny.gov/pit/estate/idx.htm" }]
       },
       {
         id: "nj_elective_share_claim",

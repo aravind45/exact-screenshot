@@ -398,13 +398,13 @@ export const STATE_RULES: Record<string, StateRule> = {
     "NH": { threshold: 10000, smallEstateTerm: "Small Estate Affidavit", smallEstateCitation: ["N.H. Rev. Stat. § 553:31-a"], probateTerm: "Formal Probate", probateCitation: ["N.H. Rev. Stat. § 553"], isUPC: false, lettersTerm: "Letters of Administration" },
     "NJ": {
         threshold: 20000,
-        smallEstateTerm: "Small Estate Affidavit",
-        smallEstateCitation: ["N.J.S.A. § 3B:10-3"],
+        smallEstateTerm: "Small Estate Affidavit (intestate only)",
+        smallEstateCitation: ["N.J.S.A. 3B:10-4 (other heirs)", "N.J.S.A. 3B:10-3 (spouse)"],
         probateTerm: "Formal Probate",
         probateCitation: ["N.J.S.A. § 3B"],
         isUPC: false,
         lettersTerm: "Letters of Administration",
-        notes: "Higher threshold ($50k) if surviving spouse is sole heir. NJ has inheritance tax.",
+        notes: "INTESTATE ONLY: the affidavit route is unavailable if there is a will — the will must be probated. $20k for non-spouse heirs (with written consent of remaining heirs); $50k for a surviving spouse/partner as sole heir. No real property. NJ has inheritance tax (Class C/D) and tax-waiver requirements (L-8/L-9).",
         claimWindowDays: 180, // 6 months from first publication
         estateTaxThreshold: 0, // NJ has inheritance tax, not estate tax
         bondDefaultRequired: true, // Bond required for administrators unless waived
