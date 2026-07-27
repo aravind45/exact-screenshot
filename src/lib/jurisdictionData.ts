@@ -54,7 +54,7 @@ export const STATE_ESTATE_TAX_THRESHOLDS: Record<string, number> = {
   IL: 4_000_000,
   ME: 7_160_000,   // 2026 indexed
   MD: 5_000_000,
-  NY: 7_160_000,   // 2026 indexed
+  NY: 7_350_000,   // 2026 indexed (Tax Law §952); cliff at 105% — see NY_ESTATE_TAX
   CT: 15_000_000,  // conforms to federal from 2026 (P.L. 119-21 conformity)
   DC: 4_873_200,   // 2026 indexed
   HI: 5_490_000,
@@ -144,14 +144,16 @@ export function calculateFLStatutoryFee(value: number): number {
 }
 
 // ── New York executor commissions (SCPA §2307) ────────────────────────────
+// Statutory receiving & paying-out commissions:
+//   5% of first $100,000 · 4% of next $200,000 · 3% of next $700,000
+//   2.5% of next $4,000,000 · 2% of all above $5,000,000
+// Customarily taken as HALF for receiving + HALF for paying out the same sums.
 export const NY_EXECUTOR_COMMISSION_TIERS: FeeTier[] = [
   { upTo: 100_000, rate: 0.05 },
-  { upTo: 200_000, rate: 0.04 },
-  { upTo: 300_000, rate: 0.03 },
-  { upTo: 400_000, rate: 0.025 },
-  { upTo: 500_000, rate: 0.02 },
-  { upTo: 1_000_000, rate: 0.02 },
-  { upTo: 5_000_000, rate: 0.02 },
+  { upTo: 300_000, rate: 0.04 },
+  { upTo: 1_000_000, rate: 0.03 },
+  { upTo: 5_000_000, rate: 0.025 },
+  { upTo: Infinity, rate: 0.02 },
 ];
 
 export function calculateNYCommission(value: number): number {
@@ -164,6 +166,108 @@ export function calculateNYCommission(value: number): number {
     previousCap = tier.upTo;
   }
   return fee;
+}
+
+// SCPA §2307: for estates over $300,000, up to THREE fiduciaries may each
+// receive full commissions; below that, the commission is apportioned.
+export const NY_COMMISSION_RULES = {
+  coExecutorFullCommissionsThreshold: 300_000,
+  maxFullCommissions: 3,
+  receivePayoutNote: "Commissions are customarily taken as half for receiving and half for paying out the estate funds.",
+  citation: "NY SCPA §2307",
+} as const;
+
+// ── New York estate tax (Tax Law §952) — THE CLIFF ────────────────────────
+// If the taxable estate exceeds 105% of the Basic Exclusion Amount (BEA),
+// the exclusion is lost ENTIRELY and the whole estate is taxed from dollar one.
+export const NY_ESTATE_TAX = {
+  basicExclusion: { 2025: 7_160_000, 2026: 7_350_000 },
+  cliffMultiplier: 1.05,
+  topRate: 0.16,
+  maxRate: 0.16,
+  minRate: 0.032,
+  portable: false, // NY exclusion is NOT portable between spouses
+  citation: "NY Tax Law §952",
+} as const;
+
+export interface NYEstateTaxResult {
+  taxableEstate: number;
+  exclusion: number;
+  cliffThreshold: number;
+  overExclusion: boolean;
+  cliffTriggered: boolean;
+  warning?: string;
+}
+
+export function evaluateNYEstateTax(taxableEstate: number, year: 2025 | 2026 = 2026): NYEstateTaxResult {
+  const exclusion = NY_ESTATE_TAX.basicExclusion[year];
+  const cliffThreshold = Math.round(exclusion * NY_ESTATE_TAX.cliffMultiplier);
+  const overExclusion = taxableEstate > exclusion;
+  const cliffTriggered = taxableEstate > cliffThreshold;
+  let warning: string | undefined;
+  if (cliffTriggered) {
+    warning = `CLIFF TRIGGERED: estate exceeds 105% of the NY exclusion ($${cliffThreshold.toLocaleString()}). The exclusion is lost entirely — the ENTIRE estate is taxed from dollar one, not just the excess.`;
+  } else if (overExclusion) {
+    const headroom = cliffThreshold - taxableEstate;
+    warning = `Within the cliff zone: only $${headroom.toLocaleString()} below the 105% cliff. If the estate grows past $${cliffThreshold.toLocaleString()}, the entire exclusion is lost.`;
+  }
+  return { taxableEstate, exclusion, cliffThreshold, overExclusion, cliffTriggered, warning };
+}
+
+// ── New Jersey small estate (intestate only) ──────────────────────────────
+// N.J.S.A. 3B:10-3 / 3B:10-4 apply ONLY when there is NO WILL.
+//   - $50,000 for a surviving spouse / domestic partner (sole heir)
+//   - $20,000 for all other heirs (with written consent of remaining heirs)
+// Real property is excluded; affidavit may be used 30 days after death.
+export const NJ_SMALL_ESTATE = {
+  spouseThreshold: 50_000,
+  otherHeirThreshold: 20_000,
+  intestateOnly: true,
+  waitingDays: 30,
+  noRealProperty: true,
+  citation: "N.J.S.A. 3B:10-3 (spouse), 3B:10-4 (other heirs)",
+  note: "Available only for intestate estates — if there is a will, it must be probated through the Surrogate's Court.",
+} as const;
+
+// ── New Jersey inheritance tax (not an estate tax — tax on recipients) ────
+export const NJ_INHERITANCE_TAX = {
+  classes: {
+    A: { beneficiaries: "Spouse, civil union/domestic partner, children, parents, grandparents, lineal descendants", rate: 0, note: "Fully exempt" },
+    C: { beneficiaries: "Siblings, sons/daughters-in-law", exemption: 25_000, rates: "11%–16% graduated" },
+    D: { beneficiaries: "All others (nieces, nephews, friends, unrelated)", exemption: 0, rates: "15% first $700k, 16% above" },
+  },
+  returnDueMonths: 8, // IT-R due 8 months after death
+  citation: "N.J.S.A. 54:33-1 et seq.",
+} as const;
+
+// ── New Jersey tax waivers (the practical blocker) ────────────────────────
+// NJ law freezes up to 50% of bank accounts and places an automatic lien on
+// NJ real estate until the Division of Taxation issues a waiver.
+export const NJ_TAX_WAIVERS = {
+  L8: { purpose: "Self-executing waiver for bank/brokerage accounts, Class A beneficiaries only — no full return needed" },
+  L9: { purpose: "Self-executing waiver releasing the lien on NJ real estate, Class A beneficiaries only" },
+  IT_R: { purpose: "Full inheritance tax return — required for Class C/D beneficiaries, due 8 months after death" },
+  freezeNote: "Institutions may freeze up to 50% of account balances until a waiver or L-8 is presented.",
+  lienNote: "NJ real estate carries an automatic inheritance-tax lien until released (L-9 or waiver).",
+  citation: "N.J.A.C. 18:26-11; NJ Division of Taxation waiver program",
+} as const;
+
+// ── New York Surrogate's Court filing fees (SCPA §2402, tiered) ───────────
+export const NY_SURROGATE_FILING_FEES: { upTo: number; fee: number }[] = [
+  { upTo: 10_000, fee: 45 },
+  { upTo: 20_000, fee: 75 },
+  { upTo: 50_000, fee: 215 },
+  { upTo: 100_000, fee: 280 },
+  { upTo: 250_000, fee: 420 },
+  { upTo: 500_000, fee: 625 },
+  { upTo: Infinity, fee: 1_250 }, // $500,000 and over
+];
+
+export function getNYSurrogateFilingFee(estateValue: number): number {
+  for (const tier of NY_SURROGATE_FILING_FEES) {
+    if (estateValue < tier.upTo) return tier.fee;
+  }
+  return 1_250;
 }
 
 // ── Timeline benchmarks (months, uncontested formal probate) ─────────────
