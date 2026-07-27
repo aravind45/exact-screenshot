@@ -23,6 +23,7 @@ import {
 import {
   calculateCAStatutoryFee,
   calculateFLStatutoryFee,
+  calculateFLPRCommission,
   calculateNYCommission,
   CALIFORNIA,
   FEDERAL_ESTATE_TAX,
@@ -33,6 +34,9 @@ import {
   getNYSurrogateFilingFee,
   evaluateNYEstateTax,
   NJ_INHERITANCE_TAX,
+  TX_EXECUTOR_COMMISSION,
+  FL_SUMMARY_ADMINISTRATION,
+  FL_FEE_DISCLOSURE_NOTE,
 } from "@/lib/jurisdictionData";
 import { STATE_RULES } from "@/lib/stateRules";
 
@@ -58,7 +62,10 @@ export default function ProbateCalculator() {
   const result = useMemo(() => {
     const rule = STATE_RULES[state];
     const breakdown: CostBreakdown[] = [];
-    const smallEstateEligible = rule ? grossValue > 0 && grossValue <= rule.threshold : false;
+    // FL threshold doubles to $150k for deaths on/after 2026-07-01 (CS/HB 1337)
+    const effectiveThreshold =
+      state === "FL" ? FL_SUMMARY_ADMINISTRATION.threshold(new Date()) : rule?.threshold;
+    const smallEstateEligible = rule ? grossValue > 0 && grossValue <= (effectiveThreshold ?? 0) : false;
 
     // ── Statutory / typical attorney fees ──────────────────────────────
     let attorneyFee = 0;
@@ -83,8 +90,10 @@ export default function ProbateCalculator() {
         executorFee = calculateCAStatutoryFee(grossValue);
       } else if (state === "NY") {
         executorFee = calculateNYCommission(grossValue);
+      } else if (state === "FL") {
+        executorFee = calculateFLPRCommission(grossValue);
       } else if (state === "TX") {
-        executorFee = Math.min(grossValue * 0.05, grossValue * 0.05); // 5% on cash in/out, capped
+        executorFee = grossValue * TX_EXECUTOR_COMMISSION.effectiveRateEstimate;
       } else {
         executorFee = grossValue * 0.02;
       }
@@ -96,9 +105,11 @@ export default function ProbateCalculator() {
             ? "Mirrors attorney schedule (Prob. Code §10800)"
             : state === "NY"
               ? "SCPA §2307 commissions"
-              : state === "TX"
-                ? "5% on cash received/paid (statutory cap)"
-                : "Typical 2% 'reasonable' compensation",
+              : state === "FL"
+                ? "Fla. Stat. §733.617 (3%/2.5%/2%/1.5% bands)"
+                : state === "TX"
+                  ? "5% on cash in/out excl. pass-throughs — ≈2.5% effective"
+                  : "Typical 2% 'reasonable' compensation",
       });
     }
 
@@ -150,7 +161,7 @@ export default function ProbateCalculator() {
     const hasInheritanceTax = (INHERITANCE_TAX_STATES as readonly string[]).includes(state);
     const nyCliff = state === "NY" ? evaluateNYEstateTax(grossValue, 2026) : null;
 
-    return { breakdown, subtotal, total, timeline, smallEstateEligible, fedExemption, stateThreshold, hasInheritanceTax, rule, nyCliff };
+    return { breakdown, subtotal, total, timeline, smallEstateEligible, fedExemption, stateThreshold, hasInheritanceTax, rule, nyCliff, effectiveThreshold };
   }, [state, grossValue, includeExecutor, contested]);
 
   return (
@@ -249,12 +260,31 @@ export default function ProbateCalculator() {
                       </p>
                       <p className="text-emerald-800/80 text-xs mt-1">
                         At {money(grossValue)}, this estate is at or under the {state} threshold of{" "}
-                        {money(result.rule?.threshold ?? 0)} — you may be able to skip formal probate entirely.
+                        {money(result.effectiveThreshold ?? 0)} — you may be able to skip formal probate entirely.
                       </p>
                       {state === "CA" && (
                         <p className="text-emerald-800/80 text-xs mt-1">
                           California note: a primary residence up to {money(CALIFORNIA.primaryResidencePetition.maxValue)} may
                           qualify for the AB 2016 petition even above this threshold.
+                        </p>
+                      )}
+                      {state === "FL" && (
+                        <p className="text-emerald-800/80 text-xs mt-1">
+                          Florida note: summary administration threshold rises to $150,000 for deaths on/after
+                          July 1, 2026 (CS/HB 1337), and is available at ANY value if death occurred 2+ years ago.
+                          Homestead property is protected and passes outside probate.
+                        </p>
+                      )}
+                      {state === "TX" && (
+                        <p className="text-emerald-800/80 text-xs mt-1">
+                          Texas note: the $75,000 Small Estate Affidavit is intestate-only (no will).
+                          With a will, consider Muniment of Title instead.
+                        </p>
+                      )}
+                      {state === "NJ" && (
+                        <p className="text-emerald-800/80 text-xs mt-1">
+                          New Jersey note: the affidavit route is intestate-only — $50k for a sole-heir spouse,
+                          $20k for other heirs.
                         </p>
                       )}
                     </div>

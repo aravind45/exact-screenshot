@@ -261,13 +261,14 @@ export const STATE_RULES: Record<string, StateRule> = {
     "DE": { threshold: 30000, smallEstateTerm: "Small Estate Affidavit", smallEstateCitation: ["12 Del. C. § 2306"], probateTerm: "Formal Probate", probateCitation: ["12 Del. C. § 23"], isUPC: false, lettersTerm: "Letters Testamentary" },
     "DC": { threshold: 40000, smallEstateTerm: "Small Estate Affidavit", smallEstateCitation: ["D.C. Code § 20-351"], probateTerm: "Formal Probate", probateCitation: ["D.C. Code § 20"], isUPC: false, lettersTerm: "Letters Testamentary" },
     "FL": {
-        threshold: 75000,
+        threshold: 75000, // doubles to $150,000 for deaths on/after 2026-07-01 (CS/HB 1337) — see FL_SUMMARY_ADMINISTRATION.threshold()
         smallEstateTerm: "Summary Administration",
-        smallEstateCitation: ["FL Stat. §735.201"],
+        smallEstateCitation: ["FL Stat. §735.201", "CS/HB 1337 (2026)"],
         probateTerm: "Formal Administration",
         probateCitation: ["FL Stat. §733"],
         isUPC: false,
         lettersTerm: "Letters of Administration",
+        notes: "Summary administration available at ANY value if death was 2+ years ago. Homestead is constitutionally protected, passes outside probate, and needs an Order Determining Homestead. Surviving spouse has a 30% elective share against the elective estate (incl. non-probate assets).",
         spousalSetAside: {
             term: "Spousal Set-Aside",
             citation: ["FL Stat. §732.401"]
@@ -521,7 +522,7 @@ export const STATE_RULES: Record<string, StateRule> = {
         probateCitation: ["TX Estates Code §401"],
         isUPC: false,
         lettersTerm: "Letters Testamentary",
-        notes: "Supports Muniment of Title for uncontested wills with no debts.",
+        notes: "Supports Muniment of Title for uncontested wills with no debts. SEA (§205) is INTESTATE ONLY — a will must go through muniment of title or administration. SEA requires: assets (excl. homestead/exempt) ≤ $75k, assets > debts, ALL heirs + 2 disinterested witnesses sign, and the only real property is the homestead passing to a homesteading spouse/minor.",
         // TX-Specific Configuration
         claimWindowDays: 120, // 4 months from published notice or personal notice
         bondDefaultRequired: false, // Bond not required unless will demands it or court orders it
@@ -538,9 +539,9 @@ export const STATE_RULES: Record<string, StateRule> = {
                 description: "Court-supervised probate with required hearings for most actions"
             },
             voluntary: {
-                term: "Small Estate Affidavit",
+                term: "Small Estate Affidavit (intestate only)",
                 citation: ["TX Estates Code §205"],
-                description: "Simplified process for estates under $75,000 when no real property other than homestead"
+                description: "INTESTATE ONLY: simplified process for estates under $75,000 when no will exists, assets exceed debts, and the only real property is the homestead passing to a homesteading spouse or minor children"
             }
         },
         bondOptions: {
