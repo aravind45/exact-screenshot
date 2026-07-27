@@ -3732,7 +3732,7 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         authorityScope: "PROBATE",
         scope: "US-FL",
         title: "File Homestead Property Petition (FL)",
-        description: "Florida homestead property has special constitutional protections. File a petition to determine homestead status and transfer the property to the surviving spouse or heirs per FL Stat. §732.401.",
+        description: "Florida homestead is constitutionally protected from most creditors and is NOT part of the probate estate — but title is not marketable until a court enters an Order Determining Homestead. File the petition so the property passes to the surviving spouse or heirs with clear title. Devise is restricted if a spouse or minor child survives (FL Stat. §732.4015).",
         estimatedTime: "2-4 hours",
         category: "probate",
         applicability: { states: ["FL"] },
@@ -3741,9 +3741,45 @@ export const SETTLEMENT_PHASE_TASKS: PhaseTaskList[] = [
         requiredDocs: ["Death Certificate", "Property Deed", "Homestead Petition Form"],
         alerts: [{
           type: "important",
-          message: "FL homestead is exempt from forced sale by creditors and has special descent rules. Do not sell homestead property without legal review."
+          message: "Homestead passes OUTSIDE probate with creditor protection — but without the court order, title companies will not insure a sale. Devise is restricted when a spouse or minor child survives."
         }],
         links: [{ label: "FL Stat. §732.401", url: "http://www.leg.state.fl.us/statutes/index.cfm?App_mode=Display_Statute&URL=0700-0799/0732/Sections/0732.401.html" }]
+      },
+      {
+        id: "fl_elective_share_check",
+        authorityScope: "BOTH",
+        scope: "US-FL",
+        title: "Evaluate Surviving Spouse Elective Share (FL)",
+        description: "A Florida surviving spouse may elect 30% of the ELECTIVE ESTATE — which uniquely includes many non-probate assets (revocable trusts, POD/TOD accounts, joint property, certain transfers). If the decedent's plan leaves the spouse less than ~30%, flag for review; the election has strict deadlines (generally within 6 months of service of the notice of administration or 2 years after death, whichever is earlier).",
+        estimatedTime: "2-4 hours",
+        category: "probate",
+        applicability: { states: ["FL"] },
+        isConditional: true,
+        conditionalRequirementLabel: "Required if a surviving spouse exists and the plan leaves them less than ~30%",
+        requiredDocs: ["Full asset inventory incl. non-probate assets", "Will/trust documents"],
+        alerts: [{
+          type: "warning",
+          message: "FL elective share reaches NON-PROBATE assets (unlike most states) — trust accounts, POD designations, and joint property all count toward the 30% base (§§732.201–732.2155)."
+        }],
+        links: [{ label: "FL Elective Share Statutes", url: "http://www.leg.state.fl.us/statutes/index.cfm?App_mode=Display_Statute&URL=0700-0799/0732/Sections/0732.201.html" }]
+      },
+      {
+        id: "tx_sea_intestacy_confirm",
+        authorityScope: "BOTH",
+        scope: "US-TX",
+        title: "Confirm Intestacy Before Using TX Small Estate Affidavit",
+        description: "The TX Small Estate Affidavit (Estates Code §205) is available ONLY if the decedent died WITHOUT a will. Requirements: estate assets (excluding homestead & exempt property) ≤ $75,000; assets exceed debts (except secured homestead debt); ALL heirs plus two disinterested witnesses must sign; and the only real property is the homestead passing to a homesteading spouse or minor children. If a will exists, use Muniment of Title or administration instead.",
+        estimatedTime: "1 hour",
+        category: "probate",
+        applicability: { states: ["TX"] },
+        isConditional: true,
+        conditionalRequirementLabel: "Only for estates using the Small Estate Affidavit track",
+        requiredDocs: ["Signed affidavit (all heirs + 2 witnesses)", "Death Certificate", "Asset & debt schedule"],
+        alerts: [{
+          type: "warning",
+          message: "SEA is INTESTATE ONLY (§205). Presenting it for an estate with a will will be rejected — and a false affidavit creates personal liability."
+        }],
+        links: [{ label: "TX Estates Code §205", url: "https://statutes.capitol.texas.gov/Docs/ES/htm/ES.205.htm" }]
       },
       // ── End State-Specific Final Distribution Tasks ───────────────────
       {

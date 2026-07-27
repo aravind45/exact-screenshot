@@ -48,17 +48,42 @@ export const STATE_ESTATE_TAX_THRESHOLDS: Record<string, number> = {
   OR: 1_000_000,
   MA: 2_000_000,
   RI: 1_802_431,   // 2026 indexed
-  MN: 3_000_000,
-  WA: 2_193_000,
+  MN: 3_000_000,   // + portability for deaths after 2025-06-30
+  WA: 3_076_000,   // 2026 (ESSB 5813: $3M eff. 2025-07-01, indexed); top rate now 35%
   VT: 5_000_000,
-  IL: 4_000_000,
+  IL: 4_000_000,   // frozen, not indexed; NOT portable
   ME: 7_160_000,   // 2026 indexed
-  MD: 5_000_000,
+  MD: 5_000_000,   // fixed; portable; ONLY state with both estate + inheritance tax (10% flat)
   NY: 7_350_000,   // 2026 indexed (Tax Law §952); cliff at 105% — see NY_ESTATE_TAX
-  CT: 15_000_000,  // conforms to federal from 2026 (P.L. 119-21 conformity)
+  CT: 15_000_000,  // conforms to federal from 2026; flat 12%; only state with a gift tax
   DC: 4_873_200,   // 2026 indexed
   HI: 5_490_000,
 };
+
+// ── Texas executor commissions (TX Estates Code §352.002) ─────────────────
+// 5% of cash RECEIVED + 5% of cash PAID OUT — but excluding pass-through
+// items (life insurance, POD accounts, debts paid at death). Effective rate
+// on the gross estate is typically ~2–3%, NOT 5%.
+export const TX_EXECUTOR_COMMISSION = {
+  statutoryRate: 0.05,
+  effectiveRateEstimate: 0.025, // typical effective % of gross estate
+  note: "5% on cash in + 5% on cash out, excluding pass-through receipts (insurance, POD, certain debts) — effective cost is roughly 2–3% of the gross estate.",
+  citation: "TX Estates Code §352.002",
+} as const;
+
+// ── Texas Small Estate Affidavit (intestate only) ─────────────────────────
+export const TX_SMALL_ESTATE = {
+  threshold: 75_000,
+  intestateOnly: true,
+  requirements: [
+    "No will (intestate estates ONLY — a will must go through muniment of title or administration)",
+    "Estate assets (excluding homestead & exempt property) ≤ $75,000",
+    "Assets exceed debts (except secured debts on homestead)",
+    "All heirs + two disinterested witnesses must sign",
+    "Only real property allowed: the homestead, passing to a homesteading spouse or minor children",
+  ],
+  citation: "TX Estates Code §205",
+} as const;
 
 // ── State inheritance tax (tax on the recipient, not the estate) ──────────
 export const INHERITANCE_TAX_STATES = ["KY", "MD", "NE", "NJ", "PA"] as const;
@@ -122,26 +147,55 @@ export function calculateCAFirstOverbid(acceptedBid: number): number {
   return acceptedBid + increase;
 }
 
-// ── Florida presumptively-reasonable fee schedule (Fla. Stat. §733.6171) ──
-export const FL_STATUTORY_FEE_TIERS: FeeTier[] = [
-  { upTo: 100_000, rate: 0.03 },        // 3% of first $1M (approximation)
-  { upTo: 1_000_000, rate: 0.03 },
-  { upTo: 3_000_000, rate: 0.025 },
-  { upTo: 5_000_000, rate: 0.02 },
-  { upTo: 10_000_000, rate: 0.015 },
-];
-
+// ── Florida presumptively-reasonable attorney fees (Fla. Stat. §733.6171(3)) ──
+// ≤$40k: $1,500 · $40–70k: $2,250 · $70–100k: $3,000
+// then graduated: 3% to $1M · 2.5% to $3M · 2% to $5M · 1.5% to $10M · 1% above
 export function calculateFLStatutoryFee(value: number): number {
-  let fee = 0;
-  let previousCap = 0;
-  for (const tier of FL_STATUTORY_FEE_TIERS) {
-    if (value <= previousCap) break;
-    const taxable = Math.min(value, tier.upTo) - previousCap;
-    fee += taxable * tier.rate;
-    previousCap = tier.upTo;
-  }
-  return fee;
+  if (value <= 0) return 0;
+  if (value <= 40_000) return 1_500;
+  if (value <= 70_000) return 2_250;
+  if (value <= 100_000) return 3_000;
+  if (value <= 1_000_000) return value * 0.03;
+  if (value <= 3_000_000) return 30_000 + (value - 1_000_000) * 0.025;
+  if (value <= 5_000_000) return 80_000 + (value - 3_000_000) * 0.02;
+  if (value <= 10_000_000) return 120_000 + (value - 5_000_000) * 0.015;
+  return 195_000 + (value - 10_000_000) * 0.01;
 }
+
+// ── Florida personal representative commissions (Fla. Stat. §733.617) ──────
+// NOTE: different band edges than the attorney schedule:
+//   3% first $1M · 2.5% next $4M · 2% next $5M · 1.5% above $10M
+export function calculateFLPRCommission(value: number): number {
+  if (value <= 0) return 0;
+  if (value <= 1_000_000) return value * 0.03;
+  if (value <= 5_000_000) return 30_000 + (value - 1_000_000) * 0.025;
+  if (value <= 10_000_000) return 130_000 + (value - 5_000_000) * 0.02;
+  return 230_000 + (value - 10_000_000) * 0.015;
+}
+
+export const FL_FEE_DISCLOSURE_NOTE =
+  "Fla. Stat. §733.6171(7): attorneys must provide the mandated written fee disclosures; failure bars compensation without court approval (HB 625, 2021).";
+
+// ── Florida summary administration threshold (with 2026 expansion) ─────────
+export const FL_SUMMARY_ADMINISTRATION = {
+  threshold(dateOfDeath?: Date | null): number {
+    // CS/HB 1337 (2026): threshold doubles from $75,000 to $150,000 for
+    // deaths on/after July 1, 2026.
+    if (dateOfDeath && dateOfDeath >= new Date("2026-07-01")) return 150_000;
+    return 75_000;
+  },
+  twoYearRule: "Summary administration is also available at ANY value if the decedent died 2+ years ago (§735.201).",
+  dispositionWithoutAdmin: { current: 10_000, fromJuly2026: 20_000, citation: "Fla. Stat. §735.301" },
+  homesteadNote: "FL homestead is constitutionally protected from most creditors, is NOT part of the probate estate, and passes outside administration — but title requires a court determination (Order Determining Homestead).",
+  citation: "Fla. Stat. §735.201 (as amended by CS/HB 1337, eff. 2026-07-01)",
+} as const;
+
+// ── Florida elective share ──────────────────────────────────────────────────
+export const FL_ELECTIVE_SHARE = {
+  rate: 0.30,
+  note: "Surviving spouse may claim 30% of the ELECTIVE ESTATE — which includes many non-probate assets (revocable trusts, POD accounts, joint property), unlike most states.",
+  citation: "Fla. Stat. §§732.201–732.2155",
+} as const;
 
 // ── New York executor commissions (SCPA §2307) ────────────────────────────
 // Statutory receiving & paying-out commissions:
