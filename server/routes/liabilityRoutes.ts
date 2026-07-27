@@ -6,6 +6,7 @@ import { RiskService } from "../services/riskService.js";
 import { AuditService } from "../services/auditService.js";
 import { requireRole } from "../middleware/rbac.js";
 import { requireAuthorityStatus } from "../middleware/authorityGating.js";
+import { requireWriteAccess } from "../middleware/writeProtection.js";
 import { requireEstateAccess } from "../middleware/estateAuth.js";
 import { requireEstateStatus, ESTATE_GATES } from "../middleware/estateStatusGating.js";
 import { z } from "zod";
@@ -225,7 +226,7 @@ router.get("/solvency", async (req: any, res: Response) => {
 });
 
 // POST /api/liabilities - Create
-router.post("/", async (req: any, res: Response) => {
+router.post("/", requireWriteAccess, async (req: any, res: Response) => {
     try {
         const estateId = await getEstateId(req.user.id);
         if (!estateId) return res.status(404).json({ error: "Estate not found" });
@@ -273,7 +274,7 @@ router.post("/", async (req: any, res: Response) => {
 });
 
 // PUT /api/liabilities/:id - Update
-router.put("/:id", requireEstateAccess, requireEstateStatus(ESTATE_GATES.ACTIVE_FEATURES), requireAuthorityStatus({
+router.put("/:id", requireEstateAccess, requireWriteAccess, requireEstateStatus(ESTATE_GATES.ACTIVE_FEATURES), requireAuthorityStatus({
     operation: "creditors:settle",
     customMessage: "Updating liabilities requires legal authority"
 }), async (req: any, res: Response) => {
@@ -334,7 +335,7 @@ router.put("/:id", requireEstateAccess, requireEstateStatus(ESTATE_GATES.ACTIVE_
 });
 
 // DELETE /api/liabilities/:id - Delete
-router.delete("/:id", requireEstateAccess, requireEstateStatus(ESTATE_GATES.ACTIVE_FEATURES), requireAuthorityStatus({
+router.delete("/:id", requireEstateAccess, requireWriteAccess, requireEstateStatus(ESTATE_GATES.ACTIVE_FEATURES), requireAuthorityStatus({
     operation: "creditors:reject",
     customMessage: "Deleting liabilities requires legal authority"
 }), async (req: any, res: Response) => {

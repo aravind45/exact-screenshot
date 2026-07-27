@@ -5,6 +5,7 @@ import { logger } from "../lib/logger.js";
 import { requireSubscription } from "../middleware/subscription.js";
 import { requireAuthorityStatus } from "../middleware/authorityGating.js";
 import { requireEstateAccess } from "../middleware/estateAuth.js";
+import { requireWriteAccess } from "../middleware/writeProtection.js";
 import { AuditService } from "../services/auditService.js";
 
 const router = Router();
@@ -54,7 +55,7 @@ router.get("/:id", async (req: any, res: Response) => {
     }
 });
 
-router.post("/", async (req: any, res: Response) => {
+router.post("/", requireWriteAccess, async (req: any, res: Response) => {
     try {
         const validated = assetSchema.parse(req.body);
         const asset = await AssetService.create(req.user.id, validated);
@@ -68,7 +69,7 @@ router.post("/", async (req: any, res: Response) => {
     }
 });
 
-router.put("/:id", requireEstateAccess, requireAuthorityStatus({
+router.put("/:id", requireEstateAccess, requireWriteAccess, requireAuthorityStatus({
     operation: "assets:update",
     customMessage: "Asset updates require authority status"
 }), async (req: any, res: Response) => {
@@ -95,7 +96,7 @@ router.put("/:id", requireEstateAccess, requireAuthorityStatus({
     }
 });
 
-router.delete("/:id", requireEstateAccess, requireAuthorityStatus({
+router.delete("/:id", requireEstateAccess, requireWriteAccess, requireAuthorityStatus({
     operation: "assets:delete",
     customMessage: "Asset deletion requires legal authority"
 }), async (req: any, res: Response) => {

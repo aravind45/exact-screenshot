@@ -16,6 +16,7 @@ import { fetchEstateRowForUser } from "../utils/estateFallback.js";
 import { getPrismaErrorDetails, isMissingColumnError } from "../utils/prismaErrors.js";
 import { emitDomainEvent } from "../lib/domainEvents.js";
 import { normalizeEstateForForms, normalizeEstateUpdateInput } from "../lib/estateFormNormalization.js";
+import { requireWriteAccess } from "../middleware/writeProtection.js";
 
 
 const estateUpdateSchema = z.object({
@@ -147,6 +148,21 @@ router.get("/my", async (req: any, res: Response) => {
             } catch (handleErr: any) {
                 logger.warn("Failed to ensure estate handle (non-fatal):", handleErr);
             }
+
+            // ── SSN data-minimization gate ─────────────────────────────
+            // The decedent's SSN must never reach read-only users (invited
+            // heirs/VIEWERs) — post-mortem identity theft is a real risk
+            // and beneficiaries never need it. Decrypt only for OWNER /
+            // CO_EXECUTOR / ATTORNEY.
+            const isOwner = estate.userId === req.user.id;
+            let ssnAllowed = isOwner;
+            if (!isOwner) {
+                const grant = await prisma.estateGrant.findUnique({
+                    where: { estateId_userId: { estateId: estate.id, userId: req.user.id } },
+                    select: { role: true },
+                });
+                ssnAllowed = !!grant && grant.role !== "VIEWER";
+            }
             // Re-fetch to get the new handle/email if it was just created
             let updatedEstate;
             try {
@@ -164,13 +180,17 @@ router.get("/my", async (req: any, res: Response) => {
                         estateId: estate.id
                     });
                     // Return the original estate data if re-fetch fails due to missing columns
-                    // Decrypt SSN for display if available
+                    // Decrypt SSN for display if available (owner/attorney roles only)
                     if (estate.deceasedSsn) {
-                        try {
-                            estate.deceasedSsn = decrypt(estate.deceasedSsn);
-                        } catch (decryptErr) {
-                            logger.warn("Failed to decrypt SSN:", decryptErr);
+                        if (!ssnAllowed) {
                             estate.deceasedSsn = undefined;
+                        } else {
+                            try {
+                                estate.deceasedSsn = decrypt(estate.deceasedSsn);
+                            } catch (decryptErr) {
+                                logger.warn("Failed to decrypt SSN:", decryptErr);
+                                estate.deceasedSsn = undefined;
+                            }
                         }
                     }
                     return res.json(normalizeEstateForForms(estate));
@@ -179,8 +199,10 @@ router.get("/my", async (req: any, res: Response) => {
             }
 
             if (updatedEstate) {
-                // Decrypt SSN for display
-                updatedEstate.deceasedSsn = updatedEstate.deceasedSsn ? decrypt(updatedEstate.deceasedSsn) : updatedEstate.deceasedSsn;
+                // Decrypt SSN for display (owner/attorney roles only)
+                updatedEstate.deceasedSsn = updatedEstate.deceasedSsn
+                    ? (ssnAllowed ? decrypt(updatedEstate.deceasedSsn) : undefined)
+                    : updatedEstate.deceasedSsn;
             }
 
             return res.json(normalizeEstateForForms(updatedEstate || estate));
@@ -208,8 +230,20 @@ router.get("/my", async (req: any, res: Response) => {
             const refreshedEstate = await fetchEstateRowForUser(prisma, req.user.id);
             const estateToReturn = (refreshedEstate || fallbackEstate) as any;
 
+            // SSN data-minimization gate (fallback path): strip for VIEWERs
             if (estateToReturn.deceasedSsn) {
-                estateToReturn.deceasedSsn = decrypt(estateToReturn.deceasedSsn);
+                const isOwnerFallback = estateToReturn.userId === req.user.id;
+                let ssnAllowedFallback = isOwnerFallback;
+                if (!isOwnerFallback && estateToReturn.id) {
+                    const grant = await prisma.estateGrant.findUnique({
+                        where: { estateId_userId: { estateId: estateToReturn.id, userId: req.user.id } },
+                        select: { role: true },
+                    });
+                    ssnAllowedFallback = !!grant && grant.role !== "VIEWER";
+                }
+                estateToReturn.deceasedSsn = ssnAllowedFallback
+                    ? decrypt(estateToReturn.deceasedSsn)
+                    : undefined;
             }
 
             if (estateToReturn.userId) {
@@ -238,7 +272,7 @@ router.get("/my", async (req: any, res: Response) => {
     }
 });
 
-router.put("/my", authenticate, async (req: any, res: Response) => {
+router.put("/my", authenticate, requireWriteAccess, async (req: any, res: Response) => {
     try {
         const userId = req.user.id;
 
@@ -476,7 +510,7 @@ router.put("/my", authenticate, async (req: any, res: Response) => {
 });
 
 // Roadmap Persistence
-router.put("/my/roadmap", requireSubscription, async (req: any, res: Response) => {
+router.put("/my/roadmap", requireSubscription, requireWriteAccess, async (req: any, res: Response) => {
     try {
         const estate = await prisma.estate.findFirst({
             where: {
@@ -574,7 +608,7 @@ router.get("/my/activities", async (req: any, res: Response) => {
     }
 });
 
-router.put("/my/activities/:id", requireSubscription, async (req: any, res: Response) => {
+router.put("/my/activities/:id", requireSubscription, requireWriteAccess, async (req: any, res: Response) => {
     try {
         const estate = await prisma.estate.findFirst({ where: { userId: req.user.id } });
         if (!estate) return res.status(404).json({ error: "Estate not found" });
@@ -751,7 +785,7 @@ router.get("/my/petition/pdf", requireSubscription, async (req: any, res: Respon
 });
 
 // Upload completed probate form (Secured)
-router.post("/:estateId/documents", requireSubscription, requireEstateAccess, async (req: any, res: Response) => {
+router.post("/:estateId/documents", requireSubscription, requireEstateAccess, requireWriteAccess, async (req: any, res: Response) => {
     try {
         const { estateId } = req.params;
         const { documentType, name } = req.query;
@@ -847,7 +881,7 @@ router.get("/my/documents/:formCode/download", async (req: any, res: Response) =
 });
 
 // Create estate document record (metadata only)
-router.post("/my/documents", requireSubscription, async (req: any, res: Response) => {
+router.post("/my/documents", requireSubscription, requireWriteAccess, async (req: any, res: Response) => {
     try {
         const estate = await prisma.estate.findFirst({ where: { userId: req.user.id } });
         if (!estate) return res.status(404).json({ error: "Estate not found" });
@@ -878,7 +912,7 @@ router.post("/my/documents", requireSubscription, async (req: any, res: Response
 });
 
 // Update estate document
-router.put("/my/documents/:id", async (req: any, res: Response) => {
+router.put("/my/documents/:id", requireWriteAccess, async (req: any, res: Response) => {
     try {
         const estate = await prisma.estate.findFirst({ where: { userId: req.user.id } });
         if (!estate) return res.status(404).json({ error: "Estate not found" });
@@ -903,7 +937,7 @@ router.put("/my/documents/:id", async (req: any, res: Response) => {
 });
 
 // Delete estate document
-router.delete("/my/documents/:id", async (req: any, res: Response) => {
+router.delete("/my/documents/:id", requireWriteAccess, async (req: any, res: Response) => {
     try {
         const estate = await prisma.estate.findFirst({ where: { userId: req.user.id } });
         if (!estate) return res.status(404).json({ error: "Estate not found" });
@@ -931,7 +965,7 @@ router.delete("/my/documents/:id", async (req: any, res: Response) => {
 });
 
 // Upload file for a specific document ID
-router.post("/my/documents/:id/upload", async (req: any, res: Response) => {
+router.post("/my/documents/:id/upload", requireWriteAccess, async (req: any, res: Response) => {
     try {
         const estate = await prisma.estate.findFirst({ where: { userId: req.user.id } });
         if (!estate) return res.status(404).json({ error: "Estate not found" });
@@ -1066,7 +1100,7 @@ import { RiskService } from "../services/riskService.js";
 
 // ... existing code ...
 
-router.post("/my/distribution-activity", async (req: any, res: Response) => {
+router.post("/my/distribution-activity", requireWriteAccess, async (req: any, res: Response) => {
     try {
         const estate = await prisma.estate.findFirst({ where: { userId: req.user.id } });
         if (!estate) return res.status(404).json({ error: "Estate not found" });
@@ -1340,7 +1374,7 @@ router.get("/:id/roadmap", requireSubscription, async (req: any, res: Response) 
 /**
  * POST /:id/pin - Freeze the current roadmap
  */
-router.post("/:id/pin", requireSubscription, async (req: any, res: Response) => {
+router.post("/:id/pin", requireSubscription, requireWriteAccess, async (req: any, res: Response) => {
     try {
         const { id } = req.params;
         const result = await pinEstateRoadmap(id, req.user.id);

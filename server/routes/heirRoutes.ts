@@ -5,6 +5,7 @@ import { CollaborationService } from "../services/collaborationService.js";
 import { z } from "zod";
 import { logger } from "../lib/logger.js";
 import { requireSubscription } from "../middleware/subscription.js";
+import { requireWriteAccess } from "../middleware/writeProtection.js";
 
 const heirSchema = z.object({
     name: z.string().min(1),
@@ -57,7 +58,7 @@ router.get("/", async (req: any, res: Response) => {
 });
 
 // POST /api/heirs
-router.post("/", async (req: any, res: Response) => {
+router.post("/", requireWriteAccess, async (req: any, res: Response) => {
     try {
         const estateId = await getEstateId(req);
         if (!estateId) return res.status(404).json({ error: "Estate not found" });
@@ -95,7 +96,7 @@ router.post("/", async (req: any, res: Response) => {
 });
 
 // PUT /api/heirs/:id
-router.put("/:id", async (req: any, res: Response) => {
+router.put("/:id", requireWriteAccess, async (req: any, res: Response) => {
     try {
         const { id } = req.params;
         const validated = heirSchema.partial().parse(req.body);
@@ -113,7 +114,7 @@ router.put("/:id", async (req: any, res: Response) => {
 });
 
 // DELETE /api/heirs/:id
-router.delete("/:id", async (req: any, res: Response) => {
+router.delete("/:id", requireWriteAccess, async (req: any, res: Response) => {
     try {
         const { id } = req.params;
         const deleted = await prisma.heir.delete({ where: { id } });
@@ -139,7 +140,7 @@ router.delete("/:id", async (req: any, res: Response) => {
 });
 
 // Invite an heir to collaborate
-router.post("/:id/invite", async (req: any, res: Response) => {
+router.post("/:id/invite", requireWriteAccess, async (req: any, res: Response) => {
     try {
         const { id } = req.params;
         const heir = await prisma.heir.findUnique({ where: { id } });
