@@ -133,6 +133,83 @@ router.get("/users", isAdmin, async (req: any, res: Response) => {
     }
 });
 
+/**
+ * GET /api/admin/users/export — audit export of all user accounts as CSV.
+ *
+ * SECURITY: exports account METADATA only. Password hashes, reset tokens,
+ * verification tokens, IPs, and any credentials are NEVER included —
+ * passwords are bcrypt-hashed at rest and unrecoverable by design.
+ * Access is restricted to ADMIN role; every export is written to the
+ * AdminActionLog audit trail.
+ */
+router.get("/users/export", isAdmin, async (req: any, res: Response) => {
+    try {
+        const users = await prisma.user.findMany({
+            select: {
+                id: true,
+                email: true,
+                fullName: true,
+                role: true,
+                userType: true,
+                state: true,
+                subscriptionStatus: true,
+                emailVerifiedAt: true,
+                lastLoginAt: true,
+                createdAt: true,
+                updatedAt: true,
+                isPilot: true,
+                _count: { select: { estates: true, communications: true } },
+            },
+            orderBy: { createdAt: 'desc' },
+        });
+
+        const esc = (v: unknown): string => {
+            if (v === null || v === undefined) return "";
+            const s = String(v);
+            return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+        };
+        const fmtDate = (d: Date | null): string => (d ? d.toISOString() : "");
+
+        const header = "User ID,Email,Full Name,Role,User Type,State,Subscription,Email Verified,Last Login,Created,Estates,Communications,Pilot\n";
+        const rows = users.map((u) =>
+            [
+                esc(u.id),
+                esc(u.email),
+                esc(u.fullName),
+                esc(u.role),
+                esc(u.userType),
+                esc(u.state),
+                esc(u.subscriptionStatus),
+                u.emailVerifiedAt ? "yes" : "no",
+                fmtDate(u.lastLoginAt),
+                fmtDate(u.createdAt),
+                u._count.estates,
+                u._count.communications,
+                u.isPilot ? "yes" : "no",
+            ].join(",")
+        ).join("\n");
+
+        // Audit trail: record who exported and when
+        await prisma.adminActionLog.create({
+            data: {
+                adminId: (req as any).user?.id ?? "unknown",
+                action: "EXPORT_USER_AUDIT",
+                targetType: "USER",
+                targetId: "ALL",
+                metadata: { count: users.length, note: "Metadata only — no credentials (passwords are bcrypt-hashed, unrecoverable by design)" },
+            },
+        }).catch(() => {/* logging failure must not block export */});
+
+        const stamp = new Date().toISOString().slice(0, 10);
+        res.setHeader("Content-Type", "text/csv");
+        res.setHeader("Content-Disposition", `attachment; filename="user-audit-${stamp}.csv"`);
+        res.send(header + rows);
+    } catch (error: any) {
+        logger.error("Failed to export users:", error.message);
+        res.status(500).json({ error: "Failed to export users" });
+    }
+});
+
 // Template Management
 router.get("/templates", isAdmin, async (req: any, res: Response) => {
     try {
