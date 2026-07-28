@@ -219,7 +219,7 @@ export default function Pricing(): JSX.Element {
                                                     {loading ? (
                                                         <Loader2 className="w-6 h-6 animate-spin" />
                                                     ) : canCheckout ? (
-                                                        "Start 7-Day Free Trial"
+                                                        "Start 15-Day Free Trial"
                                                     ) : (
                                                         "Billing Unavailable"
                                                     )}
@@ -231,6 +231,9 @@ export default function Pricing(): JSX.Element {
                                                 >
                                                     {canCheckout ? "Skip Trial & Buy Now" : "Checkout Disabled"}
                                                 </button>
+                                                <p className="text-center text-xs text-slate-500 leading-relaxed px-2 pt-1">
+                                                    Free for 15 days — no charge until the trial ends. If you don't subscribe, your data stays fully visible and exportable. You're never locked out of your own records.
+                                                </p>
                                             </div>
                                         </div>
                                     </div>

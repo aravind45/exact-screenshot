@@ -10,7 +10,7 @@ import { requireAuthorityStatus } from "../middleware/authorityGating.js";
 import { requireEstateStatus, ESTATE_GATES } from "../middleware/estateStatusGating.js";
 import { z } from "zod";
 import { logger } from "../lib/logger.js";
-import { requireSubscription } from "../middleware/subscription.js";
+import { requireSubscription, requireSubscriptionForWrite } from "../middleware/subscription.js";
 import { authenticate } from "../middleware/auth.js";
 import { fetchEstateRowForUser } from "../utils/estateFallback.js";
 import { getPrismaErrorDetails, isMissingColumnError } from "../utils/prismaErrors.js";
@@ -510,7 +510,7 @@ router.put("/my", authenticate, requireWriteAccess, async (req: any, res: Respon
 });
 
 // Roadmap Persistence
-router.put("/my/roadmap", requireSubscription, requireWriteAccess, async (req: any, res: Response) => {
+router.put("/my/roadmap", requireSubscriptionForWrite, requireWriteAccess, async (req: any, res: Response) => {
     try {
         const estate = await prisma.estate.findFirst({
             where: {
@@ -608,7 +608,7 @@ router.get("/my/activities", async (req: any, res: Response) => {
     }
 });
 
-router.put("/my/activities/:id", requireSubscription, requireWriteAccess, async (req: any, res: Response) => {
+router.put("/my/activities/:id", requireSubscriptionForWrite, requireWriteAccess, async (req: any, res: Response) => {
     try {
         const estate = await prisma.estate.findFirst({ where: { userId: req.user.id } });
         if (!estate) return res.status(404).json({ error: "Estate not found" });
@@ -630,7 +630,7 @@ router.put("/my/activities/:id", requireSubscription, requireWriteAccess, async 
     }
 });
 
-router.get("/my/activities/download", requireSubscription, async (req: any, res: Response) => {
+router.get("/my/activities/download", requireSubscriptionForWrite, async (req: any, res: Response) => {
     try {
         const estate = await prisma.estate.findFirst({ where: { userId: req.user.id } });
         if (!estate) return res.status(404).json({ error: "Estate not found" });
@@ -785,7 +785,7 @@ router.get("/my/petition/pdf", requireSubscription, async (req: any, res: Respon
 });
 
 // Upload completed probate form (Secured)
-router.post("/:estateId/documents", requireSubscription, requireEstateAccess, requireWriteAccess, async (req: any, res: Response) => {
+router.post("/:estateId/documents", requireSubscriptionForWrite, requireEstateAccess, requireWriteAccess, async (req: any, res: Response) => {
     try {
         const { estateId } = req.params;
         const { documentType, name } = req.query;
@@ -881,7 +881,7 @@ router.get("/my/documents/:formCode/download", async (req: any, res: Response) =
 });
 
 // Create estate document record (metadata only)
-router.post("/my/documents", requireSubscription, requireWriteAccess, async (req: any, res: Response) => {
+router.post("/my/documents", requireSubscriptionForWrite, requireWriteAccess, async (req: any, res: Response) => {
     try {
         const estate = await prisma.estate.findFirst({ where: { userId: req.user.id } });
         if (!estate) return res.status(404).json({ error: "Estate not found" });
@@ -1236,7 +1236,7 @@ async function backfillLegacyTrackSelection(estate: {
 
 
 // GET /:id/roadmap - Get personalized roadmap (requires subscription)
-router.get("/:id/roadmap", requireSubscription, async (req: any, res: Response) => {
+router.get("/:id/roadmap", requireSubscriptionForWrite, async (req: any, res: Response) => {
     try {
         const { id } = req.params;
 
@@ -1590,7 +1590,7 @@ router.get("/:id/jurisdictionPreview", async (req: any, res: Response) => {
 });
 
 // GET /:id/tasks - Get task completions (requires subscription)
-router.get("/:id/tasks", requireSubscription, async (req: any, res: Response) => {
+router.get("/:id/tasks", requireSubscriptionForWrite, async (req: any, res: Response) => {
     try {
         const { id } = req.params;
 
@@ -1618,7 +1618,7 @@ router.get("/:id/tasks", requireSubscription, async (req: any, res: Response) =>
     }
 });
 
-router.post("/:id/tasks/:taskId/complete", requireSubscription, async (req: any, res: Response) => {
+router.post("/:id/tasks/:taskId/complete", requireSubscriptionForWrite, async (req: any, res: Response) => {
     try {
         const { id, taskId } = req.params;
         const { notes } = req.body;
@@ -1684,7 +1684,7 @@ router.post("/:id/tasks/:taskId/complete", requireSubscription, async (req: any,
     }
 });
 
-router.delete("/:id/tasks/:taskId/complete", requireSubscription, requireEstateAccess, requireAuthorityStatus({
+router.delete("/:id/tasks/:taskId/complete", requireSubscriptionForWrite, requireEstateAccess, requireAuthorityStatus({
     operation: "estate:amend",
     customMessage: "Modifying task completions requires legal authority"
 }), async (req: any, res: Response) => {

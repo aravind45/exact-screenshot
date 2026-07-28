@@ -11,7 +11,7 @@ import { requireEstateAccess } from "../middleware/estateAuth.js";
 import { requireEstateStatus, ESTATE_GATES } from "../middleware/estateStatusGating.js";
 import { z } from "zod";
 import { logger } from "../lib/logger.js";
-import { requireSubscription } from "../middleware/subscription.js";
+import { requireSubscription, requireSubscriptionForWrite } from "../middleware/subscription.js";
 import { fetchEstateRowForUser } from "../utils/estateFallback.js";
 import { isMissingColumnError } from "../utils/prismaErrors.js";
 
@@ -30,7 +30,7 @@ const liabilitySchema = z.object({
 });
 
 const router = Router();
-router.use(requireSubscription);
+router.use(requireSubscriptionForWrite);
 
 const safeDecrypt = (value: string | null | undefined): string | null | undefined => {
     if (!value) return value;

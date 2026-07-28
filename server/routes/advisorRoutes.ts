@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { AdvisorService } from '../services/advisorService.js';
 import { StripeService } from '../services/stripeService.js';
 import { authenticate } from '../middleware/auth.js';
-import { requireAdvisor, requireAdmin } from '../middleware/authorization.js';
+import { requireAdmin } from '../middleware/authorization.js';
 import { profileUpdateLimiter } from '../middleware/rateLimiter.js';
 import { logger } from '../lib/logger.js';
 
@@ -63,11 +63,8 @@ router.get('/marketplace', async (req, res) => {
 /**
  * GET /api/advisors/admin/list (Admin Only)
  */
-router.get('/admin/list', authenticate, async (req: any, res) => {
+router.get('/admin/list', authenticate, requireAdmin, async (req: any, res) => {
     try {
-        if (req.user!.role !== 'ADMIN') {
-            return res.status(403).json({ error: 'Unauthorized' });
-        }
         const advisors = await AdvisorService.listAllAdvisors();
         res.json(advisors);
     } catch (error: any) {
@@ -79,13 +76,8 @@ router.get('/admin/list', authenticate, async (req: any, res) => {
 /**
  * POST /api/advisors/:id/verify (Admin Only)
  */
-router.post('/:id/verify', authenticate, async (req: any, res) => {
+router.post('/:id/verify', authenticate, requireAdmin, async (req: any, res) => {
     try {
-        // Basic admin check (this should be replaced with a more robust role-based check)
-        if (req.user!.role !== 'ADMIN') {
-            return res.status(403).json({ error: 'Unauthorized' });
-        }
-
         const { status } = req.body;
         const profile = await AdvisorService.adminVerifyAdvisor(req.params.id, status);
         res.json(profile);
@@ -200,7 +192,9 @@ router.get('/dashboard/stats', authenticate, async (req: any, res) => {
 
         const metrics = await AdvisorService.getDashboardMetrics(advisor.id);
 
-        // Get upcoming sessions separately as it's not part of metrics
+        // Get upcoming sessions separately as it's not part of metrics.
+        // Field-whitelist: NEVER return the client's full User row (passwordHash,
+        // resetPasswordToken, stripeCustomerId) or full Estate row (deceasedSsn).
         const upcomingSessions = await prisma.booking.findMany({
             where: {
                 advisorId: advisor.id,
@@ -209,7 +203,10 @@ router.get('/dashboard/stats', authenticate, async (req: any, res) => {
             },
             orderBy: { sessionDate: 'asc' },
             take: 5,
-            include: { user: true, estate: true }
+            include: {
+                user: { select: { id: true, fullName: true, email: true } },
+                estate: { select: { id: true, name: true } }
+            }
         });
 
         res.json({
@@ -270,7 +267,9 @@ router.get('/dashboard/earnings', authenticate, async (req: any, res) => {
 
         const bookings = await prisma.booking.findMany({
             where: { advisorId: advisor.id },
-            include: { user: true },
+            include: {
+                user: { select: { id: true, fullName: true, email: true } }
+            },
             orderBy: { createdAt: 'desc' }
         });
 

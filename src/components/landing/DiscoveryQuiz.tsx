@@ -431,6 +431,10 @@ export default function DiscoveryQuiz() {
                                                     <div className="flex items-center justify-center gap-2 text-slate-400 text-xs font-bold uppercase tracking-widest">
                                                         <Lock className="w-3 h-3" /> Secure & Non-Binding
                                                     </div>
+                                                    <p className="text-center text-xs text-slate-400 leading-relaxed">
+                                                        Free for 15 days, then a paid plan. Your data is always
+                                                        visible and exportable — even if you never pay.
+                                                    </p>
                                                 </div>
                                             </>
                                         )}

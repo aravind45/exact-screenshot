@@ -4,7 +4,7 @@ import { AuditService } from "../services/auditService.js";
 import { CollaborationService } from "../services/collaborationService.js";
 import { z } from "zod";
 import { logger } from "../lib/logger.js";
-import { requireSubscription } from "../middleware/subscription.js";
+import { requireSubscription, requireSubscriptionForWrite } from "../middleware/subscription.js";
 import { requireWriteAccess } from "../middleware/writeProtection.js";
 
 const heirSchema = z.object({
@@ -17,7 +17,7 @@ const heirSchema = z.object({
 });
 
 const router = Router();
-router.use(requireSubscription);
+router.use(requireSubscriptionForWrite);
 
 // Middleware to get estateId (assumes user has one estate for now)
 const getEstateId = async (req: any) => {

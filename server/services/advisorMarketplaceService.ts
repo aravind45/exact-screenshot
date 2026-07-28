@@ -128,25 +128,42 @@ export class AdvisorMarketplaceService {
     }
 
     static async getPublicProfile(advisorId: string) {
-        const profile = await prisma.advisorProfile.findUnique({
+        // Explicit public-safe whitelist — license numbers/documents, Stripe
+        // account state, meeting links, and verification internals must never
+        // be exposed through the public profile endpoint.
+        return prisma.advisorProfile.findUnique({
             where: { id: advisorId },
-            include: {
+            select: {
+                id: true,
+                bio: true,
+                hourlyRate: true,
+                profileImage: true,
+                advisorType: true,
+                avgRating: true,
+                totalReviews: true,
+                specialties: true,
+                statesServed: true,
+                languages: true,
+                publicNotes: true,
+                timezone: true,
+                cancellationHours: true,
+                status: true,
+                createdAt: true,
                 user: { select: { fullName: true } },
                 ratePlans: { where: { isActive: true }, orderBy: { sortOrder: 'asc' } },
                 reviews: {
                     orderBy: { createdAt: 'desc' },
                     take: 10,
-                    include: { user: { select: { fullName: true } } }
+                    select: {
+                        id: true,
+                        rating: true,
+                        comment: true,
+                        createdAt: true,
+                        user: { select: { fullName: true } }
+                    }
                 },
-                availabilityRules: { where: { isActive: true } },
             }
         });
-
-        if (!profile) return null;
-
-        // Strip sensitive fields for public view
-        const { licenseDocument, stripeAccountId, ...safe } = profile as any;
-        return safe;
     }
 
     static async submitForReview(userId: string) {
@@ -220,7 +237,23 @@ export class AdvisorMarketplaceService {
         const [advisors, total] = await Promise.all([
             prisma.advisorProfile.findMany({
                 where,
-                include: {
+                // Explicit public-safe whitelist — never expose licenseNumber,
+                // licenseDocument, stripeAccountId, meetingLink, or internal
+                // verification/stripe state through the public directory.
+                select: {
+                    id: true,
+                    bio: true,
+                    hourlyRate: true,
+                    profileImage: true,
+                    advisorType: true,
+                    avgRating: true,
+                    totalReviews: true,
+                    specialties: true,
+                    statesServed: true,
+                    languages: true,
+                    publicNotes: true,
+                    status: true,
+                    createdAt: true,
                     user: { select: { fullName: true } },
                     ratePlans: { where: { isActive: true }, take: 3, orderBy: { priceCents: 'asc' } },
                 },
@@ -236,10 +269,7 @@ export class AdvisorMarketplaceService {
         ]);
 
         return {
-            advisors: advisors.map(a => {
-                const { licenseDocument, stripeAccountId, ...safe } = a as any;
-                return safe;
-            }),
+            advisors,
             total,
             page,
             limit,
@@ -659,15 +689,29 @@ export class AdvisorMarketplaceService {
             throw new Error('Can only dispute completed or no-show bookings');
         }
 
-        return prisma.dispute.create({
-            data: {
-                bookingId,
-                openedBy: userId,
-                reason,
-                description,
-                status: 'OPEN',
-            }
-        });
+        // Create the dispute AND freeze the payout atomically — an open dispute
+        // must stop the escrow clock from auto-releasing funds to the advisor.
+        const [dispute] = await prisma.$transaction([
+            prisma.dispute.create({
+                data: {
+                    bookingId,
+                    openedBy: userId,
+                    reason,
+                    description,
+                    status: 'OPEN',
+                }
+            }),
+            prisma.booking.updateMany({
+                where: {
+                    id: bookingId,
+                    payoutStatus: { in: ['UNPAID', 'ESCROWED'] },
+                },
+                data: { payoutStatus: 'DISPUTED' },
+            }),
+        ]);
+
+        logger.info(`🛑 Dispute ${dispute.id} opened on booking ${bookingId}; payout frozen`);
+        return dispute;
     }
 
     static async adminResolveDispute(adminId: string, disputeId: string, resolution: 'REFUND' | 'RELEASE', data: {
@@ -681,7 +725,20 @@ export class AdvisorMarketplaceService {
 
         if (!dispute) throw new Error('Dispute not found');
 
+        if (dispute.status !== 'OPEN') throw new Error('Dispute has already been resolved');
+
         const newStatus = resolution === 'REFUND' ? 'RESOLVED_REFUNDED' : 'RESOLVED_RELEASED';
+
+        // Execute the real money movement first — never record a refund in the
+        // database that Stripe did not actually perform.
+        let refundResult: any = null;
+        if (resolution === 'REFUND') {
+            const { StripeService } = await import('./stripeService.js');
+            refundResult = await StripeService.refundBookingPayment(
+                dispute.bookingId,
+                data.refundAmount ?? undefined, // cents; undefined = full amount
+            );
+        }
 
         const updated = await prisma.dispute.update({
             where: { id: disputeId },
@@ -699,9 +756,26 @@ export class AdvisorMarketplaceService {
                 where: { id: dispute.bookingId },
                 data: {
                     status: 'REFUNDED',
+                    payoutStatus: 'REFUNDED',
                     refundAmount: data.refundAmount ? (data.refundAmount / 100) : dispute.booking.totalAmount,
                     refundedAt: new Date(),
                 }
+            });
+        } else if (resolution === 'RELEASE') {
+            // Unfreeze and re-queue the escrow payout. If the 30-day hold already
+            // elapsed during the dispute, release immediately; otherwise respect it.
+            const booking = await prisma.booking.update({
+                where: { id: dispute.bookingId },
+                data: { payoutStatus: 'ESCROWED' },
+            });
+            const releaseAt = booking.escrowReleaseDate && booking.escrowReleaseDate > new Date()
+                ? booking.escrowReleaseDate
+                : new Date();
+            const { BookingPayoutSagaService } = await import('./bookingPayoutSagaService.js');
+            await BookingPayoutSagaService.enqueuePayoutReleaseEvent({
+                bookingId: booking.id,
+                source: 'dispute-resolved-release',
+                availableAt: releaseAt,
             });
         }
 
@@ -712,7 +786,7 @@ export class AdvisorMarketplaceService {
                 targetType: 'DISPUTE',
                 targetId: disputeId,
                 reason: data.resolution,
-                metadata: { refundAmount: data.refundAmount },
+                metadata: { refundAmount: data.refundAmount, stripeRefundId: refundResult?.refundId ?? null },
             }
         });
 

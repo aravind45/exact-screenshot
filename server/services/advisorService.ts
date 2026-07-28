@@ -59,7 +59,18 @@ export class AdvisorService {
     static async getAdvisorProfile(userId: string) {
         return prisma.advisorProfile.findUnique({
             where: { userId },
-            include: { user: true }
+            include: {
+                user: {
+                    // NEVER serialize credential fields (passwordHash, resetPasswordToken,
+                    // verificationToken, stripeCustomerId, lastIp, ...) to API responses.
+                    select: {
+                        id: true,
+                        fullName: true,
+                        email: true,
+                        role: true,
+                    }
+                }
+            }
         });
     }
 
@@ -67,18 +78,33 @@ export class AdvisorService {
      * List verified advisors for the marketplace
      */
     static async listMarketplaceAdvisors(filters?: { expertise?: string; maxRate?: number }) {
+        // Public endpoint — return ONLY public-safe fields. Never expose
+        // licenseNumber, licenseDocument, stripeAccountId, meetingLink,
+        // verification internals, or the advisor's email address.
         return prisma.advisorProfile.findMany({
             where: {
                 verificationStatus: 'VERIFIED',
                 expertise: filters?.expertise ? { has: filters.expertise } : undefined,
                 hourlyRate: filters?.maxRate ? { lte: filters.maxRate } : undefined,
             },
-            include: {
+            select: {
+                id: true,
+                bio: true,
+                expertise: true,
+                hourlyRate: true,
+                profileImage: true,
+                isVerified: true,
+                advisorType: true,
+                avgRating: true,
+                totalReviews: true,
+                specialties: true,
+                statesServed: true,
+                languages: true,
+                publicNotes: true,
                 user: {
                     select: {
                         id: true,
                         fullName: true,
-                        email: true,
                     }
                 }
             }

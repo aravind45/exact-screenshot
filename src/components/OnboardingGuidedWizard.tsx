@@ -110,9 +110,23 @@ export default function OnboardingGuidedWizard() {
     const [isLoading, setIsLoading] = useState(false);
     const [confidenceScore, setConfidenceScore] = useState<number | null>(null);
 
+    // ── Draft persistence ─────────────────────────────────────────────
+    // Executors are grieving and interrupted constantly; losing 40 minutes
+    // of intake on a browser close is an abandonment event. Persist the
+    // draft to localStorage after every change and restore on mount.
+    const DRAFT_KEY = "ee_onboarding_draft_v1";
+
+    const loadDraft = () => {
+        try {
+            const raw = localStorage.getItem(DRAFT_KEY);
+            return raw ? JSON.parse(raw) : null;
+        } catch { return null; }
+    };
+    const draftRef = useRef(loadDraft());
+
     // Form Data with enhanced clarification support
-    const [role, setRole] = useState<"executor" | "heir" | null>(null);
-    const [formData, setFormData] = useState<GuidedFormData>({
+    const [role, setRole] = useState<"executor" | "heir" | null>(draftRef.current?.role ?? null);
+    const [formData, setFormData] = useState<GuidedFormData>(draftRef.current?.formData ?? {
         deceasedName: "",
         dateOfDeath: "",
         location: "",
@@ -128,14 +142,28 @@ export default function OnboardingGuidedWizard() {
         hasContest: { value: null, clarificationOpen: false, clarificationAnswer: "" }
     });
 
-    const [heirs, setHeirs] = useState<Array<{ name: string; relationship: string; email: string; isMinor: boolean }>>([
-        { name: "", relationship: "", email: "", isMinor: false }
-    ]);
+    const [heirs, setHeirs] = useState<Array<{ name: string; relationship: string; email: string; isMinor: boolean }>>(
+        draftRef.current?.heirs ?? [{ name: "", relationship: "", email: "", isMinor: false }]
+    );
     const [uploadedFile, setUploadedFile] = useState<File | null>(null);
-    const [assets, setAssets] = useState<Array<{ name: string; type: string; institutionId?: string }>>([
-        { name: "", type: "financial" }
-    ]);
-    const [collaborators, setCollaborators] = useState<Array<{ email: string; role: string }>>([]);
+    const [assets, setAssets] = useState<Array<{ name: string; type: string; institutionId?: string }>>(
+        draftRef.current?.assets ?? [{ name: "", type: "financial" }]
+    );
+    const [collaborators, setCollaborators] = useState<Array<{ email: string; role: string }>>(
+        draftRef.current?.collaborators ?? []
+    );
+
+    // Persist draft on every change (debounced via microtask batching)
+    useEffect(() => {
+        const draft = { role, formData, heirs, assets, collaborators, savedAt: new Date().toISOString() };
+        try {
+            localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+        } catch { /* storage full — non-fatal */ }
+    }, [role, formData, heirs, assets, collaborators]);
+
+    const clearDraft = () => {
+        try { localStorage.removeItem(DRAFT_KEY); } catch { /* noop */ }
+    };
 
     const { data: estate, isLoading: isEstateLoading } = useQuery({
         queryKey: ["estate"],
@@ -424,6 +452,7 @@ export default function OnboardingGuidedWizard() {
                 goToStep(currentStep + 1);
             } else {
                 await trackEvent("intake_completed");
+                clearDraft(); // onboarding finished — no stale draft for next time
                 navigate("/dashboard");
             }
         } catch (error: any) {
@@ -477,6 +506,20 @@ export default function OnboardingGuidedWizard() {
                 Cancel & Exit
             </Button>
             <div className="max-w-xl w-full">
+                {/* Draft-restored banner */}
+                {draftRef.current?.savedAt && currentStep === 0 && (
+                    <div className="mb-4 flex items-center justify-between rounded-xl bg-emerald-50 border border-emerald-200 px-4 py-2.5 text-sm">
+                        <p className="text-emerald-800 font-medium">
+                            ✓ Your previous progress was restored — pick up right where you left off.
+                        </p>
+                        <button
+                            onClick={() => { clearDraft(); window.location.reload(); }}
+                            className="text-emerald-600 hover:text-emerald-800 font-bold text-xs shrink-0 ml-3"
+                        >
+                            Start over
+                        </button>
+                    </div>
+                )}
                 {/* Progress Bar */}
                 <div className="mb-8 flex gap-2">
                     {STEPS.map((step, index) => (

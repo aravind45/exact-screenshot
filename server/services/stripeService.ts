@@ -69,7 +69,7 @@ export class StripeService {
             mode: 'subscription',
             ui_mode: 'embedded',
             subscription_data: skipTrial ? undefined : {
-                trial_period_days: 7,
+                trial_period_days: 15, // matches TRIAL_DAYS in subscription middleware
             },
             return_url: `${process.env.APP_URL || 'http://localhost:5173'}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
             metadata: { userId },
@@ -309,6 +309,65 @@ export class StripeService {
         });
 
         logger.info(`✅ Fees waived for user ${userId}`);
+    }
+
+    /**
+     * Refund a marketplace booking payment via Stripe.
+     * Returns a structured result so callers can persist refund state honestly:
+     *  - refunded: a real Stripe refund was created (or already existed)
+     *  - skipped: no captured payment exists to refund (nothing was ever charged)
+     * Throws on Stripe API failure so callers can decide how to handle it.
+     */
+    static async refundBookingPayment(bookingId: string, amountCents?: number) {
+        const booking = await prisma.booking.findUnique({
+            where: { id: bookingId },
+            select: { id: true, stripePaymentId: true, totalAmount: true },
+        });
+
+        if (!booking) {
+            throw new Error('Booking not found');
+        }
+
+        if (!booking.stripePaymentId) {
+            return { refunded: false, skipped: true, reason: 'Booking has no recorded payment' };
+        }
+
+        if (this.isStripeMockMode()) {
+            logger.warn(`⚠️ Stripe mock mode active; skipping real refund for booking ${bookingId}`);
+            return { refunded: true, mock: true, refundId: null };
+        }
+
+        const paymentIntent = await this.stripe.paymentIntents.retrieve(booking.stripePaymentId);
+        if (paymentIntent.status !== 'succeeded') {
+            return { refunded: false, skipped: true, reason: `Payment intent is ${paymentIntent.status}; nothing captured to refund` };
+        }
+
+        // Idempotency: never double-refund the same payment intent
+        const existingRefunds = await this.stripe.refunds.list({
+            payment_intent: booking.stripePaymentId,
+            limit: 10,
+        });
+        const alreadyRefundedCents = existingRefunds.data
+            .filter(r => r.status !== 'failed' && r.status !== 'canceled')
+            .reduce((sum, r) => sum + (r.amount || 0), 0);
+        const requestedCents = amountCents ?? Math.round(Number(booking.totalAmount) * 100);
+
+        if (alreadyRefundedCents >= requestedCents) {
+            logger.info(`ℹ️ Booking ${bookingId} payment already refunded (${alreadyRefundedCents}¢)`);
+            return { refunded: true, alreadyRefunded: true, refundId: existingRefunds.data[0]?.id ?? null };
+        }
+
+        const remainingCents = requestedCents - alreadyRefundedCents;
+        const refund = await this.stripe.refunds.create({
+            payment_intent: booking.stripePaymentId,
+            amount: remainingCents,
+            metadata: { bookingId, type: 'ADVISOR_BOOKING_REFUND' },
+        }, {
+            idempotencyKey: `refund-booking-${bookingId}-${remainingCents}`,
+        });
+
+        logger.info(`✅ Refunded ${remainingCents}¢ for booking ${bookingId} (refund ${refund.id})`);
+        return { refunded: true, refundId: refund.id, amountCents: remainingCents };
     }
 
     /**
@@ -618,11 +677,16 @@ export class StripeService {
         try {
             const booking = await prisma.booking.findUnique({
                 where: { id: bookingId },
-                include: { advisor: true }
+                include: { advisor: true, dispute: true }
             });
 
             if (!booking) {
                 throw new Error('Booking not found');
+            }
+
+            // An open dispute freezes the payout until an admin resolves it.
+            if (booking.dispute && booking.dispute.status === 'OPEN') {
+                throw new Error(`Payout frozen: booking ${bookingId} has an open dispute (${booking.dispute.id})`);
             }
 
             if (!booking.advisor.stripeAccountId) {

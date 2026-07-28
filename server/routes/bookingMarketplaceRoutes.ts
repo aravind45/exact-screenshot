@@ -441,6 +441,21 @@ router.post("/:id/cancel", authenticate, async (req: any, res: Response) => {
       shouldRefund = true; // Advisor cancellation always refunds
     }
 
+    // Execute the refund against Stripe BEFORE recording it. The database must
+    // never claim a refund that the payment processor did not actually perform.
+    let refunded = false;
+    let refundError: string | null = null;
+    if (shouldRefund) {
+      try {
+        const { StripeService } = await import("../services/stripeService.js");
+        const result = await StripeService.refundBookingPayment(req.params.id);
+        refunded = result.refunded === true;
+      } catch (err: any) {
+        refundError = err?.message || "Refund processing failed";
+        logger.error(`bookingMarketplaceRoutes cancel refund error for ${req.params.id}:`, err?.message);
+      }
+    }
+
     const updated = await prisma.booking.update({
       where: { id: req.params.id },
       data: {
@@ -448,11 +463,22 @@ router.post("/:id/cancel", authenticate, async (req: any, res: Response) => {
         cancellationReason: req.body.reason,
         cancelledBy: req.user.id,
         cancelledAt: new Date(),
-        refundAmount: shouldRefund ? Number(booking.totalAmount) : undefined,
-        refundedAt: shouldRefund ? new Date() : undefined,
+        refundAmount: refunded ? Number(booking.totalAmount) : undefined,
+        refundedAt: refunded ? new Date() : undefined,
       },
     });
-    res.json({ booking: updated, refunded: shouldRefund });
+
+    if (refundError) {
+      // The booking is cancelled, but ops must settle the refund manually.
+      return res.json({
+        booking: updated,
+        refunded: false,
+        refundPending: true,
+        message: "Booking cancelled. Your refund could not be processed automatically and has been flagged for manual processing — you will not be charged.",
+      });
+    }
+
+    res.json({ booking: updated, refunded });
   } catch (error: any) {
     logger.error("bookingMarketplaceRoutes cancel error:", error.message);
     res.status(500).json({ error: error.message || "Failed to cancel booking" });
@@ -468,6 +494,10 @@ router.post("/:id/complete", authenticate, async (req: any, res: Response) => {
     if (!booking) return res.status(404).json({ error: "Booking not found" });
     if (booking.advisorId !== advisor.id) return res.status(403).json({ error: "Forbidden" });
     if (booking.status !== "CONFIRMED") return res.status(400).json({ error: "Only CONFIRMED bookings can be completed" });
+    // An advisor cannot start the payout clock for a session that hasn't happened yet.
+    if (booking.startTime.getTime() > Date.now()) {
+      return res.status(400).json({ error: "Cannot mark a session complete before its scheduled start time" });
+    }
 
     const updated = await prisma.booking.update({
       where: { id: req.params.id },

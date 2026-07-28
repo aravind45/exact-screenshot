@@ -2,7 +2,7 @@ import { Router, Request, Response } from "express";
 import { AssetService } from "../services/assetService.js";
 import { z } from "zod";
 import { logger } from "../lib/logger.js";
-import { requireSubscription } from "../middleware/subscription.js";
+import { requireSubscription, requireSubscriptionForWrite } from "../middleware/subscription.js";
 import { requireAuthorityStatus } from "../middleware/authorityGating.js";
 import { requireEstateAccess } from "../middleware/estateAuth.js";
 import { requireWriteAccess } from "../middleware/writeProtection.js";
@@ -10,8 +10,10 @@ import { AuditService } from "../services/auditService.js";
 
 const router = Router();
 
-// Enforce subscription for all asset management features
-router.use(requireSubscription);
+// Fiduciary-safe gate: expired users keep read + export access to their
+// asset ledger forever (an executor's inventory is a legal obligation);
+// only writes require an active subscription/trial.
+router.use(requireSubscriptionForWrite);
 
 const assetSchema = z.object({
     institution: z.string().min(1),
