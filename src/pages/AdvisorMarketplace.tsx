@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,17 @@ export default function AdvisorMarketplace() {
     const [selectedAdvisor, setSelectedAdvisor] = useState<any>(null);
     const [isBookingOpen, setIsBookingOpen] = useState(false);
     const [expandedReviews, setExpandedReviews] = useState<string | null>(null);
+    const [searchParams] = useSearchParams();
+    const contextTask = searchParams.get('task');
+
+    // When arriving from an Action Plan task ("I need help with this step"),
+    // surface the task context so the executor can explain their case in one tap.
+    useEffect(() => {
+        if (contextTask) {
+            setSearchTerm('attorney');
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [contextTask]);
 
     const { data: advisors, isLoading } = useQuery({
         queryKey: ['marketplace-advisors', expertiseFilter],
@@ -59,6 +71,15 @@ export default function AdvisorMarketplace() {
                             <p className="text-slate-500 text-lg">
                                 Find verified professionals to help you navigate the settlement journey.
                             </p>
+                            {contextTask && (
+                                <div className="flex items-center gap-2 mt-3 px-4 py-2.5 bg-indigo-50 border border-indigo-100 rounded-2xl max-w-xl">
+                                    <ShieldCheck className="w-4 h-4 text-indigo-600 shrink-0" />
+                                    <p className="text-sm text-indigo-800 font-medium">
+                                        You're looking for help with <strong>"{contextTask.replace(/_/g, ' ')}"</strong> — we've pre-filtered attorneys for you.
+                                        <button onClick={() => setSearchTerm('')} className="ml-2 underline underline-offset-2 font-bold">Show all</button>
+                                    </p>
+                                </div>
+                            )}
                         </div>
                         <div className="flex items-center gap-3 w-full md:w-auto">
                             <div className="relative flex-1 md:w-80">

@@ -161,6 +161,26 @@ export default function DigitalAssets() {
               <Info className="w-4 h-4 mt-0.5 shrink-0" />
               <p>{RUFADAA.contentNote}</p>
             </div>
+
+            {/* Tier 1 in practice: the three platforms that control most accounts.
+                If the deceased set these up, access is dramatically easier. */}
+            <div className="md:col-span-3 rounded-lg border bg-background p-3">
+              <p className="font-semibold text-blue-700 mb-2">Tier 1 shortcut — check whether the deceased configured a legacy tool:</p>
+              <ul className="space-y-1.5 text-muted-foreground">
+                <li className="flex items-center justify-between gap-2">
+                  <span>🍏 <span className="font-medium text-foreground">Apple Digital Legacy</span> — controls iCloud, photos, email</span>
+                  <a href="https://support.apple.com/en-us/118242" target="_blank" rel="noopener noreferrer" className="text-blue-600 font-medium hover:underline shrink-0">How to check →</a>
+                </li>
+                <li className="flex items-center justify-between gap-2">
+                  <span>🔍 <span className="font-medium text-foreground">Google Inactive Account Manager</span> — controls Gmail, Drive, Photos</span>
+                  <a href="https://myaccount.google.com/inactive" target="_blank" rel="noopener noreferrer" className="text-blue-600 font-medium hover:underline shrink-0">How to check →</a>
+                </li>
+                <li className="flex items-center justify-between gap-2">
+                  <span>👤 <span className="font-medium text-foreground">Meta Legacy Contact</span> — controls Facebook, Instagram</span>
+                  <a href="https://www.facebook.com/help/991335594313139" target="_blank" rel="noopener noreferrer" className="text-blue-600 font-medium hover:underline shrink-0">How to check →</a>
+                </li>
+              </ul>
+            </div>
           </CardContent>
         </Card>
 

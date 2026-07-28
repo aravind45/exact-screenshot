@@ -472,7 +472,10 @@ export default function SettlementRoadmap() {
               <p className="text-[11px] text-rose-700 leading-relaxed font-medium">
                 This phase contains <strong>high-risk legal decision points</strong>. Completing them incorrectly can expose you to personal fiduciary liability.{' '}
                 <button
-                  onClick={() => navigate("/marketplace")}
+                  onClick={() => {
+                    const riskyTask = phaseData?.tasks.find(t => !completedTaskIds.includes(t.id) && (t as any).isAttorneyReviewNode);
+                    navigate(`/marketplace${riskyTask ? `?task=${encodeURIComponent((riskyTask as any).title || riskyTask.id)}` : ''}`);
+                  }}
                   className="underline underline-offset-2 font-bold text-rose-800 hover:text-rose-900"
                 >
                   Consult an estate attorney →
@@ -852,7 +855,7 @@ export default function SettlementRoadmap() {
             {/* Action buttons */}
             <div className="flex flex-col gap-2.5 pt-1">
               <Button
-                onClick={() => navigate("/marketplace")}
+                onClick={() => navigate(`/marketplace${pendingAttorneyTask?.taskTitle ? `?task=${encodeURIComponent(pendingAttorneyTask.taskTitle)}` : ''}`)}
                 className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold h-11 rounded-xl shadow-lg shadow-indigo-200"
               >
                 <Scale className="w-4 h-4 mr-2" />
