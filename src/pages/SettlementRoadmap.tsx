@@ -1,9 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
-import { SettlementPhaseChevron } from "@/components/SettlementPhaseChevron";
-import { PhaseTaskList as PhaseTaskListComponent } from "@/components/PhaseTaskList";
-import { SETTLEMENT_PHASE_TASKS, type SettlementPhase, type PhaseTaskList } from "@/config/settlementPhases";
+import { SETTLEMENT_PHASE_TASKS, type SettlementPhase, type PhaseTaskList, type PhaseTask } from "@/config/settlementPhases";
 import { generateRoadmap } from "@/config/roadmapGenerator";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,12 +10,11 @@ import {
   CheckCircle2,
   ArrowRight,
   ShieldCheck,
-  Info,
-  AlertCircle,
-  Zap,
+  AlertTriangle,
   Scale,
   X,
-  FileText
+  FileText,
+  Check,
 } from "lucide-react";
 import {
   Dialog,
@@ -31,6 +28,32 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { calculateAuthorityRecommendation } from "@/lib/authorityEngine";
 import { MinimumIntakeGate } from "@/components/MinimumIntakeGate";
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Visual contract (Figma "Probate Settlement Roadmap Design"):
+//   1. "Your roadmap" — horizontal phase cards connected by a line
+//   2. Phase header — "Phase N — Title · x of y complete" and nothing else
+//   3. Full-width task cards — checkbox, title, one-line why, pill, time
+//   4. Attorney guidance — a slim amber strip inline between cards
+// No engine jargon, no stat walls, no all-caps micro-labels.
+// ─────────────────────────────────────────────────────────────────────────────
+
+// The roadmap's raw phases can be granular; group them into ~6 broad journey
+// stages so the stepper always reads as a calm, finite journey.
+const JOURNEY_GROUPS: { title: string; match: RegExp }[] = [
+  { title: "Secure & Notify", match: /immediate|secure|notify|first/i },
+  { title: "Court Filing", match: /petition|filing|court|eligibility|compliance/i },
+  { title: "Authority", match: /authority|letters|fiduciary/i },
+  { title: "Asset Inventory", match: /asset|inventory|discovery|liquidation/i },
+  { title: "Creditor Claims", match: /creditor|claims|debt|tax|accounting/i },
+  { title: "Final Distribution", match: /distribution|final|closing|discharge/i },
+];
+
+function groupIndexFor(phase: PhaseTaskList, fallback: number): number {
+  const haystack = `${phase.phase} ${phase.title} ${phase.subtitle || ""}`;
+  const idx = JOURNEY_GROUPS.findIndex(g => g.match.test(haystack));
+  return idx === -1 ? Math.min(fallback, JOURNEY_GROUPS.length - 1) : idx;
+}
 
 export default function SettlementRoadmap() {
   const navigate = useNavigate();
@@ -47,14 +70,12 @@ export default function SettlementRoadmap() {
     queryFn: api.getAssets,
   });
 
-  // Estate documents — used for document stage-gate checks
   const { data: uploadedDocs = [] } = useQuery({
     queryKey: ['estateDocuments'],
     queryFn: api.getEstateDocuments,
     enabled: !!estate,
   });
 
-  // Derive a Set of uploaded document type keys for fast lookup
   const uploadedDocTypes = useMemo<Set<string>>(() => {
     const types = new Set<string>();
     for (const doc of uploadedDocs as any[]) {
@@ -69,7 +90,7 @@ export default function SettlementRoadmap() {
     if (!estate) return null;
     return calculateAuthorityRecommendation(assets, estate.deceasedState || "", {
       hasWill: estate.hasWill,
-      isSpouse: false, // Could be derived if we had more info
+      isSpouse: false,
     });
   }, [estate, assets]);
 
@@ -90,13 +111,10 @@ export default function SettlementRoadmap() {
   const isMinimumIntakeRequired = (roadmapError as any)?.status === 409 &&
     (roadmapError as any)?.data?.code === 'MINIMUM_INTAKE_REQUIRED';
 
-  // State-aware fallback: if API data isn't available yet, apply client-side
-  // filtering to prevent CA-specific content from showing for non-CA states.
+  // State-aware fallback so jurisdiction-specific content never leaks.
   const dynamicRoadmap = useMemo<PhaseTaskList[]>(() => {
     if (roadmapData?.phases) return roadmapData.phases;
 
-    // Fallback: use client-side generator with state-aware filtering
-    // instead of raw SETTLEMENT_PHASE_TASKS (which contain CA-only tasks)
     if (estate?.deceasedState && authorityRec) {
       try {
         return generateRoadmap(
@@ -137,12 +155,10 @@ export default function SettlementRoadmap() {
   useEffect(() => {
     if (estate?.status) {
       const statusLower = estate.status.toLowerCase() as SettlementPhase;
-      // Basic validation that it matches one of our phases in the dynamic roadmap
       const validPhases = dynamicRoadmap.map(p => p.phase);
       if (validPhases.includes(statusLower)) {
         setCurrentPhase(statusLower);
       } else if (validPhases.length > 0 && currentPhase === "immediate_actions" && !validPhases.includes("immediate_actions")) {
-        // Fallback if immediate_actions isn't in this roadmap
         setCurrentPhase(validPhases[0]);
       }
     }
@@ -170,26 +186,18 @@ export default function SettlementRoadmap() {
       const allTasks = dynamicRoadmap.flatMap(p => p.tasks);
       const task = allTasks.find(t => t.id === taskId);
 
-      // 1️⃣ Attorney review gate — takes priority
+      // Attorney review gate — takes priority
       if (task?.isAttorneyReviewNode) {
         setPendingAttorneyTask({ taskId, taskTitle: task.title });
         return;
       }
 
-      // 2️⃣ Document stage gate — check required docs vs uploaded
+      // Document stage gate
       if (task?.requiredDocs && (task.requiredDocs as string[]).length > 0) {
         const required: string[] = task.requiredDocs as string[];
-        const missing = required.filter(doc => {
-          const key = doc.toLowerCase();
-          return !uploadedDocTypes.has(key);
-        });
+        const missing = required.filter(doc => !uploadedDocTypes.has(doc.toLowerCase()));
         if (missing.length > 0) {
-          setPendingDocTask({
-            taskId,
-            taskTitle: task.title,
-            requiredDocs: required,
-            missingDocs: missing,
-          });
+          setPendingDocTask({ taskId, taskTitle: task.title, requiredDocs: required, missingDocs: missing });
           return;
         }
       }
@@ -214,44 +222,45 @@ export default function SettlementRoadmap() {
     }
   };
 
-  const handlePhaseComplete = (phase: SettlementPhase) => {
-    // Mark all tasks in this phase as complete
-    const phaseTasks = dynamicRoadmap.find(p => p.phase === phase);
-    if (phaseTasks) {
-      // For now, we'll just track phase completion in the estate object via updateRoadmap or similar
-      // But the new design suggests task-by-task completion.
-      // We can iterate and complete all tasks.
-      phaseTasks.tasks.forEach(task => {
-        if (!completedTaskIds.includes(task.id)) {
-          completeMutation.mutate({ taskId: task.id });
-        }
-      });
-    }
+  // ── Journey grouping: raw phases → the ~6 calm stages ─────────────────────
+  const journey = useMemo(() => {
+    const groups = JOURNEY_GROUPS.map((g) => ({
+      title: g.title,
+      phases: [] as PhaseTaskList[],
+      total: 0,
+      done: 0,
+    }));
 
-    // Move to next phase
-    const phases = dynamicRoadmap.map(p => p.phase);
-    const currentIndex = phases.indexOf(phase);
-    if (currentIndex < phases.length - 1) {
-      setCurrentPhase(phases[currentIndex + 1]);
-    }
-  };
+    dynamicRoadmap.forEach((phase, i) => {
+      const gi = groupIndexFor(phase, i);
+      groups[gi].phases.push(phase);
+      groups[gi].total += phase.tasks.length;
+      groups[gi].done += phase.tasks.filter(t => completedTaskIds.includes(t.id)).length;
+    });
 
-  const getCurrentPhaseData = () => {
-    return dynamicRoadmap.find(p => p.phase === currentPhase);
-  };
+    return groups.filter(g => g.phases.length > 0);
+  }, [dynamicRoadmap, completedTaskIds]);
 
-  const phaseData = getCurrentPhaseData();
+  const currentGroupIndex = useMemo(() => {
+    if (!phaseInJourney(journey, currentPhase)) return 0;
+    return journey.findIndex(g => g.phases.some(p => p.phase === currentPhase));
+  }, [journey, currentPhase]);
+
+  function phaseInJourney(groups: typeof journey, phase: SettlementPhase) {
+    return groups.some(g => g.phases.some(p => p.phase === phase));
+  }
+
+  const phaseData = dynamicRoadmap.find(p => p.phase === currentPhase);
   const totalTasks = dynamicRoadmap.reduce((sum, p) => sum + p.tasks.length, 0);
-  const overallProgress = totalTasks > 0
-    ? Math.round((completedTaskIds.length / totalTasks) * 100)
-    : 0;
+  const openTaskCount = totalTasks - completedTaskIds.length;
 
+  // ── Gates ─────────────────────────────────────────────────────────────────
   if (isLoadingRoadmap) {
     return (
-      <DashboardLayout maxWidth="max-w-[1240px]">
+      <DashboardLayout maxWidth="max-w-[1000px]">
         <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
           <div className="w-12 h-12 rounded-2xl border-4 border-indigo-600 border-t-transparent animate-spin" />
-          <p className="text-sm font-bold text-slate-600">Generating your custom Action Plan...</p>
+          <p className="text-sm font-bold text-slate-600">Preparing your action plan…</p>
         </div>
       </DashboardLayout>
     );
@@ -259,7 +268,7 @@ export default function SettlementRoadmap() {
 
   if (isMinimumIntakeRequired) {
     return (
-      <DashboardLayout maxWidth="max-w-[1240px]">
+      <DashboardLayout maxWidth="max-w-[1000px]">
         <div className="flex items-center justify-center min-h-[60vh]">
           <MinimumIntakeGate estateId={estate?.id} />
         </div>
@@ -267,11 +276,9 @@ export default function SettlementRoadmap() {
     );
   }
 
-  const isMissingState = !estate?.deceasedState;
-
-  if (isMissingState) {
+  if (!estate?.deceasedState) {
     return (
-      <DashboardLayout maxWidth="max-w-[1240px]">
+      <DashboardLayout maxWidth="max-w-[1000px]">
         <div className="max-w-2xl mx-auto space-y-8 pt-12 pb-24">
           <div className="text-center space-y-4">
             <div className="w-20 h-20 bg-amber-100 rounded-[2rem] flex items-center justify-center mx-auto mb-6">
@@ -279,475 +286,163 @@ export default function SettlementRoadmap() {
             </div>
             <h1 className="text-3xl font-black text-slate-900 tracking-tight">Tell us where to start</h1>
             <p className="text-slate-600 font-medium text-lg leading-relaxed">
-              Probate laws are different in every state. To generate your accurate, state-gated Action Plan, we first need to know the state where the deceased lived.
+              Probate laws are different in every state. To generate your accurate, state-specific action plan, we first need to know where the deceased lived.
             </p>
           </div>
-
-          <div className="bg-white border-2 border-slate-200 rounded-[2.5rem] p-8 shadow-xl shadow-slate-200/50 relative overflow-hidden group hover:border-indigo-200 transition-all">
-            <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
-              <ShieldCheck className="w-48 h-48 text-indigo-900" />
-            </div>
-
-            <div className="relative z-10 space-y-6">
-              <div className="space-y-2">
-                <h3 className="text-xl font-bold text-slate-900">Missing Information</h3>
-                <p className="text-sm text-slate-500 font-medium">Jurisdiction / Deceased's State of Residence</p>
-              </div>
-
-              <div className="p-4 bg-indigo-50 border border-indigo-100 rounded-2xl">
-                <p className="text-xs text-indigo-700 font-semibold leading-relaxed">
-                  Once you select a state, we'll unlock your full roadmap, including specific forms, deadlines, and legal requirements tailored to that state.
-                </p>
-              </div>
-
-              <Button
-                onClick={() => navigate("/profile")}
-                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black h-14 rounded-2xl shadow-lg shadow-indigo-200 text-lg group"
-              >
-                Complete My Profile
-                <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-              </Button>
-            </div>
-          </div>
+          <Button
+            onClick={() => navigate("/profile")}
+            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black h-14 rounded-2xl shadow-lg shadow-indigo-200 text-lg"
+          >
+            Complete My Profile
+            <ArrowRight className="w-5 h-5 ml-2" />
+          </Button>
         </div>
       </DashboardLayout>
     );
   }
 
+  const phaseDoneCount = phaseData
+    ? phaseData.tasks.filter(t => completedTaskIds.includes(t.id)).length
+    : 0;
+  const phaseNumber = dynamicRoadmap.findIndex(p => p.phase === currentPhase) + 1;
+
   return (
-    <DashboardLayout maxWidth="max-w-[1240px]">
+    <DashboardLayout maxWidth="max-w-[1000px]">
+      <div className="space-y-10 pb-16">
 
-      {/* ── Bridge Banner: connects Dashboard actions to this page ── */}
-      <div className="flex items-start gap-3 p-4 bg-indigo-50/70 border border-indigo-100 rounded-2xl">
-        <span className="text-lg leading-none flex-shrink-0 mt-0.5">🗺️</span>
-        <div>
-          <p className="text-xs font-black text-indigo-900 mb-0.5">This is your complete Action Plan</p>
-          <p className="text-[11px] text-indigo-700 leading-relaxed font-medium">
-            Your <strong>Dashboard</strong> shows the single most urgent task to do right now.
-            This page shows <strong>all 6 phases and every task</strong> — the same plan, fully expanded.
-            Complete tasks here and your dashboard updates automatically.
-          </p>
-        </div>
-      </div>
+        {/* ── 1. Your roadmap — horizontal journey cards ─────────────────────── */}
+        <div className="space-y-5 pt-2">
+          <h1 className="text-xl font-black text-slate-900 tracking-tight">Your roadmap</h1>
 
-      {/* Header */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-black text-slate-900 tracking-tight">Action Plan</h1>
-              <Badge variant="outline" className="bg-indigo-600 text-white border-none text-[10px] font-black uppercase tracking-tight px-2 h-5">
-                Derived from Ledger
-              </Badge>
-              <div className="flex gap-1">
-                {authorityRec?.activeEngines?.map(engine => (
-                  <Badge key={engine} variant="outline" className="bg-indigo-50 border-indigo-200 text-indigo-700 text-[11px] font-bold uppercase py-0.5 px-2.5 h-5 shrink-0">
-                    {engine.replace('_', ' ')}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-              <p className="text-[11px] text-slate-600 font-medium flex items-center gap-1">
-                Source: <span className="text-slate-900 font-bold bg-slate-100 px-1.5 py-0.5 rounded uppercase text-[10px]">{authorityRec?.authoritySource?.replace(/_/g, " ")}</span>
-              </p>
-              <p className="text-[11px] text-slate-600 font-medium flex items-center gap-1">
-                Model: <span className="text-slate-900 font-bold bg-slate-100 px-1.5 py-0.5 rounded uppercase text-[9px]">{authorityRec?.distributionModel?.replace(/_/g, " ")}</span>
-              </p>
-              <p className="text-[11px] text-slate-600 font-medium flex items-center gap-1">
-                Procedure: <span className="text-slate-900 font-black uppercase text-[11px]">{authorityRec?.legalTerm}</span>
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="text-right">
-              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest leading-none">Overall Progress</p>
-              <p className="text-xl font-black text-slate-900 leading-tight">{overallProgress}%</p>
-            </div>
-            <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center">
-              <div className="relative w-10 h-10">
-                <svg className="transform -rotate-90" viewBox="0 0 36 36">
-                  <circle
-                    cx="18"
-                    cy="18"
-                    r="16"
-                    fill="none"
-                    stroke="#e2e8f0"
-                    strokeWidth="3"
-                  />
-                  <circle
-                    cx="18"
-                    cy="18"
-                    r="16"
-                    fill="none"
-                    stroke="#4f46e5"
-                    strokeWidth="3"
-                    strokeDasharray={`${overallProgress} ${100 - overallProgress}`}
-                    strokeLinecap="round"
-                  />
-                </svg>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <CheckCircle2 className="w-4 h-4 text-indigo-600" />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+          <div className="relative">
+            {/* connector line */}
+            <div className="absolute top-1/2 left-8 right-8 h-0.5 bg-slate-200 -translate-y-1/2 hidden md:block" />
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 relative">
+              {journey.map((group, i) => {
+                const isComplete = group.total > 0 && group.done === group.total;
+                const isCurrent = i === currentGroupIndex;
+                const representative = group.phases.find(p => p.phase === currentPhase) || group.phases[0];
 
-        {/* Stats */}
-        <div className="grid grid-cols-4 gap-3">
-          <div className="bg-white p-3 rounded-xl border border-slate-200">
-            <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Total Phases</p>
-            <p className="text-xl font-black text-slate-900 mt-0.5">{dynamicRoadmap.length}</p>
-          </div>
-          <div className="bg-white p-3 rounded-xl border border-slate-200">
-            <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Total Tasks</p>
-            <p className="text-xl font-black text-slate-900 mt-0.5">{totalTasks}</p>
-          </div>
-          <div className="bg-white p-3 rounded-xl border border-emerald-200 bg-emerald-50">
-            <p className="text-[11px] font-bold text-emerald-700 uppercase tracking-widest">Completed</p>
-            <p className="text-xl font-black text-emerald-900 mt-0.5">{completedTaskIds.length}</p>
-          </div>
-          <div className="bg-white p-3 rounded-xl border border-amber-200 bg-amber-50">
-            <p className="text-[11px] font-bold text-amber-700 uppercase tracking-widest">Remaining</p>
-            <p className="text-xl font-black text-amber-900 mt-0.5">{totalTasks - completedTaskIds.length}</p>
-          </div>
-        </div>
-
-        {/* Authority Logic Banner */}
-        {authorityRec && (
-          <div className={cn(
-            "rounded-2xl p-4 text-white shadow-lg border overflow-hidden relative",
-            isContested ? "bg-rose-900 border-rose-700" : "bg-indigo-900 border-indigo-700"
-          )}>
-            <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
-              {isContested ? <AlertCircle className="w-24 h-24" /> : <ShieldCheck className="w-24 h-24" />}
-            </div>
-            <div className="flex items-start gap-4 relative z-10">
-              <div className={cn(
-                "p-2.5 rounded-xl backdrop-blur-sm",
-                isContested ? "bg-rose-500/30" : "bg-indigo-500/30"
-              )}>
-                {isContested ? <AlertCircle className="w-6 h-6 text-white" /> : <ShieldCheck className="w-6 h-6 text-white" />}
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <h3 className={cn(
-                    "text-[11px] font-black uppercase tracking-[0.2em]",
-                    isContested ? "text-rose-300" : "text-indigo-300"
-                  )}>
-                    {isContested ? "Dispute Detected" : `Your Legal Action Plan for ${estate.deceasedState || "Your State"}`}
-                  </h3>
-                  {isContested && (
-                    <Badge className="bg-white text-rose-900 border-none text-[10px] font-black uppercase tracking-tighter px-2 h-5 animate-pulse">
-                      SPECIAL Path Active
-                    </Badge>
-                  )}
-                </div>
-                <p className="text-lg font-bold leading-tight">
-                  {isContested ? "Litigation Hold detected on assets. Your Action Plan has been updated to the SPECIAL (Contested) overlay." : authorityRec.reason}
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Current Focus Section */}
-      <div className="space-y-4">
-        <div className="flex items-center gap-2 px-1">
-          <div className="w-1.5 h-6 bg-indigo-600 rounded-full" />
-          <h2 className="text-sm font-black uppercase tracking-widest text-slate-900">Current Focus</h2>
-          <Badge variant="outline" className="bg-indigo-50 text-indigo-700 border-indigo-100 text-[9px] font-bold">Acting Executor</Badge>
-        </div>
-
-        {/* Sprint 3: Phase-level liability risk alert — shown when any upcoming task is a legal decision point */}
-        {phaseData?.tasks.some(t => !completedTaskIds.includes(t.id) && (t as any).isAttorneyReviewNode) && (
-          <div className="flex items-start gap-3 p-3.5 bg-rose-50 border border-rose-200 rounded-2xl">
-            <div className="w-7 h-7 rounded-lg bg-rose-100 border border-rose-200 flex items-center justify-center shrink-0 mt-0.5">
-              <AlertCircle className="w-4 h-4 text-rose-600" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-[11px] font-black text-rose-900 uppercase tracking-widest leading-none mb-1">Personal Liability Alert</p>
-              <p className="text-[11px] text-rose-700 leading-relaxed font-medium">
-                This phase contains <strong>high-risk legal decision points</strong>. Completing them incorrectly can expose you to personal fiduciary liability.{' '}
-                <button
-                  onClick={() => {
-                    const riskyTask = phaseData?.tasks.find(t => !completedTaskIds.includes(t.id) && (t as any).isAttorneyReviewNode);
-                    navigate(`/marketplace${riskyTask ? `?task=${encodeURIComponent((riskyTask as any).title || riskyTask.id)}` : ''}`);
-                  }}
-                  className="underline underline-offset-2 font-bold text-rose-800 hover:text-rose-900"
-                >
-                  Consult an estate attorney →
-                </button>
-              </p>
-            </div>
-          </div>
-        )}
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {phaseData?.tasks.filter(t => !completedTaskIds.includes(t.id)).slice(0, 3).map(task => {
-            const isHighRisk = !!(task as any).isAttorneyReviewNode;
-            const hasMissingDocs = !!(task as any).requiredDocs?.length;
-            return (
-              <div
-                key={task.id}
-                className={cn(
-                  "bg-white p-4 rounded-2xl border shadow-sm transition-all group",
-                  isHighRisk
-                    ? "border-rose-200 hover:border-rose-300 bg-rose-50/30"
-                    : "border-slate-200 hover:border-indigo-300"
-                )}
-              >
-                <div className="flex items-start justify-between mb-2">
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <Badge variant="outline" className="text-[10px] font-black uppercase tracking-tight bg-slate-50 border-slate-200 text-slate-500">Next Required</Badge>
-                    {isHighRisk && (
-                      <Badge className="text-[10px] font-black uppercase tracking-tight bg-rose-600 text-white border-rose-600 px-1.5">
-                        ⚠ Liability Risk
-                      </Badge>
+                return (
+                  <button
+                    key={group.title}
+                    onClick={() => setCurrentPhase(representative.phase)}
+                    className={cn(
+                      "relative flex flex-col items-center gap-2.5 p-4 rounded-2xl bg-white border-2 transition-all text-center",
+                      isCurrent
+                        ? "border-indigo-500 shadow-lg shadow-indigo-100"
+                        : isComplete
+                          ? "border-emerald-200 hover:border-emerald-300"
+                          : "border-slate-100 hover:border-slate-200"
                     )}
-                    {hasMissingDocs && !isHighRisk && (
-                      <Badge className="text-[10px] font-black uppercase tracking-tight bg-blue-600 text-white border-blue-600 px-1.5">
-                        <FileText className="w-2.5 h-2.5 mr-0.5" />
-                        Docs Required
-                      </Badge>
+                  >
+                    <div className={cn(
+                      "w-9 h-9 rounded-full flex items-center justify-center shrink-0",
+                      isComplete ? "bg-emerald-100" : isCurrent ? "bg-indigo-100" : "bg-slate-100"
+                    )}>
+                      {isComplete ? (
+                        <Check className="w-5 h-5 text-emerald-600" />
+                      ) : (
+                        <span className={cn("text-sm font-black", isCurrent ? "text-indigo-600" : "text-slate-400")}>
+                          {i + 1}
+                        </span>
+                      )}
+                    </div>
+                    <span className={cn(
+                      "text-[13px] font-bold leading-tight",
+                      isCurrent ? "text-indigo-700" : isComplete ? "text-emerald-700" : "text-slate-500"
+                    )}>
+                      {group.title}
+                    </span>
+                    {isCurrent && (
+                      <span className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 bg-indigo-600 text-white text-[9px] font-black uppercase tracking-wide px-2.5 py-0.5 rounded-full shadow">
+                        In progress
+                      </span>
                     )}
-                  </div>
-                  {isHighRisk ? (
-                    <Scale className="w-3.5 h-3.5 text-rose-400 group-hover:text-rose-600 transition-colors" />
-                  ) : (
-                    <Clock className="w-3.5 h-3.5 text-slate-300 group-hover:text-indigo-400 transition-colors" />
-                  )}
-                </div>
-                <h4 className="text-sm font-bold text-slate-900 leading-tight">{task.title}</h4>
-                <p className="text-[11px] text-slate-500 line-clamp-2 mt-1.5">{task.description}</p>
-                {isHighRisk && (
-                  <div className="mt-2.5 pt-2.5 border-t border-rose-100 flex items-center gap-1.5">
-                    <AlertCircle className="w-3 h-3 text-rose-500 shrink-0" />
-                    <p className="text-[11px] text-rose-600 font-bold">Attorney review recommended before completing</p>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-          {phaseData?.tasks.filter(t => !completedTaskIds.includes(t.id)).length === 0 && (
-            <div className="col-span-full bg-slate-50 border border-slate-200 rounded-2xl p-6 text-center">
-              <CheckCircle2 className="w-8 h-8 text-emerald-500 mx-auto mb-2 opacity-50" />
-              <p className="text-sm font-bold text-slate-900">All current actions are completed</p>
-              <p className="text-xs text-slate-500 mt-1">You may proceed to the next phase of settlement.</p>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {isContested && (
+            <div className="flex items-start gap-2.5 p-3.5 bg-rose-50 border border-rose-200 rounded-2xl">
+              <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+              <p className="text-sm text-rose-800 font-medium leading-relaxed">
+                A dispute was detected on estate assets. Your plan has been adjusted — consider consulting an attorney before proceeding.
+              </p>
             </div>
           )}
         </div>
-      </div>
 
-      {/* Expert Help CTA */}
-      <div className="bg-indigo-50 border border-indigo-100 rounded-[32px] p-6 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm overflow-hidden relative">
-        <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
-          <ShieldCheck className="w-32 h-32 text-indigo-900" />
-        </div>
-        <div className="flex items-center gap-5 relative z-10">
-          <div className="w-14 h-14 rounded-2xl bg-white shadow-sm flex items-center justify-center border border-indigo-100 shrink-0">
-            <ShieldCheck className="w-7 h-7 text-indigo-600" />
+        {/* ── 2. Phase header ─────────────────────────────────────────────────── */}
+        {phaseData && (
+          <div className="flex items-baseline gap-3 flex-wrap">
+            <h2 className="text-2xl font-black text-slate-900 tracking-tight">
+              Phase {phaseNumber} — {phaseData.title}
+            </h2>
+            <span className="text-sm font-bold text-slate-400">
+              {phaseDoneCount} of {phaseData.tasks.length} complete
+            </span>
           </div>
-          <div>
-            <h3 className="text-lg font-black text-slate-900 tracking-tight leading-none mb-1">Stuck or overwhelmed?</h3>
+        )}
+
+        {/* ── 3. Task cards ───────────────────────────────────────────────────── */}
+        {phaseData && (
+          <div className="space-y-4">
+            {phaseData.tasks.map(task => {
+              const completed = completedTaskIds.includes(task.id);
+              return (
+                <div key={task.id} className="space-y-4">
+                  {(task as any).isAttorneyReviewNode && !completed && (
+                    <AttorneyStrip
+                      onConnect={() => navigate(`/marketplace?task=${encodeURIComponent(task.title)}`)}
+                    />
+                  )}
+                  <TaskCard
+                    task={task}
+                    completed={completed}
+                    onToggle={(done) => handleTaskToggle(task.id, done)}
+                  />
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* ── 4. Quiet footer ─────────────────────────────────────────────────── */}
+        <div className="pt-4 space-y-6">
+          <div className="bg-slate-50 border border-slate-200 rounded-3xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-white border border-slate-200 flex items-center justify-center shrink-0">
+                <ShieldCheck className="w-5 h-5 text-indigo-600" />
+              </div>
+              <div>
+                <p className="font-bold text-slate-900">Stuck or overwhelmed?</p>
+                <p className="text-sm text-slate-500 font-medium">A verified estate professional can take any of these steps off your plate.</p>
+              </div>
+            </div>
             <Button
               onClick={() => navigate("/marketplace")}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-8 h-12 rounded-2xl shadow-lg shadow-indigo-200 shrink-0 relative z-10"
+              className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 h-11 rounded-2xl shadow-lg shadow-indigo-200 shrink-0"
             >
               Find an Advisor
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </div>
+
+          <p className="text-center text-xs text-slate-400 leading-relaxed max-w-xl mx-auto">
+            {openTaskCount > 0
+              ? `${openTaskCount} ${openTaskCount === 1 ? "step" : "steps"} remaining in your plan. `
+              : "Every step in your plan is complete. "}
+            ExpectedEstate provides self-help software and organizational tools. We are not a law firm and do not provide legal advice.
+          </p>
         </div>
       </div>
 
-      {/* Phase Chevron */}
-      <div className="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm">
-        <SettlementPhaseChevron
-          currentPhase={currentPhase}
-          completedPhases={completedPhases}
-          phases={dynamicRoadmap.map(p => ({
-            id: p.phase,
-            title: p.title,
-            subtitle: p.subtitle,
-            milestone: p.milestone,
-            isEscalationPath: p.isEscalationPath
-          }))}
-        />
-      </div>
-
-      {/* Current Phase Details */}
-      {
-        phaseData && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center">
-                  <Clock className="w-5 h-5 text-indigo-600" />
-                </div>
-                <div>
-                  <h2 className="text-lg font-black text-slate-900 tracking-tight leading-none">
-                    Active Phase: {phaseData.title}
-                  </h2>
-                  <p className="text-xs text-slate-500 mt-1">
-                    {phaseData.subtitle} • {phaseData.milestone}
-                  </p>
-                </div>
-              </div>
-              <Button
-                onClick={() => handlePhaseComplete(currentPhase)}
-                disabled={completedPhases.includes(currentPhase)}
-                className="bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-200 h-10 px-6 rounded-xl font-bold text-sm"
-              >
-                {completedPhases.includes(currentPhase) ? (
-                  <>
-                    <CheckCircle2 className="w-4 h-4 mr-2" />
-                    Phase Complete
-                  </>
-                ) : (
-                  <>
-                    Complete Phase
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </>
-                )}
-              </Button>
-            </div>
-
-            <PhaseTaskListComponent
-              phase={currentPhase}
-              phaseData={phaseData}
-              completedTaskIds={completedTaskIds}
-              onTaskToggle={handleTaskToggle}
-              className="shadow-md"
-            />
-          </div>
-        )
-      }
-
-      {/* All Phases Overview */}
-      <div className="space-y-4">
-        <div className="flex items-center gap-2 px-1 pt-4">
-          <div className="w-1.5 h-6 bg-slate-300 rounded-full" />
-          <h2 className="text-sm font-black uppercase tracking-widest text-slate-900">Full Roadmap</h2>
-          <span className="text-[11px] text-slate-500 font-black uppercase">(Phases 1-6)</span>
-        </div>
-        <h2 className="text-xl font-bold text-slate-900">All Phases</h2>
-        <div className="grid grid-cols-1 gap-4">
-          {dynamicRoadmap.map((phase) => {
-            const phaseTaskIds = phase.tasks.map(t => t.id);
-            const completedCount = phaseTaskIds.filter(id => completedTaskIds.includes(id)).length;
-            const totalCount = phaseTaskIds.length;
-            const progressPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
-            const isComplete = completedPhases.includes(phase.phase);
-            const isCurrent = currentPhase === phase.phase;
-
-            // Find if this phase is in the future
-            const phaseOrder = dynamicRoadmap.map(p => p.phase);
-            const currentIndex = phaseOrder.indexOf(currentPhase);
-            const thisIndex = phaseOrder.indexOf(phase.phase);
-            const isFuture = thisIndex > currentIndex + 1; // Show current + next, collapse beyond that
-
-            return (
-              <button
-                key={phase.phase}
-                onClick={() => setCurrentPhase(phase.phase)}
-                disabled={isFuture && !isComplete}
-                className={cn(
-                  "group relative bg-white p-5 rounded-[28px] border transition-all text-left overflow-hidden",
-                  isCurrent && !phase.isEscalationPath && "border-indigo-500 bg-indigo-50/40 shadow-xl ring-4 ring-indigo-500/5 scale-[1.02] z-10",
-                  isCurrent && phase.isEscalationPath && "border-amber-500 bg-amber-50/40 shadow-xl ring-4 ring-amber-500/5 scale-[1.02] z-10",
-                  !isCurrent && !isFuture && "border-slate-200 hover:border-slate-300 hover:bg-slate-50/50",
-                  isFuture && !isComplete && "border-slate-100 opacity-60 grayscale cursor-not-allowed bg-slate-50/30"
-                )}
-              >
-                {isCurrent && (
-                  <div className={cn(
-                    "absolute left-0 top-0 bottom-0 w-1.5 rounded-r-full",
-                    phase.isEscalationPath ? "bg-amber-600" : "bg-indigo-600"
-                  )} />
-                )}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className={cn(
-                      "w-10 h-10 rounded-full flex items-center justify-center transition-colors",
-                      isComplete && "bg-green-100",
-                      isCurrent && !isComplete && "bg-indigo-100",
-                      !isCurrent && !isFuture && !isComplete && "bg-slate-100",
-                      isFuture && !isComplete && "bg-slate-200/50"
-                    )}>
-                      {isComplete ? (
-                        <CheckCircle2 className="w-5 h-5 text-green-600" />
-                      ) : isFuture && !isComplete ? (
-                        <Clock className="w-5 h-5 text-slate-400" />
-                      ) : (
-                        <span className={cn(
-                          "text-sm font-bold",
-                          isCurrent ? "text-indigo-600" : "text-slate-600"
-                        )}>
-                          {completedCount}/{totalCount}
-                        </span>
-                      )}
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h3 className="text-sm font-bold text-slate-900">{phase.title}</h3>
-                        {isFuture && !isComplete && (
-                          <Badge variant="outline" className="h-4 px-1.5 text-[10px] font-black uppercase tracking-widest bg-white border-slate-200 text-slate-400">
-                            Upcoming
-                          </Badge>
-                        )}
-                        {phase.isEscalationPath && (
-                          <Badge className="h-4 px-1.5 text-[10px] font-black uppercase tracking-widest bg-amber-600 text-white border-amber-600">
-                            Escalation Path
-                          </Badge>
-                        )}
-                      </div>
-                      {!isFuture ? (
-                        <p className="text-xs text-slate-500">{phase.subtitle} • {phase.milestone}</p>
-                      ) : (
-                        <p className="text-[10px] text-slate-400 font-medium italic">Coming after the {phaseOrder[thisIndex - 1].replace(/_/g, ' ').toLowerCase()} phase — you can look ahead any time</p>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    {isCurrent && (
-                      <Badge className="bg-indigo-600 text-white border-indigo-600 animate-pulse shadow-sm px-3 py-1 text-[11px] font-black uppercase">
-                        Currently Active
-                      </Badge>
-                    )}
-                    {!isFuture || isComplete ? (
-                      <div className="flex items-center gap-2">
-                        <div className="w-32 h-2 bg-slate-100 rounded-full overflow-hidden">
-                          <div
-                            className={cn(
-                              "h-full transition-all duration-500",
-                              isComplete ? "bg-green-600" : "bg-indigo-600"
-                            )}
-                            style={{ width: `${progressPercent}%` }}
-                          />
-                        </div>
-                        <span className="text-xs font-bold text-slate-600 w-10 text-right">
-                          {progressPercent}%
-                        </span>
-                      </div>
-                    ) : (
-                      <div className="text-[11px] font-black text-slate-300 uppercase tracking-widest pl-8">
-                        Awaiting Progress
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-      {/* ── Document Stage-Gate Modal ── */}
+      {/* ── Document gate modal ──────────────────────────────────────────────── */}
       <Dialog open={!!pendingDocTask} onOpenChange={(open) => { if (!open) setPendingDocTask(null); }}>
         <DialogContent className="max-w-md rounded-[2rem] p-0 overflow-hidden">
-          {/* Top accent bar */}
           <div className="h-1.5 bg-gradient-to-r from-blue-500 to-slate-600 w-full" />
           <div className="p-6 space-y-5">
             <DialogHeader>
@@ -756,23 +451,19 @@ export default function SettlementRoadmap() {
                   <FileText className="w-6 h-6 text-blue-600" />
                 </div>
                 <div className="flex-1">
-                  <DialogTitle className="text-lg font-black text-slate-900 leading-tight">
-                    Documents Required
-                  </DialogTitle>
+                  <DialogTitle className="text-lg font-black text-slate-900 leading-tight">Documents Required</DialogTitle>
                   <DialogDescription className="text-sm text-slate-600 font-medium mt-1 leading-relaxed">
-                    This task requires certain documents to be uploaded before it can be marked complete.
+                    This task needs certain documents uploaded before it can be marked complete.
                   </DialogDescription>
                 </div>
               </div>
             </DialogHeader>
 
-            {/* Task name */}
             <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4">
               <p className="text-[9px] font-black text-blue-700 uppercase tracking-widest mb-1">Task</p>
               <p className="text-sm font-bold text-blue-900">{pendingDocTask?.taskTitle}</p>
             </div>
 
-            {/* Missing docs list */}
             <div className="space-y-2">
               <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
                 Missing documents ({pendingDocTask?.missingDocs.length})
@@ -790,10 +481,9 @@ export default function SettlementRoadmap() {
             </div>
 
             <p className="text-xs text-slate-500 leading-relaxed">
-              Upload the required documents in the <strong className="text-slate-700">Document Vault</strong> to satisfy this gate, or mark complete anyway if you have them on file elsewhere.
+              Upload them in the <strong className="text-slate-700">Document Vault</strong>, or mark complete anyway if you have them on file elsewhere.
             </p>
 
-            {/* Action buttons */}
             <div className="flex flex-col gap-2.5 pt-1">
               <Button
                 onClick={() => { setPendingDocTask(null); navigate("/documents"); }}
@@ -814,10 +504,9 @@ export default function SettlementRoadmap() {
         </DialogContent>
       </Dialog>
 
-      {/* ── Attorney Review Interstitial Modal ── */}
+      {/* ── Attorney review modal (still gates checkbox completion) ──────────── */}
       <Dialog open={!!pendingAttorneyTask} onOpenChange={(open) => { if (!open) setPendingAttorneyTask(null); }}>
         <DialogContent className="max-w-md rounded-[2rem] p-0 overflow-hidden">
-          {/* Top accent bar */}
           <div className="h-1.5 bg-gradient-to-r from-amber-400 to-orange-500 w-full" />
           <div className="p-6 space-y-5">
             <DialogHeader>
@@ -826,9 +515,7 @@ export default function SettlementRoadmap() {
                   <Scale className="w-6 h-6 text-amber-600" />
                 </div>
                 <div className="flex-1">
-                  <DialogTitle className="text-lg font-black text-slate-900 leading-tight">
-                    Attorney Review Recommended
-                  </DialogTitle>
+                  <DialogTitle className="text-lg font-black text-slate-900 leading-tight">Attorney Review Recommended</DialogTitle>
                   <DialogDescription className="text-sm text-slate-600 font-medium mt-1 leading-relaxed">
                     This task involves a legal decision that carries personal fiduciary risk.
                   </DialogDescription>
@@ -836,13 +523,11 @@ export default function SettlementRoadmap() {
               </div>
             </DialogHeader>
 
-            {/* Task name */}
             <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4">
               <p className="text-[9px] font-black text-amber-700 uppercase tracking-widest mb-1">Task</p>
               <p className="text-sm font-bold text-amber-900">{pendingAttorneyTask?.taskTitle}</p>
             </div>
 
-            {/* Warning content */}
             <div className="space-y-3 text-sm text-slate-700 leading-relaxed">
               <p>
                 Completing this task incorrectly — without proper legal guidance — could expose you to <strong className="text-slate-900">personal liability as executor</strong>.
@@ -852,7 +537,6 @@ export default function SettlementRoadmap() {
               </p>
             </div>
 
-            {/* Action buttons */}
             <div className="flex flex-col gap-2.5 pt-1">
               <Button
                 onClick={() => navigate(`/marketplace${pendingAttorneyTask?.taskTitle ? `?task=${encodeURIComponent(pendingAttorneyTask.taskTitle)}` : ''}`)}
@@ -872,6 +556,101 @@ export default function SettlementRoadmap() {
           </div>
         </DialogContent>
       </Dialog>
-    </DashboardLayout >
+    </DashboardLayout>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Attorney strip — slim inline guidance, not a wall
+// ─────────────────────────────────────────────────────────────────────────────
+function AttorneyStrip({ onConnect }: { onConnect: () => void }) {
+  return (
+    <div className="flex items-center gap-3 px-5 py-3.5 bg-amber-50 border border-amber-200 rounded-2xl">
+      <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0" />
+      <p className="text-sm text-amber-900 font-medium flex-1 leading-relaxed">
+        <span className="font-bold">Attorney review recommended</span> — this step carries personal liability risk
+      </p>
+      <button
+        onClick={onConnect}
+        className="text-sm font-bold text-amber-800 underline underline-offset-2 hover:text-amber-950 shrink-0"
+      >
+        Connect with an attorney →
+      </button>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Task card — one full-width checklist item
+// ─────────────────────────────────────────────────────────────────────────────
+function TaskCard({
+  task,
+  completed,
+  onToggle,
+}: {
+  task: PhaseTask;
+  completed: boolean;
+  onToggle: (completed: boolean) => void;
+}) {
+  const hasDocs = ((task as any).requiredDocs?.length ?? 0) > 0;
+
+  return (
+    <div className={cn(
+      "bg-white border rounded-2xl transition-all",
+      completed ? "border-emerald-200 bg-emerald-50/30" : "border-slate-100 shadow-sm hover:border-slate-200"
+    )}>
+      <div className="flex items-start gap-4 p-5">
+        <button
+          onClick={() => onToggle(!completed)}
+          aria-label={completed ? "Mark not done" : "Mark done"}
+          className={cn(
+            "w-6 h-6 rounded-md border-2 flex items-center justify-center shrink-0 mt-0.5 transition-all",
+            completed
+              ? "bg-emerald-500 border-emerald-500"
+              : "border-slate-300 hover:border-indigo-500 hover:bg-indigo-50"
+          )}
+        >
+          {completed && <Check className="w-4 h-4 text-white" />}
+        </button>
+
+        <div className="flex-1 min-w-0 space-y-1.5">
+          <p className={cn(
+            "font-bold leading-snug",
+            completed ? "text-emerald-900 line-through decoration-emerald-300" : "text-slate-900"
+          )}>
+            {task.title}
+          </p>
+          <p className={cn(
+            "text-sm font-medium leading-relaxed",
+            completed ? "text-emerald-700/70" : "text-slate-500"
+          )}>
+            {task.description}
+          </p>
+          <div className="flex items-center gap-2.5 pt-0.5 flex-wrap">
+            {task.estimatedTime && (
+              <span className="text-xs text-slate-400 font-semibold flex items-center gap-1">
+                <Clock className="w-3 h-3" /> {task.estimatedTime}
+              </span>
+            )}
+            {task.isOptional && (
+              <span className="text-xs text-slate-400 font-semibold">Optional</span>
+            )}
+          </div>
+        </div>
+
+        <div className="shrink-0 flex flex-col items-end gap-1.5">
+          {task.category && (
+            <span className="text-[11px] font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full">
+              Court required
+            </span>
+          )}
+          {hasDocs && !task.category && (
+            <span className="text-[11px] font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full flex items-center gap-1">
+              <FileText className="w-3 h-3" /> Documents
+            </span>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
