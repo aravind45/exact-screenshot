@@ -1282,13 +1282,18 @@ export default function OnboardingGuidedWizard() {
                                             <Plus className="w-4 h-4 mr-2" /> Add Another Heir
                                         </Button>
 
-                                        <Button
-                                            size="lg"
-                                            onClick={handleNext}
-                                            className="w-full rounded-2xl h-12 font-bold"
-                                        >
-                                            {isLoading ? "Saving Heirs..." : "Continue"}
-                                        </Button>
+                                        <div className="flex flex-col gap-3">
+                                            <Button
+                                                size="lg"
+                                                onClick={handleNext}
+                                                className="w-full rounded-2xl h-12 font-bold"
+                                            >
+                                                {isLoading ? "Saving Heirs..." : "Continue"}
+                                            </Button>
+                                            <Button variant="ghost" onClick={() => goToStep(currentStep + 1)} className="text-slate-400 text-xs">
+                                                Not sure yet — you can add heirs later from your dashboard
+                                            </Button>
+                                        </div>
                                     </div>
                                 )}
 
@@ -1432,14 +1437,19 @@ export default function OnboardingGuidedWizard() {
                                             )}
                                         </div>
 
-                                        <Button
-                                            size="lg"
-                                            onClick={handleNext}
-                                            disabled={assets.every(a => !a.name) || isLoading}
-                                            className="w-full rounded-2xl h-12 font-bold"
-                                        >
-                                            {isLoading ? "Saving..." : "Continue to Team"}
-                                        </Button>
+                                        <div className="flex flex-col gap-3">
+                                            <Button
+                                                size="lg"
+                                                onClick={handleNext}
+                                                disabled={assets.every(a => !a.name) || isLoading}
+                                                className="w-full rounded-2xl h-12 font-bold"
+                                            >
+                                                {isLoading ? "Saving..." : "Continue to Team"}
+                                            </Button>
+                                            <Button variant="ghost" onClick={() => goToStep(currentStep + 1)} className="text-slate-400 text-xs">
+                                                Don't have the details handy — skip for now, add them later
+                                            </Button>
+                                        </div>
                                     </div>
                                 )}
 

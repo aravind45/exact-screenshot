@@ -436,7 +436,7 @@ export default function SettlementRoadmap() {
                     "text-[11px] font-black uppercase tracking-[0.2em]",
                     isContested ? "text-rose-300" : "text-indigo-300"
                   )}>
-                    {isContested ? "Active Conflict Overlay" : "Deterministic Settlement Engine"}
+                    {isContested ? "Dispute Detected" : `Your Legal Action Plan for ${estate.deceasedState || "Your State"}`}
                   </h3>
                   {isContested && (
                     <Badge className="bg-white text-rose-900 border-none text-[10px] font-black uppercase tracking-tighter px-2 h-5 animate-pulse">
@@ -447,24 +447,6 @@ export default function SettlementRoadmap() {
                 <p className="text-lg font-bold leading-tight">
                   {isContested ? "Litigation Hold detected on assets. Your Action Plan has been updated to the SPECIAL (Contested) overlay." : authorityRec.reason}
                 </p>
-                <div className="flex flex-wrap gap-2 mt-4">
-                  <div className="flex items-center gap-1.5 px-2 py-1 bg-white/10 rounded border border-white/20">
-                    <span className="text-[10px] font-black uppercase tracking-tight text-white/70">Master Source</span>
-                    <span className="text-[10px] font-bold text-white uppercase">{authorityRec.authoritySource?.replace('_', ' ')}</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 px-2 py-1 bg-white/10 rounded border border-white/20">
-                    <span className="text-[10px] font-black uppercase tracking-tight text-white/70">Orchestrator Mode</span>
-                    <span className="text-[10px] font-bold text-white uppercase">{authorityRec.masterMode}</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 px-2 py-1 bg-white/10 rounded border border-white/20">
-                    <span className="text-[10px] font-black uppercase tracking-tight text-white/70">Active Engines</span>
-                    <div className="flex gap-1">
-                      {authorityRec.activeEngines?.map(engine => (
-                        <span key={engine} className="text-[10px] font-bold text-white uppercase bg-white/10 px-1.5 rounded">{engine.replace('_', ' ')}</span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
               </div>
             </div>
           </div>
@@ -710,7 +692,7 @@ export default function SettlementRoadmap() {
                         <h3 className="text-sm font-bold text-slate-900">{phase.title}</h3>
                         {isFuture && !isComplete && (
                           <Badge variant="outline" className="h-4 px-1.5 text-[10px] font-black uppercase tracking-widest bg-white border-slate-200 text-slate-400">
-                            Locked
+                            Upcoming
                           </Badge>
                         )}
                         {phase.isEscalationPath && (
@@ -722,7 +704,7 @@ export default function SettlementRoadmap() {
                       {!isFuture ? (
                         <p className="text-xs text-slate-500">{phase.subtitle} • {phase.milestone}</p>
                       ) : (
-                        <p className="text-[10px] text-slate-400 font-medium italic">Unlocks after {phaseOrder[thisIndex - 1].replace('_', ' ')} phase</p>
+                        <p className="text-[10px] text-slate-400 font-medium italic">Coming after the {phaseOrder[thisIndex - 1].replace(/_/g, ' ').toLowerCase()} phase — you can look ahead any time</p>
                       )}
                     </div>
                   </div>

@@ -618,7 +618,14 @@ export default function Dashboard() {
                 )}
                 <div className="space-y-3">
                   <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest pt-2">Critical Dates</p>
-                  <DeadlineTracker estateId={estate?.id || ""} />
+                  <DeadlineTracker
+                    estateId={estate?.id || ""}
+                    onUrgencyChange={(hasUrgent) => {
+                      // Court deadlines within 30 days must never stay hidden
+                      // behind a collapsed accordion.
+                      if (hasUrgent) setThisWeekOpen(true);
+                    }}
+                  />
                 </div>
               </div>
             </motion.div>

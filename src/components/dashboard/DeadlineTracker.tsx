@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -228,7 +228,7 @@ function DeadlineRow({
 // ─────────────────────────────────────────────────────────────────────────────
 // Main component
 // ─────────────────────────────────────────────────────────────────────────────
-export function DeadlineTracker({ estateId }: { estateId: string }) {
+export function DeadlineTracker({ estateId, onUrgencyChange }: { estateId: string; onUrgencyChange?: (hasUrgent: boolean) => void }) {
     const { toast } = useToast();
     const queryClient = useQueryClient();
     const navigate = useNavigate();
@@ -252,6 +252,12 @@ export function DeadlineTracker({ estateId }: { estateId: string }) {
     const pending = deadlines.filter(d => d.isPending);
     const overdue = computed.filter(d => d.isOverdue);
     const urgent = computed.filter(d => d.isUrgent && !d.isOverdue);
+
+    // Notify parent (Dashboard) when a deadline crosses into the ≤30-day window
+    // so it can surface the section instead of leaving it collapsed.
+    useEffect(() => {
+        onUrgencyChange?.(overdue.length > 0 || urgent.length > 0);
+    }, [overdue.length, urgent.length, onUrgencyChange]);
 
     // ── Mutations ─────────────────────────────────────────────────────────────
     const invalidate = () => queryClient.invalidateQueries({ queryKey: ["deadlines", estateId] });
