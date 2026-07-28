@@ -402,28 +402,62 @@ export default function Assets() {
                         <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
                             {/* Left Column: Asset List */}
                             <div className="lg:col-span-3 space-y-4">
-                                {/* ── Compact Authority Chips Row ─────────────────────── */}
-                                <div className="flex items-center gap-2 flex-wrap">
-                                    {[{ label: "Court", count: authoritySummary.COURT_REQUIRED, dot: "bg-rose-500" },
-                                    { label: "Trust", count: authoritySummary.TRUSTEE_DIRECT, dot: "bg-emerald-500" },
-                                    { label: "Affidavit", count: authoritySummary.AFFIDAVIT_SMALL, dot: "bg-amber-500" },
-                                    { label: "Contract", count: authoritySummary.BENEFICIARY_CONTRACT, dot: "bg-indigo-500" },
-                                    { label: "Title", count: authoritySummary.SURVIVORSHIP_TITLE, dot: "bg-slate-500" },
-                                    { label: "Hold", count: authoritySummary.LITIGATION_HOLD, dot: "bg-red-700" }].map(chip => (
-                                        <div key={chip.label} className={cn(
-                                            "flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border shadow-sm text-[11px] font-black transition-all",
-                                            chip.count > 0 ? "border-slate-200 text-slate-700" : "border-slate-100 text-slate-300"
-                                        )}>
-                                            <div className={cn("w-1.5 h-1.5 rounded-full", chip.count > 0 ? chip.dot : "bg-slate-200")} />
-                                            <span className="uppercase tracking-wide">{chip.label}</span>
-                                            <span className={cn("font-black", chip.count > 0 ? "text-slate-900" : "text-slate-300")}>{chip.count}</span>
+                                {/* ── Asset Detective bridge: surface AI discovery at the point of manual entry ── */}
+                                {!isViewer && (
+                                    <button
+                                        onClick={() => setActiveTab("detective")}
+                                        className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl border border-dashed border-indigo-200 bg-indigo-50/40 hover:bg-indigo-50 hover:border-indigo-300 transition-all text-left group"
+                                    >
+                                        <div className="p-2 bg-white rounded-xl shadow-sm group-hover:scale-105 transition-transform">
+                                            <Sparkles className="w-4 h-4 text-indigo-600" />
                                         </div>
-                                    ))}
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-xs font-black text-slate-800">Have a bank statement or tax return?</p>
+                                            <p className="text-[11px] text-slate-500 font-medium">Scan it with the Asset Detective instead of typing accounts by hand</p>
+                                        </div>
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-indigo-600 shrink-0">Scan a document →</span>
+                                    </button>
+                                )}
+
+                                {/* ── Two plain-language legal tracks (details stay on each asset card) ── */}
+                                <div className="flex items-center gap-2 flex-wrap">
+                                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-rose-50 border border-rose-200 shadow-sm text-[11px] font-black text-rose-700">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                                        <span className="uppercase tracking-wide">Probate — needs court authority</span>
+                                        <span className="text-rose-900">{(authoritySummary.COURT_REQUIRED || 0) + (authoritySummary.LITIGATION_HOLD || 0)}</span>
+                                    </div>
+                                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 shadow-sm text-[11px] font-black text-emerald-700">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                                        <span className="uppercase tracking-wide">Direct transfer — no court needed</span>
+                                        <span className="text-emerald-900">{(authoritySummary.TRUSTEE_DIRECT || 0) + (authoritySummary.AFFIDAVIT_SMALL || 0) + (authoritySummary.BENEFICIARY_CONTRACT || 0) + (authoritySummary.SURVIVORSHIP_TITLE || 0)}</span>
+                                    </div>
                                     <div className="ml-auto flex items-center gap-1.5 text-[10px] font-black text-slate-400 uppercase tracking-widest">
                                         <div className="w-1.5 h-1.5 rounded-full bg-slate-300" />
                                         {assets.length} total
                                     </div>
                                 </div>
+                                <details className="text-[11px] text-slate-500 -mt-1">
+                                    <summary className="cursor-pointer font-bold text-slate-400 hover:text-slate-600 select-none">Show detailed legal categories</summary>
+                                    <div className="flex items-center gap-2 flex-wrap pt-2">
+                                        {[{ label: "Court", count: authoritySummary.COURT_REQUIRED, dot: "bg-rose-500" },
+                                        { label: "Trust", count: authoritySummary.TRUSTEE_DIRECT, dot: "bg-emerald-500" },
+                                        { label: "Affidavit", count: authoritySummary.AFFIDAVIT_SMALL, dot: "bg-amber-500" },
+                                        { label: "Contract", count: authoritySummary.BENEFICIARY_CONTRACT, dot: "bg-indigo-500" },
+                                        { label: "Title", count: authoritySummary.SURVIVORSHIP_TITLE, dot: "bg-slate-500" },
+                                        { label: "Hold", count: authoritySummary.LITIGATION_HOLD, dot: "bg-red-700" }].map(chip => (
+                                            <div key={chip.label} className={cn(
+                                                "flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border shadow-sm text-[11px] font-black transition-all",
+                                                chip.count > 0 ? "border-slate-200 text-slate-700" : "border-slate-100 text-slate-300"
+                                            )}>
+                                                <div className={cn("w-1.5 h-1.5 rounded-full", chip.count > 0 ? chip.dot : "bg-slate-200")} />
+                                                <span className="uppercase tracking-wide">{chip.label}</span>
+                                                <span className={cn("font-black", chip.count > 0 ? "text-slate-900" : "text-slate-300")}>{chip.count}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </details>
+
+                                {/* ── Compact Authority Chips Row (legacy, replaced above) ─────────────────────── */}
 
                                 {/* ── Search + Filters ─────────────────────────────────── */}
                                 <div className="flex items-center gap-2">

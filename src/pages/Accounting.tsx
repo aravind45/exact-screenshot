@@ -25,6 +25,7 @@ import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { api, AccountingReadiness } from "@/lib/api";
 import { motion, AnimatePresence } from "framer-motion";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 export default function Accounting() {
     const navigate = useNavigate();
@@ -153,17 +154,31 @@ export default function Accounting() {
                         </div>
                     </div>
                     <div className="flex items-center gap-2">
-                        <Button
-                            variant={isWaiverEnabled ? "default" : "outline"}
-                            size="sm"
-                            className={cn(
-                                "h-9 text-[11px] font-black uppercase tracking-widest px-4 rounded-xl transition-all",
-                                isWaiverEnabled ? "bg-amber-600 hover:bg-amber-700 border-none text-white shadow-md shadow-amber-200" : "border-slate-300 bg-white text-slate-700"
-                            )}
-                            onClick={() => setIsWaiverEnabled(!isWaiverEnabled)}
-                        >
-                            {isWaiverEnabled ? "Waiver Active" : "Waive Accounting"}
-                        </Button>
+                        <div className="flex items-center gap-1.5">
+                            <Button
+                                variant={isWaiverEnabled ? "default" : "ghost"}
+                                size="sm"
+                                className={cn(
+                                    "h-9 text-[11px] font-black uppercase tracking-widest px-4 rounded-xl transition-all",
+                                    isWaiverEnabled ? "bg-amber-600 hover:bg-amber-700 border-none text-white shadow-md shadow-amber-200" : "text-slate-400 hover:text-slate-600"
+                                )}
+                                onClick={() => setIsWaiverEnabled(!isWaiverEnabled)}
+                            >
+                                {isWaiverEnabled ? "Waiver Active" : "Waive Accounting"}
+                            </Button>
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <button className="text-slate-300 hover:text-slate-500 transition-colors" aria-label="About accounting waivers">
+                                            <Info className="w-3.5 h-3.5" />
+                                        </button>
+                                    </TooltipTrigger>
+                                    <TooltipContent className="max-w-xs text-xs leading-relaxed">
+                                        A waiver is a legal election made at final settlement — every beneficiary must consent in writing. It does not remove your duty to report Net Property on Hand. Most executors leave this off.
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                        </div>
                         <Button
                             onClick={handleExportReport}
                             size="sm"
