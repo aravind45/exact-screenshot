@@ -571,6 +571,9 @@ export default function Auth() {
                     <p className="text-slate-500 text-xs ml-[44px] leading-relaxed">
                       I need to settle an estate, manage assets, and distribute inheritance.
                     </p>
+                    <p className="text-slate-400 text-[11px] ml-[44px] leading-relaxed mt-1.5 italic">
+                      You were named in the will — or appointed by the court — to handle the paperwork.
+                    </p>
                   </button>
 
                   <button
@@ -600,6 +603,9 @@ export default function Auth() {
                     </div>
                     <p className="text-slate-500 text-xs ml-[44px] leading-relaxed">
                       I was invited by an executor to view my inheritance and estate progress.
+                    </p>
+                    <p className="text-slate-400 text-[11px] ml-[44px] leading-relaxed mt-1.5 italic">
+                      You are receiving money or assets from the estate — the executor handles the work.
                     </p>
                   </button>
 
@@ -748,6 +754,9 @@ export default function Auth() {
               <p className="text-[10px] text-center text-slate-400 mt-4 leading-relaxed">
                 By continuing, you acknowledge that access is restricted to authorized fiduciaries.
                 Read our <a href="/terms" className="underline">Terms</a> and <a href="/privacy" className="underline">Privacy Policy</a>.
+              </p>
+              <p className="text-xs text-center text-slate-500 mt-5 leading-relaxed max-w-md mx-auto">
+                🛡️ ExpectedEstate provides self-help software and organizational tools. We are not a law firm and do not provide legal advice.
               </p>
             </div>
           </div>
