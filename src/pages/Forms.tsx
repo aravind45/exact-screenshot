@@ -3,6 +3,7 @@ import { Sidebar } from "@/components/Sidebar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { SEO } from "@/components/SEO";
+import { AdvancedSection } from "@/components/ScreenIntro";
 import { FileText, Download, Eye, Gavel, Scale, ScrollText, Loader2, MapPin, Search, ShieldCheck, Lock, AlertCircle, CheckCircle2, Info, Sparkles } from "lucide-react";
 import * as LucideIcons from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -266,9 +267,9 @@ const Forms = () => {
                                 animate={{ opacity: 1, x: 0 }}
                                 className="text-2xl font-bold tracking-tight text-gray-900"
                             >
-                                PRO <span className="text-primary italic">FORMS</span>
+                                Court <span className="text-primary italic">Forms</span>
                             </motion.h1>
-                            <p className="text-gray-500 text-xs font-medium">Official Judicial Council Templates</p>
+                            <p className="text-gray-500 text-xs font-medium">Official court templates — review every field before filing</p>
                         </div>
 
                         <div className="relative w-64 group">
@@ -282,11 +283,11 @@ const Forms = () => {
                         </div>
                     </div>
 
-                    {/* State & Process Selectors */}
+                    {/* State selector (primary filter) */}
                     <div className="flex items-center gap-3">
                         <div className="flex items-center gap-2 text-gray-600">
                             <MapPin className="w-4 h-4" />
-                            <span className="text-xs font-bold uppercase tracking-wider">Filters:</span>
+                            <span className="text-xs font-bold uppercase tracking-wider">State:</span>
                         </div>
                         <select
                             value={selectedState}
@@ -308,32 +309,38 @@ const Forms = () => {
                                 ))}
                             </optgroup>
                         </select>
-                        <select
-                            value={processFilter}
-                            onChange={(e) => setProcessFilter(e.target.value)}
-                            className="px-4 py-2 h-10 bg-white border border-gray-200 rounded-lg text-gray-900 font-medium text-sm focus:outline-none focus:border-primary/50 transition-all cursor-pointer"
-                        >
-                            <option value="">All Processes</option>
-                            <option value="probate_initialization">Probate Init</option>
-                            <option value="notices">Notices</option>
-                            <option value="inventory">Inventory</option>
-                            <option value="creditor_claims">Creditor Claims</option>
-                            <option value="distribution">Distribution</option>
-                            <option value="closing">Closing</option>
-                        </select>
 
-                        <select
-                            value={authorityFilter}
-                            onChange={(e) => setAuthorityFilter(e.target.value)}
-                            className="px-4 py-2 h-10 bg-white border border-gray-200 rounded-lg text-gray-900 font-medium text-sm focus:outline-none focus:border-primary/50 transition-all cursor-pointer"
-                        >
-                            <option value="">All Authority Tiers</option>
-                            <option value="COURT_REQUIRED">Court Authority</option>
-                            <option value="TRUSTEE_DIRECT">Trustee Authority</option>
-                            <option value="AFFIDAVIT_SMALL">Affidavit Support</option>
-                            <option value="BENEFICIARY_CONTRACT">Beneficiary Claims</option>
-                            <option value="SURVIVORSHIP_TITLE">Survivorship Title</option>
-                        </select>
+                        {/* Secondary filters — collapsed by default to keep the header calm */}
+                        <AdvancedSection title="More filters">
+                            <div className="flex items-center gap-3 flex-wrap">
+                                <select
+                                    value={processFilter}
+                                    onChange={(e) => setProcessFilter(e.target.value)}
+                                    className="px-4 py-2 h-10 bg-white border border-gray-200 rounded-lg text-gray-900 font-medium text-sm focus:outline-none focus:border-primary/50 transition-all cursor-pointer"
+                                >
+                                    <option value="">All Processes</option>
+                                    <option value="probate_initialization">Probate Init</option>
+                                    <option value="notices">Notices</option>
+                                    <option value="inventory">Inventory</option>
+                                    <option value="creditor_claims">Creditor Claims</option>
+                                    <option value="distribution">Distribution</option>
+                                    <option value="closing">Closing</option>
+                                </select>
+
+                                <select
+                                    value={authorityFilter}
+                                    onChange={(e) => setAuthorityFilter(e.target.value)}
+                                    className="px-4 py-2 h-10 bg-white border border-gray-200 rounded-lg text-gray-900 font-medium text-sm focus:outline-none focus:border-primary/50 transition-all cursor-pointer"
+                                >
+                                    <option value="">All Authority Tiers</option>
+                                    <option value="COURT_REQUIRED">Court Authority</option>
+                                    <option value="TRUSTEE_DIRECT">Trustee Authority</option>
+                                    <option value="AFFIDAVIT_SMALL">Affidavit Support</option>
+                                    <option value="BENEFICIARY_CONTRACT">Beneficiary Claims</option>
+                                    <option value="SURVIVORSHIP_TITLE">Survivorship Title</option>
+                                </select>
+                            </div>
+                        </AdvancedSection>
 
                         {!STATES.find(s => s.id === selectedState)?.supported && (
                             <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-lg">

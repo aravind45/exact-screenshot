@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
+import { ScreenIntro } from "@/components/ScreenIntro";
 import {
     Calculator,
     ArrowDownRight,
@@ -188,6 +189,10 @@ export default function Accounting() {
                         </Button>
                     </div>
                 </header>
+
+                <ScreenIntro
+                    what="This is the running record of money in and money out. The court and the beneficiaries expect it at final settlement — recording things as they happen is far easier than reconstructing a year later."
+                />
 
                 {/* Accounting Readiness Banner */}
                 <AnimatePresence mode="wait">

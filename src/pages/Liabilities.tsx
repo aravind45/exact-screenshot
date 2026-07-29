@@ -1,5 +1,6 @@
 import React from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
+import { ScreenIntro } from "@/components/ScreenIntro";
 import { Button } from "@/components/ui/button";
 import { Plus, AlertCircle, CheckCircle2, Clock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -100,6 +101,10 @@ export default function Liabilities() {
                     </Button>
                 )}
             </header>
+
+            <ScreenIntro
+                what="Everything the estate owes — and the order the law says to pay it. Paying debts in the wrong order, or before the claim window closes, can make you personally responsible for the shortfall."
+            />
 
             <div className="space-y-6">
                 {/* Stats Widget */}

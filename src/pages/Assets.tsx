@@ -3,6 +3,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
+import { ScreenIntro } from "@/components/ScreenIntro";
 import { AssetCard } from "@/components/AssetCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -361,6 +362,15 @@ export default function Assets() {
                         </Button>
                     )}
                 </header>
+                <ScreenIntro
+                    what="This is the master list of everything the estate owns. The court's Inventory & Appraisal is built from this list — so add what you know as you find it, and don't worry about exact values yet."
+                    {...(!isViewer && assets?.length === 0 ? {
+                        action: {
+                            label: "Not sure what exists? Use the Asset Detective",
+                            onClick: () => setActiveTab("detective"),
+                        }
+                    } : {})}
+                />
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-10">
                     <div className="flex items-center justify-between bg-white p-1.5 rounded-[2.25rem] border border-slate-100 shadow-sm">
                         <TabsList className="bg-transparent border-none p-0 h-11">

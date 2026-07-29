@@ -246,44 +246,20 @@ export function Sidebar() {
     }
 
     // ─── HEIR SIDEBAR (read-only) ────────────────────────────────────────────
+    // Beneficiaries want one answer: "where do things stand?" Showing them the
+    // full fiduciary console (Asset Ledger, Accounting, Final Distribution…)
+    // was the app's biggest cognitive-load bug. Heirs get exactly three
+    // destinations; the executor carries the work.
     if (isHeir) {
         const HEIR_NAV: { title: string; items: NavItem[] }[] = [
             {
-                title: "Dashboard",
+                title: "My Estate",
                 items: [
-                    { label: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
+                    { label: "Progress", icon: LayoutDashboard, path: "/dashboard" },
+                    { label: "Documents", icon: Inbox, path: "/documents" },
+                    { label: "Help", icon: HelpCircle, path: "/help" },
                 ]
             },
-            {
-                title: "Case Setup",
-                items: [
-                    { label: "Case Setup", icon: User, path: "/profile?tab=case-setup" },
-                    { label: "Track Decision", icon: Map, path: "/roadmap" },
-                ]
-            },
-            {
-                title: "Settlement",
-                items: [
-                    { label: "Asset Ledger", icon: Landmark, path: "/assets" },
-                    { label: "Liabilities", icon: AlertCircle, path: "/liabilities" },
-                    { label: "Accounting", icon: Calculator, path: "/accounting" },
-                    { label: "Final Distribution", icon: CheckCircle2, path: "/distribution" },
-                ]
-            },
-            {
-                title: "Deadlines & Records",
-                items: [
-                    { label: "Deadlines & Follow-Ups", icon: Bell, path: "/follow-ups" },
-                    { label: "Document Vault", icon: Inbox, path: "/documents" },
-                    { label: "Settlement Trail", icon: History, path: "/settlement-trail" },
-                ]
-            },
-            {
-                title: "Team",
-                items: [
-                    { label: "Heirs & Benes", icon: Users, path: "/heirs" },
-                ]
-            }
         ];
 
         return (
