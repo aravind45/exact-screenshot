@@ -432,8 +432,8 @@ export default function DiscoveryQuiz() {
                                                         <Lock className="w-3 h-3" /> Secure & Non-Binding
                                                     </div>
                                                     <p className="text-center text-xs text-slate-400 leading-relaxed">
-                                                        Free for 15 days, then a paid plan. Your data is always
-                                                        visible and exportable — even if you never pay.
+                                                        Free for 7 days with every feature included, then a paid
+                                                        plan. Your data is always visible and exportable — even if you never pay.
                                                     </p>
                                                 </div>
                                             </>
